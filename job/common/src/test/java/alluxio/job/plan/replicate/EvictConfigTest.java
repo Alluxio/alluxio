@@ -39,16 +39,6 @@ public final class EvictConfigTest {
     }
   }
 
-  @Test
-  public void zeroReplicas() {
-    try {
-      new EvictConfig("", 0, 0);
-      Assert.fail("Cannot create EvictConfig with zero replicas");
-    } catch (IllegalArgumentException e) {
-      // expected exception thrown. test passes
-    }
-  }
-
   public void checkEquality(EvictConfig a, EvictConfig b) {
     Assert.assertEquals(a.getBlockId(), b.getBlockId());
     Assert.assertEquals(a.getReplicas(), b.getReplicas());

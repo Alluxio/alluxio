@@ -54,7 +54,7 @@ public final class EvictConfig implements PlanConfig {
   public EvictConfig(@JsonProperty("path") String path,
       @JsonProperty("blockId") long blockId,
       @JsonProperty("replicas") int replicas) {
-    Preconditions.checkArgument(replicas > 0, "replicas must be positive.");
+    Preconditions.checkArgument(replicas >= 0, "replicas must be non-negative.");
     mPath = path;
     mBlockId = blockId;
     mReplicas = replicas;
