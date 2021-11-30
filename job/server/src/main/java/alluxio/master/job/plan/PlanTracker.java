@@ -19,6 +19,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
+import alluxio.job.plan.replicate.EvictConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -178,6 +179,7 @@ public class PlanTracker {
   public synchronized void run(PlanConfig jobConfig, CommandManager manager,
       JobServerContext ctx, List<WorkerInfo> workers, long jobId) throws
       JobDoesNotExistException, ResourceExhaustedException {
+    checkActiveJobs(jobConfig);
     if (removeFinished()) {
       PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
@@ -295,5 +297,17 @@ public class PlanTracker {
                 && (name == null || name.isEmpty()
                 || x.getValue().getPlanInfoWire(false).getName().equals(name)))
         .map(Map.Entry::getKey).collect(Collectors.toSet());
+  }
+  private void checkActiveJobs(JobConfig jobConfig) throws JobDoesNotExistException {
+    if(jobConfig instanceof EvictConfig){
+      Set<Long> activeBlockIds = mCoordinators.values().stream()
+          .filter(x -> x.getPlanInfo().getJobConfig() instanceof EvictConfig)
+          .map(x -> ((EvictConfig) x.getPlanInfo().getJobConfig()).getBlockId())
+          .collect(Collectors.toSet());
+      long blockId = ((EvictConfig) jobConfig).getBlockId();
+      if(activeBlockIds.contains(blockId)){
+        throw new JobDoesNotExistException("There's job running for block {}, try later");
+      }
+    }
   }
 }
