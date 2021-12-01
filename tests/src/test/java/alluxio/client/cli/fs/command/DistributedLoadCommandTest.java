@@ -215,7 +215,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   }
 
   @Test
-  public void loadDirWithDirectCache() throws IOException, AlluxioException {
+  public void loadDirWithPassiveCache() throws IOException, AlluxioException {
     FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileD", WritePType.THROUGH,
         10);
@@ -224,27 +224,27 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     URIStatus status = fs.getStatus(uriD);
     Assert.assertNotEquals(100, status.getInMemoryPercentage());
     // Testing loading of a directory
-    sFsShell.run("distributedLoad", "/testRoot", "--direct-cache");
+    sFsShell.run("distributedLoad", "/testRoot", "--passive-cache");
     status = fs.getStatus(uriD);
     Assert.assertEquals(100, status.getInMemoryPercentage());
   }
 
   @Test
-  public void loadDirWithDirectCacheInBatch() throws IOException, AlluxioException {
+  public void loadDirWithPassiveCacheInBatch() throws IOException, AlluxioException {
     FileSystem fs = sResource.get().getClient();
     int fileSize = 20;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
     for (int i = 0; i < fileSize; i++) {
-      FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFile" + i, WritePType.THROUGH,
+      FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFilePassive" + i, WritePType.THROUGH,
           10);
 
-      AlluxioURI uri = new AlluxioURI("/testBatchRoot/testBatchFile" + i);
+      AlluxioURI uri = new AlluxioURI("/testBatchRoot/testBatchFilePassive" + i);
       uris.add(uri);
       URIStatus status = fs.getStatus(uri);
       Assert.assertNotEquals(100, status.getInMemoryPercentage());
     }
     // Testing loading of a directory
-    sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", "3", "--direct-cache");
+    sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", "3", "--passive-cache");
     for (AlluxioURI uri : uris) {
       URIStatus status = fs.getStatus(uri);
       Assert.assertEquals(100, status.getInMemoryPercentage());
