@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -114,6 +116,9 @@ public class TieredBlockStore implements BlockStore {
 
   /** Management task coordinator. */
   private ManagementTaskCoordinator mTaskCoordinator;
+
+  /** An object storing the mapping of tier aliases to ordinals. */
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -322,25 +327,26 @@ public class TieredBlockStore implements BlockStore {
     }
     // NOTE: a temp block is only visible to its own writer, unnecessary to acquire
     // block lock here since no sharing
+    TempBlockMeta tempBlockMeta;
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+    }
+
+    StorageDirView allocationDir = allocateSpace(sessionId,
+        AllocateOptions.forRequestSpace(additionalBytes, tempBlockMeta.getBlockLocation()));
+    if (!allocationDir.toBlockStoreLocation().equals(tempBlockMeta.getBlockLocation())) {
+      // If reached here, allocateSpace() failed to enforce 'forceLocation' flag.
+      throw new IllegalStateException(
+          String.format("Allocation error: location enforcement failed for location: %s",
+              allocationDir.toBlockStoreLocation()));
+    }
+
+    // Increase the size of this temp block
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
-      TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-
-      StorageDirView allocationDir = allocateSpace(sessionId,
-          AllocateOptions.forRequestSpace(additionalBytes, tempBlockMeta.getBlockLocation()));
-      if (!allocationDir.toBlockStoreLocation().equals(tempBlockMeta.getBlockLocation())) {
-        // If reached here, allocateSpace() failed to enforce 'forceLocation' flag.
-        throw new IllegalStateException(
-            String.format("Allocation error: location enforcement failed for location: %s",
-                allocationDir.toBlockStoreLocation()));
-      }
-
-      // Increase the size of this temp block
-      try {
-        mMetaManager.resizeTempBlockMeta(
-            tempBlockMeta, tempBlockMeta.getBlockSize() + additionalBytes);
-      } catch (InvalidWorkerStateException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      }
+      mMetaManager.resizeTempBlockMeta(
+          tempBlockMeta, tempBlockMeta.getBlockSize() + additionalBytes);
+    } catch (InvalidWorkerStateException e) {
+      throw Throwables.propagate(e); // we shall never reach here
     }
   }
 
@@ -711,16 +717,18 @@ public class TieredBlockStore implements BlockStore {
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
       AllocateOptions options)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
       // NOTE: a temp block is supposed to be visible for its own writer,
       // unnecessary to acquire block lock here since no sharing.
       if (newBlock) {
         checkTempBlockIdAvailable(blockId);
       }
+    }
 
       // Allocate space.
-      StorageDirView dirView = allocateSpace(sessionId, options);
+    StorageDirView dirView = allocateSpace(sessionId, options);
 
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
       // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
       // StorageDirView.createTempBlockMeta.
       TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, options.getSize());
@@ -772,6 +780,7 @@ public class TieredBlockStore implements BlockStore {
 
     int blocksIterated = 0;
     int blocksRemoved = 0;
+    int blocksMoved = 0;
     int spaceFreed = 0;
 
     // List of all dirs that belong to the given location.
@@ -809,6 +818,30 @@ public class TieredBlockStore implements BlockStore {
       if (evictorView.isBlockEvictable(blockToDelete)) {
         try {
           BlockMeta blockMeta = mMetaManager.getBlockMeta(blockToDelete);
+          int tirLevel = mStorageTierAssoc.getOrdinal(blockMeta.getBlockLocation().tierAlias());
+          LOG.debug("block [{}] to delete or move, cur tier level [{}]", blockMeta.getBlockId(),
+              tirLevel);
+          if (mStorageTierAssoc.size() > tirLevel + 1) {
+            LOG.debug("block [{}] move to tier level [{}]", blockMeta.getBlockId(), tirLevel + 1);
+            BlockStoreLocation loc = BlockStoreLocation
+                .anyDirInTier(mStorageTierAssoc.getAlias(tirLevel + 1));
+            MoveBlockResult result = moveBlockInternal(sessionId, blockMeta.getBlockId(),
+                BlockStoreLocation.anyTier(), AllocateOptions.forMove(loc));
+            if (result.getSuccess()) {
+              for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+                synchronized (listener) {
+                  listener.onMoveBlockByClient(sessionId, blockMeta.getBlockId(),
+                      result.getSrcLocation(), result.getDstLocation());
+                }
+              }
+              blocksMoved++;
+              spaceFreed += blockMeta.getBlockSize();
+              continue;
+            }
+            LOG.debug("block [{}] move to tier level [{}] failed.", blockMeta.getBlockId(),
+                tirLevel + 1);
+          }
+
           removeBlockFileAndMeta(blockMeta);
           blocksRemoved++;
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -822,6 +855,13 @@ public class TieredBlockStore implements BlockStore {
         } catch (BlockDoesNotExistException e) {
           LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
           continue;
+        } catch (InvalidWorkerStateException e) {
+          LOG.warn("Failed to evict blockId {}, error happened.", blockToDelete);
+          LOG.warn("Failed to evict blockId, exception:", e);
+          continue;
+        } catch (BlockAlreadyExistsException e) {
+          LOG.warn("Failed to evict blockId {}, it could be already moved", blockToDelete);
+          continue;
         }
       }
     }
@@ -830,9 +870,9 @@ public class TieredBlockStore implements BlockStore {
       throw new WorkerOutOfSpaceException(
           String.format("Failed to free %d bytes space at location %s. "
                   + "Min contiguous requested: %d, Min available requested: %d, "
-                  + "Blocks iterated: %d, Blocks removed: %d, Space freed: %d",
+                  + "Blocks iterated: %d, Blocks removed: %d, Blocks moved: %d, Space freed: %d",
               minAvailableBytes, location.tierAlias(), minContiguousBytes, minAvailableBytes,
-              blocksIterated, blocksRemoved, spaceFreed));
+              blocksIterated, blocksRemoved, blocksMoved, spaceFreed));
     }
   }
 
