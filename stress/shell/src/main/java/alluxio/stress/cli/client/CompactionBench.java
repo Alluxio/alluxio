@@ -243,6 +243,8 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
           int localNumDirsCreated;
           while ((localNumDirsCreated = numDirsCreated.getAndIncrement())
               < mParameters.mNumSourceDirs) {
+            LOG.info("creating directory {}/{} ",
+                localNumDirsCreated, mParameters.mNumSourceDirs);
             AlluxioURI dir = mRealSourceBase.join(Integer.toString(localNumDirsCreated));
             try {
               fs.createDirectory(dir);
@@ -257,6 +259,11 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
               } catch (FileAlreadyExistsException e) {
                 fs.delete(path);
                 f--; // retry
+              }
+              // Print progress every 10% files have been created
+              if (f % (mParameters.mNumSourceFiles / 10) == 0) {
+                LOG.info("{}/{} files created in dir {}",
+                    f, mParameters.mNumSourceFiles, localNumDirsCreated);
               }
             }
             LOG.info("{}/{} directories created",
