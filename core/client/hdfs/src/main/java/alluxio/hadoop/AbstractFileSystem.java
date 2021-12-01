@@ -39,16 +39,24 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import java.util.NoSuchElementException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -83,6 +91,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
 
   public static final String FIRST_COM_PATH = "alluxio_dep/";
+  public static final String DEFAULT_RACK = "/default-rack";
 
   protected AlluxioConfiguration mAlluxioConf = null;
   protected FileSystem mFileSystem = null;
@@ -309,7 +318,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
               .collect(toList());
           String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
           String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
-          blockLocations.add(new BlockLocation(names, hosts, offset,
+          String[] topologyPath = workers.stream()
+              .map(worker -> getRackAddr(worker.getTieredIdentity())).toArray(String[]::new);
+          blockLocations.add(new BlockLocation(names, hosts, topologyPath, offset,
               info.getBlockInfo().getLength()));
         }
       });
@@ -605,6 +616,117 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
           status.getOwner(), status.getGroup(), getFsPath(mAlluxioHeader, status));
     }
     return ret;
+  }
+
+  /**
+   * Attempts to list a list of filestatus in a specified path with location info.
+   *
+   * @param path path to create
+   * @return the list of file status with location info
+   */
+  private LocatedFileStatus[] listLocatedStatusImpl(Path path, PathFilter filter) throws IOException {
+    LOG.debug("listStatus({})", path);
+
+    if (mStatistics != null) {
+      mStatistics.incrementReadOps(1);
+    }
+
+    AlluxioURI uri = getAlluxioPath(path);
+    List<URIStatus> statuses;
+    try {
+      statuses = mFileSystem.listStatus(uri);
+    } catch (FileDoesNotExistException e) {
+      throw new FileNotFoundException(getAlluxioPath(path).toString());
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+
+    LocatedFileStatus[] ret = new LocatedFileStatus[statuses.size()];
+    FileStatus[] fileStatus = new FileStatus[statuses.size()];
+    for (int k = 0; k < statuses.size(); k++) {
+      URIStatus status = statuses.get(k);
+
+      fileStatus[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
+          status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
+          status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
+          status.getOwner(), status.getGroup(), getFsPath(mAlluxioHeader, status));
+      try {
+        long start = 0;
+        long len = status.getLength();
+        List<BlockLocation> blockLocations = new ArrayList<>();
+        AlluxioURI apath = getAlluxioPath(fileStatus[k].getPath());
+        List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(apath, status);
+        locations.forEach(location -> {
+          FileBlockInfo info = location.getBlockInfo();
+          List<WorkerNetAddress> workers = location.getLocations();
+          long offset = location.getBlockInfo().getOffset();
+          long end = offset + info.getBlockInfo().getLength();
+          if (end >= start && offset <= start + len) {
+            List<HostAndPort> addresses = workers.stream()
+                .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
+                .collect(toList());
+            String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
+            String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
+            String[] topologyPath = workers.stream()
+                .map(worker -> getRackAddr(worker.getTieredIdentity())).toArray(String[]::new);
+            blockLocations.add(new BlockLocation(names, hosts, topologyPath, offset,
+                info.getBlockInfo().getLength()));
+          }
+        });
+        ret[k] = new LocatedFileStatus(fileStatus[k],
+            blockLocations.toArray(new BlockLocation[blockLocations.size()]));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("listAlluxioLocatedStatus({}, {}, {}) returned {}",
+              status.getPath(), start, len, Arrays.toString(ret));
+        }
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      }
+    }
+
+    ArrayList<LocatedFileStatus> results = new ArrayList<>();
+    Preconditions.checkNotNull(ret, "listStatus should not return NULL");
+    for (int i = 0; i < ret.length; i++) {
+      if (filter.accept(ret[i].getPath())) {
+        results.add(ret[i]);
+      }
+    }
+    return results.toArray(new LocatedFileStatus[ret.length]);
+  }
+
+  @Override
+  public RemoteIterator<LocatedFileStatus> listLocatedStatus(Path path, PathFilter filter)
+      throws FileNotFoundException, IOException {
+    return new RemoteIterator<LocatedFileStatus>() {
+      private final LocatedFileStatus[] stats = listLocatedStatusImpl(path, filter);
+      private int i = 0;
+
+      @Override
+      public boolean hasNext() {
+        return i < stats.length;
+      }
+
+      @Override
+      public LocatedFileStatus next() throws IOException {
+        if (!hasNext()) {
+          throw new NoSuchElementException("No more entries in " + path);
+        }
+        LocatedFileStatus result = stats[i++];
+        return result;
+      }
+    };
+  }
+
+  private String getRackAddr(TieredIdentity tieredIdentity) {
+    if (tieredIdentity.getTiers().isEmpty()) {
+      return DEFAULT_RACK;
+    }
+    for (LocalityTier tier : tieredIdentity.getTiers()) {
+      if (tier.getTierName().equals("rack")) {
+        return StringUtils.isEmpty(tier.getValue()) ? DEFAULT_RACK : tier.getValue();
+      }
+    }
+    return DEFAULT_RACK;
   }
 
   /**
