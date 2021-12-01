@@ -229,3 +229,7 @@
 - Fix CSI typo. Upgrade CSI driver and provisioner. Improve CSI static pvc template.
 - Fix typo in specifying fuse mount options.
 
+0.6.34
+
+- Enable mounting a specific directory in Alluxio through Fuse
+
