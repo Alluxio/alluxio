@@ -97,7 +97,7 @@ public final class EvictDefinitionTest {
   @Test
   public void selectExecutorsNoBlockWorkerHasBlock() throws Exception {
     Set<Pair<WorkerInfo, SerializableVoid>> result =
-        selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
+        selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 0,
             Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker has this copy
     Assert.assertEquals(EMPTY, result);
@@ -106,7 +106,7 @@ public final class EvictDefinitionTest {
   @Test
   public void selectExecutorsNoJobWorkerHasBlock() throws Exception {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 0,
         Lists.newArrayList(WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker that is available has this copy
     Assert.assertEquals(EMPTY, result);
@@ -115,7 +115,7 @@ public final class EvictDefinitionTest {
   @Test
   public void selectExecutorsOnlyOneBlockWorkerHasBlock() throws Exception {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 0,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, null));
@@ -128,7 +128,7 @@ public final class EvictDefinitionTest {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2),
-                new BlockLocation().setWorkerAddress(ADDRESS_3)), 1,
+                new BlockLocation().setWorkerAddress(ADDRESS_3)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect one worker from all workers having this block
     Assert.assertEquals(1, result.size());
@@ -140,7 +140,7 @@ public final class EvictDefinitionTest {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2),
-                new BlockLocation().setWorkerAddress(ADDRESS_3)), 3,
+                new BlockLocation().setWorkerAddress(ADDRESS_3)), 0,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, null));
@@ -154,12 +154,30 @@ public final class EvictDefinitionTest {
   public void selectExecutorsBothWorkers() throws Exception {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
-                new BlockLocation().setWorkerAddress(ADDRESS_2)), 3,
+                new BlockLocation().setWorkerAddress(ADDRESS_2)), 0,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, null));
     expected.add(new Pair<>(WORKER_INFO_2, null));
     // Expect both workers having this block should be selected
     Assert.assertEquals(expected, result);
+  }
+
+  @Test
+  public void selectExecutorsTargetLargerThanNumBlocks() throws Exception {
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
+        Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    Assert.assertEquals(EMPTY, result);
+  }
+
+  @Test
+  public void selectExecutorsTargetEqualNumBlocks() throws Exception {
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    Assert.assertEquals(EMPTY, result);
   }
 }
