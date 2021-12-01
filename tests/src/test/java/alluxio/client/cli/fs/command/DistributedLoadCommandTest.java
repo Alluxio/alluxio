@@ -235,8 +235,8 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     int fileSize = 20;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
     for (int i = 0; i < fileSize; i++) {
-      FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFilePassive" + i, WritePType.THROUGH,
-          10);
+      FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFilePassive" + i,
+          WritePType.THROUGH, 10);
 
       AlluxioURI uri = new AlluxioURI("/testBatchRoot/testBatchFilePassive" + i);
       uris.add(uri);
