@@ -54,6 +54,12 @@ public final class GrpcExecutors {
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR);
 
+  public static final ExecutorService BLOCK_MOVER_EXECUTOR =
+      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_MOVER_THREADS_MAX),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
+          ThreadFactoryUtils.build("BlockDataMoverExecutor-%d", true)));
+
   public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),

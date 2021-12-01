@@ -75,6 +75,10 @@ public final class BlockLockManager {
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<>();
 
+  /** A map from block id to the session id record of it. */
+  @GuardedBy("mSharedMapsLock")
+  private final Map<Long, Long> mMovingMap = new HashMap<>();
+
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mSharedMapsLock = new ReentrantReadWriteLock();
 
@@ -184,6 +188,39 @@ public final class BlockLockManager {
         }
       }
       return false;
+    }
+  }
+
+  /**
+   * @param blockId the block id to check
+   * @param sessionId the session id to check
+   * @return whether the specified blockid is moving
+   */
+  public boolean checkBlockMoving(long blockId, long sessionId) {
+    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
+      if (mMovingMap.containsKey(blockId)) {
+        return mMovingMap.get(blockId) != 0;
+      }
+    }
+
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
+      if (mMovingMap.containsKey(blockId)) {
+        return mMovingMap.get(blockId) != 0;
+      }
+      mMovingMap.put(blockId, sessionId);
+      return false;
+    }
+  }
+
+  /**
+   * Releases the record with the specified block id.
+   *
+   * @param blockId the id of the block to release
+   * @return whether the lock corresponding the lock ID has been successfully unlocked
+   */
+  public void releaseBlockMoving(long blockId) {
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
+      mMovingMap.remove(blockId);
     }
   }
 

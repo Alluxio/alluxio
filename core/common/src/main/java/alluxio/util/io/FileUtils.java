@@ -251,6 +251,17 @@ public final class FileUtils {
   }
 
   /**
+   * Copy file from one place to another, can across storage devices (e.g., from memory to SSD)
+   * when {@link File#renameTo} may not work.
+   *
+   * @param srcPath pathname string of source file
+   * @param dstPath pathname string of destination file
+   */
+  public static void copy(String srcPath, String dstPath) throws IOException {
+    Files.copy(Paths.get(srcPath), Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
+  }
+
+  /**
    * Deletes the file or directory.
    *
    * @param path pathname string of file or directory

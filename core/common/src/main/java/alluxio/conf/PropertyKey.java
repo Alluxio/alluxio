@@ -3272,6 +3272,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_MOVER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_BLOCK_MOVER_THREADS_MAX)
+          .setDefaultValue(128)
+          .setDescription("The maximum number of threads used to move blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
           .setDefaultValue(2048)
@@ -6503,6 +6510,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
         "alluxio.worker.network.async.cache.manager.queue.max";
+    public static final String WORKER_NETWORK_BLOCK_MOVER_THREADS_MAX =
+        "alluxio.worker.network.block.mover.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =

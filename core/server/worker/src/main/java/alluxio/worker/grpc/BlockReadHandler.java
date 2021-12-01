@@ -26,6 +26,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
@@ -93,6 +94,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
+  /** The executor to move block. */
+  private final ExecutorService mDataMoverExecutor;
   /** A serializing executor for sending responses. */
   private Executor mSerializingExecutor;
   /** The Block Worker. */
@@ -124,6 +127,22 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
     mDataReaderExecutor = executorService;
+    mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
+    mSerializingExecutor =
+        new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
+    mWorker = blockWorker;
+    mDomainSocketEnabled = domainSocketEnabled;
+    mDataMoverExecutor = null;
+  }
+
+  BlockReadHandler(ExecutorService executorService,
+      BlockWorker blockWorker,
+      StreamObserver<ReadResponse> responseObserver,
+      AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled, ExecutorService moverExecutorService) {
+    mDataReaderExecutor = executorService;
+    mDataMoverExecutor = moverExecutorService;
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
     mSerializingExecutor =
@@ -553,12 +572,24 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReadRequest request = context.getRequest();
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
-        try {
-          mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
-        } catch (BlockDoesNotExistException e) {
-          LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
-        } catch (Exception e) {
-          LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
+        if (mDataMoverExecutor != null) {
+          mDataMoverExecutor.submit(() -> {
+            try {
+              mWorker.moveBlock(IdUtils.createSessionId(), request.getId(), 0);
+            } catch (BlockDoesNotExistException e) {
+              LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
+            } catch (Exception e) {
+              LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
+            }
+          });
+        } else {
+          try {
+            mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
+          } catch (BlockDoesNotExistException e) {
+            LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
+          } catch (Exception e) {
+            LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
+          }
         }
       }
       BlockReader reader = mWorker.createBlockReader(request);

@@ -109,7 +109,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
         mBlockWorker, callStreamObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+        getAuthenticatedUserInfo(), mDomainSocketEnabled, GrpcExecutors.BLOCK_MOVER_EXECUTOR);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }

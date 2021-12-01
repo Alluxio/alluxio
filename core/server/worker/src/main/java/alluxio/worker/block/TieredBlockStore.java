@@ -358,18 +358,25 @@ public class TieredBlockStore implements BlockStore {
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, options={}", sessionId,
         blockId, oldLocation, moveOptions);
-    MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
-    if (result.getSuccess()) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
-              result.getDstLocation());
-        }
-      }
+    if (mLockManager.checkBlockMoving(blockId, sessionId)) {
       return;
     }
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
-        moveOptions.getLocation(), blockId);
+    try {
+      MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
+      if (result.getSuccess()) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
+                result.getDstLocation());
+          }
+        }
+        return;
+      }
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
+          moveOptions.getLocation(), blockId);
+    } finally {
+      mLockManager.releaseBlockMoving(blockId);
+    }
   }
 
   @Override
@@ -867,15 +874,15 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation oldLocation, AllocateOptions moveOptions)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, IOException {
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    long blockSize;
+    String srcFilePath;
+    String dstFilePath;
+    BlockMeta srcBlockMeta;
+    BlockStoreLocation srcLocation;
+    BlockStoreLocation dstLocation;
+    TempBlockMeta dstTempBlock;
+    long rlockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     try {
-      long blockSize;
-      String srcFilePath;
-      String dstFilePath;
-      BlockMeta srcBlockMeta;
-      BlockStoreLocation srcLocation;
-      BlockStoreLocation dstLocation;
-
       try (LockResource r = new LockResource(mMetadataReadLock)) {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
           throw new InvalidWorkerStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
@@ -896,7 +903,6 @@ public class TieredBlockStore implements BlockStore {
         return new MoveBlockResult(true, blockSize, srcLocation, srcLocation);
       }
 
-      TempBlockMeta dstTempBlock;
       try {
         dstTempBlock = createBlockMetaInternal(sessionId, blockId, false, moveOptions);
       } catch (Exception e) {
@@ -917,8 +923,13 @@ public class TieredBlockStore implements BlockStore {
       dstFilePath = dstTempBlock.getCommitPath();
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.move(srcFilePath, dstFilePath);
+      FileUtils.copy(srcFilePath, dstFilePath);
+    } finally {
+      mLockManager.unlockBlock(rlockId);
+    }
 
+    long wlockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    try {
       try (LockResource r = new LockResource(mMetadataWriteLock)) {
         // If this metadata update fails, we panic for now.
         // TODO(bin): Implement rollback scheme to recover from IO failures.
@@ -932,7 +943,8 @@ public class TieredBlockStore implements BlockStore {
 
       return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
     } finally {
-      mLockManager.unlockBlock(lockId);
+      FileUtils.delete(srcFilePath);
+      mLockManager.unlockBlock(wlockId);
     }
   }
 
