@@ -232,3 +232,4 @@
 0.6.34
 
 - Enable mounting a specific directory in Alluxio through Fuse
+
