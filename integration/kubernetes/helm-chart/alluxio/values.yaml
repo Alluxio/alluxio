@@ -428,6 +428,8 @@ fuse:
   mountOptions: allow_other
   # Mount path in the host
   mountPath: /mnt/alluxio-fuse
+  # The path in Alluxio being mounted
+  alluxioPath: /
   resources:
     requests:
       cpu: "0.5"
