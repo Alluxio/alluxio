@@ -298,14 +298,15 @@ public class PlanTracker {
                 || x.getValue().getPlanInfoWire(false).getName().equals(name)))
         .map(Map.Entry::getKey).collect(Collectors.toSet());
   }
+
   private void checkActiveJobs(JobConfig jobConfig) throws JobDoesNotExistException {
-    if(jobConfig instanceof EvictConfig){
+    if (jobConfig instanceof EvictConfig) {
       Set<Long> activeBlockIds = mCoordinators.values().stream()
           .filter(x -> x.getPlanInfo().getJobConfig() instanceof EvictConfig)
           .map(x -> ((EvictConfig) x.getPlanInfo().getJobConfig()).getBlockId())
           .collect(Collectors.toSet());
       long blockId = ((EvictConfig) jobConfig).getBlockId();
-      if(activeBlockIds.contains(blockId)){
+      if (activeBlockIds.contains(blockId)) {
         throw new JobDoesNotExistException("There's job running for block {}, try later");
       }
     }

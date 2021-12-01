@@ -87,7 +87,6 @@ public final class EvictDefinition
     for (BlockLocation blockLocation : blockInfo.getLocations()) {
       hosts.add(blockLocation.getWorkerAddress().getHost());
     }
-    
 
     Collections.shuffle(jobWorkerInfoList);
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
