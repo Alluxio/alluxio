@@ -45,7 +45,7 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
 
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).setReplicationMin(2).build());
+        .setWriteType(WritePType.MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
     os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     os.close();
 
@@ -95,7 +95,7 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
     CommonUtils.waitFor("block 1 to be evicted", () -> {
       try {
         int size = mStatus.getFileBlockInfos().get(0).getBlockInfo().getLocations().size();
-        return size ==1;
+        return size == 1;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
