@@ -243,6 +243,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         + "[--locality-file <localityFilePath>] "
         + "[--excluded-locality <locality1>,<locality2>,...,<localityN>] "
         + "[--excluded-locality-file <localityFilePath>] "
+        + "[--passive-cache] "
         + "<path>";
   }
 
