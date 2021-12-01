@@ -37,6 +37,7 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
   private long mBlockId1;
   private long mBlockId2;
   private WorkerNetAddress mWorker;
+  private URIStatus mStatus;
 
   @Before
   public void before() throws Exception {
@@ -44,13 +45,13 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
 
     AlluxioURI filePath = new AlluxioURI(TEST_URI);
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).build());
+        .setWriteType(WritePType.MUST_CACHE).setBlockSizeBytes(TEST_BLOCK_SIZE).setReplicationMin(2).build());
     os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     os.close();
 
-    URIStatus status = mFileSystem.getStatus(filePath);
-    mBlockId1 = status.getBlockIds().get(0);
-    mBlockId2 = status.getBlockIds().get(1);
+    mStatus = mFileSystem.getStatus(filePath);
+    mBlockId1 = mStatus.getBlockIds().get(0);
+    mBlockId2 = mStatus.getBlockIds().get(1);
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
     BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, mFsContext);
@@ -85,5 +86,21 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
     }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
     // block 1 should not be evicted
     Assert.assertTrue(AdjustJobTestUtils.hasBlock(mBlockId1, mWorker, mFsContext));
+  }
+
+  @Test
+  public void evictBlock1To1Copy() throws Exception {
+    // run the evict job for full block mBlockId1
+    waitForJobToFinish(mJobMaster.run(new EvictConfig("", mBlockId1, 1)));
+    CommonUtils.waitFor("block 1 to be evicted", () -> {
+      try {
+        int size = mStatus.getFileBlockInfos().get(0).getBlockInfo().getLocations().size();
+        return size ==1;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
+    // block 2 should not be evicted
+    Assert.assertTrue(AdjustJobTestUtils.hasBlock(mBlockId2, mWorker, mFsContext));
   }
 }
