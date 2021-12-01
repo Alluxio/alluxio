@@ -35,8 +35,12 @@ public class CompactionParameters extends Parameters {
   public String mSourceFileSize = "8kb";
 
   @Parameter(names = {"--output-base"},
-      description = "Path of the base directory where compacted output will be written to.")
+      description = "Path of the base directory where compacted output will be stored.")
   public String mOutputBase = "/compaction-base/output";
+
+  @Parameter(names = {"--staging-base"},
+      description = "Path of the staging directory where intermediate files are created.")
+  public String mStagingBase = "/compaction-base/.staging";
 
   @Parameter(names = {"--output-in-place"},
       description = "Whether to output each compacted file in the same directory of its "
@@ -69,4 +73,9 @@ public class CompactionParameters extends Parameters {
       description = "Set this flag to preserve the source files after the output is written.")
   @BooleanDescription(trueDescription = "Preserve", falseDescription = "Delete")
   public boolean mPreserveSource = false;
+
+  @Parameter(names = {"--delete-by-dir"},
+      description = "Set this flag to delete the source dir recursively, instead of deleting "
+          + "files individually. This is ignored if --preserve-source is set.")
+  public boolean mDeleteByDir = false;
 }
