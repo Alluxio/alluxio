@@ -37,7 +37,6 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
   private long mBlockId1;
   private long mBlockId2;
   private WorkerNetAddress mWorker;
-  private URIStatus mStatus;
 
   @Before
   public void before() throws Exception {
@@ -49,9 +48,9 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
     os.write(BufferUtils.getIncreasingByteArray(TEST_BLOCK_SIZE + 1));
     os.close();
 
-    mStatus = mFileSystem.getStatus(filePath);
-    mBlockId1 = mStatus.getBlockIds().get(0);
-    mBlockId2 = mStatus.getBlockIds().get(1);
+    URIStatus status = mFileSystem.getStatus(filePath);
+    mBlockId1 = status.getBlockIds().get(0);
+    mBlockId2 = status.getBlockIds().get(1);
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
     BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, mFsContext);
