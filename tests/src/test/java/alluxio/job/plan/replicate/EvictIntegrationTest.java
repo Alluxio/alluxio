@@ -87,20 +87,4 @@ public final class EvictIntegrationTest extends JobIntegrationTest {
     // block 1 should not be evicted
     Assert.assertTrue(AdjustJobTestUtils.hasBlock(mBlockId1, mWorker, mFsContext));
   }
-
-  @Test
-  public void evictBlock1To1Copy() throws Exception {
-    // run the evict job for full block mBlockId1
-    waitForJobToFinish(mJobMaster.run(new EvictConfig("", mBlockId1, 1)));
-    CommonUtils.waitFor("block 1 to be evicted", () -> {
-      try {
-        int size = mStatus.getFileBlockInfos().get(0).getBlockInfo().getLocations().size();
-        return size == 1;
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
-    // block 2 should not be evicted
-    Assert.assertTrue(AdjustJobTestUtils.hasBlock(mBlockId2, mWorker, mFsContext));
-  }
 }
