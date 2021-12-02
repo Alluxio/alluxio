@@ -4097,7 +4097,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "a past time window, and measure the hit ratio if the working set fits the cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_TYPE =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_TYPE).setDefaultValue("MULTIPLE_BLOOM_FILTER")
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_TYPE).setDefaultValue("CLOCK_CUCKOO_FILTER")
           .setDescription("The type of shadow cache to be used. "
               + "Valid options are `MULTIPLE_BLOOM_FILTER` (which uses a chain of bloom filters), "
               +    "`CLOCK_CUCKOO_FILTER` (which uses cuckoo filter with extended field).")
@@ -4118,7 +4118,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The number of bloom filters used for tracking. Each tracks a segment of window")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS).setDefaultValue(4)
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS).setDefaultValue(6)
           .setDescription(
                   "The number of bits of each item's clock field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
