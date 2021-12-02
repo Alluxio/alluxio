@@ -5241,6 +5241,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
+      new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If enabled, user can issue special FUSE commands by using "
+              + "'ls -l /path/to/fuse_mount/.alluxiocli.<command_name>.<subcommand_name>', "
+              + "For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, "
+              + "'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll' will drop all the "
+              + "user metadata cache. 'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size' "
+              + "will get the metadata cache size， "
+              + "the size value will be show in the output's filesize field. "
+              + "'ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop' "
+              + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
+          .setScope(Scope.CLIENT)
+          .build();
+  //
+  // Standalone FUSE process related properties
+  //
   public static final PropertyKey FUSE_WEB_ENABLED =
       new Builder(Name.FUSE_WEB_ENABLED)
           .setDefaultValue(false)
@@ -5262,20 +5279,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.FUSE_WEB_PORT)
           .setDefaultValue(49999)
           .setDescription("The port Alluxio FUSE web UI runs on.")
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
-      new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If enabled, user can issue special FUSE commands by using "
-              + "'ls -l /path/to/fuse_mount/.alluxiocli.<command_name>.<subcommand_name>', "
-              + "For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, "
-              + "'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll' will drop all the "
-              + "user metadata cache. 'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size' "
-              + "will get the metadata cache size， "
-              + "the size value will be show in the output's filesize field. "
-              + "'ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop' "
-              + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
           .setScope(Scope.CLIENT)
           .build();
 
@@ -5702,6 +5705,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("Whether to enable start JVM monitor thread on the worker. This will "
               + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey STANDALONE_FUSE_JVM_MONITOR_ENABLED =
+      new Builder(Name.STANDALONE_FUSE_JVM_MONITOR_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable start JVM monitor thread "
+              + "on the standalone fuse process. This will start a thread "
+              + "to detect JVM-wide pauses induced by GC or other reasons.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -6924,12 +6936,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
+    public static final String FUSE_SPECIAL_COMMAND_ENABLED =
+        "alluxio.fuse.special.command.enabled";
+    //
+    // Standalone FUSE process related properties
+    //
     public static final String FUSE_WEB_ENABLED = "alluxio.fuse.web.enabled";
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
-    public static final String FUSE_SPECIAL_COMMAND_ENABLED =
-        "alluxio.fuse.special.command.enabled";
 
     //
     // Security related properties
@@ -7025,6 +7040,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.jvm.monitor.sleep.interval";
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
+    public static final String STANDALONE_FUSE_JVM_MONITOR_ENABLED
+        = "alluxio.standalone.fuse.jvm.monitor.enabled";
 
     //
     // Table service properties
