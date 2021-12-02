@@ -22,6 +22,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -220,10 +221,13 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
 
   private void prepareOutputBaseDir(FileSystem fs) throws IOException, AlluxioException {
     if (!mParameters.mOutputInPlace) {
+      AlluxioURI path = new AlluxioURI(mParameters.mOutputBase);
       try {
-        fs.createDirectory(new AlluxioURI(mParameters.mOutputBase),
-            CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-      } catch (FileAlreadyExistsException ignored) { /* ignored */ }
+        fs.delete(path,
+            DeletePOptions.newBuilder().setRecursive(true).build());
+      } catch (FileDoesNotExistException ignored) { /* ignored */ }
+      fs.createDirectory(path,
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     }
   }
 
@@ -424,7 +428,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
             stopwatch.stop();
             mRawRecords.recordValue(stopwatch.elapsed(TimeUnit.NANOSECONDS));
             mResult.incrementNumSuccess();
-          } catch (IOException e) {
+          } catch (Exception e) {
             LOG.warn("Batch {} in dir {} failed", i + 1, e);
             mResult.addError(e.getMessage());
           }
