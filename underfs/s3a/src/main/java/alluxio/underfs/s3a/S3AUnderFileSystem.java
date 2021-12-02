@@ -14,6 +14,7 @@ package alluxio.underfs.s3a;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -278,7 +279,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           + "set region to {} and enable global bucket access with extra overhead",
           defaultRegion);
     }
-    return clientBuilder.build();
+    AmazonS3 rawClient = clientBuilder.build();
+    S3ARetryClient.S3RetryHandler retryHandler =
+        new S3ARetryClient.RateLimitExceededRetryHandler(
+            new ExponentialBackoffRetry(500, 5000, 5),
+            S3ARetryClient.NoRetryHandler.INSTANCE);
+    return new S3ARetryClient(rawClient, retryHandler);
   }
 
   /**
