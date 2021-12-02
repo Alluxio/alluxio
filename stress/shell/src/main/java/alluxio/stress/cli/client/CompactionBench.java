@@ -19,6 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -34,7 +35,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
@@ -81,7 +81,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
   @Override
   public CompactionTaskResult runLocal() throws Exception {
     mCachedFs = new FileSystem[mParameters.mThreads];
-    AlluxioProperties properties = ConfigurationUtils.defaults();
+    AlluxioProperties properties = getCustomProperties(mParameters.mCompactProperties);
     for (int i = 0; i < mParameters.mThreads; i++) {
       mCachedFs[i] = FileSystem.Factory.create(new InstancedConfiguration(properties));
     }
@@ -151,8 +151,8 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
   @Override
   public void prepare() throws Exception {
     Preconditions.checkArgument(mParameters.mThreads > 0, "mThreads");
-
-    FileSystem prepareFs = FileSystem.Factory.create(InstancedConfiguration.defaults());
+    AlluxioProperties properties = getCustomProperties(mParameters.mPrepareProperties);
+    FileSystem prepareFs = FileSystem.Factory.create(new InstancedConfiguration(properties));
 
     // flags:
     // distributed    cluster   in-process    run type
@@ -197,6 +197,17 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
         throw new IllegalStateException(String.format("Unknown combination of flags: %s",
             Integer.toBinaryString(flags)));
     }
+  }
+
+  private static AlluxioProperties getCustomProperties(List<String> propertyList) {
+    AlluxioProperties properties = ConfigurationUtils.defaults();
+    for (String property : propertyList) {
+      String[] parts = property.split("=", 2);
+      Preconditions.checkArgument(parts.length == 2,
+          "Property should be set as \"key=value\", got %s", property);
+      properties.set(PropertyKey.fromString(parts[0]), parts[1]);
+    }
+    return properties;
   }
 
   private void prepareStagingBaseDir(FileSystem fs) throws IOException, AlluxioException {

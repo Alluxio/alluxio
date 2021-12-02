@@ -15,6 +15,9 @@ import alluxio.stress.Parameters;
 
 import com.beust.jcommander.Parameter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CompactionParameters extends Parameters {
   @Parameter(names = {"--source-base"},
       description = "Path of the base directory where each subdirectory contains source files "
@@ -78,4 +81,14 @@ public class CompactionParameters extends Parameters {
       description = "Set this flag to delete the source dir recursively, instead of deleting "
           + "files individually. This is ignored if --preserve-source is set.")
   public boolean mDeleteByDir = false;
+
+  @Parameter(names = {"--prepare-property"},
+      description = "Set an Alluxio property for the preparation operations. "
+          + "This will override the cluster defaults. Can be repeated to set multiple properties.")
+  public List<String> mPrepareProperties = new ArrayList<>();
+
+  @Parameter(names = {"--compact-property"},
+      description = "Set an Alluxio property for the compaction operations. "
+          + "This will override the cluster defaults. Can be repeated to set multiple properties.")
+  public List<String> mCompactProperties = new ArrayList<>();
 }
