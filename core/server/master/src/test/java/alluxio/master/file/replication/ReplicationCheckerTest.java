@@ -450,7 +450,7 @@ public final class ReplicationCheckerTest {
 
     mReplicationChecker.heartbeat();
     Map<Long, Integer> expected1 = ImmutableMap.of(blockId1, 1);
-    Map<Long, Integer> expected2 = ImmutableMap.of(blockId2, 2);
+    Map<Long, Integer> expected2 = ImmutableMap.of(blockId2, 3);
 
     Assert.assertEquals(expected2, mMockReplicationHandler.getEvictRequests());
     Assert.assertEquals(expected1, mMockReplicationHandler.getReplicateRequests());
