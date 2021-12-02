@@ -20,9 +20,11 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.jnifuse.FuseException;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.JvmPauseMonitor;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -129,6 +131,7 @@ public final class AlluxioFuse {
               ServerConfiguration.global()));
       webServer.start();
     }
+    startJvmMonitorProcess();
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
       FuseUmountable fuseUmountable = launchFuse(fs, conf, opts, true);
     } catch (IOException e) {
@@ -263,5 +266,27 @@ public final class AlluxioFuse {
       res.add(String.format("-omax_write=%d", maxWrite));
     }
     return res;
+  }
+
+  /**
+   * Starts jvm monitor process, to monitor jvm.
+   */
+  private static void startJvmMonitorProcess() {
+    if (ServerConfiguration.getBoolean(PropertyKey.STANDALONE_FUSE_JVM_MONITOR_ENABLED)) {
+      JvmPauseMonitor jvmPauseMonitor = new JvmPauseMonitor(
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
+      jvmPauseMonitor.start();
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),
+          jvmPauseMonitor::getTotalExtraTime);
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.INFO_TIME_EXCEEDED.getName()),
+          jvmPauseMonitor::getInfoTimeExceeded);
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WARN_TIME_EXCEEDED.getName()),
+          jvmPauseMonitor::getWarnTimeExceeded);
+    }
   }
 }
