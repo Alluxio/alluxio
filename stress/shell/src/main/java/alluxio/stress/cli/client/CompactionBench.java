@@ -113,7 +113,8 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
             FormatUtils.parseTimeSize(mParameters.mDelayMs),
             (int) FormatUtils.parseSpaceSize(mParameters.mBufSize),
             mParameters.mPreserveSource,
-            mParameters.mDeleteByDir);
+            mParameters.mDeleteByDir,
+            mBaseParameters.mId);
         CompletableFuture<CompactionTaskResult> future = CompletableFuture.supplyAsync(() -> {
           CompactionTaskResult result;
           try {
@@ -361,12 +362,13 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
     private final int mBufSize;
     private final boolean mPreserveSource;
     private final boolean mDeleteByDir;
+    private final String mWorkerId;
     private final CompactionTaskResult mResult;
     private final Histogram mRawRecords;
 
     public BenchThread(FileSystem fs, Map<AlluxioURI, AlluxioURI> dirMap, AlluxioURI stagingDir,
                        int compactRatio, long delayMs, int bufSize,
-                       boolean preserveSource, boolean deleteByDir) {
+                       boolean preserveSource, boolean deleteByDir, String workerId) {
       Preconditions.checkArgument(compactRatio >= 1, "compactRatio should be 1 or greater");
       Preconditions.checkArgument(delayMs >= 0, "delayMs should be 0 or greater");
       Preconditions.checkArgument(bufSize > 0, "buffer size should be greater than 0");
@@ -378,6 +380,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
       mBufSize = bufSize;
       mPreserveSource = preserveSource;
       mDeleteByDir = deleteByDir;
+      mWorkerId = workerId;
       mResult = new CompactionTaskResult();
       mRawRecords = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);
@@ -409,7 +412,8 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
         for (int i = 0; i < batches.size(); i++) {
           // Process files from one batch
           List<AlluxioURI> batch = batches.get(i);
-          String outputFileName = String.format("compact_output_part%d_dir%s", i, srcDir.getName());
+          String outputFileName = String.format("compact_output_part%d_dir%s_worker%s",
+              i, srcDir.getName(), mWorkerId);
           Compactor compactor =
               new Compactor(mFs, batch.iterator(), destDir, outputFileName, mStagingDir, mBufSize);
 
