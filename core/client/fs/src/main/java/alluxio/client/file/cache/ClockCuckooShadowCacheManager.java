@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.cache.cuckoofilter.ConcurrentClockCuckooFilter.DEFAULT_LOAD_FACTOR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import alluxio.client.file.cache.cuckoofilter.ClockCuckooFilter;
@@ -28,7 +29,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * This class is a shadow cache with {@link ClockCuckooFilter} implementation.
  */
 public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
-  private static final int SLOTS_PER_BUCKET = 4;
   private static final int BITS_PER_TAG = 8;
 
   private final ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
@@ -53,8 +53,8 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
     int bitsPerSize = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS);
     int bitsPerScope = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS);
     long bitsPerSlot = BITS_PER_TAG + bitsPerClock + bitsPerSize + bitsPerScope;
-    long totalBuckets = budgetInBits / bitsPerSlot / SLOTS_PER_BUCKET;
-    long expectedInsertions = Long.highestOneBit(totalBuckets);
+    long totalSlots = budgetInBits / bitsPerSlot;
+    long expectedInsertions = (long) (Long.highestOneBit(totalSlots) * DEFAULT_LOAD_FACTOR);
     mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
         expectedInsertions, bitsPerClock, bitsPerSize, bitsPerScope, SlidingWindowType.TIME_BASED,
         windowMs);

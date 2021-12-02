@@ -34,15 +34,16 @@ import java.util.concurrent.atomic.AtomicLong;
  * @param <T> the type of item
  */
 public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Serializable {
+  public static final double DEFAULT_FPP = 0.01;
+  // The default load factor is from "Cuckoo Filter: Practically Better Than Bloom" by Fan et al.
+  public static final double DEFAULT_LOAD_FACTOR = 0.955;
+  public static final int TAGS_PER_BUCKET = 4;
+
   private static final long serialVersionUID = 1L;
 
   // zero tag means non-existed
   private static final int NON_EXISTENT_TAG = 0;
 
-  private static final double DEFAULT_FPP = 0.01;
-  // The default load factor is from "Cuckoo Filter: Practically Better Than Bloom" by Fan et al.
-  private static final double DEFAULT_LOAD_FACTOR = 0.955;
-  private static final int TAGS_PER_BUCKET = 4;
   private static final int DEFAULT_NUM_LOCKS = 4096;
 
   // the maximum number of entries in a cuckoo path from "Algorithmic Improvements for Fast
