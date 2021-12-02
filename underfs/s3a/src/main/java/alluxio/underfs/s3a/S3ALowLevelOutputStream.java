@@ -105,7 +105,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   private final ListeningExecutorService mExecutor;
 
   /** Key of the file when it is uploaded to S3. */
-  private final String mKey;
+  protected final String mKey;
 
   /** The retry policy of this multipart upload. */
   private final RetryPolicy mRetryPolicy = new CountingRetry(5);
