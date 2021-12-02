@@ -51,7 +51,7 @@ public class S3AOutputStream extends OutputStream {
   private final String mBucketName;
 
   /** Key of the file when it is uploaded to S3. */
-  private final String mKey;
+  protected final String mKey;
 
   /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
