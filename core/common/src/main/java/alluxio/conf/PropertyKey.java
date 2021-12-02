@@ -3852,7 +3852,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
       new Builder(Name.WORKER_RPC_EXECUTOR_CORE_POOL_SIZE)
-          .setDefaultValue(500)
+          .setDefaultValue(100)
           .setDescription(
               "The number of threads to keep in thread pool of worker RPC ExecutorService.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3860,7 +3860,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_MAX_POOL_SIZE =
       new Builder(Name.WORKER_RPC_EXECUTOR_MAX_POOL_SIZE)
-          .setDefaultValue(500)
+          .setDefaultValue(1000)
           .setDescription("The maximum number of threads allowed for worker RPC ExecutorService."
               + " When the maximum is reached, attempts to replace blocked threads fail.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3876,7 +3876,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
       new Builder(Name.WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE)
-          .setDefaultValue("LINKED_BLOCKING_QUEUE")
+          .setDefaultValue("LINKED_BLOCKING_QUEUE_WITH_CAP")
           .setDescription(String.format(
               "This property is effective when %s is set to TPE. "
                   + "It specifies the internal task queue that's used by RPC ExecutorService. "

@@ -1259,8 +1259,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
       new Builder("Worker.RpcQueueLength")
-          .setDescription("Length of the master rpc queue. "
-              + "Use this metric to monitor the RPC pressure on master.")
+          .setDescription("Length of the worker rpc queue. "
+              + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
           .build();
 

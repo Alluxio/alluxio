@@ -20,7 +20,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.ExecutorServiceBuilder;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
