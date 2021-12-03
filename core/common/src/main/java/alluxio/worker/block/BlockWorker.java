@@ -33,6 +33,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
@@ -356,4 +357,12 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the white list
    */
   List<String> getWhiteList();
+
+  /**
+   * Gets the workerFuse executor service given the operation.
+   *
+   * @param operation the operation for the executor service
+   * @return the corresponding workerFuse executor service
+   */
+  ExecutorService getWorkerFuseExecutorService(String operation);
 }

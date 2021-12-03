@@ -3104,6 +3104,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FUSE_READ_EXECUTOR_POOL_SIZE =
+      new Builder(Name.WORKER_FUSE_READ_EXECUTOR_POOL_SIZE)
+          .setDefaultValue(2048)
+          .setDescription("The size of the fixed-thread pool for reading used "
+              + "by Fuse embedded in worker process.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
       new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
           .setDefaultValue("ANY")
@@ -6479,6 +6487,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.fuse.mount.options";
     public static final String WORKER_FUSE_MOUNT_POINT =
         "alluxio.worker.fuse.mount.point";
+    public static final String WORKER_FUSE_READ_EXECUTOR_POOL_SIZE =
+        "alluxio.worker.fuse.read.executor.pool.size";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
         "alluxio.worker.management.tier.align.reserved.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =

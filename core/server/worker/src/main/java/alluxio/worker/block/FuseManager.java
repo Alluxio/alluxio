@@ -20,6 +20,9 @@ import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
 import alluxio.fuse.FuseUmountable;
 
+import alluxio.master.AlluxioExecutorService;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +30,10 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The Fuse manager that is responsible for managing the Fuse application lifecycle.
@@ -39,6 +46,7 @@ public class FuseManager implements Closeable {
   private FuseUmountable mFuseUmountable;
   /** Use to close resources during stop. */
   private Closer mResourceCloser;
+  private ExecutorService mWorkerFuseReadExecutorService;
 
   /**
    * Constructs a new {@link FuseManager}.
@@ -51,7 +59,7 @@ public class FuseManager implements Closeable {
   }
 
   /**
-   * Starts mounting the internal Fuse applications.
+   * Starts mounting the internal Fuse applications and create workerFuse executor service.
    */
   public void start() {
     AlluxioConfiguration conf = ServerConfiguration.global();
@@ -90,10 +98,25 @@ public class FuseManager implements Closeable {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);
     }
+
+    int readPoolSize = conf.getInt(PropertyKey.WORKER_FUSE_READ_EXECUTOR_POOL_SIZE);
+    mWorkerFuseReadExecutorService = new ThreadPoolExecutor(readPoolSize,
+        readPoolSize, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(readPoolSize),
+        ThreadFactoryUtils.build("workerFuse-read-executor-thread-%d", true));
+  }
+
+  public ExecutorService getWorkerFuseExecutorService(String operation) {
+    if (operation.equals("read")) {
+      return mWorkerFuseReadExecutorService;
+    } else {
+      LOG.error("Fail to obtain {} executor service in workerFuse.", operation);
+      return null;
+    }
   }
 
   @Override
   public void close() throws IOException {
+    mWorkerFuseReadExecutorService.shutdownNow();
     if (mFuseUmountable != null) {
       try {
         mFuseUmountable.umount(true);

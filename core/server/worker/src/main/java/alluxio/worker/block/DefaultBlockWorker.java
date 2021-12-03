@@ -79,6 +79,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -274,7 +275,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
                   ServerConfiguration.global(), ServerUserState.global()));
     }
 
-    // Mounts the embedded Fuse application
+    // Mounts the embedded Fuse application and starts workerFuse thread executor
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
       mFuseManager.start();
     }
@@ -689,6 +690,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
         .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
+  }
+
+  @Override
+  public ExecutorService getWorkerFuseExecutorService(String operation) {
+    return mFuseManager.getWorkerFuseExecutorService(operation);
   }
 
   @Override

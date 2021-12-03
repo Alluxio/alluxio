@@ -23,9 +23,14 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,28 +42,33 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BlockWorkerDataReader implements DataReader {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerDataReader.class);
+
   /** The block reader to read from the local worker block or UFS block. */
   private final BlockReader mReader;
   private final long mEnd;
   private final long mChunkSize;
   private long mPos;
   private boolean mClosed;
+  private final ExecutorService mExecutorService;
 
   /**
    * Creates an instance of {@link BlockWorkerDataReader}.
    *
+   * @param executor the thread pool executor that processes reading request
    * @param reader the block reader to read data from
    * @param offset the offset
    * @param len the length to read
    * @param chunkSize the chunk size
    */
-  private BlockWorkerDataReader(BlockReader reader,
-      long offset, long len, long chunkSize) {
+  private BlockWorkerDataReader(ExecutorService executor, BlockReader reader,
+        long offset, long len, long chunkSize) {
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
     mEnd = Math.min(mReader.getLength(), offset + len);
     mChunkSize = chunkSize;
+    mExecutorService = executor;
   }
 
   @Override
@@ -66,7 +76,14 @@ public final class BlockWorkerDataReader implements DataReader {
     if (mPos >= mEnd) {
       return null;
     }
-    ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
+    Callable<ByteBuffer> readTask = () -> mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
+    Future<ByteBuffer> readResult = mExecutorService.submit(readTask);
+    ByteBuffer buffer = null;
+    try {
+      buffer = readResult.get();
+    } catch (Exception e) {
+      LOG.debug(e.toString());
+    }
     DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_DIRECT.getName()).inc(dataBuffer.getLength());
@@ -129,7 +146,8 @@ public final class BlockWorkerDataReader implements DataReader {
           mIsPromote, mIsPositionShort, mOpenUfsBlockOptions);
       try {
         BlockReader reader = mBlockWorker.createBlockReader(mBlockReadRequest);
-        return new BlockWorkerDataReader(reader, offset, len, mChunkSize);
+        ExecutorService executorService = mBlockWorker.getWorkerFuseExecutorService("read");
+        return new BlockWorkerDataReader(executorService, reader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
       }

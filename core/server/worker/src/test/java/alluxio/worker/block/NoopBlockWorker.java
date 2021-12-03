@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
@@ -203,6 +204,11 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public List<String> getWhiteList() {
+    return null;
+  }
+
+  @Override
+  public ExecutorService getWorkerFuseExecutorService(String operation) {
     return null;
   }
 
