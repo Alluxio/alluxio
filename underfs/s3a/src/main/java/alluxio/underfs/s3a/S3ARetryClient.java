@@ -229,8 +229,10 @@ public class S3ARetryClient extends AbstractAmazonS3 {
     public boolean shouldRetry(AmazonClientException exception) {
       if (exception instanceof AmazonS3Exception) {
         AmazonS3Exception s3Exception = (AmazonS3Exception) exception;
-        String errorCode = s3Exception.getErrorCode().toLowerCase();
-        if (errorCode.contains("slowdown") || errorCode.contains("slow down")) {
+        // according to AWS docs
+        // https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
+        // error 503 means service unavailable and client should slow down requests
+        if (s3Exception.getStatusCode() == 503) {
           return mRetryPolicy.attempt();
         }
       }
