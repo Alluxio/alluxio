@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -62,7 +63,7 @@ public final class BlockWorkerDataReader implements DataReader {
    * @param chunkSize the chunk size
    */
   private BlockWorkerDataReader(ExecutorService executor, BlockReader reader,
-        long offset, long len, long chunkSize) {
+      long offset, long len, long chunkSize) {
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
@@ -82,7 +83,8 @@ public final class BlockWorkerDataReader implements DataReader {
     try {
       buffer = readResult.get();
     } catch (Exception e) {
-      LOG.debug(e.toString());
+      LOG.error("Failed to read with Fuse in worker.", e);
+      throw new IOException("Failed to read with Fuse in worker.");
     }
     DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();

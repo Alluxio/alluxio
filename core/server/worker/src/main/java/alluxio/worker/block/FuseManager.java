@@ -20,9 +20,7 @@ import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
 import alluxio.fuse.FuseUmountable;
 
-import alluxio.master.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +57,7 @@ public class FuseManager implements Closeable {
   }
 
   /**
-   * Starts mounting the internal Fuse applications and create workerFuse executor service.
+   * Starts mounting the internal Fuse applications and creates workerFuse executor services.
    */
   public void start() {
     AlluxioConfiguration conf = ServerConfiguration.global();
@@ -109,8 +107,8 @@ public class FuseManager implements Closeable {
     if (operation.equals("read")) {
       return mWorkerFuseReadExecutorService;
     } else {
-      LOG.error("Fail to obtain {} executor service in workerFuse.", operation);
-      return null;
+      throw new IllegalArgumentException(
+          String.format("Unknown workerFuse executor service %s.", operation));
     }
   }
 
