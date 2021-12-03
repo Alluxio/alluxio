@@ -229,7 +229,8 @@ public class S3ARetryClient extends AbstractAmazonS3 {
     public boolean shouldRetry(AmazonClientException exception) {
       if (exception instanceof AmazonS3Exception) {
         AmazonS3Exception s3Exception = (AmazonS3Exception) exception;
-        if (s3Exception.getErrorCode().equals("SlowDown")) {
+        String errorCode = s3Exception.getErrorCode().toLowerCase();
+        if (errorCode.contains("slowdown") || errorCode.contains("slow down")) {
           return mRetryPolicy.attempt();
         }
       }
