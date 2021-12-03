@@ -439,14 +439,12 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
 
         // Delete input files
         if (!mPreserveSource) {
-          if (mDeleteByDir) {
-            mFs.delete(srcDir, DeletePOptions.newBuilder().setRecursive(true).build());
-          } else {
+          if (!mDeleteByDir) {
             for (AlluxioURI file : files) {
               mFs.delete(file);
             }
-            mFs.delete(srcDir);
           }
+          mFs.delete(srcDir, DeletePOptions.newBuilder().setRecursive(true).build());
         }
 
         mResult.getStatistics().encodeResponseTimeNsRaw(mRawRecords);
