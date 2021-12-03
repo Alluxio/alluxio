@@ -114,7 +114,9 @@ public class FuseManager implements Closeable {
 
   @Override
   public void close() throws IOException {
-    mWorkerFuseReadExecutorService.shutdownNow();
+    if (mWorkerFuseReadExecutorService != null) {
+      mWorkerFuseReadExecutorService.shutdownNow();
+    }
     if (mFuseUmountable != null) {
       try {
         mFuseUmountable.umount(true);
