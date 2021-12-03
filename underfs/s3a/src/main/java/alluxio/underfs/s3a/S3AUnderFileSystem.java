@@ -280,7 +280,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           defaultRegion);
     }
     AmazonS3 rawClient = clientBuilder.build();
-    S3ARetryClient.S3RetryHandler retryHandler =
+    Supplier<S3ARetryClient.S3RetryHandler> retryHandler = () ->
         new S3ARetryClient.RateLimitExceededRetryHandler(
             new ExponentialBackoffRetry(500, 5000, 5),
             S3ARetryClient.NoRetryHandler.INSTANCE);

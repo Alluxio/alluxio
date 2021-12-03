@@ -184,6 +184,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class S3ARetryClient extends AbstractAmazonS3 {
   public interface S3RetryHandler {
@@ -219,6 +220,8 @@ public class S3ARetryClient extends AbstractAmazonS3 {
 
     public RateLimitExceededRetryHandler(RetryPolicy policy, S3RetryHandler fallback) {
       super(fallback);
+      // consume the first attempt which never blocks
+      policy.attempt();
       mRetryPolicy = policy;
     }
 
@@ -239,19 +242,20 @@ public class S3ARetryClient extends AbstractAmazonS3 {
   }
 
   protected final AmazonS3 mDelegate;
-  protected final S3RetryHandler mHandler;
+  protected final Supplier<S3RetryHandler> mHandlerSupplier;
 
-  public S3ARetryClient(AmazonS3 delegate, S3RetryHandler handler) {
+  public S3ARetryClient(AmazonS3 delegate, Supplier<S3RetryHandler> handlerSupplier) {
     mDelegate = delegate;
-    mHandler = handler;
+    mHandlerSupplier = handlerSupplier;
   }
 
   protected <R> R retry(ThrowingSupplier<R> supplier) {
+    S3RetryHandler handler = mHandlerSupplier.get();
     while (true) {
       try {
         return supplier.supply();
       } catch (AmazonClientException e) {
-        if (!mHandler.shouldRetry(e)) {
+        if (!handler.shouldRetry(e)) {
           throw e;
         }
       }
@@ -279,7 +283,8 @@ public class S3ARetryClient extends AbstractAmazonS3 {
     retry(() -> {
       mDelegate.setS3ClientOptions(clientOptions);
       return null;
-    });  }
+    });
+  }
 
   @Override
   public void changeObjectStorageClass(String bucketName, String key, StorageClass newStorageClass)
