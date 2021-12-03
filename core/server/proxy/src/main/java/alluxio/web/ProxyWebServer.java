@@ -18,6 +18,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.proxy.ProxyProcess;
+import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -79,6 +80,7 @@ public final class ProxyWebServer extends WebServer {
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    addHandler(new CompleteMultipartUploadHandler(mFileSystem));
   }
 
   @Override
