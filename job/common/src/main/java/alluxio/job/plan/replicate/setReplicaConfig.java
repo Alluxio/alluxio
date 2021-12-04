@@ -28,8 +28,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Configuration of a job replicating a block.
  */
 @ThreadSafe
-@JsonTypeName(ReplicateConfig.NAME)
-public final class ReplicateConfig implements PlanConfig {
+@JsonTypeName(setReplicaConfig.NAME)
+public final class setReplicaConfig implements PlanConfig {
   private static final long serialVersionUID = 1807931900696165058L;
   public static final String NAME = "Replicate";
 
@@ -39,18 +39,18 @@ public final class ReplicateConfig implements PlanConfig {
   /** Alluxio path of the file to replicate. */
   private String mPath;
 
-  /** How many replicas to make for this block. */
+  /** target replicas to make for this block. */
   private int mReplicas;
 
   /**
-   * Creates a new instance of {@link ReplicateConfig}.
+   * Creates a new instance of {@link setReplicaConfig}.
    *
    * @param path Alluxio path of the file whose block to replicate
    * @param blockId id of the block to replicate
    * @param replicas number of additional replicas to create
    */
   @JsonCreator
-  public ReplicateConfig(@JsonProperty("path") String path, @JsonProperty("blockId") long blockId,
+  public setReplicaConfig(@JsonProperty("path") String path, @JsonProperty("blockId") long blockId,
       @JsonProperty("replicas") int replicas) {
     Preconditions.checkArgument(replicas > 0, "replicas must be positive.");
     mBlockId = blockId;
@@ -97,10 +97,10 @@ public final class ReplicateConfig implements PlanConfig {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof ReplicateConfig)) {
+    if (!(obj instanceof setReplicaConfig)) {
       return false;
     }
-    ReplicateConfig that = (ReplicateConfig) obj;
+    setReplicaConfig that = (setReplicaConfig) obj;
     return Objects.equal(mBlockId, that.mBlockId)
         && Objects.equal(mPath, that.mPath)
         && Objects.equal(mReplicas, that.mReplicas);

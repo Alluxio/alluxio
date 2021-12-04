@@ -20,39 +20,39 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Test {@link ReplicateConfig}.
+ * Test {@link setReplicaConfig}.
  */
-public final class ReplicateConfigTest {
+public final class setReplicaConfigTest {
   @Test
   public void json() throws Exception {
-    ReplicateConfig config = createRandom();
+    setReplicaConfig config = createRandom();
     ObjectMapper mapper = new ObjectMapper();
-    ReplicateConfig other =
-        mapper.readValue(mapper.writeValueAsString(config), ReplicateConfig.class);
+    setReplicaConfig other =
+        mapper.readValue(mapper.writeValueAsString(config), setReplicaConfig.class);
     checkEquality(config, other);
   }
 
   @Test
   public void negativeReplicateNumber() {
     try {
-      new ReplicateConfig("", 0, -1);
+      new setReplicaConfig("", 0, -1);
       Assert.fail("Cannot create ReplicateConfig with negative replicateNumber");
     } catch (IllegalArgumentException exception) {
       // expected exception thrown. test passes
     }
   }
 
-  public void checkEquality(ReplicateConfig a, ReplicateConfig b) {
+  public void checkEquality(setReplicaConfig a, setReplicaConfig b) {
     Assert.assertEquals(a.getBlockId(), b.getBlockId());
     Assert.assertEquals(a.getReplicas(), b.getReplicas());
     Assert.assertEquals(a, b);
   }
 
-  public static ReplicateConfig createRandom() {
+  public static setReplicaConfig createRandom() {
     Random random = new Random();
     String path = "/" + CommonUtils.randomAlphaNumString(random.nextInt(10) + 1);
-    ReplicateConfig config =
-        new ReplicateConfig(path, random.nextLong(), random.nextInt(Integer.MAX_VALUE) + 1);
+    setReplicaConfig config =
+        new setReplicaConfig(path, random.nextLong(), random.nextInt(Integer.MAX_VALUE) + 1);
     return config;
   }
 }
