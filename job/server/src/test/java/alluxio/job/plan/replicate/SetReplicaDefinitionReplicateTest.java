@@ -77,12 +77,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tests {@link ReplicateConfig}.
+ * Tests {@link SetReplicaDefinition}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class,
     BlockInStream.class})
-public final class ReplicateDefinitionTest {
+public final class SetReplicaDefinitionReplicateTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final long TEST_BLOCK_SIZE = 512L;
   private static final int MAX_BYTES = 1000;
@@ -142,11 +142,11 @@ public final class ReplicateDefinitionTest {
    * @param workerInfoList a list of current available job workers
    * @return the selection result
    */
-  private Set<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
+  private Set<Pair<WorkerInfo, setReplicaTask>> selectExecutorsTestHelper(
       int numReplicas, List<WorkerInfo> workerInfoList)
       throws Exception {
-    ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
-    ReplicateDefinition definition = new ReplicateDefinition();
+    setReplicaConfig config = new setReplicaConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
+    SetReplicaDefinition definition = new SetReplicaDefinition();
     return definition.selectExecutors(config, workerInfoList,
         new SelectExecutorsContext(1, mMockJobServerContext));
   }
@@ -179,9 +179,10 @@ public final class ReplicateDefinitionTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     when(AlluxioBlockStore.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
 
-    ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
-    ReplicateDefinition definition = new ReplicateDefinition();
-    definition.runTask(config, null, new RunTaskContext(1, 1, mMockJobServerContext));
+    setReplicaConfig config = new setReplicaConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
+    SetReplicaDefinition definition = new SetReplicaDefinition();
+    definition.runTask(config,
+        new setReplicaTask(Mode.REPLICATE), new RunTaskContext(1, 1, mMockJobServerContext));
   }
 
   @Test

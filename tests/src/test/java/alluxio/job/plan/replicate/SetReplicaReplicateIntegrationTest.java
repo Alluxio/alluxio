@@ -39,9 +39,9 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Integration tests for {@link ReplicateDefinition}.
+ * Integration tests for {@link SetReplicaDefinition}.
  */
-public final class ReplicateIntegrationTest extends JobIntegrationTest {
+public final class SetReplicaReplicateIntegrationTest extends JobIntegrationTest {
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
