@@ -7,21 +7,21 @@ import java.io.Serializable;
 /**
  * A task representing loading a block into the memory of a worker.
  */
-public final class setReplicaCommand implements Serializable {
+public final class setReplicaTask implements Serializable {
     private static final long serialVersionUID = 2028545900913354425L;
-    final Enum mMode;
+    final Mode mMode;
 
     /**
      * @param mode evict or replicate
      */
-    public setReplicaCommand(Enum mode) {
+    public setReplicaTask(Mode mode) {
         mMode = mode;
     }
 
     /**
      * @return the block id
      */
-    public Enum getMode() {
+    public Mode getMode() {
         return mMode;
     }
 
