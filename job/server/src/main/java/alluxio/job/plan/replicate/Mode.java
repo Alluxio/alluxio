@@ -1,2 +1,5 @@
-package alluxio.job.plan.replicate;public class Mode {
+package alluxio.job.plan.replicate;
+
+public enum Mode {
+    EVICT, REPLICATE
 }
