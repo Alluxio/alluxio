@@ -102,7 +102,7 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 
 This should take less than 1 minute.
 
-Here are more
+Here are more and more
 [details for building Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
 ## Taking a New Contributor Task
