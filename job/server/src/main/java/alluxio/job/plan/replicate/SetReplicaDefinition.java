@@ -49,15 +49,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  * FileSystemMaster.
  */
 @NotThreadSafe
-public final class setReplicaDefinition
+public final class SetReplicaDefinition
     extends AbstractVoidPlanDefinition<setReplicaConfig, setReplicaTask> {
-  private static final Logger LOG = LoggerFactory.getLogger(setReplicaDefinition.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SetReplicaDefinition.class);
 
   /**
-   * Constructs a new {@link setReplicaDefinition}.
+   * Constructs a new {@link SetReplicaDefinition}.
    *
    */
-  public setReplicaDefinition() {}
+  public SetReplicaDefinition() {}
 
   @Override
   public Class<setReplicaConfig> getJobConfigClass() {
@@ -119,10 +119,15 @@ public final class setReplicaDefinition
   @Override
   public SerializableVoid runTask(setReplicaConfig config, setReplicaTask task,
       RunTaskContext context) throws Exception {
-    if (task.getMode() == Mode.EVICT) {
-      evict(config, context);
-    } else {
-      replicate(config, context);
+    switch (task.getMode()) {
+      case EVICT :
+        evict(config, context);
+        break;
+      case REPLICATE:
+        replicate(config, context);
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unexpected replication mode {}.", task.getMode()));
     }
     return null;
   }
