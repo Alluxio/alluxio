@@ -83,7 +83,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     // hack - use a job tracker with capacity of 1
     PlanTracker planTracker = new PlanTracker(1, 0, -1, mock(WorkflowTracker.class));
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
-    waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
+    waitForJobToFinish(mJobMaster.run(new setReplicaConfig(TEST_URI, mBlockId1, 1)));
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
     BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, mFsContext);
@@ -101,7 +101,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     // hack - use a plan tracker with capacity of 1
     PlanTracker planTracker = new PlanTracker(1, 0, -1, mock(WorkflowTracker.class));
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
-    waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
+    waitForJobToFinish(mJobMaster.run(new setReplicaConfig(TEST_URI, mBlockId2, 1)));
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
     BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, mFsContext);
