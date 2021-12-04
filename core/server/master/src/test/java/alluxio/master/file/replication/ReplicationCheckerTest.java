@@ -124,13 +124,7 @@ public final class ReplicationCheckerTest {
     }
 
     @Override
-    public long evict(AlluxioURI uri, long blockId, int numReplicas) {
-      mEvictRequests.put(blockId, numReplicas);
-      return ++mNextJobId;
-    }
-
-    @Override
-    public long replicate(AlluxioURI uri, long blockId, int numReplicas) {
+    public long setReplica(AlluxioURI uri, long blockId, int numReplicas) {
       mReplicateRequests.put(blockId, numReplicas);
       return ++mNextJobId;
     }
