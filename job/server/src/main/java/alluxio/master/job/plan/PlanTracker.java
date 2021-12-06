@@ -11,6 +11,7 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
@@ -302,13 +303,17 @@ public class PlanTracker {
 
   private void checkActiveSetReplicaJobs(JobConfig jobConfig) throws JobDoesNotExistException {
     if (jobConfig instanceof SetReplicaConfig) {
-      Set<Long> activeBlockIds = mCoordinators.values().stream()
+      Set<Pair<String, Long>> activeJobs = mCoordinators.values().stream()
           .filter(x -> x.getPlanInfo().getJobConfig() instanceof SetReplicaConfig)
-          .map(x -> ((SetReplicaConfig) x.getPlanInfo().getJobConfig()).getBlockId())
-          .collect(Collectors.toSet());
-      long blockId = ((SetReplicaConfig) jobConfig).getBlockId();
-      if (activeBlockIds.contains(blockId)) {
-        throw new JobDoesNotExistException("There's SetReplica job running for block {}, try later");
+          .map(x -> ((SetReplicaConfig) x.getPlanInfo().getJobConfig()))
+          .map(x -> new Pair<>(x.getPath(), x.getBlockId())).collect(Collectors.toSet());
+      SetReplicaConfig config = (SetReplicaConfig) jobConfig;
+      String path = config.getPath();
+      long blockId = config.getBlockId();
+      Pair<String, Long> block = new Pair<>(path, blockId);
+      if (activeJobs.contains(block)) {
+        throw new JobDoesNotExistException(String.format(
+            "There's SetReplica job running for path:%s blockId:%s, try later", path, blockId));
       }
     }
   }
