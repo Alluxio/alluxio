@@ -86,6 +86,20 @@ Master.InodeHeapSize:
   'An estimate of the inode heap size'
 Master.InodeLockPoolSize:
   'The size of master inode lock pool'
+Master.JobCanceled:
+  'The number of canceled status job'
+Master.JobCompleted:
+  'The number of completed status job'
+Master.JobCount:
+  'The number of all status job'
+Master.JobCreated:
+  'The number of created status job'
+Master.JobFailed:
+  'The number of failed status job'
+Master.JobRunning:
+  'The number of running status job'
+Master.JournalCheckpointWarn:
+  'If the raft log index exceeds alluxio.master.journal.checkpoint.period.entries, and the last checkpoint exceeds alluxio.master.journal.checkpoint.warning.threshold.time, it returns 1 to indicate that a warning is required, otherwise it returns 0'
 Master.JournalEntriesSinceCheckPoint:
   'Journal entries since last checkpoint'
 Master.JournalFlushFailure:
@@ -125,9 +139,7 @@ Master.ListingCacheSize:
 Master.LostBlockCount:
   'Count of lost unique blocks'
 Master.LostFileCount:
-  'Count of lost files'
-Master.MasterHeartbeatTriggeredActiveJobSize:
-  'Active job size started by master'
+  'Count of lost files. This number is cached and may not be in sync with Master.LostBlockCount'
 Master.MountOps:
   'Total number of Mount operations'
 Master.NewBlocksGot:
@@ -142,6 +154,8 @@ Master.PathsUnmounted:
   'Total number of succeed Unmount operations'
 Master.RenamePathOps:
   'Total number of Rename operations'
+Master.ReplicaMgmtActiveJobSize:
+  'Number of active block replication/eviction jobs. These jobs are created by the master to maintain the block replica factor. The value is an estimate with lag. '
 Master.RpcQueueLength:
   'Length of the master rpc queue. Use this metric to monitor the RPC pressure on master.'
 Master.SetAclOps:
@@ -153,7 +167,7 @@ Master.TotalPaths:
 Master.TotalRpcs:
   'Throughput of master RPC calls. This metrics indicates how busy the master is serving client and worker requests'
 Master.UfsJournalCatchupTimer:
-  'The timer statistics of journal catchupOnly valid when ufs journal is used. This provides a summary of how long a secondary master takes to catch up with primary master, and should be monitored if master transition takes too long'
+  'The timer statistics of journal catchupOnly valid when ufs journal is used. This provides a summary of how long a standby master takes to catch up with primary master, and should be monitored if master transition takes too long'
 Master.UfsJournalFailureRecoverTimer:
   'The timer statistics of ufs journal failure recover'
 Master.UfsJournalInitialReplayTimeMs:
