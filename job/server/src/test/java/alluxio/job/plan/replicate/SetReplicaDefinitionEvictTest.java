@@ -88,7 +88,7 @@ public final class SetReplicaDefinitionEvictTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
-    setReplicaConfig config = new setReplicaConfig("", TEST_BLOCK_ID, replicas);
+    SetReplicaConfig config = new SetReplicaConfig("", TEST_BLOCK_ID, replicas);
     SetReplicaDefinition definition = new SetReplicaDefinition();
     return definition.selectExecutors(config, workerInfoList,
         new SelectExecutorsContext(1, mJobServerContext));

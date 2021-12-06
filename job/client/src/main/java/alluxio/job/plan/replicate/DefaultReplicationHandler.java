@@ -71,7 +71,7 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
       throws AlluxioException, IOException {
     JobMasterClient client = mJobMasterClientPool.acquire();
     try {
-      return client.run(new setReplicaConfig(uri.getPath(), blockId, numReplicas));
+      return client.run(new SetReplicaConfig(uri.getPath(), blockId, numReplicas));
     } finally {
       mJobMasterClientPool.release(client);
     }

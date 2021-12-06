@@ -179,7 +179,7 @@ public class PlanTracker {
   public synchronized void run(PlanConfig jobConfig, CommandManager manager,
       JobServerContext ctx, List<WorkerInfo> workers, long jobId) throws
       JobDoesNotExistException, ResourceExhaustedException {
-    checkActiveJobs(jobConfig);
+    checkActiveSetReplicaJobs(jobConfig);
     if (removeFinished()) {
       PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
@@ -299,7 +299,7 @@ public class PlanTracker {
         .map(Map.Entry::getKey).collect(Collectors.toSet());
   }
 
-  private void checkActiveJobs(JobConfig jobConfig) throws JobDoesNotExistException {
+  private void checkActiveSetReplicaJobs(JobConfig jobConfig) throws JobDoesNotExistException {
     if (jobConfig instanceof EvictConfig) {
       Set<Long> activeBlockIds = mCoordinators.values().stream()
           .filter(x -> x.getPlanInfo().getJobConfig() instanceof EvictConfig)

@@ -60,7 +60,7 @@ public final class SetReplicaEvictIntegrationTest extends JobIntegrationTest {
   @Test
   public void evictBlock1() throws Exception {
     // run the evict job for full block mBlockId1
-    waitForJobToFinish(mJobMaster.run(new setReplicaConfig("", mBlockId1, 0)));
+    waitForJobToFinish(mJobMaster.run(new SetReplicaConfig("", mBlockId1, 0)));
     CommonUtils.waitFor("block 1 to be evicted", () -> {
       try {
         return !AdjustJobTestUtils.hasBlock(mBlockId1, mWorker, mFsContext);
@@ -75,7 +75,7 @@ public final class SetReplicaEvictIntegrationTest extends JobIntegrationTest {
   @Test
   public void evictBlock2() throws Exception {
     // run the evict job for the last block mBlockId2
-    waitForJobToFinish(mJobMaster.run(new setReplicaConfig("", mBlockId2, 0)));
+    waitForJobToFinish(mJobMaster.run(new SetReplicaConfig("", mBlockId2, 0)));
     CommonUtils.waitFor("block 2 to be evicted", () -> {
       try {
         return !AdjustJobTestUtils.hasBlock(mBlockId2, mWorker, mFsContext);

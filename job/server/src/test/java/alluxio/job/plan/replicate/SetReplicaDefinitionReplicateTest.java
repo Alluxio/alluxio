@@ -46,7 +46,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.util.SerializableVoid;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -146,7 +145,7 @@ public final class SetReplicaDefinitionReplicateTest {
   private Set<Pair<WorkerInfo, setReplicaTask>> selectExecutorsTestHelper(
       int numReplicas, List<WorkerInfo> workerInfoList)
       throws Exception {
-    setReplicaConfig config = new setReplicaConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
+    SetReplicaConfig config = new SetReplicaConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
     SetReplicaDefinition definition = new SetReplicaDefinition();
     return definition.selectExecutors(config, workerInfoList,
         new SelectExecutorsContext(1, mMockJobServerContext));
@@ -180,7 +179,7 @@ public final class SetReplicaDefinitionReplicateTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     when(AlluxioBlockStore.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
 
-    setReplicaConfig config = new setReplicaConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
+    SetReplicaConfig config = new SetReplicaConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
     SetReplicaDefinition definition = new SetReplicaDefinition();
     definition.runTask(config,
         new setReplicaTask(Mode.REPLICATE), new RunTaskContext(1, 1, mMockJobServerContext));

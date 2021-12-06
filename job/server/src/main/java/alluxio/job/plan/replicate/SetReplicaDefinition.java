@@ -50,7 +50,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SetReplicaDefinition
-    extends AbstractVoidPlanDefinition<setReplicaConfig, setReplicaTask> {
+    extends AbstractVoidPlanDefinition<SetReplicaConfig, setReplicaTask> {
   private static final Logger LOG = LoggerFactory.getLogger(SetReplicaDefinition.class);
 
   /**
@@ -60,12 +60,12 @@ public final class SetReplicaDefinition
   public SetReplicaDefinition() {}
 
   @Override
-  public Class<setReplicaConfig> getJobConfigClass() {
-    return setReplicaConfig.class;
+  public Class<SetReplicaConfig> getJobConfigClass() {
+    return SetReplicaConfig.class;
   }
 
   @Override
-  public Set<Pair<WorkerInfo, setReplicaTask>> selectExecutors(setReplicaConfig config,
+  public Set<Pair<WorkerInfo, setReplicaTask>> selectExecutors(SetReplicaConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     Preconditions.checkArgument(!jobWorkerInfoList.isEmpty(), "No worker is available");
 
@@ -118,7 +118,7 @@ public final class SetReplicaDefinition
    * This task will replicate the block.
    */
   @Override
-  public SerializableVoid runTask(setReplicaConfig config, setReplicaTask task,
+  public SerializableVoid runTask(SetReplicaConfig config, setReplicaTask task,
       RunTaskContext context) throws Exception {
     switch (task.getMode()) {
       case EVICT :
@@ -133,7 +133,7 @@ public final class SetReplicaDefinition
     return null;
   }
 
-  private void evict(setReplicaConfig config, RunTaskContext context) throws Exception {
+  private void evict(SetReplicaConfig config, RunTaskContext context) throws Exception {
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils
         .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, ServerConfiguration.global());
@@ -162,7 +162,7 @@ public final class SetReplicaDefinition
     }
   }
 
-  private void replicate(setReplicaConfig config, RunTaskContext context) throws Exception {
+  private void replicate(SetReplicaConfig config, RunTaskContext context) throws Exception {
     // TODO(jiri): Replace with internal client that uses file ID once the internal client is
     // factored out of the core server module. The reason to prefer using file ID for this job is
     // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
