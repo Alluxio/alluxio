@@ -20,6 +20,7 @@ import alluxio.job.JobServerContext;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.plan.replicate.EvictConfig;
+import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -300,14 +301,14 @@ public class PlanTracker {
   }
 
   private void checkActiveSetReplicaJobs(JobConfig jobConfig) throws JobDoesNotExistException {
-    if (jobConfig instanceof EvictConfig) {
+    if (jobConfig instanceof SetReplicaConfig) {
       Set<Long> activeBlockIds = mCoordinators.values().stream()
-          .filter(x -> x.getPlanInfo().getJobConfig() instanceof EvictConfig)
-          .map(x -> ((EvictConfig) x.getPlanInfo().getJobConfig()).getBlockId())
+          .filter(x -> x.getPlanInfo().getJobConfig() instanceof SetReplicaConfig)
+          .map(x -> ((SetReplicaConfig) x.getPlanInfo().getJobConfig()).getBlockId())
           .collect(Collectors.toSet());
-      long blockId = ((EvictConfig) jobConfig).getBlockId();
+      long blockId = ((SetReplicaConfig) jobConfig).getBlockId();
       if (activeBlockIds.contains(blockId)) {
-        throw new JobDoesNotExistException("There's job running for block {}, try later");
+        throw new JobDoesNotExistException("There's SetReplica job running for block {}, try later");
       }
     }
   }
