@@ -1,6 +1,9 @@
 package alluxio.job.plan.replicate;
 
+import alluxio.job.plan.migrate.MigrateCommand;
+
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.io.Serializable;
 
@@ -27,5 +30,22 @@ public final class setReplicaTask implements Serializable {
 
     @Override public String toString() {
         return MoreObjects.toStringHelper(this).add("mode", mMode).toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof setReplicaTask)) {
+            return false;
+        }
+        setReplicaTask that = (setReplicaTask) o;
+        return Objects.equal(mMode, that.mMode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(mMode);
     }
 }
