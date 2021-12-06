@@ -685,7 +685,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
-        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
+        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
