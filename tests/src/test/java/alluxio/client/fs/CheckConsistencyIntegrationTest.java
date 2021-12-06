@@ -180,6 +180,19 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(expected, result);
   }
 
+  @Test
+  public void existsInUfsButNotAlluxio() throws Exception {
+    String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
+        ServerConfiguration.global());
+    String filename = "ufs_exists";
+    String newPath = ufsDirectory + AlluxioURI.SEPARATOR + filename;
+    ufs.mkdirs(newPath);
+    List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY.join(filename));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(DIRECTORY,
+        CheckConsistencyContext.defaults()));
+  }
+
   /**
    * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)} method
    * when a file does not exist as a file in the under storage.

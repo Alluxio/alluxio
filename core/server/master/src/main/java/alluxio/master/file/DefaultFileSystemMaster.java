@@ -195,6 +195,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1313,10 +1314,27 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
       if (inode.isDirectory()) {
         InodeDirectory inodeDir = inode.asDirectory();
-        for (Inode child : mInodeStore.getChildren(inodeDir)) {
+        Iterable<? extends Inode> children = mInodeStore.getChildren(inodeDir);
+        for (Inode child : children) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris, assertInconsistent);
           }
+        }
+        // if a file exist in mount table but not exist in alluxio
+        // it should as regard as inconsistent.
+        // if it's a directory, we could ignore child path.
+        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
+          String ufsPath = resolution.getUri().getPath();
+          Arrays.stream(ufs.listStatus(ufsPath)).forEach(status -> {
+            for (Inode child : children) {
+              if (child.getName().equals(status.getName())) {
+                return;
+              }
+            }
+            inconsistentUris.add(inodePath.getUri().join(status.getName()));
+          });
         }
       }
     } catch (InvalidPathException e) {
