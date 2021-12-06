@@ -119,11 +119,11 @@ alluxio.worker.ramdisk.size:
 alluxio.worker.register.lease.enabled:
   'Whether the worker requests a lease from the master before registering.This should be consistent with alluxio.master.worker.register.lease.enabled'
 alluxio.worker.register.lease.retry.max.duration:
-  'N/A'
+  'The total time on retrying to get a register lease, before giving up.'
 alluxio.worker.register.lease.retry.sleep.max:
-  'N/A'
+  'The maximum time to sleep before retrying to get a register lease.'
 alluxio.worker.register.lease.retry.sleep.min:
-  'N/A'
+  'The minimum time to sleep before retrying to get a register lease.'
 alluxio.worker.register.stream.batch.size:
   'When the worker registers with the master using a stream, this defines the metadata of how many blocks should be send to the master in each batch.'
 alluxio.worker.register.stream.complete.timeout:
