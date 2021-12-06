@@ -82,11 +82,12 @@ public final class SetReplicaDefinition
       return result;
     }
 
-    int numToEvict = currentNumReplicas - numReplicas;
+    int numToOperate = currentNumReplicas - numReplicas;
     Mode mode;
-    if (numToEvict > 0) {
+    if (numToOperate > 0) {
       mode = Mode.EVICT;
     } else {
+      numToOperate = Math.abs(numToOperate);
       mode = Mode.REPLICATE;
     }
 
@@ -103,7 +104,7 @@ public final class SetReplicaDefinition
       }
       if (condition) {
         result.add(new Pair<>(workerInfo, new setReplicaTask(mode)));
-        if (result.size() >= numToEvict) {
+        if (result.size() >= numToOperate) {
           break;
         }
       }
