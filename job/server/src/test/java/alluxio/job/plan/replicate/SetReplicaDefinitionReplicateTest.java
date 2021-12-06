@@ -77,7 +77,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tests {@link SetReplicaDefinition}.
+ * Tests replicate functionality of {@link SetReplicaDefinition}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class,

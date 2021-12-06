@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Tests {@link SetReplicaDefinition}.
+ * Tests evict functionality of {@link SetReplicaDefinition}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
