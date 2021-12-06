@@ -52,7 +52,7 @@ public final class setReplicaConfig implements PlanConfig {
   @JsonCreator
   public setReplicaConfig(@JsonProperty("path") String path, @JsonProperty("blockId") long blockId,
       @JsonProperty("replicas") int replicas) {
-    Preconditions.checkArgument(replicas > 0, "replicas must be positive.");
+    Preconditions.checkArgument(replicas >= 0, "replicas must be non-negative.");
     mBlockId = blockId;
     mPath = path;
     mReplicas = replicas;
