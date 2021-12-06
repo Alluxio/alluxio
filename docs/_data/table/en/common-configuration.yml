@@ -13,7 +13,7 @@ alluxio.fuse.auth.policy.custom.group:
 alluxio.fuse.auth.policy.custom.user:
   'The fuse user name for custom auth policy. Only valid if the alluxio.fuse.auth.policy.class is alluxio.fuse.auth.CustomAuthPolicy'
 alluxio.fuse.cached.paths.max:
-  'Maximum number of Alluxio paths to cache for FUSE conversion.'
+  'Maximum number of FUSE-to-Alluxio path mappings to cache for FUSE conversion.'
 alluxio.fuse.debug.enabled:
   'Run FUSE in debug mode, and have the fuse process log every FS request.'
 alluxio.fuse.fs.name:
@@ -85,7 +85,7 @@ alluxio.job.master.client.threads:
 alluxio.job.master.embedded.journal.addresses:
   'A comma-separated list of journal addresses for all job masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. Defaults to the journal addresses set for the Alluxio masters (alluxio.master.embedded.journal.addresses), but with the job master embedded journal port.'
 alluxio.job.master.embedded.journal.port:
-  'The port to use for embedded journal communication with other job masters.'
+  'The port job masters use for embedded journal communications.'
 alluxio.job.master.finished.job.purge.count:
   'The maximum amount of jobs to purge at any single time when the job master reaches its maximum capacity. It is recommended to set this value when setting the capacity of the job master to a large ( &gt; 10M) value. Default is -1 denoting an unlimited value'
 alluxio.job.master.finished.job.retention.time:
@@ -107,7 +107,7 @@ alluxio.job.master.network.max.inbound.message.size:
 alluxio.job.master.network.permit.keepalive.time:
   'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
 alluxio.job.master.rpc.addresses:
-  'The list of RPC addresses to use for the job service configured in non-zookeeper HA mode. If this property is not specifically defined, it will first fall back to using alluxio.master.rpc.addresses, replacing those address ports with the port defined by alluxio.job.master.rpc.port. Otherwise the addresses are inherited from alluxio.job.master.embedded.journal.addresses using the port defined in alluxio.job.master.rpc.port'
+  'A list of comma-separated host:port RPC addresses where the client should look for job masters when using multiple job masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the job master addresses. If property is not defined, clients will look for job masters using [alluxio.master.rpc.addresses]:alluxio.job.master.rpc.port first, then for [alluxio.job.master.embedded.journal.addresses]:alluxio.job.master.rpc.port.'
 alluxio.job.master.rpc.port:
   'The port for Alluxio job master''s RPC service.'
 alluxio.job.master.web.bind.host:
@@ -190,6 +190,14 @@ alluxio.proxy.s3.deletetype:
   'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
 alluxio.proxy.s3.multipart.temporary.dir.suffix:
   'Suffix for the directory which holds parts during a multipart upload.'
+alluxio.proxy.s3.multipart.upload.cleaner.pool.size:
+  'The abort multipart upload cleaner pool size.'
+alluxio.proxy.s3.multipart.upload.cleaner.retry.count:
+  'The retry count when aborting a multipart upload fails.'
+alluxio.proxy.s3.multipart.upload.cleaner.retry.delay:
+  'The retry delay time when aborting a multipart upload fails.'
+alluxio.proxy.s3.multipart.upload.timeout:
+  'The timeout for aborting proxy s3 multipart upload automatically.'
 alluxio.proxy.s3.writetype:
   'Write type when creating buckets and objects through S3 API. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `ASYNC_THROUGH` (try to cache, write to UnderFS asynchronously), `THROUGH` (no cache, write to UnderFS synchronously).'
 alluxio.proxy.stream.cache.timeout:
@@ -414,6 +422,14 @@ aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
   'The secret key of S3 bucket.'
+awt.toolkit:
+  'N/A'
+file.encoding:
+  'N/A'
+file.encoding.pkg:
+  'N/A'
+file.separator:
+  'N/A'
 fs.azure.account.oauth2.client.endpoint:
   'The oauth endpoint for ABFS.'
 fs.azure.account.oauth2.client.id:
@@ -472,4 +488,113 @@ fs.swift.tenant:
   'Swift user for authentication.'
 fs.swift.user:
   'Swift tenant for authentication.'
-
+ftp.nonProxyHosts:
+  'N/A'
+gopherProxySet:
+  'N/A'
+http.nonProxyHosts:
+  'N/A'
+java.awt.graphicsenv:
+  'N/A'
+java.awt.printerjob:
+  'N/A'
+java.class.path:
+  'N/A'
+java.class.version:
+  'N/A'
+java.endorsed.dirs:
+  'N/A'
+java.ext.dirs:
+  'N/A'
+java.home:
+  'N/A'
+java.io.tmpdir:
+  'N/A'
+java.library.path:
+  'N/A'
+java.net.preferIPv4Stack:
+  'N/A'
+java.runtime.name:
+  'N/A'
+java.runtime.version:
+  'N/A'
+java.specification.name:
+  'N/A'
+java.specification.vendor:
+  'N/A'
+java.specification.version:
+  'N/A'
+java.vendor:
+  'N/A'
+java.vendor.url:
+  'N/A'
+java.vendor.url.bug:
+  'N/A'
+java.version:
+  'N/A'
+java.vm.info:
+  'N/A'
+java.vm.name:
+  'N/A'
+java.vm.specification.name:
+  'N/A'
+java.vm.specification.vendor:
+  'N/A'
+java.vm.specification.version:
+  'N/A'
+java.vm.vendor:
+  'N/A'
+java.vm.version:
+  'N/A'
+line.separator:
+  'N/A'
+log4j.configuration:
+  'N/A'
+org.apache.jasper.compiler.disablejsr199:
+  'N/A'
+org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads:
+  'N/A'
+os.arch:
+  'N/A'
+os.name:
+  'N/A'
+os.version:
+  'N/A'
+path.separator:
+  'N/A'
+socksNonProxyHosts:
+  'N/A'
+sun.arch.data.model:
+  'N/A'
+sun.boot.class.path:
+  'N/A'
+sun.boot.library.path:
+  'N/A'
+sun.cpu.endian:
+  'N/A'
+sun.cpu.isalist:
+  'N/A'
+sun.io.unicode.encoding:
+  'N/A'
+sun.java.command:
+  'N/A'
+sun.java.launcher:
+  'N/A'
+sun.jnu.encoding:
+  'N/A'
+sun.management.compiler:
+  'N/A'
+sun.os.patch.level:
+  'N/A'
+user.country:
+  'N/A'
+user.dir:
+  'N/A'
+user.home:
+  'N/A'
+user.language:
+  'N/A'
+user.name:
+  'N/A'
+user.timezone:
+  'N/A'
