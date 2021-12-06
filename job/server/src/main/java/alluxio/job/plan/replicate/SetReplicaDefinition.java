@@ -71,7 +71,7 @@ public final class SetReplicaDefinition
 
     long blockId = config.getBlockId();
     int numReplicas = config.getReplicas();
-    Preconditions.checkArgument(numReplicas > 0);
+    Preconditions.checkArgument(numReplicas >= 0);
 
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
