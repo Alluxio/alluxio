@@ -1327,14 +1327,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           String ufsPath = resolution.getUri().getPath();
-          Arrays.stream(ufs.listStatus(ufsPath)).forEach(status -> {
-            for (Inode child : children) {
-              if (child.getName().equals(status.getName())) {
-                return;
+          UfsStatus[] statuses = ufs.listStatus(ufsPath);
+          if (statuses != null) {
+            Arrays.stream(statuses).forEach(status -> {
+              for (Inode child : children) {
+                if (child.getName().equals(status.getName())) {
+                  return;
+                }
               }
-            }
-            inconsistentUris.add(inodePath.getUri().join(status.getName()));
-          });
+              inconsistentUris.add(inodePath.getUri().join(status.getName()));
+            });
+          }
         }
       }
     } catch (InvalidPathException e) {
