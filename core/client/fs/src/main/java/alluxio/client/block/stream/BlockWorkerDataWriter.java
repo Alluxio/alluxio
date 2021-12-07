@@ -102,6 +102,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       }
     }
     long append = mBlockWriter.append(buf);
+    buf.release();
     MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT.getName()).inc(append);
     MetricsSystem.meter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT.getName()).mark(append);
   }
