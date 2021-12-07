@@ -95,7 +95,8 @@ public final class BlockWorkerDataWriter implements DataWriter {
     try {
       if (mReservedBytes < pos() + buf.readableBytes()) {
         try {
-          long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes() - mReservedBytes);
+          long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes()
+              - mReservedBytes);
           // Allocate enough space in the existing temporary block for the write.
           mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
         } catch (Exception e) {
