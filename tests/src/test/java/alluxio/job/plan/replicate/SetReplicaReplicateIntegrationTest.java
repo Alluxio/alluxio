@@ -39,7 +39,7 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Integration tests for {@link SetReplicaDefinition}.
+ * Integration tests for replicate functionality of {@link SetReplicaDefinition}.
  */
 public final class SetReplicaReplicateIntegrationTest extends JobIntegrationTest {
 

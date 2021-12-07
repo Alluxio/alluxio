@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Integration tests for evict  {@link SetReplicaDefinition}.
+ * Integration tests for evict functionality of  {@link SetReplicaDefinition}.
  */
 public final class SetReplicaEvictIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
