@@ -23,13 +23,8 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-
-If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getting Started tutorial:
-
-<p align="center">
-<a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
- <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-</p>
+If you are trying to speedup SQL analytics, you can try the 
+[Presto Alluxio Getting Started](https://www.alluxio.io/alluxio-presto-sandbox-docker/) tutorial.
 
 ## Prerequisites
 
@@ -93,7 +88,7 @@ $ ./bin/alluxio validateEnv local
 
 This reports potential problems that might prevent Alluxio from starting locally.
 
-Check out [this page]({{ '/en/operation/User-CLI.html' | relativize_url }}) for detailed
+Check out [this page]({{ '/en/operation/User-CLI.html' | relativize_url }}#validateenv) for detailed
 usage information regarding the `validateEnv` command.
 
 ## Starting Alluxio
@@ -284,7 +279,7 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
-The output shows that the file is **Not In Memory**. This file is a sample of tweets.
+The `0%` in the output shows that the file is **Not In Memory**. This file is a sample of tweets.
 Count the number of tweets with the word "kitten" and time the duration of the operation.
 
 ```console
@@ -307,8 +302,8 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
-The output shows that the file is now 100% loaded to Alluxio, so reading the file should be
-significantly faster.
+`100%` in the output shows that the file is now fully loaded to Alluxio, so reading the file 
+from now on should be significantly faster.
 
 Now count the number of tweets with the word "puppy".
 

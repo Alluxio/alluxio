@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricKey;
@@ -75,7 +76,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     mJournalSystem.start();
 
     startMasters(false);
-    LOG.info("Secondary started");
+    LOG.info("Standby started");
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
@@ -102,7 +103,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         break;
       }
       if (gainPrimacy()) {
-        mLeaderSelector.waitForState(State.SECONDARY);
+        mLeaderSelector.waitForState(State.STANDBY);
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
           stop();
         } else {
@@ -119,7 +120,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
    * Upgrades the master to primary mode.
    *
    * If the master loses primacy during the journal upgrade, this method will clean up the partial
-   * upgrade, leaving the master in secondary mode.
+   * upgrade, leaving the master in standby mode.
    *
    * @return whether the master successfully upgraded to primary
    */
@@ -131,18 +132,28 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         unstable.set(true);
       }
       stopMasters();
-      LOG.info("Secondary stopped");
+      LOG.info("Standby stopped");
       try (Timer.Context ctx = MetricsSystem
           .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
         mJournalSystem.gainPrimacy();
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
-        losePrimacy();
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          losePrimacy();
+        }
         return false;
       }
     }
-    startMasters(true);
+    try {
+      startMasters(true);
+    } catch (UnavailableException e) {
+      LOG.warn("Error starting masters: {}", e.toString());
+      stopMasters();
+      return false;
+    }
     mServingThread = new Thread(() -> {
       try {
         startServing(" (gained leadership)", " (lost leadership)");
@@ -167,7 +178,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     if (mServingThread != null) {
       stopServing();
     }
-    // Put the journal in secondary mode ASAP to avoid interfering with the new primary. This must
+    // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
     // which could cause NPEs for outstanding RPC threads. We need to first close all client
     // sockets in stopServing so that clients don't see NPEs.
@@ -184,7 +195,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LOG.info("Primary stopped");
     }
     startMasters(false);
-    LOG.info("Secondary started");
+    LOG.info("Standby started");
   }
 
   @Override

@@ -25,7 +25,6 @@ using `kubectl` directly.
 
 Alluxio comes with a few sets of YAML templates for some common deployment scenarios.
 They are in *singleMaster-localJournal*, *singleMaster-hdfsJournal* and *multiMaster-embeddedJournal* directories.
-See [Find existing YAML templates for your deployment scenario in Alluxio documentation](https://docs.alluxio.io/os/user/edge/en/deploy/Running-Alluxio-On-Kubernetes.html#find-existing-yaml-templates-for-your-deployment-scenario)
 
 ### Update Helm templates
 

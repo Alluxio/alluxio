@@ -98,7 +98,7 @@ Dynamically generated master metrics:
 
 ## Worker Metrics
 
-Default master metrics:
+Default worker metrics:
 
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
@@ -111,7 +111,7 @@ Default master metrics:
 {% endfor %}
 </table>
 
-Dynamically generated master metrics:
+Dynamically generated worker metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
@@ -141,6 +141,8 @@ Depending on the launching ways, Fuse metrics show as
 * client metrics when Fuse client is launching in a standalone AlluxioFuse process.
 * worker metrics when Fuse client is embedded in the AlluxioWorker process.
 
+Fuse metrics includes:
+
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
 {% for item in site.data.table.fuse-metrics %}
@@ -151,6 +153,9 @@ Depending on the launching ways, Fuse metrics show as
   </tr>
 {% endfor %}
 </table>
+
+Fuse reading/writing file count can be used as the indicator for Fuse application pressure.
+If a large amount of concurrent read/write occur in a short period of time, each of the read/write operations may take longer time to finish.
 
 When a user or an application runs a filesystem command under Fuse mount point, 
 this command will be processed and translated by operating system which will trigger the related Fuse operations

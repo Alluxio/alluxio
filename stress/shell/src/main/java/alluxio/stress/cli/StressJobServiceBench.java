@@ -20,6 +20,7 @@ import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
@@ -43,6 +44,7 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
@@ -95,7 +97,18 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public String getBenchDescription() {
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the job service.",
+        "This test will measure the different aspects of job service performance with different "
+            + "operations.",
+        "",
+        "Example:",
+        "# This invokes the DistributedLoad jobs to job master",
+        "# 256 requests would be sent concurrently to job master",
+        "# Each request contains 1000 files with file size 1k",
+        "$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --file-size 1k \\"
+            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad",
+        ""));
   }
 
   @Override
@@ -297,11 +310,13 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     private void runDistributedLoad(String dirPath) throws AlluxioException, IOException {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
+      List<URIStatus> pool = new ArrayList<>(1);
       try {
-        DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
-            new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), false);
+        DistributedLoadUtils.distributedLoad(cmd, pool, mParameters.mBatchSize,
+            new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
+            new HashSet<>(), new HashSet<>(), false);
       } finally {
-        mResult.incrementNumSuccess(cmd.getCompletedCount());
+        mResult.incrementNumSuccess((long) cmd.getCompletedCount() * mParameters.mBatchSize);
       }
     }
   }

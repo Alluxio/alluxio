@@ -58,7 +58,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.read = read_wrapper;
   jnifuse_oper.readdir = readdir_wrapper;
   jnifuse_oper.release = release_wrapper;
-  jnifuse_oper.removexattr =removexattr_wrapper;
+  jnifuse_oper.removexattr = removexattr_wrapper;
   jnifuse_oper.rename = rename_wrapper;
   jnifuse_oper.rmdir = rmdir_wrapper;
   jnifuse_oper.setxattr = setxattr_wrapper;
