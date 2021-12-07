@@ -114,7 +114,7 @@ public final class SetReplicaDefinition
   /**
    * {@inheritDoc}
    *
-   * This task will replicate the block.
+   * This task will set replica for the block.
    */
   @Override
   public SerializableVoid runTask(SetReplicaConfig config, SetReplicaTask task,
