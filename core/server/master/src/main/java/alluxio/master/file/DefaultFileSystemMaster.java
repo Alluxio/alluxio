@@ -4651,15 +4651,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
         ugi = "N/A";
       }
       if (user != null) {
-        if (connectionUser != null && !connectionUser.equals(user)) {
-          user = connectionUser + " (auth=PROXY) via " + user;
-        }
         try {
           String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
           ugi = user + "," + primaryGroup;
         } catch (IOException e) {
           LOG.debug("Failed to get primary group for user {}.", user);
           ugi = user + ",N/A";
+        }
+        if (connectionUser != null && !connectionUser.equals(user)) {
+          ugi = connectionUser + " (auth=PROXY) via " + ugi;
         }
       }
       AuthType authType =
