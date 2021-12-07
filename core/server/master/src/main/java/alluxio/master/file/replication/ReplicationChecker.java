@@ -137,7 +137,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   @Override
   public void heartbeat() throws InterruptedException {
     // skips replication in safe mode when not all workers are registered
-    if (mSafeModeManager.isInSafeMode()) {
+    // skips replication check when there are no worker.
+    if (mSafeModeManager.isInSafeMode() || mBlockMaster.getWorkerCount() == 0) {
       return;
     }
     final Set<Long> activeJobIds = new HashSet<>();
