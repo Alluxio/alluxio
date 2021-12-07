@@ -425,9 +425,8 @@ public final class ReplicationCheckerTest {
     addBlockLocationHelper(blockId2, 5);
 
     mReplicationChecker.heartbeat();
-    Map<Long, Integer> expected1 = ImmutableMap.of(blockId1, 2,blockId2, 3);
+    Map<Long, Integer> expected1 = ImmutableMap.of(blockId1, 2, blockId2, 3);
     Assert.assertEquals(expected1, mMockReplicationHandler.getSetReplicaRequests());
-
   }
 
   @Test

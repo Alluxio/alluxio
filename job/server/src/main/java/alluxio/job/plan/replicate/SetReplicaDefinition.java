@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -50,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SetReplicaDefinition
-    extends AbstractVoidPlanDefinition<SetReplicaConfig, setReplicaTask> {
+    extends AbstractVoidPlanDefinition<SetReplicaConfig, SetReplicaTask> {
   private static final Logger LOG = LoggerFactory.getLogger(SetReplicaDefinition.class);
 
   /**
@@ -65,7 +64,7 @@ public final class SetReplicaDefinition
   }
 
   @Override
-  public Set<Pair<WorkerInfo, setReplicaTask>> selectExecutors(SetReplicaConfig config,
+  public Set<Pair<WorkerInfo, SetReplicaTask>> selectExecutors(SetReplicaConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     Preconditions.checkArgument(!jobWorkerInfoList.isEmpty(), "No worker is available");
 
@@ -76,7 +75,7 @@ public final class SetReplicaDefinition
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
     int currentNumReplicas = blockInfo.getLocations().size();
-    Set<Pair<WorkerInfo, setReplicaTask>> result = Sets.newHashSet();
+    Set<Pair<WorkerInfo, SetReplicaTask>> result = Sets.newHashSet();
     if (numReplicas == currentNumReplicas) {
       LOG.warn("Evict target has already been satisfied for job:{}", config);
       return result;
@@ -103,7 +102,7 @@ public final class SetReplicaDefinition
         condition = !condition;
       }
       if (condition) {
-        result.add(new Pair<>(workerInfo, new setReplicaTask(mode)));
+        result.add(new Pair<>(workerInfo, new SetReplicaTask(mode)));
         if (result.size() >= numToOperate) {
           break;
         }
@@ -118,17 +117,18 @@ public final class SetReplicaDefinition
    * This task will replicate the block.
    */
   @Override
-  public SerializableVoid runTask(SetReplicaConfig config, setReplicaTask task,
+  public SerializableVoid runTask(SetReplicaConfig config, SetReplicaTask task,
       RunTaskContext context) throws Exception {
     switch (task.getMode()) {
-      case EVICT :
+      case EVICT:
         evict(config, context);
         break;
       case REPLICATE:
         replicate(config, context);
         break;
       default:
-        throw new IllegalArgumentException(String.format("Unexpected replication mode {}.", task.getMode()));
+        throw new IllegalArgumentException(
+            String.format("Unexpected replication mode {}.", task.getMode()));
     }
     return null;
   }

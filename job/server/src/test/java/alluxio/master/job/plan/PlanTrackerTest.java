@@ -148,18 +148,16 @@ public class PlanTrackerTest {
   @Test
   public void testDuplicateSetReplicaJobs() throws Exception {
     long jobId = mJobIdGenerator.getNewJobId();
-    mTracker.run(new SetReplicaConfig("test",0,2), mCommandManager,
-        mMockJobServerContext, mWorkers, jobId);
+    mTracker.run(new SetReplicaConfig("test", 0, 2), mCommandManager, mMockJobServerContext,
+        mWorkers, jobId);
     long jobId2 = mJobIdGenerator.getNewJobId();
     try {
       mTracker.run(new SetReplicaConfig("test", 0, 3), mCommandManager, mMockJobServerContext,
           mWorkers, jobId2);
       Assert.fail("There's SetReplica job running for path:test blockId:0, try later");
-    } catch (JobDoesNotExistException ignored) {
+    } catch (JobDoesNotExistException ignored) { // ignored
     }
   }
-
-
 
   private long addJob(int sleepTimeMs) throws Exception {
     return addJob(mTracker, sleepTimeMs);

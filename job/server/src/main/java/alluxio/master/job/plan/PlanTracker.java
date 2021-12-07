@@ -20,7 +20,6 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
-import alluxio.job.plan.replicate.EvictConfig;
 import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
