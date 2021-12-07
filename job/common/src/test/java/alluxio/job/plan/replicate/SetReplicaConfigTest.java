@@ -22,7 +22,7 @@ import java.util.Random;
 /**
  * Test {@link SetReplicaConfig}.
  */
-public final class setReplicaConfigTest {
+public final class SetReplicaConfigTest {
   @Test
   public void json() throws Exception {
     SetReplicaConfig config = createRandom();
