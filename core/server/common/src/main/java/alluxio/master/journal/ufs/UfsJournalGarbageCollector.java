@@ -123,7 +123,8 @@ final class UfsJournalGarbageCollector implements Closeable {
       return;
     }
     if (lastModifiedTimeMs == null) {
-      return; // Skip gc file if not sure when it's last modified
+      LOG.warn("Failed to get the last modified time for {}.", file.getLocation());
+      return;
     }
 
     long thresholdMs = file.isTmpCheckpoint()
