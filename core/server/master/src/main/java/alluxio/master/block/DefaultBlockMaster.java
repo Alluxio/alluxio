@@ -437,7 +437,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           context.closeWithError(e);
         } catch (Throwable t) {
           LOG.error("Failed to close an open register stream for worker {}. "
-              + "The stream has been open for {}ms.", context.getWorkerId(), t);
+              + "The stream has been open for {}ms.", context.getWorkerId(), lastUpdate, t);
           // Do not remove the entry so this will be retried
           return false;
         }
