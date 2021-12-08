@@ -30,6 +30,7 @@ public class TestDataWriter implements DataWriter {
   public void writeChunk(ByteBuf chunk) throws IOException {
     mBuffer.limit(mBuffer.position() + chunk.readableBytes());
     chunk.readBytes(mBuffer);
+    chunk.release();
   }
 
   @Override
