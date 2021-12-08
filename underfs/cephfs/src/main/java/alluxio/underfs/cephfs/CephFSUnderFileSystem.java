@@ -552,7 +552,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return inputStream;
+        return new CephSeekableInputStream(inputStream);
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
@@ -736,6 +736,11 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
   private void statfs(String path, CephStatVFS stat) throws IOException {
     mMount.statfs(path, stat);
+  }
+
+  @Override
+  public boolean isSeekable() {
+    return true;
   }
 }
 
