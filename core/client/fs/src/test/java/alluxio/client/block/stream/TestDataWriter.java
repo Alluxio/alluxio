@@ -28,9 +28,12 @@ public class TestDataWriter implements DataWriter {
 
   @Override
   public void writeChunk(ByteBuf chunk) throws IOException {
-    mBuffer.limit(mBuffer.position() + chunk.readableBytes());
-    chunk.readBytes(mBuffer);
-    chunk.release();
+    try {
+      mBuffer.limit(mBuffer.position() + chunk.readableBytes());
+      chunk.readBytes(mBuffer);
+    } finally {
+      chunk.release();
+    }
   }
 
   @Override
