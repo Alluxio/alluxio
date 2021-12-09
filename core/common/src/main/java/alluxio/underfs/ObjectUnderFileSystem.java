@@ -101,8 +101,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    public static final long INVALID_MODIFIED_TIME = -1L;
-    // If content length is not set, object stores like S3 may return 0L
     private static final long INVALID_CONTENT_LENGTH = -1L;
 
     private final String mContentHash;
