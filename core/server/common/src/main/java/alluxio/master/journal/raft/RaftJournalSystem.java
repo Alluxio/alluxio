@@ -708,9 +708,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
       // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
-      CommonUtils.sleepMs(mConf.getMaxElectionTimeoutMs());
-      if (stateMachine.getLastAppliedSequenceNumber() != lastAppliedSN
-          || stateMachine.getLastPrimaryStartSequenceNumber() != gainPrimacySN) {
+      try {
+        CommonUtils.waitFor("check primacySN " + gainPrimacySN + " and lastAppliedSN "
+            + lastAppliedSN + " to be applied to leader", () ->
+            stateMachine.getLastAppliedSequenceNumber() == lastAppliedSN
+                && stateMachine.getLastPrimaryStartSequenceNumber() == gainPrimacySN,
+            WaitForOptions.defaults()
+                .setInterval(Constants.SECOND_MS)
+                .setTimeoutMs((int) mConf.getMaxElectionTimeoutMs()));
+      } catch (TimeoutException e) {
         // Someone has committed a journal entry since we started trying to catch up.
         // Restart the catchup process.
         continue;
