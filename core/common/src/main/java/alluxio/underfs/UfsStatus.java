@@ -49,7 +49,7 @@ public abstract class UfsStatus {
    * @param xAttrs any extended attributes on the inode
    */
   protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
-      Long lastModifiedTimeMs, @Nullable Map<String, byte[]> xAttrs) {
+      @Nullable Long lastModifiedTimeMs, @Nullable Map<String, byte[]> xAttrs) {
     mIsDirectory = isDirectory;
     mName = name;
     mOwner = owner;

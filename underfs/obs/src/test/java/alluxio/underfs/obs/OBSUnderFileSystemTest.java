@@ -141,4 +141,26 @@ public class OBSUnderFileSystemTest {
     Assert.assertTrue(mOBSUnderFileSystem.isDirectory("dir1"));
     Assert.assertFalse(mOBSUnderFileSystem.isDirectory("obs_file1"));
   }
+
+  @Test
+  public void nullObjectMetaTest() throws Exception {
+    ObjectMetadata fileMeta = new ObjectMetadata();
+    fileMeta.setContentLength(10L);
+    ObjectMetadata dirMeta = new ObjectMetadata();
+    dirMeta.setContentLength(0L);
+    /**
+     * /xx/file1/ ( File1 actually exists, which is a file) , there is / after file1 name.
+     * When OBS, the path object meta is null.
+     * When PFS, the path object meta is not null. The object meta is same as /xx/file1
+     */
+    Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "pfs_file1"))
+        .thenReturn(fileMeta);
+    Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "dir1"))
+        .thenReturn(dirMeta);
+
+    mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "obs",
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+    Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1"));
+    Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
+  }
 }

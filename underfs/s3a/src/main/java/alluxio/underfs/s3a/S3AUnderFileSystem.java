@@ -536,8 +536,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
+        Date lastModifiedDate = obj.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
-            obj.getLastModified().getTime());
+            lastModifiedTime);
       }
       return ret;
     }
@@ -580,8 +582,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
+        Date lastModifiedDate = obj.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
-            obj.getLastModified().getTime());
+            lastModifiedTime);
       }
       return ret;
     }
@@ -610,8 +614,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+      Date lastModifiedDate = meta.getLastModified();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
+      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(), lastModifiedTime);
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
