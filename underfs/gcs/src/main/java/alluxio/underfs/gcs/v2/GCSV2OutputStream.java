@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

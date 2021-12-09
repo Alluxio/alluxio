@@ -26,7 +26,6 @@ import org.apache.commons.cli.Options;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

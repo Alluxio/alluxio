@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -108,7 +107,12 @@ public class UfsJournalReader implements JournalReader {
     if (!mUfs.isFile(mCheckpoint.toString())) {
       throw new IOException("Checkpoint file " + mCheckpoint + " does not exist.");
     }
-    mCheckpointLastModifiedTime = mUfs.getFileStatus(mCheckpoint.toString()).getLastModifiedTime();
+    Long lastModifiedTime = mUfs.getFileStatus(mCheckpoint.toString()).getLastModifiedTime();
+    if (lastModifiedTime == null) {
+      throw new IOException("Failed to get checkpoint file "
+          + mCheckpoint + " last modified time.");
+    }
+    mCheckpointLastModifiedTime = lastModifiedTime;
     return mCheckpointLastModifiedTime;
   }
 }

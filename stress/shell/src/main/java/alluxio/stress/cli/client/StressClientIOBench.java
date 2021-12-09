@@ -12,8 +12,8 @@
 package alluxio.stress.cli.client;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.conf.InstancedConfiguration;

@@ -88,13 +88,13 @@ Dynamically generated master metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Master.CapacityTotalTier<TIER_NAME> | Total capacity in tier <TIER_NAME> of the Alluxio file system in bytes |
-| Master.CapacityUsedTier<TIER_NAME>  | Used capacity in tier <TIER_NAME> of the Alluxio file system in bytes |
-| Master.CapacityFreeTier<TIER_NAME>  | Free capacity in tier <TIER_NAME> of the Alluxio file system in bytes |
-| Master.UfsSessionCount-Ufs:<UFS_ADDRESS> | The total number of currently opened UFS sessions to connect to the given <UFS_ADDRESS> |
-| Master.<UFS_RPC_NAME>.UFS:<UFS_ADDRESS>.UFS_TYPE:<UFS_TYPE>.User:<USER> | The details UFS rpc operation done by the current master |
-| Master.PerUfsOp<UFS_RPC_NAME>.UFS:<UFS_ADDRESS> | The aggregated number of UFS operation <UFS_RPC_NAME> ran on UFS <UFS_ADDRESS> by leading master |  
-| Master.<LEADING_MASTER_RPC_NAME> | The duration statistics of RPC calls exposed on leading master |
+| Master.CapacityTotalTier{TIER_NAME} | Total capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
+| Master.CapacityUsedTier{TIER_NAME}  | Used capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
+| Master.CapacityFreeTier{TIER_NAME}  | Free capacity in tier {TIER_NAME} of the Alluxio file system in bytes |
+| Master.UfsSessionCount-Ufs:{UFS_ADDRESS} | The total number of currently opened UFS sessions to connect to the given {UFS_ADDRESS} |
+| Master.{UFS_RPC_NAME}.UFS:{UFS_ADDRESS}.UFS_TYPE:{UFS_TYPE}.User:{USER} | The details UFS rpc operation done by the current master |
+| Master.PerUfsOp{UFS_RPC_NAME}.UFS:{UFS_ADDRESS} | The aggregated number of UFS operation {UFS_RPC_NAME} ran on UFS {UFS_ADDRESS} by leading master |  
+| Master.{LEADING_MASTER_RPC_NAME} | The duration statistics of RPC calls exposed on leading master |
 
 ## Worker Metrics
 
@@ -115,8 +115,8 @@ Dynamically generated worker metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
-| Worker.UfsSessionCount-Ufs:<UFS_ADDRESS> | The total number of currently opened UFS sessions to connect to the given <UFS_ADDRESS> |
-| Worker.<RPC_NAME>                        | The duration statistics of RPC calls exposed on workers |
+| Worker.UfsSessionCount-Ufs:{UFS_ADDRESS} | The total number of currently opened UFS sessions to connect to the given {UFS_ADDRESS} |
+| Worker.{RPC_NAME}                        | The duration statistics of RPC calls exposed on workers |
 
 ## Client Metrics
 

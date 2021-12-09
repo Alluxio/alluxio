@@ -12,8 +12,8 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.reviewer.MockReviewer;
 
 import com.google.common.collect.Sets;

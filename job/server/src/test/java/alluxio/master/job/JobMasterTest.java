@@ -21,16 +21,16 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
@@ -38,8 +38,8 @@ import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.NoopUfsManager;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.job.plan.PlanCoordinator;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
@@ -104,11 +104,8 @@ public final class JobMasterTest {
         Lists.newArrayList(new DummyPlanConfig()), true);
 
     CompositeConfig jobConfig = new CompositeConfig(Lists.newArrayList(innerJobConfig), true);
-
     long jobId = mJobMaster.run(jobConfig);
-
     JobInfo status = mJobMaster.getStatus(jobId);
-
     Assert.assertEquals(Status.FAILED, status.getStatus());
     List<JobInfo> children = status.getChildren();
     Assert.assertEquals(1, children.size());

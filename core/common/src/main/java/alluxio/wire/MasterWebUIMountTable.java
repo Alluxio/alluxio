@@ -15,9 +15,9 @@ import alluxio.util.webui.UIMountPointInfo;
 
 import com.google.common.base.MoreObjects;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Alluxio WebUI mount table information.

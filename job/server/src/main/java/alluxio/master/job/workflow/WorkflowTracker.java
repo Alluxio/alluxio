@@ -19,10 +19,10 @@ import alluxio.job.JobConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionRegistry;
-import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;
 
 import org.apache.commons.compress.utils.Lists;

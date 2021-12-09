@@ -16,11 +16,11 @@ import alluxio.util.WaitForOptions;
 
 import org.apache.commons.lang3.SystemUtils;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /**
  * A process table interface to abstract away the different ways platforms retrieve information

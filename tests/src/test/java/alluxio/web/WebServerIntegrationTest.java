@@ -14,8 +14,8 @@ package alluxio.web;
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-
 import javax.ws.rs.HttpMethod;
 
 /**

@@ -29,7 +29,6 @@ import java.io.Closeable;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 

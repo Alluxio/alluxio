@@ -11,11 +11,11 @@
 
 package alluxio.cli.fs;
 
+import alluxio.cli.AbstractShell;
+import alluxio.cli.Command;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.cli.AbstractShell;
-import alluxio.cli.Command;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

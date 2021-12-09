@@ -47,7 +47,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

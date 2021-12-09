@@ -11,10 +11,10 @@
 
 package alluxio.proxy.s3;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This input stream decodes an {@code aws-chunked} encoded input stream into its original form.

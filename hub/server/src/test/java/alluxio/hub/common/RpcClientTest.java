@@ -53,7 +53,7 @@ public class RpcClientTest extends BaseHubTest {
   @Test
   public void testGrpcChannelBuilderThrowsException() throws Exception {
     try (MockedStatic<GrpcChannelBuilder> builderMock =
-      Mockito.mockStatic(GrpcChannelBuilder.class)) {
+        Mockito.mockStatic(GrpcChannelBuilder.class)) {
       builderMock.when(() -> GrpcChannelBuilder.newBuilder(any(), any()))
           .thenReturn(mMockChannelBuilder);
       doThrow(AlluxioStatusException.from(Status.UNAVAILABLE)).when(mMockChannelBuilder).build();

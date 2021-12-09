@@ -21,7 +21,6 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
 import java.util.function.Function;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

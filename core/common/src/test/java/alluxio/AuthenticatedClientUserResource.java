@@ -16,7 +16,6 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import java.io.Closeable;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

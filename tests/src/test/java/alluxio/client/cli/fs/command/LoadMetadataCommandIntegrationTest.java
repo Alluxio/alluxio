@@ -14,9 +14,9 @@ package alluxio.client.cli.fs.command;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;

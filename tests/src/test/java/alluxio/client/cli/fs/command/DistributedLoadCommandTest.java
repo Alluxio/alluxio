@@ -194,7 +194,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   @Test
   public void loadDirWithLotsFilesInBatch() throws IOException, AlluxioException {
     FileSystem fs = sResource.get().getClient();
-    int fileSize = 1000;
+    int fileSize = 100;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFile" + i, WritePType.THROUGH,

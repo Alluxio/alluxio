@@ -11,11 +11,11 @@
 
 package alluxio.wire;
 
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
-import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;

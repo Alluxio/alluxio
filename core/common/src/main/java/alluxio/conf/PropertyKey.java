@@ -43,7 +43,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -2277,6 +2276,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
+          new Builder(Name.MASTER_JOURNAL_LOG_CONCURRENCY_MAX)
+                  .setDefaultValue(256)
+                  .setDescription("Max concurrency for notifyTermIndexUpdated method, be sure it's "
+                          + "enough")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.MASTER)
+                  .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
       new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
       .setDefaultValue("10min")
@@ -3843,6 +3850,99 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_TYPE =
+      new Builder(Name.WORKER_RPC_EXECUTOR_TYPE)
+          .setDefaultValue("TPE")
+          .setDescription("Type of ExecutorService for Alluxio worker gRPC server. "
+              + "Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
+      new Builder(Name.WORKER_RPC_EXECUTOR_CORE_POOL_SIZE)
+          .setDefaultValue(100)
+          .setDescription(
+              "The number of threads to keep in thread pool of worker RPC ExecutorService.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_MAX_POOL_SIZE =
+      new Builder(Name.WORKER_RPC_EXECUTOR_MAX_POOL_SIZE)
+          .setDefaultValue(1000)
+          .setDescription("The maximum number of threads allowed for worker RPC ExecutorService."
+              + " When the maximum is reached, attempts to replace blocked threads fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_KEEPALIVE =
+      new Builder(Name.WORKER_RPC_EXECUTOR_KEEPALIVE)
+          .setDefaultValue("60sec")
+          .setDescription("The keep alive time of a thread in worker RPC ExecutorService"
+              + "last used before this thread is terminated (and replaced if necessary).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+      new Builder(Name.WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE)
+          .setDefaultValue("LINKED_BLOCKING_QUEUE_WITH_CAP")
+          .setDescription(String.format(
+              "This property is effective when %s is set to TPE. "
+                  + "It specifies the internal task queue that's used by RPC ExecutorService. "
+                  + "Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, "
+                  + "ARRAY_BLOCKING_QUEUE and SYNCHRONOUS_BLOCKING_QUEUE",
+              Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+      new Builder(Name.WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
+          .setDefaultValue(true)
+          .setDescription(
+              String.format("This property is effective when %s is set to ThreadPoolExecutor. "
+                  + "It controls whether core threads can timeout and terminate "
+                  + "when there is no work.", Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_PARALLELISM =
+      new Builder(Name.WORKER_RPC_EXECUTOR_FJP_PARALLELISM)
+          .setAlias("alluxio.worker.rpc.executor.parallelism")
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
+              "2 * {CPU core count}")
+          .setDescription(
+              String.format("This property is effective when %s is set to ForkJoinPool. "
+                  + "It controls the parallelism level (internal queue count) "
+                  + "of master RPC ExecutorService.", Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+      new Builder(Name.WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+          .setAlias("alluxio.worker.rpc.executor.min.runnable")
+          .setDefaultValue(1)
+          .setDescription(
+              String.format(
+                  "This property is effective when %s is set to ForkJoinPool. "
+                      + "It controls the minimum allowed number of core threads not blocked. "
+                      + "A value of 1 ensures liveness. A larger value might improve "
+                      + "throughput but might also increase overhead.",
+                  Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_ASYNC =
+      new Builder(Name.WORKER_RPC_EXECUTOR_FJP_ASYNC)
+          .setDefaultValue(true)
+          .setDescription(String.format(
+              "This property is effective when %s is set to ForkJoinPool. "
+                  + "if true, it establishes local first-in-first-out scheduling mode for "
+                  + "forked tasks that are never joined. This mode may be more appropriate "
+                  + "than default locally stack-based mode in applications in which "
+                  + "worker threads only process event-style asynchronous tasks.",
+              Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Proxy related properties
@@ -3903,6 +4003,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1)
           .setDescription("The abort multipart upload cleaner pool size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
+      new Builder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
+          .setDefaultValue(20)
+          .setDescription("The complete multipart upload thread pool size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
+      new Builder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL)
+          .setDefaultValue("30sec")
+          .setDescription("The complete multipart upload keepalive time.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
@@ -5234,6 +5348,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
+      new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If enabled, user can issue special FUSE commands by using "
+              + "'ls -l /path/to/fuse_mount/.alluxiocli.<command_name>.<subcommand_name>', "
+              + "For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, "
+              + "'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll' will drop all the "
+              + "user metadata cache. 'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size' "
+              + "will get the metadata cache size， "
+              + "the size value will be show in the output's filesize field. "
+              + "'ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop' "
+              + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
+          .setScope(Scope.CLIENT)
+          .build();
+  //
+  // Standalone FUSE process related properties
+  //
   public static final PropertyKey FUSE_WEB_ENABLED =
       new Builder(Name.FUSE_WEB_ENABLED)
           .setDefaultValue(false)
@@ -5681,6 +5812,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("Whether to enable start JVM monitor thread on the worker. This will "
               + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey STANDALONE_FUSE_JVM_MONITOR_ENABLED =
+      new Builder(Name.STANDALONE_FUSE_JVM_MONITOR_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable start JVM monitor thread "
+              + "on the standalone fuse process. This will start a thread "
+              + "to detect JVM-wide pauses induced by GC or other reasons.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -6219,6 +6359,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";
+    public static final String MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
+        "alluxio.master.journal.log.concurrency.max";
     public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
@@ -6570,6 +6712,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.worker.reviewer.probabilistic.softlimit.bytes";
     public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
+    public static final String WORKER_RPC_EXECUTOR_TYPE = "alluxio.worker.rpc.executor.type";
+    public static final String WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
+        "alluxio.worker.rpc.executor.core.pool.size";
+    public static final String WORKER_RPC_EXECUTOR_MAX_POOL_SIZE =
+        "alluxio.worker.rpc.executor.max.pool.size";
+    public static final String WORKER_RPC_EXECUTOR_KEEPALIVE =
+        "alluxio.worker.rpc.executor.keepalive";
+    public static final String WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+        "alluxio.worker.rpc.executor.tpe.queue.type";
+    public static final String WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+        "alluxio.worker.rpc.executor.tpe.allow.core.threads.timeout";
+    public static final String WORKER_RPC_EXECUTOR_FJP_PARALLELISM =
+        "alluxio.worker.rpc.executor.fjp.parallelism";
+    public static final String WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+        "alluxio.worker.rpc.executor.fjp.min.runnable";
+    public static final String WORKER_RPC_EXECUTOR_FJP_ASYNC =
+        "alluxio.worker.rpc.executor.fjp.async";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =
         "alluxio.worker.storage.checker.enabled";
@@ -6608,6 +6767,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.multipart.upload.cleaner.retry.delay";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
         "alluxio.proxy.s3.multipart.upload.cleaner.pool.size";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
+        "alluxio.proxy.s3.complete.multipart.upload.pool.size";
+    public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
+        "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
@@ -6901,6 +7064,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
+    public static final String FUSE_SPECIAL_COMMAND_ENABLED =
+        "alluxio.fuse.special.command.enabled";
+    //
+    // Standalone FUSE process related properties
+    //
     public static final String FUSE_WEB_ENABLED = "alluxio.fuse.web.enabled";
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
@@ -7000,6 +7168,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.jvm.monitor.sleep.interval";
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
+    public static final String STANDALONE_FUSE_JVM_MONITOR_ENABLED
+        = "alluxio.standalone.fuse.jvm.monitor.enabled";
 
     //
     // Table service properties

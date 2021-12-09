@@ -28,7 +28,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.core.Response;
 

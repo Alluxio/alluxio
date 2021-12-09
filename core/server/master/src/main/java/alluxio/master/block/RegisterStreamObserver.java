@@ -94,6 +94,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
                 + "Probably %s was exceeded!",
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
+        // Update the TS before and after processing the request, so that when a message
+        // takes long to process, the stream does not time out.
+        mContext.updateTs();
         mBlockMaster.workerRegisterStream(mContext, chunk, isHead);
         mContext.updateTs();
         // Return an ACK to the worker so it sends the next batch
@@ -151,6 +154,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
                 + "Probably %s was exceeded!",
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
+        // Update the TS before and after processing the request, so that when a message
+        // takes long to process, the stream does not time out.
+        mContext.updateTs();
         mBlockMaster.workerRegisterFinish(mContext);
         mContext.updateTs();
 

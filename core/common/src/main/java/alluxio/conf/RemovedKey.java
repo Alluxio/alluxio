@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 /**
@@ -108,8 +107,6 @@ public final class RemovedKey {
       put("alluxio.user.file.write.location.policy.class",
           replacedSince(V2_0_0, PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY.getName()));
       put("alluxio.user.heartbeat.interval", removedSince(V2_0_0));
-      put("alluxio.user.hostname",
-          replacedSince(V2_0_0, PropertyKey.LOCALITY_TIER_NODE.getName()));
       put("alluxio.user.lineage.enabled", removedSince(V2_0_0));
       put("alluxio.user.lineage.master.client.threads", removedSince(V2_0_0));
       put("alluxio.user.local.reader.packet.size.bytes", removedSince(V2_0_0));

@@ -11,9 +11,9 @@
 
 package alluxio.stress.cli.suite;
 
+import alluxio.stress.common.AbstractMaxThroughputSummary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.GeneralParameters;
-import alluxio.stress.common.AbstractMaxThroughputSummary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -18,7 +18,6 @@ import alluxio.proto.meta.Block.BlockMeta;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -112,8 +111,16 @@ public final class PlanCoordinator {
   private synchronized void start() throws JobDoesNotExistException {
     // get the job definition
     LOG.info("Starting job Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
-    PlanDefinition<JobConfig, ?, ?> definition =
-        PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
+    PlanDefinition<JobConfig, ?, ?> definition;
+    try {
+      definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
+    } catch (JobDoesNotExistException e) {
+      LOG.info("Exception when getting jobDefinition from jobConfig: ", e);
+      mPlanInfo.setStatus(Status.FAILED);
+      mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
+      mPlanInfo.setErrorMessage(e.getMessage());
+      throw e;
+    }
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
     Set<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;

@@ -33,7 +33,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.UUID;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -52,7 +51,7 @@ public class S3AOutputStream extends OutputStream {
   private final String mBucketName;
 
   /** Key of the file when it is uploaded to S3. */
-  private final String mKey;
+  protected final String mKey;
 
   /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
@@ -69,7 +68,7 @@ public class S3AOutputStream extends OutputStream {
    * to upload file larger than 100MB using Multipart Uploads.
    */
   // TODO(calvin): Investigate if the lower level API can be more efficient.
-  private final TransferManager mManager;
+  protected TransferManager mManager;
 
   /** The output stream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
@@ -148,7 +147,7 @@ public class S3AOutputStream extends OutputStream {
 
       // Generate the put request and wait for the transfer manager to complete the upload
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, path, mFile).withMetadata(meta);
-      mManager.upload(putReq).waitForUploadResult();
+      getTransferManager().upload(putReq).waitForUploadResult();
     } catch (Exception e) {
       LOG.error("Failed to upload {}", path, e);
       throw new IOException(e);
@@ -168,5 +167,12 @@ public class S3AOutputStream extends OutputStream {
    */
   protected String getUploadPath() {
     return mKey;
+  }
+
+  /**
+   * @return return the transfer manager
+   */
+  protected TransferManager getTransferManager() {
+    return mManager;
   }
 }

@@ -16,7 +16,6 @@ import alluxio.concurrent.jsr.ForkJoinPool;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.util.concurrent.ThreadFactory;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

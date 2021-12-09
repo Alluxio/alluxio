@@ -11,22 +11,21 @@
 
 package alluxio.client.fs;
 
+import static alluxio.client.fs.RegisterStreamTestUtils.BATCH_SIZE;
 import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
+import static alluxio.client.fs.RegisterStreamTestUtils.EMPTY_CONFIG;
+import static alluxio.client.fs.RegisterStreamTestUtils.LOST_STORAGE;
 import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY;
 import static alluxio.client.fs.RegisterStreamTestUtils.MEM_USAGE_EMPTY;
 import static alluxio.client.fs.RegisterStreamTestUtils.NET_ADDRESS_1;
+import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
+import static alluxio.client.fs.RegisterStreamTestUtils.TIER_CONFIG;
 import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
 import static alluxio.client.fs.RegisterStreamTestUtils.findFirstBlock;
+import static alluxio.client.fs.RegisterStreamTestUtils.getTierAliases;
+import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.grpc.BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
-import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
-import static alluxio.client.fs.RegisterStreamTestUtils.getTierAliases;
-import static alluxio.client.fs.RegisterStreamTestUtils.BATCH_SIZE;
-import static alluxio.client.fs.RegisterStreamTestUtils.EMPTY_CONFIG;
-import static alluxio.client.fs.RegisterStreamTestUtils.LOST_STORAGE;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_CONFIG;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;

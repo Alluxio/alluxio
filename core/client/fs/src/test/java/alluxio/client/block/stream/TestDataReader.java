@@ -16,7 +16,6 @@ import alluxio.network.protocol.databuffer.NioDataBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
 import javax.annotation.Nullable;
 
 /**

@@ -15,8 +15,8 @@ import alluxio.cli.AbstractValidationTask;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.collections.Pair;
 
-import javax.annotation.Nullable;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * A validation task which includes extra information in order to provide dependencies for

@@ -22,7 +22,6 @@ import alluxio.worker.job.JobMasterClientContext;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 

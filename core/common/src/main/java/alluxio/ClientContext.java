@@ -24,7 +24,6 @@ import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
-
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 

@@ -12,11 +12,11 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
+import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterFactory;
 import alluxio.master.NoopMaster;
 import alluxio.master.ServiceUtils;
@@ -42,7 +42,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -53,7 +52,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * <pre>
  * java -cp \
- *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+ *   assembly/server/target/alluxio-assembly-server-&lt;ALLUXIO-VERSION&gt;
+ *   -jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalUpgrader -journalDirectoryV0 YourJournalDirectoryV0
  * </pre>
  */

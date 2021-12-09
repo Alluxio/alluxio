@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

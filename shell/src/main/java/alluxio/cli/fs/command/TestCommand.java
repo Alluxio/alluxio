@@ -24,7 +24,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

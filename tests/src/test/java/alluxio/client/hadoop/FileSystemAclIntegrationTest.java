@@ -12,10 +12,10 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
-import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;

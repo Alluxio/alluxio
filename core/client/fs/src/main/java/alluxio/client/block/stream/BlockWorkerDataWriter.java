@@ -30,7 +30,6 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

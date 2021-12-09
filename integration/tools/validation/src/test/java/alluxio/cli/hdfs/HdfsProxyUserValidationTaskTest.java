@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
 import alluxio.cli.ValidationTestUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;

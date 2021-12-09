@@ -20,8 +20,8 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Client side interceptor that is used to augment outgoing metadata with the unique id for the
