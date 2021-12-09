@@ -125,6 +125,12 @@
       <groupId>com.hubspot.jackson</groupId>
       <artifactId>jackson-datatype-protobuf</artifactId>
       <version>0.9.12</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
