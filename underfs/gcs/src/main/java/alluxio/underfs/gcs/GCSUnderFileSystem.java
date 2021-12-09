@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -255,8 +256,10 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       StorageObject[] objects = mChunk.getObjects();
       ObjectStatus[] ret = new ObjectStatus[objects.length];
       for (int i = 0; i < ret.length; ++i) {
+        Date lastModifiedDate = objects[i].getLastModifiedDate();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i] = new ObjectStatus(objects[i].getKey(), objects[i].getMd5HashAsBase64(),
-            objects[i].getContentLength(), objects[i].getLastModifiedDate().getTime());
+            objects[i].getContentLength(), lastModifiedTime);
       }
       return ret;
     }
