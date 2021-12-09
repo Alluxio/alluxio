@@ -24,9 +24,6 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Node Name
-              </th>
-              <th>
                 Last Heartbeat
               </th>
               <th>
