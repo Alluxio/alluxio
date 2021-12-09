@@ -38,6 +38,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -245,8 +246,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (ObsObject obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getObjectKey(), obj.getMetadata().getEtag(),
-            obj.getMetadata().getContentLength(), obj.getMetadata().getLastModified().getTime());
+        ObjectMetadata meta = obj.getMetadata();
+        Date lastModifiedDate = meta.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
+        ret[i++] = new ObjectStatus(obj.getObjectKey(), meta.getEtag(),
+            meta.getContentLength(), lastModifiedTime);
       }
       return ret;
     }
@@ -292,8 +296,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
           return null;
         }
       }
+      Date lastModifiedDate = meta.getLastModified();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, meta.getEtag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+          lastModifiedTime);
     } catch (ObsException e) {
       LOG.warn("Failed to get Object {}, return null", key, e);
       return null;

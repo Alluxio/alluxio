@@ -102,27 +102,26 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
-    private static final long INVALID_MODIFIED_TIME = -1L;
 
     private final String mContentHash;
     private final long mContentLength;
-    private final long mLastModifiedTimeMs;
+    /** Last modified epoch time in ms, or null if it is not available. */
+    private final Long mLastModifiedTimeMs;
     private final String mName;
 
     public ObjectStatus(String name, String contentHash, long contentLength,
-        long lastModifiedTimeMs) {
-      mContentHash = contentHash;
+        @Nullable Long lastModifiedTimeMs) {
+      mContentHash = contentHash == null ? UfsFileStatus.INVALID_CONTENT_HASH : contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
-      mContentHash = INVALID_CONTENT_HASH;
+      mContentHash = UfsFileStatus.INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
-      mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
+      mLastModifiedTimeMs = null;
       mName = name;
     }
 
@@ -147,7 +146,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return modification time in milliseconds
      */
-    public long getLastModifiedTimeMs() {
+    @Nullable
+    public Long getLastModifiedTimeMs() {
       return mLastModifiedTimeMs;
     }
 
