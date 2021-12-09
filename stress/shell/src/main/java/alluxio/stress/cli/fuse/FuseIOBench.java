@@ -470,7 +470,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       mCurrentOffset = 0;
       while (!Thread.currentThread().isInterrupted()) {
         if (CommonUtils.getCurrentMs() > mContext.getEndMs()) {
-          mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
+          if (mFuseIOTaskResult.getEndMs() == 0L) {
+            mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
+          }
           if (isRead) {
             // For read, stop when end time reaches
             return true;
