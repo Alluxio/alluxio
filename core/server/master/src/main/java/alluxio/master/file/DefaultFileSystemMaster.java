@@ -1690,11 +1690,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs) {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
+      mountPoints.put(mountPoint.getKey(),
+              getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
     }
     return mountPoints;
   }
-
 
   @Override
   public MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException {
