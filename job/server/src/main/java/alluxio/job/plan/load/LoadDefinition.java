@@ -187,7 +187,7 @@ public final class LoadDefinition
 
     for (LoadTask task : tasks) {
       JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId(),
-          task.getWorkerNetAddress());
+          task.getWorkerNetAddress(), config.isDirectCache());
       LOG.info("Loaded file " + config.getFilePath() + " block " + task.getBlockId());
     }
     return null;
