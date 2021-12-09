@@ -11,67 +11,82 @@
 
 package alluxio.fuse.cli.command;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingBaseFileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.wire.FileInfo;
+import alluxio.fuse.cli.FuseCommand;
+import alluxio.fuse.cli.metadatacache.DropAllCommand;
+import alluxio.fuse.cli.metadatacache.DropCommand;
+import alluxio.fuse.cli.metadatacache.SizeCommand;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Gets information of or makes changes to the Fuse client metadata cache.
  */
 @ThreadSafe
-public final class MetadataCacheCommand {
-  private static final Logger LOG = LoggerFactory.getLogger(MetadataCacheCommand.class);
+public final class MetadataCacheCommand extends AbstractFuseShellCommand {
 
-  private final AlluxioConfiguration mConf;
-  private final FileSystem mFileSystem;
+  private static final Map<String, BiFunction<FileSystem, AlluxioConfiguration,
+      ? extends FuseCommand>> SUB_COMMANDS = new HashMap<>();
 
-  public MetadataCacheCommand(FileSystem fileSystem, AlluxioConfiguration alluxioConfiguration) {
-    mFileSystem = fileSystem;
-    mConf = alluxioConfiguration;
+  static {
+    SUB_COMMANDS.put("dropAll", DropAllCommand::new);
+    SUB_COMMANDS.put("drop", DropCommand::new);
+    SUB_COMMANDS.put("size", SizeCommand::new);
   }
 
-  public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
-    if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-      throw new UnsupportedOperationException(String
-          .format("metadatacache command is not supported when %s is false",
-              PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
-    }
-    if (argv.length > 1) {
-      throw new InvalidArgumentException("metadatacache requires 0 or 1 arguments");
-    }
-    if (argv.length == 0) {
-      return getMetadataCacheSize();
-    }
-    String cmd = argv[0];
-    switch (cmd) {
-      // TODO(lu) better organizing sub command names
-      case "dropAll":
-        ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCacheAll();
-        return new URIStatus(new FileInfo().setCompleted(true));
-      case "drop":
-        ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCache(path);
-        return new URIStatus(new FileInfo().setCompleted(true));
-      case "size":
-        return getMetadataCacheSize();
-      default:
-        throw new InvalidArgumentException(String
-            .format("%s is not a valid subcommand for command metadatacache", cmd));
-    }
+  private Map<String, FuseCommand> mSubCommands = new HashMap<>();
+
+  /**
+   * @param fs filesystem instance from fuse command
+   * @param conf configuration instance from fuse command
+   */
+  public MetadataCacheCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf);
+    SUB_COMMANDS.forEach((name, constructor) -> {
+      mSubCommands.put(name, constructor.apply(fs, conf));
+    });
   }
 
-  private URIStatus getMetadataCacheSize() {
-    // The 'ls -al' command will show metadata cache size in the <filesize> field.
-    long size = ((MetadataCachingBaseFileSystem) mFileSystem).getMetadataCacheSize();
-    return new URIStatus(new FileInfo().setLength(size).setCompleted(true));
+  @Override
+  public boolean hasSubCommand() {
+    return true;
+  }
+
+  @Override
+  public Map<String, FuseCommand> getSubCommands() {
+    return mSubCommands;
+  }
+
+  @Override
+  public String getCommandName() {
+    return "metadatacache";
+  }
+
+  @Override
+  public String getUsage() {
+    // Show usage: metadatacache.([drop] [size] [dropAll])
+    StringBuilder usage = new StringBuilder(getCommandName());
+    usage.append(".(");
+    for (String cmd : SUB_COMMANDS.keySet()) {
+      usage.append("[").append(cmd).append("]");
+    }
+    usage.append(")");
+    return usage.toString();
+  }
+
+  /*
+  * @return command's description
+  * */
+  public static String description() {
+    return "Metadatacache command is used to drop metadata cache or get cache size. ";
+  }
+
+  @Override
+  public String getDescription() {
+    return description();
   }
 }

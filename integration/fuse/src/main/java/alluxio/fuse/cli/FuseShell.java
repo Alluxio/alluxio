@@ -17,12 +17,16 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.fuse.cli.command.MetadataCacheCommand;
+import alluxio.util.CommonUtils;
 
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Fuse shell to run Fuse special commands.
@@ -33,6 +37,7 @@ public final class FuseShell {
 
   private final AlluxioConfiguration mConf;
   private final FileSystem mFileSystem;
+  private final Map<String, FuseCommand> mCommands;
 
   /**
    * Creates a new instance of {@link FuseShell}.
@@ -42,6 +47,24 @@ public final class FuseShell {
   public FuseShell(FileSystem fs, AlluxioConfiguration conf) {
     mFileSystem = fs;
     mConf = conf;
+    mCommands = loadCommands();
+  }
+
+  private Map<String, FuseCommand> loadCommands() {
+    Map<String, FuseCommand> commandsMap = new HashMap<>();
+    Reflections reflections = new Reflections(FuseCommand.class.getPackage().getName());
+    for (Class<? extends FuseCommand> cls : reflections.getSubTypesOf(FuseCommand.class)) {
+      // Add commands from <pkgName>.command.*
+      if (cls.getPackage().getName().equals(FuseShell.class.getPackage().getName() + ".command")
+          && !Modifier.isAbstract(cls.getModifiers())) {
+        // Only instantiate a concrete class
+        FuseCommand cmd = CommonUtils.createNewClassInstance(cls,
+            new Class [] {FileSystem.class, AlluxioConfiguration.class},
+            new Object[] {mFileSystem, mConf});
+        commandsMap.put(cmd.getCommandName(), cmd);
+      }
+    }
+    return commandsMap;
   }
 
   /**
@@ -71,53 +94,36 @@ public final class FuseShell {
       throw new InvalidArgumentException("Command is needed in Fuse shell");
     }
 
-    String cmdType = cmds[2];
-    switch (CommandType.fromValue(cmdType)) {
-      case METADATA_CACHE:
-        MetadataCacheCommand command = new MetadataCacheCommand(mFileSystem, mConf);
-        return command.run(path, Arrays.copyOfRange(cmds, 3, cmds.length));
-      default:
-        throw new InvalidArgumentException("Fuse shell command not found");
+    FuseCommand command = mCommands.get(cmds[2]);
+    if (command == null) {
+      logUsage();
+      throw new InvalidArgumentException(String.format("%s is an unknown command.", cmds[2]));
     }
+    String [] currArgs = Arrays.copyOfRange(cmds, 2, cmds.length);
+    try {
+      while (command.hasSubCommand()) {
+        if (currArgs.length < 2) {
+          throw new InvalidArgumentException("No sub-command is specified");
+        }
+        if (!command.getSubCommands().containsKey(currArgs[1])) {
+          throw new InvalidArgumentException("Unknown sub-command: " + currArgs[1]);
+        }
+        command = command.getSubCommands().get(currArgs[1]);
+        currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
+      }
+      command.validateArgs(Arrays.copyOfRange(currArgs, 1, currArgs.length));
+    } catch (Exception e) {
+      LOG.info(e.getMessage());
+      LOG.info(command.getDescription());
+      LOG.info("Usage: " + command.getUsage());
+      throw new InvalidArgumentException(String.format("Invalid arguments for command %s",
+          command.getCommandName()));
+    }
+    return command.run(path, Arrays.copyOfRange(currArgs, 1, cmds.length));
   }
 
   private void logUsage() {
     // TODO(lu) better log fuse shell description
     LOG.info(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED.getDescription());
-  }
-
-  /**
-   * Fuse command type.
-   */
-  public enum CommandType {
-    /**
-     * Command will operate the metadata cache.
-     */
-    METADATA_CACHE("metadatacache"),
-    ;
-
-    final String mValue;
-
-    @Override
-    public String toString() {
-      return mValue;
-    }
-
-    CommandType(String command) {
-      mValue = command;
-    }
-
-    /**
-     * @param value  that need to be transformed to CommandType
-     * @return CommandType related to the value
-     */
-    public static CommandType fromValue(final String value) {
-      for (CommandType ct : CommandType.values()) {
-        if (ct.mValue.equals(value)) {
-          return ct;
-        }
-      }
-      return METADATA_CACHE;
-    }
   }
 }
