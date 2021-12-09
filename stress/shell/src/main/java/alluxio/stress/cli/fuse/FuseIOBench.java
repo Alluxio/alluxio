@@ -84,8 +84,10 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-        "A stress bench for testing the reading throughput of Fuse-based POSIX API.",
-        "To run the test, data must be written first by executing \"Write\" operation, then "
+        "A stress bench for testing the writing and reading throughput of Fuse-based POSIX API.",
+        "The Write operation will write the files to local Fuse mount point "
+            + "and calculate the throughput. ",
+        "To run the read tests, data must be written first by executing \"Write\" operation, then "
             + "run \"Read\" operation to test the reading throughput. The three different options "
             + "of read are: ",
         "LocalRead: Each job worker, or client, will read the files it wrote through local Fuse "
@@ -363,8 +365,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         closeOutStream();
       }
 
-      // update bench result by merging in individual thread result
-      mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
       mContext.mergeThreadResult(mFuseIOTaskResult);
 
       return null;
@@ -469,9 +469,13 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private boolean processFile(String filePath, boolean isRead) throws IOException {
       mCurrentOffset = 0;
       while (!Thread.currentThread().isInterrupted()) {
-        if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
-          closeInStream();
-          return true;
+        if (CommonUtils.getCurrentMs() > mContext.getEndMs()) {
+          mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
+          if (isRead) {
+            // For read, stop when end time reaches
+            return true;
+          }
+          // For write, finish writing all the files
         }
         long ioBytes = applyOperation(filePath);
 
@@ -480,7 +484,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           return false;
         }
         // start recording after the warmup
-        if (CommonUtils.getCurrentMs() > mFuseIOTaskResult.getRecordStartMs()) {
+        if (CommonUtils.getCurrentMs() > mFuseIOTaskResult.getRecordStartMs()
+            && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
           mFuseIOTaskResult.incrementIOBytes(ioBytes);
         }
       }
@@ -511,7 +516,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           int bytesToWrite = (int) Math.min(mFileSize - mCurrentOffset, mBuffer.length);
           if (bytesToWrite == 0) {
             closeOutStream();
-            return -1;
+            return 0;
           }
           mOutStream.write(mBuffer, 0, bytesToWrite);
           mCurrentOffset += bytesToWrite;
