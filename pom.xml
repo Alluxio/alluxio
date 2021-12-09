@@ -614,14 +614,7 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.5.8</version>
-        <!-- conflicts with netty-all -->
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>3.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
