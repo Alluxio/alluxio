@@ -56,18 +56,19 @@ public final class DistributedLoadUtils {
    * @param excludedWorkerSet A set of worker hosts can not to load data
    * @param localityIds The locality identify set
    * @param excludedLocalityIds A set of worker locality identify can not to load data
+   * @param directCache use direct cache request or cache through read
    * @param printOut whether print out progress in console
    */
   public static void distributedLoad(AbstractDistributedJobCommand command, List<URIStatus> pool,
       int batchSize, AlluxioURI filePath, int replication, Set<String> workerSet,
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
-      boolean printOut) throws AlluxioException, IOException {
+      boolean directCache, boolean printOut) throws AlluxioException, IOException {
     load(command, pool, batchSize, filePath, replication, workerSet, excludedWorkerSet, localityIds,
-        excludedLocalityIds, printOut);
+        excludedLocalityIds, directCache, printOut);
     // add all the jobs left in the pool
     if (pool.size() > 0) {
       addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
-          excludedLocalityIds, printOut);
+          excludedLocalityIds, directCache, printOut);
       pool.clear();
     }
     // Wait remaining jobs to complete.
@@ -92,7 +93,7 @@ public final class DistributedLoadUtils {
   private static void load(AbstractDistributedJobCommand command, List<URIStatus> pool,
       int batchSize, AlluxioURI filePath, int replication, Set<String> workerSet,
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
-      boolean printOut) throws IOException, AlluxioException {
+      boolean directCache, boolean printOut) throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
@@ -107,23 +108,23 @@ public final class DistributedLoadUtils {
         pool.add(uriStatus);
         if (pool.size() == batchSize) {
           addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
-              excludedLocalityIds, printOut);
+              excludedLocalityIds, directCache, printOut);
           pool.clear();
         }
       }
     });
   }
 
-  private static void addJob(AbstractDistributedJobCommand command,
-      List<URIStatus> statuses, int replication, Set<String> workerSet,
-      Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+  private static void addJob(AbstractDistributedJobCommand command, List<URIStatus> statuses,
+      int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+      Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
     if (command.mSubmittedJobAttempts.size() >= command.mActiveJobs) {
       // Wait one job to complete.
       command.waitJob();
     }
     command.mSubmittedJobAttempts.add(newJob(command, statuses, replication, workerSet,
-        excludedWorkerSet, localityIds, excludedLocalityIds, printOut));
+        excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut));
   }
 
   /**
@@ -131,14 +132,15 @@ public final class DistributedLoadUtils {
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
+   * @param directCache
    * @param printOut whether print out progress in console
    */
-  private static JobAttempt newJob(AbstractDistributedJobCommand command,
-      List<URIStatus> filePath, int replication, Set<String> workerSet,
-      Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+  private static JobAttempt newJob(AbstractDistributedJobCommand command, List<URIStatus> filePath,
+      int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+      Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
-    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication,
-        workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, printOut);
+    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication, workerSet,
+        excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut);
     jobAttempt.run();
     return jobAttempt;
   }
@@ -273,18 +275,19 @@ public final class DistributedLoadUtils {
      * @param excludedWorkerSet A set of worker hosts can not to load data
      * @param localityIds The locality identify set
      * @param excludedLocalityIds A set of worker locality identify can not to load data
+     * @param directCache use direct cache request or cache through read
      * @param printOut whether print out progress in console
      * @return specific load job attempt
      **/
-    public static JobAttempt create(AbstractDistributedJobCommand command,
-        List<URIStatus> filePath, int replication, Set<String> workerSet,
-        Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+    public static JobAttempt create(AbstractDistributedJobCommand command, List<URIStatus> filePath,
+        int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+        Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
         boolean printOut) {
       int poolSize = filePath.size();
       JobAttempt jobAttempt;
       if (poolSize == 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
-            workerSet, excludedWorkerSet, localityIds, excludedLocalityIds);
+            workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
         if (printOut) {
           System.out.println(config.getFilePath() + " loading");
           jobAttempt = new LoadJobAttempt(command.mClient, config, new CountingRetry(3));
@@ -296,7 +299,7 @@ public final class DistributedLoadUtils {
         ObjectMapper oMapper = new ObjectMapper();
         for (URIStatus status : filePath) {
           LoadConfig loadConfig = new LoadConfig(status.getPath(), replication, workerSet,
-              excludedWorkerSet, localityIds, excludedLocalityIds);
+              excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }
