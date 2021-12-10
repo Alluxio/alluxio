@@ -307,8 +307,8 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
    * @return the blob status
    */
   private ObjectStatus getBlobStatus(Blob blob) {
-    long time = blob.getUpdateTime() != null ? blob.getUpdateTime()
-        : blob.getCreateTime() != null ? blob.getCreateTime() : -1;
+    Long time = blob.getUpdateTime() != null ? blob.getUpdateTime()
+        : blob.getCreateTime() != null ? blob.getCreateTime() : null;
     return new ObjectStatus(blob.getName(), blob.getMd5() == null ? DIR_HASH : blob.getMd5(),
         blob.getSize(), time);
   }

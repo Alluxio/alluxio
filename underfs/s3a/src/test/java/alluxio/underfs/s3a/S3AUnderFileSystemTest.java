@@ -29,6 +29,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -252,5 +253,13 @@ public class S3AUnderFileSystemTest {
     Assert.assertEquals("test", mS3UnderFileSystem.stripPrefixIfPresent("/test"));
     Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent(""));
     Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("/"));
+  }
+
+  @Test
+  public void getNullLastModifiedTime() throws IOException {
+    Mockito.when(mClient.getObjectMetadata(Matchers.anyString(), Matchers.anyString()))
+        .thenReturn(new ObjectMetadata());
+    // throw NPE before https://github.com/Alluxio/alluxio/pull/14641
+    mS3UnderFileSystem.getObjectStatus(PATH);
   }
 }
