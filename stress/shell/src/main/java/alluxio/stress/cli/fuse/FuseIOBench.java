@@ -141,8 +141,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     File localPath = new File(mParameters.mLocalPath);
 
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
-      LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
-      mParameters.mWarmup = "0s";
       for (int i = 0; i < mParameters.mNumDirs; i++) {
         Files.createDirectories(Paths.get(String.format(
             TEST_DIR_STRING_FORMAT, mParameters.mLocalPath, mBaseParameters.mId, i)));
@@ -530,10 +528,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
 
     private void finishProcessingFiles() {
-      if (FuseIOOperation.isRead(mParameters.mOperation)) {
-        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files "
-            + "before the bench ends. For more accurate result, use more files, or larger files, "
-            + "or a shorter duration", mThreadId));
+      if (FuseIOOperation.isRead(mParameters.mOperation)
+          || (mParameters.mOperation == FuseIOOperation.WRITE
+          && CommonUtils.getCurrentMs() < mContext.getEndMs())) {
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading/writing "
+            + "all its files before the bench ends. For more accurate result, "
+            + "use more files, or larger files, or a shorter duration", mThreadId));
       }
     }
 
