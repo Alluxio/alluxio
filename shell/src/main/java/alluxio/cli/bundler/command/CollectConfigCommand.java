@@ -53,11 +53,6 @@ public class CollectConfigCommand extends AbstractCollectInfoCommand {
   }
 
   @Override
-  public boolean hasSubCommand() {
-    return false;
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mWorkingDirPath = getWorkingDirectory(cl);
     String confDirPath = mFsContext.getClusterConf().get(PropertyKey.CONF_DIR);
