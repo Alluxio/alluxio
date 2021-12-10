@@ -223,3 +223,7 @@
 0.6.32
 
 - Add toggles to disable master/worker resource deployment
+
+0.6.33
+
+- Enable mounting a specific directory in Alluxio through Fuse
