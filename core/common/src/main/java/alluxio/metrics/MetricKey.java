@@ -1646,6 +1646,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey FUSE_TOTAL_CALLS =
+      new Builder("Fuse.TotalCalls")
+          .setDescription("Throughput of JNI FUSE operation calls. "
+              + "This metrics indicates how busy the Alluxio Fuse application is serving requests")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey FUSE_WRITING_FILE_COUNT =
       new Builder("Fuse.WritingFileCount")
           .setDescription("Total number of files being written concurrently.")

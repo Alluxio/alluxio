@@ -625,6 +625,17 @@ public final class MetricsSystem {
   }
 
   /**
+   * Removes a gauge if it exists.
+   *
+   * @param name the gauge name
+   */
+  public static synchronized void removeGaugeIfExist(String name) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      METRIC_REGISTRY.remove(name);
+    }
+  }
+
+  /**
    * This method is used to return a list of RPC metric objects which will be sent to the
    * MetricsMaster.
    *
