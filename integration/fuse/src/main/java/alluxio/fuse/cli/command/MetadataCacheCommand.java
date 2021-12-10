@@ -11,16 +11,17 @@
 
 package alluxio.fuse.cli.command;
 
+import alluxio.Constants;
+import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
+import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.fuse.cli.FuseCommand;
 import alluxio.fuse.cli.metadatacache.DropAllCommand;
 import alluxio.fuse.cli.metadatacache.DropCommand;
 import alluxio.fuse.cli.metadatacache.SizeCommand;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -29,8 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MetadataCacheCommand extends AbstractFuseShellCommand {
 
-  private static final Map<String, BiFunction<FileSystem, AlluxioConfiguration,
-      ? extends FuseCommand>> SUB_COMMANDS = new HashMap<>();
+  private static final Map<String, TwoKeyConcurrentMap.TriFunction<FileSystem,
+        AlluxioConfiguration, String, ? extends Command>> SUB_COMMANDS = new HashMap<>();
 
   static {
     SUB_COMMANDS.put("dropAll", DropAllCommand::new);
@@ -38,16 +39,16 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
     SUB_COMMANDS.put("size", SizeCommand::new);
   }
 
-  private Map<String, FuseCommand> mSubCommands = new HashMap<>();
+  private final Map<String, Command> mSubCommands = new HashMap<>();
 
   /**
    * @param fs filesystem instance from fuse command
    * @param conf configuration instance from fuse command
    */
   public MetadataCacheCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf);
+    super(fs, conf, null);
     SUB_COMMANDS.forEach((name, constructor) -> {
-      mSubCommands.put(name, constructor.apply(fs, conf));
+      mSubCommands.put(name, constructor.apply(fs, conf, getCommandName()));
     });
   }
 
@@ -57,7 +58,7 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
   }
 
   @Override
-  public Map<String, FuseCommand> getSubCommands() {
+  public Map<String, Command> getSubCommands() {
     return mSubCommands;
   }
 
@@ -68,25 +69,18 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
 
   @Override
   public String getUsage() {
-    // Show usage: metadatacache.([drop] [size] [dropAll])
-    StringBuilder usage = new StringBuilder(getCommandName());
-    usage.append(".(");
+    // Show usage: metadatacache.(drop|size|dropAll)
+    StringBuilder usage = new StringBuilder("ls -l" + Constants.DEAFULT_FUSE_MOUNT
+        + Constants.ALLUXIO_CLI_PATH + "." + getCommandName() + ".(");
     for (String cmd : SUB_COMMANDS.keySet()) {
-      usage.append("[").append(cmd).append("]");
+      usage.append(cmd).append("|");
     }
-    usage.append(")");
+    usage.deleteCharAt(usage.length()).append(")");
     return usage.toString();
-  }
-
-  /*
-  * @return command's description
-  * */
-  public static String description() {
-    return "Metadatacache command is used to drop metadata cache or get cache size. ";
   }
 
   @Override
   public String getDescription() {
-    return description();
+    return "Metadatacache command is used to drop metadata cache or get cache size.";
   }
 }

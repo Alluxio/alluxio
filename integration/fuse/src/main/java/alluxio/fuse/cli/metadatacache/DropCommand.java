@@ -12,6 +12,7 @@
 package alluxio.fuse.cli.metadatacache;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
@@ -22,7 +23,9 @@ import alluxio.fuse.cli.command.AbstractFuseShellCommand;
 import alluxio.wire.FileInfo;
 
 public final class DropCommand extends AbstractFuseShellCommand {
-  public DropCommand(FileSystem fs, AlluxioConfiguration conf) { super(fs, conf); }
+  public DropCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
+    super(fs, conf, parentCommandName);
+  }
 
   @Override
   public String getCommandName() {
@@ -31,7 +34,9 @@ public final class DropCommand extends AbstractFuseShellCommand {
 
   @Override
   public String getUsage() {
-    return "ls -l /alluxio-fuse/path/to/clean/.alluxiocli.metadatacache.drop";
+    return String.format("ls -l %s%s%s.%s.%s", Constants.DEAFULT_FUSE_MOUNT,
+        "/path/to/clean", Constants.ALLUXIO_CLI_PATH, getParentCommandName(),
+        getCommandName());
   }
 
   @Override
@@ -40,11 +45,9 @@ public final class DropCommand extends AbstractFuseShellCommand {
     return new URIStatus(new FileInfo().setCompleted(true));
   }
 
-  public static String description() { return "Clear the specific fuse path metadata cache."; }
-
   @Override
   public String getDescription() {
-    return description();
+    return "Clear the specific fuse path metadata cache.";
   }
 
   @Override

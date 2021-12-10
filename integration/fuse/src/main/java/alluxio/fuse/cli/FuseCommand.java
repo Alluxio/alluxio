@@ -12,39 +12,17 @@
 package alluxio.fuse.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.Command;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.InvalidArgumentException;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public interface FuseCommand {
-  /**
-   * Gets the command name as input from the shell.
-   *
-   * @return the command name
-   */
-  String getCommandName();
-
-  /**
-   * If a command has sub-commands, the first argument should be the sub-command's name,
-   * all arguments and options will be parsed for the sub-command.
-   *
-   * @return whether this command has sub-commands
-   */
-  default boolean hasSubCommand() {
-    return false;
-  }
-
-  /**
-   * @return a map from sub-command names to sub-command instances
-   */
-  default Map<String, FuseCommand> getSubCommands() {
-    return new HashMap<>();
-  }
-
+/**
+ * An interface for {@link alluxio.cli.Command} all the fuse shell commands.
+ */
+public interface FuseCommand extends Command {
   /**
    * Checks if the arguments are valid or throw InvalidArgumentException.
+   *
    * @param argv args need to be validated
    * @throws InvalidArgumentException when arguments are not valid
    */
@@ -60,14 +38,4 @@ public interface FuseCommand {
   default URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
     return null;
   }
-
-  /**
-   * @return the usage information of the command
-   */
-  String getUsage();
-
-  /**
-   * @return the description information of the command
-   */
-  String getDescription();
 }

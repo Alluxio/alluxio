@@ -28,10 +28,19 @@ public abstract class AbstractFuseShellCommand implements FuseCommand {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseShellCommand.class);
   protected final AlluxioConfiguration mConf;
   protected final FileSystem mFileSystem;
+  protected final String mParentCommandName;
 
   public AbstractFuseShellCommand(FileSystem fileSystem,
-      AlluxioConfiguration alluxioConfiguration) {
+      AlluxioConfiguration alluxioConfiguration, String commandName) {
     mFileSystem = fileSystem;
     mConf = alluxioConfiguration;
+    mParentCommandName = commandName;
+  }
+
+  /*
+  * Get the parent command name, if parent command doesn't exist, return null
+  */
+  public String getParentCommandName() {
+    return mParentCommandName;
   }
 }
