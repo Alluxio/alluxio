@@ -400,15 +400,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           new PutObjectRequest(mBucketName, key, new ByteArrayInputStream(new byte[0]), meta));
       return true;
     } catch (AmazonClientException e) {
-      if (key.equals("/")) {
-        // Ignore the error since it's root
-        LOG.info("Ignore the error of failing to create the root object {} since it's not needed",
-            e.getMessage());
-        return true;
-      } else {
-        LOG.error("Failed to create object: {}", key, e);
-        return false;
-      }
+      LOG.error("Failed to create object: {}", key, e);
+      return false;
     }
   }
 
