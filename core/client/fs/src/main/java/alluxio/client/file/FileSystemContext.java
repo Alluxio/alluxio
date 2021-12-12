@@ -313,7 +313,7 @@ public class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
-      MetricsSystem.removeGaugeIfExist(TOTAL_THREAD_METRICS_NAME);
+      MetricsSystem.removeMetrics(TOTAL_THREAD_METRICS_NAME);
       LOG.debug("Closing fs master client pool with current size: {} for id: {}",
           mFileSystemMasterClientPool.size(), mId);
       mFileSystemMasterClientPool.close();

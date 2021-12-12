@@ -625,14 +625,13 @@ public final class MetricsSystem {
   }
 
   /**
-   * Removes a gauge if it exists.
+   * Removes the metric with the given name.
    *
-   * @param name the gauge name
+   * @param name the metric name
+   * @return true if the metric was removed, false otherwise
    */
-  public static synchronized void removeGaugeIfExist(String name) {
-    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
-      METRIC_REGISTRY.remove(name);
-    }
+  public static synchronized boolean removeMetrics(String name) {
+    return METRIC_REGISTRY.remove(name);
   }
 
   /**

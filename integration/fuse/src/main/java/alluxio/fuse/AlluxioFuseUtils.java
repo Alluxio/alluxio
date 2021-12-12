@@ -32,7 +32,6 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import com.codahale.metrics.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -281,7 +280,8 @@ public final class AlluxioFuseUtils {
     long durationMs = System.currentTimeMillis() - startMs;
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
     MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
-    Metrics.TOTAL_CALLS.update(durationMs, TimeUnit.MILLISECONDS);
+    MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
+        .update(durationMs, TimeUnit.MILLISECONDS);
     if (ret < 0) {
       MetricsSystem.counter(methodName + "Failures").inc();
     }
@@ -290,11 +290,5 @@ public final class AlluxioFuseUtils {
           String.format(description, args), ret, durationMs, THRESHOLD);
     }
     return ret;
-  }
-
-  private static final class Metrics {
-    /** FUSE operation calls throughput. */
-    private static final Timer TOTAL_CALLS =
-        MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName());
   }
 }
