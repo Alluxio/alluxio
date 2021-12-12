@@ -270,6 +270,9 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   private static final class Metrics {
+    // Note that only counter can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter SHADOW_CACHE_BYTES_READ =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES_READ.getName());
     private static final Counter SHADOW_CACHE_BYTES_HIT =
