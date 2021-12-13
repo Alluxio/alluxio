@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse.cli.command;
+package alluxio.cli.command;
 
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.fuse.cli.FuseCommand;
+import alluxio.cli.FuseCommand;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for all the Fuse {@link alluxio.fuse.cli.command} classes.
+ * The base class for all the Fuse {@link alluxio.cli.FuseCommand} classes.
  */
 @ThreadSafe
 public abstract class AbstractFuseShellCommand implements FuseCommand {

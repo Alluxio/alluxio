@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse.cli.command;
+package alluxio.cli.command;
 
 import alluxio.Constants;
 import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.fuse.cli.metadatacache.DropAllCommand;
-import alluxio.fuse.cli.metadatacache.DropCommand;
-import alluxio.fuse.cli.metadatacache.SizeCommand;
+import alluxio.cli.metadatacache.DropAllCommand;
+import alluxio.cli.metadatacache.DropCommand;
+import alluxio.cli.metadatacache.SizeCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,12 +70,12 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
   @Override
   public String getUsage() {
     // Show usage: metadatacache.(drop|size|dropAll)
-    StringBuilder usage = new StringBuilder("ls -l" + Constants.DEAFULT_FUSE_MOUNT
+    StringBuilder usage = new StringBuilder("ls -l " + Constants.DEAFULT_FUSE_MOUNT
         + Constants.ALLUXIO_CLI_PATH + "." + getCommandName() + ".(");
     for (String cmd : SUB_COMMANDS.keySet()) {
       usage.append(cmd).append("|");
     }
-    usage.deleteCharAt(usage.length()).append(")");
+    usage.deleteCharAt(usage.length() - 1).append(')');
     return usage.toString();
   }
 

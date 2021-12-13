@@ -9,12 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse.cli;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.cli.Command;
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
@@ -39,6 +37,7 @@ public final class FuseShell {
 
   /**
    * Creates a new instance of {@link FuseShell}.
+   *
    * @param fs Alluxio file system
    * @param conf Alluxio configuration
    */
@@ -83,8 +82,8 @@ public final class FuseShell {
       logUsage();
       throw new InvalidArgumentException(String.format("%s is an unknown command.", cmds[2]));
     }
-    String [] currArgs = Arrays.copyOfRange(cmds, 2, cmds.length);
     try {
+      String [] currArgs = Arrays.copyOfRange(cmds, 2, cmds.length);
       while (command.hasSubCommand()) {
         if (currArgs.length < 2) {
           throw new InvalidArgumentException("No sub-command is specified");
@@ -96,14 +95,14 @@ public final class FuseShell {
         currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
       }
       command.validateArgs(Arrays.copyOfRange(currArgs, 1, currArgs.length));
-    } catch (InvalidArgumentException e) {
+      return command.run(path, Arrays.copyOfRange(currArgs, 1, currArgs.length));
+    } catch (Exception e) {
       LOG.info(command.getDescription());
       LOG.info("Usage: " + command.getUsage());
       throw new InvalidArgumentException(String.format("Invalid arguments for command %s, "
-              + "For detailed usage please view the log formation above.",
+              + "For detailed usage please see the log formation above.",
           command.getCommandName()));
     }
-    return command.run(path, Arrays.copyOfRange(currArgs, 1, cmds.length));
   }
 
   private void logUsage() {

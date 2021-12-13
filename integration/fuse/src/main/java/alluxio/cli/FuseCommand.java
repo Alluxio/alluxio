@@ -9,15 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse.cli;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.Command;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.status.InvalidArgumentException;
 
 /**
- * An interface for {@link alluxio.cli.Command} all the fuse shell commands.
+ * An interface for all fuse shell commands.
  */
 public interface FuseCommand extends Command {
   /**
