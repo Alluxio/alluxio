@@ -51,24 +51,33 @@
       <artifactId>log4j-slf4j-impl</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-ozone-client</artifactId>
+      <version>${ufs.ozone.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>
-    <!-- Profile to build this UFS module connecting to ozone 1 -->
     <profile>
-      <id>ufs-ozone-1</id>
+      <id>ufs-hadoop-2</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-ozone-filesystem-hadoop2</artifactId>
+          <version>${ufs.ozone.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>ufs-hadoop-3</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-ozone-filesystem</artifactId>
-          <version>${ufs.ozone.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-ozone-client</artifactId>
+          <artifactId>hadoop-ozone-filesystem-hadoop3</artifactId>
           <version>${ufs.ozone.version}</version>
         </dependency>
       </dependencies>

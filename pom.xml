@@ -562,11 +562,6 @@
         <version>${ozone.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-filesystem</artifactId>
-        <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
         <groupId>com.qcloud.cos</groupId>
         <artifactId>hadoop-cos</artifactId>
         <version>${hadoop-cos.version}</version>
