@@ -11,7 +11,6 @@
 
 package alluxio.master.job.plan;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;

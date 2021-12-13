@@ -8,13 +8,10 @@ import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
-import alluxio.job.wire.Status;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
-import com.google.common.base.Preconditions;
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
