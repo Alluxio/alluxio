@@ -17,6 +17,8 @@ import alluxio.SyncInfo;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsActiveSyncProvider;
@@ -72,10 +74,12 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private final long mActiveUfsPollTimeoutMs;
   private final long mActiveUfsSyncEventRateInterval;
   private Future<?> mPollingThread;
+  // The list of sync roots
   private List<AlluxioURI> mUfsUriList;
   private final Queue<Future<Integer>> mProcessTasks;
 
   // a map mapping SyncPoints to a set of files that have been changed under that syncPoint
+  // TODO(jiacheng): monitor the size of this?
   private Map<String, Set<AlluxioURI>> mChangedFiles;
   // Use an integer to indicate the activity level of the sync point
   // TODO(yuzhu): Merge the three maps into one map
@@ -104,6 +108,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
+    // TODO(jiacheng): add metrics
     mExecutorService = new ThreadPoolExecutor(
         ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
         ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
@@ -123,6 +128,11 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         ufsConf.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL);
     mProcessTasks = new LinkedBlockingQueue<>();
     mBatchSize = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE);
+
+    // TODO(jiacheng): monitor the queue size for active sync provider
+    //  Only 1 thread in this?
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ACTIVESYNC_PROVIDER_EXECUTOR_QUEUE_SIZE.getName(),
+        () -> mExecutorService.getQueue().size());
   }
 
   /**
@@ -141,6 +151,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private void recordFileChanged(String syncPoint, String filePath, long txId) {
     AlluxioURI syncPointUri = new AlluxioURI(syncPoint);
 
+    // TODO(jiacheng): will this map grow indefinitely?
     mChangedFiles.computeIfAbsent(syncPoint, (key) -> {
       mActivity.put(syncPoint, 0);
       mAge.put(syncPoint, 0);
@@ -416,6 +427,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
           syncSyncPoint(uri.toString());
         }
         mEventMissed = false;
+        // TODO(jiacheng): add metrics
         LOG.debug("Missed event, syncing all sync points\n{}",
             Arrays.toString(syncPointFiles.keySet().toArray()));
         SyncInfo syncInfo = new SyncInfo(syncPointFiles, true, getLastTxId());
