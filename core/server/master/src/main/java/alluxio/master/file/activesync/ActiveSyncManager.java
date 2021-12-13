@@ -20,6 +20,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
@@ -119,6 +120,7 @@ public class ActiveSyncManager implements Journaled {
     // A lock used to protect the state stored in the above maps and lists
     mLock = new ReentrantLock();
     // Executor Service for active syncing
+    // TODO(jiacheng): monitor this threadpool
     mExecutorService = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
         Runtime.getRuntime().availableProcessors(),
         1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
@@ -153,6 +155,7 @@ public class ActiveSyncManager implements Journaled {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
+                // TODO(jiacheng): cache mMountTable.getMountPoint(syncedPath)
             && mMountTable.getMountPoint(path).equals(mMountTable.getMountPoint(syncedPath))) {
           return true;
         }
@@ -530,8 +533,12 @@ public class ActiveSyncManager implements Journaled {
               if (ServerConfiguration.getBoolean(
                   PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
                 RetryUtils.retry("active sync during start",
-                    () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
-                        null, getExecutor()),
+                    () -> {
+                      mFileSystemMaster.activeSyncMetadata(syncPoint,
+                              null, getExecutor());
+                      // TODO(jiacheng): count the initial full syncs
+                      DefaultFileSystemMaster.Metrics.ACTIVESYNC_FULL_SYNC.inc();
+                    },
                     RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
                         .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
               }

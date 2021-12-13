@@ -402,6 +402,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private CallTracker mStateLockCallTracker;
 
+
+  // TODO(jiacheng): add metrics on other fields like finished task count?
   final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -502,6 +504,18 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
+
+    // The getActiveCount() returns the number of threads that are working in the pool,
+    // which is a fixed number as we configure
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
+            () -> mSyncPrefetchExecutor.getQueue().size());
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
+            () -> mSyncMetadataExecutor.getQueue().size());
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMetricName(MetricKey.MASTER_ACTIVESYNC_EXECUTOR_QUEUE_SIZE.getName()),
+            () -> mActiveSyncMetadataExecutor.getQueue().size());
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -4632,6 +4646,24 @@ public class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
+    public static final Counter REPLICATION_CHECKER_REPLICATED_FILES
+            = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_REPLICATED_FILES.getName());
+    public static final Counter REPLICATION_CHECKER_EVICTED_FILES
+            = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_EVICTED_FILES.getName());
+    public static final Counter REPLICATION_CHECKER_MIGRATED_FILES
+            = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_MIGRATED_FILES.getName());
+    public static final Counter SYNC_STREAM_COUNT
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_COUNT.getName());
+    public static final Counter SYNC_STREAM_PENDING_PATHS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.getName());
+    public static final Counter SYNC_STREAM_ACTIVE_JOBS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.getName());
+
+    public static final Counter ACTIVESYNC_FULL_SYNC
+            = MetricsSystem.counter(MetricKey.MASTER_ACTIVESYNC_FULL_SYNC.getName());
+    public static final Counter ACTIVESYNC_INCREMENTAL_SYNC
+            = MetricsSystem.counter(MetricKey.MASTER_ACTIVESYNC_INCREMENTAL_SYNC.getName());
+
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
 
