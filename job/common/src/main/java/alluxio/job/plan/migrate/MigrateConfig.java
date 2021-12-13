@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class MigrateConfig implements PlanConfig {
   private static final long serialVersionUID = 8014674802258120190L;
-  private static final String NAME = "Migrate";
+  public static final String NAME = "Migrate";
 
   private final String mSource;
   private final String mDestination;
@@ -45,7 +45,7 @@ public class MigrateConfig implements PlanConfig {
    *        are directories, the contents of the directories will be merged with common files
    *        overwritten by the source
    */
-  public MigrateConfig(@JsonProperty("source") String source,
+  public MigrateConfig(@JsonProperty("filePath") String source,
                        @JsonProperty("destination") String dst,
                        @JsonProperty("writeType") String writeType,
                        @JsonProperty("overwrite") boolean overwrite) {
@@ -58,7 +58,7 @@ public class MigrateConfig implements PlanConfig {
   /**
    * @return the source path
    */
-  public String getSource() {
+  public String getFilePath() {
     return mSource;
   }
 

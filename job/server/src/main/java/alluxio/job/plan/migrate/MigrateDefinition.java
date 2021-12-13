@@ -68,7 +68,7 @@ public final class MigrateDefinition
   }
 
   private void checkMigrateValid(MigrateConfig config, FileSystem fs) throws Exception {
-    AlluxioURI source = new AlluxioURI(config.getSource());
+    AlluxioURI source = new AlluxioURI(config.getFilePath());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     // The source cannot be a prefix of the destination -
     // that would be migrating a path inside itself.
@@ -88,7 +88,7 @@ public final class MigrateDefinition
   @Override
   public Set<Pair<WorkerInfo, MigrateCommand>> selectExecutors(MigrateConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
-    AlluxioURI source = new AlluxioURI(config.getSource());
+    AlluxioURI source = new AlluxioURI(config.getFilePath());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
       return Sets.newHashSet();

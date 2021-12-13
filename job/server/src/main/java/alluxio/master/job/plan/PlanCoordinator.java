@@ -11,6 +11,8 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.ErrorUtils;
@@ -24,6 +26,7 @@ import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.job.metrics.DistributedCmdMetrics;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
@@ -267,13 +270,28 @@ public final class PlanCoordinator {
     int completed = 0;
     List<TaskInfo> taskInfoList = mPlanInfo.getTaskInfoList();
     for (TaskInfo info : taskInfoList) {
-      switch (info.getStatus()) {
+      JobConfig config = mPlanInfo.getJobConfig();
+      Preconditions.checkNotNull(config);
+      Status status = info.getStatus();
+      FileSystem fileSystem = mJobServerContext.getFileSystem();
+
+      switch (status) {
         case FAILED:
           setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
+          if (DistributedCmdMetrics.isBatchConfig(config)) {
+            DistributedCmdMetrics.batchIncrementForFailStatus((BatchedJobConfig) config);
+          } else {
+            DistributedCmdMetrics.incrementForFailStatus(config.getName());
+          }
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
             mPlanInfo.setStatus(Status.CANCELED);
+            if (DistributedCmdMetrics.isBatchConfig(config)) {
+              DistributedCmdMetrics.batchIncrementForCancelStatus((BatchedJobConfig) config);
+            } else {
+              DistributedCmdMetrics.incrementForCancelStatus(config.getName());
+            }
           }
           return;
         case RUNNING:
@@ -283,6 +301,11 @@ public final class PlanCoordinator {
           break;
         case COMPLETED:
           completed++;
+          if (DistributedCmdMetrics.isBatchConfig(config)) {
+            DistributedCmdMetrics.batchIncrementForCompleteStatusWithRetry((BatchedJobConfig) config, fileSystem, 5);
+          } else {
+            DistributedCmdMetrics.incrementForCompleteStatusWithRetry(config, fileSystem, 5);
+          }
           break;
         case CREATED:
           // do nothing

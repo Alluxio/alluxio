@@ -239,7 +239,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
         Map<String, String> map = oMapper.convertValue(config, Map.class);
         configs.add(map);
       }
-      BatchedJobConfig config = new BatchedJobConfig("Migrate", configs);
+      BatchedJobConfig config = new BatchedJobConfig(MigrateConfig.NAME, configs);
       jobAttempt = new BatchedCopyJobAttempt(mClient, config, new CountingRetry(3));
     }
     return jobAttempt;
@@ -268,20 +268,20 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     @Override
     public void logFailedAttempt(JobInfo jobInfo) {
       System.out.println(String.format("Attempt %d to copy %s to %s failed because: %s",
-          mRetryPolicy.getAttemptCount(), mJobConfig.getSource(), mJobConfig.getDestination(),
+          mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(), mJobConfig.getDestination(),
           jobInfo.getErrorMessage()));
     }
 
     @Override
     protected void logFailed() {
       System.out.println(String.format("Failed to complete copying %s to %s after %d retries.",
-          mJobConfig.getSource(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
+          mJobConfig.getFilePath(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
     }
 
     @Override
     public void logCompleted() {
       System.out.println(String.format("Successfully copied %s to %s after %d attempts",
-          mJobConfig.getSource(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
+          mJobConfig.getFilePath(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
     }
   }
 
