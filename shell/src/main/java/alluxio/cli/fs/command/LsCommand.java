@@ -118,7 +118,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
           .build();
 
   private static final Option RECURSIVE_OPTION =
-      Option.builder("R")
+      Option.builder("R").longOpt("recursive")
           .required(false)
           .hasArg(false)
           .desc("list subdirectories recursively")
@@ -300,7 +300,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
+    ls(path, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
         cl.hasOption("p"), cl.getOptionValue("sort", null), cl.hasOption("r"),
         cl.getOptionValue("timestamp", "lastModificationTime"));
   }
@@ -317,7 +317,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path> ...";
+    return "ls [-d|-f|-p|-R(--recursive)|-h|--sort=option|--timestamp=option|-r] <path> ...";
   }
 
   @Override
