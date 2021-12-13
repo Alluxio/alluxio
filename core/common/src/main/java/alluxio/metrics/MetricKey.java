@@ -600,6 +600,55 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey MASTER_REPLICATION_CHECKER_REPLICATED_FILES =
+          new Builder("Master.ReplicationCheckerReplicatedFiles")
+                  .setDescription("How many files the ReplicationChecker replicated")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_REPLICATION_CHECKER_EVICTED_FILES =
+          new Builder("Master.ReplicationCheckerEvictedFiles")
+                  .setDescription("How many files the ReplicationChecker evicted")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_REPLICATION_CHECKER_MIGRATED_FILES =
+          new Builder("Master.ReplicationCheckerMigratedFiles")
+                  .setDescription("How many files the ReplicationChecker migrated")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_ACTIVESYNC_FULL_SYNC =
+          new Builder("Master.ActiveSyncFullSync")
+                  .setDescription("How many times the active sync has run full sync")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_ACTIVESYNC_INCREMENTAL_SYNC =
+          new Builder("Master.ActiveSyncIncrementalSync")
+                  .setDescription("How many times the active sync has run incremental sync")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_INODE_SYNC_STREAM_COUNT =
+          new Builder("Master.InodeSyncStreamCount")
+                  .setDescription("The number of active InodeSyncStream instances")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL =
+          new Builder("Master.InodeSyncStreamPendingPathsTotal")
+                  .setDescription("The number of pending paths from all InodeSyncStream instances")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey MASTER_INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL =
+          new Builder("Master.InodeSyncStreamActiveJobsTotal")
+                  .setDescription("The number of active jobs from all InodeSyncStream instances")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
@@ -742,6 +791,26 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of running status job")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
+          new Builder("Master.SyncPrefetchExecutorQueueSize")
+                  .setDescription("The number of queuing prefetch jobs")
+                  .setMetricType(MetricType.GAUGE)
+                  .build();
+  public static final MetricKey MASTER_SYNC_EXECUTOR_QUEUE_SIZE =
+          new Builder("Master.SyncExecutorQueueSize")
+                  .setDescription("The number of queuing prefetch jobs")
+                  .setMetricType(MetricType.GAUGE)
+                  .build();
+  public static final MetricKey MASTER_ACTIVESYNC_EXECUTOR_QUEUE_SIZE =
+          new Builder("Master.ActiveSyncExecutorQueueSize")
+                  .setDescription("The number of queuing active sync jobs")
+                  .setMetricType(MetricType.GAUGE)
+                  .build();
+  public static final MetricKey MASTER_ACTIVESYNC_PROVIDER_EXECUTOR_QUEUE_SIZE =
+          new Builder("Master.ActiveSyncProviderExecutorQueueSize")
+                  .setDescription("The number of queuing active sync provider jobs")
+                  .setMetricType(MetricType.GAUGE)
+                  .build();
 
   // Distributed command related metrics
   public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =

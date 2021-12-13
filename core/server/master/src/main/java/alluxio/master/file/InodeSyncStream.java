@@ -187,12 +187,18 @@ public class InodeSyncStream {
   private final boolean mLoadOnly;
 
   /** Queue used to keep track of paths that still need to be synced. */
+  // TODO(jiacheng): how to aggregate the pending count?
+          // how many InodeSyncStreams
+          // how many pending paths
+          // how many jobs
   private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
 
   /** Queue of paths that have been submitted to the executor. */
+  // TODO(jiacheng): How to aggregate all streams?
   private final Queue<Future<Boolean>> mSyncPathJobs;
 
   /** The executor enabling concurrent processing. */
+  // The size is gauged externally where the TPE is created
   private final ExecutorService mMetadataSyncService;
 
   /** The maximum number of concurrent paths that can be syncing at any moment. */
@@ -267,6 +273,9 @@ public class InodeSyncStream {
     }
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor,
         fsMaster.getAbsentPathCache(), validCacheTime);
+
+    // TODO(jiacheng): maintain a global counter of active sync streams
+    DefaultFileSystemMaster.Metrics.SYNC_STREAM_COUNT.inc();
   }
 
   /**
@@ -360,8 +369,12 @@ public class InodeSyncStream {
         }
         // remove the job because we know it is done.
         if (mSyncPathJobs.poll() != job) {
+          // TODO(jiacheng): This is currently not a problem, but if this happens
+          //  the execution will end in an undefined state.
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
+        // TODO(jiacheng): update the active job count
+        DefaultFileSystemMaster.Metrics.SYNC_STREAM_ACTIVE_JOBS_TOTAL.dec();
         try {
           // we synced the path successfully
           // This shouldn't block because we checked job.isDone() earlier
@@ -391,12 +404,16 @@ public class InodeSyncStream {
       int submissions = mConcurrencyLevel - mSyncPathJobs.size();
       for (int i = 0; i < submissions; i++) {
         AlluxioURI path = mPendingPaths.poll();
+        // TODO(jiacheng): update the unified size count
+        DefaultFileSystemMaster.Metrics.SYNC_STREAM_PENDING_PATHS_TOTAL.dec();
         if (path == null) {
           // no paths left to sync
           break;
         }
         Future<Boolean> job = mMetadataSyncService.submit(() -> processSyncPath(path));
         mSyncPathJobs.offer(job);
+        // TODO(jiacheng): update the active job queue size
+        DefaultFileSystemMaster.Metrics.SYNC_STREAM_ACTIVE_JOBS_TOTAL.inc();
       }
       // After submitting all jobs wait for the job at the head of the queue to finish.
       Future<Boolean> oldestJob = mSyncPathJobs.peek();
@@ -433,6 +450,11 @@ public class InodeSyncStream {
     }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
+
+    // TODO(jiacheng): There's no explicit end of this instance so the best way to update
+    //  the counter is probably here
+    DefaultFileSystemMaster.Metrics.SYNC_STREAM_COUNT.dec();
+
     return success ? SyncStatus.OK : SyncStatus.FAILED;
   }
 
@@ -564,6 +586,7 @@ public class InodeSyncStream {
         Fingerprint ufsFpParsed;
         // When the status is not cached and it was not due to file not found, we retry
         if (fileNotFound) {
+          // TODO(jiacheng): create an unmodifiable singleton empty Fingerprint
           ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else if (cachedStatus == null) {
@@ -687,6 +710,10 @@ public class InodeSyncStream {
         }
         // If we're performing a recursive sync, add each child of our current Inode to the queue
         AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
+
+        // TODO(jiacheng): Because we have multiple InodeSyncStream instances,
+        //  the only way is to explicitly update a unified counter
+        DefaultFileSystemMaster.Metrics.SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
         mPendingPaths.add(child);
         // This asynchronously schedules a job to pre-fetch the statuses into the cache.
         if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
