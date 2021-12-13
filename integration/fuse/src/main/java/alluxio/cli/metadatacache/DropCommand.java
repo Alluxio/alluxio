@@ -35,15 +35,15 @@ public final class DropCommand extends AbstractFuseShellCommand {
   @Override
   public String getUsage() {
     return String.format("%s%s%s.%s.%s", Constants.DEAFULT_FUSE_MOUNT,
-        "/path/to/clean", Constants.ALLUXIO_CLI_PATH, getParentCommandName(),
+        "/<path to be cleaned>", Constants.ALLUXIO_CLI_PATH, getParentCommandName(),
         getCommandName());
   }
 
   @Override
   public URIStatus run(AlluxioURI path, String [] argv) throws InvalidArgumentException {
     if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-      throw new UnsupportedOperationException(String.format("metadatacache command is "
-              + "not supported when %s is false",
+      throw new UnsupportedOperationException(String.format("%s command is "
+              + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
     }
     ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCache(path);
