@@ -20,6 +20,7 @@ export const initialOverviewState: IOverviewState = {
     usageOnTiers: [],
     usedBytes: '',
     version: '',
+    blockCount: '',
     workerInfo: {
       startTime: '',
       uptime: '',

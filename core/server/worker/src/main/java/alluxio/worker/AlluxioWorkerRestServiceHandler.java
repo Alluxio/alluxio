@@ -208,8 +208,7 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setWorkerInfo(new UIWorkerInfo(mWorkerProcess.getRpcAddress().toString(),
           mWorkerProcess.getStartTimeMs(),
           ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
-
-      BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
+      BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
       long capacityBytes = 0L;
       long usedBytes = 0L;
       Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
@@ -229,6 +228,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
       response.setCapacityBytes(FormatUtils.getSizeFromBytes(capacityBytes))
           .setUsedBytes(FormatUtils.getSizeFromBytes(usedBytes)).setUsageOnTiers(usageOnTiers)
+          .setBlockCount(Long.toString(storeMeta.getNumberOfBlocks()))
           .setVersion(RuntimeConstants.VERSION);
 
       List<UIStorageDir> storageDirs = new ArrayList<>(storeMeta.getCapacityBytesOnDirs().size());
