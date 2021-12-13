@@ -53,11 +53,6 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
   }
 
   @Override
-  public boolean hasSubCommand() {
-    return true;
-  }
-
-  @Override
   public Map<String, Command> getSubCommands() {
     return mSubCommands;
   }
