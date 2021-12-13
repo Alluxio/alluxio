@@ -94,8 +94,8 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
-  private static final String TOTAL_THREAD_METRICS_NAME
-      = MetricsSystem.getMetricName(MetricKey.CLIENT_META_DATA_CACHE_SIZE.getName());
+  private static final String TOTAL_RPC_CLIENTS_METRICS_NAME
+      = MetricsSystem.getMetricName(MetricKey.CLIENT_TOTAL_RPC_CLIENTS.getName());
 
   /**
    * Unique ID for each FileSystemContext.
@@ -279,7 +279,7 @@ public class FileSystemContext implements Closeable {
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
 
-    MetricsSystem.registerGaugeIfAbsent(TOTAL_THREAD_METRICS_NAME,
+    MetricsSystem.registerGaugeIfAbsent(TOTAL_RPC_CLIENTS_METRICS_NAME,
        new CachedGauge<Integer>(1, TimeUnit.MINUTES) {
           @Override
           protected Integer loadValue() {
@@ -313,7 +313,7 @@ public class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
-      MetricsSystem.removeMetrics(TOTAL_THREAD_METRICS_NAME);
+      MetricsSystem.removeMetrics(TOTAL_RPC_CLIENTS_METRICS_NAME);
       LOG.debug("Closing fs master client pool with current size: {} for id: {}",
           mFileSystemMasterClientPool.size(), mId);
       mFileSystemMasterClientPool.close();

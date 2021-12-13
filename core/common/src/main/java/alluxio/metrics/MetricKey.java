@@ -1623,6 +1623,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_TOTAL_RPC_CLIENTS =
+      new Builder("Client.TotalRPCClients")
+          .setDescription("The total number of RPC clients exist that is using to "
+              + "or can be used to connect to master or worker for operations. "
+              + "The sum of the sizes of FileSystemMasterClientPool, "
+              + "BlockMasterClientPool, and BlockWorkerClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
