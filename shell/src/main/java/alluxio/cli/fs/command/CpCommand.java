@@ -81,12 +81,12 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("copy files in subdirectories recursively")
           .build();
-  private static final Option ANOTHER_RECURSIVE_OPTION =
+  private static final Option RECURSIVE_ALIAS_OPTION =
       Option.builder("r")
-              .required(false)
-              .hasArg(false)
-              .desc("copy files in subdirectories recursively")
-              .build();
+          .required(false)
+          .hasArg(false)
+          .desc("copy files in subdirectories recursively")
+          .build();
   public static final Option THREAD_OPTION =
       Option.builder()
           .longOpt("thread")
@@ -346,7 +346,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION)
-        .addOption(ANOTHER_RECURSIVE_OPTION)
+        .addOption(RECURSIVE_ALIAS_OPTION)
         .addOption(THREAD_OPTION)
         .addOption(PRESERVE_OPTION);
   }
@@ -419,7 +419,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
-      boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt()) || cl.hasOption(ANOTHER_RECURSIVE_OPTION.getOpt());
+      boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt())
+              || cl.hasOption(RECURSIVE_ALIAS_OPTION.getOpt());
       if (srcPath.containsWildcard()) {
         copyWildcard(srcPaths, dstPath, recursive);
       } else {
@@ -496,7 +497,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     } else {
       if (!recursive) {
         throw new IOException(
-            srcPath.getPath() + " is a directory, to copy it please use \"cp -R(-r,--recursive) <src> <dst>\"");
+            srcPath.getPath() + " is a directory,"
+                    + " to copy it please use \"cp -R(-r,--recursive) <src> <dst>\"");
       }
 
       List<URIStatus> statuses;
@@ -809,8 +811,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public String getDescription() {
     return "Copies a file or a directory in the Alluxio filesystem or between local filesystem "
-        + "and Alluxio filesystem. The -R(-r or --recursive) flags are needed to copy directories in the Alluxio "
-        + "filesystem. Local Path with schema \"file\".";
+        + "and Alluxio filesystem. The -R(-r or --recursive) flags are needed to copy"
+        + "directories in the Alluxio filesystem. Local Path with schema \"file\".";
   }
 
   private static boolean isAlluxio(String scheme) {
