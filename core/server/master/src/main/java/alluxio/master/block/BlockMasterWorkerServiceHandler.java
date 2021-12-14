@@ -141,11 +141,12 @@ public final class BlockMasterWorkerServiceHandler extends
   public void preRegisterWorker(PreRegisterWorkerPRequest request,
                                 StreamObserver<PreRegisterWorkerPResponse> responseObserver) {
     String clusterId = request.getClusterId();
+    boolean hasBlockInTier = request.getHasBlockInTier();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<PreRegisterWorkerPResponse>) () -> {
           return PreRegisterWorkerPResponse.newBuilder().setCommand(
-              mBlockMaster.workerPreRegister(
-                  clusterId, GrpcUtils.fromProto(request.getWorkerNetAddress()))).build();
+              mBlockMaster.workerPreRegister(clusterId,
+                  GrpcUtils.fromProto(request.getWorkerNetAddress()), hasBlockInTier)).build();
         }, "preRegisterWorker", "request=%s", responseObserver, request);
   }
 

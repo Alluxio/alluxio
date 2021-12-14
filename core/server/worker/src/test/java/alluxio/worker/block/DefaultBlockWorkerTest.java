@@ -38,6 +38,7 @@ import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
@@ -75,6 +76,7 @@ public class DefaultBlockWorkerTest {
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
   private String mHddDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
+  private long mWorkerId1 = 1L;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -391,41 +393,61 @@ public class DefaultBlockWorkerTest {
   void setPersistenceConf() {
     // write permission is required, ,
     // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
-    ServerConfiguration.set(PropertyKey.WORKER_PERSISTENCE_INFO_PATH,
+    ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
         mTestFolder.getRoot().getAbsolutePath());
   }
 
   @Test
-  public void handlePreRegisterCommandNothing() throws IOException {
+  public void handlePreRegisterCommandACK() throws IOException {
+    String newClusterId = UUID.randomUUID().toString();
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.Nothing).build();
+        .setPreRegisterCommandType(PreRegisterCommandType.ACK)
+        .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
-    // noting to do
+    // Only workerId will be set
     mBlockWorker.handlePreRegisterCommand(cmd);
+    assertEquals(IdUtils.EMPTY_CLUSTER_ID, mBlockWorker.getClusterId().get());
+    assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
   }
 
   @Test
-  public void handlePreRegisterCommandPersist() throws IOException {
+  public void handlePreRegisterCommandPERSIST_CLUSTERID() throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.Persist)
-        .setData(newClusterId).build();
+        .setPreRegisterCommandType(PreRegisterCommandType.PERSIST_CLUSTERID)
+        .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // the new cluster ID will be persisted
     mBlockWorker.handlePreRegisterCommand(cmd);
     assertEquals(newClusterId, mBlockWorker.getClusterId().get());
+    assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
   @Test
-  public void handlePreRegisterCommandReset() throws IOException {
-    // todo update this after add the function of "clean all block and reset status"
-    //  in PreRegisterCommand
+  public void handlePreRegisterCommandCLEAN_BLOCK() throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.Persist)
-        .setData(newClusterId).build();
+        .setPreRegisterCommandType(PreRegisterCommandType.CLEAN_BLOCK)
+        .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterCommand(cmd);
     assertEquals(newClusterId, mBlockWorker.getClusterId().get());
+    // todo update this after add the function of "clean all block and reset status"
+    //  in PreRegisterCommand
+    assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
+  }
+
+  @Test
+  public void setAndGetClusterId() throws IOException {
+    String mClusterID = java.util.UUID.randomUUID().toString();
+    mBlockWorker.setClusterId(mClusterID);
+    assertEquals(mClusterID, mBlockWorker.getClusterId().get());
+  }
+
+  @Test
+  public void handlePreRegisterCommandREJECT() throws IOException {
+    PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
+        .setPreRegisterCommandType(PreRegisterCommandType.REJECT).build();
+    assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterCommand(cmd));
   }
 
   @Test
@@ -450,12 +472,5 @@ public class DefaultBlockWorkerTest {
     );
     reader.close();
     mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10);
-  }
-
-  @Test
-  public void setAndGetClusterId() throws IOException {
-    String mClusterID = java.util.UUID.randomUUID().toString();
-    mBlockWorker.setClusterId(mClusterID);
-    assertEquals(mClusterID, mBlockWorker.getClusterId().get());
   }
 }

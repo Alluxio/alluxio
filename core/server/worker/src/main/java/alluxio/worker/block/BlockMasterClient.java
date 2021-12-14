@@ -276,19 +276,25 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * The method used to verify whether the worker can register with the current cluster.
-   * So, the method should execute before execute {@link #getId} and {@link #register}.
+   * Registers with the Alluxio master. This should be called before the
+   * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
+   * can register with the current cluster.
+   * If it passes check AB ClusterId and workerId be returned
    * @param clusterId the cluster id of the worker
    * @param address the worker WorkerNetAddress
+   * @param hasBlockInTier has any Block in the Tier
    * @return an optional command for the worker to execute
    */
-  public PreRegisterCommand preRegister(String clusterId, final WorkerNetAddress address)
+  public PreRegisterCommand preRegisterWithMaster(String clusterId, final WorkerNetAddress address,
+                                                  boolean hasBlockInTier)
       throws AlluxioStatusException {
     final PreRegisterWorkerPRequest request = PreRegisterWorkerPRequest.newBuilder()
-        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address)).build();
+        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
+        .setHasBlockInTier(hasBlockInTier).build();
 
     return retryRPC(() -> mClient.preRegisterWorker(request).getCommand(),
-        LOG, "preRegister", "clusterId=%s", clusterId);
+        LOG, "preRegisterWithMaster", "clusterId=%s, hasBlockInTier=%s",
+        clusterId, hasBlockInTier);
   }
 
   /**

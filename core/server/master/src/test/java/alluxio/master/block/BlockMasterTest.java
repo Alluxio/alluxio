@@ -16,6 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.PreRegisterCommand;
@@ -61,6 +63,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -86,6 +89,7 @@ public class BlockMasterTest {
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private String mCurrentClusterId;
+  private long mWorkerId;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -116,7 +120,8 @@ public class BlockMasterTest {
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
-    mCurrentClusterId = java.util.UUID.randomUUID().toString();
+    mCurrentClusterId = UUID.randomUUID().toString();
+    mWorkerId = 1L;
   }
 
   /**
@@ -155,10 +160,11 @@ public class BlockMasterTest {
         mBlockMaster.getUsedBytesOnTiers());
   }
 
-  BlockMaster mockGetClusterId() throws IOException {
+  BlockMaster mockGetClusterIdAndGetWorkerId() throws IOException {
     // the RPC will be called inner getClusterId(), so we should mock it
     BlockMaster mockBlockMaster = Mockito.spy(mBlockMaster);
     Mockito.doReturn(mCurrentClusterId).when(mockBlockMaster).getClusterId(NET_ADDRESS_1);
+    Mockito.doReturn(mWorkerId).when(mockBlockMaster).getWorkerId(NET_ADDRESS_1);
     return mockBlockMaster;
   }
 
@@ -262,42 +268,81 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void newWorkerPreregister() throws Exception {
-    BlockMaster mockBlockMaster = mockGetClusterId();
-    PreRegisterCommand exceptCommand = mockBlockMaster.workerPreRegister(
-        IdUtils.INVALID_CLUSTER_ID, NET_ADDRESS_1);
+  public void TestNewWorkerRegisterWithMaster() throws IOException {
+    // New and clean(the Tier is clean without any Blocks) worker registration
+    // New Worker will be report a IdUtils.EMPTY_CLUSTER_ID
+    BlockMaster mockBlockMaster = mockGetClusterIdAndGetWorkerId();
 
-    // the new worker need to Persist the cluster ID so workerPreRegister return Persist command
-    // the worker need to save cluster ID
-    assertEquals(exceptCommand.getPreRegisterCommandType(), PreRegisterCommandType.Persist);
-    assertEquals(exceptCommand.getData(), mCurrentClusterId);
+    PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
+        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, false);
+    assertPreRegisterCommandType(exceptCommand1,
+        PreRegisterCommandType.PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
+
+    // New and dirty(has BLock in the Tier) worker registration,
+    // and master will force to clean dirty worker
+    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
+    PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
+        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
+    assertPreRegisterCommandType(exceptCommand2,
+        PreRegisterCommandType.CLEAN_BLOCK, mCurrentClusterId, mWorkerId);
+
+    // New and dirty(has BLock in the Tier) worker registration,
+    //and master will not force to clean dirty worker
+    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
+    PreRegisterCommand exceptCommand3 = mockBlockMaster.workerPreRegister(
+        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
+    assertPreRegisterCommandType(exceptCommand3,
+        PreRegisterCommandType.PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
   }
 
   @Test
-  public void currentClusterWorkerPreregister() throws Exception {
-    BlockMaster mockBlockMaster = mockGetClusterId();
-    PreRegisterCommand exceptCommand = mockBlockMaster.workerPreRegister(
-        mCurrentClusterId, NET_ADDRESS_1);
+  public void TestReStartedWorkerRegisterWithMaster() throws IOException {
+    // Worker ( clusterId has been persisted) restarts normally
+    // The restarted worker will report the same id as the current cluster
+    BlockMaster mockBlockMaster = mockGetClusterIdAndGetWorkerId();
 
-    // if the worker belongs to the current cluster,
-    // it will report the same cluster ID with current when invoke workerPreRegister().
-    // so workerPreRegister return Nothing command, the worker needn't to do anything
-    assertEquals(exceptCommand.getPreRegisterCommandType(), PreRegisterCommandType.Nothing);
+    PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
+        mCurrentClusterId, NET_ADDRESS_1, true);
+    assertPreRegisterCommandType(exceptCommand1,
+        PreRegisterCommandType.ACK, mCurrentClusterId, mWorkerId);
+
+    PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
+        mCurrentClusterId, NET_ADDRESS_1, false);
+    assertPreRegisterCommandType(exceptCommand2,
+        PreRegisterCommandType.ACK, mCurrentClusterId, mWorkerId);
   }
 
   @Test
-  public void otherClusterWorkerPreregister() throws Exception {
-    String otherClusterId = java.util.UUID.randomUUID().toString();
-    BlockMaster mockBlockMaster = mockGetClusterId();
-    PreRegisterCommand exceptCommand =
-        mockBlockMaster.workerPreRegister(otherClusterId, NET_ADDRESS_1);
+  public void TestOtherClusterWorkerRegisterWithMaster() throws IOException {
+    // Worker registration of another cluster
+    // Workers belonging to another cluster will report an clusterId that is
+    // different with the current cluster
+    BlockMaster mockBlockMaster = mockGetClusterIdAndGetWorkerId();
+    String otherClusterId = UUID.randomUUID().toString();
 
-    // if the worker belongs to the other cluster,
-    // it will report the a different cluster ID than current one when invoke workerPreRegister().
-    // so workerPreRegister return Reset command,
-    // the worker must to reset itself to prevent the conflicts.
-    assertEquals(exceptCommand.getPreRegisterCommandType(), PreRegisterCommandType.Reset);
-    assertEquals(exceptCommand.getData(), mCurrentClusterId);
+    PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
+        otherClusterId, NET_ADDRESS_1, false);
+    assertPreRegisterCommandType(exceptCommand1,
+        PreRegisterCommandType.PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
+
+    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
+    PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
+        otherClusterId, NET_ADDRESS_1, true);
+    assertPreRegisterCommandType(exceptCommand2,
+        PreRegisterCommandType.REJECT, mCurrentClusterId, mWorkerId);
+
+    ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
+    PreRegisterCommand exceptCommand3 = mockBlockMaster.workerPreRegister(
+        otherClusterId, NET_ADDRESS_1, true);
+    assertPreRegisterCommandType(exceptCommand3,
+        PreRegisterCommandType.CLEAN_BLOCK, mCurrentClusterId, mWorkerId);
+  }
+
+  private void assertPreRegisterCommandType(PreRegisterCommand actual,
+      PreRegisterCommandType expectedCmd, String expectedCLusterId, long expectedWorkerId) {
+    assertEquals(actual.getPreRegisterCommandType(), expectedCmd);
+    assertEquals(actual.getClusterId(), expectedCLusterId);
+    assertEquals(actual.getWorkerId(), expectedWorkerId);
   }
 
   @Test

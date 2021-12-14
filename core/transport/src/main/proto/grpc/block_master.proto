@@ -248,15 +248,16 @@ message GetRegisterLeasePResponse {
 
 message PreRegisterCommand {
   optional PreRegisterCommandType preRegisterCommandType = 1;
-  optional string data = 2;
+  optional string clusterId = 2;
+  optional int64 workerId = 3;
 }
 
 enum PreRegisterCommandType {
-  Unknown = 0;
-  Nothing = 1;
-  Persist = 2;
-  Reset = 3;
-  Exist = 4;
+  UNKNOWN = 0;
+  ACK = 1;
+  PERSIST_CLUSTERID = 2;
+  CLEAN_BLOCK = 3;
+  REJECT = 4;
 }
 
 message PreRegisterWorkerPOptions {}
@@ -264,6 +265,7 @@ message PreRegisterWorkerPRequest {
   optional string clusterId = 1;
   optional grpc.WorkerNetAddress workerNetAddress = 2;
   optional PreRegisterWorkerPOptions options = 3;
+  optional bool hasBlockInTier = 4;
 }
 
 message PreRegisterWorkerPResponse {

@@ -99,12 +99,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
    * @param workerId the worker id of the worker, assigned by the block master
+   * @param clusterId the cluster iD of the worker, assigned by the block master
    * @param workerAddress the net address of the worker
    * @param masterClientPool the Alluxio master client pool
    */
   public BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-             AtomicReference<String> clusterId, WorkerNetAddress workerAddress,
-             BlockMasterClientPool masterClientPool) throws IOException {
+      AtomicReference<String> clusterId, WorkerNetAddress workerAddress,
+      BlockMasterClientPool masterClientPool) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mClusterId = clusterId;
@@ -255,10 +256,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       case Register:
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
         registerWithMaster();
-        break;
-      case Reset:
-        // todo clean all block and save new clusterId
-        mWorkerId.set(mMasterClient.getId(mWorkerAddress));
         break;
       // Unknown request
       case Unknown:

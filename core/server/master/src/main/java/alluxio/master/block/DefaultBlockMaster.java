@@ -232,7 +232,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Current cluster id. */
   private final AtomicReference<String> mClusterId =
-      new AtomicReference<>(IdUtils.INVALID_CLUSTER_ID);
+      new AtomicReference<>(IdUtils.EMPTY_CLUSTER_ID);
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
@@ -1015,7 +1015,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public String getClusterId(WorkerNetAddress workerNetAddress) throws IOException {
     // assumed that the cluster will not change if no format the master,
     // so invoke by RPC only first
-    if (mClusterId.get().equals(IdUtils.INVALID_CLUSTER_ID)) {
+    if (mClusterId.get().equals(IdUtils.EMPTY_CLUSTER_ID)) {
       RetryHandlingMetaMasterMasterClient metaMasterClient =
           new RetryHandlingMetaMasterMasterClient(MasterClientContext
               .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
@@ -1025,31 +1025,87 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public PreRegisterCommand workerPreRegister(String clusterId,
-                                              WorkerNetAddress workerNetAddress) throws IOException {
-    PreRegisterCommand mCommand = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.Nothing).build();
+  public PreRegisterCommand workerPreRegister(String workerClusterId,
+      WorkerNetAddress workerNetAddress, boolean hasBlockInWorkerTier) throws IOException {
+    LOG.info("worker {} PreRegister, workerClusterId {}, hasBlockInWorkerTier {}",
+        workerNetAddress.getHost(), workerClusterId, hasBlockInWorkerTier);
 
-    String mClusterId = getClusterId(workerNetAddress);
-    if (clusterId.equals(IdUtils.INVALID_CLUSTER_ID)) {
-      // a new worker just to save cluster ID
-      mCommand = PreRegisterCommand.newBuilder()
-          .setPreRegisterCommandType(PreRegisterCommandType.Persist).setData(mClusterId).build();
-      LOG.info("worker {} first PreRegister", workerNetAddress.getHost());
-      return mCommand;
+    String curClusterId = getClusterId(workerNetAddress);
+    PreRegisterCommandType commandType =
+        checkWorker(curClusterId, workerClusterId, hasBlockInWorkerTier);
+    long workerId = getWorkerId(workerNetAddress);
+    PreRegisterCommand command = PreRegisterCommand.newBuilder()
+        .setPreRegisterCommandType(commandType)
+        .setClusterId(curClusterId)
+        .setWorkerId(workerId)
+        .build();
+
+    LOG.info("worker {} ,PreRegister result: PreRegisterCommand {}, workerId {},"
+            + " current clusterId {}",
+        workerNetAddress.getHost(), command.getPreRegisterCommandType(),
+        command.getWorkerId(), command.getClusterId());
+    return command;
+  }
+
+  /**
+   * Check whether the Worker is a member of the current cluster and.
+   * whether it may contain dirty data
+   * @param curClusterId: current cluster ID
+   * @param workerClusterId: worker report cluster ID
+   * @param hasBlockInWorkerTier: has any Block in worker's Tier
+   * @return instance of PreRegisterCommandType
+   */
+  private PreRegisterCommandType checkWorker(String curClusterId, String workerClusterId,
+      boolean hasBlockInWorkerTier) {
+    if (workerClusterId.equals(IdUtils.EMPTY_CLUSTER_ID)) {
+      // A new Worker registers to the Master
+      if (!hasBlockInWorkerTier) {
+        // The most common case: a new and clean Worker registers to the Master
+        return PreRegisterCommandType.PERSIST_CLUSTERID;
+      } else {
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
+          return PreRegisterCommandType.CLEAN_BLOCK;
+        } else {
+          // Possible cases:
+          // - A Worker that does not correctly persist the clusterId registers to the Master,
+          //   such as:
+          //   1. In the K8s environment, the file is stored in the memory.
+          //   2. The file that saves clusterId does not have read/write permission
+          //   3. The clusterId file is deleted.
+          //   4. The worker starts for the first time after the upgrade (from
+          //      version “without persist clusterId” upgrade to version “persist clusterId” )
+          //
+          //   In the case 1 ~ 3 the worker will get the default clusterId IdUtils.EMPTY_CLUSTER_ID
+          //   We cannot distinguish whether the worker belongs to the current cluster.
+          //   Although the worker may contain dirty data. But it is an undefined behavior, the
+          //   clusterId file should be be persisted correctly.
+          //   All of these cases are due to clusterId not being persisted correctly the branch
+          //   should not be entered except the case 4.
+          //
+          //   The case 4 is is a situation that should be considered.
+          //   In order to be compatible with the upgrade, the “PERSIST_CLUSTERID” will be return
+          return PreRegisterCommandType.PERSIST_CLUSTERID;
+        }
+      }
     }
 
-    if (!clusterId.equals(mClusterId)) {
-      // the worker must to reset(remove all block) itself to prevent the conflicts.
-      mCommand = PreRegisterCommand.newBuilder()
-          .setPreRegisterCommandType(PreRegisterCommandType.Reset).setData(mClusterId).build();
-      LOG.info("Worker {} clusterId {} doesn't match expected {}",
-          workerNetAddress.getHost(), mClusterId, clusterId);
-      return mCommand;
+    if (workerClusterId.equals(curClusterId)) {
+      // A Worker of the current cluster registers to the Master
+      return PreRegisterCommandType.ACK;
+    } else {
+      // A Worker of the another cluster registers to the Master
+      if (!hasBlockInWorkerTier) {
+        // Even if the worker belongs to another cluster,
+        // because it does not have any Block, it will not mess with the data of the current cluster
+        //, so  “PERSIST_CLUSTERID” will be return
+        return PreRegisterCommandType.PERSIST_CLUSTERID;
+      }
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
+        return PreRegisterCommandType.CLEAN_BLOCK;
+      } else {
+        return PreRegisterCommandType.REJECT;
+      }
     }
-
-    LOG.debug("worker {} PreRegister", workerNetAddress.getHost());
-    return mCommand;
   }
 
   @Override

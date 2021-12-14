@@ -203,13 +203,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   /**
    * worker pre registers with the master.
+   * Check whether the worker can be registered to the current cluster.
+   * return the registration command ,current cluster clusterId and worker id for the given worker.
    *
-   * @param clusterId the cluster id of the worker registering
+   * @param workerClusterId the cluster id of the worker registering
    * @param workerNetAddress the worker {@link WorkerNetAddress}
+   * @param hasBlockInWorkerTier has any Block in the Worker's Tier
    * @return the PreRegisterCommand for this worker
    */
-  PreRegisterCommand workerPreRegister(String clusterId,
-                                       WorkerNetAddress workerNetAddress) throws IOException;
+  PreRegisterCommand workerPreRegister(String workerClusterId, WorkerNetAddress workerNetAddress,
+      boolean hasBlockInWorkerTier) throws IOException;
 
   /**
    * Try to acquire a {@link RegisterLease} for the worker.

@@ -11,9 +11,11 @@
 
 package alluxio.cli;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
@@ -45,6 +47,9 @@ public final class FormatTest {
 
   @Test
   public void formatWorker() throws Exception {
+    File clusterIdPath = mTemporaryFolder.newFolder("persist");
+    FileUtils.createFile(PathUtils.concatPath(clusterIdPath.getPath(), CLUSTERID_FILE));
+
     final int storageLevels = 3;
     final String perms = "rwx------";
     String workerDataFolder;
@@ -66,9 +71,11 @@ public final class FormatTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
         put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
+        put(PropertyKey.WORKER_CLUSTERID_PATH, clusterIdPath.getPath());
       }
     }, ServerConfiguration.global()).toResource()) {
       Format.format(Format.Mode.WORKER, ServerConfiguration.global());
+      assertFalse(FileUtils.exists(PathUtils.concatPath(clusterIdPath.getPath(), CLUSTERID_FILE)));
       for (File dir : dirs) {
         workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
             ServerConfiguration.global());

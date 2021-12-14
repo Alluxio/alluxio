@@ -2922,6 +2922,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_CLEAN_DIRTY_WORKER =
+      new Builder(Name.MASTER_CLEAN_DIRTY_WORKER)
+          .setDefaultValue("false")
+          .setDescription("Whether to clean (delete all the blocks of the worker) the worker "
+              + "if the worker may contain dirty data")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Worker related properties
@@ -3834,11 +3842,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_PERSISTENCE_INFO_PATH =
-      new Builder(Name.WORKER_PERSISTENCE_INFO_PATH)
+  public static final PropertyKey WORKER_CLUSTERID_PATH =
+      new Builder(Name.WORKER_CLUSTERID_PATH)
           .setDefaultValue(String.format("${%s}/persist", Name.HOME))
           .setDescription("The path used to save the info such as "
               + "the cluster ID which the worker belongs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MUST_PRESIST_CLUSTERID =
+      new Builder(Name.WORKER_MUST_PRESIST_CLUSTERID)
+          .setDefaultValue("true")
+          .setDescription("Whether the worker must persist the cluster ID,"
+               + " If true, worker will exit if it fails")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -6426,6 +6442,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.worker.register.lease.respect.jvm.space";
     public static final String MASTER_WORKER_REGISTER_LEASE_TTL =
         "alluxio.master.worker.register.lease.ttl";
+    public static final String MASTER_CLEAN_DIRTY_WORKER =
+        "alluxio.master.clean.dirty.worker";
 
     //
     // File system master related properties
@@ -6599,8 +6617,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
-    public static final String WORKER_PERSISTENCE_INFO_PATH =
-        "alluxio.worker.persistence.info.path";
+    public static final String WORKER_CLUSTERID_PATH =
+        "alluxio.worker.clusterid.path";
+    public static final String WORKER_MUST_PRESIST_CLUSTERID =
+        "alluxio.worker.must.presist.clusterid";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
 
     //

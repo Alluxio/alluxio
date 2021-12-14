@@ -90,6 +90,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -451,8 +452,9 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
     // Kick off the register stream
     AtomicReference<Long> workerId = new AtomicReference<>(WORKER_ID);
+    AtomicReference<String> clusterId = new AtomicReference<>(UUID.randomUUID().toString());
     BlockMasterSync sync = new BlockMasterSync(
-        mBlockWorker, workerId, NET_ADDRESS_1, mBlockMasterClientPool);
+        mBlockWorker, workerId, clusterId, NET_ADDRESS_1, mBlockMasterClientPool);
 
     // Check the next heartbeat to be sent to the master
     f.get();
