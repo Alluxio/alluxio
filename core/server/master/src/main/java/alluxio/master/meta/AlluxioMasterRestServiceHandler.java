@@ -866,7 +866,7 @@ public final class AlluxioMasterRestServiceHandler {
   boolean isMounted(String ufs) {
     ufs = PathUtils.normalizePath(ufs, AlluxioURI.SEPARATOR);
     for (Map.Entry<String, MountPointInfo> entry :
-        mFileSystemMaster.getMountPointInfoSummary().entrySet()) {
+        mFileSystemMaster.getMountPointInfoSummary(false).entrySet()) {
       String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
       escaped = PathUtils.normalizePath(escaped, AlluxioURI.SEPARATOR);
       if (escaped.equals(ufs)) {

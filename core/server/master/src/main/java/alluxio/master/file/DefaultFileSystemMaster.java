@@ -1683,9 +1683,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public Map<String, MountPointInfo> getMountPointInfoSummary() {
+    return getMountPointInfoSummary(true);
+  }
+
+  @Override
+  public Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs) {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
+      mountPoints.put(mountPoint.getKey(),
+              getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
     }
     return mountPoints;
   }
@@ -1696,17 +1702,21 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
     }
-    return getDisplayMountPointInfo(mMountTable.getMountTable().get(path.toString()));
+    return getDisplayMountPointInfo(mMountTable.getMountTable().get(path.toString()), true);
   }
 
   /**
    * Gets the mount point information for display from a mount information.
    *
+   * @param invokeUfs if true, invoke ufs to set ufs properties
    * @param mountInfo the mount information to transform
    * @return the mount point information
    */
-  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo) {
+  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo, boolean invokeUfs) {
     MountPointInfo info = mountInfo.toDisplayMountPointInfo();
+    if (!invokeUfs) {
+      return info;
+    }
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
