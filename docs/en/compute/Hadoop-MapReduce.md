@@ -32,13 +32,18 @@ For example, if you are using Hadoop 2.7 download this
 
 > **This step is only required for Hadoop 1.x and can be skipped by users of Hadoop 2.x or later**.
 
-Add the following property to the `core-site.xml` of your Hadoop installation:
+Add the following properties to the `core-site.xml` of your Hadoop installation:
 
 ```xml
 <property>
   <name>fs.alluxio.impl</name>
   <value>alluxio.hadoop.FileSystem</value>
-  <description>The Alluxio FileSystem</description>
+  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x)</description>
+</property>
+<property>
+  <name>fs.AbstractFileSystem.alluxio.impl</name>
+  <value>alluxio.hadoop.AlluxioFileSystem</value>
+  <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
 </property>
 ```
 
