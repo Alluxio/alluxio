@@ -122,7 +122,7 @@ public final class RmCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "rm [-R/--recursive/-r] [-U] [--alluxioOnly] <path>";
+    return "rm [-R/-r/--recursive] [-U] [--alluxioOnly] <path>";
   }
 
   @Override
