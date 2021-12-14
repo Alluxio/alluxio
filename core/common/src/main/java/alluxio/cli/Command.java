@@ -51,7 +51,7 @@ public interface Command extends Closeable {
    * @return whether this command has sub-commands
    */
   default boolean hasSubCommand() {
-    return false;
+    return !getSubCommands().isEmpty();
   }
 
   /**

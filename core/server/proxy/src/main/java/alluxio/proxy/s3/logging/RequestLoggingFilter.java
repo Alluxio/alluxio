@@ -14,10 +14,10 @@ package alluxio.proxy.s3.logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
 
 /**
  * Helper class for adding logs to request methods for debugging purposes.

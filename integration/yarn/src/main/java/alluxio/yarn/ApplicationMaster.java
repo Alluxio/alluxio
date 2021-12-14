@@ -64,7 +64,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.HttpMethod;
 

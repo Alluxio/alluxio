@@ -13,11 +13,11 @@ package alluxio.cli;
 
 import static alluxio.Constants.CLUSTERID_FILE;
 
+import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
 import alluxio.master.NoopUfsManager;
 import alluxio.master.ServiceUtils;
@@ -39,7 +39,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

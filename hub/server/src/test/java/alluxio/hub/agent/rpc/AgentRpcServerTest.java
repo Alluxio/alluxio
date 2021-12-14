@@ -19,7 +19,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-
 import alluxio.hub.agent.process.AgentProcessContext;
 import alluxio.hub.agent.process.TestAgentProcessContextFactory;
 import alluxio.hub.test.BaseHubTest;

@@ -13,7 +13,6 @@ package alluxio.master.journal.checkpoint;
 
 import java.io.IOException;
 import java.io.PrintStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

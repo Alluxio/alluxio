@@ -11,9 +11,8 @@
 
 package alluxio;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.io.OutputStream;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A rule for setting output stream during a test suite. It sets

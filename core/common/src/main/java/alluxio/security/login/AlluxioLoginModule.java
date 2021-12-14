@@ -16,7 +16,6 @@ import alluxio.security.User;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;

@@ -49,19 +49,20 @@ with the following deviations:
     - example: `private static String sUnderFSAddress;`
 - Bash scripts follow the [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
+- If you use IntelliJ IDEA:
+  - You can use the [IntelliJ checkstyle plugin](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) and 
+    configure it [as such]({{ '/resources/intellij_checkstyle_plugin.png' | relativize_url }}) under 
+    Preferences->Tools->Checkstyle.
+  - To automatically format the **import**, configure in
+    Preferences->Code Style->Java->Imports->Import Layout according to
+    [this order]({{ '/resources/intellij_imports.png' | relativize_url }}).
+  - In that same settings pane, you can set your style scheme to the one you imported in the Checkstyle plugin 
+    settings [as such]({{ '/resources/style_scheme.png' | relativize_url }}).
 - If you use Eclipse:
     - You can download our
 [Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml' | relativize_url }})
     - To organize your imports correctly, configure "Organize Imports" to look like
 [this]({{ '/resources/eclipse_imports.png' | relativize_url }})
-- If you use IntelliJ IDEA:
-    - You can either use our formatter with the help from
-[Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
-or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in
-IntelliJ IDEA.
-    - To automatically format the **import**, configure in
-Preferences->Code Style->Java->Imports->Import Layout according to
-[this order]({{ '/resources/intellij_imports.png' | relativize_url }})
 - To automatically reorder methods alphabetically, try the
 [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
 rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes

@@ -13,11 +13,11 @@ package alluxio.cli;
 
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.MasterClientContext;

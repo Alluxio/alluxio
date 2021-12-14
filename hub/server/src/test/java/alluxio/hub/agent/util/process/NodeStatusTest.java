@@ -18,7 +18,6 @@ import static org.mockito.Mockito.doReturn;
 
 import alluxio.exception.AlluxioException;
 import alluxio.hub.proto.AlluxioNodeType;
-
 import alluxio.hub.proto.AlluxioProcessStatusOrBuilder;
 import alluxio.hub.proto.ProcessState;
 

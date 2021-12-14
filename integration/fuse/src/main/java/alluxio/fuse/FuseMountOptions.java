@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

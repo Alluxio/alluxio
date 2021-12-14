@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.UUID;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

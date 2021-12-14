@@ -54,11 +54,6 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public boolean hasSubCommand() {
-    return true;
-  }
-
-  @Override
   public Map<String, Command> getSubCommands() {
     return mSubCommands;
   }

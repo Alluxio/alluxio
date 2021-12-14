@@ -28,7 +28,7 @@ public final class LogInfo {
   /**
    * Creates a new instance of {@link LogInfo}.
    */
-  public LogInfo(){
+  public LogInfo() {
   }
 
   /**

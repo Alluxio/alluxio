@@ -71,7 +71,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 
@@ -273,7 +272,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     Map<String, MountPointInfo> mountTable = new HashMap<>();
     mountTable.put("/s3", new MountPointInfo().setUfsUri(s3Uri));
     FileSystemMaster mockMaster = mock(FileSystemMaster.class);
-    when(mockMaster.getMountPointInfoSummary()).thenReturn(mountTable);
+    when(mockMaster.getMountPointInfoSummary(false)).thenReturn(mountTable);
 
     AlluxioMasterProcess masterProcess = mock(AlluxioMasterProcess.class);
     when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);

@@ -14,9 +14,9 @@ package alluxio.client.cli.fs.command;
 import static alluxio.cli.fs.command.CountCommand.COUNT_FORMAT;
 import static org.junit.Assert.assertEquals;
 
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.grpc.WritePType;
 
 import org.junit.Test;

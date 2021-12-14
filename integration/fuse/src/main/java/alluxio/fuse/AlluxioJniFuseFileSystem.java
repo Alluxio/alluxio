@@ -25,6 +25,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
+import alluxio.fuse.cli.FuseShell;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -57,7 +58,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -87,7 +87,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
-
+  private final FuseShell mFuseShell;
   private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
       ID_INDEX =
       new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
@@ -147,6 +147,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mMountPoint = opts.getMountPoint();
+    mFuseShell = new FuseShell(fs, conf);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -229,7 +230,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
-      URIStatus status = mFileSystem.getStatus(uri);
+      URIStatus status = null;
+      // Handle special metadata cache operation
+      if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
+          && mFuseShell.isFuseSpecialCommand(uri)) {
+        // TODO(lu) add cache for isFuseSpecialCommand if needed
+        status = mFuseShell.runCommand(uri);
+      } else {
+        status = mFileSystem.getStatus(uri);
+      }
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process

@@ -18,13 +18,12 @@ import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.LRUAnnotator;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Rule;
-
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;

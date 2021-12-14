@@ -17,9 +17,9 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -188,7 +187,7 @@ public final class LoadDefinition
 
     for (LoadTask task : tasks) {
       JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId(),
-          task.getWorkerNetAddress());
+          task.getWorkerNetAddress(), config.isDirectCache());
       LOG.info("Loaded file " + config.getFilePath() + " block " + task.getBlockId());
     }
     return null;

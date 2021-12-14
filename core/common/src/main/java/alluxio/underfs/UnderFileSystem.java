@@ -12,12 +12,12 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.SyncInfo;
+import alluxio.annotation.PublicApi;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.annotation.PublicApi;
-import alluxio.SyncInfo;
-import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -39,7 +39,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 

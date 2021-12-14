@@ -27,7 +27,6 @@ import alluxio.util.ConfigurationUtils;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.OSSObject;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

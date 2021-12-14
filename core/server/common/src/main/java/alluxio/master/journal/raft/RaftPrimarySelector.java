@@ -15,7 +15,6 @@ import alluxio.master.AbstractPrimarySelector;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

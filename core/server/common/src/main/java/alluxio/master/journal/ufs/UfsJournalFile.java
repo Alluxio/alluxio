@@ -22,9 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.UUID;
-
-import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A simple data structure that represents a journal file.

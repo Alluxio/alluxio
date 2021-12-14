@@ -11,11 +11,11 @@
 
 package alluxio.stress.cli.fuse;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
@@ -42,12 +42,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -84,8 +84,10 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-        "A stress bench for testing the reading throughput of Fuse-based POSIX API.",
-        "To run the test, data must be written first by executing \"Write\" operation, then "
+        "A stress bench for testing the writing and reading throughput of Fuse-based POSIX API.",
+        "The Write operation will write the files to local Fuse mount point "
+            + "and calculate the throughput. ",
+        "To run the read tests, data must be written first by executing \"Write\" operation, then "
             + "run \"Read\" operation to test the reading throughput. The three different options "
             + "of read are: ",
         "LocalRead: Each job worker, or client, will read the files it wrote through local Fuse "
@@ -139,8 +141,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     File localPath = new File(mParameters.mLocalPath);
 
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
-      LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
-      mParameters.mWarmup = "0s";
       for (int i = 0; i < mParameters.mNumDirs; i++) {
         Files.createDirectories(Paths.get(String.format(
             TEST_DIR_STRING_FORMAT, mParameters.mLocalPath, mBaseParameters.mId, i)));
@@ -363,8 +363,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         closeOutStream();
       }
 
-      // update bench result by merging in individual thread result
-      mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
       mContext.mergeThreadResult(mFuseIOTaskResult);
 
       return null;
@@ -469,9 +467,15 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private boolean processFile(String filePath, boolean isRead) throws IOException {
       mCurrentOffset = 0;
       while (!Thread.currentThread().isInterrupted()) {
-        if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
-          closeInStream();
-          return true;
+        if (CommonUtils.getCurrentMs() > mContext.getEndMs()) {
+          if (mFuseIOTaskResult.getEndMs() == 0L) {
+            mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
+          }
+          if (isRead) {
+            // For read, stop when end time reaches
+            return true;
+          }
+          // For write, finish writing all the files
         }
         long ioBytes = applyOperation(filePath);
 
@@ -480,7 +484,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           return false;
         }
         // start recording after the warmup
-        if (CommonUtils.getCurrentMs() > mFuseIOTaskResult.getRecordStartMs()) {
+        if (CommonUtils.getCurrentMs() > mFuseIOTaskResult.getRecordStartMs()
+            && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
           mFuseIOTaskResult.incrementIOBytes(ioBytes);
         }
       }
@@ -511,7 +516,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           int bytesToWrite = (int) Math.min(mFileSize - mCurrentOffset, mBuffer.length);
           if (bytesToWrite == 0) {
             closeOutStream();
-            return -1;
+            return 0;
           }
           mOutStream.write(mBuffer, 0, bytesToWrite);
           mCurrentOffset += bytesToWrite;
@@ -523,10 +528,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
 
     private void finishProcessingFiles() {
-      if (FuseIOOperation.isRead(mParameters.mOperation)) {
-        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files "
-            + "before the bench ends. For more accurate result, use more files, or larger files, "
-            + "or a shorter duration", mThreadId));
+      if (FuseIOOperation.isRead(mParameters.mOperation)
+          || (mParameters.mOperation == FuseIOOperation.WRITE
+          && CommonUtils.getCurrentMs() < mContext.getEndMs())) {
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading/writing "
+            + "all its files before the bench ends. For more accurate result, "
+            + "use more files, or larger files, or a shorter duration", mThreadId));
       }
     }
 

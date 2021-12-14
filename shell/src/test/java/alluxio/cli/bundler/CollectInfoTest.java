@@ -13,9 +13,9 @@ package alluxio.cli.bundler;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.cli.Command;
 import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.cli.Command;
 import alluxio.util.ConfigurationUtils;
 
 import org.junit.Test;

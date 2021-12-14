@@ -18,10 +18,10 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.util.SleepUtils;
 import alluxio.util.network.HttpUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,11 +52,6 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   @Override
   public String getCommandName() {
     return COMMAND_NAME;
-  }
-
-  @Override
-  public boolean hasSubCommand() {
-    return false;
   }
 
   @Override

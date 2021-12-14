@@ -48,7 +48,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -145,7 +144,8 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
     mWriteType = conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
-    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, 1);
+    int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
+    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     distributedCp(srcPath, dstPath, overwrite, batchSize);
     return 0;
   }
@@ -157,6 +157,11 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
     List<Pair<String, String>> filePool = new ArrayList<>(batchSize);
     copy(srcPath, dstPath, overwrite, batchSize, filePool);
+    // add all the jobs left in the pool
+    if (filePool.size() > 0) {
+      addJob(filePool, overwrite);
+      filePool.clear();
+    }
     // Wait remaining jobs to complete.
     drain();
   }
@@ -184,7 +189,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite, int batchSize,
       List<Pair<String, String>> pool) throws IOException, AlluxioException {
-
     for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
       String dstInnerPath =
           computeTargetPath(srcInnerStatus.getPath(), srcPath.getPath(), dstPath.getPath());
@@ -198,9 +202,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
           pool.clear();
         }
       }
-    }
-    if (pool.size() > 0) {
-      addJob(pool, overwrite);
     }
   }
 

@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -671,7 +670,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The last raft log index which was applied to the state machine")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey MASTER_JOURNAL_CHECKPOINT_WARN =
+      new Builder("Master.JournalCheckpointWarn")
+          .setDescription(String.format("If the raft log index exceeds %s, and the "
+              + "last checkpoint exceeds %s, it returns 1 to indicate that a warning"
+              + " is required, otherwise it returns 0",
+              PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES.getName(),
+              PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME.getName()))
+         .setMetricType(MetricType.GAUGE)
+         .build();
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")
           .setDescription("The timer statistics of journal gain primacy")
@@ -698,6 +705,37 @@ public final class MetricKey implements Comparable<MetricKey> {
               + " It records the time it took for the very first journal replay. "
               + "Use this metric to monitor when your master boot-up time is high。")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  // Job metrics
+  public static final MetricKey MASTER_JOB_CANCELED =
+      new Builder("Master.JobCanceled")
+          .setDescription("The number of canceled status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COMPLETED =
+      new Builder("Master.JobCompleted")
+          .setDescription("The number of completed status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COUNT =
+      new Builder("Master.JobCount")
+          .setDescription("The number of all status job")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOB_CREATED =
+      new Builder("Master.JobCreated")
+          .setDescription("The number of created status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_FAILED =
+      new Builder("Master.JobFailed")
+          .setDescription("The number of failed status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_RUNNING =
+      new Builder("Master.JobRunning")
+          .setDescription("The number of running status job")
+          .setMetricType(MetricType.COUNTER)
           .build();
 
   // Cluster metrics
@@ -1257,6 +1295,12 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "that have completed execution")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
+      new Builder("Worker.RpcQueueLength")
+          .setDescription("Length of the worker rpc queue. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
           .build();
 
   // Client metrics

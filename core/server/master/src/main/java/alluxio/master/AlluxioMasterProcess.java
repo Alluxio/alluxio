@@ -14,6 +14,7 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -49,7 +50,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -147,6 +147,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
+    LOG.info("Starting...");
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     startMasters(true);
@@ -155,12 +156,14 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping...");
     stopRejectingServers();
     if (isServing()) {
       stopServing();
     }
-    closeMasters();
     mJournalSystem.stop();
+    closeMasters();
+    LOG.info("Stopped.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -188,6 +191,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param isLeader if the Master is leader
    */
   protected void startMasters(boolean isLeader) throws IOException {
+    LOG.info("Starting all masters as: %s.", (isLeader) ? "leader" : "follower");
     if (isLeader) {
       if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
         AlluxioURI backup =
@@ -206,7 +210,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     mRegistry.start(isLeader);
     // Signal state-lock-manager that masters are ready.
     mContext.getStateLockManager().mastersStartedCallback();
-    LOG.info("All masters started");
+    LOG.info("All masters started.");
   }
 
   /**
@@ -214,7 +218,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void stopMasters() {
     try {
+      LOG.info("Stopping all masters.");
       mRegistry.stop();
+      LOG.info("All masters stopped.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -225,7 +231,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void closeMasters() {
     try {
+      LOG.info("Closing all masters.");
       mRegistry.close();
+      LOG.info("Closed all masters.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

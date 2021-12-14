@@ -16,8 +16,8 @@ package alluxio.stress.fuse;
  */
 public enum FuseIOOperation {
   /**
-   * Read <numAllFiles>/<numJobWorker> number of files evenly from all directories created by all
-   * job workers through local Fuse mount point.
+   * Read &lt;numAllFiles&gt;/&lt;numJobWorker&gt; number of files evenly from all directories
+   * created by all job workers through local Fuse mount point.
    */
   CLUSTER_READ("ClusterRead"),
   /**

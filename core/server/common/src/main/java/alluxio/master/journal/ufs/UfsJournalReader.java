@@ -13,9 +13,9 @@ package alluxio.master.journal.ufs;
 
 import alluxio.ProcessUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.OptionalLong;
 import java.util.Queue;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

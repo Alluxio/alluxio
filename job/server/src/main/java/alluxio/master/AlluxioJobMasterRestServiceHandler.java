@@ -11,10 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.LogUtils;
 import alluxio.web.JobMasterWebServer;
 import alluxio.wire.AlluxioJobMasterInfo;
@@ -24,7 +24,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;

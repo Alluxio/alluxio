@@ -22,7 +22,6 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.Arrays;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

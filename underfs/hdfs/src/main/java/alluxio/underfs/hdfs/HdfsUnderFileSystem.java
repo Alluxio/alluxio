@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.UfsConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
@@ -70,7 +70,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -292,7 +291,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         OutputStream outputStream = new HdfsUnderFileOutputStream(
             FileSystem.create(hdfs, new Path(path),
-            new FsPermission(options.getMode().toShort())));
+              new FsPermission(options.getMode().toShort())));
         if (options.getAcl() != null) {
           setAclEntries(path, options.getAcl().getEntries());
         }

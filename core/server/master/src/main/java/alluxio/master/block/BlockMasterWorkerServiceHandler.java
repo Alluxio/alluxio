@@ -53,9 +53,6 @@ public final class BlockMasterWorkerServiceHandler extends
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
 
-  private final boolean mRegisterLeaseOn =
-      ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED);
-
   private final BlockMaster mBlockMaster;
 
   /**
@@ -172,7 +169,8 @@ public final class BlockMasterWorkerServiceHandler extends
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           // The exception will be propagated to the worker side and the worker should retry.
-          if (mRegisterLeaseOn && !mBlockMaster.hasRegisterLease(workerId)) {
+          if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+              && !mBlockMaster.hasRegisterLease(workerId)) {
             String errorMsg = String.format("Worker %s does not have a lease or the lease "
                 + "has expired. The worker should acquire a new lease and retry to register.",
                 workerId);

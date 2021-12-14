@@ -110,7 +110,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;
@@ -867,7 +866,7 @@ public final class AlluxioMasterRestServiceHandler {
   boolean isMounted(String ufs) {
     ufs = PathUtils.normalizePath(ufs, AlluxioURI.SEPARATOR);
     for (Map.Entry<String, MountPointInfo> entry :
-        mFileSystemMaster.getMountPointInfoSummary().entrySet()) {
+        mFileSystemMaster.getMountPointInfoSummary(false).entrySet()) {
       String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
       escaped = PathUtils.normalizePath(escaped, AlluxioURI.SEPARATOR);
       if (escaped.equals(ufs)) {
@@ -1010,12 +1009,12 @@ public final class AlluxioMasterRestServiceHandler {
         if (metricName.contains(MetricKey.CLUSTER_BYTES_READ_UFS.getName())) {
           String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
-            ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes(value));
+            ufsReadSizeMap.put(MetricsSystem.unescape(ufs), FormatUtils.getSizeFromBytes(value));
           }
         } else if (metricName.contains(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName())) {
           String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
-            ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes(value));
+            ufsWriteSizeMap.put(MetricsSystem.unescape(ufs), FormatUtils.getSizeFromBytes(value));
           }
         } else if (metricName.endsWith("Ops")) {
           rpcInvocations

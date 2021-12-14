@@ -16,7 +16,6 @@ import alluxio.client.Cancelable;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

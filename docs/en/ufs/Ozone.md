@@ -7,7 +7,7 @@ priority: 10
 ---
 
 
-This guide describes how to configure [Ozone](https://hadoop.apache.org/ozone) as Alluxio's under storage system. 
+This guide describes how to configure [Ozone](https://ozone.apache.org/) as Alluxio's under storage system. 
 Ozone is a scalable, redundant, and distributed object store for Hadoop. Apart from scaling to billions of objects of varying sizes, 
 Ozone can function effectively in containerized environments such as Kubernetes and YARN.
 
@@ -18,9 +18,8 @@ machines. You can either [download the precompiled binaries directly]({{ '/en/de
 with the correct Hadoop version (recommended), or 
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
 
-In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
-to install a Ozone cluster, and follow the [Volume Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html) and 
-[Bucket Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html) to create volume and bucket for Ozone cluster.
+In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.1.0/start/onprem.html)
+to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.org/docs/1.1.0/interface/cli.html) to create volume and bucket for Ozone cluster.
 
 ## Basic Setup
 
@@ -95,7 +94,7 @@ Possible `core-site.xml` and `ozone-site.xml`
   </property>
   <property>
     <name>fs.AbstractFileSystem.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
+    <value>org.apache.hadoop.fs.ozone.OzFs</value>
   </property>
 </configuration>
 ```

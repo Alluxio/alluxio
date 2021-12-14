@@ -15,7 +15,6 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

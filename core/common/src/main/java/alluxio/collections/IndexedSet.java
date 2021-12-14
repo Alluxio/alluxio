@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -65,14 +64,14 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * First, define the fields to be indexed:
  * <pre>
- *  IndexDefinition<Puppy> idIndex = new IndexDefinition<Puppy>(true) {
+ *  IndexDefinition&lt;Puppy&gt; idIndex = new IndexDefinition&lt;Puppy&gt;(true) {
  *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.id();
  *    }
  *  }
  *
- *  IndexDefinition<Puppy> nameIndex = new IndexDefinition<Puppy>(true) {
+ *  IndexDefinition&lt;Puppy&gt; nameIndex = new IndexDefinition&lt;Puppy&gt;(true) {
  *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.name();
@@ -82,7 +81,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Then create an {@link IndexedSet} and add puppies:
  * <pre>
- *  IndexedSet<Puppy> puppies = new IndexedSet<Puppy>(idIndex, nameIndex);
+ *  IndexedSet&lt;Puppy&gt; puppies = new IndexedSet&lt;Puppy&gt;(idIndex, nameIndex);
  *  puppies.add(new Puppy("sweet", 0));
  *  puppies.add(new Puppy("heart", 1));
  * </pre>

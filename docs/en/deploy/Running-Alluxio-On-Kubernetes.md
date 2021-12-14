@@ -1384,6 +1384,115 @@ containers:
 {% endnavtab %}
 {% endnavtabs %}
 
+#### CSI
+Other than using Alluxio FUSE daemon, you could also use CSI to mount the Alluxio FileSystem into application containers.
+
+In order to use CSI, you need a Kubernetes cluster with version at least 1.17, 
+with [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) enabled in API Server.
+
+**Step 1: Customize configurations and generate templates**
+
+You can either use the default CSI configurations provided in
+[here](https://github.com/Alluxio/alluxio/blob/master/integration/kubernetes/helm-chart/alluxio/values.yaml)
+under the csi section, or you can customize them to make it suitable for your workload.
+Here are some common properties that you can customize:
+<table class="table table-striped">
+  <tr>
+    <th>property name</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>alluxioPath</td>
+    <td>The path in Alluxio which will be mounted</td>
+  </tr>
+  <tr>
+    <td>mountPath</td>
+    <td>The path that Alluxio will be mounted to in the application container</td>
+  </tr>
+  <tr>
+    <td>javaOptions</td>
+    <td>The customized options which will be passes to fuse daemon</td>
+  </tr>
+  <tr>
+    <td>mountOptions</td>
+    <td>Alluxio Fuse mount options</td>
+  </tr>
+</table>
+
+Then please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
+to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/<deploy-mode>/csi`.
+
+**Step 2: Deploy CSI services**
+
+Modify or add any configuration properties as required, then create the respective resources.
+```console
+$ mv alluxio-csi-controller-rbac.yaml.template alluxio-csi-controller-rbac.yaml
+$ mv alluxio-csi-controller.yaml.template alluxio-csi-controller.yaml
+$ mv alluxio-csi-driver.yaml.template alluxio-csi-driver.yaml
+$ mv alluxio-csi-nodeplugin.yaml.template alluxio-csi-nodeplugin.yaml
+```
+Then run
+```console
+$ kubectl apply -f alluxio-csi-controller-rbac.yaml -f alluxio-csi-controller.yaml -f alluxio-csi-driver.yaml -f alluxio-csi-nodeplugin.yaml
+```
+to deploy CSI-related services.
+
+**Step 3: Provisioning**
+
+We provide both templates for k8s dynamic provisioning and static provisioning.
+Please choose the suitable provisioning methods according to your use case.
+You can refer to [Persistent Volumes | Kubernetes](https://www.google.com/url?q=https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+and [Dynamic Volume Provisioning | Kubernetes](https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/) to get more details.
+
+{% navtabs csi %}
+{% navtab Persistent Volumes %}
+
+For static provisioning, we generate two template files: `alluxio-pv.yaml.template` and `alluxio-pvc-static.yaml.template`.
+You can modify these two files based on your needs, then create the respective yaml files.
+```console
+$ mv alluxio-pv.yaml.template alluxio-pv.yaml
+$ mv alluxio-pvc-static.yaml.template alluxio-pvc-static.yaml
+```
+Then run
+```console
+$ kubectl apply -f alluxio-pv.yaml
+$ kubectl apply -f alluxio-pvc-static.yaml
+```
+to deploy the resources.
+
+{% endnavtab %}
+{% navtab Dynamic Volume Provisioning %}
+
+For dynamic provisioning, we generate two template files: `alluxio-storage-class.yaml.template` and `alluxio-pvc.yaml.template`.
+You can modify these two files based on your needs, then create the respective yaml files.
+```console
+$ mv alluxio-storage-class.yaml.template alluxio-storage-class.yaml
+$ mv alluxio-pvc.yaml.template alluxio-pvc.yaml
+```
+Then run
+```console
+$ kubectl apply -f alluxio-storage-class.yaml
+$ kubectl apply -f alluxio-pvc.yaml
+```
+to deploy the resources.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+**Step 4: Deploy applications**
+
+Now you can put the PVC name in your application pod spec to use the Alluxio FileSystem.
+The template `alluxio-nginx-pod.yaml.template` shows how to use PVC in the pod. You can also deploy
+it by running 
+```console
+$ mv alluxio-nginx-pod.yaml.templte alluxio-nginx-pod.yaml
+$ kubectl apply -f alluxio-nginx-pod.yaml
+```
+to validate that CSI has been deployed, and you can successfully access the data stored in Alluxio. 
+
+For more information on how to configure a pod to use a persistent volume for storage in Kubernetes,
+please refer to [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/).
+
 ### Toggle Master or Worker in Helm chart
 In use cases where you wish to install Alluxio masters and workers separately
 with the Helm chart, use the following respective toggles:

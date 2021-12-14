@@ -18,11 +18,11 @@ import alluxio.stress.Summary;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.math.Quantiles;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * This object is used to summarize the RPC stress test results.
