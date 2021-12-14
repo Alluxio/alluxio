@@ -103,12 +103,12 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "chmod [-R(--recursive)] <mode> <path>";
+    return "chmod [-R/--recursive] <mode> <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the permission of a file or directory specified by args."
-        + " Specify -R(--recursive) to change the permission recursively.";
+        + " Specify -R/--recursive to change the permission recursively.";
   }
 }

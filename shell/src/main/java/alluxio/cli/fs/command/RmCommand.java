@@ -90,14 +90,13 @@ public final class RmCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
     boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt())
-            || cl.hasOption(RECURSIVE_ALIAS_OPTION.getOpt());
+        || cl.hasOption(RECURSIVE_ALIAS_OPTION.getOpt());
     if (!mFileSystem.exists(path)) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
     if (!recursive && mFileSystem.getStatus(path).isFolder()) {
-      throw new IOException(
-          path.getPath() + " is a directory, to remove it,"
-                  + " please use \"rm -R(-r or --recursive) <path>\"");
+      throw new IOException(path.getPath() + " is a directory, to remove it,"
+          + " please use \"rm -R/-r/--recursive <path>\"");
     }
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     DeletePOptions options =
@@ -123,15 +122,15 @@ public final class RmCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "rm [-R --recursive -r] [-U] [--alluxioOnly] <path>";
+    return "rm [-R/--recursive/-r] [-U] [--alluxioOnly] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Removes the specified file. Specify -R(-r or --recursive) to remove file"
-            + " or directory recursively. Specify -U to remove directories without checking "
-            + " UFS contents are in sync. Specify -alluxioOnly to remove data and metadata from"
-            + " alluxio space only.";
+    return "Removes the specified file. Specify -R/-r/--recursive to remove file"
+        + " or directory recursively. Specify -U to remove directories without checking "
+        + " UFS contents are in sync. Specify -alluxioOnly to remove data and metadata from"
+        + " alluxio space only.";
   }
 
   @Override

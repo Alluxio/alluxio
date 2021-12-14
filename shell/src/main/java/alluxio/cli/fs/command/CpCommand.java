@@ -420,7 +420,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
       boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt())
-              || cl.hasOption(RECURSIVE_ALIAS_OPTION.getOpt());
+          || cl.hasOption(RECURSIVE_ALIAS_OPTION.getOpt());
       if (srcPath.containsWildcard()) {
         copyWildcard(srcPaths, dstPath, recursive);
       } else {
@@ -496,9 +496,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
       copyFile(srcPath, dstPath);
     } else {
       if (!recursive) {
-        throw new IOException(
-            srcPath.getPath() + " is a directory,"
-                    + " to copy it please use \"cp -R(-r,--recursive) <src> <dst>\"");
+        throw new IOException(srcPath.getPath() + " is a directory,"
+            + " to copy it please use \"cp -R/-r/--recursive <src> <dst>\"");
       }
 
       List<URIStatus> statuses;
@@ -803,7 +802,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return "cp "
-        + "[-R -r --recursive] "
+        + "[-R/-r/--recursive] "
         + "[--buffersize <bytes>] "
         + "<src> <dst>";
   }
@@ -811,7 +810,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public String getDescription() {
     return "Copies a file or a directory in the Alluxio filesystem or between local filesystem "
-        + "and Alluxio filesystem. The -R(-r or --recursive) flags are needed to copy"
+        + "and Alluxio filesystem. The -R/-r/--recursive flags are needed to copy"
         + "directories in the Alluxio filesystem. Local Path with schema \"file\".";
   }
 

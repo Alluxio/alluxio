@@ -135,12 +135,12 @@ public final class ChownCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "chown [-R --recursive] <owner>[:<group>] <path>";
+    return "chown [-R/--recursive] <owner>[:<group>] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the owner of a file or directory specified by args."
-        + " Specify -R(--recursive) to change the owner recursively.";
+        + " Specify -R/--recursive to change the owner recursively.";
   }
 }

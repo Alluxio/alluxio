@@ -99,12 +99,12 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "chgrp [-R --recursive] <group> <path>";
+    return "chgrp [-R/--recursive] <group> <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the group of a file or directory specified by args."
-        + " Specify -R(--recursive) to change the group recursively.";
+        + " Specify -R/--recursive to change the group recursively.";
   }
 }

@@ -301,9 +301,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     ls(path, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption("f"),
-            cl.hasOption("d"), cl.hasOption("h"), cl.hasOption("p"),
-            cl.getOptionValue("sort", null), cl.hasOption("r"),
-            cl.getOptionValue("timestamp", "lastModificationTime"));
+        cl.hasOption("d"), cl.hasOption("h"), cl.hasOption("p"),
+        cl.getOptionValue("sort", null), cl.hasOption("r"),
+        cl.getOptionValue("timestamp", "lastModificationTime"));
   }
 
   @Override
@@ -318,7 +318,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R(--recursive)|-h|--sort=option|--timestamp=option|-r] <path> ...";
+    return "ls [-d|-f|-p|-R/--recursive|-h|--sort=option|--timestamp=option|-r] <path> ...";
   }
 
   @Override
