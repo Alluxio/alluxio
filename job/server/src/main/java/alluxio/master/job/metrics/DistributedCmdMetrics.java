@@ -8,8 +8,10 @@ import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
+import alluxio.job.wire.Status;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.RetryPolicy;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import org.slf4j.Logger;
@@ -150,20 +152,19 @@ public class DistributedCmdMetrics {
     }
 
     // Increment for non-batch config for complete status
-    public static void incrementForCompleteStatusWithRetry(JobConfig config, FileSystem fileSystem, int RETRY_COUNTS) {
+    public static void incrementForCompleteStatusWithRetry(JobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
         String jobType = config.getName();
         String filePath = getFilePathForNonBatchConfig(config);
         incrementOperationCount(jobType, 1);
         incrementFileCount(jobType, 1);
 
-        for (int i = 0; i < RETRY_COUNTS; i++) {
+        while (retryPolicy.attempt()) {
             try {
                 long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
                 incrementFileSize(jobType, fileSize);
                 break;
             } catch (IOException | AlluxioException e) {
-                i++;
-                LOG.warn("Retry getStatus for URI {} for {}-th time, {}", filePath, i, Arrays.toString(e.getStackTrace()));
+                LOG.warn("Retry getStatus for URI {} for {}-th time, {}", filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
             }
         }
     }
@@ -171,19 +172,19 @@ public class DistributedCmdMetrics {
     // Get file path based on each non-batch job config
     private static String getFilePathForNonBatchConfig(JobConfig config) {
         String path = null;
-        if (config.getName().equals(LoadConfig.NAME)) {
+        if (config instanceof LoadConfig) {
             path = ((LoadConfig) config).getFilePath();
-        } else if (config.getName().equals(MigrateConfig.NAME)) {
+        } else if (config instanceof MigrateConfig) {
             path = ((MigrateConfig) config).getFilePath();
-        } else if (config.getName().equals(PersistConfig.NAME)) {
+        } else if (config instanceof PersistConfig) {
             path = ((PersistConfig) config).getFilePath();
         }
 
         return path;
     }
 
-
-    public static void batchIncrementForCompleteStatusWithRetry(BatchedJobConfig config, FileSystem fileSystem, int RETRY_COUNTS) {
+    //// Increment for batch config for complete status
+    public static void batchIncrementForCompleteStatusWithRetry(BatchedJobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
         String jobType = config.getJobType();
         long count = config.getJobConfigs().size();
 
@@ -191,20 +192,28 @@ public class DistributedCmdMetrics {
         incrementFileCount(jobType, count);
 
         // filePath is defined for MigrateConfig, LoadConfig and PersistConfig currently. The "filePath" is the key to the json map inside config to get the actual file path.
-        final String pathMapKey = "filePath";
+        String pathMapKey = null;
+        if (jobType.equals(MigrateConfig.NAME)) {
+            pathMapKey = "source";
+        } else if (jobType.equals(LoadConfig.NAME) || jobType.equals(PersistConfig.NAME)) {
+            pathMapKey = "filePath";
+        }
 
+        String finalPathMapKey = pathMapKey;
         config.getJobConfigs().forEach(jobConfig -> {
-                    for (int i = 0; i < RETRY_COUNTS; i++) {
-                        try {
-                            long fileSize = fileSystem.getStatus(new AlluxioURI(jobConfig.get(pathMapKey))).getLength();
-                            incrementFileSize(jobType, fileSize);
-                            break;
-                        } catch (IOException | AlluxioException e) {
-                            i++;
-                            LOG.warn("Retry getStatus for URI {} for {}-th time, {}", pathMapKey, i, Arrays.toString(e.getStackTrace()));
-                        }
+                while (retryPolicy.attempt()) {
+                    try {
+                        long fileSize = fileSystem.getStatus(new AlluxioURI(jobConfig.get(finalPathMapKey))).getLength();
+                        incrementFileSize(jobType, fileSize);
+                        break;
+                    } catch (IOException | AlluxioException e) {
+                        LOG.warn("Retry getStatus for URI {} for {}-th time, {}", finalPathMapKey, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
+                    } catch (NullPointerException e) {
+                        LOG.warn("Null key is found for config map with key = {}, more info is {}", finalPathMapKey, Arrays.toString(e.getStackTrace()));
+                        break;
                     }
                 }
+            }
         );
     }
 
@@ -224,8 +233,28 @@ public class DistributedCmdMetrics {
         );
     }
 
-    //check to see if the job config is batched config or not
-    public static boolean isBatchConfig(JobConfig config) {
-        return config.getName().equals(BatchedJobConfig.NAME);
+    public static void incrementForAllConfigsCompleteStatus(JobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
+        if (config instanceof BatchedJobConfig) {
+            batchIncrementForCompleteStatusWithRetry((BatchedJobConfig) config, fileSystem, retryPolicy);
+        } else {
+            incrementForCompleteStatusWithRetry(config, fileSystem, retryPolicy);
+        }
     }
+
+    public static void incrementForAllConfigsCancelStatus(JobConfig config) {
+        if (config instanceof BatchedJobConfig) {
+            batchIncrementForCancelStatus((BatchedJobConfig) config);
+        } else {
+            incrementForCancelStatus(config.getName());
+        }
+    }
+
+    public static void incrementForAllConfigsFailStatus(JobConfig config) {
+        if (config instanceof BatchedJobConfig) {
+            batchIncrementForFailStatus((BatchedJobConfig) config);
+        } else {
+            incrementForFailStatus(config.getName());
+        }
+    }
+
 }

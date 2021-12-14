@@ -26,6 +26,7 @@ import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
+import alluxio.retry.CountingRetry;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
@@ -277,20 +278,12 @@ public final class PlanCoordinator {
       switch (status) {
         case FAILED:
           setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
-          if (DistributedCmdMetrics.isBatchConfig(config)) {
-            DistributedCmdMetrics.batchIncrementForFailStatus((BatchedJobConfig) config);
-          } else {
-            DistributedCmdMetrics.incrementForFailStatus(config.getName());
-          }
+          DistributedCmdMetrics.incrementForAllConfigsFailStatus(config);
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
             mPlanInfo.setStatus(Status.CANCELED);
-            if (DistributedCmdMetrics.isBatchConfig(config)) {
-              DistributedCmdMetrics.batchIncrementForCancelStatus((BatchedJobConfig) config);
-            } else {
-              DistributedCmdMetrics.incrementForCancelStatus(config.getName());
-            }
+            DistributedCmdMetrics.incrementForAllConfigsCancelStatus(config);
           }
           return;
         case RUNNING:
@@ -300,11 +293,7 @@ public final class PlanCoordinator {
           break;
         case COMPLETED:
           completed++;
-          if (DistributedCmdMetrics.isBatchConfig(config)) {
-            DistributedCmdMetrics.batchIncrementForCompleteStatusWithRetry((BatchedJobConfig) config, fileSystem, 5);
-          } else {
-            DistributedCmdMetrics.incrementForCompleteStatusWithRetry(config, fileSystem, 5);
-          }
+          DistributedCmdMetrics.incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
           break;
         case CREATED:
           // do nothing

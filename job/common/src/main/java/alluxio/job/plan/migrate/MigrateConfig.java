@@ -45,7 +45,7 @@ public class MigrateConfig implements PlanConfig {
    *        are directories, the contents of the directories will be merged with common files
    *        overwritten by the source
    */
-  public MigrateConfig(@JsonProperty("filePath") String source,
+  public MigrateConfig(@JsonProperty("source") String source,
                        @JsonProperty("destination") String dst,
                        @JsonProperty("writeType") String writeType,
                        @JsonProperty("overwrite") boolean overwrite) {
