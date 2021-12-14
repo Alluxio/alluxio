@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.metadatacache;
+package alluxio.cli.command.metadatacache;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.cli.command.AbstractFuseShellCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MetadataCachingBaseFileSystem;
@@ -20,38 +19,29 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.wire.FileInfo;
 
-public final class DropCommand extends AbstractFuseShellCommand {
-  public DropCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
-    super(fs, conf, parentCommandName);
+public abstract class AbstractMetadataCacheSubCommand extends AbstractFuseShellCommand {
+
+  public AbstractMetadataCacheSubCommand(FileSystem fileSystem,
+      AlluxioConfiguration alluxioConfiguration, String commandName) {
+    super(fileSystem, alluxioConfiguration, commandName);
   }
 
   @Override
-  public String getCommandName() {
-    return "drop";
-  }
-
-  @Override
-  public String getUsage() {
-    return String.format("%s%s%s.%s.%s", Constants.DEAFULT_FUSE_MOUNT,
-        "/<path to be cleaned>", Constants.ALLUXIO_CLI_PATH, getParentCommandName(),
-        getCommandName());
-  }
-
-  @Override
-  public URIStatus run(AlluxioURI path, String [] argv) throws InvalidArgumentException {
+  public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
     if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
       throw new UnsupportedOperationException(String.format("%s command is "
               + "not supported when %s is false", getCommandName(),
           PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
     }
-    ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCache(path);
-    return new URIStatus(new FileInfo().setCompleted(true));
+    return runSubCommand(path, argv, (MetadataCachingBaseFileSystem) mFileSystem);
   }
 
-  @Override
-  public String getDescription() {
-    return "Clear the specific fuse path metadata cache.";
-  }
+  /**
+   * Run the metadatacache subcommand.
+   *
+   * @return the result of running the command
+   */
+  protected abstract URIStatus runSubCommand(AlluxioURI path, String[] argv,
+      MetadataCachingBaseFileSystem fs);
 }

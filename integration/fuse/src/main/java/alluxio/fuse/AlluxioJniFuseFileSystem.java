@@ -233,7 +233,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       URIStatus status = null;
       // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
-          && mFuseShell.isFuseSpecialCommand(uri)) {
+          && mFuseShell.validateAndParseURI(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {

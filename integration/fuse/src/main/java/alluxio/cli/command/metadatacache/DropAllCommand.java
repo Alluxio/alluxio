@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.metadatacache;
+package alluxio.cli.command.metadatacache;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -17,12 +17,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.cli.command.AbstractFuseShellCommand;
 import alluxio.wire.FileInfo;
 
-public final class DropAllCommand extends AbstractFuseShellCommand {
+public final class DropAllCommand extends AbstractMetadataCacheSubCommand {
   public DropAllCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
     super(fs, conf, parentCommandName);
   }
@@ -39,13 +36,9 @@ public final class DropAllCommand extends AbstractFuseShellCommand {
   }
 
   @Override
-  public URIStatus run(AlluxioURI path, String [] argv) throws InvalidArgumentException {
-    if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-      throw new UnsupportedOperationException(String.format("%s command is "
-              + "not supported when %s is false", getCommandName(),
-          PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
-    }
-    ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCacheAll();
+  protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
+      MetadataCachingBaseFileSystem mFileSystem) {
+    mFileSystem.dropMetadataCacheAll();
     return new URIStatus(new FileInfo().setCompleted(true));
   }
 

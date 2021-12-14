@@ -16,9 +16,9 @@ import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.cli.metadatacache.DropAllCommand;
-import alluxio.cli.metadatacache.DropCommand;
-import alluxio.cli.metadatacache.SizeCommand;
+import alluxio.cli.command.metadatacache.DropAllCommand;
+import alluxio.cli.command.metadatacache.DropCommand;
+import alluxio.cli.command.metadatacache.SizeCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +46,7 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
    * @param conf configuration instance from fuse command
    */
   public MetadataCacheCommand(FileSystem fs, AlluxioConfiguration conf) {
-    super(fs, conf, null);
+    super(fs, conf, "");
     SUB_COMMANDS.forEach((name, constructor) -> {
       mSubCommands.put(name, constructor.apply(fs, conf, getCommandName()));
     });

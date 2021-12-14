@@ -37,8 +37,10 @@ public abstract class AbstractFuseShellCommand implements FuseCommand {
     mParentCommandName = commandName;
   }
 
-  /*
-  * Get the parent command name, if parent command doesn't exist, return null
+  /**
+  * Gets the parent command name.
+  *
+  * @return parent command name
   */
   public String getParentCommandName() {
     return mParentCommandName;
