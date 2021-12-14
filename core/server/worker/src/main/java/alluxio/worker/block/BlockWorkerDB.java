@@ -68,14 +68,16 @@ public interface BlockWorkerDB {
      * @throws RuntimeException RuntimeException if fails
      */
     public static BlockWorkerDB create(AlluxioConfiguration conf) {
+      String defaultPath = PathUtils.concatPath(
+          conf.get(PropertyKey.WORKER_CLUSTERID_PATH), CLUSTERID_FILE);
       try {
         // Try to create a DB file in the location specified by the configuration
-        return new DefaultBlockWorkerDB(PathUtils.concatPath(
-            conf.get(PropertyKey.WORKER_CLUSTERID_PATH), CLUSTERID_FILE));
+        return new DefaultBlockWorkerDB(defaultPath);
       } catch (IOException e) {
         LOG.warn("DefaultBlockWorkerDB create failed");
         if (conf.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
-          throw new RuntimeException("DefaultBlockWorkerDB create failed: %s", e);
+          throw new RuntimeException("DefaultBlockWorkerDB create clusterId file "
+              + defaultPath + " failed", e);
         } else {
           try {
             // Allows not to persist clusterId,
@@ -85,7 +87,7 @@ public interface BlockWorkerDB {
             return new DefaultBlockWorkerDB(PathUtils.concatPath(tmpPath, CLUSTERID_FILE));
           } catch (IOException ioException) {
             throw new RuntimeException(
-                "DefaultBlockWorkerDB create failed in the system temporary directory: %s", e);
+                "DefaultBlockWorkerDB create temporary clusterId file failed", e);
           }
         }
       }

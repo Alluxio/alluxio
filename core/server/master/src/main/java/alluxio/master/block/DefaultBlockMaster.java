@@ -1049,9 +1049,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /**
    * Check whether the Worker is a member of the current cluster and.
    * whether it may contain dirty data
-   * @param curClusterId: current cluster ID
-   * @param workerClusterId: worker report cluster ID
-   * @param hasBlockInWorkerTier: has any Block in worker's Tier
+   * @param curClusterId current cluster ID
+   * @param workerClusterId worker report cluster ID
+   * @param hasBlockInWorkerTier has any Block in worker's Tier
    * @return instance of PreRegisterCommandType
    */
   private PreRegisterCommandType checkWorker(String curClusterId, String workerClusterId,

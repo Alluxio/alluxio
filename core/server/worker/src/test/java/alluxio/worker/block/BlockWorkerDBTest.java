@@ -18,7 +18,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
-import javax.validation.constraints.AssertTrue;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

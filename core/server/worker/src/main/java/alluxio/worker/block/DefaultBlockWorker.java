@@ -245,7 +245,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       setClusterId(clusterId);
     } catch (IOException e) {
       if (ServerConfiguration.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
-        throw new RuntimeException("setClusterId fails %s", e);
+        throw new RuntimeException("setClusterId fails", e);
       } else {
         LOG.error("setClusterId fails %s", e);
       }
