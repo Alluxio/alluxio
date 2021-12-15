@@ -52,10 +52,11 @@ public final class FuseShell {
   }
 
   /**
-   * Checks if the given uri contains Fuse special command.
+   * Checks if the given uri contains Fuse special command and
+   * gets the path and command info from the uri.
    *
    * @param uri check whether the uri contains Fuse special command
-   * @return true of if the path is a special path, otherwise false
+   * @return true if the path is a special path, otherwise false
    */
   public boolean validateAndParseURI(AlluxioURI uri) {
     int index = uri.getPath().lastIndexOf(AlluxioURI.SEPARATOR);
@@ -72,12 +73,11 @@ public final class FuseShell {
   }
 
   /**
-   * @param uri that include command information
    * @return a mock URIStatus instance
    */
-  public URIStatus runCommand(AlluxioURI uri) throws InvalidArgumentException {
+  public URIStatus runCommand() throws InvalidArgumentException {
     // TODO(bingzheng): extend some other operations.
-    if (mCmds.length <= 2) {
+    if (mCmds == null || mCmds.length <= 2) {
       logUsage();
       throw new InvalidArgumentException("Command is needed in Fuse shell");
     }

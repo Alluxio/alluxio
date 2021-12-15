@@ -235,7 +235,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
           && mFuseShell.validateAndParseURI(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
-        status = mFuseShell.runCommand(uri);
+        status = mFuseShell.runCommand();
       } else {
         status = mFileSystem.getStatus(uri);
       }
