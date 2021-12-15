@@ -19,11 +19,7 @@ import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.io.IOException;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystemFactory}.
@@ -48,18 +44,20 @@ public class S3AUnderFileSystemFactoryTest {
   @Test
   public void createInstanceWithNullPath() {
     AlluxioConfiguration aConf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path", aConf);
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
+            aConf);
     UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(aConf);
 
     Exception e = Assert.assertThrows(NullPointerException.class, () -> factory.create(null, conf));
-    Assert.assertEquals("path",e.getMessage());
+    Assert.assertEquals("path", e.getMessage());
   }
 
   @Test
-  public void createInstanceWithPath(){
+  public void createInstanceWithPath() {
     String path = "s3a://test-bucket/path";
     AlluxioConfiguration aConf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path", aConf);
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
+            aConf);
     UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(aConf);
 
     UnderFileSystem ufs = factory.create(path, conf);
@@ -67,11 +65,11 @@ public class S3AUnderFileSystemFactoryTest {
   }
 
   @Test
-  public void supportsValidPath(){
+  public void supportsValidPath() {
     String path = "s3a://test-bucket/path";
     AlluxioConfiguration aConf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path", aConf);
-
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
+            aConf);
 
     Assert.assertTrue(factory.supportsPath(path));
   }
