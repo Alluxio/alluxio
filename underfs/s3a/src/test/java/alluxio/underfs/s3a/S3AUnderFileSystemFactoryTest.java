@@ -12,8 +12,10 @@
 package alluxio.underfs.s3a;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
@@ -22,25 +24,34 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystemFactory}.
  */
 public class S3AUnderFileSystemFactoryTest {
-  private String mPath = "s3a://test-bucket/path";
-  private AlluxioConfiguration mAlluxioConf = ConfigurationTestUtils.defaults();
-  private UnderFileSystemConfiguration mConf = UnderFileSystemConfiguration.defaults(mAlluxioConf);
-  private UnderFileSystemFactory mFactory1 = UnderFileSystemFactoryRegistry.find(
-          "s3a://test-bucket/path", mAlluxioConf);
-  private UnderFileSystemFactory mFactory2 = UnderFileSystemFactoryRegistry.find(
-          "s3://test-bucket/path", mAlluxioConf);
-  private UnderFileSystemFactory mFactory3 = UnderFileSystemFactoryRegistry.find(
-          "s3n://test-bucket/path", mAlluxioConf);
+  private String mS3APath = "s3a://test-bucket/path";
+  private String mS3Path = "s3://test-bucket/path";
+  private String mS3NPath = "s3n://test-bucket/path";
+  private AlluxioConfiguration mAlluxioConf;
+  private UnderFileSystemConfiguration mConf;
+  private UnderFileSystemFactory mFactory1;
+
+  @Before
+  public void before() {
+    mAlluxioConf = ConfigurationTestUtils.defaults();
+    mConf = UnderFileSystemConfiguration.defaults(mAlluxioConf);
+    mFactory1 = UnderFileSystemFactoryRegistry.find(mS3APath, mAlluxioConf);
+  }
 
   @Test
   public void factory() {
+    UnderFileSystemFactory mFactory2 = UnderFileSystemFactoryRegistry.find(
+            mS3Path, mAlluxioConf);
+    UnderFileSystemFactory mFactory3 = UnderFileSystemFactoryRegistry.find(
+            mS3NPath, mAlluxioConf);
+
     assertNotNull(mFactory1);
     assertNotNull(mFactory2);
     assertNull(mFactory3);
@@ -48,20 +59,25 @@ public class S3AUnderFileSystemFactoryTest {
 
   @Test
   public void createInstanceWithNullPath() {
-    Exception e = Assert.assertThrows(NullPointerException.class, () -> mFactory1.create(
+    Exception e = assertThrows(NullPointerException.class, () -> mFactory1.create(
             null, mConf));
-    assertTrue(e.getMessage().equals("path should not be null"));
+    assertTrue(e.getMessage().contains("Unable to create UnderFileSystem instance: URI "
+            + "path should not be null"));
   }
 
   @Test
   public void createInstanceWithPath() {
-    UnderFileSystem ufs = mFactory1.create(mPath, mConf);
+    UnderFileSystem ufs = mFactory1.create(mS3APath, mConf);
     assertNotNull(ufs);
     assertTrue(ufs instanceof S3AUnderFileSystem);
   }
 
   @Test
-  public void supportsValidPath() {
-    assertTrue(mFactory1.supportsPath(mPath));
+  public void supportsPath() {
+    assertTrue(mFactory1.supportsPath(mS3APath));
+    assertTrue(mFactory1.supportsPath(mS3Path));
+    assertFalse(mFactory1.supportsPath(mS3NPath));
+    assertFalse(mFactory1.supportsPath(null));
+    assertFalse(mFactory1.supportsPath("Invalid_Path"));
   }
 }
