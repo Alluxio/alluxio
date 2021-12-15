@@ -143,7 +143,7 @@ public final class Format {
 
         String clusterIdPath = ServerConfiguration.get(PropertyKey.WORKER_CLUSTERID_PATH);
         LOG.info("Formatting worker persistent file: {}/{}", clusterIdPath, CLUSTERID_FILE);
-        Files.delete(Paths.get(PathUtils.concatPath(clusterIdPath, CLUSTERID_FILE)));
+        Files.deleteIfExists(Paths.get(PathUtils.concatPath(clusterIdPath, CLUSTERID_FILE)));
         LOG.info("Formatting worker persistent file: {}/{} success", clusterIdPath, CLUSTERID_FILE);
         break;
       default:
