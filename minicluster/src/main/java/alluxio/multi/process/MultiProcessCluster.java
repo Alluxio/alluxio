@@ -52,7 +52,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import net.bytebuddy.utility.RandomString;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
@@ -64,13 +63,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -103,6 +102,8 @@ public final class MultiProcessCluster {
   private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 30000;
 
   private final Map<PropertyKey, String> mProperties;
+  private final Map<String, String> mMetricsProperties;
+  private final Map<String, String> mLog4jProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
   private final Map<Integer, Map<PropertyKey, String>> mWorkerProperties;
   private int mNumMasters;
@@ -122,7 +123,7 @@ public final class MultiProcessCluster {
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   /** Unique IDs for all masters. Should have the same size as {@link #mMasters} */
-  private List<String> mMasterIds = new ArrayList<>();
+  private final List<String> mMasterIds = new ArrayList<>();
   private State mState;
   private TestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
@@ -134,7 +135,10 @@ public final class MultiProcessCluster {
 
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
-      Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
+      Map<Integer, Map<PropertyKey, String>> workerProperties,
+      Map<String, String> metricsProperties,
+      Map<String, String> log4jProperties,
+      int numMasters, int numWorkers,
       String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
@@ -147,10 +151,12 @@ public final class MultiProcessCluster {
     mProperties = properties;
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
+    mMetricsProperties = metricsProperties;
+    mLog4jProperties = log4jProperties;
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
-    mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
+    mClusterName = clusterName + "_" + RandomString.make();
     mNoFormat = noFormat;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
@@ -241,7 +247,7 @@ public final class MultiProcessCluster {
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
-        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
+        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
 
     for (Entry<PropertyKey, String> entry :
@@ -777,7 +783,7 @@ public final class MultiProcessCluster {
             ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
             ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
-        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
+        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
   }
 
@@ -785,14 +791,26 @@ public final class MultiProcessCluster {
    * Writes the contents of properties to the configuration file.
    */
   private void writeConf() throws IOException {
+    final String alluxioConfFilename = "alluxio-site.properties";
+    final String metricsConfFilename = "metrics.properties";
+    final String log4jConfFilename = "log4j.properties";
+
     for (int i = 0; i < mNumMasters; i++) {
       String extension = "-" + mMasterIds.get(i);
       File confDir = new File(mWorkDir, "conf-master" + extension);
-      writeConfToFile(confDir, mMasterProperties.getOrDefault(i, new HashMap<>()));
+      Map<String, String> alluxioProperties =
+          convertPropMap(mMasterProperties.getOrDefault(i, new HashMap<>()));
+      writeConfToFile(confDir, alluxioConfFilename, alluxioProperties);
+      writeConfToFile(confDir, metricsConfFilename, mMetricsProperties);
+      writeConfToFile(confDir, log4jConfFilename, mLog4jProperties);
     }
     for (int i = 0; i < mNumWorkers; i++) {
       File confDir = new File(mWorkDir, "conf-worker" + i);
-      writeConfToFile(confDir, mWorkerProperties.getOrDefault(i, new HashMap<>()));
+      Map<String, String> alluxioProperties =
+          convertPropMap(mWorkerProperties.getOrDefault(i, new HashMap<>()));
+      writeConfToFile(confDir, alluxioConfFilename, alluxioProperties);
+      writeConfToFile(confDir, metricsConfFilename, mMetricsProperties);
+      writeConfToFile(confDir, log4jConfFilename, mLog4jProperties);
     }
   }
 
@@ -805,28 +823,36 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * @param properties the specific properties of the current node
+   */
+  private Map<String, String> convertPropMap(Map<PropertyKey, String> properties) {
+    // Generates the full set of properties to write
+    Map<String, String> map = new HashMap<>();
+    for (Map.Entry<PropertyKey, String> entry : properties.entrySet()) {
+      map.put(entry.getKey().toString(), entry.getValue());
+    }
+    return map;
+  }
+
+  /**
    * Creates the conf directory and file.
    * Writes the properties to the generated file.
    *
    * @param dir the conf directory to create
+   * @param filename the file to be written to
    * @param properties the specific properties of the current node
    */
-  private void writeConfToFile(File dir, Map<PropertyKey, String> properties) throws IOException {
-    // Generates the full set of properties to write
-    Map<PropertyKey, String> map = new HashMap<>(mProperties);
-    for (Map.Entry<PropertyKey, String> entry : properties.entrySet()) {
-      map.put(entry.getKey(), entry.getValue());
-    }
-
+  private void writeConfToFile(File dir, String filename,
+      Map<String, String> properties) throws IOException {
     StringBuilder sb = new StringBuilder();
-    for (Entry<PropertyKey, String> entry : map.entrySet()) {
+    for (Entry<String, String> entry : properties.entrySet()) {
       sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
     }
 
     dir.mkdirs();
     try (FileOutputStream fos
-        = new FileOutputStream(new File(dir, "alluxio-site.properties"))) {
-      fos.write(sb.toString().getBytes(Charsets.UTF_8));
+        = new FileOutputStream(new File(dir, filename))) {
+      fos.write(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
   }
 
@@ -842,15 +868,14 @@ public final class MultiProcessCluster {
   }
 
   private enum State {
-    NOT_STARTED, STARTED, DESTROYED;
+    NOT_STARTED, STARTED, DESTROYED
   }
 
   /**
    * Deploy mode for the cluster.
    */
   public enum DeployMode {
-    EMBEDDED,
-    UFS_NON_HA, ZOOKEEPER_HA
+    EMBEDDED, UFS_NON_HA, ZOOKEEPER_HA
   }
 
   /**
@@ -859,7 +884,9 @@ public final class MultiProcessCluster {
   public static final class Builder {
     private final List<ReservedPort> mReservedPorts;
 
-    private Map<PropertyKey, String> mProperties = new HashMap<>();
+    private final Map<PropertyKey, String> mAlluxioProperties = new HashMap<>();
+    private final Map<String, String> mMetricsProperties = new HashMap<>();
+    private final Map<String, String> mLog4jProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mMasterProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mWorkerProperties = new HashMap<>();
     private int mNumMasters = 1;
@@ -880,18 +907,27 @@ public final class MultiProcessCluster {
     public Builder addProperty(PropertyKey key, String value) {
       Preconditions.checkState(!key.equals(PropertyKey.ZOOKEEPER_ENABLED),
           "Enable Zookeeper via #setDeployMode instead of #addProperty");
-      mProperties.put(key, value);
+      mAlluxioProperties.put(key, value);
       return this;
     }
 
     /**
-     * @param properties alluxio properties for launched masters and workers
+     * @param key metrics property key
+     * @param value metrics property value
      * @return the builder
      */
-    public Builder addProperties(Map<PropertyKey, String> properties) {
-      for (Entry<PropertyKey, String> entry : properties.entrySet()) {
-        addProperty(entry.getKey(), entry.getValue());
-      }
+    public Builder addMetricsProperty(String key, String value) {
+      mMetricsProperties.put(key, value);
+      return this;
+    }
+
+    /**
+     * @param key metrics property key
+     * @param value metrics property value
+     * @return the builder
+     */
+    public Builder addLog4jProperty(String key, String value) {
+      mLog4jProperties.put(key, value);
       return this;
     }
 
@@ -962,15 +998,16 @@ public final class MultiProcessCluster {
      */
     public MultiProcessCluster build() {
       Preconditions.checkState(mMasterProperties.keySet()
-              .stream().filter(key -> (key >= mNumMasters || key < 0)).count() == 0,
+              .stream().noneMatch(key -> (key >= mNumMasters || key < 0)),
           "The master indexes in master properties should be bigger or equal to zero "
               + "and small than %s", mNumMasters);
       Preconditions.checkState(mWorkerProperties.keySet()
-              .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
+              .stream().noneMatch(key -> (key >= mNumWorkers || key < 0)),
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
-      return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
+      return new MultiProcessCluster(mAlluxioProperties, mMasterProperties, mWorkerProperties,
+          mMetricsProperties, mLog4jProperties, mNumMasters, mNumWorkers, mClusterName, mNoFormat,
+          mReservedPorts);
     }
   }
 
