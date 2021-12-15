@@ -117,10 +117,10 @@ function main() {
         exit 0
     }
 
-    # surround jq_filter with literal single-quotes since we have
-    # special characters (".") in our key names
-    # - https://stackoverflow.com/a/1315213
-    jq_filter=$(printf ''\''%s'\''' "$jq_filter")
+    # We need to surround jq_filter with literal single-quotes
+    # since we have special characters (i.e: '.') in our key names
+    # - Method used: https://stackoverflow.com/a/1315213
+    jq_filter=$(printf $'\'%s\'' "${jq_filter}")
 
     if [[ ${watch} ]]; then
         # default behaviour is to have no --differences flag
@@ -141,7 +141,9 @@ function main() {
         i=0
         while true; do
             metrics_file="${metrics_dir}/${metrics_file_prefix}.${i}.json"
-            curl --silent -XGET "http://${host}:${port}/metrics/json/" | jq ${jq_filter} > "${metrics_file}"
+
+            # need to wrap this with `bash -c` due to quoting issues with ${jq_filter}
+            bash -c "curl --silent -XGET \"http://${host}:${port}/metrics/json/\" | jq ${jq_filter}" > "${metrics_file}"
             echo "Collected metrics to ${metrics_file}"
             i=$((i+1))
             sleep ${time_step}
