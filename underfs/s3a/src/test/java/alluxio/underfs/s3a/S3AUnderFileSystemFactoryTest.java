@@ -11,6 +11,10 @@
 
 package alluxio.underfs.s3a;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
@@ -25,52 +29,39 @@ import org.junit.Test;
  * Unit tests for the {@link S3AUnderFileSystemFactory}.
  */
 public class S3AUnderFileSystemFactoryTest {
+  private String mPath = "s3a://test-bucket/path";
+  private AlluxioConfiguration mAlluxioConf = ConfigurationTestUtils.defaults();
+  private UnderFileSystemConfiguration mConf = UnderFileSystemConfiguration.defaults(mAlluxioConf);
+  private UnderFileSystemFactory mFactory1 = UnderFileSystemFactoryRegistry.find(
+          "s3a://test-bucket/path", mAlluxioConf);
+  private UnderFileSystemFactory mFactory2 = UnderFileSystemFactoryRegistry.find(
+          "s3://test-bucket/path", mAlluxioConf);
+  private UnderFileSystemFactory mFactory3 = UnderFileSystemFactoryRegistry.find(
+          "s3n://test-bucket/path", mAlluxioConf);
 
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
-        conf);
-    UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("s3://test-bucket/path",
-        conf);
-    UnderFileSystemFactory factory3 = UnderFileSystemFactoryRegistry.find("s3n://test-bucket/path",
-        conf);
-
-    Assert.assertNotNull(factory);
-    Assert.assertNotNull(factory2);
-    Assert.assertNull(factory3);
+    assertNotNull(mFactory1);
+    assertNotNull(mFactory2);
+    assertNull(mFactory3);
   }
 
   @Test
   public void createInstanceWithNullPath() {
-    AlluxioConfiguration aConf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
-            aConf);
-    UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(aConf);
-
-    Exception e = Assert.assertThrows(NullPointerException.class, () -> factory.create(null, conf));
-    Assert.assertEquals("path", e.getMessage());
+    Exception e = Assert.assertThrows(NullPointerException.class, () -> mFactory1.create(
+            null, mConf));
+    assertTrue(e.getMessage().equals("path should not be null"));
   }
 
   @Test
   public void createInstanceWithPath() {
-    String path = "s3a://test-bucket/path";
-    AlluxioConfiguration aConf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
-            aConf);
-    UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(aConf);
-
-    UnderFileSystem ufs = factory.create(path, conf);
-    Assert.assertTrue(ufs instanceof UnderFileSystem);
+    UnderFileSystem ufs = mFactory1.create(mPath, mConf);
+    assertNotNull(ufs);
+    assertTrue(ufs instanceof S3AUnderFileSystem);
   }
 
   @Test
   public void supportsValidPath() {
-    String path = "s3a://test-bucket/path";
-    AlluxioConfiguration aConf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
-            aConf);
-
-    Assert.assertTrue(factory.supportsPath(path));
+    assertTrue(mFactory1.supportsPath(mPath));
   }
 }
