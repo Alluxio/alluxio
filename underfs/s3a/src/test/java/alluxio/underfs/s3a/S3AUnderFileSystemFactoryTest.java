@@ -74,12 +74,11 @@ public class S3AUnderFileSystemFactoryTest {
 
   @Test
   public void supportsPath() {
-    String mHDFSPath = "hdfs://test-bucket/path";
     assertTrue(mFactory1.supportsPath(mS3APath));
     assertTrue(mFactory1.supportsPath(mS3Path));
     assertFalse(mFactory1.supportsPath(mS3NPath));
     assertFalse(mFactory1.supportsPath(null));
     assertFalse(mFactory1.supportsPath("Invalid_Path"));
-    assertFalse(mFactory1.supportsPath(mHDFSPath));
+    assertFalse(mFactory1.supportsPath("hdfs://test-bucket/path"));
   }
 }
