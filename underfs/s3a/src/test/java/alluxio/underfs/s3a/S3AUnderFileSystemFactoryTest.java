@@ -48,9 +48,9 @@ public class S3AUnderFileSystemFactoryTest {
   @Test
   public void factory() {
     UnderFileSystemFactory mFactory2 = UnderFileSystemFactoryRegistry.find(
-            mS3Path, mAlluxioConf);
+        mS3Path, mAlluxioConf);
     UnderFileSystemFactory mFactory3 = UnderFileSystemFactoryRegistry.find(
-            mS3NPath, mAlluxioConf);
+        mS3NPath, mAlluxioConf);
 
     assertNotNull(mFactory1);
     assertNotNull(mFactory2);
@@ -60,9 +60,9 @@ public class S3AUnderFileSystemFactoryTest {
   @Test
   public void createInstanceWithNullPath() {
     Exception e = assertThrows(NullPointerException.class, () -> mFactory1.create(
-            null, mConf));
+        null, mConf));
     assertTrue(e.getMessage().contains("Unable to create UnderFileSystem instance: URI "
-            + "path should not be null"));
+        + "path should not be null"));
   }
 
   @Test
@@ -74,10 +74,12 @@ public class S3AUnderFileSystemFactoryTest {
 
   @Test
   public void supportsPath() {
+    String mHDFSPath = "hdfs://test-bucket/path";
     assertTrue(mFactory1.supportsPath(mS3APath));
     assertTrue(mFactory1.supportsPath(mS3Path));
     assertFalse(mFactory1.supportsPath(mS3NPath));
     assertFalse(mFactory1.supportsPath(null));
     assertFalse(mFactory1.supportsPath("Invalid_Path"));
+    assertFalse(mFactory1.supportsPath(mHDFSPath));
   }
 }
