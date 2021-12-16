@@ -3851,7 +3851,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_CLUSTERID_PATH =
       new Builder(Name.WORKER_CLUSTERID_PATH)
-          .setDefaultValue(String.format("${%s}/persist", Name.HOME))
+          .setDefaultValue(String.format("${%s}/worker_meta", Name.HOME))
           .setDescription("The path used to save the info such as "
               + "the cluster ID which the worker belongs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

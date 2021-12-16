@@ -98,7 +98,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
-        PathUtils.concatPath(mWorkDirectory, "persist"));
+        PathUtils.concatPath(mWorkDirectory, "worker_meta"));
   }
 
   @Override

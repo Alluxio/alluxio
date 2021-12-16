@@ -47,7 +47,7 @@ public final class FormatTest {
 
   @Test
   public void formatWorker() throws Exception {
-    File clusterIdPath = mTemporaryFolder.newFolder("persist");
+    File clusterIdPath = mTemporaryFolder.newFolder("worker_meta");
     FileUtils.createFile(PathUtils.concatPath(clusterIdPath.getPath(), CLUSTERID_FILE));
 
     final int storageLevels = 3;
