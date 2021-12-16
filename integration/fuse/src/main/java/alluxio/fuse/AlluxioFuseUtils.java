@@ -24,6 +24,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -277,8 +278,10 @@ public final class AlluxioFuseUtils {
     long startMs = System.currentTimeMillis();
     int ret = callable.call();
     long durationMs = System.currentTimeMillis() - startMs;
-    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
+    MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
+        .update(durationMs, TimeUnit.MILLISECONDS);
     if (ret < 0) {
       MetricsSystem.counter(methodName + "Failures").inc();
     }

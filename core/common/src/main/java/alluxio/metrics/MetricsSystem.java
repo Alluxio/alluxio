@@ -625,6 +625,16 @@ public final class MetricsSystem {
   }
 
   /**
+   * Removes the metric with the given name.
+   *
+   * @param name the metric name
+   * @return true if the metric was removed, false otherwise
+   */
+  public static synchronized boolean removeMetrics(String name) {
+    return METRIC_REGISTRY.remove(name);
+  }
+
+  /**
    * This method is used to return a list of RPC metric objects which will be sent to the
    * MetricsMaster.
    *
