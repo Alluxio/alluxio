@@ -278,7 +278,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * Registers with the Alluxio master. This should be called before the
    * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
    * can register with the current cluster.
-   * If it passes check AB ClusterId and workerId be returned
+   * If it passes check ClusterId and workerId be returned
    * @param clusterId the cluster id of the worker
    * @param address the worker WorkerNetAddress
    * @param hasBlockInTier has any Block in the Tier
