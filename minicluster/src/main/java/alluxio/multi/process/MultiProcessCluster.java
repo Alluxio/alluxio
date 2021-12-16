@@ -8,6 +8,16 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
 
 package alluxio.multi.process;
 
@@ -690,6 +700,8 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         Integer.toString(address.getEmbeddedJournalPort()));
+    conf.put(PropertyKey.getOrBuildCustom("log4j.configurationFile"),
+        new File(confDir, "log4j.properties").getAbsolutePath());
     if (mDeployMode.equals(DeployMode.EMBEDDED)) {
       File journalDir = new File(mWorkDir, "journal" + extension);
       journalDir.mkdirs();
@@ -725,6 +737,8 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
     conf.put(PropertyKey.WORKER_WEB_PORT, Integer.toString(webPort));
+    conf.put(PropertyKey.getOrBuildCustom("log4j.configurationFile"),
+        new File(confDir, "log4j.properties").getAbsolutePath());
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
@@ -828,6 +842,9 @@ public final class MultiProcessCluster {
   private Map<String, String> convertPropMap(Map<PropertyKey, String> properties) {
     // Generates the full set of properties to write
     Map<String, String> map = new HashMap<>();
+    for (Map.Entry<PropertyKey, String> entry : mProperties.entrySet()) {
+      map.put(entry.getKey().toString(), entry.getValue());
+    }
     for (Map.Entry<PropertyKey, String> entry : properties.entrySet()) {
       map.put(entry.getKey().toString(), entry.getValue());
     }
