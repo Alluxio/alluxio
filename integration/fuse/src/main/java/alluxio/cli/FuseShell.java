@@ -34,8 +34,6 @@ public final class FuseShell {
   private final AlluxioConfiguration mConf;
   private final FileSystem mFileSystem;
   private final Map<String, Command> mCommands;
-  private AlluxioURI mPath;
-  private String[] mCmds;
 
   /**
    * Creates a new instance of {@link FuseShell}.
@@ -52,43 +50,40 @@ public final class FuseShell {
   }
 
   /**
-   * Checks if the given uri contains Fuse special command and
-   * gets the path and command info from the uri.
+   * Checks if the given uri contains Fuse special command.
    *
    * @param uri check whether the uri contains Fuse special command
    * @return true if the path is a special path, otherwise false
    */
-  public boolean validateAndParseURI(AlluxioURI uri) {
+  public boolean isSpecialCommand(AlluxioURI uri) {
     int index = uri.getPath().lastIndexOf(AlluxioURI.SEPARATOR);
-    if (index == -1) {
-      return false;
-    }
-    String cmdInfo = uri.getPath().substring(index);
-    if (!cmdInfo.startsWith(Constants.ALLUXIO_CLI_PATH)) {
-      return false;
-    }
-    mPath = uri.getParent();
-    mCmds = cmdInfo.split("\\.");
-    return true;
+    return index != -1 && uri.getPath().substring(index).startsWith(Constants
+        .ALLUXIO_CLI_PATH);
   }
 
   /**
+   * @param uri that includes command information
    * @return a mock URIStatus instance
    */
-  public URIStatus runCommand() throws InvalidArgumentException {
+  public URIStatus runCommand(AlluxioURI uri) throws InvalidArgumentException {
     // TODO(bingzheng): extend some other operations.
-    if (mCmds == null || mCmds.length <= 2) {
+    AlluxioURI path = uri.getParent();
+    int index = uri.getPath().lastIndexOf(Constants.ALLUXIO_CLI_PATH);
+    String cmdsInfo = uri.getPath().substring(index);
+    String[] cmds = cmdsInfo.split("\\.");
+
+    if (cmds.length <= 2) {
       logUsage();
       throw new InvalidArgumentException("Command is needed in Fuse shell");
     }
 
-    FuseCommand command = (FuseCommand) mCommands.get(mCmds[2]);
+    FuseCommand command = (FuseCommand) mCommands.get(cmds[2]);
     if (command == null) {
       logUsage();
-      throw new InvalidArgumentException(String.format("%s is an unknown command.", mCmds[2]));
+      throw new InvalidArgumentException(String.format("%s is an unknown command.", cmds[2]));
     }
     try {
-      String [] currArgs = Arrays.copyOfRange(mCmds, 2, mCmds.length);
+      String [] currArgs = Arrays.copyOfRange(cmds, 2, cmds.length);
       while (command.hasSubCommand()) {
         if (currArgs.length < 2) {
           throw new InvalidArgumentException("No sub-command is specified");
@@ -100,7 +95,7 @@ public final class FuseShell {
         currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
       }
       command.validateArgs(Arrays.copyOfRange(currArgs, 1, currArgs.length));
-      return command.run(mPath, Arrays.copyOfRange(currArgs, 1, currArgs.length));
+      return command.run(path, Arrays.copyOfRange(currArgs, 1, currArgs.length));
     } catch (Exception e) {
       LOG.info(command.getDescription());
       LOG.info("Usage: " + command.getUsage());
