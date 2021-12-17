@@ -99,7 +99,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
   private final String mBucketName;
 
   /** The Amazon S3 client to interact with S3. */
-  private final AmazonS3 mClient;
+  protected AmazonS3 mClient;
 
   /** Executing the upload tasks. */
   private final ListeningExecutorService mExecutor;
@@ -292,7 +292,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
         new InitiateMultipartUploadRequest(mBucketName, mKey).withObjectMetadata(meta);
     do {
       try {
-        mUploadId = mClient.initiateMultipartUpload(initRequest).getUploadId();
+        mUploadId = getClient().initiateMultipartUpload(initRequest).getUploadId();
         return;
       } catch (AmazonClientException e) {
         lastException = e;
@@ -354,7 +354,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
           try {
             do {
               try {
-                partETag = mClient.uploadPart(request).getPartETag();
+                partETag = getClient().uploadPart(request).getPartETag();
                 return partETag;
               } catch (AmazonClientException e) {
                 lastException = e;
@@ -411,7 +411,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
         mKey, mUploadId, mTags);
     do {
       try {
-        mClient.completeMultipartUpload(completeRequest);
+        getClient().completeMultipartUpload(completeRequest);
         LOG.debug("Completed multipart upload for key {} and id '{}' with {} partitions.",
             mKey, mUploadId, mTags.size());
         return;
@@ -432,7 +432,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     AmazonClientException lastException;
     do {
       try {
-        mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
+        getClient().abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName,
             mKey, mUploadId));
         LOG.warn("Aborted multipart upload for key {} and id '{}' to bucket {}",
             mKey, mUploadId, mBucketName);
@@ -463,5 +463,12 @@ public class S3ALowLevelOutputStream extends OutputStream {
         || (off + len) > b.length || (off + len) < 0) {
       throw new IndexOutOfBoundsException("write(b[" + b.length + "], " + off + ", " + len + ")");
     }
+  }
+
+  /**
+   * @return the client
+   */
+  protected AmazonS3 getClient() {
+    return mClient;
   }
 }

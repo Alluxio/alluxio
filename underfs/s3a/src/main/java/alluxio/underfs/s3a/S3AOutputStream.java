@@ -69,7 +69,7 @@ public class S3AOutputStream extends OutputStream {
    * to upload file larger than 100MB using Multipart Uploads.
    */
   // TODO(calvin): Investigate if the lower level API can be more efficient.
-  private final TransferManager mManager;
+  protected TransferManager mManager;
 
   /** The output stream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
@@ -148,7 +148,7 @@ public class S3AOutputStream extends OutputStream {
 
       // Generate the put request and wait for the transfer manager to complete the upload
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, path, mFile).withMetadata(meta);
-      mManager.upload(putReq).waitForUploadResult();
+      getTransferManager().upload(putReq).waitForUploadResult();
     } catch (Exception e) {
       LOG.error("Failed to upload {}", path, e);
       throw new IOException(e);
@@ -168,5 +168,12 @@ public class S3AOutputStream extends OutputStream {
    */
   protected String getUploadPath() {
     return mKey;
+  }
+
+  /**
+   * @return return the transfer manager
+   */
+  protected TransferManager getTransferManager() {
+    return mManager;
   }
 }
