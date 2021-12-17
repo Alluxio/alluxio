@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
