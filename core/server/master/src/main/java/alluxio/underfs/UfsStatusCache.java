@@ -28,6 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -109,7 +111,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    ConcurrentHashSet<UfsStatus> set = new ConcurrentHashSet<>();
+    Set<UfsStatus> set = new HashSet<>();
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
