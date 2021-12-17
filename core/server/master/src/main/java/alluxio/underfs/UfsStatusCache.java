@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -117,7 +118,7 @@ public class UfsStatusCache {
       addStatus(childPath, child);
       set.add(child);
     });
-    return mChildren.put(path, set);
+    return mChildren.put(path, Collections.unmodifiableSet(set));
   }
 
   /**
