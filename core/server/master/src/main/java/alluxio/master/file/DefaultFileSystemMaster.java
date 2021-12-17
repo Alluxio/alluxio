@@ -912,6 +912,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  @Override
+  public long getMountIdFromUfsPath(AlluxioURI ufsPath) {
+    return getMountTable().reverseResolve(ufsPath).getMountInfo().getMountId();
+  }
+
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
       throws UnavailableException, FileDoesNotExistException {
     return getFileInfoInternal(inodePath, null);
