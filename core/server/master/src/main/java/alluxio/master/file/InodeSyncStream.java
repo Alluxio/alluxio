@@ -314,16 +314,7 @@ public class InodeSyncStream {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
       }
-      try {
-        if (mPermissionCheckOperation != null) {
-          mPermissionCheckOperation.accept(path, mFsMaster.getPermissionChecker());
-        }
-      } catch (AccessControlException e) {
-        if (mAuditContext != null) {
-          mAuditContext.setAllowed(false);
-        }
-        throw e;
-      }
+
       syncInodeMetadata(path);
       syncPathCount++;
       if (mDescendantType == DescendantType.ONE) {
