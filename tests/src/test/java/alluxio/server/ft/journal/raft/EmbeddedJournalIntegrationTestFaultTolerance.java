@@ -11,7 +11,6 @@
 
 package alluxio.server.ft.journal.raft;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -29,7 +28,6 @@ import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorageImpl;
@@ -69,36 +67,6 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     fs.createDirectory(testDir);
     mCluster.waitForAndKillPrimaryMaster(MASTER_INDEX_WAIT_TIME);
     assertTrue(fs.exists(testDir));
-    mCluster.notifySuccess();
-  }
-
-  @Test
-  public void ouee() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
-        .setClusterName("EmbeddedJournalFaultTolerance_failover")
-        .setNumMasters(1)
-        .setNumWorkers(2)
-        .addLog4jProperty("log4j.rootLogger", "DEBUG, ${alluxio.logger.type}, ${alluxio.remote"
-            + ".logger.type}")
-        .addLog4jProperty("log4j.appender.WORKER_LOGGER.MaxFileSize", "10KB")
-        .addLog4jProperty("log4j.appender.WORKER_LOGGER.MaxBackupIndex", "2")
-        .addLog4jProperty("log4j.appender.WORKER_LOGGER", "org.apache.log4j.RollingFileAppender")
-        .addLog4jProperty("log4j.appender.WORKER_LOGGER.File", "${alluxio.logs.dir}/worker.bruh")
-        .addLog4jProperty("log4j.appender.WORKER_LOGGER.layout", "org.apache.log4j.PatternLayout")
-        .addLog4jProperty("log4j.appender.WORKER_LOGGER.layout.ConversionPattern", "%d{ISO8601} "
-        + "%-5p %c{1} - %m%n")
-        .build();
-    mCluster.start();
-
-    for (int i = 0; i < 100; i++) {
-      AlluxioURI path = new AlluxioURI("/" + RandomString.make());
-      mCluster.getFileSystemClient().createDirectory(path);
-      boolean exists = mCluster.getFileSystemClient().exists(path);
-      assertTrue(exists);
-      mCluster.getFileSystemClient().delete(path);
-      exists = mCluster.getFileSystemClient().exists(path);
-      assertFalse(exists);
-    }
     mCluster.notifySuccess();
   }
 

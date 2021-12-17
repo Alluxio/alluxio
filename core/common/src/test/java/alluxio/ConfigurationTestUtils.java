@@ -157,5 +157,33 @@ public final class ConfigurationTestUtils {
     return conf;
   }
 
+  /**
+   * Provides the default Log4J configuration as found in conf/log4j.properties.
+   * @return a map of properties and their values
+   */
+  public static Map<String, String> testLog4jDefaults() {
+    Map<String, String> log4jConf = new HashMap<>();
+    // root logger
+    log4jConf.put("log4j.rootLogger", "INFO, ${alluxio.logger.type}, ${alluxio.remote.logger"
+        + ".type}");
+    // master logger
+    log4jConf.put("log4j.appender.MASTER_LOGGER", "org.apache.log4j.RollingFileAppender");
+    log4jConf.put("log4j.appender.MASTER_LOGGER.File", "${alluxio.logs.dir}/master.log");
+    log4jConf.put("log4j.appender.MASTER_LOGGER.MaxFileSize", "10MB");
+    log4jConf.put("log4j.appender.MASTER_LOGGER.MaxBackupIndex", "100");
+    log4jConf.put("log4j.appender.MASTER_LOGGER.layout", "org.apache.log4j.PatternLayout");
+    log4jConf.put("log4j.appender.MASTER_LOGGER.layout.ConversionPattern", "%d{ISO8601} %-5p "
+        + "%c{1} - %m%n");
+    // worker logger
+    log4jConf.put("log4j.appender.WORKER_LOGGER", "org.apache.log4j.RollingFileAppender");
+    log4jConf.put("log4j.appender.WORKER_LOGGER.File", "${alluxio.logs.dir}/worker.log");
+    log4jConf.put("log4j.appender.WORKER_LOGGER.MaxFileSize", "10MB");
+    log4jConf.put("log4j.appender.WORKER_LOGGER.MaxBackupIndex", "100");
+    log4jConf.put("log4j.appender.WORKER_LOGGER.layout", "org.apache.log4j.PatternLayout");
+    log4jConf.put("log4j.appender.WORKER_LOGGER.layout.ConversionPattern", "%d{ISO8601} %-5p "
+        + "%c{1} - %m%n");
+    return log4jConf;
+  }
+
   private ConfigurationTestUtils() {} // prevent instantiation
 }

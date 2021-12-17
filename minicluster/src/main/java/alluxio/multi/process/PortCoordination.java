@@ -94,6 +94,8 @@ public class PortCoordination {
   public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_REMOVE = allocate(5, 0);
 
+  public static final List<ReservedPort> WORKER_LOG4J_STRESS = allocate(1, 2);
+
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER
         + numWorkers * MultiProcessCluster.PORTS_PER_WORKER;

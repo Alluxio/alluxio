@@ -259,7 +259,7 @@ public final class MultiProcessCluster {
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
-
+    // adding default alluxio properties
     for (Entry<PropertyKey, String> entry :
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
@@ -278,6 +278,12 @@ public final class MultiProcessCluster {
     mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
     new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    // adding default log4j properties
+    for (Entry<String, String> entry : ConfigurationTestUtils.testLog4jDefaults().entrySet()) {
+      if (!mLog4jProperties.containsKey(entry.getKey())) {
+        mLog4jProperties.put(entry.getKey(), entry.getValue());
+      }
+    }
     if (format) {
       formatJournal();
     }
@@ -700,8 +706,8 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         Integer.toString(address.getEmbeddedJournalPort()));
-    conf.put(PropertyKey.getOrBuildCustom("log4j.configurationFile"),
-        new File(confDir, "log4j.properties").getAbsolutePath());
+    conf.put(PropertyKey.getOrBuildCustom("log4j.configuration"),
+        "file:" + new File(confDir, "log4j.properties").getAbsolutePath());
     if (mDeployMode.equals(DeployMode.EMBEDDED)) {
       File journalDir = new File(mWorkDir, "journal" + extension);
       journalDir.mkdirs();
@@ -737,8 +743,8 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
     conf.put(PropertyKey.WORKER_WEB_PORT, Integer.toString(webPort));
-    conf.put(PropertyKey.getOrBuildCustom("log4j.configurationFile"),
-        new File(confDir, "log4j.properties").getAbsolutePath());
+    conf.put(PropertyKey.getOrBuildCustom("log4j.configuration"),
+        "file:" + new File(confDir, "log4j.properties").getAbsolutePath());
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
