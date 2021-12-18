@@ -15,6 +15,6 @@ export const routePaths = {
   blockInfo: '/blockInfo',
   logs: '/logs',
   metrics: '/metrics',
-  stacks: '/stacks',
   config: '/config',
+  stacks: '/stacks',
 };

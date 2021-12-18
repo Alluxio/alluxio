@@ -30,12 +30,12 @@ export const headerNavigationData: INavigationData[] = [
     url: routePaths.metrics,
   },
   {
-    innerText: 'Stacks',
-    url: routePaths.stacks,
-  },
-  {
     innerText: 'Configuration',
     url: routePaths.config,
+  },
+  {
+    innerText: 'Stacks',
+    url: routePaths.stacks,
   },
   {
     innerText: 'Return to Master',

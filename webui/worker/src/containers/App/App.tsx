@@ -82,8 +82,8 @@ export class App extends React.Component<AllProps> {
               <Route path={routePaths.blockInfo} exact={true} render={this.renderView(BlockInfo, undefined)} />
               <Route path={routePaths.logs} exact={true} render={this.renderView(WorkerLogs, { history })} />
               <Route path={routePaths.metrics} exact={true} render={this.renderView(Metrics, undefined)} />
-              <Route path={routePaths.stacks} exact={true} render={this.renderView(Stacks, undefined)} />
               <Route path={routePaths.config} exact={true} render={this.renderView(WorkerConfiguration, undefined)} />
+              <Route path={routePaths.stacks} exact={true} render={this.renderView(Stacks, undefined)} />
               <Route render={this.redirectToOverview} />
             </Switch>
           </div>
