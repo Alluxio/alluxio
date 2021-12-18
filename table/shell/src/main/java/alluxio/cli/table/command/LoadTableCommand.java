@@ -304,7 +304,7 @@ public class LoadTableCommand extends AbstractTableCommand {
     // Only support hive table for now.
     String udbType = "hive";
     AlluxioURI path = CatalogPathUtils.getTablePathUdb(dbName, tableName, udbType);
-    System.out.printf("Loading table %s.%s...%n",dbName, tableName);
+    System.out.printf("Loading table %s.%s...%n", dbName, tableName);
     DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication, workerSet,
         excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
     System.out.println("Done");
