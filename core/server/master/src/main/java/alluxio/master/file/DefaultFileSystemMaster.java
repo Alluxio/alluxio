@@ -4642,17 +4642,49 @@ public class DefaultFileSystemMaster extends CoreMaster
             = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_EVICTED_FILES.getName());
     public static final Counter REPLICATION_CHECKER_MIGRATED_FILES
             = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_MIGRATED_FILES.getName());
-    public static final Counter SYNC_STREAM_COUNT
+    public static final Counter INODE_SYNC_STREAM_COUNT
             = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_COUNT.getName());
-    public static final Counter SYNC_STREAM_PENDING_PATHS_TOTAL
+    public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_TOTAL
             = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.getName());
-    public static final Counter SYNC_STREAM_ACTIVE_JOBS_TOTAL
+    public static final Counter INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL
             = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.getName());
 
     public static final Counter ACTIVESYNC_FULL_SYNC
             = MetricsSystem.counter(MetricKey.MASTER_ACTIVESYNC_FULL_SYNC.getName());
     public static final Counter ACTIVESYNC_INCREMENTAL_SYNC
             = MetricsSystem.counter(MetricKey.MASTER_ACTIVESYNC_INCREMENTAL_SYNC.getName());
+
+    public static final Counter INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_SUCCESSFUL_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_SUCCESSFUL_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_FAILED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_FAILED_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_FAILED_JOBS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_FAILED_JOBS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL.getName());
+
+    public static final Counter UFS_STATUS_CACHE_SIZE_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_SIZE_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.getName());
 
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();

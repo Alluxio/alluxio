@@ -188,9 +188,6 @@ public class InodeSyncStream {
 
   /** Queue used to keep track of paths that still need to be synced. */
   // TODO(jiacheng): how to aggregate the pending count?
-          // how many InodeSyncStreams
-          // how many pending paths
-          // how many jobs
   private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
 
   /** Queue of paths that have been submitted to the executor. */
@@ -275,7 +272,7 @@ public class InodeSyncStream {
         fsMaster.getAbsentPathCache(), validCacheTime);
 
     // TODO(jiacheng): maintain a global counter of active sync streams
-    DefaultFileSystemMaster.Metrics.SYNC_STREAM_COUNT.inc();
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT.inc();
   }
 
   /**
@@ -374,7 +371,7 @@ public class InodeSyncStream {
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
         // TODO(jiacheng): update the active job count
-        DefaultFileSystemMaster.Metrics.SYNC_STREAM_ACTIVE_JOBS_TOTAL.dec();
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.dec();
         try {
           // we synced the path successfully
           // This shouldn't block because we checked job.isDone() earlier
@@ -404,16 +401,14 @@ public class InodeSyncStream {
       int submissions = mConcurrencyLevel - mSyncPathJobs.size();
       for (int i = 0; i < submissions; i++) {
         AlluxioURI path = mPendingPaths.poll();
-        // TODO(jiacheng): update the unified size count
-        DefaultFileSystemMaster.Metrics.SYNC_STREAM_PENDING_PATHS_TOTAL.dec();
         if (path == null) {
           // no paths left to sync
           break;
         }
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.dec();
         Future<Boolean> job = mMetadataSyncService.submit(() -> processSyncPath(path));
         mSyncPathJobs.offer(job);
-        // TODO(jiacheng): update the active job queue size
-        DefaultFileSystemMaster.Metrics.SYNC_STREAM_ACTIVE_JOBS_TOTAL.inc();
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.inc();
       }
       // After submitting all jobs wait for the job at the head of the queue to finish.
       Future<Boolean> oldestJob = mSyncPathJobs.peek();
@@ -437,10 +432,14 @@ public class InodeSyncStream {
       LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
           syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
               elapsedTime.toMillis(), mRootScheme);
+      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL.inc(syncPathCount);
+      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAILED_JOBS_TOTAL.inc(failedSyncPathCount);
     }
     boolean success = syncPathCount > 0;
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL.inc(mPendingPaths.size());
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_REPORT_FAILURE)) {
       // There should not be any failed or outstanding jobs
+      // TODO(jiacheng): Can i observe the mPendingPaths?
       success = (failedSyncPathCount == 0) && mSyncPathJobs.isEmpty() && mPendingPaths.isEmpty();
     }
     if (success) {
@@ -448,13 +447,19 @@ public class InodeSyncStream {
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
       mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath().getPath(), mDescendantType);
     }
+    // TODO(jiacheng): capture the cancelled count
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
 
     // TODO(jiacheng): There's no explicit end of this instance so the best way to update
     //  the counter is probably here
-    DefaultFileSystemMaster.Metrics.SYNC_STREAM_COUNT.dec();
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT.dec();
 
+    if (success) {
+      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESSFUL_TOTAL.inc();
+    } else {
+      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAILED_TOTAL.inc();
+    }
     return success ? SyncStatus.OK : SyncStatus.FAILED;
   }
 
@@ -517,10 +522,14 @@ public class InodeSyncStream {
     final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
     while (true) {
       try {
-        return future.get(1, TimeUnit.SECONDS);
+        Object j = future.get(1, TimeUnit.SECONDS);
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL.inc();
+        return j;
       } catch (TimeoutException e) {
         mRpcContext.throwIfCancelled();
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL.inc();
       } catch (ExecutionException e) {
+        // TODO(jiacheng): seriously? Runtime?
         LogUtils.warnWithException(LOG, "Failed to get result for prefetch job", e);
         throw new RuntimeException(e);
       }
@@ -714,7 +723,7 @@ public class InodeSyncStream {
 
         // TODO(jiacheng): Because we have multiple InodeSyncStream instances,
         //  the only way is to explicitly update a unified counter
-        DefaultFileSystemMaster.Metrics.SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
+        DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();
         mPendingPaths.add(child);
         // This asynchronously schedules a job to pre-fetch the statuses into the cache.
         if (childInode.isDirectory() && mDescendantType == DescendantType.ALL) {
