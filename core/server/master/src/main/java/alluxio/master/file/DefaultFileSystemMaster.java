@@ -187,6 +187,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1324,20 +1325,21 @@ public final class DefaultFileSystemMaster extends CoreMaster
         // it should as regard as inconsistent.
         // if it's a directory, we could ignore child path.
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        UfsStatus[] statuses;
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           String ufsPath = resolution.getUri().getPath();
-          UfsStatus[] statuses = ufs.listStatus(ufsPath);
-          if (statuses != null) {
-            Arrays.stream(statuses).forEach(status -> {
-              for (Inode child : children) {
-                if (child.getName().equals(status.getName())) {
-                  return;
-                }
-              }
+          statuses = ufs.listStatus(ufsPath);
+        }
+        if (statuses != null) {
+          HashSet<String> alluxioFileNames = Streams.stream(children)
+              .map(Inode::getName)
+              .collect(Collectors.toCollection(HashSet::new));
+          Arrays.stream(statuses).forEach(status -> {
+            if (!alluxioFileNames.contains(status.getName())) {
               inconsistentUris.add(inodePath.getUri().join(status.getName()));
-            });
-          }
+            }
+          });
         }
       }
     } catch (InvalidPathException e) {
