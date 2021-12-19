@@ -26,8 +26,9 @@
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.ozone.version>1.1.0</ufs.ozone.version>
+    <ufs.ozone.version>1.2.0</ufs.ozone.version>
     <shading.prefix>alluxio.shaded.ozone</shading.prefix>
+    <ozone.metrics.version>3.2.5</ozone.metrics.version>
   </properties>
 
   <dependencies>
@@ -62,14 +63,25 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-ozone-filesystem</artifactId>
+          <groupId>org.apache.ozone</groupId>
+          <artifactId>ozone-filesystem</artifactId>
+          <version>${ufs.ozone.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>io.dropwizard.metrics</groupId>
+              <artifactId>metrics-core</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ozone</groupId>
+          <artifactId>ozone-client</artifactId>
           <version>${ufs.ozone.version}</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-ozone-client</artifactId>
-          <version>${ufs.ozone.version}</version>
+          <groupId>io.dropwizard.metrics</groupId>
+          <artifactId>metrics-core</artifactId>
+          <version>${ozone.metrics.version}</version>
         </dependency>
       </dependencies>
     </profile>
@@ -135,6 +147,10 @@
                   <pattern>org.codehaus.jackson</pattern>
                   <shadedPattern>${shading.prefix}.org.codehaus.jackson</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>com.codahale.metrics</pattern>
+                  <shadedPattern>${shading.prefix}.com.codahale.metrics</shadedPattern>
+                </relocation>
               </relocations>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
@@ -155,6 +171,9 @@
                   <include>org.apache.httpcomponents:*</include>
                   <include>commons-httpclient:commons-httpclient</include>
                   <include>org.codehaus.jackson:*</include>
+                  <include>org.apache.ozone:*</include>
+                  <include>org.apache.ratis:*</include>
+                  <include>io.dropwizard.metrics:metrics-core</include>
                 </includes>
                 <excludes>
                   <exclude>org.slf4j:*</exclude>
