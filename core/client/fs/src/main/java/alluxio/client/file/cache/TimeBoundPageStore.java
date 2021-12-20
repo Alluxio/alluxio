@@ -144,6 +144,9 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     /** Number of timeouts when deleting pages from page store. */
     private static final Counter STORE_DELETE_TIMEOUT =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_STORE_DELETE_TIMEOUT.getName());

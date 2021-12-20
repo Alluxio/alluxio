@@ -132,6 +132,9 @@ public interface CacheManager extends AutoCloseable {
     private Factory() {} // prevent instantiation
 
     private static final class Metrics {
+      // Note that only counter can be added here.
+      // Both meter and timer need to be used inline
+      // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
       /** Errors when creating cache. */
       private static final Counter CREATE_ERRORS =
           MetricsSystem.counter(MetricKey.CLIENT_CACHE_CREATE_ERRORS.getName());
