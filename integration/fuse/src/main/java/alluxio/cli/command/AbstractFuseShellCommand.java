@@ -30,6 +30,11 @@ public abstract class AbstractFuseShellCommand implements FuseCommand {
   protected final FileSystem mFileSystem;
   protected final String mParentCommandName;
 
+  /**
+   * @param fileSystem the file system the command takes effect on
+   * @param alluxioConfiguration the Alluxio configuration
+   * @param commandName the parent command name
+   */
   public AbstractFuseShellCommand(FileSystem fileSystem,
       AlluxioConfiguration alluxioConfiguration, String commandName) {
     mFileSystem = fileSystem;

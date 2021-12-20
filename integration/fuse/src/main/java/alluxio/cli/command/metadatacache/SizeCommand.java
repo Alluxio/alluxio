@@ -19,7 +19,16 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.FileInfo;
 
+/**
+ * The metadata cache 'size' subcommand.
+ */
 public final class SizeCommand extends AbstractMetadataCacheSubCommand {
+
+  /**
+   * @param fs the file system the command takes effect on
+   * @param conf the Alluxio configuration
+   * @param parentCommandName the parent command name
+   */
   public SizeCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
     super(fs, conf, parentCommandName);
   }
