@@ -32,6 +32,21 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetadataCache {
   private static final Logger LOG = LoggerFactory.getLogger(MetadataCache.class);
 
+
+  private static volatile MetadataCache metadataCache = null;
+
+  public static MetadataCache getInstance(int maxSize, long expirationTimeMs) {
+    if (metadataCache == null) {
+      synchronized (MetadataCache.class) {
+        if (metadataCache == null) {
+          LOG.info("Create MetadataCache.");
+          metadataCache = new MetadataCache(maxSize, expirationTimeMs);
+        }
+      }
+    }
+    return metadataCache;
+  }
+
   private class CachedItem {
     private URIStatus mStatus = null;
     private List<URIStatus> mDirStatuses = null;

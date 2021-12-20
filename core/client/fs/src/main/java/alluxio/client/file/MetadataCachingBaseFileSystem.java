@@ -57,7 +57,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
 
-  private final MetadataCache mMetadataCache;
+  protected static MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
 
@@ -70,7 +70,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
     long expirationTimeMs = mFsContext.getClusterConf()
         .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
-    mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
+    mMetadataCache = MetadataCache.getInstance(maxSize, expirationTimeMs);
     int masterClientThreads = mFsContext.getClusterConf()
         .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
     mDisableUpdateFileAccessTime = mFsContext.getClusterConf()
