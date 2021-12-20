@@ -2196,6 +2196,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_URI_TRANSLATOR_IMPL =
+      new Builder(Name.MASTER_URI_TRANSLATOR_IMPL)
+          .setDefaultValue("alluxio.master.file.uritranslator.DefaultUriTranslator")
+          .setDescription("The class of uri translator implementation.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
           .setAlias("alluxio.master.journal.flush.batch.time.ms")
@@ -6532,6 +6539,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.update.check.enabled";
     public static final String MASTER_UPDATE_CHECK_INTERVAL =
         "alluxio.master.update.check.interval";
+    public static final String MASTER_URI_TRANSLATOR_IMPL =
+        "alluxio.master.uri.translator.impl";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";

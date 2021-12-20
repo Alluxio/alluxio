@@ -111,6 +111,7 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.file.uritranslator.UriTranslator;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -398,6 +399,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private CallTracker mStateLockCallTracker;
 
+  /** Uri translator. */
+  private UriTranslator mUriTranslator;
+
   final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -498,6 +502,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
+
+    mUriTranslator = UriTranslator.Factory.create(this, mMountTable, mInodeTree);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -1694,6 +1700,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
               getDisplayMountPointInfo(mountPoint.getValue(), invokeUfs));
     }
     return mountPoints;
+  }
+
+  @Override
+  public AlluxioURI translateUri(String uriStr) throws InvalidPathException {
+    if (mUriTranslator != null) {
+      return mUriTranslator.translateUri(uriStr);
+    }
+    return new AlluxioURI(uriStr);
   }
 
   @Override
