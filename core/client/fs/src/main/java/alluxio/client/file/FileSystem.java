@@ -108,6 +108,12 @@ public interface FileSystem extends Closeable {
       return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
     }
 
+    /**
+     * Get a FileSystem from the cache with a given subject.
+     * @param subject The subject to use for security-related client operations
+     * @param conf the Alluxio configuration
+     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
+     */
     public static FileSystem get(Subject subject, AlluxioConfiguration conf) {
       Preconditions.checkNotNull(subject, "subject");
       // TODO(gpang): should this key use the UserState instead of subject?
