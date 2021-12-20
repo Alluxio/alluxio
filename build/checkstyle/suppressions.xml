@@ -13,4 +13,6 @@
     <!-- Excludes test files from having Javadocs for classes and methods (a lot do not have those) -->
     <suppress files="[\\/]*[\\/]test[\\/].*" checks="MissingJavadocMethod" />
     <suppress files="[\\/]*[\\/]test[\\/].*" checks="MissingJavadocType" />
+    <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*" checks="MissingJavadocMethod" />
+    <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*" checks="MissingJavadocType" />
 </suppressions>
