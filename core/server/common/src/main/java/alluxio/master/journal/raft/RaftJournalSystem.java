@@ -167,7 +167,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
-  private static final String UNDEFINED_LEADER_ID = "UNDEFINED_LEADER_ID";
+  private static final String WAITING_FOR_ELECTION = "WAITING_FOR_ELECTION";
 
   /// Lifecycle: constant from when the journal system is constructed.
 
@@ -1193,18 +1193,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public String getLeaderId() {
     RaftProtos.RoleInfoProto roleInfo = getRaftRoleInfo();
     if (roleInfo == null) {
-      return UNDEFINED_LEADER_ID;
+      return WAITING_FOR_ELECTION;
     }
     if (roleInfo.getRole() == RaftProtos.RaftPeerRole.LEADER) {
       return getLocalPeerId().toString();
     }
     RaftProtos.FollowerInfoProto followerInfo = roleInfo.getFollowerInfo();
     if (followerInfo == null) {
-      return UNDEFINED_LEADER_ID;
+      return WAITING_FOR_ELECTION;
     }
     if (followerInfo.getLeaderInfo().getId() == null
         || followerInfo.getLeaderInfo().getId().getId() == null) {
-      return UNDEFINED_LEADER_ID;
+      return WAITING_FOR_ELECTION;
     }
     return followerInfo.getLeaderInfo().getId().getId().toStringUtf8();
   }

@@ -302,6 +302,14 @@ public class AlluxioMasterProcess extends MasterProcess {
     LOG.info("Alluxio master ended {}", stopMessage);
   }
 
+  /**
+   *
+   * @param force true to start the common services anyway
+   * @param startIfEnabled true then check configured value, if configured enabled then start,
+   *                       otherwise, do nothing. False then check configured value also,
+   *                       if configured disabled then start, otherwise, do nothing.
+   *                       NOTE: if force is set to true will ignore this argument.
+   */
   protected void startCommonServices(boolean force, boolean startIfEnabled) {
     if (force || ServerConfiguration.getBoolean(
         PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == startIfEnabled) {
