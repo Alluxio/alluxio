@@ -1488,7 +1488,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     InodeFile inode = inodePath.getInodeFile();
     if (inode.isCompleted() && inode.getLength() != Constants.UNKNOWN_SIZE) {
-      throw new FileAlreadyCompletedException("File " + inode.getName() + " has already been completed.");
+      throw new FileAlreadyCompletedException(String
+          .format("File %s has already been completed.", inode.getName()));
     }
     if (length < 0 && length != Constants.UNKNOWN_SIZE) {
       throw new InvalidFileSizeException(
