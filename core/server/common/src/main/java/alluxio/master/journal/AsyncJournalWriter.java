@@ -405,6 +405,9 @@ public final class AsyncJournalWriter {
    */
   @ThreadSafe
   private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter JOURNAL_FLUSH_FAILURE =
         MetricsSystem.counter(MetricKey.MASTER_JOURNAL_FLUSH_FAILURE.getName());
 
