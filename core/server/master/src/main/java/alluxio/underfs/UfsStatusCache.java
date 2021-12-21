@@ -111,7 +111,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    Set<UfsStatus> set = new HashSet<>();
+    Set<UfsStatus> set = new HashSet<>(children.size());
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
