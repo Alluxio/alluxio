@@ -553,7 +553,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WEB_THREAD_DUMP_TO_LOG =
       new Builder(Name.WEB_THREAD_DUMP_TO_LOG)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether thread information is also printed to the log "
               + "when the thread dump api is accessed")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
