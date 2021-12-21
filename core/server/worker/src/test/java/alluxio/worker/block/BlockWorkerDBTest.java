@@ -160,6 +160,8 @@ public class BlockWorkerDBTest {
     String noExistPath = PathUtils.concatPath(
         mTestFolder.getRoot().getAbsolutePath(), "a", "b", "c");
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, noExistPath);
+    // skip BlockWorkerDB.Factory.create "TEST_MODE"
+    ServerConfiguration.set(PropertyKey.TEST_MODE, "false");
 
     BlockWorkerDB blockWorkerDB = BlockWorkerDB.Factory.create(ServerConfiguration.global());
     String clusterId = java.util.UUID.randomUUID().toString();
