@@ -1060,10 +1060,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // A new Worker registers to the Master
       if (!hasBlockInWorkerTier) {
         // The most common case: a new and clean Worker registers to the Master
-        return PreRegisterCommandType.PERSIST_CLUSTERID;
+        return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       } else {
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
-          return PreRegisterCommandType.CLEAN_BLOCK;
+          return PreRegisterCommandType.REGISTER_CLEAN_BLOCKS;
         } else {
           // Possible cases:
           // - A Worker that does not correctly persist the clusterId registers to the Master,
@@ -1083,26 +1083,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           //
           //   The case 4 is is a situation that should be considered.
           //   In order to be compatible with the upgrade, the “PERSIST_CLUSTERID” will be return
-          return PreRegisterCommandType.PERSIST_CLUSTERID;
+          return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
         }
       }
     }
 
     if (workerClusterId.equals(curClusterId)) {
       // A Worker of the current cluster registers to the Master
-      return PreRegisterCommandType.ACK;
+      return PreRegisterCommandType.ACK_REGISTER;
     } else {
       // A Worker of the another cluster registers to the Master
       if (!hasBlockInWorkerTier) {
         // Even if the worker belongs to another cluster,
         // because it does not have any Block, it will not mess with the data of the current cluster
         //, so  “PERSIST_CLUSTERID” will be return
-        return PreRegisterCommandType.PERSIST_CLUSTERID;
+        return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
-        return PreRegisterCommandType.CLEAN_BLOCK;
+        return PreRegisterCommandType.REGISTER_CLEAN_BLOCKS;
       } else {
-        return PreRegisterCommandType.REJECT;
+        return PreRegisterCommandType.REJECT_REGISTER;
       }
     }
   }

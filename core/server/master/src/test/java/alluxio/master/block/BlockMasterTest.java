@@ -276,7 +276,7 @@ public class BlockMasterTest {
     PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
         IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, false);
     assertPreRegisterCommandType(exceptCommand1,
-        PreRegisterCommandType.PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will force to clean dirty worker
@@ -284,7 +284,7 @@ public class BlockMasterTest {
     PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
         IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
     assertPreRegisterCommandType(exceptCommand2,
-        PreRegisterCommandType.CLEAN_BLOCK, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.REGISTER_CLEAN_BLOCKS, mCurrentClusterId, mWorkerId);
 
     // New and dirty(has BLock in the Tier) worker registration,
     //and master will not force to clean dirty worker
@@ -292,7 +292,7 @@ public class BlockMasterTest {
     PreRegisterCommand exceptCommand3 = mockBlockMaster.workerPreRegister(
         IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
     assertPreRegisterCommandType(exceptCommand3,
-        PreRegisterCommandType.PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
   }
 
   @Test
@@ -304,12 +304,12 @@ public class BlockMasterTest {
     PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
         mCurrentClusterId, NET_ADDRESS_1, true);
     assertPreRegisterCommandType(exceptCommand1,
-        PreRegisterCommandType.ACK, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.ACK_REGISTER, mCurrentClusterId, mWorkerId);
 
     PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
         mCurrentClusterId, NET_ADDRESS_1, false);
     assertPreRegisterCommandType(exceptCommand2,
-        PreRegisterCommandType.ACK, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.ACK_REGISTER, mCurrentClusterId, mWorkerId);
   }
 
   @Test
@@ -323,19 +323,19 @@ public class BlockMasterTest {
     PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
         otherClusterId, NET_ADDRESS_1, false);
     assertPreRegisterCommandType(exceptCommand1,
-        PreRegisterCommandType.PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
     PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
         otherClusterId, NET_ADDRESS_1, true);
     assertPreRegisterCommandType(exceptCommand2,
-        PreRegisterCommandType.REJECT, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.REJECT_REGISTER, mCurrentClusterId, mWorkerId);
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
     PreRegisterCommand exceptCommand3 = mockBlockMaster.workerPreRegister(
         otherClusterId, NET_ADDRESS_1, true);
     assertPreRegisterCommandType(exceptCommand3,
-        PreRegisterCommandType.CLEAN_BLOCK, mCurrentClusterId, mWorkerId);
+        PreRegisterCommandType.REGISTER_CLEAN_BLOCKS, mCurrentClusterId, mWorkerId);
   }
 
   private void assertPreRegisterCommandType(PreRegisterCommand actual,

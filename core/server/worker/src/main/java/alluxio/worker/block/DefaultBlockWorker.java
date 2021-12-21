@@ -260,25 +260,23 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   void handlePreRegisterCommand(PreRegisterCommand cmd) {
     switch (cmd.getPreRegisterCommandType()) {
-      case ACK:
-        mWorkerId.set(cmd.getWorkerId());
+      case ACK_REGISTER:
         break;
-      case PERSIST_CLUSTERID:
+      case REGISTER_PERSIST_CLUSTERID:
         SetClusterIdAllowFails(cmd.getClusterId());
-        mWorkerId.set(cmd.getWorkerId());
         break;
-      case CLEAN_BLOCK:
+      case REGISTER_CLEAN_BLOCKS:
         LOG.warn("Master Command {}", cmd);
         // todo clean all block and reset status
         // Current behavior is the same as the cmd "PERSIST_CLUSTERID"
         SetClusterIdAllowFails(cmd.getClusterId());
-        mWorkerId.set(cmd.getWorkerId());
         break;
-      case REJECT:
+      case REJECT_REGISTER:
         throw new RuntimeException("Master reject to register");
       default:
         throw new RuntimeException("PreRegister Un-recognized command from master " + cmd);
     }
+    mWorkerId.set(cmd.getWorkerId());
   }
 
   /**

@@ -401,7 +401,7 @@ public class DefaultBlockWorkerTest {
   public void handlePreRegisterCommandACK() throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.ACK)
+        .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // Only workerId will be set
@@ -414,7 +414,7 @@ public class DefaultBlockWorkerTest {
   public void handlePreRegisterCommandPERSIST_CLUSTERID() throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.PERSIST_CLUSTERID)
+        .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // the new cluster ID will be persisted
@@ -427,7 +427,7 @@ public class DefaultBlockWorkerTest {
   public void handlePreRegisterCommandCLEAN_BLOCK() throws IOException {
     String newClusterId = UUID.randomUUID().toString();
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.CLEAN_BLOCK)
+        .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_CLEAN_BLOCKS)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterCommand(cmd);
     assertEquals(newClusterId, mBlockWorker.getClusterId().get());
@@ -446,7 +446,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void handlePreRegisterCommandREJECT() throws IOException {
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.REJECT).build();
+        .setPreRegisterCommandType(PreRegisterCommandType.REJECT_REGISTER).build();
     assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterCommand(cmd));
   }
 

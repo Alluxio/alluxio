@@ -254,10 +254,10 @@ message PreRegisterCommand {
 
 enum PreRegisterCommandType {
   UNKNOWN = 0;
-  ACK = 1;
-  PERSIST_CLUSTERID = 2;
-  CLEAN_BLOCK = 3;
-  REJECT = 4;
+  ACK_REGISTER = 1;
+  REGISTER_PERSIST_CLUSTERID = 2;
+  REGISTER_CLEAN_BLOCKS = 3;
+  REJECT_REGISTER = 4;
 }
 
 message PreRegisterWorkerPOptions {}
