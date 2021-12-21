@@ -1623,6 +1623,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_TOTAL_RPC_CLIENTS =
+      new Builder("Client.TotalRPCClients")
+          .setDescription("The total number of RPC clients exist that is using to "
+              + "or can be used to connect to master or worker for operations. "
+              + "The sum of the sizes of FileSystemMasterClientPool, "
+              + "BlockMasterClientPool, and BlockWorkerClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
@@ -1644,6 +1653,13 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Fuse.BytesRead")
           .setDescription("Total number of bytes read through Fuse.read() operations.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_TOTAL_CALLS =
+      new Builder("Fuse.TotalCalls")
+          .setDescription("Throughput of JNI FUSE operation calls. "
+              + "This metrics indicates how busy the Alluxio Fuse application is serving requests")
+          .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey FUSE_WRITING_FILE_COUNT =

@@ -55,11 +55,6 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   }
 
   @Override
-  public boolean hasSubCommand() {
-    return false;
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);

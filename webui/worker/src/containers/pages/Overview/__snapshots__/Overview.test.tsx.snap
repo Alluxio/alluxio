@@ -71,6 +71,14 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
              / 
           </td>
         </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Block Count
+          </th>
+          <td />
+        </tr>
       </tbody>
     </Table>
   </div>

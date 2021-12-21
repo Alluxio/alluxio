@@ -115,7 +115,8 @@ public final class RpcUtils {
     String debugDesc = logger.isDebugEnabled() ? String.format(description,
         processObjects(logger, args)) : null;
     try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
-        Metrics.TOTAL_RPCS, MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
+        MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T res = callable.call();
@@ -254,11 +255,5 @@ public final class RpcUtils {
      * @param throwable the exception
      */
     void exceptionCaught(Throwable throwable);
-  }
-
-  private static final class Metrics {
-    /** RPC throughput. */
-    private static final Timer TOTAL_RPCS =
-        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName());
   }
 }

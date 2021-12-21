@@ -24,7 +24,7 @@ public final class LoadConfigTest {
   @Test
   public void jsonTest() throws Exception {
     LoadConfig config = new LoadConfig("/path/to/load", 3, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET);
+        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
     ObjectMapper mapper = new ObjectMapper();
     LoadConfig other = mapper.readValue(mapper.writeValueAsString(config), LoadConfig.class);
     checkEquality(config, other);
@@ -33,8 +33,8 @@ public final class LoadConfigTest {
   @Test
   public void nullTest() {
     try {
-      new LoadConfig(null, null, Collections.EMPTY_SET,
-          Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET);
+      new LoadConfig(null, null, Collections.EMPTY_SET, Collections.EMPTY_SET,
+          Collections.EMPTY_SET, Collections.EMPTY_SET, true);
       Assert.fail("Cannot create config with null path");
     } catch (NullPointerException exception) {
       Assert.assertEquals("The file path cannot be null", exception.getMessage());

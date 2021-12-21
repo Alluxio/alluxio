@@ -132,7 +132,7 @@ public class BatchedJobDefinitionTest {
     for (int i = 0; i < batchSize; i++) {
       createFileWithNoLocations(TEST_URI + i, numBlocks);
       LoadConfig loadConfig = new LoadConfig(TEST_URI + i, replication, Collections.EMPTY_SET,
-          Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET);
+          Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
       ObjectMapper oMapper = new ObjectMapper();
       Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
       configs.add(map);

@@ -79,6 +79,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
                   </td>
                 </tr>
               ))}
+              <tr>
+                <th scope="row">Block Count</th>
+                <td>{data.blockCount}</td>
+              </tr>
             </tbody>
           </Table>
         </div>
