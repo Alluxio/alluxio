@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
