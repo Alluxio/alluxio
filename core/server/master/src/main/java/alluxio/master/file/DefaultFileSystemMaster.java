@@ -1295,7 +1295,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
         checkConsistencyRecursive(parent, inconsistentUris, false,
-            syncStatus != OK);
+            syncStatus == OK);
 
         auditContext.setSucceeded(true);
       }
