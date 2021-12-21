@@ -1304,7 +1304,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   private void checkConsistencyRecursive(LockedInodePath inodePath,
-      List<AlluxioURI> inconsistentUris, boolean assertInconsistent, boolean syncMetadata)
+      List<AlluxioURI> inconsistentUris, boolean assertInconsistent, boolean metadataSynced)
           throws IOException, FileDoesNotExistException {
     Inode inode = inodePath.getInode();
     try {
@@ -1321,31 +1321,32 @@ public final class DefaultFileSystemMaster extends CoreMaster
         for (Inode child : children) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris, assertInconsistent,
-                syncMetadata);
+                metadataSynced);
           }
         }
         // If a file exists in ufs but not in alluxio,
         // it should be treated as an inconsistent file.
         // if it is a directory we could ignore the subpaths.
         // if the metadata has already been synced, then we could skip it.
-        if (!syncMetadata) {
-          MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-          UfsStatus[] statuses;
-          try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-            UnderFileSystem ufs = ufsResource.get();
-            String ufsPath = resolution.getUri().getPath();
-            statuses = ufs.listStatus(ufsPath);
-          }
-          if (statuses != null) {
-            HashSet<String> alluxioFileNames = Streams.stream(children)
-                .map(Inode::getName)
-                .collect(Collectors.toCollection(HashSet::new));
-            Arrays.stream(statuses).forEach(status -> {
-              if (!alluxioFileNames.contains(status.getName())) {
-                inconsistentUris.add(inodePath.getUri().join(status.getName()));
-              }
-            });
-          }
+        if (metadataSynced) {
+          return;
+        }
+        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        UfsStatus[] statuses;
+        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
+          String ufsPath = resolution.getUri().getPath();
+          statuses = ufs.listStatus(ufsPath);
+        }
+        if (statuses != null) {
+          HashSet<String> alluxioFileNames = Streams.stream(children)
+              .map(Inode::getName)
+              .collect(Collectors.toCollection(HashSet::new));
+          Arrays.stream(statuses).forEach(status -> {
+            if (!alluxioFileNames.contains(status.getName())) {
+              inconsistentUris.add(inodePath.getUri().join(status.getName()));
+            }
+          });
         }
       }
     } catch (InvalidPathException e) {
