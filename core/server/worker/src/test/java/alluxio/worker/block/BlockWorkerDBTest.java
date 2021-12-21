@@ -108,8 +108,6 @@ public class BlockWorkerDBTest {
   @Test
   public void testReSetClusterId() throws IOException {
     createDefault();
-    ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
-        mTestFolder.getRoot().getAbsolutePath());
 
     String clusterId1 = java.util.UUID.randomUUID().toString();
     String clusterId2 = java.util.UUID.randomUUID().toString();
@@ -151,11 +149,6 @@ public class BlockWorkerDBTest {
 
   @Test
   public void testFactoryCreate() throws IOException {
-    // The ALLUXIO_HOME directory in some test environment does not have write permission,
-    // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
-    ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
-        mTestFolder.getRoot().getAbsolutePath());
-
     BlockWorkerDB blockWorkerDB = BlockWorkerDB.Factory.create(ServerConfiguration.global());
     String clusterId = java.util.UUID.randomUUID().toString();
     blockWorkerDB.setClusterId(clusterId);
@@ -164,8 +157,6 @@ public class BlockWorkerDBTest {
 
   @Test
   public void testFactoryCreateFromNoExistPath() throws IOException {
-    // The ALLUXIO_HOME directory in some test environment does not have write permission,
-    // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
     String noExistPath = PathUtils.concatPath(
         mTestFolder.getRoot().getAbsolutePath(), "a", "b", "c");
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, noExistPath);

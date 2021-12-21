@@ -15,6 +15,7 @@ import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
@@ -68,6 +69,18 @@ public interface BlockWorkerDB {
      * @throws RuntimeException RuntimeException if fails
      */
     public static BlockWorkerDB create(AlluxioConfiguration conf) {
+      // Compatibility test, the test env does not have ${ALLUXIO_HOME} dir write permissions
+      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+        Path temTestPath;
+        try {
+          temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());
+        } catch (IOException e) {
+          throw new RuntimeException(
+                  "DefaultBlockWorkerDB create test temporary clusterId file failed", e);
+        }
+        ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, temTestPath.toString());
+      }
+
       String defaultPath = PathUtils.concatPath(
           conf.get(PropertyKey.WORKER_CLUSTERID_PATH), CLUSTERID_FILE);
       try {
