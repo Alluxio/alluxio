@@ -30,6 +30,8 @@ public class BaseHubTest {
   protected static InstancedConfiguration getTestConfig() throws Exception {
     InstancedConfiguration c =
         new InstancedConfiguration(ServerConfiguration.global().copyProperties());
+    c.set(PropertyKey.HUB_CLUSTER_ID, "0000");
+    c.set(PropertyKey.HUB_MANAGER_REGISTER_RETRY_TIME, "1sec");
     c.set(PropertyKey.HUB_MANAGER_RPC_PORT, 0);
     c.set(PropertyKey.HUB_MANAGER_EXECUTOR_THREADS_MIN, 0);
     c.set(PropertyKey.HUB_AGENT_RPC_PORT, 0);
