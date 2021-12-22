@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Stacks-related Shallow component Renders Log Matches snapshot with Table listing 1`] = `
+exports[`Stacks Shallow component Matches snapshot 1`] = `
 <div
   className="col-12"
 >

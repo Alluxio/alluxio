@@ -20,7 +20,7 @@ import { createAlertErrors } from '../../utilities';
 
 configure({ adapter: new Adapter() });
 
-describe('Stacks-related', () => {
+describe('Stacks', () => {
   let history: History<LocationState>;
   let props: AllStacksProps;
 
@@ -60,10 +60,8 @@ describe('Stacks-related', () => {
       expect(shallowWrapper.find('.col-12').length).toEqual(1);
     });
 
-    describe('Renders Log', () => {
-      it('Matches snapshot with Table listing', () => {
-        expect(shallowWrapper).toMatchSnapshot();
-      });
+    it('Matches snapshot', () => {
+      expect(shallowWrapper).toMatchSnapshot();
     });
   });
 });
