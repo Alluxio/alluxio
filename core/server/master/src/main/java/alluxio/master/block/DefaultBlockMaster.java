@@ -1019,7 +1019,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Gather all blocks on this worker.
-    HashSet<Long> blocks = new HashSet<>();
+    int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();
+    HashSet<Long> blocks = new HashSet<>(totalSize);
     for (List<Long> blockIds : currentBlocksOnLocation.values()) {
       blocks.addAll(blockIds);
     }
