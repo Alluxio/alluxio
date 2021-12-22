@@ -437,9 +437,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EBADFD();
     }
     FileOutStream os = ce.getOut();
-    if (offset < os.getBytesWritten()) {
-      // no op
-      return sz;
+    if (offset != os.getBytesWritten()) {
+      LOG.error("File is written to size {}, cannot overwrite on or jump to offset {}", os.getBytesWritten(), offset);
+      return -ErrorCodes.EIO();
     }
 
     try {
