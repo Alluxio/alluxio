@@ -5913,8 +5913,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey HUB_CLUSTER_ID =
           new Builder(Name.HUB_CLUSTER_ID)
                   .setDescription("A user-defined id for the Hub cluster. Must be unique from "
-                          + "other Hub clusters connecting to the same Hosted Hub. Must be a "
-                          + "4-character alphanumeric string.")
+                          + "other Hub clusters connecting to the same Hosted Hub tenant. Must be "
+                          + "a 4-character alphanumeric string.")
                   .build();
   public static final PropertyKey HUB_CLUSTER_LABEL =
           new Builder(Name.HUB_CLUSTER_LABEL)
