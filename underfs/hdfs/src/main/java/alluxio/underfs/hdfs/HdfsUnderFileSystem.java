@@ -395,12 +395,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     FileStatus fs = hdfs.getFileStatus(tPath);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
-    long blockSize = fs.getBlockSize();
-    if (mUfsConf.getBoolean(PropertyKey.USER_BLOCK_SIZE_ENABLED)) {
-      blockSize = mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    }
     return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-        fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), blockSize);
+        fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
   }
 
   @Override

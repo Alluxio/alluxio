@@ -880,6 +880,9 @@ public class InodeSyncStream {
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
       long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
+      if (ServerConfiguration.getBoolean(PropertyKey.USER_BLOCK_SIZE_ENABLED)) {
+        blockSize = ServerConfiguration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+      }
       ufsBlockSizeByte = blockSize != UfsFileStatus.UNKNOWN_BLOCK_SIZE
           ? blockSize : ufs.getBlockSizeByte(ufsUri.toString());
 
