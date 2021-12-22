@@ -545,6 +545,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       mFileSystem.createDirectory(uri,
           CreateDirectoryPOptions.newBuilder()
+              .setRecursive(true)
               .setMode(new Mode((short) mode).toProto())
               .build());
       mAuthPolicy.setUserGroupIfNeeded(uri);
