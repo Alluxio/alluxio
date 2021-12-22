@@ -5910,6 +5910,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The secret key of Hub Manager.")
                   .setDisplayType(DisplayType.CREDENTIALS)
                   .build();
+  public static final PropertyKey HUB_CLUSTER_ID =
+          new Builder(Name.HUB_CLUSTER_ID)
+                  .setDescription("A user-defined id for the Hub cluster. Must be unique from "
+                          + "other Hub clusters connecting to the same Hosted Hub tenant. Must be "
+                          + "a 4-character alphanumeric string.")
+                  .build();
   public static final PropertyKey HUB_CLUSTER_LABEL =
           new Builder(Name.HUB_CLUSTER_LABEL)
                   .setDefaultValue("Alluxio Hub")
@@ -7206,6 +7212,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String HUB_AUTHENTICATION_API_KEY = "alluxio.hub.authentication.apiKey";
     public static final String HUB_AUTHENTICATION_SECRET_KEY =
             "alluxio.hub.authentication.secretKey";
+    public static final String HUB_CLUSTER_ID =
+            "alluxio.hub.cluster.id";
     public static final String HUB_CLUSTER_LABEL =
             "alluxio.hub.cluster.label";
     public static final String HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME =
