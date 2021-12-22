@@ -117,9 +117,9 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
 
     sFsShell.run("checkConsistency", "-r", "/testRoot");
     res = mOutput.toString();
-    assertTrue(res.contains("/testRoot has: 1 inconsistent files") &&
-        res.contains("repairing path: /testRoot/testFileA") &&
-        res.contains("/testRoot/testFileA repaired"));
+    assertTrue(res.contains("/testRoot has: 1 inconsistent files")
+        && res.contains("repairing path: /testRoot/testFileA")
+        && res.contains("/testRoot/testFileA repaired"));
     assertFalse(sFileSystem.exists(new AlluxioURI("/testRoot/testFileA")));
   }
 
