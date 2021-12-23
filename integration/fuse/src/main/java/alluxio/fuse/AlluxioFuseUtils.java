@@ -32,6 +32,7 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -51,7 +52,45 @@ public final class AlluxioFuseUtils {
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
+  // Open flags
+  // TODO(maobaolong): Add an option to decide whether reject rw flag
+  //  or fallback to truncate
+  // TODO(lu) improve open flag handling https://github.com/mafintosh/fuse-bindings/issues/25
+  // 0x8001 stand for 'w' which means open file for writing
+  private static final int OPEN_WRITE = 32769;
+  // 0x8002 stand for 'r+' which means Open file for reading and writing
+  private static final int OPEN_READ_WRITE = 32770;
+
   private AlluxioFuseUtils() {}
+
+  /**
+   * Detects if open file for overwriting.
+   *
+   * @param flags the open flags
+   * @return true if open a file for overwriting, false otherwise
+   */
+  public static boolean isOpenOverwrite(int flags) {
+    boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY
+        || flags == OPEN_WRITE;
+    return overwrite;
+  }
+
+  /**
+   * Detects if open file for reading and writing.
+   *
+   * @param flags the open flags
+   * @return true if open a file for reading and writing, false otherwise
+   */
+  public static boolean isOpenReadWrite(int flags) {
+    if (flags == OPEN_READ_WRITE) {
+      LOG.warn(String.format("Open file with flags 0x%x for reading and writing. "
+          + "Alluxio does not support reading and writing a file concurrently. "
+          + "Treat as read first. Close input stream, "
+          + "delete file, and create a new file when detected first write.", flags));
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Retrieves the uid of the given user.
