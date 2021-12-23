@@ -666,14 +666,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
-        HashSet<Long> workerIds = new HashSet<>();
-
+        Set<Long> workerIds;
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent()) {
             continue;
           }
-          for (BlockLocation loc : mBlockStore.getLocations(blockId)) {
+          List<BlockLocation> locations = mBlockStore.getLocations(blockId);
+          workerIds = new HashSet<>(locations.size());
+          for (BlockLocation loc : locations) {
             workerIds.add(loc.getWorkerId());
           }
           // Two cases here:
