@@ -29,6 +29,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.util.IdUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,7 +50,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
   AtomicReference<Long> getWorkerId();
 
   /**
-   * @return the worker id
+   * @return Return the clusterId saved in the persistent storage by the Worker,
+   * if the cluster ID not found return an {@link IdUtils#EMPTY_CLUSTER_ID} .
    */
   AtomicReference<String> getClusterId();
 

@@ -227,11 +227,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public AtomicReference<String> getClusterId() {
-    /*
-    get worker cluster id from persistence storage, This can be an expensive operation.
-    If this is invoked frequently, you should refactoring this to support get clusterId
-     from variable */
     String mClusterId = mBlockWorkerDB.getClusterId();
+    mClusterId = mClusterId.isEmpty() ? IdUtils.EMPTY_CLUSTER_ID : mClusterId;
     return new AtomicReference<>(mClusterId);
   }
 

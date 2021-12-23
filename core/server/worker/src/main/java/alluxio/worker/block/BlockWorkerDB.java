@@ -16,7 +16,6 @@ import static alluxio.Constants.CLUSTERID_FILE;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -35,7 +34,7 @@ import java.util.UUID;
 public interface BlockWorkerDB {
   /**
    * Return the clusterId saved in the persistent storage, if the cluster ID not found
-   * return an {@link IdUtils#EMPTY_CLUSTER_ID} ID .
+   * return an empty String.
    *
    * @return a cluster id
    */

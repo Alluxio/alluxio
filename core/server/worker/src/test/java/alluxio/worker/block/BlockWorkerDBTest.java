@@ -91,13 +91,6 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testGetClusterIdFromEmptyDB() throws IOException {
-    createDefault();
-    // Do not set any information in DB, will be get IdUtils.EMPTY_CLUSTER_ID
-    Assert.assertEquals(IdUtils.EMPTY_CLUSTER_ID, mBlockWorkerDB.getClusterId());
-  }
-
-  @Test
   public void testSetClusterIdAndGetClusterId() throws IOException {
     createDefault();
     String clusterId = java.util.UUID.randomUUID().toString();

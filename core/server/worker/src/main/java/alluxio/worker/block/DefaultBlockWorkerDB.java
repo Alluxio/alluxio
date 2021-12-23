@@ -16,7 +16,6 @@ import static alluxio.Constants.CLUSTERID_FILE;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsConfig;
-import alluxio.util.IdUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -62,8 +61,7 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
 
   @Override
   public String getClusterId() {
-    String mClusterId = get(CLUSTER_ID_KEY);
-    return (mClusterId.isEmpty()) ? IdUtils.EMPTY_CLUSTER_ID : mClusterId;
+    return get(CLUSTER_ID_KEY);
   }
 
   @Override
