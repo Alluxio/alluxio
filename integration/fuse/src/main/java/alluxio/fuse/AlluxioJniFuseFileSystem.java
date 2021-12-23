@@ -437,9 +437,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EBADFD();
     }
     FileOutStream os = ce.getOut();
-    if (offset < os.getBytesWritten()) {
-      // no op
-      return sz;
+    if (offset != os.getBytesWritten()) {
+      LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
+          + "when {} bytes have written to path {}", size, os.getBytesWritten(), offset, path);
+      return -ErrorCodes.EIO();
     }
 
     try {
