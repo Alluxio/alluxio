@@ -336,7 +336,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int open(String path, FuseFileInfo fi) {
     final int flags = fi.flags.get();
-    boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY;
+    // TODO(maobaolong): Add an option to decide whether reject rw flag
+    //  or fallback to truncate
+    // 0b11 here aimed to handle both 0x8001 and 0x8002
+    // 0x8001 stand for 'w' which means open file for writing.
+    // 0x8002 stand for 'r+' which means Open file for reading and writing.
+    boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY
+        || (flags & 0b11) != 0;
     String methodName = overwrite ? "Fuse.OpenOverwrite" : "Fuse.Open";
     return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, overwrite),
         methodName, "path=%s,flags=0x%x", path, flags);
