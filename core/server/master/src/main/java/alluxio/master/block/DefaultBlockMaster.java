@@ -620,7 +620,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
     }
 
-    List<WorkerInfo> workerInfoList = new ArrayList<>();
+    List<WorkerInfo> workerInfoList = new ArrayList<>(
+        selectedLiveWorkers.size() + selectedLostWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
