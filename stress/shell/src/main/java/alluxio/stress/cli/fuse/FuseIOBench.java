@@ -138,6 +138,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               + "be at least the number of threads, preferably a multiple of it."
       ));
     }
+    // All test operations happen in mLocalpath/fuseIOStressBench
+    mParameters.mLocalPath = mParameters.mLocalPath + "/fuseIOStressBench";
     File localPath = new File(mParameters.mLocalPath);
 
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
