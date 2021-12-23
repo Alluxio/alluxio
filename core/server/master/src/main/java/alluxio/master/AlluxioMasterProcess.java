@@ -43,6 +43,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -303,6 +304,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   /**
+   * Entrance of the services that can run whether the master state is the primary or standby.
    *
    * @param force true to start the common services anyway
    * @param startIfEnabled true then check configured value, if configured enabled then start,
@@ -434,7 +436,8 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  public boolean waitForReadyWebService(int timeoutMs) {
+  @VisibleForTesting
+  public boolean waitForWebServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
           this::isWebServerReady, WaitForOptions.defaults().setTimeoutMs(timeoutMs));

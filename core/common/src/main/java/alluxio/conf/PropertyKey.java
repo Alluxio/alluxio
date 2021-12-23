@@ -2894,13 +2894,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey STANDBY_MASTER_METRICS_SINK_ENABLED =
       new Builder(Name.STANDBY_MASTER_METRICS_SINK_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether to enable standby master metric sink")
+          .setDescription("Whether a standby master runs the metric sink")
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey STANDBY_MASTER_WEB_ENABLED =
       new Builder(Name.STANDBY_MASTER_WEB_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether to enable standby master web server")
+          .setDescription("Whether a standby master runs a web server")
           .setScope(Scope.SERVER)
           .build();
 

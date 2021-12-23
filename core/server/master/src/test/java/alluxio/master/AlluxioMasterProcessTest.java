@@ -198,6 +198,7 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
+    // Wait for the specific service port can be connected.
     waitForServing(ServiceType.MASTER_RPC);
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
@@ -254,14 +255,17 @@ public final class AlluxioMasterProcessTest {
 
   private void startStopTest(AlluxioMasterProcess master,
       boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
+    // Wait for the specific service port can be connected.
     waitForServing(ServiceType.MASTER_RPC);
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
     boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
     ServerConfiguration.set(PropertyKey.TEST_MODE, false);
+    // Wait for the grpc service ready within 5 second.
     master.waitForReady(5000);
-    master.waitForReadyWebService(5000);
+    // Wait for the web server ready within 5 second.
+    master.waitForWebServerReady(5000);
     ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
     assertTrue(expectWebServiceStarted == (master.getWebAddress() != null));
     assertTrue(expectMetricsSinkStarted == MetricsSystem.isStarted());

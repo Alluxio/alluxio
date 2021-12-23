@@ -104,6 +104,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -1158,6 +1160,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  @Nullable
   private RaftProtos.RoleInfoProto getRaftRoleInfo() {
     GroupInfoReply groupInfo = null;
     try {
@@ -1211,12 +1214,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   /**
    * Gets leader index. The return integer means the leader index of embedded journal addresses
-   * -1 stand for leader not found.
+   * -1 means leader not found.
    *
    * @return the leader index
    */
   protected int getLeaderIndex() {
+    // -1 means leader not found
     String leaderId = getLeaderId();
+    if (WAITING_FOR_ELECTION.equals(leaderId)) {
+      return -1;
+    }
     String leaderAddress = leaderId.replace('_', ':');
     int index = 0;
     for (InetSocketAddress address : mConf.getClusterAddresses()) {
