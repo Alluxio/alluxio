@@ -14,13 +14,10 @@ package alluxio.hub.manager.process;
 import static alluxio.conf.Source.CLUSTER_DEFAULT;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.RuntimeConstants;
 import alluxio.cli.ValidationUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
@@ -91,7 +88,6 @@ import alluxio.hub.proto.ListMountPointResponse;
 import alluxio.hub.proto.PingManagerRequest;
 import alluxio.hub.proto.PingManagerResponse;
 import alluxio.hub.proto.PrestoCatalogListingResult;
-import alluxio.hub.proto.ProcessState;
 import alluxio.hub.proto.ProcessStatusChangeRequest;
 import alluxio.hub.proto.ProcessStatusChangeResponse;
 import alluxio.hub.proto.RegisterAgentRequest;
@@ -111,7 +107,6 @@ import alluxio.hub.proto.UploadFileRequest;
 import alluxio.hub.proto.UploadFileResponse;
 import alluxio.hub.proto.WriteConfigurationSetRequest;
 import alluxio.hub.proto.WriteConfigurationSetResponse;
-import alluxio.master.MasterClientContext;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -140,6 +135,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -251,6 +247,17 @@ public class ManagerProcessContext implements AutoCloseable {
         LOG.error("Unable to initialize K8s client config", e);
       }
     }
+    String hubClusterId = mConf.get(PropertyKey.HUB_CLUSTER_ID);
+    if (hubClusterId.length() != 4 || !StringUtils.isAlphanumeric(hubClusterId)) {
+      throw new RuntimeException(String.format("%s (%s) must be a 4-character alphanumeric string",
+              PropertyKey.HUB_CLUSTER_ID.getName(), hubClusterId));
+    }
+    mHubMetadata = HubMetadata.newBuilder()
+            .setAlluxioVersion(RuntimeConstants.VERSION)
+            .setClusterId(hubClusterId)
+            .setLabel(mConf.get(PropertyKey.HUB_CLUSTER_LABEL))
+            .setAlluxioEdition(AlluxioEdition.ALLUXIO_COMMUNITY_EDITION)
+            .build();
     AlluxioConfiguration modConf = getConfWithHubTlsEnabled();
     InetSocketAddress addr = NetworkAddressUtils
         .getConnectAddress(NetworkAddressUtils.ServiceType.HUB_HOSTED_RPC, modConf);
@@ -268,6 +275,11 @@ public class ManagerProcessContext implements AutoCloseable {
             .withMaxDuration(
                     Duration.ofMillis(modConf.getMs(PropertyKey.HUB_MANAGER_REGISTER_RETRY_TIME)))
             .build());
+    try {
+      connectToHub(alluxio.hub.proto.AlluxioCluster.getDefaultInstance());
+    } catch (Exception e) {
+      LOG.error("Failed to connect to Hosted Hub", e);
+    }
     LOG.info("Initialized manager context");
   }
 
@@ -349,26 +361,6 @@ public class ManagerProcessContext implements AutoCloseable {
               PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY));
       System.exit(401);
     }
-  }
-
-  private HubMetadata getHubMetadata() {
-    AlluxioConfiguration configSet = getUpdatedProps(configurationSetFor(AlluxioNodeType.MASTER));
-    ClientContext ctx = ClientContext.create(configSet);
-    MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
-    MetaMasterClient metaMasterClient = new RetryHandlingMetaMasterClient(masterConfig);
-    HubMetadata hubMetadata = HubMetadata.getDefaultInstance();
-    try {
-      String clusterId = metaMasterClient.getMasterInfo(Collections.emptySet()).getClusterId();
-      hubMetadata = HubMetadata.newBuilder()
-              .setAlluxioVersion(RuntimeConstants.VERSION)
-              .setClusterId(clusterId)
-              .setLabel(mConf.get(PropertyKey.HUB_CLUSTER_LABEL))
-              .setAlluxioEdition(AlluxioEdition.ALLUXIO_COMMUNITY_EDITION)
-              .build();
-    } catch (IOException e) {
-      LogUtils.warnWithException(LOG, "Unable to get cluster id from Alluxio master", e);
-    }
-    return hubMetadata;
   }
 
   private AlluxioConfiguration getConfWithHubTlsEnabled() {
@@ -1053,22 +1045,7 @@ public class ManagerProcessContext implements AutoCloseable {
    * @param cluster alluxio cluster
    */
   public void alluxioClusterHeartbeat(alluxio.hub.proto.AlluxioCluster cluster) {
-    boolean isMasterRunning = cluster.getNodeList().stream().anyMatch(
-        n -> n.getProcessList().stream().anyMatch(
-            p -> p.getNodeType().equals(AlluxioNodeType.MASTER)
-                      && p.getState().equals(ProcessState.RUNNING)));
     try {
-      // connect to Hosted Hub on first heartbeat containing running Alluxio master
-      if (isMasterRunning) {
-        if (mHubMetadata == null) {
-          // HubMetadata not initialized, initialize bidi streams with Hosted Hub
-          mHubMetadata = getHubMetadata();
-          connectToHub(cluster);
-          return;
-        }
-        // keep updating HubMetadata if master is up to get latest cluster id
-        mHubMetadata = getHubMetadata();
-      }
       AlluxioClusterHeartbeatResponse response = mHostedClient.get()
               .alluxioClusterHeartbeat(AlluxioClusterHeartbeatRequest.newBuilder()
               .setHubMetadata(mHubMetadata)

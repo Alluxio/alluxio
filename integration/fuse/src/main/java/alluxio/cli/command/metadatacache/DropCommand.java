@@ -19,7 +19,16 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.FileInfo;
 
+/**
+ * The metadata cache 'drop' subcommand.
+ */
 public final class DropCommand extends AbstractMetadataCacheSubCommand {
+
+  /**
+   * @param fs the file system the command takes effect on
+   * @param conf the Alluxio configuration
+   * @param parentCommandName the parent command name
+   */
   public DropCommand(FileSystem fs, AlluxioConfiguration conf, String parentCommandName) {
     super(fs, conf, parentCommandName);
   }
