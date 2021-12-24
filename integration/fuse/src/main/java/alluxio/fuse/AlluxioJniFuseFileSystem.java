@@ -345,7 +345,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       if (overwrite) {
-        LOG.warn(String.format("Open path %s with flags 0x%x for overwriting. "
+        LOG.debug(String.format("Open path %s with flags 0x%x for overwriting. "
                 + "Alluxio will delete the old file and create a new file for writing",
             path, flags));
         if (mFileSystem.exists(uri)) {
@@ -436,7 +436,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
       // error out or
-      // if readOrWrite flag detected, close the inputstream, delete file and create file for overwrite
+      // if readOrWrite flag detected, close the inputstream,
+      // delete file and create file for overwrite
       final int flags = fi.flags.get();
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null || !AlluxioFuseUtils.isOpenReadWrite(flags)) {

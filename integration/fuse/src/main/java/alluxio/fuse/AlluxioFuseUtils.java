@@ -83,7 +83,7 @@ public final class AlluxioFuseUtils {
    */
   public static boolean isOpenReadWrite(int flags) {
     if (flags == OPEN_READ_WRITE) {
-      LOG.warn(String.format("Open file with flags 0x%x for reading and writing. "
+      LOG.debug(String.format("Open file with flags 0x%x for reading and writing. "
           + "Alluxio does not support reading and writing a file concurrently. "
           + "Treat as read first. Close input stream, "
           + "delete file, and create a new file when detected first write.", flags));
