@@ -287,7 +287,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     // start all common services for non-ha master or leader master
-    startCommonServices(true, true);
+    startCommonServices();
     startJvmMonitorProcess();
     startLeaderServing(startMessage, stopMessage);
   }
@@ -305,23 +305,11 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /**
    * Entrance of the services that can run whether the master state is the primary or standby.
-   *
-   * @param force true to start the common services anyway
-   * @param startIfEnabled true then check configured value, if configured enabled then start,
-   *                       otherwise, do nothing. False then check configured value also,
-   *                       if configured disabled then start, otherwise, do nothing.
-   *                       NOTE: if force is set to true will ignore this argument.
    */
-  protected void startCommonServices(boolean force, boolean startIfEnabled) {
-    if (force || ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == startIfEnabled) {
-      MetricsSystem.startSinks(
-          ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
-    }
-    if (force || ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == startIfEnabled) {
-      startServingWebServer();
-    }
+  protected void startCommonServices() {
+    MetricsSystem.startSinks(
+        ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    startServingWebServer();
   }
 
   /**

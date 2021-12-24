@@ -78,7 +78,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     startMasters(false);
 
-    startCommonServices(false, true);
+    startCommonServices();
     startJvmMonitorProcess();
 
     // Perform the initial catchup before joining leader election,
@@ -169,7 +169,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     mServingThread = new Thread(() -> {
       try {
         // Starts disabled services after gained primacy.
-        startCommonServices(false, false);
+        startCommonServices();
         startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
@@ -253,6 +253,19 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       return false;
     } catch (TimeoutException e) {
       return false;
+    }
+  }
+
+  protected void startCommonServices() {
+    boolean isPrimary = mLeaderSelector.getState() == State.PRIMARY;
+    if (ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) != isPrimary) {
+      MetricsSystem.startSinks(
+          ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    }
+    if (ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED) != isPrimary) {
+      startServingWebServer();
     }
   }
 }

@@ -255,6 +255,16 @@ public final class AlluxioMasterProcessTest {
 
   private void startStopTest(AlluxioMasterProcess master,
       boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
+    waitForAllServingReady(master, 5000);
+    assertTrue(expectWebServiceStarted == (master.getWebAddress() != null));
+    assertTrue(expectMetricsSinkStarted == MetricsSystem.isStarted());
+    master.stop();
+    assertFalse(isBound(mRpcPort));
+    assertFalse(isBound(mWebPort));
+  }
+
+  void waitForAllServingReady(AlluxioMasterProcess master, int timeoutMs)
+      throws InterruptedException, TimeoutException {
     // Wait for the specific service port can be connected.
     waitForServing(ServiceType.MASTER_RPC);
     waitForServing(ServiceType.MASTER_WEB);
@@ -263,15 +273,10 @@ public final class AlluxioMasterProcessTest {
     boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
     ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     // Wait for the grpc service ready within 5 second.
-    master.waitForReady(5000);
+    master.waitForReady(timeoutMs);
     // Wait for the web server ready within 5 second.
-    master.waitForWebServerReady(5000);
+    master.waitForWebServerReady(timeoutMs);
     ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
-    assertTrue(expectWebServiceStarted == (master.getWebAddress() != null));
-    assertTrue(expectMetricsSinkStarted == MetricsSystem.isStarted());
-    master.stop();
-    assertFalse(isBound(mRpcPort));
-    assertFalse(isBound(mWebPort));
   }
 
   private void waitForServing(ServiceType service) throws TimeoutException, InterruptedException {
