@@ -139,7 +139,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       ));
     }
     // All test operations happen in mLocalpath/fuseIOStressBench
-    mParameters.mLocalPath = mParameters.mLocalPath + "/fuseIOStressBench";
+    mParameters.mLocalPath = Paths.get(mParameters.mLocalPath, "fuseIOStressBench").toString();
     File localPath = new File(mParameters.mLocalPath);
 
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
