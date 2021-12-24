@@ -50,10 +50,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
   AtomicReference<Long> getWorkerId();
 
   /**
+   * @param defaultValue the default value of the ClusterId
    * @return Return the clusterId saved in the persistent storage by the Worker,
    * if the cluster ID not found return an {@link IdUtils#EMPTY_CLUSTER_ID} .
    */
-  AtomicReference<String> getClusterId();
+  AtomicReference<String> getOrDefaultClusterId(String defaultValue);
 
   /**
    * Aborts the temporary block created by the session.

@@ -253,7 +253,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Start serving RPC, this will block
     LOG.info("Alluxio worker started. clusterId={}, workerId={}, bindHost={}, "
             + "connectHost={}, rpcPort={}, webPort={}",
-        mRegistry.get(BlockWorker.class).getClusterId().get(),
+        mRegistry.get(BlockWorker.class).getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get(),
         mRegistry.get(BlockWorker.class).getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
@@ -318,7 +318,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      if (mRegistry.get(BlockWorker.class).getClusterId().get()
+      if (mRegistry.get(BlockWorker.class).getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get()
           .equals(IdUtils.INVALID_CLUSTER_ID)) {
         LOG.warn("BlockWorker clsuter ID: {} "
                 + "This may be caused by the worker process not be able to persist the clusterid"

@@ -404,9 +404,10 @@ public class DefaultBlockWorkerTest {
         .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
-    // Only workerId will be set
+    // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
     mBlockWorker.handlePreRegisterCommand(cmd);
-    assertEquals(IdUtils.EMPTY_CLUSTER_ID, mBlockWorker.getClusterId().get());
+    assertEquals(IdUtils.EMPTY_CLUSTER_ID,
+        mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -419,7 +420,7 @@ public class DefaultBlockWorkerTest {
 
     // the new cluster ID will be persisted
     mBlockWorker.handlePreRegisterCommand(cmd);
-    assertEquals(newClusterId, mBlockWorker.getClusterId().get());
+    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -430,7 +431,7 @@ public class DefaultBlockWorkerTest {
         .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_CLEAN_BLOCKS)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterCommand(cmd);
-    assertEquals(newClusterId, mBlockWorker.getClusterId().get());
+    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
     // todo update this after add the function of "clean all block and reset status"
     //  in PreRegisterCommand
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
@@ -438,14 +439,16 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void GetClusterIdFromEmpty() {
-    assertEquals(IdUtils.EMPTY_CLUSTER_ID, mBlockWorker.getClusterId().get());
+    assertEquals(IdUtils.EMPTY_CLUSTER_ID,
+        mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test
   public void setAndGetClusterId() throws IOException {
     String mClusterID = java.util.UUID.randomUUID().toString();
     mBlockWorker.setClusterId(mClusterID);
-    assertEquals(mClusterID, mBlockWorker.getClusterId().get());
+    assertEquals(mClusterID,
+        mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test

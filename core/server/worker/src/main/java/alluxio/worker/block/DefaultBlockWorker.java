@@ -226,9 +226,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public AtomicReference<String> getClusterId() {
+  public AtomicReference<String> getOrDefaultClusterId(String defaultValue) {
     String mClusterId = mBlockWorkerDB.getClusterId();
-    mClusterId = mClusterId.isEmpty() ? IdUtils.EMPTY_CLUSTER_ID : mClusterId;
+    mClusterId = mClusterId.isEmpty() ? defaultValue : mClusterId;
     return new AtomicReference<>(mClusterId);
   }
 
@@ -291,11 +291,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         new AtomicReference<>(PreRegisterCommand.newBuilder()
             .setPreRegisterCommandType(PreRegisterCommandType.UNKNOWN).build());
 
-    // preRegister, get clusterId WorkerId in the phase.
+    // preRegister phase.
     boolean hasBlockInTier = getStoreMetaFull().getNumberOfBlocks() != 0;
     try {
       RetryUtils.retry("worker preRegisterWithMaster ", () -> mCommandFromMaster.set(
-          blockMasterClient.preRegisterWithMaster(getClusterId().get(), address, hasBlockInTier)),
+          blockMasterClient.preRegisterWithMaster(
+              getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get(), address, hasBlockInTier)),
           RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration.getDuration(
                       PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
