@@ -11,6 +11,8 @@
 
 package alluxio.web;
 
+import static alluxio.Constants.REST_API_PREFIX;
+
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -45,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
   private static final String DISABLED_METHODS = "TRACE,OPTIONS";
-  private static final String THREAD_DUMP_PATH = "/api/v1/common/thread_dump";
+  private static final String THREAD_DUMP_PATH = REST_API_PREFIX + "/common/thread_dump";
 
   private final Server mServer;
   private final String mServiceName;
