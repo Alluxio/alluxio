@@ -482,8 +482,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (offset + sz <= bytesWritten) {
       LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
           path, offset, sz, bytesWritten);
-      // TODO(lu) validate if it works? do i need to return sz?
-      return 0;
+      // To fulfill vim :wq
+      return sz;
     }
 
     try {
