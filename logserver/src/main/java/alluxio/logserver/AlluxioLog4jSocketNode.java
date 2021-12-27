@@ -15,6 +15,7 @@ import alluxio.AlluxioRemoteLogFilter;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Hierarchy;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -66,13 +67,14 @@ public class AlluxioLog4jSocketNode implements Runnable {
 
   @Override
   public void run() {
-    try (ObjectInputStream objectInputStream = new ObjectInputStream(
-        new BufferedInputStream(mSocket.getInputStream()))) {
+    try (ValidatingObjectInputStream validatingObjectInputStream = new ValidatingObjectInputStream(
+        new ObjectInputStream(new BufferedInputStream(mSocket.getInputStream())))) {
       LoggerRepository hierarchy = null;
+      validatingObjectInputStream.accept(LoggingEvent.class);
       while (!Thread.currentThread().isInterrupted()) {
         LoggingEvent event;
         try {
-          event = (LoggingEvent) objectInputStream.readObject();
+          event = (LoggingEvent) validatingObjectInputStream.readObject();
         } catch (ClassNotFoundException e) {
           throw new RuntimeException("Class of serialized object cannot be found.", e);
         } catch (IOException e) {
