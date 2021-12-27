@@ -26,6 +26,8 @@ alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
 alluxio.fuse.shared.caching.reader.enabled:
   '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
+alluxio.fuse.special.command.enabled:
+  'If enabled, user can issue special FUSE commands by using ''ls -l /path/to/fuse_mount/.alluxiocli.&lt;command_name&gt;.&lt;subcommand_name&gt;'', For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll'' will drop all the user metadata cache. ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size'' will get the metadata cache size， the size value will be show in the output''s filesize field. ''ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop'' will drop the metadata cache of path ''/mnt/alluxio-fuse/path/to/be/cleaned/'''
 alluxio.fuse.umount.timeout:
   'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem. After the timeout, all in progress file read will be forced to stop and all in progress file write will be abandoned.'
 alluxio.fuse.user.group.translation.enabled:
@@ -54,6 +56,8 @@ alluxio.hub.authentication.apiKey:
   'The API key of Hub manager.'
 alluxio.hub.authentication.secretKey:
   'The secret key of Hub Manager.'
+alluxio.hub.cluster.id:
+  'A user-defined id for the Hub cluster. Must be unique from other Hub clusters connecting to the same Hosted Hub tenant. Must be a 4-character alphanumeric string.'
 alluxio.hub.cluster.label:
   'A user-defined label for the Hub cluster.'
 alluxio.hub.hosted.rpc.hostname:
@@ -186,6 +190,10 @@ alluxio.network.host.resolution.timeout:
   'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
 alluxio.network.ip.address.used:
   'If true, when alluxio.&lt;service_name&gt;.hostname and alluxio.&lt;service_name&gt;.bind.host of a service not specified, use IP as the connect host of the service.'
+alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval:
+  'The complete multipart upload keepalive time.'
+alluxio.proxy.s3.complete.multipart.upload.pool.size:
+  'The complete multipart upload thread pool size.'
 alluxio.proxy.s3.deletetype:
   'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
 alluxio.proxy.s3.multipart.temporary.dir.suffix:
@@ -212,6 +220,8 @@ alluxio.secondary.master.metastore.dir:
   'The secondary master metastore work directory. Only some metastores need disk.'
 alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.site.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.standalone.fuse.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on the standalone fuse process. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
 alluxio.table.catalog.path:
   'The Alluxio file path for the table catalog metadata.'
 alluxio.table.catalog.udb.sync.timeout:

@@ -3,4 +3,5 @@ Fuse.BytesRead,COUNTER
 Fuse.BytesToRead,COUNTER
 Fuse.CachedPathCount,GAUGE
 Fuse.ReadingFileCount,GAUGE
+Fuse.TotalCalls,TIMER
 Fuse.WritingFileCount,GAUGE
