@@ -29,7 +29,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,6 +49,15 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private final String mBaseLogsDir;
   private final Socket mSocket;
 
+  private static void setAcceptList(ValidatingObjectInputStream validatingObjectInputStream) {
+    validatingObjectInputStream.accept(java.util.Hashtable.class);
+    validatingObjectInputStream.accept("java.lang.*", "[Ljava.lang.*");
+    validatingObjectInputStream.accept(org.apache.log4j.spi.LoggingEvent.class);
+    validatingObjectInputStream.accept(org.apache.log4j.spi.LocationInfo.class);
+    validatingObjectInputStream.accept(org.apache.log4j.spi.RootLogger.class);
+    validatingObjectInputStream.accept(org.apache.log4j.spi.ThrowableInformation.class);
+  }
+
   /**
    * Constructor of {@link AlluxioLog4jSocketNode}.
    *
@@ -68,9 +76,9 @@ public class AlluxioLog4jSocketNode implements Runnable {
   @Override
   public void run() {
     try (ValidatingObjectInputStream validatingObjectInputStream = new ValidatingObjectInputStream(
-        new ObjectInputStream(new BufferedInputStream(mSocket.getInputStream())))) {
+        new BufferedInputStream(mSocket.getInputStream()))) {
       LoggerRepository hierarchy = null;
-      validatingObjectInputStream.accept(LoggingEvent.class);
+      setAcceptList(validatingObjectInputStream);
       while (!Thread.currentThread().isInterrupted()) {
         LoggingEvent event;
         try {
