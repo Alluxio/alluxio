@@ -417,7 +417,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
 
-    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    if (!entry.getMediumTypeList().isEmpty()) {
+      ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    }
     return ret;
   }
 
@@ -542,8 +544,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
-        .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setTempUfsPath(inode.getPersistJobTempUfsPath());
+    if (!inode.getMediumTypeList().isEmpty()) {
+      f.setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+    }
     if (inode.getXAttrCount() > 0) {
       f.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
     }

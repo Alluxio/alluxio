@@ -63,6 +63,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
+  // TODO(jiacheng): figure out what this does
   private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
@@ -81,7 +82,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mMediumTypes = new HashSet<>();
+    mMediumTypes = Collections.emptySet();
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mXAttr = null;
@@ -610,12 +611,14 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.
       if (entry.getPinned()) {
+        // TODO(jiacheng): get rid of this
         List<String> mediaList = ServerConfiguration.getList(
             PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
-        setMediumTypes(entry.getMediumTypeList().stream()
-            .filter(mediaList::contains).collect(Collectors.toSet()));
-      } else {
-        setMediumTypes(Collections.emptySet());
+        Set<String> validMediums = entry.getMediumTypeList().stream()
+            .filter(mediaList::contains).collect(Collectors.toSet());
+        if (!validMediums.isEmpty()) {
+          setMediumTypes(validMediums);
+        }
       }
     }
   }

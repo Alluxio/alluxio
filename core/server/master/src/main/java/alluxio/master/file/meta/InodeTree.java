@@ -807,7 +807,9 @@ public class InodeTree implements DelegatingJournaled {
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
       if (currentInodeDirectory.isPinned() && !newDir.isPinned()) {
         newDir.setPinned(true);
-        newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+        if (!currentInodeDirectory.getMediumTypes().isEmpty()) {
+          newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+        }
       }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
@@ -913,7 +915,9 @@ public class InodeTree implements DelegatingJournaled {
     }
     if (currentInodeDirectory.isPinned() && !newInode.isPinned()) {
       newInode.setPinned(true);
-      newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      if (!currentInodeDirectory.getMediumTypes().isEmpty()) {
+        newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      }
     }
 
     mState.applyAndJournal(rpcContext, newInode,
