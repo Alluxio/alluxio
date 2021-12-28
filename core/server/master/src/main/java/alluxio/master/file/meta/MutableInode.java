@@ -63,7 +63,6 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  // TODO(jiacheng): figure out what this does
   private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
@@ -618,7 +617,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
             .filter(mediaList::contains).collect(Collectors.toSet());
         if (!validMediums.isEmpty()) {
           setMediumTypes(validMediums);
+        } else {
+          setMediumTypes(Collections.emptySet());
         }
+      } else {
+        setMediumTypes(Collections.emptySet());
       }
     }
   }

@@ -25,6 +25,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
+import java.util.Collections;
 import java.util.HashSet;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -211,6 +212,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     }
     if (!entry.getMediumTypeList().isEmpty()) {
       ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    } else {
+      ret.setMediumTypes(Collections.emptySet());
     }
     if (entry.getXAttrCount() > 0) {
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
@@ -308,6 +311,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
     if (!inode.getMediumTypeList().isEmpty()) {
       d.setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+    } else {
+      d.setMediumTypes(Collections.emptySet());
     }
     if (inode.getXAttrCount() > 0) {
       d.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));

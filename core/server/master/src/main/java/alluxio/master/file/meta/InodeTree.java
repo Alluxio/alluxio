@@ -809,6 +809,8 @@ public class InodeTree implements DelegatingJournaled {
         newDir.setPinned(true);
         if (!currentInodeDirectory.getMediumTypes().isEmpty()) {
           newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+        } else {
+          newDir.setMediumTypes(Collections.emptySet());
         }
       }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
@@ -917,6 +919,8 @@ public class InodeTree implements DelegatingJournaled {
       newInode.setPinned(true);
       if (!currentInodeDirectory.getMediumTypes().isEmpty()) {
         newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      } else {
+        newInode.setMediumTypes(Collections.emptySet());
       }
     }
 
