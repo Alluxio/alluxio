@@ -100,7 +100,7 @@ If the data is not in a remote data storage, you can copy it to Alluxio namespac
 ```console
 $ wget https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
 $ ./bin/alluxio fs mkdir /training-data/mnist 
-$ ./bin/alluxio fs copyFromLocal mnitt.npz /training-data/mnist 
+$ ./bin/alluxio fs copyFromLocal mnist.npz /training-data/mnist 
 ```
 
 Suppose the MNIST data is stored in an S3 bucket `s3://alluxio-tensorflow-mnist/`, 
