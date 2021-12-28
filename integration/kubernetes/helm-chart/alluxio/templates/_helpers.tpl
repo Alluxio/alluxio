@@ -75,6 +75,28 @@ resources:
     {{- end }}
 {{- end -}}
 
+{{- define "alluxio.proxy.resources" -}}
+resources:
+  limits:
+    {{- if .Values.proxy.resources.limits }}
+      {{- if .Values.proxy.resources.limits.cpu  }}
+    cpu: {{ .Values.proxy.resources.limits.cpu }}
+      {{- end }}
+      {{- if .Values.proxy.resources.limits.memory  }}
+    memory: {{ .Values.proxy.resources.limits.memory }}
+      {{- end }}
+    {{- end }}
+  requests:
+    {{- if .Values.proxy.resources.requests }}
+      {{- if .Values.proxy.resources.requests.cpu  }}
+    cpu: {{ .Values.proxy.resources.requests.cpu }}
+      {{- end }}
+      {{- if .Values.proxy.resources.requests.memory  }}
+    memory: {{ .Values.proxy.resources.requests.memory }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
+
 {{- define "alluxio.master.resources" -}}
 resources:
   limits:
