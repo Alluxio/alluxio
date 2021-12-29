@@ -123,6 +123,18 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         mActiveJobToInodeID::size);
   }
 
+  private boolean shouldRun() {
+    // In unit tests there may not be workers, but we still want the ReplicationChecker to execute
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      return true;
+    }
+    if (mSafeModeManager.isInSafeMode() || mBlockMaster.getWorkerCount() == 0) {
+      LOG.debug("Skip the ReplicationChecker in safe mode and when there are no workers");
+      return false;
+    }
+    return true;
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -136,9 +148,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() throws InterruptedException {
-    // skips replication in safe mode and when there are no workers
-    if (mSafeModeManager.isInSafeMode() || mBlockMaster.getWorkerCount() == 0) {
-      LOG.debug("Skip the ReplicationChecker in safe mode and when there are no workers");
+    if (!shouldRun()) {
       return;
     }
     final Set<Long> activeJobIds = new HashSet<>();
