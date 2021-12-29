@@ -122,7 +122,7 @@ Download the [image recognition script](https://github.com/ssz1997/AlluxioFuseTe
 and run it with the training data `/mnt/fuse/mnist.npz`.
 
 ```console
-$ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py
+$ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py?raw=true
 $ python3 mnist_test.py /mnt/fuse/mnist.npz
 ```
 
