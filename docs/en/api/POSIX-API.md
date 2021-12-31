@@ -515,10 +515,13 @@ $ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
 For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
 
 ### Fuse metrics
-To monitor Fuse-related metrics for standalone Fuse process, setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
-before launching the standalone Fuse process.
-Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics for
-both standalone Fuse process and Fuse on worker process, and what each metric is used for.
+
+Depending on the Fuse deployment type, Fuse metrics can be exposed as worker metrics (Fuse on worker process) or client metrics (Standalone FUSE process).
+Check out the [metrics introduction doc]({{ '/en/operation/Metrics-System.html' | relativize_url }}) for how to get Fuse metrics.
+
+Fuse metrics include Fuse specific metrics and general client metrics.
+Check out the [Fuse metrics list]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) about more details of
+what metrics are recorded and how to use those metrics.
 
 ## Performance Tuning
 
