@@ -607,3 +607,40 @@ $ cd async-profiler && ./profiler.sh -e lock -d 30 -f lock.txt `jps | grep Allux
 - `-d` define the duration. Try to cover the whole POSIX API testing duration
 - `-e` define the profiling target
 - `-f` define the file name to dump the profile information to
+
+## Fuse Shell Tool
+The Alluxio JNI-Fuse client provides a useful shell tool to perform some internal operations, such as clearing the client metadata cache. 
+If our Alluxio-Fuse mount point is `/mnt/alluxio-fuse`, the command patten of Fuse Shell is:
+```
+ls -l /mnt/alluxio-fuse/.alluxiocli.[COMMAND].[SUBCOMMAND]
+```
+Among them, the `/.alluxiocli` is the identification string of Fuse Shell, `COMMAND` is the main command (such as `metadatacache`), and `SUBCOMMAND` is the subcommand (such as `drop, size, dropAll`).
+Currently, Fuse Shell only supports `metadatacache` command to clear cache or get cache size, and we will expand more commands and interactive methods in the future. 
+It should be noted that to use the Fuse Shell tool, the configuration item `alluxio.fuse.special.command.enabled` needs to be set to true.
+```
+alluxio.fuse.special.command.enabled=true
+```
+### Metadatacache Command
+When we use Alluxio fuse, we usually turn on the client metadata cache. For example, in a scenario that reads a large number of small files such as AI, enabling client metadata caching can relieve Alluxio Master's metadata pressure and improve read performance.
+When the data in Alluxio is updated, the metadata cache of the client needs to be updated. Usually, you need to wait for the timeout configured by `alluxio.user.metadata.cache.expiration.time` to invalidate the metadata cache.
+This means that there is a time window metadata that may be invalid. In this case, it is recommended to use the metadatacache command of Fuse Shell to clean up the client metadata cache in time. The format of `metadatacache` command is：
+```
+ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.[dropAll|drop|size]
+```
+
+####**Usage Example**
+
+- Clean up all metadata caches：
+```
+ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll
+```
+- Clear the cache of a path and its parent directory under the mount point：
+```
+ls -l /mnt/alluxio-fuse/dir/dir1/.alluxiocli.metadatacache.drop
+```
+The above command will clear the metadata of `/mnt/alluxio-fuse/dir/dir1` and the metadata cache of `/mnt/alluxio-fuse/dir/`.
+
+- Get the client metadata size
+```
+ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+```
