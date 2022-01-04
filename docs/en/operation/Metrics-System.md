@@ -135,7 +135,7 @@ scrape_configs:
   - job_name: "alluxio standalone fuse"
       metrics_path: '/metrics/prometheus/'
       static_configs:
-         - targets: [ '<FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>' ]
+      - targets: [ '<FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>' ]
 ```
 
 <b>Be wary when specifying which metrics you want to poll.</b> Prometheus modifies metrics names in order to process them.
