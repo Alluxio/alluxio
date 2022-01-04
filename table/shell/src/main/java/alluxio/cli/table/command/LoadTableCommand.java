@@ -303,6 +303,17 @@ public class LoadTableCommand extends AbstractTableCommand {
     List<URIStatus> filePool = new ArrayList<>(batchSize);
     // Only support hive table for now.
     String udbType = "hive";
+    // To load table into Alluxio space, we get the SDS table's Alluxio parent path first and
+    // then load data under the path. For now, each table have one single parent path generated
+    // by CatalogPathUtils#getTablePathUdb.
+    // The parent path is mounted by SDS, it's mapping of Utable's UFS path in Alluxio.
+    // e.g.
+    //                                                   attached
+    // [SDS]default.test                                 <===== [hive]default.test
+    //                                                    mount
+    // [SDS]alluxio:///catalog/default/tables/test/hive/ <===== [hive]hdfs:///.../default.db/test/
+    // PLEASE NOTE: If Alluxio support different parent path, this statement can not guaranteed
+    // to be correct.
     AlluxioURI path = CatalogPathUtils.getTablePathUdb(dbName, tableName, udbType);
     System.out.printf("Loading table %s.%s...%n", dbName, tableName);
     DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication, workerSet,
