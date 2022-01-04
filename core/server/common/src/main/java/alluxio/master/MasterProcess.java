@@ -21,6 +21,7 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -146,8 +147,22 @@ public abstract class MasterProcess implements Process {
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
-  public boolean isServing() {
+  public boolean isGrpcServing() {
     return mGrpcServer != null && mGrpcServer.isServing();
+  }
+
+  /**
+   * @return true if the system is serving the web server, false otherwise
+   */
+  public boolean isWebServing() {
+    return mWebServer != null && mWebServer.getServer().isRunning();
+  }
+
+  /**
+   * @return true if the system is serving the metric sink, false otherwise
+   */
+  public boolean isMetricSinkServing() {
+    return MetricsSystem.isStarted();
   }
 
   void registerServices(GrpcServerBuilder serverBuilder,
@@ -158,12 +173,11 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  @Override
-  public boolean waitForReady(int timeoutMs) {
+  public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
           () -> {
-            boolean ready = isServing();
+            boolean ready = isGrpcServing();
             if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
               ready &= mWebServer != null && mWebServer.getServer().isRunning();
             }
@@ -176,6 +190,11 @@ public abstract class MasterProcess implements Process {
     } catch (TimeoutException e) {
       return false;
     }
+  }
+
+  @Override
+  public boolean waitForReady(int timeoutMs) {
+    return waitForGrpcServerReady(timeoutMs);
   }
 
   protected void startRejectingServers() {

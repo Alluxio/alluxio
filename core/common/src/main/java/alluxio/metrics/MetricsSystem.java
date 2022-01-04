@@ -264,6 +264,9 @@ public final class MetricsSystem {
     sSinks = null;
   }
 
+  /**
+   * @return true if the metric system is started, false otherwise
+   */
   @VisibleForTesting
   public static synchronized boolean isStarted() {
     return sSinks != null;

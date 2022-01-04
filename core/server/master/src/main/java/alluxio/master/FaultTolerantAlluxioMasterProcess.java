@@ -168,7 +168,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     mServingThread = new Thread(() -> {
       try {
-        // Starts disabled services after gained primacy.
         startCommonServices();
         startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
@@ -193,7 +192,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
       stopLeaderServing();
-      stopCommonServices(false, false);
+      stopCommonServices();
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
@@ -233,19 +232,19 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   @Override
-  protected boolean isWebServerReady() {
+  public boolean isWebServing() {
     // Ignore standby master web server checking if it is disabled.
     if (!ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)
         && mLeaderSelector.getState() == State.STANDBY) {
       return true;
     }
-    return super.isWebServerReady();
+    return super.isWebServing();
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
+  public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
+      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isGrpcServing()),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
@@ -256,16 +255,32 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
   }
 
+  @Override
   protected void startCommonServices() {
-    boolean isPrimary = mLeaderSelector.getState() == State.PRIMARY;
+    boolean isStandby = mLeaderSelector.getState() == State.STANDBY;
     if (ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) != isPrimary) {
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == isStandby) {
+      LOG.info("Start metric sinks.");
       MetricsSystem.startSinks(
           ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
     }
     if (ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_WEB_ENABLED) != isPrimary) {
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == isStandby) {
+      LOG.info("Start web server.");
       startServingWebServer();
+    }
+  }
+
+  @Override
+  protected void stopCommonServices() throws Exception {
+    boolean isStandby = mLeaderSelector.getState() == State.STANDBY;
+    if (ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == isStandby) {
+      MetricsSystem.stopSinks();
+    }
+    if (ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == isStandby) {
+      stopServingWebServer();
     }
   }
 }

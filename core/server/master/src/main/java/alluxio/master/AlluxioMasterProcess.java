@@ -374,7 +374,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected void stopLeaderServing() {
-    if (isServing()) {
+    if (isGrpcServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
@@ -391,15 +391,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  protected void stopCommonServices(boolean force, boolean stopIfEnabled) throws Exception {
-    if (force || ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == stopIfEnabled) {
-      MetricsSystem.stopSinks();
-    }
-    if (force || ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == stopIfEnabled) {
-      stopServingWebServer();
-    }
+  protected void stopCommonServices() throws Exception {
+    MetricsSystem.stopSinks();
+    stopServingWebServer();
   }
 
   /**
@@ -407,7 +401,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void stopServing() throws Exception {
     stopLeaderServing();
-    stopCommonServices(true, true);
+    stopCommonServices();
     stopJvmMonitorProcess();
   }
 
@@ -428,7 +422,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   public boolean waitForWebServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          this::isWebServerReady, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+          this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -436,10 +430,6 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (TimeoutException e) {
       return false;
     }
-  }
-
-  protected boolean isWebServerReady() {
-    return mWebServer != null && mWebServer.getServer().isRunning();
   }
 
   @Override

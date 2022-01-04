@@ -21,7 +21,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -203,7 +202,6 @@ public final class AlluxioMasterProcessTest {
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
-    Thread.sleep(2000);
     primarySelector.setState(PrimarySelector.State.STANDBY);
     t.join(10000);
     // make these two lines flake less
@@ -256,8 +254,8 @@ public final class AlluxioMasterProcessTest {
   private void startStopTest(AlluxioMasterProcess master,
       boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
     waitForAllServingReady(master, 5000);
-    assertTrue(expectWebServiceStarted == (master.getWebAddress() != null));
-    assertTrue(expectMetricsSinkStarted == MetricsSystem.isStarted());
+    assertTrue(expectWebServiceStarted == master.isWebServing());
+    assertTrue(expectMetricsSinkStarted == master.isMetricSinkServing());
     master.stop();
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));
@@ -273,7 +271,7 @@ public final class AlluxioMasterProcessTest {
     boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
     ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     // Wait for the grpc service ready within 5 second.
-    master.waitForReady(timeoutMs);
+    master.waitForGrpcServerReady(timeoutMs);
     // Wait for the web server ready within 5 second.
     master.waitForWebServerReady(timeoutMs);
     ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
