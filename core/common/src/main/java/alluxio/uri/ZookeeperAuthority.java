@@ -13,6 +13,10 @@ package alluxio.uri;
 
 import com.google.common.base.Objects;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
  */
@@ -44,7 +48,11 @@ public final class ZookeeperAuthority implements Authority {
       return false;
     }
     ZookeeperAuthority that = (ZookeeperAuthority) o;
-    return toString().equals(that.toString());
+
+    Set<String> firstAuthority = new HashSet<>(Arrays.asList(mZkAddress.split(",")));
+    Set<String> secondAuthority = new HashSet<>(Arrays.asList(that.mZkAddress.split(",")));
+
+    return firstAuthority.equals(secondAuthority);
   }
 
   @Override

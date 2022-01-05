@@ -13,6 +13,10 @@ package alluxio.uri;
 
 import com.google.common.base.Objects;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * A multi-master authority implementation.
  */
@@ -54,7 +58,11 @@ public class MultiMasterAuthority implements Authority {
       return false;
     }
     MultiMasterAuthority that = (MultiMasterAuthority) o;
-    return toString().equals(that.toString());
+
+    Set<String> firstAuthority = new HashSet<>(Arrays.asList(toString().split(",")));
+    Set<String> secondAuthority = new HashSet<>(Arrays.asList(that.toString().split(",")));
+
+    return firstAuthority.equals(secondAuthority);
   }
 
   @Override
