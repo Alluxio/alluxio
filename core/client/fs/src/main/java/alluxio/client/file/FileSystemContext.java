@@ -250,7 +250,7 @@ public class FileSystemContext implements Closeable {
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
-        mId, mBlockWorker == null);
+        mId, mBlockWorker != null);
   }
 
   /**
