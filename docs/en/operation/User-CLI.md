@@ -851,6 +851,7 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality-file <locality-file>`: Specifies a file contains worker locality which shouldn't load target data, each line has a worker locality.
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
+* `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today

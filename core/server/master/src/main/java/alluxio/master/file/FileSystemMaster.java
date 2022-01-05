@@ -259,6 +259,12 @@ public interface FileSystemMaster extends Master {
   Map<String, MountPointInfo> getMountPointInfoSummary();
 
   /**
+   * @param invokeUfs if true, invoke ufs to set ufs properties
+   * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs);
+
+  /**
    * Gets the mount point information of an Alluxio path for display purpose.
    *
    * @param path an Alluxio path which must be a mount point

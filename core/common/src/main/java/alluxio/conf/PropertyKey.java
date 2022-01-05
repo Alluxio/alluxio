@@ -480,7 +480,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey NETWORK_IP_ADDRESS_USED =
       new Builder(Name.NETWORK_IP_ADDRESS_USED)
-          .setDefaultValue("false")
+          .setDefaultValue(false)
           .setDescription("If true, when alluxio.<service_name>.hostname and "
               + "alluxio.<service_name>.bind.host of a service not specified, "
               + "use IP as the connect host of the service.")
@@ -2014,7 +2014,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
       new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
-          .setDefaultValue("true")
+          .setDefaultValue(true)
           .setDescription("Whether to inherit the owner/group from the parent when creating a new "
               + "inode path if empty")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2525,7 +2525,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)
-          .setDefaultValue("true")
+          .setDefaultValue(true)
           .setDescription("Whether to perform an initial sync when we add a sync point")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2860,7 +2860,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
       new Builder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
-          .setDefaultValue("true")
+          .setDefaultValue(true)
           .setDescription("Whether workers request for leases before they register. "
               + "The RegisterLease is used by the master to control the concurrency of workers"
               + " that are actively registering.")
@@ -2877,7 +2877,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE =
       new Builder(Name.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)
-          .setDefaultValue("true")
+          .setDefaultValue(true)
           .setDescription("Whether the master checks the availability on the JVM before granting"
               + " a lease to a worker. If the master determines the JVM does not have enough"
               + " space to accept a new worker, the RegisterLease will not be granted.")
@@ -3005,7 +3005,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
       new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)
-          .setDefaultValue("false")
+          .setDefaultValue(false)
           .setDescription("If true, the property " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS
               + "is the path to the home directory for the domain socket and a unique identifier "
               + "is used as the domain socket name. If false, the property is the absolute path "
@@ -3428,7 +3428,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_ENABLED =
       new Builder(Name.WORKER_REGISTER_STREAM_ENABLED)
-          .setDefaultValue("true")
+          .setDefaultValue(true)
           .setDescription("When the worker registers with the master, whether the request should be"
               + " broken into a stream of smaller batches. This is useful when the worker's storage"
               + " is large and we expect a large number of blocks. ")
@@ -3817,7 +3817,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLED =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLED)
-          .setDefaultValue("true")
+          .setDefaultValue(true)
           .setDescription("Enable caching for seekable under storage input stream, "
               + "so that subsequent seek operations on the same file will reuse "
               + "the cached input stream. This will improve position read performance "
@@ -4392,7 +4392,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_PERSIST_ON_RENAME =
       new Builder(Name.USER_FILE_PERSIST_ON_RENAME)
-          .setDefaultValue("false")
+          .setDefaultValue(false)
           .setDescription("Whether or not to asynchronously persist any files which have been "
               + "renamed. This is helpful when working with compute frameworks which use rename "
               + "to commit results.")
@@ -4596,7 +4596,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_QUOTA_ENABLED =
       new Builder(Name.USER_CLIENT_CACHE_QUOTA_ENABLED)
-          .setDefaultValue("false")
+          .setDefaultValue(false)
           .setDescription("Whether to support cache quota.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5910,6 +5910,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The secret key of Hub Manager.")
                   .setDisplayType(DisplayType.CREDENTIALS)
                   .build();
+  public static final PropertyKey HUB_CLUSTER_ID =
+          new Builder(Name.HUB_CLUSTER_ID)
+                  .setDescription("A user-defined id for the Hub cluster. Must be unique from "
+                          + "other Hub clusters connecting to the same Hosted Hub tenant. Must be "
+                          + "a 4-character alphanumeric string.")
+                  .build();
   public static final PropertyKey HUB_CLUSTER_LABEL =
           new Builder(Name.HUB_CLUSTER_LABEL)
                   .setDefaultValue("Alluxio Hub")
@@ -7206,6 +7212,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String HUB_AUTHENTICATION_API_KEY = "alluxio.hub.authentication.apiKey";
     public static final String HUB_AUTHENTICATION_SECRET_KEY =
             "alluxio.hub.authentication.secretKey";
+    public static final String HUB_CLUSTER_ID =
+            "alluxio.hub.cluster.id";
     public static final String HUB_CLUSTER_LABEL =
             "alluxio.hub.cluster.label";
     public static final String HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME =

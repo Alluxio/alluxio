@@ -13,7 +13,7 @@ version: "2"
 services:
   # Agent
   otel-agent:
-    image: otel/opentelemetry-collector-dev:latest
+    image: otel/opentelemetry-collector-dev:b24db545eb56e2ee7dcf6a8f3740ce49bb80608b
     environment:
       MASTER_IP: "${MASTER_IP}"
     command: ["--config=/etc/otel-agent-config-worker.yaml"]

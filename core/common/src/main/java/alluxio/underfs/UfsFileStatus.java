@@ -40,8 +40,9 @@ public class UfsFileStatus extends UfsStatus {
    * @param xAttr extended attributes, if any
    * @param blockSize blocksize, -1 if unknown
    */
-  public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
-      String owner, String group, short mode, @Nullable Map<String, byte[]> xAttr, long blockSize) {
+  public UfsFileStatus(String name, String contentHash, long contentLength,
+      @Nullable Long lastModifiedTimeMs, String owner, String group, short mode,
+      @Nullable Map<String, byte[]> xAttr, long blockSize) {
     super(name, false, owner, group, mode, lastModifiedTimeMs, xAttr);
     mContentHash = contentHash;
     mContentLength = contentLength;
@@ -60,8 +61,9 @@ public class UfsFileStatus extends UfsStatus {
    * @param mode of the file
    * @param blockSize blocksize, -1 if unknown
    */
-  public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
-      String owner, String group, short mode, long blockSize) {
+  public UfsFileStatus(String name, String contentHash, long contentLength,
+      @Nullable Long lastModifiedTimeMs, String owner, String group,
+      short mode, long blockSize) {
     super(name, false, owner, group, mode, lastModifiedTimeMs, /* xattrs */ null);
     mContentHash = contentHash;
     mContentLength = contentLength;
@@ -84,8 +86,9 @@ public class UfsFileStatus extends UfsStatus {
    * @param xAttr extended attributes, if any
    */
   @Deprecated
-  public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
-      String owner, String group, short mode, @Nullable Map<String, byte[]> xAttr) {
+  public UfsFileStatus(String name, String contentHash, long contentLength,
+      @Nullable Long lastModifiedTimeMs, String owner, String group, short mode,
+      @Nullable Map<String, byte[]> xAttr) {
     this(name, contentHash, contentLength, lastModifiedTimeMs, owner, group, mode, xAttr,
         UNKNOWN_BLOCK_SIZE);
   }
@@ -105,8 +108,8 @@ public class UfsFileStatus extends UfsStatus {
    * @param mode of the file
    */
   @Deprecated
-  public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
-      String owner, String group, short mode) {
+  public UfsFileStatus(String name, String contentHash, long contentLength,
+      @Nullable Long lastModifiedTimeMs, String owner, String group, short mode) {
     this(name, contentHash, contentLength, lastModifiedTimeMs, owner, group, mode, null,
         UNKNOWN_BLOCK_SIZE);
   }

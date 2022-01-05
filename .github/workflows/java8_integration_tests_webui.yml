@@ -45,17 +45,6 @@ jobs:
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
-      - name: Generate coverage report
-        id: cov0
-        if: always()
-        run: |
-          mkdir -p ~/.m2
-          ALLUXIO_DOCKER_NO_TTY=true \
-          ALLUXIO_COVERAGE_REPORT=true \
-          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!shaded/hadoop,!shaded/ozone,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!table/server/underdb/hive,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
-          dev/github/run_docker.sh
-        timeout-minutes: 60
       
       - name: Archive artifacts
         continue-on-error: true
@@ -68,11 +57,3 @@ jobs:
             **/target/artifacts/*
             **/target/logs/*
           retention-days: 7
-      - name: "Upload Code Coverage Report"
-        uses: codecov/codecov-action@v1
-        if: always()
-        with:
-          file: ./**/target/site/jacoco/jacoco.xml # optional
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true

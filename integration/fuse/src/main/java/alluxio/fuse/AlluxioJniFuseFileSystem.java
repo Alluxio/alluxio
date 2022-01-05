@@ -25,7 +25,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
-import alluxio.fuse.cli.FuseShell;
+import alluxio.cli.FuseShell;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -45,7 +45,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -233,22 +232,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       URIStatus status = null;
       // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
-          && mFuseShell.isFuseSpecialCommand(uri)) {
+          && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {
         status = mFileSystem.getStatus(uri);
       }
-      if (!status.isCompleted()) {
-        // Always block waiting for file to be completed except when the file is writing
-        // We do not want to block the writing process
-        if (!mCreateFileEntries.contains(PATH_INDEX, path)
-            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          LOG.error("File {} is not completed", path);
-        }
-        status = mFileSystem.getStatus(uri);
-      }
       long size = status.getLength();
+      if (!status.isCompleted()) {
+        if (mCreateFileEntries.contains(PATH_INDEX, path)) {
+          // Alluxio master will not update file length until file is completed
+          // get file length from the current output stream
+          CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
+          if (ce != null) {
+            FileOutStream os = ce.getOut();
+            size = os.getBytesWritten();
+          }
+        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          // Always block waiting for file to be completed except when the file is writing
+          // We do not want to block the writing process
+          LOG.error("File {} is not completed", path);
+        } else {
+          // Update the file status after waiting
+          status = mFileSystem.getStatus(uri);
+          size = status.getLength();
+        }
+      }
       stat.st_size.set(size);
 
       // Sets block number to fulfill du command needs
@@ -326,16 +335,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int open(String path, FuseFileInfo fi) {
     final int flags = fi.flags.get();
-    boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY;
-    String methodName = overwrite ? "Fuse.OpenOverwrite" : "Fuse.Open";
-    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, overwrite),
-        methodName, "path=%s,flags=0x%x", path, flags);
+    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi),
+        "Fuse.open", "path=%s,flags=0x%x", path, flags);
   }
 
-  private int openInternal(String path, FuseFileInfo fi, boolean overwrite) {
+  private int openInternal(String path, FuseFileInfo fi) {
+    final int flags = fi.flags.get();
+    boolean overwrite = AlluxioFuseUtils.isOpenOverwrite(flags);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       if (overwrite) {
+        LOG.debug(String.format("Open path %s with flags 0x%x for overwriting. "
+                + "Alluxio will delete the old file and create a new file for writing",
+            path, flags));
         if (mFileSystem.exists(uri)) {
           mFileSystem.delete(uri);
         }
@@ -423,12 +435,54 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final long fd = fi.fh.get();
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
-      LOG.error("Cannot find fd for {} in table", path);
-      return -ErrorCodes.EBADFD();
+      // error out or
+      // if readOrWrite flag detected, close the inputstream,
+      // delete file and create file for overwrite
+      final int flags = fi.flags.get();
+      FileInStream is = mOpenFileEntries.get(fd);
+      if (is == null || !AlluxioFuseUtils.isOpenReadWrite(flags)) {
+        LOG.error("Cannot find fd for {} in table", path);
+        return -ErrorCodes.EBADFD();
+      }
+      if (offset != 0) {
+        LOG.error(String.format("Cannot overwrite file {} with offset {}. "
+            + "File is opened with flags 0x%x", path, offset, fi.flags.get()));
+        return -ErrorCodes.EIO();
+      }
+      try {
+        mReleasingReadEntries.put(fd, is);
+        try {
+          synchronized (is) {
+            is.close();
+          }
+        } finally {
+          mReleasingReadEntries.remove(fd);
+        }
+        final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+        if (mFileSystem.exists(uri)) {
+          mFileSystem.delete(uri);
+        }
+        // TODO(lu) will multiple threads read()/write() concurrently?
+        FileOutStream os = mFileSystem.createFile(uri);
+        ce = new CreateFileEntry(fd, path, os);
+        mCreateFileEntries.add(ce);
+        mAuthPolicy.setUserGroupIfNeeded(uri);
+      } catch (Exception e) {
+        LOG.error("IOException while overwriting file {}.", path, e);
+        return -ErrorCodes.EIO();
+      }
     }
     FileOutStream os = ce.getOut();
-    if (offset < os.getBytesWritten()) {
-      // no op
+    long bytesWritten = os.getBytesWritten();
+    if (offset != bytesWritten && offset + sz > bytesWritten) {
+      LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
+          + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
+      return -ErrorCodes.EIO();
+    }
+    if (offset + sz <= bytesWritten) {
+      LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
+          path, offset, sz, bytesWritten);
+      // To fulfill vim :wq
       return sz;
     }
 

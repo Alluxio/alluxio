@@ -278,8 +278,8 @@ public enum ExceptionMessage {
   TRANSFORM_TABLE_URI_LACKS_AUTHORITY("URI {0} lacks authority"),
 
   // job service
-  NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK(
-      "Cannot find a local block worker to replicate blockId {0,number,#}"),
+  NO_LOCAL_BLOCK_WORKER_LOAD_TASK(
+      "Cannot find a local block worker to load blockId {0,number,#}"),
 
   // job manager
   JOB_DEFINITION_DOES_NOT_EXIST("The job definition for config {0} does not exist"),

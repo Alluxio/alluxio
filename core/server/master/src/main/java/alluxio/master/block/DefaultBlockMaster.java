@@ -436,7 +436,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           context.closeWithError(e);
         } catch (Throwable t) {
           LOG.error("Failed to close an open register stream for worker {}. "
-              + "The stream has been open for {}ms.", context.getWorkerId(), t);
+              + "The stream has been open for {}ms.", context.getWorkerId(), lastUpdate, t);
           // Do not remove the entry so this will be retried
           return false;
         }
@@ -620,7 +620,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
     }
 
-    List<WorkerInfo> workerInfoList = new ArrayList<>();
+    List<WorkerInfo> workerInfoList = new ArrayList<>(
+        selectedLiveWorkers.size() + selectedLostWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
@@ -665,14 +666,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
-        HashSet<Long> workerIds = new HashSet<>();
-
+        Set<Long> workerIds;
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent()) {
             continue;
           }
-          for (BlockLocation loc : mBlockStore.getLocations(blockId)) {
+          List<BlockLocation> locations = mBlockStore.getLocations(blockId);
+          workerIds = new HashSet<>(locations.size());
+          for (BlockLocation loc : locations) {
             workerIds.add(loc.getWorkerId());
           }
           // Two cases here:
@@ -1019,7 +1021,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Gather all blocks on this worker.
-    HashSet<Long> blocks = new HashSet<>();
+    int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();
+    HashSet<Long> blocks = new HashSet<>(totalSize);
     for (List<Long> blockIds : currentBlocksOnLocation.values()) {
       blocks.addAll(blockIds);
     }

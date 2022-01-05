@@ -177,7 +177,7 @@ $ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /path/to/s
 
 注意，需要重新启动master节点以便启用新配置。
 
-###其他加载新UFS文件的方法
+### 其他加载新UFS文件的方法
 
 建议使用前面讨论的UFS同步的方法来同步UFS中的更改。
 这是是其他一些加载文件的方法：

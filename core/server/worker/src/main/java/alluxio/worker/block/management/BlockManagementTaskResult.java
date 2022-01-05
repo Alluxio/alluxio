@@ -12,10 +12,10 @@
 package alluxio.worker.block.management;
 
 import com.google.common.base.MoreObjects;
-import net.jcip.annotations.NotThreadSafe;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Holds results of a {@link BlockManagementTask}.

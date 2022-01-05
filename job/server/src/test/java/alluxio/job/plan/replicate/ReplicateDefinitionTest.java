@@ -270,7 +270,7 @@ public final class ReplicateDefinitionTest {
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
+    mThrown.expectMessage(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_LOAD_TASK
         .getMessage(TEST_BLOCK_ID));
     runTaskReplicateTestHelper(Lists.<BlockWorkerInfo>newArrayList(), mockInStream, mockOutStream);
   }
