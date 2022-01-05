@@ -627,7 +627,7 @@ $ alluxio.fuse.special.command.enabled=true
 Client-side metadata cache can be enabled by setting `alluxio.user.metadata.cache.enabled=true` to reduce the latency of metadata cache operations and improve FUSE performance in many workloads. 
 For example, in a scenario that reads a large number of small files such as AI, enabling client metadata caching can relieve Alluxio Master's metadata pressure and improve read performance.
 When the data in Alluxio is updated, the metadata cache of the client needs to be updated. Usually, you need to wait for the timeout configured by `alluxio.user.metadata.cache.expiration.time` to invalidate the metadata cache.
-This means that there is a time window metadata that may be invalid. In this case, it is recommended to use the `metadatacache` command of Fuse Shell to clean up the client metadata cache in time. The format of `metadatacache` command is：
+This means that there is a time window that the cached metadata is outdated. In this case, it is recommended to use the `metadatacache` command of Fuse Shell to manually clean up the client metadata cache. The format of `metadatacache` command is：
 ```console
 $ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.[dropAll|drop|size]
 ```
