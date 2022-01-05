@@ -617,14 +617,15 @@ $ ls -l /mnt/alluxio-fuse/.alluxiocli.[COMMAND].[SUBCOMMAND]
 ```
 Among them, the `/.alluxiocli` is the identification string of Fuse Shell, `COMMAND` is the main command (such as `metadatacache`), and `SUBCOMMAND` is the subcommand (such as `drop, size, dropAll`).
 Currently, Fuse Shell only supports `metadatacache` command to clear cache or get cache size, and we will expand more commands and interactive methods in the future.
-To use the Fuse shell tool, alluxio.fuse.special.command.enabled needs to be set to true in ${ALLUXIO_HOME}/conf/alluxio-site.properties before launching the Fuse applications:
+To use the Fuse shell tool, `alluxio.fuse.special.command.enabled` needs to be set to true in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the Fuse applications:
 ```console
 $ alluxio.fuse.special.command.enabled=true
 ```
 
 ### Metadatacache Command
 
-When we use Alluxio fuse, we usually turn on the client metadata cache. For example, in a scenario that reads a large number of small files such as AI, enabling client metadata caching can relieve Alluxio Master's metadata pressure and improve read performance.
+Client-side metadata cache can be enabled by setting `alluxio.user.metadata.cache.enabled=true` to reduce the latency of metadata cache operations and improve FUSE performance in many workloads. 
+For example, in a scenario that reads a large number of small files such as AI, enabling client metadata caching can relieve Alluxio Master's metadata pressure and improve read performance.
 When the data in Alluxio is updated, the metadata cache of the client needs to be updated. Usually, you need to wait for the timeout configured by `alluxio.user.metadata.cache.expiration.time` to invalidate the metadata cache.
 This means that there is a time window metadata that may be invalid. In this case, it is recommended to use the `metadatacache` command of Fuse Shell to clean up the client metadata cache in time. The format of `metadatacache` command is：
 ```console
