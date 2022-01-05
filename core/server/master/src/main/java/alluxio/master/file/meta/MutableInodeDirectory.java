@@ -198,8 +198,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       // Backward compatibility.
       AccessControlList acl = new AccessControlList();
-      acl.setOwningUser(entry.getOwner());
-      acl.setOwningGroup(entry.getGroup());
+      acl.setOwningUser(entry.getOwner().intern());
+      acl.setOwningGroup(entry.getGroup().intern());
       short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
       acl.setMode(mode);
       ret.mAcl = acl;
@@ -233,8 +233,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setName(name)
         .setTtl(context.getTtl())
         .setTtlAction(context.getTtlAction())
-        .setOwner(context.getOwner())
-        .setGroup(context.getGroup())
+        .setOwner(context.getOwner().intern())
+        .setGroup(context.getGroup().intern())
         .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
