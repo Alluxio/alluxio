@@ -143,4 +143,39 @@ public class AuthorityTest {
           ((ZookeeperAuthority) Authority.fromString(test)).getZookeeperAddress());
     }
   }
+
+  @Test
+  public void authorityEqualTest() {
+    //test the authority in random order, inorder and then test the different authorities.
+    //Zookeepers
+    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
+        Authority.fromString("zk@host1:2181;host3:2181;host2:2181")));
+    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
+        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
+    assertFalse(Authority.fromString("zk@host1:2181;host2:2181;host4:2181").equals(
+        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
+
+    //multiMasters
+    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
+        Authority.fromString("host1:19998,host3:19998,host2:19998")));
+    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
+        Authority.fromString("host1:19998,host2:19998,host3:19998")));
+    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
+        Authority.fromString("host1:19998,host2:19998,host3:19998")));
+
+    //singleMaster
+    assertTrue(Authority.fromString("host1:19998").equals(Authority.fromString("host1:19998")));
+    assertFalse(Authority.fromString("host1:19998").equals(Authority.fromString("host2:19998")));
+
+    //noAuthority
+    assertTrue(Authority.fromString("").equals(Authority.fromString(null)));
+
+    //embeddedLogical
+    assertTrue(Authority.fromString("ebj@logical").equals(Authority.fromString("ebj@logical")));
+    assertFalse(Authority.fromString("ebj@logical1").equals(Authority.fromString("ebj@logical2")));
+
+    //zookeeperLogical
+    assertTrue(Authority.fromString("zk@logical").equals(Authority.fromString("zk@logical")));
+    assertFalse(Authority.fromString("zk@logical1").equals(Authority.fromString("zk@logical2")));
+  }
 }
