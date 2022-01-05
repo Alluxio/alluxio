@@ -387,12 +387,18 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mContext = context;
       mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);
-      if (mParameters.mOperation == Operation.CREATE_DIR) {
-        mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
-      } else {
-        mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
+      switch (mParameters.mOperation) {
+        // directory operations
+        case CREATE_DIR:
+        case LIST_DIR:
+        case LIST_DIR_LOCATED:
+          mBasePath =
+              new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
+          break;
+        // the rest are file operations
+        default:
+          mBasePath =
+              new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
       }
       mFixedBasePath = new Path(mBasePath, "fixed");
     }
