@@ -116,6 +116,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       }
     }, "OpenBlock", true, false, mResponseObserver, "Session=%d, Request=%s",
         mSessionId, request);
+  // Must use request object directly for this log as mRequest is only set in the Callable
   }
 
   @Override
