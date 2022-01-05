@@ -273,8 +273,8 @@ public final class ProtoUtils {
     } else {
       ret = new AccessControlList();
     }
-    ret.setOwningUser(acl.getOwningUser());
-    ret.setOwningGroup(acl.getOwningGroup());
+    ret.setOwningUser(acl.getOwningUser().intern());
+    ret.setOwningGroup(acl.getOwningGroup().intern());
 
     if (acl.getIsEmpty()) {
       return ret;
