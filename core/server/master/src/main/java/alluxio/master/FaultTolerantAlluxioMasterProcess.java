@@ -273,13 +273,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   protected void stopCommonServices() throws Exception {
-    boolean isStandby = mLeaderSelector.getState() == State.STANDBY;
-    if (ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == isStandby) {
+    if (!ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
+      LOG.info("Stop metric sinks.");
       MetricsSystem.stopSinks();
     }
-    if (ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == isStandby) {
+    if (!ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
+      LOG.info("Stop web server.");
       stopServingWebServer();
     }
   }

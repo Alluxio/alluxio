@@ -197,9 +197,8 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
-    // Wait for the specific service port can be connected.
-    waitForServing(ServiceType.MASTER_RPC);
-    waitForServing(ServiceType.MASTER_WEB);
+    waitForSocketServing(ServiceType.MASTER_RPC);
+    waitForSocketServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
     primarySelector.setState(PrimarySelector.State.STANDBY);
@@ -263,21 +262,19 @@ public final class AlluxioMasterProcessTest {
 
   void waitForAllServingReady(AlluxioMasterProcess master, int timeoutMs)
       throws InterruptedException, TimeoutException {
-    // Wait for the specific service port can be connected.
-    waitForServing(ServiceType.MASTER_RPC);
-    waitForServing(ServiceType.MASTER_WEB);
+    waitForSocketServing(ServiceType.MASTER_RPC);
+    waitForSocketServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
     boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
     ServerConfiguration.set(PropertyKey.TEST_MODE, false);
-    // Wait for the grpc service ready within 5 second.
     master.waitForGrpcServerReady(timeoutMs);
-    // Wait for the web server ready within 5 second.
     master.waitForWebServerReady(timeoutMs);
     ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
   }
 
-  private void waitForServing(ServiceType service) throws TimeoutException, InterruptedException {
+  private void waitForSocketServing(ServiceType service)
+      throws TimeoutException, InterruptedException {
     InetSocketAddress addr =
         NetworkAddressUtils.getBindAddress(service, ServerConfiguration.global());
     CommonUtils.waitFor(service + " to be serving", () -> {

@@ -173,6 +173,12 @@ public abstract class MasterProcess implements Process {
     }
   }
 
+  /**
+   * Waits until the grpc server is ready to serve requests.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the grpc server became ready before the specified timeout
+   */
   public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",

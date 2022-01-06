@@ -418,6 +418,12 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
+  /**
+   * Waits until the web server is ready to serve requests.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the web server became ready before the specified timeout
+   */
   @VisibleForTesting
   public boolean waitForWebServerReady(int timeoutMs) {
     try {
