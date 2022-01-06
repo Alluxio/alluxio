@@ -104,7 +104,7 @@ func chdir(path string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"-T", "1", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter", "-Prelease"}
+	args := []string{"-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter", "-Prelease"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
@@ -115,6 +115,11 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	if includeYarnIntegration(hadoopVersion) {
 		args = append(args, "-Pyarn")
 	}
+
+	// Ensure that the "-T" parameter passed from "-mvn_args" can take effect,
+	// because only the first -T parameter in "mvn" command will take effect.
+	// If the -T parameter is not given in "-mvn_args", this configuration will take effect.
+	args = append(args, "-T", "1");
 	return args
 }
 
