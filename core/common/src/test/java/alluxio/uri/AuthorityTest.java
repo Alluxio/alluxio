@@ -66,6 +66,9 @@ public class AuthorityTest {
     assertEquals("localhost:19998", authority.toString());
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
+
+    assertTrue(Authority.fromString("host1:19998").equals(Authority.fromString("host1:19998")));
+    assertFalse(Authority.fromString("host1:19998").equals(Authority.fromString("host2:19998")));
   }
 
   @Test
@@ -93,6 +96,20 @@ public class AuthorityTest {
     assertFalse(Authority.fromString(",,,") instanceof MultiMasterAuthority);
     assertFalse(Authority.fromString(";;;") instanceof MultiMasterAuthority);
     assertFalse(Authority.fromString("+++") instanceof MultiMasterAuthority);
+
+    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
+        Authority.fromString("host1:19998,host3:19998,host2:19998")));
+    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
+        Authority.fromString("host1:19998,host2:19998,host3:19998")));
+    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
+        Authority.fromString("host1:19998,host2:19998,host3:19998")));
+
+    assertEquals(0, Authority.fromString("host1:19998,host2:19998,host3:19998").compareTo(
+        Authority.fromString("host1:19998,host3:19998,host2:19998")));
+    assertEquals(1, Authority.fromString("host1:19998,host2:19998,host4:19998").compareTo(
+        Authority.fromString("host1:19998,host3:19998,host2:19998")));
+    assertEquals(-1, Authority.fromString("host0:19998,host2:19998,host3:19998").compareTo(
+        Authority.fromString("host1:19998,host3:19998,host2:19998")));
   }
 
   @Test
@@ -113,6 +130,20 @@ public class AuthorityTest {
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
     assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+
+    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
+        Authority.fromString("zk@host1:2181;host3:2181;host2:2181")));
+    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
+        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
+    assertFalse(Authority.fromString("zk@host1:2181;host2:2181;host4:2181").equals(
+        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
+
+    assertEquals(0, Authority.fromString("zk@host1:2181;host2:2181;host3:2181").compareTo(
+        Authority.fromString("zk@host1:2181;host3:2181;host2:2181")));
+    assertEquals(1, Authority.fromString("zk@host1:2181;host2:2181;host4:2181").compareTo(
+        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
+    assertEquals(-1, Authority.fromString("zk@host1:2181;host2:2181;host0:2181").compareTo(
+        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
   }
 
   @Test
@@ -121,6 +152,9 @@ public class AuthorityTest {
         (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
     assertEquals("zk@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
+
+    assertTrue(Authority.fromString("zk@logical").equals(Authority.fromString("zk@logical")));
+    assertFalse(Authority.fromString("zk@logical1").equals(Authority.fromString("zk@logical2")));
   }
 
   @Test
@@ -129,6 +163,14 @@ public class AuthorityTest {
         (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
     assertEquals("ebj@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
+
+    assertTrue(Authority.fromString("ebj@logical").equals(Authority.fromString("ebj@logical")));
+    assertFalse(Authority.fromString("ebj@logical1").equals(Authority.fromString("ebj@logical2")));
+  }
+
+  @Test
+  public void noAuthorityTest() {
+    assertTrue(Authority.fromString("").equals(Authority.fromString(null)));
   }
 
   @Test
@@ -142,50 +184,5 @@ public class AuthorityTest {
       assertEquals(normalized,
           ((ZookeeperAuthority) Authority.fromString(test)).getZookeeperAddress());
     }
-  }
-
-  @Test
-  public void ZookeepersAuthorityEqualTest() {
-    // The equal test will test the authority in random order,
-    // inorder and then test the different authorities.
-    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
-        Authority.fromString("zk@host1:2181;host3:2181;host2:2181")));
-    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
-        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
-    assertFalse(Authority.fromString("zk@host1:2181;host2:2181;host4:2181").equals(
-        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
-  }
-
-  @Test
-  public void MultiMastersAuthorityEqualTest() {
-    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
-        Authority.fromString("host1:19998,host3:19998,host2:19998")));
-    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
-        Authority.fromString("host1:19998,host2:19998,host3:19998")));
-    assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
-        Authority.fromString("host1:19998,host2:19998,host3:19998")));
-  }
-
-  @Test
-  public void SingleMastersAuthorityEqualTest() {
-    assertTrue(Authority.fromString("host1:19998").equals(Authority.fromString("host1:19998")));
-    assertFalse(Authority.fromString("host1:19998").equals(Authority.fromString("host2:19998")));
-  }
-
-  @Test
-  public void NoAuthorityEqualTest() {
-    assertTrue(Authority.fromString("").equals(Authority.fromString(null)));
-  }
-
-  @Test
-  public void EmbeddedLogicalAuthorityEqualTest() {
-    assertTrue(Authority.fromString("ebj@logical").equals(Authority.fromString("ebj@logical")));
-    assertFalse(Authority.fromString("ebj@logical1").equals(Authority.fromString("ebj@logical2")));
-  }
-
-  @Test
-  public void ZookeeperLogicalAuthorityEqualTest() {
-    assertTrue(Authority.fromString("zk@logical").equals(Authority.fromString("zk@logical")));
-    assertFalse(Authority.fromString("zk@logical1").equals(Authority.fromString("zk@logical2")));
   }
 }

@@ -14,8 +14,6 @@ package alluxio.uri;
 import com.google.common.base.Objects;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A multi-master authority implementation.
@@ -28,20 +26,30 @@ public class MultiMasterAuthority implements Authority {
    * Semicolons and plus signs in authority are replaced by commas to match our
    * internal property format.
    */
-  private final String mMasterAddresses;
+  private final String[] mMasterAddresses;
 
   /**
    * @param masterAddresses the multi master addresses
    */
   public MultiMasterAuthority(String masterAddresses) {
-    mMasterAddresses = masterAddresses;
+    mMasterAddresses = masterAddresses.split(",");
+    Arrays.sort(mMasterAddresses);
   }
 
   /**
    * @return the Alluxio master addresses from the authority
    */
   public String getMasterAddresses() {
-    return mMasterAddresses;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < mMasterAddresses.length; i++)
+    {
+      sb.append(mMasterAddresses[i]);
+      if (i != mMasterAddresses.length - 1) {
+        sb.append(',');
+      }
+    }
+
+    return sb.toString();
   }
 
   @Override
@@ -59,19 +67,16 @@ public class MultiMasterAuthority implements Authority {
     }
     MultiMasterAuthority that = (MultiMasterAuthority) o;
 
-    Set<String> firstAuthority = new HashSet<>(Arrays.asList(toString().split(",")));
-    Set<String> secondAuthority = new HashSet<>(Arrays.asList(that.toString().split(",")));
-
-    return firstAuthority.equals(secondAuthority);
+    return toString().equals(that.toString());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMasterAddresses);
+    return Objects.hashCode(toString());
   }
 
   @Override
   public String toString() {
-    return mMasterAddresses;
+    return getMasterAddresses();
   }
 }

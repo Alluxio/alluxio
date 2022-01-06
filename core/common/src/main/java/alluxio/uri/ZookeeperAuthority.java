@@ -14,8 +14,6 @@ package alluxio.uri;
 import com.google.common.base.Objects;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * {@link ZookeeperAuthority} supports authority containing Zookeeper addresses.
@@ -23,20 +21,30 @@ import java.util.Set;
 public final class ZookeeperAuthority implements Authority {
   private static final long serialVersionUID = -3549197285125519688L;
 
-  private final String mZkAddress;
+  private final String[] mZkAddress;
 
   /**
    * @param zkAddress the zookeeper address inside the uri
    */
   public ZookeeperAuthority(String zkAddress) {
-    mZkAddress = zkAddress;
+    mZkAddress = zkAddress.split(",");
+    Arrays.sort(mZkAddress);
   }
 
   /**
    * @return the Zookeeper address in this authority
    */
   public String getZookeeperAddress() {
-    return mZkAddress;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < mZkAddress.length; i++)
+    {
+      sb.append(mZkAddress[i]);
+      if (i != mZkAddress.length - 1) {
+        sb.append(',');
+      }
+    }
+
+    return sb.toString();
   }
 
   @Override
@@ -49,19 +57,16 @@ public final class ZookeeperAuthority implements Authority {
     }
     ZookeeperAuthority that = (ZookeeperAuthority) o;
 
-    Set<String> firstAuthority = new HashSet<>(Arrays.asList(mZkAddress.split(",")));
-    Set<String> secondAuthority = new HashSet<>(Arrays.asList(that.mZkAddress.split(",")));
-
-    return firstAuthority.equals(secondAuthority);
+    return getZookeeperAddress().equals(that.getZookeeperAddress());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mZkAddress);
+    return Objects.hashCode(getZookeeperAddress());
   }
 
   @Override
   public String toString() {
-    return "zk@" + mZkAddress;
+    return "zk@" + getZookeeperAddress();
   }
 }
