@@ -23,7 +23,7 @@ public class StoreBlockReader extends LocalFileBlockReader {
   /** Session Id for the reader. */
   private final long mSessionId;
   /** Block meta for the reader. */
-  private final BlockMeta mBlockMeta;
+  protected final BlockMeta mBlockMeta;
 
   /**
    * Creates new block reader for block store.
