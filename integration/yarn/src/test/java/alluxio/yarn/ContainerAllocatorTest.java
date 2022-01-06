@@ -109,7 +109,7 @@ public final class ContainerAllocatorTest {
     ContainerAllocator containerAllocator = new ContainerAllocator(CONTAINER_NAME, 1,
         1, mResource, mYarnClient, mRMClient, "any");
     doAnswer(allocateFirstHostAnswer(containerAllocator))
-        .when(mRMClient).addContainerRequest(Matchers.argThat(request -> {
+        .when(mRMClient).addContainerRequest(ArgumentMatchers.argThat(request -> {
           if (request.getRelaxLocality() == true
               && request.getNodes().size() == 1
               && request.getNodes().get(0).equals("any")) {
@@ -138,7 +138,8 @@ public final class ContainerAllocatorTest {
       nodeReport.setNodeId(NodeId.newInstance("host" + i, 0));
       nodeReports.add(nodeReport);
     }
-    when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg())).thenReturn(nodeReports);
+    when(mYarnClient.getNodeReports(ArgumentMatchers.<NodeState[]>anyVararg()))
+        .thenReturn(nodeReports);
     doAnswer(allocateFirstHostAnswer(containerAllocator)).when(mRMClient)
         .addContainerRequest(any(ContainerRequest.class));
     return containerAllocator;
