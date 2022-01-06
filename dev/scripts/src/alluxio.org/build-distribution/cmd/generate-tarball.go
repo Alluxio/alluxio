@@ -46,9 +46,9 @@ func Single(args []string) error {
 		customUfsModules := strings.Split(customUfsModuleFlag, "%")
 		for _, customUfsModule := range customUfsModules {
 			customUfsModuleFlagArray := strings.Split(customUfsModule, "|")
-			if len(customUfsModuleFlagArray) == 2 {
-				customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
-				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+			if len(customUfsModuleFlagArray) == 3 {
+				customUfsModuleFlagArray[2] = strings.ReplaceAll(customUfsModuleFlagArray[2], ",", " ")
+				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], customUfsModuleFlagArray[1], true, customUfsModuleFlagArray[2]}
 			} else {
 				fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
 				os.Exit(1)
@@ -153,15 +153,18 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
-		var versionMvnArg = "3.3.0"
-		for _, arg := range moduleMvnArgs {
-			if strings.Contains(arg, "ufs.hadoop.version") {
-				versionMvnArg = strings.Split(arg, "=")[1]
-			}
-		}
 		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
+		if moduleEntry.ufsType != "" {
+			ufsType = moduleEntry.ufsType
+		}
 		var srcJar string
 		if ufsType == "hdfs" {
+			var versionMvnArg = "3.3.0"
+			for _, arg := range moduleMvnArgs {
+				if strings.Contains(arg, "ufs.hadoop.version") {
+					versionMvnArg = strings.Split(arg, "=")[1]
+				}
+			}
 			srcJar = fmt.Sprintf("alluxio-%v-%v-%v-%v.jar", name, ufsType, versionMvnArg, version)
 		} else {
 			srcJar = fmt.Sprintf("alluxio-%v-%v-%v.jar", name, ufsType, version)
