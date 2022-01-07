@@ -257,15 +257,28 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   protected void startCommonServices() {
-    boolean isStandby = mLeaderSelector.getState() == State.STANDBY;
-    if (ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == isStandby) {
+    boolean standbyMetricsSinkEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
+    // If enabled metric sink service for standby master, it means that alluxio
+    // masters should start this service before the master become primary and never stopped,
+    // after gain primary, no need to start metric sink service again.
+    //
+    // If disabled metric sink service, it means that alluxio masters should not start this service
+    // before gain primacy, but after gain primacy, it should start the metric service because the
+    // metric service is not started in standby state or stopped after lose primary.
+    //
+    if ((mLeaderSelector.getState() == State.STANDBY && standbyMetricsSinkEnabled)
+        || (mLeaderSelector.getState() == State.PRIMARY && !standbyMetricsSinkEnabled)) {
       LOG.info("Start metric sinks.");
       MetricsSystem.startSinks(
           ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
     }
-    if (ServerConfiguration.getBoolean(
-        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == isStandby) {
+
+    boolean standbyWebEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
+    // The logic of starting web service is same with metric sink service.
+    if ((mLeaderSelector.getState() == State.STANDBY && standbyWebEnabled)
+        || (mLeaderSelector.getState() == State.PRIMARY && !standbyWebEnabled)) {
       LOG.info("Start web server.");
       startServingWebServer();
     }
