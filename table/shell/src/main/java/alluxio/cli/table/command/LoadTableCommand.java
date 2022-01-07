@@ -47,7 +47,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public class LoadTableCommand extends AbstractTableCommand {
-  private static final int DEFAULT_REPLICATION = 1;
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -56,7 +55,8 @@ public class LoadTableCommand extends AbstractTableCommand {
           .numberOfArgs(1)
           .type(Number.class)
           .argName("replicas")
-          .desc("Number of block replicas of each loaded file, default: " + DEFAULT_REPLICATION)
+          .desc("Number of block replicas of each loaded file, "
+              + "default: alluxio.table.load.default.replication")
           .build();
   private static final Option ACTIVE_JOB_COUNT_OPTION =
       Option.builder()
@@ -265,7 +265,8 @@ public class LoadTableCommand extends AbstractTableCommand {
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
     AlluxioConfiguration conf = mFsContext.getClusterConf();
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
-    int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
+    int defaultReplication = conf.getInt(PropertyKey.TABLE_LOAD_DEFAULT_REPLICATION);
+    int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, defaultReplication);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt());
     Set<String> workerSet = new HashSet<>();

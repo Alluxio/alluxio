@@ -5999,6 +5999,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
+      new Builder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
+          .setDefaultValue(1)
+          .setDescription("The default replication number of files under the SDS table after "
+                  + "load option.")
+          .setScope(Scope.CLIENT)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -7188,6 +7195,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.udb.hive.clientpool.min";
     public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
         "alluxio.table.udb.hive.clientpool.MAX";
+    public static final String TABLE_LOAD_DEFAULT_REPLICATION =
+        "alluxio.table.load.default.replication";
 
     ///
     /// Alluxio Hub Agent Properties
