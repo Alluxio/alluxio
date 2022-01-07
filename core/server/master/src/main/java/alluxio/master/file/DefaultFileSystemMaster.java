@@ -1552,13 +1552,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     // We could introduce a concept of composite entries, so that these two entries could
     // be applied in a single call to applyAndJournal.
-    mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+    UpdateInodeEntry.Builder builder = UpdateInodeEntry.newBuilder()
         .setId(inode.getId())
-        .setUfsFingerprint(ufsFingerprint)
-        .setLastModificationTimeMs(opTimeMs)
-        .setLastAccessTimeMs(opTimeMs)
-        .setOverwriteModificationTime(true)
-        .build());
+        .setUfsFingerprint(ufsFingerprint);
+    if (ServerConfiguration.getBoolean(PropertyKey
+        .MASTER_FILE_SYSTEM_FINAL_TIME_UPDATE_ENABLED)) {
+      builder.setLastModificationTimeMs(opTimeMs)
+          .setLastAccessTimeMs(opTimeMs)
+          .setOverwriteModificationTime(true);
+    }
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 
     Metrics.FILES_COMPLETED.inc();
