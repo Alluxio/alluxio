@@ -103,13 +103,6 @@ public class AuthorityTest {
         Authority.fromString("host1:19998,host2:19998,host3:19998")));
     assertTrue(Authority.fromString("host1:19998,host2:19998,host3:19998").equals(
         Authority.fromString("host1:19998,host2:19998,host3:19998")));
-
-    assertEquals(0, Authority.fromString("host1:19998,host2:19998,host3:19998").compareTo(
-        Authority.fromString("host1:19998,host3:19998,host2:19998")));
-    assertEquals(1, Authority.fromString("host1:19998,host2:19998,host4:19998").compareTo(
-        Authority.fromString("host1:19998,host3:19998,host2:19998")));
-    assertEquals(-1, Authority.fromString("host0:19998,host2:19998,host3:19998").compareTo(
-        Authority.fromString("host1:19998,host3:19998,host2:19998")));
   }
 
   @Test
@@ -136,13 +129,6 @@ public class AuthorityTest {
     assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181").equals(
         Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
     assertFalse(Authority.fromString("zk@host1:2181;host2:2181;host4:2181").equals(
-        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
-
-    assertEquals(0, Authority.fromString("zk@host1:2181;host2:2181;host3:2181").compareTo(
-        Authority.fromString("zk@host1:2181;host3:2181;host2:2181")));
-    assertEquals(1, Authority.fromString("zk@host1:2181;host2:2181;host4:2181").compareTo(
-        Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
-    assertEquals(-1, Authority.fromString("zk@host1:2181;host2:2181;host0:2181").compareTo(
         Authority.fromString("zk@host1:2181;host2:2181;host3:2181")));
   }
 
