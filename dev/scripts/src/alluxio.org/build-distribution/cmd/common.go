@@ -44,7 +44,7 @@ var hadoopDistributions = map[string]version{
 
 type module struct {
 	name      string // the name used in the generated tarball
-	ufsType   string // the source module name
+	ufsType   string // the source module type
 	isDefault bool   // whether to build the module by default
 	mavenArgs string // maven args for building the module
 }
@@ -64,7 +64,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.1": {"hadoop-3.1", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.2": {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.3": {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0 -PhdfsActiveSync"},
-	"ufs-ozone-1.2.1": {"ozone-1.2.1", "ozone", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0 -PhdfsActiveSync"},
+	"ufs-hadoop-ozone-1.2.1": {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 }
 
 var libJars = map[string]struct{}{
