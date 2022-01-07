@@ -12,6 +12,7 @@
 package alluxio.stress.master;
 
 import alluxio.collections.Pair;
+import alluxio.stress.BaseParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.SummaryStatistics;
@@ -36,8 +37,7 @@ public final class MasterBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
-  private List<String> mNodes;
-  private Map<String, List<String>> mErrors;
+  private Map<String, MasterBenchTaskResult> mNodes;
 
   private float mThroughput;
   private SummaryStatistics mStatistics;
@@ -55,11 +55,10 @@ public final class MasterBenchSummary implements Summary {
    * Creates an instance.
    *
    * @param mergedTaskResults the merged task result
-   * @param nodes the list of nodes
-   * @param errors the list of errors
+   * @param nodes the map storing the nodes' result
    */
-  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, List<String> nodes,
-      Map<String, List<String>> errors) throws DataFormatException {
+  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, Map<String, MasterBenchTaskResult> nodes
+  ) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();
@@ -76,7 +75,6 @@ public final class MasterBenchSummary implements Summary {
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
     mNodes = nodes;
-    mErrors = errors;
   }
 
   /**
@@ -124,29 +122,15 @@ public final class MasterBenchSummary implements Summary {
   /**
    * @return the list of nodes
    */
-  public List<String> getNodes() {
+  public Map<String, MasterBenchTaskResult> getNodes() {
     return mNodes;
   }
 
   /**
    * @param nodes the list of nodes
    */
-  public void setNodes(List<String> nodes) {
+  public void setNodes(Map<String, MasterBenchTaskResult> nodes) {
     mNodes = nodes;
-  }
-
-  /**
-   * @return the errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
   }
 
   /**
@@ -196,13 +180,17 @@ public final class MasterBenchSummary implements Summary {
     return mStatistics.computeTimeData();
   }
 
-  private List<String> collectErrors() {
+  public List<String> collectErrors() {
     List<String> errors = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
+    for(MasterBenchTaskResult node : mNodes.values())
+    {
       // add all the errors for this node, with the node appended to prefix
-      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
-          .collect(Collectors.toList()));
+      for(String err : node.getErrors())
+      {
+        errors.add(node.getBaseParameters().mId + ": " + err);
+      }
     }
+
     return errors;
   }
 

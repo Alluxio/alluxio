@@ -48,12 +48,16 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(JobServiceBenchTaskResult result) throws Exception {
+    mErrors.addAll(result.mErrors);
+    mergeWithoutErrors(result);
+  }
+
+  public void mergeWithoutErrors(JobServiceBenchTaskResult result) throws Exception {
     mStatistics.merge(result.mStatistics);
     mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
     mEndMs = Math.max(mEndMs, result.mEndMs);
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
-    mErrors.addAll(result.mErrors);
     for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :
         result.mStatisticsPerMethod.entrySet()) {
       final String key = entry.getKey();
@@ -215,8 +219,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     @Override
     public JobServiceBenchSummary aggregate(Iterable<JobServiceBenchTaskResult> results)
         throws Exception {
-      List<String> nodes = new ArrayList<>();
-      Map<String, List<String>> errors = new HashMap<>();
+      Map<String, JobServiceBenchTaskResult> nodes = new HashMap<>();
       JobServiceBenchTaskResult mergingTaskResult = null;
 
       for (TaskResult taskResult : results) {
@@ -226,20 +229,16 @@ public final class JobServiceBenchTaskResult implements TaskResult {
                   .getName());
         }
         JobServiceBenchTaskResult result = (JobServiceBenchTaskResult) taskResult;
-        nodes.add(result.getBaseParameters().mId);
-        if (!result.getErrors().isEmpty()) {
-          List<String> errorList = new ArrayList<>(result.getErrors());
-          errors.put(result.getBaseParameters().mId, errorList);
-        }
+        nodes.put(result.getBaseParameters().mId, result);
 
         if (mergingTaskResult == null) {
           mergingTaskResult = result;
           continue;
         }
-        mergingTaskResult.merge(result);
+        mergingTaskResult.mergeWithoutErrors(result);
       }
 
-      return new JobServiceBenchSummary(mergingTaskResult, nodes, errors);
+      return new JobServiceBenchSummary(mergingTaskResult, nodes);
     }
   }
 }

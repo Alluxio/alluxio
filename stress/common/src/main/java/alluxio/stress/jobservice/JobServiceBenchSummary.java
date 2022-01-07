@@ -37,7 +37,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
-  private List<String> mNodes;
+  private Map<String, JobServiceBenchTaskResult> mNodes;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -53,10 +53,9 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
    *
    * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
-   * @param errors the list of errors
    */
-  public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults, List<String> nodes,
-      Map<String, List<String>> errors) throws DataFormatException {
+  public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults, Map<String, JobServiceBenchTaskResult> nodes)
+      throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :
@@ -70,7 +69,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
     mDurationMs = mEndTimeMs - mergedTaskResults.getRecordStartMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mNodes = nodes;
-    mErrors = errors;
   }
 
   /**
@@ -104,14 +102,14 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   /**
    * @return the list of nodes
    */
-  public List<String> getNodes() {
+  public Map<String, JobServiceBenchTaskResult> getNodes() {
     return mNodes;
   }
 
   /**
    * @param nodes the list of nodes
    */
-  public void setNodes(List<String> nodes) {
+  public void setNodes(Map<String, JobServiceBenchTaskResult> nodes) {
     mNodes = nodes;
   }
 

@@ -52,6 +52,16 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(MasterBenchTaskResult result) throws Exception {
+    mErrors.addAll(result.mErrors);
+    mergeWithoutErrors(result);
+  }
+
+  /**
+   * Merges (updates) a task result with this result except the error information.
+   *
+   * @param result  the task result to merge
+   */
+  public void mergeWithoutErrors(MasterBenchTaskResult result) throws Exception {
     mStatistics.merge(result.mStatistics);
 
     mRecordStartMs = result.mRecordStartMs;
@@ -60,7 +70,6 @@ public final class MasterBenchTaskResult implements TaskResult {
     }
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
-    mErrors.addAll(result.mErrors);
 
     for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
         result.mStatisticsPerMethod.entrySet()) {
@@ -234,8 +243,7 @@ public final class MasterBenchTaskResult implements TaskResult {
   private static final class Aggregator implements TaskResult.Aggregator<MasterBenchTaskResult> {
     @Override
     public MasterBenchSummary aggregate(Iterable<MasterBenchTaskResult> results) throws Exception {
-      List<String> nodes = new ArrayList<>();
-      Map<String, List<String>> errors = new HashMap<>();
+      Map<String, MasterBenchTaskResult> nodes = new HashMap<>();
       MasterBenchTaskResult mergingTaskResult = null;
 
       for (TaskResult taskResult : results) {
@@ -245,20 +253,16 @@ public final class MasterBenchTaskResult implements TaskResult {
                   .getName());
         }
         MasterBenchTaskResult result = (MasterBenchTaskResult) taskResult;
-        nodes.add(result.getBaseParameters().mId);
-        if (!result.getErrors().isEmpty()) {
-          List<String> errorList = new ArrayList<>(result.getErrors());
-          errors.put(result.getBaseParameters().mId, errorList);
-        }
+        nodes.put(result.getBaseParameters().mId, result);
 
         if (mergingTaskResult == null) {
           mergingTaskResult = result;
           continue;
         }
-        mergingTaskResult.merge(result);
+        mergingTaskResult.mergeWithoutErrors(result);
       }
 
-      return new MasterBenchSummary(mergingTaskResult, nodes, errors);
+      return new MasterBenchSummary(mergingTaskResult, nodes);
     }
   }
 }
