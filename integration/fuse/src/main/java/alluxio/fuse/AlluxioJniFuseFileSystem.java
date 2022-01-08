@@ -268,9 +268,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       stat.st_blocks.set((int) Math.ceil((double) size / 512));
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
+      final long atime_sec = status.getLastAccessTimeMs() / 1000;
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
       final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1_000_000L;
+      final long atime_nsec = (status.getLastAccessTimeMs() % 1000) * 1_000_000L;
 
+      stat.st_atim.tv_sec.set(atime_sec);
+      stat.st_atim.tv_nsec.set(atime_nsec);
       stat.st_ctim.tv_sec.set(ctime_sec);
       stat.st_ctim.tv_nsec.set(ctime_nsec);
       stat.st_mtim.tv_sec.set(ctime_sec);
