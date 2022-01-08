@@ -35,16 +35,14 @@ public final class WorkerBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
-  private List<String> mNodes;
-  private Map<String, List<String>> mErrors;
+  private Map<String, WorkerBenchTaskResult> mNodes;
 
   /**
    * Creates an instance.
    */
   public WorkerBenchSummary() {
     // Default constructor required for json deserialization
-    mNodes = new ArrayList<>();
-    mErrors = new HashMap<>();
+    mNodes = new HashMap<>();
   }
 
   /**
@@ -52,16 +50,13 @@ public final class WorkerBenchSummary implements Summary {
    *
    * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
-   * @param errors the list of errors
    */
-  public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults, List<String> nodes,
-      Map<String, List<String>> errors) {
+  public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults, Map<String, WorkerBenchTaskResult> nodes) {
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();
     mParameters = mergedTaskResults.getParameters();
     mNodes = nodes;
-    mErrors = errors;
   }
 
   /**
@@ -109,29 +104,15 @@ public final class WorkerBenchSummary implements Summary {
   /**
    * @return the list of nodes
    */
-  public List<String> getNodes() {
+  public Map<String, WorkerBenchTaskResult> getNodes() {
     return mNodes;
   }
 
   /**
    * @param nodes the list of nodes
    */
-  public void setNodes(List<String> nodes) {
+  public void setNodes(Map<String, WorkerBenchTaskResult> nodes) {
     mNodes = nodes;
-  }
-
-  /**
-   * @return the errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
   }
 
   /**
@@ -162,12 +143,14 @@ public final class WorkerBenchSummary implements Summary {
     mIOBytes = IOBytes;
   }
 
-  private List<String> collectErrors() {
+  public List<String> collectErrors() {
     List<String> errors = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
-      // add all the errors for this node, with the node appended to prefix
-      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
-          .collect(Collectors.toList()));
+    for(WorkerBenchTaskResult node : mNodes.values())
+    {
+      for(String err : node.getErrors())
+      {
+        errors.add(node.getBaseParameters().mId + ": " + err);
+      }
     }
     return errors;
   }

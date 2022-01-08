@@ -25,11 +25,7 @@ import javax.annotation.Nullable;
  * The summary for Fuse IO stress bench.
  */
 public class FuseIOSummary implements Summary {
-  // key: unique ids of job workers. value: throughput of each job worker
-  private Map<String, Float> mClientsThroughput;
-  private List<String> mNodes;
-  // key: unique ids of job workers. value: error messages from each job worker
-  private Map<String, List<String>> mErrors;
+  private Map<String, FuseIOTaskResult> mNodes;
   private FuseIOParameters mParameters;
   private BaseParameters mBaseParameters;
   private long mRecordStartMs;
@@ -41,7 +37,7 @@ public class FuseIOSummary implements Summary {
    * Default constructor required for json deserialization.
    */
   public FuseIOSummary() {
-    this(null, null, new ArrayList<>(), new HashMap<>(), 0, 0, 0, 0, new HashMap<>());
+    this(null, null, new HashMap<>(), 0, 0, 0, 0);
   }
 
   /**
@@ -50,19 +46,15 @@ public class FuseIOSummary implements Summary {
    * @param parameters the parameters for the Fuse IO stress bench
    * @param baseParameters the base parameters for the Fuse IO stress bench
    * @param nodes the unique ids of all job workers
-   * @param errors all errors reported by job workers
    * @param recordStartMs the timestamp starting counting bytes
    * @param endMs the timestamp that the test ends
    * @param ioBytes total number of bytes processed by workers
    * @param ioMBps aggregated throughput data
-   * @param clientsThroughput the throughput data of each job worker
    */
   public FuseIOSummary(FuseIOParameters parameters, BaseParameters baseParameters,
-      List<String> nodes, Map<String, List<String>> errors, long recordStartMs, long endMs,
-      long ioBytes, float ioMBps, Map<String, Float> clientsThroughput) {
-    mClientsThroughput = clientsThroughput;
+      Map<String, FuseIOTaskResult> nodes, long recordStartMs, long endMs,
+      long ioBytes, float ioMBps) {
     mNodes = nodes;
-    mErrors = errors;
     mParameters = parameters;
     mBaseParameters = baseParameters;
     mRecordStartMs = recordStartMs;
@@ -78,45 +70,17 @@ public class FuseIOSummary implements Summary {
   }
 
   /**
-   * @return a map mapping job worker unique id to its throughput
-   */
-  public Map<String, Float> getClientsThroughput() {
-    return mClientsThroughput;
-  }
-
-  /**
-   * @param clientsThroughput the map mapping job worker unique id to its throughput
-   */
-  public void setClientsThroughput(Map<String, Float> clientsThroughput) {
-    mClientsThroughput = clientsThroughput;
-  }
-
-  /**
    * @return the list of the unique ids of job workers
    */
-  public List<String> getNodes() {
+  public Map<String, FuseIOTaskResult> getNodes() {
     return mNodes;
   }
 
   /**
    * @param nodes the list of the unique ids of job workers
    */
-  public void setNodes(List<String> nodes) {
+  public void setNodes(Map<String, FuseIOTaskResult> nodes) {
     mNodes = nodes;
-  }
-
-  /**
-   * @return the list of errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors  the list of errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
   }
 
   /**

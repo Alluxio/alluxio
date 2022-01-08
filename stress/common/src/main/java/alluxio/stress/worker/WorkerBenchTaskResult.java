@@ -45,13 +45,22 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(WorkerBenchTaskResult result) throws Exception {
+    mErrors.addAll(result.mErrors);
+    mergeWithoutErrors(result);
+  }
+
+  /**
+   * Merges (updates) a task result with this result except the error information.
+   *
+   * @param result  the task result to merge
+   */
+  public void mergeWithoutErrors(WorkerBenchTaskResult result) {
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
 
     mRecordStartMs = result.mRecordStartMs;
     mEndMs = Math.max(mEndMs, result.mEndMs);
     mIOBytes += result.mIOBytes;
-    mErrors.addAll(result.mErrors);
   }
 
   /**
@@ -162,21 +171,16 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private static final class Aggregator implements TaskResult.Aggregator<WorkerBenchTaskResult> {
     @Override
     public WorkerBenchSummary aggregate(Iterable<WorkerBenchTaskResult> results) throws Exception {
-      List<String> nodes = new ArrayList<>();
-      Map<String, List<String>> errors = new HashMap<>();
+      Map<String, WorkerBenchTaskResult> nodes = new HashMap<>();
 
       WorkerBenchTaskResult mergingTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
-        nodes.add(result.getBaseParameters().mId);
-        if (!result.getErrors().isEmpty()) {
-          List<String> errorList = new ArrayList<>(result.getErrors());
-          errors.put(result.getBaseParameters().mId, errorList);
-        }
-        mergingTaskResult.merge(result);
+        nodes.put(result.getBaseParameters().mId, result);
+        mergingTaskResult.mergeWithoutErrors(result);
       }
 
-      return new WorkerBenchSummary(mergingTaskResult, nodes, errors);
+      return new WorkerBenchSummary(mergingTaskResult, nodes);
     }
   }
 }

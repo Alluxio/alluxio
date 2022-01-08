@@ -21,7 +21,6 @@ import java.util.Map;
  */
 public abstract class GeneralBenchSummary implements Summary {
   protected float mThroughput;
-  protected Map<String, List<String>> mErrors;
 
   /**
    * @return the throughput
@@ -37,17 +36,5 @@ public abstract class GeneralBenchSummary implements Summary {
     mThroughput = throughput;
   }
 
-  /**
-   * @return the errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
-  }
+  public abstract List<String> collectErrors();
 }

@@ -79,10 +79,8 @@ public abstract class AbstractMaxThroughput<T extends AbstractMaxThroughputSumma
       }
       LOG.info("target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower
           + " " + next + " " + upper + "]");
-      for (Map.Entry<String, List<String>> entry : mbr.getErrors().entrySet()) {
-        for (String error : entry.getValue()) {
-          LOG.error(String.format("%s: %s", entry.getKey(), error));
-        }
+      for (String error : mbr.collectErrors()) {
+        LOG.error(String.format("%s", error));
       }
       if (Math.abs(current - next) / (float) current <= 0.02) {
         break;

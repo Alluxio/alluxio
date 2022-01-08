@@ -159,12 +159,14 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
     return mStatistics.computeTimeData();
   }
 
-  private List<String> collectErrors() {
+  public List<String> collectErrors() {
     List<String> errors = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
-      // add all the errors for this node, with the node appended to prefix
-      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
-          .collect(Collectors.toList()));
+    for(JobServiceBenchTaskResult node : mNodes.values())
+    {
+      for(String err : node.getErrors())
+      {
+        errors.add(node.getBaseParameters().mId + ": " + err);
+      }
     }
     return errors;
   }
