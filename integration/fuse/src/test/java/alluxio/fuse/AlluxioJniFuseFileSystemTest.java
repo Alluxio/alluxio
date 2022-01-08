@@ -215,6 +215,7 @@ public class AlluxioJniFuseFileSystemTest {
     // set up status
     FileInfo info = new FileInfo();
     info.setLength(4 * Constants.KB + 1);
+    info.setLastAccessTimeMs(1000);
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
@@ -231,6 +232,9 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(0, mFuseFs.getattr("/foo", stat));
     assertEquals(status.getLength(), stat.st_size.longValue());
     assertEquals(9, stat.st_blocks.intValue());
+    assertEquals(status.getLastAccessTimeMs() / 1000, stat.st_atim.tv_sec.get());
+    assertEquals((status.getLastAccessTimeMs() % 1000) * 1000,
+            stat.st_atim.tv_nsec.longValue());
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_ctim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_ctim.tv_nsec.longValue());
