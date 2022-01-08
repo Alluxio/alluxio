@@ -54,7 +54,8 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
    * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
    */
-  public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults, Map<String, JobServiceBenchTaskResult> nodes)
+  public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults,
+                                Map<String, JobServiceBenchTaskResult> nodes)
       throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
     mStatisticsPerMethod = new HashMap<>();
@@ -159,11 +160,14 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
     return mStatistics.computeTimeData();
   }
 
+  /**
+   * @return the error information
+   */
   public List<String> collectErrors() {
     List<String> errors = new ArrayList<>();
-    for(JobServiceBenchTaskResult node : mNodes.values())
+    for (JobServiceBenchTaskResult node : mNodes.values())
     {
-      for(String err : node.getErrors())
+      for (String err : node.getErrors())
       {
         errors.add(node.getBaseParameters().mId + ": " + err);
       }

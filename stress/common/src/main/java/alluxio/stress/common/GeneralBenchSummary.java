@@ -14,7 +14,6 @@ package alluxio.stress.common;
 import alluxio.stress.Summary;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * abstract class for BenchSummary.
@@ -36,5 +35,8 @@ public abstract class GeneralBenchSummary implements Summary {
     mThroughput = throughput;
   }
 
+  /**
+   * @return the error information
+   */
   public abstract List<String> collectErrors();
 }

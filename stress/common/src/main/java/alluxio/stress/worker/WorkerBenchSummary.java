@@ -51,7 +51,8 @@ public final class WorkerBenchSummary implements Summary {
    * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
    */
-  public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults, Map<String, WorkerBenchTaskResult> nodes) {
+  public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults,
+                            Map<String, WorkerBenchTaskResult> nodes) {
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();
@@ -143,11 +144,14 @@ public final class WorkerBenchSummary implements Summary {
     mIOBytes = IOBytes;
   }
 
+  /**
+   * @return the error information
+   */
   public List<String> collectErrors() {
     List<String> errors = new ArrayList<>();
-    for(WorkerBenchTaskResult node : mNodes.values())
+    for (WorkerBenchTaskResult node : mNodes.values())
     {
-      for(String err : node.getErrors())
+      for (String err : node.getErrors())
       {
         errors.add(node.getBaseParameters().mId + ": " + err);
       }

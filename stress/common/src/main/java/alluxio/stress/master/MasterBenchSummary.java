@@ -12,7 +12,6 @@
 package alluxio.stress.master;
 
 import alluxio.collections.Pair;
-import alluxio.stress.BaseParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.SummaryStatistics;
@@ -57,8 +56,8 @@ public final class MasterBenchSummary implements Summary {
    * @param mergedTaskResults the merged task result
    * @param nodes the map storing the nodes' result
    */
-  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, Map<String, MasterBenchTaskResult> nodes
-  ) throws DataFormatException {
+  public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults,
+                            Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();
@@ -180,12 +179,15 @@ public final class MasterBenchSummary implements Summary {
     return mStatistics.computeTimeData();
   }
 
+  /**
+   * @return the error information
+   */
   public List<String> collectErrors() {
     List<String> errors = new ArrayList<>();
-    for(MasterBenchTaskResult node : mNodes.values())
+    for (MasterBenchTaskResult node : mNodes.values())
     {
       // add all the errors for this node, with the node appended to prefix
-      for(String err : node.getErrors())
+      for (String err : node.getErrors())
       {
         errors.add(node.getBaseParameters().mId + ": " + err);
       }

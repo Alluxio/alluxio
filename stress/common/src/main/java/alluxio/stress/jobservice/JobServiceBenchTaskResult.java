@@ -52,6 +52,11 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     mergeWithoutErrors(result);
   }
 
+  /**
+   * Merges (updates) a task result with this result except the error information.
+   *
+   * @param result  the task result to merge
+   */
   public void mergeWithoutErrors(JobServiceBenchTaskResult result) throws Exception {
     mStatistics.merge(result.mStatistics);
     mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);

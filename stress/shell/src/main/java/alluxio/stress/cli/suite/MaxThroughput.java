@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A max throughput suite.
@@ -130,7 +129,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
           "target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower + " "
               + next + " " + upper + "]");
 
-      for(String error : mbr.collectErrors())
+      for (String error : mbr.collectErrors())
       {
         LOG.error(String.format("%s", error));
       }
