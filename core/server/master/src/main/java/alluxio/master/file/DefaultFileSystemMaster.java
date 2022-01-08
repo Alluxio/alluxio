@@ -1556,7 +1556,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         .setId(inode.getId())
         .setUfsFingerprint(ufsFingerprint);
     if (ServerConfiguration.getBoolean(PropertyKey
-        .MASTER_FILE_SYSTEM_FINAL_TIME_UPDATE_ENABLED)) {
+        .MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED)) {
       builder.setLastModificationTimeMs(opTimeMs)
           .setLastAccessTimeMs(opTimeMs)
           .setOverwriteModificationTime(true);
