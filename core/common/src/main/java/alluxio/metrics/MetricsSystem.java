@@ -821,7 +821,7 @@ public final class MetricsSystem {
             entry.getKey(), metric.getClass().getName());
         continue;
       }
-      metricsMap.put(entry.getKey(), valueBuilder.build());
+      metricsMap.put(unescape(entry.getKey()), valueBuilder.build());
     }
     return metricsMap;
   }
