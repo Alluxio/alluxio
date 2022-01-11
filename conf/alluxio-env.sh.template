@@ -45,9 +45,17 @@
 # E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_MASTER_JAVA_OPTS
 
+# Config properties set for Alluxio job master daemon. (Default: "")
+# E.g. " -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:./config.yaml "
+# ALLUXIO_JOB_MASTER_JAVA_OPTS
+
 # Config properties set for Alluxio worker daemon. (Default: "")
 # E.g. "-Dalluxio.worker.rpc.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker.
 # ALLUXIO_WORKER_JAVA_OPTS
+
+# Config properties set for Alluxio worker daemon. (Default: "")
+# E.g. " -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=18080:./config.yaml "
+# ALLUXIO_JOB_WORKER_JAVA_OPTS
 
 # Config properties set for Alluxio proxy daemon. (Default: "")
 # E.g. "-Xms2048M -Xmx2048M" to limit the heap size of proxy.
