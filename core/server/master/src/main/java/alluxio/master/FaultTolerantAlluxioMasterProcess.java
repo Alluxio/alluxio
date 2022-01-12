@@ -192,7 +192,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
       stopLeaderServing();
-      stopCommonServices();
+      stopCommonServicesIfNecessary();
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
@@ -229,16 +229,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
    */
   protected boolean isRunning() {
     return mRunning;
-  }
-
-  @Override
-  public boolean isWebServing() {
-    // Ignore standby master web server checking if it is disabled.
-    if (!ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)
-        && mLeaderSelector.getState() == State.STANDBY) {
-      return true;
-    }
-    return super.isWebServing();
   }
 
   @Override
@@ -284,8 +274,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
   }
 
-  @Override
-  protected void stopCommonServices() throws Exception {
+  protected void stopCommonServicesIfNecessary() throws Exception {
     if (!ServerConfiguration.getBoolean(
         PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
       LOG.info("Stop metric sinks.");
