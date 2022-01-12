@@ -20,6 +20,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
@@ -302,6 +303,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     } catch (FileDoesNotExistException | InvalidPathException e) {
       LOG.debug("Failed to get info of {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
+    } catch (AccessControlException e) {
+      LOG.error("Permission denied when getattr {}: ", path, e);
+      return -ErrorCodes.EACCES();
     } catch (Throwable e) {
       LOG.error("Failed to getattr {}: ", path, e);
       return -ErrorCodes.EIO();
