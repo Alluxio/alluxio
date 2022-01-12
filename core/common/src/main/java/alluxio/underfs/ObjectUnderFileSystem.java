@@ -40,6 +40,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +50,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -101,27 +101,26 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
-    private static final long INVALID_MODIFIED_TIME = -1L;
 
     private final String mContentHash;
     private final long mContentLength;
-    private final long mLastModifiedTimeMs;
+    /** Last modified epoch time in ms, or null if it is not available. */
+    private final Long mLastModifiedTimeMs;
     private final String mName;
 
     public ObjectStatus(String name, String contentHash, long contentLength,
-        long lastModifiedTimeMs) {
-      mContentHash = contentHash;
+        @Nullable Long lastModifiedTimeMs) {
+      mContentHash = contentHash == null ? UfsFileStatus.INVALID_CONTENT_HASH : contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
-      mContentHash = INVALID_CONTENT_HASH;
+      mContentHash = UfsFileStatus.INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
-      mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
+      mLastModifiedTimeMs = null;
       mName = name;
     }
 
@@ -146,7 +145,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return modification time in milliseconds
      */
-    public long getLastModifiedTimeMs() {
+    @Nullable
+    public Long getLastModifiedTimeMs() {
       return mLastModifiedTimeMs;
     }
 
@@ -427,6 +427,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
+    Arrays.sort(pathsToDelete, Comparator.comparing(UfsStatus::getName).reversed());
     for (UfsStatus pathToDelete : pathsToDelete) {
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
       if (pathToDelete.isDirectory()) {
@@ -943,7 +944,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
+    if (objs != null && !isRoot(dir)
+        && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // Do not recreate the breadcrumb if it already exists
       String folderName = convertToFolderName(dir);

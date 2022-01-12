@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import org.junit.After;
 import org.junit.Assert;

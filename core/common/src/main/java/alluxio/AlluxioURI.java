@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.annotation.PublicApi;
-
 import alluxio.exception.InvalidPathException;
 import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
@@ -28,7 +27,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -249,8 +247,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     String path = mUri.getPath();
     int lastSlash = path.lastIndexOf('/');
     int start = hasWindowsDrive(path, true) ? 3 : 0;
-    if ((path.length() == start) || // empty path
-        (lastSlash == start && path.length() == start + 1)) { // at root
+    if ((path.length() == start) // empty path
+        || (lastSlash == start && path.length() == start + 1)) { // at root
       return null;
     }
     String parent;
@@ -490,9 +488,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     }
     if (mUri.getPath() != null) {
       String path = mUri.getPath();
-      if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) && // has windows drive
-          mUri.getScheme() == null && // but no scheme
-          mUri.getAuthority() == null) { // or authority
+      if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) // has windows drive
+          && mUri.getScheme() == null // but no scheme
+          && (mUri.getAuthority() == null
+              || mUri.getAuthority() instanceof NoAuthority)) { // or authority
         path = path.substring(1); // remove slash before drive
       }
       sb.append(path);

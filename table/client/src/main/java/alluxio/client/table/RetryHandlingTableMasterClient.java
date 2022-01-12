@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -185,7 +184,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
         "databaseName=%s,tableName=%s,partitionNames=%s,columnNames=%s",
         databaseName, tableName, partitionNames, columnNames)
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e->e.getValue().getStatisticsList(), (e1, e2) -> e1));
+            e -> e.getValue().getStatisticsList(), (e1, e2) -> e1));
   }
 
   @Override

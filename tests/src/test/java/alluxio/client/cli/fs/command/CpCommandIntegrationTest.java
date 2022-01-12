@@ -393,6 +393,15 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertNotNull(sFileSystem.getStatus(dstURI1));
     Assert.assertNotNull(sFileSystem.getStatus(dstURI2));
     Assert.assertNotNull(sFileSystem.getStatus(dstURI3));
+
+    File srcDeepDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/srcDir0/srcDir1");
+    srcDeepDir.mkdirs();
+    generateFileContent("/srcDir0/srcDir1/srcFile3", BufferUtils.getIncreasingByteArray(10));
+    String srcDeepDirStr = "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/srcDir0/";
+    ret = sFsShell.run("cp", srcDeepDirStr, "/dstDir");
+    Assert.assertEquals(0, ret);
+    AlluxioURI dstURI4 = new AlluxioURI("/dstDir/srcDir1/srcFile3");
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI4));
   }
 
   @Test

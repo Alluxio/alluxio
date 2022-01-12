@@ -18,11 +18,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"regexp"
+	"strings"
 
-	"gopkg.in/yaml.v3"
 	"bytes"
+	"gopkg.in/yaml.v3"
 	"io"
 )
 
@@ -177,6 +177,10 @@ var (
 	relativeLinkPagePathRe = regexp.MustCompile(`\[.+\]\({{ '(?P<path>[\w-./]+)(\?q=\w+)?(#.+)?' | relativize_url }}\)`)
 	// accordion header must not contain a space in the header name
 	accordionHeaderRe = regexp.MustCompile(`{% accordion (?P<name>.*) %}`)
+	// navtab names should not contain colons
+	navtabsHeaderRe     = regexp.MustCompile(`{% navtabs (?P<name>.*) %}`)
+	navtabHeaderRe      = regexp.MustCompile(`{% navtab (?P<name>.*) %}`)
+	invalidNavtabNameRe = regexp.MustCompile(`.*[:<>"'&].*`)
 )
 
 // checkFile parses the given markdown file and appends errors found in its contents
@@ -189,6 +193,8 @@ func checkFile(mdFile string, ctx *checkContext) error {
 
 	headers := bytes.NewBuffer(nil)
 	var relativeLinks []*relativeLink
+	navtabsNames := map[string]struct{}{}
+	navtabNames := map[string]struct{}{}
 	inHeaderSection := true
 	scanner := bufio.NewScanner(f)
 	for i := 1; scanner.Scan(); i++ {
@@ -212,14 +218,9 @@ func checkFile(mdFile string, ctx *checkContext) error {
 					ctx.addError(mdFile, i, "relative link did not match expected pattern %q", relativeLinkStr)
 					continue
 				}
-				linkMatches := relativeLinkPagePathRe.FindStringSubmatch(relativeLinkStr)
-				if len(linkMatches) < 2 {
-					return fmt.Errorf("expected to find at least two string submatches but found %d = %v in link %v", len(linkMatches), linkMatches, relativeLinkStr)
-				}
-				// note that first is the full match, second is the named match
-				namedMatch := linkMatches[1]
-				if namedMatch == "" {
-					return fmt.Errorf("encountered empty named match when parsing link from %v", relativeLinkStr)
+				namedMatch, err := getSingleRegexMatch(relativeLinkPagePathRe, relativeLinkStr)
+				if err != nil {
+					return err
 				}
 				relativeLinks = append(relativeLinks, &relativeLink{
 					line: i,
@@ -227,18 +228,39 @@ func checkFile(mdFile string, ctx *checkContext) error {
 				})
 			}
 		} else if accordionHeaderRe.MatchString(l) {
-			accordionHeaderMatches := accordionHeaderRe.FindStringSubmatch(l)
-			if len(accordionHeaderMatches) < 2 {
-				return fmt.Errorf("expected to find at least two string submatches but found %d = %v in link %v", len(accordionHeaderMatches), accordionHeaderMatches, l)
-			}
-			// note that first is the full match, second is the named match
-			namedMatch := accordionHeaderMatches[1]
-			if namedMatch == "" {
-				return fmt.Errorf("encountered empty named match when parsing accordion header from %v", l)
+			namedMatch, err := getSingleRegexMatch(accordionHeaderRe, l)
+			if err != nil {
+				return err
 			}
 			if strings.Contains(namedMatch, " ") {
-				return fmt.Errorf("accordion header %v on line %v in file %v must not contain a space", l, i, mdFile	)
+				return fmt.Errorf("accordion header %v on line %v in file %v must not contain a space", l, i, mdFile)
 			}
+		} else if navtabsHeaderRe.MatchString(l) {
+			namedMatch, err := getSingleRegexMatch(navtabsHeaderRe, l)
+			if err != nil {
+				return err
+			}
+			if invalidNavtabNameRe.MatchString(namedMatch) {
+				return fmt.Errorf("navtabs header %v on line %v in file %v must not contain invalid HTML characters or ':' only but was %v", l, i, mdFile, namedMatch)
+			}
+			if _, ok := navtabsNames[namedMatch]; ok {
+				return fmt.Errorf("navtabs header %v on line %v in file %v is repeated", l, i, mdFile)
+			}
+			navtabsNames[namedMatch] = struct{}{}
+			// clear existing navtab names
+			navtabNames = map[string]struct{}{}
+		} else if navtabHeaderRe.MatchString(l) {
+			namedMatch, err := getSingleRegexMatch(navtabHeaderRe, l)
+			if err != nil {
+				return err
+			}
+			if invalidNavtabNameRe.MatchString(namedMatch) {
+				return fmt.Errorf("navtab header %v on line %v in file %v must not contain invalid HTML characters or ':' only but was %v", l, i, mdFile, namedMatch)
+			}
+			if _, ok := navtabNames[namedMatch]; ok {
+				return fmt.Errorf("navtab header %v on line %v in file %v is repeated", l, i, mdFile)
+			}
+			navtabNames[namedMatch] = struct{}{}
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -249,6 +271,19 @@ func checkFile(mdFile string, ctx *checkContext) error {
 	ctx.addRelativeLinks(relativeLinks, mdFile)
 
 	return nil
+}
+
+func getSingleRegexMatch(re *regexp.Regexp, l string) (string, error) {
+	matches := re.FindStringSubmatch(l)
+	if len(matches) < 2 {
+		return "", fmt.Errorf("expected to find at least two string submatches but found %d = %v in link %v", len(matches), matches, l)
+	}
+	// note that first is the full match, second is the named match
+	namedMatch := matches[1]
+	if namedMatch == "" {
+		return "", fmt.Errorf("encountered empty named match when parsing line %v", l)
+	}
+	return namedMatch, nil
 }
 
 type Header struct {

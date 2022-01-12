@@ -86,7 +86,7 @@ public class InodeTreeBufferedIterator implements Iterator<Journal.JournalEntry>
     InodeTreeBufferedIterator iterator = new InodeTreeBufferedIterator(inodeStore, rootInode);
     return new CloseableIterator<Journal.JournalEntry>(iterator) {
       @Override
-      public void close() {
+      public void closeResource() {
         iterator.close();
       }
     };

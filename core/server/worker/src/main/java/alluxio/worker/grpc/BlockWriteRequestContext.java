@@ -57,4 +57,127 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
   public void setBytesReserved(long bytesReserved) {
     mBytesReserved = bytesReserved;
   }
+<<<<<<< HEAD
+||||||| 4ec783295d
+
+  /**
+   * @return is the current request writing to UFS
+   */
+  public boolean isWritingToLocal() {
+    return mIsWritingToLocal;
+  }
+
+  /**
+   * @return the UFS path of the block
+   */
+  @Nullable
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
+   * @return the output stream
+   */
+  @Nullable
+  public java.io.OutputStream getOutputStream() {
+    return mOutputStream;
+  }
+  /**
+   * @return the handler of the UFS
+   */
+  @Nullable
+  public alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> getUfsResource() {
+    return mUfsResource;
+  }
+
+  /**
+   * @param writingToLocal whether the current request is writing to UFS
+   */
+  public void setWritingToLocal(boolean writingToLocal) {
+    mIsWritingToLocal = writingToLocal;
+  }
+
+  /**
+   * @param outputStream output stream to set
+   */
+  public void setOutputStream(java.io.OutputStream outputStream) {
+    mOutputStream = outputStream;
+  }
+
+  /**
+   * @param ufsResource UFS to set
+   */
+  public void setUfsResource(
+      alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> ufsResource) {
+    mUfsResource = ufsResource;
+  }
+
+  /**
+   * @param ufsPath UFS path to set
+   */
+  public void setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
+  }
+=======
+
+  /**
+   * @return is the current request writing to UFS
+   */
+  public boolean isWritingToLocal() {
+    return mIsWritingToLocal;
+  }
+
+  /**
+   * @return the UFS path of the block
+   */
+  @Nullable
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
+   * @return the output stream
+   */
+  @Nullable
+  public java.io.OutputStream getOutputStream() {
+    return mOutputStream;
+  }
+
+  /**
+   * @return the handler of the UFS
+   */
+  @Nullable
+  public alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> getUfsResource() {
+    return mUfsResource;
+  }
+
+  /**
+   * @param writingToLocal whether the current request is writing to UFS
+   */
+  public void setWritingToLocal(boolean writingToLocal) {
+    mIsWritingToLocal = writingToLocal;
+  }
+
+  /**
+   * @param outputStream output stream to set
+   */
+  public void setOutputStream(java.io.OutputStream outputStream) {
+    mOutputStream = outputStream;
+  }
+
+  /**
+   * @param ufsResource UFS to set
+   */
+  public void setUfsResource(
+      alluxio.resource.CloseableResource<alluxio.underfs.UnderFileSystem> ufsResource) {
+    mUfsResource = ufsResource;
+  }
+
+  /**
+   * @param ufsPath UFS path to set
+   */
+  public void setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
+  }
+>>>>>>> 7b38df4736e2e8d6c67e40dae9d432aeebc8d0a5
 }

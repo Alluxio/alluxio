@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.Constants;
-
 import alluxio.security.authorization.AccessControlList;
 
 import com.google.common.base.Splitter;
@@ -21,9 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Fingerprint for a UFS file or directory.

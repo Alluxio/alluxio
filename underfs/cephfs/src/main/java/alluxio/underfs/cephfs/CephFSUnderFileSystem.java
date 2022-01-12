@@ -40,14 +40,13 @@ import com.ceph.fs.CephStatVFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Stack;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -553,7 +552,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return inputStream;
+        return new CephSeekableInputStream(inputStream);
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
@@ -737,6 +736,11 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
   private void statfs(String path, CephStatVFS stat) throws IOException {
     mMount.statfs(path, stat);
+  }
+
+  @Override
+  public boolean isSeekable() {
+    return true;
   }
 }
 

@@ -34,7 +34,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -289,12 +288,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public boolean getBoolean(PropertyKey key) {
     String rawValue = get(key);
-
-    if (rawValue.equalsIgnoreCase("true")) {
-      return true;
-    } else if (rawValue.equalsIgnoreCase("false")) {
-      return false;
-    } else {
+    try {
+      return FormatUtils.parseBoolean(rawValue);
+    } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(rawValue, key));
     }
   }

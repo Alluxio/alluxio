@@ -66,9 +66,16 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
 
 Alluxio workers need configure a storage volume to use as the caching layer.
 By default, workers will set up a
-[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) but this
+[`ramfs`](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) but this
 can be modified to use a different storage volume by setting a different directory for the
 `alluxio.worker.tieredstore.level%d.dirs.path` property in `alluxio-site.properties`.
+
+Note from the `ramfs` documentation:
+
+> "One downside of ramfs is you can keep writing data into it until you fill
+> up all memory ... Because of this, only root (or a trusted user) should
+> be allowed write access to a ramfs mount."
+
 To get started with the default configuration, set `alluxio.worker.ramdisk.size` in
 `alluxio-site.properties`, add worker hostnames in `conf/workers`, then run the following command:
 

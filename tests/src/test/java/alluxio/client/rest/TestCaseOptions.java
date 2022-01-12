@@ -15,7 +15,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

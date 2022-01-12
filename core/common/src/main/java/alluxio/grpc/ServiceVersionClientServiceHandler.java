@@ -12,8 +12,8 @@
 package alluxio.grpc;
 
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

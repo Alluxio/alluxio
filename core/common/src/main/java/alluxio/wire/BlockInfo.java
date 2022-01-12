@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -26,7 +26,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -37,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ChmodCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
-      Option.builder("R")
+      Option.builder("R").longOpt("recursive")
           .required(false)
           .hasArg(false)
           .desc("change mode recursively")
@@ -57,7 +56,7 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    chmod(plainPath, mModeString, cl.hasOption("R"));
+    chmod(plainPath, mModeString, cl.hasOption(RECURSIVE_OPTION.getOpt()));
   }
 
   @Override
@@ -104,12 +103,12 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "chmod [-R] <mode> <path>";
+    return "chmod [-R/--recursive] <mode> <path>";
   }
 
   @Override
   public String getDescription() {
     return "Changes the permission of a file or directory specified by args."
-        + " Specify -R to change the permission recursively.";
+        + " Specify -R/--recursive to change the permission recursively.";
   }
 }

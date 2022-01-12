@@ -66,7 +66,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -955,7 +954,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   }
 
   @Override
-  public void umount() {
+  public void umount(boolean force) {
     LOG.info("Umount AlluxioFuseFileSystem");
     super.umount();
   }

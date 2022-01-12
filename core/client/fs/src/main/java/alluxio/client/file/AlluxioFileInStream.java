@@ -21,7 +21,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -42,7 +42,6 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -412,12 +411,22 @@ public class AlluxioFileInStream extends FileInStream {
               dataSource.getContainerHost(), host);
           host = dataSource.getContainerHost();
         }
+<<<<<<< HEAD
         AsyncCacheRequest request =
             AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+||||||| 4ec783295d
+        AsyncCacheRequest request =
+            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
+=======
+        CacheRequest request =
+            CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
+>>>>>>> 7b38df4736e2e8d6c67e40dae9d432aeebc8d0a5
                 .setSourceHost(host).setSourcePort(dataSource.getDataPort())
-                .build();
+                .setAsync(true).build();
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
-          mContext.getProcessLocalWorker().asyncCache(request);
+          mContext.getProcessLocalWorker().cache(request);
           mLastBlockIdCached = blockId;
           return true;
         }
@@ -430,7 +439,7 @@ public class AlluxioFileInStream extends FileInStream {
         }
         try (CloseableResource<BlockWorkerClient> blockWorker =
                  mContext.acquireBlockWorkerClient(worker)) {
-          blockWorker.get().asyncCache(request);
+          blockWorker.get().cache(request);
           mLastBlockIdCached = blockId;
         }
       }

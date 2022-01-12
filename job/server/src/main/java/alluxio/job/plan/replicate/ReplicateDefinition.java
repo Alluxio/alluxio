@@ -15,9 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.BlockInfo;
@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -103,7 +102,7 @@ public final class ReplicateDefinition
     // renamed, the job is still working on the correct file.
     URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getPath()));
 
-    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId());
+    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
     LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
     return null;
   }

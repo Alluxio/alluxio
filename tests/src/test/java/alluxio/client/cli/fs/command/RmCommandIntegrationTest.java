@@ -12,10 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +32,8 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
     sFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     sFsShell.run("rm", "/testFolder");
-    toCompare.append("/testFolder is a directory, to remove it, please use \"rm -R <path>\"\n");
+    toCompare.append("/testFolder is a directory, to remove it,"
+        + " please use \"rm -R/-r/--recursive <path>\"\n");
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 

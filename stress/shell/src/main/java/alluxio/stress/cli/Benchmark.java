@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -22,6 +23,7 @@ import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
@@ -29,7 +31,6 @@ import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,13 @@ public abstract class Benchmark<T extends TaskResult> {
   protected BaseParameters mBaseParameters = new BaseParameters();
 
   /**
+   * Get the description of the bench.
+   *
+   * @return string of the bench description
+   */
+  public abstract String getBenchDescription();
+
+  /**
    * Runs the test locally, in process.
    *
    * @return the task result
@@ -67,17 +75,33 @@ public abstract class Benchmark<T extends TaskResult> {
   /**
    * Prepares to run the test.
    */
+  // TODO(bowen): When the test runs in cluster mode, the prepare step will execute
+  //  both in the command side and on each job worker side. We should separate the logic
+  //  into two different calls instead of relying on the same prepare().
   public abstract void prepare() throws Exception;
 
+  /**
+   * Perform post-run cleanups.
+   */
+  public void cleanup() throws Exception {}
+
   protected static void mainInternal(String[] args, Benchmark benchmark) {
+    int exitCode = 0;
     try {
       String result = benchmark.run(args);
       System.out.println(result);
-      System.exit(0);
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);
+      exitCode = -1;
+    } finally {
+      try {
+        benchmark.cleanup();
+      } catch (Exception e) {
+        e.printStackTrace();
+        exitCode = -1;
+      }
     }
+    System.exit(exitCode);
   }
 
   /**
@@ -95,7 +119,8 @@ public abstract class Benchmark<T extends TaskResult> {
     commandArgs.addAll(mBaseParameters.mJavaOpts.stream().map(String::trim)
         .collect(Collectors.toList()));
     String className = this.getClass().getCanonicalName();
-    return new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit);
+    long startDelay = FormatUtils.parseTimeSize(mBaseParameters.mClusterStartDelay);
+    return new StressBenchConfig(className, commandArgs, startDelay, mBaseParameters.mClusterLimit);
   }
 
   /**
@@ -110,11 +135,13 @@ public abstract class Benchmark<T extends TaskResult> {
     try {
       jc.parse(args);
       if (mBaseParameters.mHelp) {
+        System.out.println(getBenchDescription());
         jc.usage();
         System.exit(0);
       }
     } catch (Exception e) {
       LOG.error("Failed to parse command: ", e);
+      System.out.println(getBenchDescription());
       jc.usage();
       throw e;
     }

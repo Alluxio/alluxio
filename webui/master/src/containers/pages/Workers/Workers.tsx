@@ -47,7 +47,13 @@ export class WorkersPresenter extends React.Component<AllProps> {
               <Table hover={true}>
                 <thead>
                   <tr>
-                    <th>Node Name</th>
+                    {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
+                      <th key={nodeInfo.workerId} id={`id-${nodeInfo.workerId}`}>
+                        {/*When workers start with kubernetes. `nodeInfo.host` is `hostIp (podIp)`,
+                            So it should be displayed as Node Name(Container Host).*/}
+                        {nodeInfo.host.includes('(') ? 'Node Name(Container Host)' : 'Node Name'}
+                      </th>
+                    ))}
                     {initData.debug && (
                       <React.Fragment>
                         <th>[D]Worker Id</th>
@@ -56,6 +62,7 @@ export class WorkersPresenter extends React.Component<AllProps> {
                     )}
                     <th>Last Heartbeat</th>
                     <th>State</th>
+                    <th>Block Count</th>
                     <th>Workers Capacity</th>
                     <th>Space Used</th>
                     <th>Space Usage</th>
@@ -65,7 +72,19 @@ export class WorkersPresenter extends React.Component<AllProps> {
                   {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
                     <tr key={nodeInfo.workerId}>
                       <td>
-                        <a href={`//${nodeInfo.host}:${initData.workerPort}`} rel="noopener noreferrer" target="_blank">
+                        <a
+                          id={`id-${nodeInfo.workerId}-link`}
+                          href={
+                            // When workers start with kubernetes. `nodeInfo.host` is `hostIp (podIp)`
+                            nodeInfo.host.includes('(')
+                              ? `//${nodeInfo.host.substring(0, nodeInfo.host.indexOf('(')).trim()}:${
+                                  initData.workerPort
+                                }`
+                              : `//${nodeInfo.host}:${initData.workerPort}`
+                          }
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
                           {nodeInfo.host}
                         </a>
                       </td>
@@ -77,6 +96,7 @@ export class WorkersPresenter extends React.Component<AllProps> {
                       )}
                       <td>{nodeInfo.lastHeartbeat}</td>
                       <td>{nodeInfo.state}</td>
+                      <td>{nodeInfo.blockCount}</td>
                       <td>{nodeInfo.capacity}</td>
                       <td>{nodeInfo.usedMemory}</td>
                       <td>

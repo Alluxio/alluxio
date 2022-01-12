@@ -20,12 +20,12 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.resource.CloseableResource;
 import alluxio.stress.BaseParameters;
+import alluxio.stress.TaskResult;
+import alluxio.stress.job.StressBenchConfig;
 import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JsonSerializable;
-import alluxio.stress.TaskResult;
-import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ShellUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
@@ -49,8 +49,8 @@ import java.util.stream.Collectors;
 /**
  * The definition for the stress bench job, which runs distributed benchmarks.
  *
- * {@link StressBenchConfig} is the configuration class, each task takes a List<String> as a list of
- * command-line arguments to the benchmark command, and each task returns the string output.
+ * {@link StressBenchConfig} is the configuration class, each task takes a List&lt;String&gt; as a
+ * list of command-line arguments to the benchmark command, and each task returns the string output.
  */
 public final class StressBenchDefinition
     implements PlanDefinition<StressBenchConfig, ArrayList<String>, String> {
@@ -88,6 +88,7 @@ public final class StressBenchDefinition
     workerList = workerList.subList(0, clusterLimit);
 
     for (WorkerInfo worker : workerList) {
+      LOG.info("Generating job for worker {}", worker.getId());
       ArrayList<String> args = new ArrayList<>(2);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.
@@ -186,9 +187,13 @@ public final class StressBenchDefinition
           try {
             return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
           } catch (IOException | ClassNotFoundException e) {
-            error.set(new IOException(String
-                .format("Failed to parse task output from %s into result class",
-                    entry.getKey().getAddress().getHost()), e));
+            // add log here because the exception details are lost at the client side
+            LOG.warn("Failed to parse result into class {}", TaskResult.class, e);
+            error.set(new IOException(
+                String.format("Failed to parse task output from %s into result class %s: %s",
+                    entry.getKey().getAddress().getHost(), TaskResult.class,
+                    entry.getValue().trim()),
+                e));
           }
           return null;
         }).collect(Collectors.toList());

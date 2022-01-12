@@ -68,6 +68,12 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    // TODO(David) Fill in description
+    return "";
+  }
+
+  @Override
   public void prepare() throws Exception {
     mFilePath = new Path(mParameters.mBasePath, "data");
 
@@ -243,7 +249,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);

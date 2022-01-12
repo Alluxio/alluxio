@@ -24,6 +24,7 @@ Usage: alluxio fsadmin [generic options]
 	 [report [category] [category args]]
 	 [statelock]
 	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
+	 [updateConf key1=val1 [key2=val2 ...]]
 
 ```
 
@@ -56,7 +57,8 @@ Back up to a specific directory on the leading master's local filesystem.
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Backup Host        : AlluxioSandboxEJSC-masters-1                          
 Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-1602619298086.gz
-Backup Entry Count : 4```
+Backup Entry Count : 4
+```
 
 ### journal
 The `journal` command provides several sub-commands for journal management.
@@ -70,7 +72,12 @@ $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 
 ```console
 # Remove a member from leader election quorum.
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <Member_Address>
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
+```
+
+```console
+# Elect a specific member of the quorum as the new leader.
+$ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 
 **checkpoint:** is used to create a checkpoint in the primary master journal system.
@@ -294,3 +301,31 @@ $ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 
 The `fsadmin ufs` subcommand takes a UFS URI as an argument. The argument should be a root
 UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
+
+### updateConf
+
+The `updateConf` command provides a way to update config for current running services if set `alluxio.conf.dynamic.update.enabled` to true
+to enable dynamic update config feature. The request is sent to alluxio master directly,
+but the other services like worker, fuse, s3 proxy or some other clients can also aware the config changed and sync the config.
+
+```console
+$ ./bin/alluxio fsadmin updateConf key1=val1 key2=val2
+Updated 2 configs
+```
+
+In fact, all the config keys can be updated value dynamically except the following keys.
+
+```
+alluxio.security.authentication.type
+alluxio.security.authorization.permission.enabled
+```
+
+But only the following config keys are tested the running service can use the updated value.
+
+```
+alluxio.master.unsafe.direct.persist.object.enabled
+alluxio.master.worker.timeout
+alluxio.master.audit.logging.enabled
+alluxio.master.ufs.managed.blocking.enabled
+alluxio.master.metastore.inode.inherit.owner.and.group
+```

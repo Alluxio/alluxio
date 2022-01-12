@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.Nullable;
 
 /**
@@ -137,6 +136,9 @@ public class DefaultMetaStore implements MetaStore {
   }
 
   private static final class Metrics {
+    // Note that only counter can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     /** Bytes used in the cache. */
     private static final Counter SPACE_USED =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_SPACE_USED_COUNT.getName());

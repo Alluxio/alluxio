@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 

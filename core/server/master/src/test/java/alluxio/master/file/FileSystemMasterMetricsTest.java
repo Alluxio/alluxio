@@ -14,8 +14,8 @@ package alluxio.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.DefaultFileSystemMaster.Metrics;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.metrics.MetricKey;
@@ -65,7 +65,7 @@ public class FileSystemMasterMetricsTest {
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(800L);
     when(client.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(ufs) {
       @Override
-      public void close() {}
+      public void closeResource() {}
     });
     when(mUfsManager.getRoot()).thenReturn(client);
     assertEquals(1000L, getGauge(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()));

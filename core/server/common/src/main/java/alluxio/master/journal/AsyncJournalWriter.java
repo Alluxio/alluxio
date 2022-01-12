@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
@@ -30,7 +31,6 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -406,6 +405,9 @@ public final class AsyncJournalWriter {
    */
   @ThreadSafe
   private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter JOURNAL_FLUSH_FAILURE =
         MetricsSystem.counter(MetricKey.MASTER_JOURNAL_FLUSH_FAILURE.getName());
 

@@ -30,7 +30,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * To use the journal system, first create per-state-machine journals with the
  * {@link #createJournal(Master)} method. Once all state machines are added,
- * {@link #start()} the journal system. The journal system starts in secondary mode, meaning it will
+ * {@link #start()} the journal system. The journal system starts in standby mode, meaning it will
  * not accept writes, but will apply journal entries to keep state machine states up to date with
  * previously written journal entries.
  *
@@ -49,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * does not apply journal entries to state machines while in primary mode. Instead, the state
  * machine states must be directly modified by RPC handlers.
  *
- * The journal system may also be changed from primary to secondary mode. This transition is done by
+ * The journal system may also be changed from primary to standby mode. This transition is done by
  * resetting all state machines and re-building them by catching up on the journal.
  *
  * Example usage:
@@ -62,7 +61,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Journal blockMasterJournal = journalSystem.createJournal(blockMaster);
  * Journal fileSystemMasterJournal = journalSystem.createJournal(fileSystemMaster);
  *
- * // The journal system always starts in secondary mode. It must be transitioned to primary mode
+ * // The journal system always starts in standby mode. It must be transitioned to primary mode
  * // before it can write entries.
  * journalSystem.start();
  * journalSystem.setPrimary(true);
@@ -71,11 +70,11 @@ import javax.annotation.concurrent.ThreadSafe;
  *   c.append(exampleBlockJournalEntry);
  * }
  * // At this point, the journal entry is persistently committed to the journal and will be applied
- * // asynchronously to the in-memory state of all secondary masters.
+ * // asynchronously to the in-memory state of all standby masters.
  * try (JournalContext c = fileSystemMasterJournal.createJournalContext()) {
  *   c.append(exampleFileSystemJournalEntry);
  * }
- * // Transition to a secondary journal. In this mode, the journal will apply entries to the masters
+ * // Transition to a standby journal. In this mode, the journal will apply entries to the masters
  * // as they are committed to the log.
  * journalSystem.setPrimary(false);
  * </pre>
@@ -84,7 +83,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface JournalSystem {
 
   /**
-   * The mode of the journal system. Journal systems begin in SECONDARY mode by default. The
+   * The mode of the journal system. Journal systems begin in STANDBY mode by default. The
    * {@link #gainPrimacy()} and {@link #losePrimacy()} methods may be used to transition between
    * journal modes.
    */
@@ -98,7 +97,7 @@ public interface JournalSystem {
      * In this mode, journal entries may not be written. Journal entries written by the primary will
      * be applied to journals' state machines.
      */
-    SECONDARY
+    STANDBY
   }
 
   /**
@@ -108,7 +107,7 @@ public interface JournalSystem {
    * entries may be written until the journal system has been started, and entries may only be
    * written when the journal system is in PRIMARY mode.
    *
-   * When the journal is started in secondary mode, it will call
+   * When the journal is started in standby mode, it will call
    * {@link Journaled#processJournalEntry(JournalEntry)} and
    * {@link Journaled#resetState()} to keep the state machine's state in sync with
    * the entries written to the journal.
@@ -122,7 +121,7 @@ public interface JournalSystem {
    * Starts the journal system.
    *
    * All journals must be created before starting the journal system. This method will block until
-   * the journal system is successfully started. The journal always starts in secondary mode.
+   * the journal system is successfully started. The journal always starts in standby mode.
    */
   void start() throws InterruptedException, IOException;
 
@@ -137,7 +136,7 @@ public interface JournalSystem {
   void gainPrimacy();
 
   /**
-   * Transitions the journal to secondary mode.
+   * Transitions the journal to standby mode.
    */
   void losePrimacy();
 
@@ -173,7 +172,7 @@ public interface JournalSystem {
   /**
    * Waits for the journal catchup to finish when the process starts.
    * This is intended to be only be called when starting the Alluxio master process
-   * in secondary mode and before the secondary master becoming the primary master.
+   * in standby mode and before the standby master becoming the primary master.
    * This is best-effort, because even if it did not finish
    * replaying the journal, the rest of the system will still complete
    * the journal catchup in a different phase.
@@ -265,7 +264,7 @@ public interface JournalSystem {
     }
 
     /**
-     * @param quietTimeMs before upgrading from SECONDARY to PRIMARY mode, the journal will wait
+     * @param quietTimeMs before upgrading from STANDBY to PRIMARY mode, the journal will wait
      *        until this duration has passed without any journal entries being written.
      * @return the updated builder
      */

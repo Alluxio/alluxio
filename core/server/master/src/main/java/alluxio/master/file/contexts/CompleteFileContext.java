@@ -14,6 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
@@ -99,6 +100,14 @@ public class CompleteFileContext
   public CompleteFileContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

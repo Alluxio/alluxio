@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
-
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -26,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

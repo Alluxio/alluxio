@@ -25,6 +25,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
+import alluxio.uri.MultiMasterAuthority;
+import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.commons.cli.CommandLine;
@@ -44,7 +46,7 @@ import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({MasterInquireClient.Factory.class, JobMasterClient.Factory.class,
-        FileSystemContext.class})
+    FileSystemContext.class})
 public class LogLevelTest {
   // Configure the web port to use special numbers to make sure the config is taking effect
   private static final int MASTER_WEB_PORT = 45699;
@@ -96,8 +98,9 @@ public class LogLevelTest {
 
   @Test
   public void parseZooKeeperHAMasterTarget() throws Exception {
+    String masterAddress = "masters-1:2181";
     mConf.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    mConf.set(PropertyKey.ZOOKEEPER_ADDRESS, "masters-1:2181");
+    mConf.set(PropertyKey.ZOOKEEPER_ADDRESS, masterAddress);
 
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{"--target", "master"};
@@ -109,6 +112,8 @@ public class LogLevelTest {
     MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
     when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(
             new InetSocketAddress("masters-1", mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
+    when(mockInquireClient.getConnectDetails())
+        .thenReturn(() -> new ZookeeperAuthority(masterAddress));
     when(MasterInquireClient.Factory.create(any(), any())).thenReturn(mockInquireClient);
 
     List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
@@ -119,7 +124,8 @@ public class LogLevelTest {
 
   @Test
   public void parseEmbeddedHAMasterTarget() throws Exception {
-    mConf.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, "masters-1:19200,masters-2:19200");
+    String masterAddresses = "masters-1:19200,masters-2:19200";
+    mConf.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, masterAddresses);
 
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{"--target", "master"};
@@ -131,6 +137,8 @@ public class LogLevelTest {
     MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
     when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(new InetSocketAddress("masters-1",
             mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
+    when(mockInquireClient.getConnectDetails())
+        .thenReturn(() -> new MultiMasterAuthority(masterAddresses));
     when(MasterInquireClient.Factory.create(any(), any())).thenReturn(mockInquireClient);
 
     List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);

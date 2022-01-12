@@ -12,15 +12,14 @@
 package alluxio;
 
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableBiMap;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

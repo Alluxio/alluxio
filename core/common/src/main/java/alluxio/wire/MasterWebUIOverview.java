@@ -11,16 +11,15 @@
 
 package alluxio.wire;
 
-import alluxio.util.webui.StorageTierInfo;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
+import alluxio.util.webui.StorageTierInfo;
 
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -47,9 +46,12 @@ public final class MasterWebUIOverview implements Serializable {
   private String mJournalCheckpointTimeWarning;
   private String mLiveWorkerNodes;
   private String mMasterNodeAddress;
+  private String mReplicaBlockCount;
   private String mStartTime;
+  private String mTotalPath;
   private String mUptime;
   private String mUsedCapacity;
+  private String mUniqueBlockCount;
   private String mVersion;
 
   /**
@@ -241,6 +243,33 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public int getConfigCheckWarnNum() {
     return mConfigCheckWarnNum;
+  }
+
+  /**
+   * Gets unique block count.
+   *
+   * @return unique block count
+   */
+  public String getUniqueBlockCount() {
+    return mUniqueBlockCount;
+  }
+
+  /**
+   * Gets total path.
+   *
+   * @return total path
+   */
+  public String getTotalPath() {
+    return mTotalPath;
+  }
+
+  /**
+   * Gets replica block count.
+   *
+   * @return replica block count
+   */
+  public String getReplicaBlockCount() {
+    return mReplicaBlockCount;
   }
 
   /**
@@ -473,6 +502,39 @@ public final class MasterWebUIOverview implements Serializable {
     return this;
   }
 
+  /**
+   * Sets unique block count.
+   *
+   * @param uniqueBlockCount the unique block count
+   * @return unique block count
+   */
+  public MasterWebUIOverview setUniqueBlockCount(String uniqueBlockCount) {
+    mUniqueBlockCount = uniqueBlockCount;
+    return this;
+  }
+
+  /**
+   * Sets total path.
+   *
+   * @param totalPath the total path
+   * @return total path
+   */
+  public MasterWebUIOverview setTotalPath(String totalPath) {
+    mTotalPath = totalPath;
+    return this;
+  }
+
+  /**
+   * Sets replica block count.
+   *
+   * @param replicaBlockCount the replica block count
+   * @return replica block count
+   */
+  public MasterWebUIOverview setReplicaBlockCount(String replicaBlockCount) {
+    mReplicaBlockCount = replicaBlockCount;
+    return this;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
@@ -485,7 +547,9 @@ public final class MasterWebUIOverview implements Serializable {
         .add("diskCapacity", mDiskCapacity).add("diskFreeCapacity", mDiskFreeCapacity)
         .add("diskUsedCapacity", mDiskUsedCapacity).add("freeCapacity", mFreeCapacity)
         .add("liveWorkerNodes", mLiveWorkerNodes).add("masterNodeAddress", mMasterNodeAddress)
+        .add("replicaBlockCount", mReplicaBlockCount)
         .add("startTime", mStartTime).add("storageTierInfos", mStorageTierInfos)
+        .add("totalPath", mTotalPath).add("uniqueBlockCount", mUniqueBlockCount)
         .add("uptime", mUptime).add("usedCapacity", mUsedCapacity).add("version", mVersion)
         .toString();
   }

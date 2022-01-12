@@ -26,7 +26,6 @@ import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -36,6 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class WriteRequestMarshaller extends DataMessageMarshaller<WriteRequest> {
   private static final int CHUNK_TAG = GrpcSerializationUtils.makeTag(
       WriteRequest.CHUNK_FIELD_NUMBER, WireFormat.WIRETYPE_LENGTH_DELIMITED);
+
   /**
    * Creates a {@link WriteRequestMarshaller}.
    */

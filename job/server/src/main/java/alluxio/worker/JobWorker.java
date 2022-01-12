@@ -12,12 +12,12 @@
 package alluxio.worker;
 
 import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.Server;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.Server;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -99,7 +98,7 @@ public final class JobWorker extends AbstractWorker {
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);
     } catch (ConnectionFailedException e) {
-      LOG.error("Failed to get a worker id from job master", e);
+      LOG.error("Failed to connect to job master", e);
       throw Throwables.propagate(e);
     }
 

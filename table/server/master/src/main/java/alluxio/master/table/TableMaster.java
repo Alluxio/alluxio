@@ -120,7 +120,7 @@ public interface TableMaster extends Master {
    */
   Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNamesList, List<String> colNamesList)
-    throws IOException;
+      throws IOException;
 
   /**
    * Transforms a table to a new table.

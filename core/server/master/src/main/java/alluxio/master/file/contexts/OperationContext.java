@@ -11,12 +11,14 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.wire.OperationId;
+
 import com.google.protobuf.GeneratedMessageV3;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Used as a base class for wrapping context around proto messages.
@@ -57,6 +59,16 @@ public class OperationContext<T extends GeneratedMessageV3.Builder, C extends Op
   public C withTracker(CallTracker tracker) {
     mCallTrackers.add(tracker);
     return (C) this;
+  }
+
+  /**
+   * Get embedded operation id, passed via proto options.
+   * This is overwritten by operations that include an operation id.
+   *
+   * @return the operation id or {@code null} if not found
+   */
+  public OperationId getOperationId() {
+    return null;
   }
 
   /**

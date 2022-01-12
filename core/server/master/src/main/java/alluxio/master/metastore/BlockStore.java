@@ -18,7 +18,6 @@ import alluxio.proto.meta.Block.BlockMeta;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -84,21 +83,36 @@ public interface BlockStore extends Iterable<Block> {
   void close();
 
   /**
+   * @return size of the block store
+   */
+  long size();
+
+  /**
    * Block metadata.
    */
   class Block {
     private final long mId;
     private final BlockMeta mMeta;
 
+    /**
+     * @param id the block id
+     * @param meta the block meta
+     */
     public Block(long id, BlockMeta meta) {
       mId = id;
       mMeta = meta;
     }
 
+    /**
+     * @return id
+     */
     public long getId() {
       return mId;
     }
 
+    /**
+     * @return block meta
+     */
     public BlockMeta getMeta() {
       return mMeta;
     }

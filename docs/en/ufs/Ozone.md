@@ -7,7 +7,7 @@ priority: 10
 ---
 
 
-This guide describes how to configure [Ozone](https://hadoop.apache.org/ozone) as Alluxio's under storage system. 
+This guide describes how to configure [Ozone](https://ozone.apache.org/) as Alluxio's under storage system. 
 Ozone is a scalable, redundant, and distributed object store for Hadoop. Apart from scaling to billions of objects of varying sizes, 
 Ozone can function effectively in containerized environments such as Kubernetes and YARN.
 
@@ -18,9 +18,8 @@ machines. You can either [download the precompiled binaries directly]({{ '/en/de
 with the correct Hadoop version (recommended), or 
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
 
-In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
-to install a Ozone cluster, and follow the [Volume Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html) and 
-[Bucket Commands](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html) to create volume and bucket for Ozone cluster.
+In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.2.1/start/onprem.html)
+to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.org/docs/1.2.1/interface/cli.html) to create volume and bucket for Ozone cluster.
 
 ## Basic Setup
 
@@ -80,25 +79,11 @@ For example, the following command mounts a directory inside an Ozone bucket int
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml:<DIR>/core-site.xml \
+  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-Possible `core-site.xml` and `ozone-site.xml`
-- `core-site.xml`
-
-```xml
-<configuration>
-  <property>
-    <name>fs.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzoneFileSystem</value>
-  </property>
-  <property>
-    <name>fs.AbstractFileSystem.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
-  </property>
-</configuration>
-```
+Possible `ozone-site.xml`
 
 - `ozone-site.xml`
 
@@ -108,26 +93,6 @@ Possible `core-site.xml` and `ozone-site.xml`
     <name>ozone.om.address</name>
     <value>localhost</value>
   </property>
-  <property>
-    <name>scm.container.client.max.size</name>
-    <value>256</value>
-  </property>
-  <property>
-    <name>scm.container.client.idle.threshold</name>
-    <value>10s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.request.timeout</name>
-    <value>60s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.async.outstanding-requests.max</name>
-    <value>32</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.watch.request.timeout</name>
-    <value>180s</value>
-  </property>
 </configuration>
 ```
 
@@ -135,7 +100,7 @@ Make sure the related config file is on all servers nodes running Alluxio.
 
 ### Supported Ozone Versions
 
-Currently, the only tested Ozone version with Alluxio is `1.0.0`.
+Currently, the only tested Ozone version with Alluxio is `1.0.0`, `1.1.0`, `1.2.1`.
 
 ## Contributed by the Alluxio Community
 

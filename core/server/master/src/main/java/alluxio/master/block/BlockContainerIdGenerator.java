@@ -12,7 +12,6 @@
 package alluxio.master.block;
 
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -525,6 +525,7 @@ public class CollectInfo extends AbstractShell {
       return successfulHosts;
     }
   }
+
   /**
    * Waits for ALL futures to complete and returns a list of results.
    * If any future completes exceptionally then the resulting future

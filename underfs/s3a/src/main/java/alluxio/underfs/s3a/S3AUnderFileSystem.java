@@ -30,13 +30,18 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.internal.ServiceUtils;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -51,7 +56,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.util.AwsHostNameUtils;
 import com.amazonaws.util.Base64;
+import com.amazonaws.util.RuntimeHttpUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -63,14 +70,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
-
-import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
@@ -88,8 +95,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
 
+  private static final String S3_SERVICE_NAME = "s3";
+
   /** AWS-SDK S3 client. */
-  private final AmazonS3Client mClient;
+  private final AmazonS3 mClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
@@ -199,30 +208,113 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
-    AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
+    AwsClientBuilder.EndpointConfiguration endpointConfiguration
+        = createEndpointConfiguration(conf, clientConf);
 
-    // Set a custom endpoint.
-    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      amazonS3Client.setEndpoint(conf.get(PropertyKey.UNDERFS_S3_ENDPOINT));
-    }
-
-    // Disable DNS style buckets, this enables path style requests.
-    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
-      S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
-      amazonS3Client.setS3ClientOptions(clientOptions);
-    }
+    AmazonS3 amazonS3Client
+        = createAmazonS3(credentials, clientConf, endpointConfiguration, conf);
 
     ExecutorService service = ExecutorServiceFactories
         .fixedThreadPool("alluxio-s3-transfer-manager-worker",
             numTransferThreads).create();
 
     TransferManager transferManager = TransferManagerBuilder.standard()
-        .withS3Client(amazonS3Client).withExecutorFactory(() -> service)
+        .withS3Client(createAmazonS3(credentials, clientConf, endpointConfiguration, conf))
+        .withExecutorFactory(() -> service)
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
         .build();
 
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
         service, transferManager, conf, streamingUploadEnabled);
+  }
+
+  /**
+   * Create an AmazonS3 client.
+   *
+   * @param credentialsProvider the credential provider
+   * @param clientConf the client config
+   * @param endpointConfiguration the endpoint config
+   * @param conf the Ufs config
+   * @return the AmazonS3 client
+   */
+  public static AmazonS3 createAmazonS3(AWSCredentialsProvider credentialsProvider,
+      ClientConfiguration clientConf,
+      AwsClientBuilder.EndpointConfiguration endpointConfiguration,
+      UnderFileSystemConfiguration conf) {
+    AmazonS3ClientBuilder clientBuilder = AmazonS3Client.builder()
+        .withCredentials(credentialsProvider)
+        .withClientConfiguration(clientConf);
+
+    if (conf.getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+      clientBuilder.withPathStyleAccessEnabled(true);
+    }
+
+    boolean enableGlobalBucketAccess = true;
+    if (endpointConfiguration != null) {
+      clientBuilder.withEndpointConfiguration(endpointConfiguration);
+      enableGlobalBucketAccess = false;
+    } else if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
+      try {
+        String region = conf.get(PropertyKey.UNDERFS_S3_REGION);
+        clientBuilder.withRegion(region);
+        enableGlobalBucketAccess = false;
+        LOG.debug("Set S3 region {} to {}", PropertyKey.UNDERFS_S3_REGION.getName(), region);
+      } catch (SdkClientException e) {
+        LOG.error("S3 region {} cannot be recognized, "
+            + "fall back to use global bucket access with an extra HEAD request",
+            conf.get(PropertyKey.UNDERFS_S3_REGION), e);
+      }
+    }
+
+    if (enableGlobalBucketAccess) {
+      // access bucket without region information
+      // at the cost of an extra HEAD request
+      clientBuilder.withForceGlobalBucketAccessEnabled(true);
+      // The special S3 region which can be used to talk to any bucket
+      // Region is required even if global bucket access enabled
+      String defaultRegion = Regions.US_EAST_1.getName();
+      clientBuilder.setRegion(defaultRegion);
+      LOG.debug("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
+          + "set region to {} and enable global bucket access with extra overhead",
+          defaultRegion);
+    }
+    return clientBuilder.build();
+  }
+
+  /**
+   * Creates an endpoint configuration.
+   *
+   * @param conf the aluxio conf
+   * @param clientConf the aws conf
+   * @return the endpoint configuration
+   */
+  @Nullable
+  private static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
+      UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
+    if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      LOG.debug("No endpoint configuration generated, using default s3 endpoint");
+      return null;
+    }
+    String endpoint = conf.get(PropertyKey.UNDERFS_S3_ENDPOINT);
+    final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
+    LOG.debug("Creating endpoint configuration for {}", epr);
+
+    String region;
+    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
+      region = conf.get(PropertyKey.UNDERFS_S3_ENDPOINT_REGION);
+    } else if (ServiceUtils.isS3USStandardEndpoint(endpoint)) {
+      // endpoint is standard s3 endpoint with default region, no need to set region
+      LOG.debug("Standard s3 endpoint, declare region as null");
+      region = null;
+    } else {
+      LOG.debug("Parsing region fom non-standard s3 endpoint");
+      region = AwsHostNameUtils.parseRegion(
+          epr.getHost(),
+          S3_SERVICE_NAME);
+    }
+    LOG.debug("Region for endpoint {}, URI {} is determined as {}",
+        endpoint, epr, region);
+    return new AwsClientBuilder.EndpointConfiguration(endpoint, region);
   }
 
   /**
@@ -236,7 +328,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this S3A ufs
    * @param streamingUploadEnabled whether streaming upload is enabled
    */
-  protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
+  protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3 amazonS3Client, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
       boolean streamingUploadEnabled) {
     super(uri, conf);
@@ -444,8 +536,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
+        Date lastModifiedDate = obj.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
-            obj.getLastModified().getTime());
+            lastModifiedTime);
       }
       return ret;
     }
@@ -488,8 +582,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
+        Date lastModifiedDate = obj.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
-            obj.getLastModified().getTime());
+            lastModifiedTime);
       }
       return ret;
     }
@@ -518,8 +614,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+      Date lastModifiedDate = meta.getLastModified();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
+      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(), lastModifiedTime);
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;

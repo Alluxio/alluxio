@@ -73,7 +73,7 @@ public class MetadataCachingBaseFileSystemTest {
     when(mFileContext.acquireMasterClientResource())
         .thenReturn(new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
           @Override
-          public void close() {
+          public void closeResource() {
             // Noop.
           }
         });

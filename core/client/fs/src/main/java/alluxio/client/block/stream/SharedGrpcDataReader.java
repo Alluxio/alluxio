@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -65,7 +64,7 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   private static ReentrantReadWriteLock getLock(long blockId) {
-    return BLOCK_LOCKS[HASH_FUNC.hashLong(blockId).asInt() % BLOCK_LOCKS.length];
+    return BLOCK_LOCKS[Math.floorMod(HASH_FUNC.hashLong(blockId).asInt(), BLOCK_LOCKS.length)];
   }
 
   private final long mBlockId;
@@ -157,7 +156,7 @@ public class SharedGrpcDataReader implements DataReader {
       mBlockSize = blockSize;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+    @alluxio.annotation.SuppressFBWarnings(
         value = "AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION",
         justification = "operation is still atomic guarded by block Ølock")
     @Override

@@ -13,6 +13,7 @@ package alluxio.resource;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -32,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -275,6 +275,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
       }
     }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
+
+    registerGauges();
+  }
+
+  private void registerGauges() {
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getResourcePoolMetricName(this),
+        () -> size());
   }
 
   /**

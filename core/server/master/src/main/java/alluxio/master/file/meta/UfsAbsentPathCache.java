@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +70,10 @@ public interface UfsAbsentPathCache {
 
     private Factory() {} // prevent instantiation
 
+    /**
+     * @param mountTable the mount table
+     * @return {@link UfsAbsentPathCache}
+     */
     public static UfsAbsentPathCache create(MountTable mountTable) {
       int numThreads = ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS);
       if (numThreads <= 0) {

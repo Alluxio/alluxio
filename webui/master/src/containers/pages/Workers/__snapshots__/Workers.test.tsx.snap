@@ -24,13 +24,13 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Node Name
-              </th>
-              <th>
                 Last Heartbeat
               </th>
               <th>
                 State
+              </th>
+              <th>
+                Block Count
               </th>
               <th>
                 Workers Capacity

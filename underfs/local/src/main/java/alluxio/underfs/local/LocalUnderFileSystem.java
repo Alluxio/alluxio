@@ -55,7 +55,6 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -72,6 +71,8 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(LocalUnderFileSystem.class);
 
+  private final boolean mSkipBrokenSymlinks;
+
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
    *
@@ -80,6 +81,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
    */
   public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     super(uri, ufsConf);
+    mSkipBrokenSymlinks = ufsConf.getBoolean(PropertyKey.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS);
   }
 
   @Override
@@ -283,7 +285,9 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   public UfsStatus[] listStatus(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
-    File[] files = file.listFiles();
+    // By default, exists follows symlinks. If the symlink is invalid .exists() returns false
+    File[] files = mSkipBrokenSymlinks ? file.listFiles(File::exists) : file.listFiles();
+
     if (files != null) {
       UfsStatus[] rtn = new UfsStatus[files.length];
       int i = 0;

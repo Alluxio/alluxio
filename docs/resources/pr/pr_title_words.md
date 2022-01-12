@@ -203,6 +203,7 @@ refine
 reformat
 regen
 regenerate
+register
 reimplement
 relax
 release

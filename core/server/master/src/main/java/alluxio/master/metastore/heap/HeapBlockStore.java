@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -100,6 +99,11 @@ public class HeapBlockStore implements BlockStore {
   @Override
   public void close() {
     // Nothing to close for HEAP store.
+  }
+
+  @Override
+  public long size() {
+    return mBlocks.size();
   }
 
   @Override

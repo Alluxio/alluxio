@@ -428,7 +428,7 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
   jstring jsname = env->NewStringUTF(name);
   jobject buffer = env->NewDirectByteBuffer((void *)value, size);
 
-  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size, flags);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jsname, buffer, size, flags);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jsname);

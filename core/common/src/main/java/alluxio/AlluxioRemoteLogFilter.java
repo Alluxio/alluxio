@@ -15,8 +15,6 @@ import org.apache.log4j.MDC;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
-import java.lang.Deprecated;
-
 /**
  * Thin filter to add MDC information to {@link LoggingEvent}. Remote log server can read
  * {@link org.apache.log4j.spi.LoggingEvent} off {@link java.net.Socket} and retrieve the

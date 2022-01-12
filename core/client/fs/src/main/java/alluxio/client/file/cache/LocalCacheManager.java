@@ -30,7 +30,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -52,7 +51,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -362,7 +360,9 @@ public class LocalCacheManager implements CacheManager {
       if (scopeToEvict == null) {
         try {
           mPageStore.put(pageId, page);
-          Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
+          // Bytes written to the cache
+          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
+              .mark(page.length);
           return PutResult.OK;
         } catch (ResourceExhaustedException e) {
           undoAddPage(pageId);
@@ -409,8 +409,11 @@ public class LocalCacheManager implements CacheManager {
       PageId victim = victimPageInfo.getPageId();
       try {
         mPageStore.delete(victim);
-        Metrics.BYTES_EVICTED_CACHE.mark(victimPageInfo.getPageSize());
-        Metrics.PAGES_EVICTED_CACHE.mark();
+        // Bytes evicted from the cache
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
+            .mark(victimPageInfo.getPageSize());
+        // Errors when adding pages
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getName()).mark();
       } catch (IOException | PageNotFoundException e) {
         if (scopeToEvict == null) {
           // Failed to evict page, remove new page from metastore as there will not be enough space
@@ -425,7 +428,8 @@ public class LocalCacheManager implements CacheManager {
       }
       try {
         mPageStore.put(pageId, page);
-        Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
+        // Bytes written to the cache
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
         return PutResult.OK;
       } catch (ResourceExhaustedException e) {
         undoAddPage(pageId);
@@ -466,13 +470,11 @@ public class LocalCacheManager implements CacheManager {
       Metrics.GET_ERRORS.inc();
       return -1;
     }
-    boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
-        hasPage = mMetaStore.hasPage(pageId);
-      }
-      if (!hasPage) {
+        mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+      } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
       }
@@ -651,12 +653,9 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private static final class Metrics {
-    /** Bytes evicted from the cache. */
-    private static final Meter BYTES_EVICTED_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName());
-    /** Bytes written to the cache. */
-    private static final Meter BYTES_WRITTEN_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName());
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     /** Errors when cleaning up a failed get operation. */
     private static final Counter CLEANUP_GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEANUP_GET_ERRORS.getName());
@@ -684,9 +683,6 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when getting pages due to failed read from page stores. */
     private static final Counter GET_STORE_READ_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_STORE_READ_ERRORS.getName());
-    /** Pages evicted from the cache. */
-    private static final Meter PAGES_EVICTED_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getName());
     /** Errors when adding pages. */
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());

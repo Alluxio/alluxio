@@ -14,12 +14,14 @@ package alluxio.master.file;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 
 import org.slf4j.Logger;
@@ -42,6 +44,8 @@ final class LostFileDetector implements HeartbeatExecutor {
   public LostFileDetector(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_LOST_FILE_COUNT.getName(),
+        () -> mFileSystemMaster.getLostFiles().size());
   }
 
   @Override
@@ -65,7 +69,8 @@ final class LostFileDetector implements HeartbeatExecutor {
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
       } catch (UnavailableException e) {
-        LOG.warn("Failed to run lost file detector: {}", e.toString());
+        LOG.warn("Journal is not available. Backing off. Error: {}", e.toString());
+        break;
       }
     }
   }

@@ -106,7 +106,6 @@ Each release comes with prebuilt binaries compatible with various Hadoop version
 [Building From Master Branch Documentation]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 explains how to build the project from source code. Questions can be directed to our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-(users who can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/))
 or our [Community Slack Channel](https://alluxio.io/slack).
 
 [Downloads](https://www.alluxio.io/download/)

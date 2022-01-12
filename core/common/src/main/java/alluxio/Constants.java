@@ -79,6 +79,7 @@ public final class Constants {
   public static final String HEADER_SWIFT = "swift://";
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
+  public static final String HEADER_OBS = "obs://";
 
   public static final int MAX_PORT = 65535;
 
@@ -203,6 +204,10 @@ public final class Constants {
 
   // Replication
   public static final int REPLICATION_MAX_INFINITY = -1;
+
+  // Fuse shell
+  public static final String DEAFULT_FUSE_MOUNT = "/mnt/alluxio-fuse";
+  public static final String ALLUXIO_CLI_PATH = "/.alluxiocli";
 
   // Persistence
   // The file should only be persisted after rename operation or persist CLI

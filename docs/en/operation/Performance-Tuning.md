@@ -9,7 +9,7 @@ priority: 8
 * Table of Contents
 {:toc}
 
-This document goes over various tips and configuration to tune Alluxio performance.
+This document goes over various tips and configurations to tune Alluxio performance.
 
 ## Common Performance Issues
 
@@ -141,6 +141,21 @@ alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards=3
 Setting this to 3 means there will be 3 Alluxio workers responsible for reading a particular
 UFS block, and all clients will read that UFS block from one of those 3 workers.
 
+### Cache Hit Ratio
+
+In Alluxio versions 2.6 and before, there are several metrics which indicate the number of bytes read through different means. 
+Together, they can be used to calculate the hit ratio of alluxio. 
+
+The general formula is 1- `Cluster.BytesReadUfsAll`/ (`Cluster.BytesReadLocal` + `Cluster.BytesReadDomain` + `Cluster.BytesReadRemote`)
+The latter part uses the bytes Alluxio reads from the UFS and divide by all the bytes read.
+This computes the cache miss rate. 
+1 - cache miss rate gives us cache hit rate. 
+
+In Alluxio versions after 2.6, we included an additional metric `Cluster.CacheHitRate`, which indicates the cache hit ratio. 
+Here the cache hit ratio means the percentage of data that is accessed and already in Alluxio storage.
+If there is a drop in the hit ratio, consider boosting cache size or examine the recent access pattern to see why data accesses are going to the ufs.
+
+
 ## Master Tuning
 
 ### Journal performance tuning
@@ -214,6 +229,19 @@ Increasing the number of threads can decrease the staleness of the UFS path cach
 but may impact performance by increasing work on the Alluxio master, as well as consuming UFS bandwidth.
 If this is set to 0, the cache is disabled and the `ONCE` setting will behave like the `ALWAYS` setting.
 
+### Metadata Sync
+
+If the content on the UFS are modified without going through Alluxio, Alluxio needs to sync its metadata with the UFS to reflect those changes in Alluxio namespace. 
+The cost of metadata sync scales linearly with the number of files in the directory that is being synced. 
+If metadata sync operation happens frequently on large directories, more threads may be allocated to speed up this process. 
+Two configurations are relevant here. 
+
+`alluxio.master.metadata.sync.concurrency.level` controls the concurrency that is used in a single sync operation.
+Adjust this to 1x to 2x virtual core count on the master node to speed up the speed of metadata sync.
+
+`alluxio.master.metadata.sync.executor.pool.size` controls the number of threads performing sync operations.
+This defaults to the number of virtual cores in the system, but can be adjusted to 2x or 4x number of virtual cores if we expect many concurrent sync operations. 
+
 ## Worker Tuning
 
 ### Block reading thread pool size
@@ -236,6 +264,10 @@ This is most commonly effective in cases where the files being cached are relati
 However, increase this number sparingly, as it will consume more CPU resources on the worker node
 as the number is increased.
 
+Another important property related to async caching is `alluxio.worker.network.async.cache.manager.queue.max`. When a sudden surge of async caching traffic arrives, and Alluxio can no longer hold all the request in the queue, it will start to drop some async caching request, as async caching is strictly an performance optimization.
+Increase this if Alluxio drops many async cache requests.
+Monitor `Worker.AsyncCacheRequests` and `Worker.AsyncCacheSucceededBlocks` to see if the number of blocks cached matches expectations.
+
 ### UFS InStream cache size
 
 Alluxio workers use a pool of open input streams to the UFS controlled by the parameter
@@ -245,6 +277,22 @@ parameter should be set based on `dfs.datanode.handler.count`. For instance, if 
 Alluxio workers matches the the number of HDFS datanodes, set
 `alluxio.worker.ufs.instream.cache.max.size=<value of HDFS setting dfs.datanode.handler.count>`
 under the assumption that the workload is spread evenly over Alluxio workers.
+
+## Job Service Tuning
+
+### Job Service Capacity
+Job service limits the total number of currently running jobs to control its resource usage.
+Note that a single CLI command such as distributedLoad can trigger many jobs to be created, one for each file. 
+If jobs tend to be created in large batches, consider increasing `alluxio.job.master.job.capacity` to a larger value than the default 100K. 
+Job submissions will be rejected if the job service is out of capacity.
+
+There are configurations which control the capacity and parallelism for commands such as `DistributedLoad`.
+Please consult the CLI documentation for more details.
+
+### Job Service Throughput
+When there are many concurrent jobs running, and a higher throughput is desired, consider increasing `alluxio.job.worker.threadpool.size` configuration. 
+This allows each job worker to run with more parallel threads. The drawback is it will compete for resources on the worker machines. 
+Recommend 2x virtual core count if most jobs are running in off peak hours only and 1/2 to 1x virtual core count if jobs are running in all hours. 
 
 ## Client Tuning
 
@@ -334,3 +382,79 @@ persistence again when renamed.
 Note that persist on rename works for directories as well as files - if a top-level directory is
 renamed with the persist on rename option, any files underneath the top-level directory will be
 considered for persistence.
+
+## Frequently Seen Performance Issues
+
+This section lists a set of common performance issues and possible reasons and diagnostics steps.
+It is a good place to start when you have a performance issue and may lead to an answer quickly if your symptom matches one of those described here. 
+
+### Slow Queries / Overall performance 
+Unexpectedly large `Cluster.BytesReadUfs` metric is observed.
+
+When Alluxio is going to UFS for the data, it is sacrificing performance and incurring additional cost. This is usually the biggest red flag. 
+
+Reason:
+There are many possible reasons for this. Here is a partial list to check if it is the root cause for your problem.
+
+1. Not enough cache space
+   * Check eviction stats
+  `Worker.BlocksEvictionRate`
+   * Check worker capacity
+   Use the command `alluxio fsadmin report capacity`
+1. Access pattern is really adversarial
+   * Check eviction stats
+  `Worker.BlocksEvictionRate`
+1. Too many pinned files and directories
+   * Check pinned files
+1. Too many copies of the same block
+   * Reduce `maxReplication` for files
+1. Async cache request getting dropped or progressing too slowly
+   * Investigate async cache statistics
+   * Worker.AsyncCacheRequests vs Worker.AsyncCacheCompleted
+    If necessary， increase `alluxio.worker.network.async.cache.manager.threads.max`
+    If requests are dropped, increase `alluxio.worker.network.async.cache.manager.queue.max`
+1. Unbalanced workers
+All of your data access might be going to a small set of workers. Checker worker capacity using either the webui or the `alluxio fsadmin` command. 
+
+### Slow read/write to Alluxio
+This is indicated by read/write throughput metrics in Alluxio, or usually reported by the user. 
+Reason: 
+
+1. Client rpc thread setting
+   * alluxio.user.network.netty.worker.threads
+1. Worker rpc thread max
+   * alluxio.worker.network.block.reader.threads.max
+   * alluxio.worker.network.block.writer.threads.max
+These two settings control the concurrency levels of the reader and writer threads. 
+   * alluxio.worker.remote.io.slow.threshold  
+This setting controls when a remote io is considered slow. If a remote io is slower than this, check the worker log for messages
+1. Worker timeout
+   * Check client log for any worker timeout and check worker log for any dead worker
+
+### Slow metadata sync
+Possible reasons:
+
+1. Synced too often, too many files
+   * `alluxio.user.file.metadata.sync.interval` controls how often metadata is synced. Frequent syncing can lead to extra ufs calls and slow down the system performance.
+   * Slowness in syncing can also be caused by not enough sync threads
+adjust
+`alluxio.master.metadata.sync.concurrency.level`
+`alluxio.master.metadata.sync.executor.pool.size`
+`alluxio.master.metadata.sync.ufs.prefetch.pool.size`
+
+### Slow distributedLoad / distCp / async persist (Job service jobs) 
+1. Using `jps` to ensure job master and job worker processes are running
+1. `alluxio jobs ls` to see if there are active jobs
+1. Check the master log to see if the jobs are triggered
+1. Check if we have reached job service capacity, increase 
+`alluxio.job.master.job.capacity` if necessary
+1. Adjust `alluxio.job.worker.threadpool.size` to increase concurrency (this might affect worker performance)
+
+### OOM of Alluxio processes
+1. Alluxio process can get killed by system OOM killer and die silently
+ * Check `dmesg -T | egrep -i 'killed process'`
+ * This will show which process (if any) got killed by OOM killer
+If confirmed OOM issue, start by increasing xmx, directmemory setting of the relevant process
+ * Sometimes the log will show an Out Of Memory exception, this is a Java reported OOM. 
+ * This is typically caused by not enough system resources, such as ulimit, thread stack space etc.  
+

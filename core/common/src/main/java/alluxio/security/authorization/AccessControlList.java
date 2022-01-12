@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -424,8 +423,8 @@ public class AccessControlList implements Serializable {
       // when the stringEntries size is 0, it can only be a DefaultAccessControlList
       acl = new DefaultAccessControlList();
     }
-    acl.setOwningUser(owner);
-    acl.setOwningGroup(owningGroup);
+    acl.setOwningUser(owner.intern());
+    acl.setOwningGroup(owningGroup.intern());
 
     for (String stringEntry : stringEntries) {
       AclEntry aclEntry = AclEntry.fromCliString(stringEntry);
@@ -499,7 +498,7 @@ public class AccessControlList implements Serializable {
      * Deserialize an AccessControlList object.
      * @param jsonParser the json parser
      * @param deserializationContext deserializationcontext
-     * @return
+     * @return {@link AccessControlList}
      * @throws IOException
      * @throws JsonProcessingException
      */
@@ -507,8 +506,8 @@ public class AccessControlList implements Serializable {
     public AccessControlList deserialize(JsonParser jsonParser,
         DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
       JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-      String owner = node.get(OWNER_FIELD).asText();
-      String owningGroup = node.get(OWNING_GROUP_FIELD).asText();
+      String owner = node.get(OWNER_FIELD).asText().intern();
+      String owningGroup = node.get(OWNING_GROUP_FIELD).asText().intern();
       List<String> stringEntries = new ArrayList<>();
       Iterator<JsonNode> nodeIterator = node.get(STRING_ENTRY_FIELD).elements();
       while (nodeIterator.hasNext()) {

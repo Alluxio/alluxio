@@ -4,8 +4,9 @@
  */
 package alluxio.concurrent.jsr;
 
-import java.lang.reflect.Field;
 import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
 
 class UnsafeAccess {
 

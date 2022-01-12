@@ -17,10 +17,13 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
+import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
@@ -29,10 +32,10 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.Nullable;
 
 /**
@@ -157,6 +160,11 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public void cache(CacheRequest request) {
+    // noop
+  }
+
+  @Override
   public void updatePinList(Set<Long> pinnedInodes) {
     // noop
   }
@@ -175,6 +183,16 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public void clearMetrics() {
     // noop
+  }
+
+  @Override
+  public Configuration getConfiguration(GetConfigurationPOptions options) {
+    return null;
+  }
+
+  @Override
+  public List<String> getWhiteList() {
+    return null;
   }
 
   @Override

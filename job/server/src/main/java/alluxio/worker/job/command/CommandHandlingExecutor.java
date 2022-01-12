@@ -25,10 +25,10 @@ import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
-import alluxio.worker.job.JobMasterClient;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.JobWorkerIdRegistry;
+import alluxio.worker.job.JobMasterClient;
 import alluxio.worker.job.task.TaskExecutorManager;
 
 import com.google.common.base.Preconditions;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

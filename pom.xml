@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.7.0-SNAPSHOT</version>
+  <version>2.8.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -131,7 +131,7 @@
     <grpc.version>1.37.0</grpc.version>
     <gson.version>2.8.6</gson.version>
     <netty.version>4.1.52.Final</netty.version>
-    <rocksdb.version>6.15.2</rocksdb.version>
+    <rocksdb.version>6.25.3</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
@@ -139,7 +139,7 @@
     <jersey.version>2.29.1</jersey.version>
     <jetty.version>9.4.43.v20210629</jetty.version>
     <junit.version>4.13</junit.version>
-    <log4j.version>2.13.3</log4j.version>
+    <log4j.version>2.17.1</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <orc.version>1.6.3</orc.version>
@@ -153,7 +153,6 @@
     <ratis.version>2.0.0</ratis.version>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
-    <ozone.version>1.0.0</ozone.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -186,6 +185,7 @@
     <module>tests</module>
     <module>underfs</module>
     <module>webui</module>
+    <module>hub</module>
   </modules>
 
   <dependencyManagement>
@@ -210,6 +210,16 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${aws.amazonaws.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client</artifactId>
+        <version>5.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-model</artifactId>
+        <version>5.0.1</version>
       </dependency>
       <dependency>
         <groupId>com.beust</groupId>
@@ -270,6 +280,12 @@
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.jamesmurty.utils</groupId>
@@ -540,16 +556,6 @@
         <version>${hadoop.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-client</artifactId>
-        <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-filesystem</artifactId>
-        <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
         <groupId>com.qcloud.cos</groupId>
         <artifactId>hadoop-cos</artifactId>
         <version>${hadoop-cos.version}</version>
@@ -597,14 +603,7 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.5.8</version>
-        <!-- conflicts with netty-all -->
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>3.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -634,6 +633,11 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>javax-websocket-server-impl</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -806,24 +810,8 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.17</version>
+        <version>1.4.18</version>
         <scope>test</scope>
-      </dependency>
-
-      <!-- Provided scope -->
-      <!--
-         Dependency for SpotBugs Plugin annotations.
-         This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
-         This library is a super set of com.google.code.findbugs:jsr305
-         Note that this package can be unnecessary for runtime, and the
-         'provided' scope makes it available for compilation and test,
-         but not be packaged into the jar.
-       -->
-      <dependency>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-annotations</artifactId>
-        <version>4.0.4</version>
-        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -831,11 +819,6 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- Spotbugs and concurrency annotations. -->
-    <dependency>
-      <groupId>com.github.spotbugs</groupId>
-      <artifactId>spotbugs-annotations</artifactId>
-    </dependency>
     <!-- System logging. -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -945,11 +928,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.3</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.17</version>
         </plugin>
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
@@ -1210,6 +1188,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.1.2</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>9.0.1</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <configLocation>${build.path}/checkstyle/alluxio_checks.xml</configLocation>
           <suppressionsLocation>${build.path}/checkstyle/suppressions.xml</suppressionsLocation>
@@ -1253,7 +1239,6 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
             <exclude>**/\?/.java/**/*</exclude>
 
@@ -1265,6 +1250,8 @@
             <exclude>conf/masters</exclude>
             <exclude>conf/tiered_identity.sh</exclude>
             <exclude>conf/workers</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.mod</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.sum</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>generated/**</exclude>
@@ -1283,10 +1270,12 @@
             <exclude>docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
+            <exclude>templates/*</exclude>
 
             <!-- Default Local File System Exclusions -->
-            <exclude>logs/*</exclude>
+            <exclude>logs/**/*</exclude>
             <exclude>journal/**/*</exclude>
+            <exclude>metastore/**/*</exclude>
             <exclude>underFSStorage/**/*</exclude>
           </excludes>
           <mapping>

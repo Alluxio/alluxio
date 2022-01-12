@@ -17,16 +17,18 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedListMultimap;
@@ -44,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -120,7 +121,7 @@ public final class LoadDefinition
     Multimap<WorkerInfo, LoadTask> assignments = LinkedListMultimap.create();
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     for (FileBlockInfo blockInfo : context.getFileSystem().getStatus(uri).getFileBlockInfos()) {
-      List<String> workersWithoutBlock = getWorkersWithoutBlock(workers, blockInfo);
+      List<BlockWorkerInfo> workersWithoutBlock = getWorkersWithoutBlock(workers, blockInfo);
       int neededReplicas = config.getReplication() - blockInfo.getBlockInfo().getLocations().size();
       if (workersWithoutBlock.size() < neededReplicas) {
         String missingJobWorkersMessage = "";
@@ -135,9 +136,10 @@ public final class LoadDefinition
       }
       Collections.shuffle(workersWithoutBlock);
       for (int i = 0; i < neededReplicas; i++) {
-        String address = workersWithoutBlock.get(i);
+        String address = workersWithoutBlock.get(i).getNetAddress().getHost();
         WorkerInfo jobWorker = jobWorkersByAddress.get(address);
-        assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId()));
+        assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId(),
+            workersWithoutBlock.get(i).getNetAddress()));
       }
     }
 
@@ -162,14 +164,14 @@ public final class LoadDefinition
    * @param blockInfo information about a block
    * @return the block worker hosts which are not storing the specified block
    */
-  private List<String> getWorkersWithoutBlock(List<BlockWorkerInfo> blockWorkers,
+  private List<BlockWorkerInfo> getWorkersWithoutBlock(List<BlockWorkerInfo> blockWorkers,
       FileBlockInfo blockInfo) {
-    List<String> blockLocations = blockInfo.getBlockInfo().getLocations().stream()
-        .map(location -> location.getWorkerAddress().getHost())
+    List<WorkerNetAddress> blockLocations = blockInfo.getBlockInfo().getLocations().stream()
+        .map(BlockLocation::getWorkerAddress)
         .collect(Collectors.toList());
+
     return blockWorkers.stream()
-        .filter(worker -> !blockLocations.contains(worker.getNetAddress().getHost()))
-        .map(worker -> worker.getNetAddress().getHost())
+        .filter(worker -> !blockLocations.contains(worker.getNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -184,7 +186,8 @@ public final class LoadDefinition
     URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getFilePath()));
 
     for (LoadTask task : tasks) {
-      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId());
+      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId(),
+          task.getWorkerNetAddress(), config.isDirectCache());
       LOG.info("Loaded file " + config.getFilePath() + " block " + task.getBlockId());
     }
     return null;
@@ -200,12 +203,15 @@ public final class LoadDefinition
   public static class LoadTask implements Serializable {
     private static final long serialVersionUID = 2028545900913354425L;
     final long mBlockId;
+    final WorkerNetAddress mWorkerNetAddress;
 
     /**
      * @param blockId the id of the block to load
+     * @param workerNetAddress worker net address
      */
-    public LoadTask(long blockId) {
+    public LoadTask(long blockId, WorkerNetAddress workerNetAddress) {
       mBlockId = blockId;
+      mWorkerNetAddress = workerNetAddress;
     }
 
     /**
@@ -215,10 +221,18 @@ public final class LoadDefinition
       return mBlockId;
     }
 
+    /**
+     * @return worker net address
+     */
+    public WorkerNetAddress getWorkerNetAddress() {
+      return mWorkerNetAddress;
+    }
+
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
           .add("blockId", mBlockId)
+          .add("workerNetAddress", mWorkerNetAddress)
           .toString();
     }
   }

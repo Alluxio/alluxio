@@ -11,6 +11,7 @@
 
 package alluxio.security.user;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
@@ -18,14 +19,12 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.CommonUtils;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
 import javax.security.auth.Subject;
 
 /**

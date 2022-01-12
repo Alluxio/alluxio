@@ -19,7 +19,6 @@ import com.google.cloud.storage.StorageException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

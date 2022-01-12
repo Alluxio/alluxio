@@ -16,10 +16,10 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 
 import io.grpc.BindableService;
 
-import javax.security.sasl.SaslException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.UUID;
+import javax.security.sasl.SaslException;
 
 /**
  * Interface for authentication server implementations.

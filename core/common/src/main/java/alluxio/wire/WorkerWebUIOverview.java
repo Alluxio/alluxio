@@ -19,7 +19,6 @@ import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,6 +32,7 @@ public final class WorkerWebUIOverview implements Serializable {
   private List<UIUsageOnTier> mUsageOnTiers;
   private String mCapacityBytes;
   private String mUsedBytes;
+  private String mBlockCount;
   private String mVersion;
   private UIWorkerInfo mWorkerInfo;
 
@@ -58,6 +58,15 @@ public final class WorkerWebUIOverview implements Serializable {
    */
   public List<UIStorageDir> getStorageDirs() {
     return mStorageDirs;
+  }
+
+  /**
+   * Gets block count.
+   *
+   * @return the block count
+   */
+  public String getBlockCount() {
+    return mBlockCount;
   }
 
   /**
@@ -141,6 +150,17 @@ public final class WorkerWebUIOverview implements Serializable {
   }
 
   /**
+   * Sets worker block count.
+   *
+   * @param blockCount the block count on this worker
+   * @return unique block count
+   */
+  public WorkerWebUIOverview setBlockCount(String blockCount) {
+    mBlockCount = blockCount;
+    return this;
+  }
+
+  /**
    * Sets version.
    *
    * @param Version the version
@@ -167,6 +187,6 @@ public final class WorkerWebUIOverview implements Serializable {
     return MoreObjects.toStringHelper(this).add("capacityBytes", mCapacityBytes)
         .add("storageDirs", mStorageDirs).add("usageOnTiers", mUsageOnTiers)
         .add("usedBytes", mUsedBytes).add("version", mVersion).add("workerInfo", mWorkerInfo)
-        .toString();
+        .add("blockCount", mBlockCount).toString();
   }
 }

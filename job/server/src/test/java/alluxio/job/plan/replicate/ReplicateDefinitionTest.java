@@ -117,6 +117,8 @@ public final class ReplicateDefinitionTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
+    when(mMockFileSystemContext.getClusterConf())
+        .thenReturn(ServerConfiguration.global());
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
@@ -175,7 +177,7 @@ public final class ReplicateDefinitionTest {
         .thenReturn(mTestBlockInfo
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    when(AlluxioBlockStore.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
 
     ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
     ReplicateDefinition definition = new ReplicateDefinition();
@@ -268,7 +270,7 @@ public final class ReplicateDefinitionTest {
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
+    mThrown.expectMessage(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_LOAD_TASK
         .getMessage(TEST_BLOCK_ID));
     runTaskReplicateTestHelper(Lists.<BlockWorkerInfo>newArrayList(), mockInStream, mockOutStream);
   }

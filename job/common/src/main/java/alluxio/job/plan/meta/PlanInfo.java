@@ -14,17 +14,21 @@ package alluxio.job.plan.meta;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -32,6 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PlanInfo implements Comparable<PlanInfo> {
+  private static final Logger LOG = LoggerFactory.getLogger(PlanInfo.class);
+
   private final long mId;
   private final JobConfig mJobConfig;
   private final ConcurrentHashMap<Long, TaskInfo> mTaskIdToInfo;
@@ -57,6 +63,7 @@ public final class PlanInfo implements Comparable<PlanInfo> {
     mErrorType = "";
     mErrorMessage = "";
     mStatus = Status.CREATED;
+    Metrics.JOB_CREATED.inc();
     mStatusChangeCallback = statusChangeCallback;
   }
 
@@ -190,10 +197,33 @@ public final class PlanInfo implements Comparable<PlanInfo> {
       Status oldStatus = mStatus;
       mStatus = status;
       if (status != oldStatus) {
+        // status changed
+        if (status.isFinished()) {
+          if (status.equals(Status.COMPLETED)) {
+            // for completed jobs
+            LOG.debug("Job completed, Id={} Config={}",
+                oldStatus.name(), status.name(),
+                getId(), getJobConfig());
+          } else {
+            // for failed and cancelled jobs
+            LOG.info("Job status changed from {} to {}, Id={} Config={} Error={}",
+                oldStatus.name(), status.name(),
+                getId(), getJobConfig(), getErrorMessage());
+          }
+        }
+
+        if (status.equals(Status.FAILED)
+            && (getErrorType().isEmpty() || getErrorMessage().isEmpty())) {
+          LOG.warn("Job set to failed without given an error type or message, Id={} Config={}",
+              getId(), getJobConfig());
+        }
+
         mLastStatusChangeMs = CommonUtils.getCurrentMs();
         if (mStatusChangeCallback != null) {
           mStatusChangeCallback.accept(this);
         }
+        Metrics.counter(oldStatus).dec();
+        Metrics.counter(status).inc();
       }
     }
   }
@@ -243,5 +273,39 @@ public final class PlanInfo implements Comparable<PlanInfo> {
   @Override
   public int hashCode() {
     return Objects.hashCode(mId);
+  }
+
+  @ThreadSafe
+  private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
+    private static final Counter JOB_CANCELED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_CANCELED.getName());
+    private static final Counter JOB_COMPLETED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_COMPLETED.getName());
+    private static final Counter JOB_CREATED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_CREATED.getName());
+    private static final Counter JOB_FAILED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_FAILED.getName());
+    private static final Counter JOB_RUNNING =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_RUNNING.getName());
+
+    private Metrics() {} // prevent instantiation
+
+    private static Counter counter(Status status) {
+      switch (status) {
+        case CREATED:
+          return JOB_CREATED;
+        case CANCELED:
+          return JOB_CANCELED;
+        case FAILED:
+          return JOB_FAILED;
+        case RUNNING:
+          return JOB_RUNNING;
+        default:
+          return JOB_COMPLETED;
+      }
+    }
   }
 }

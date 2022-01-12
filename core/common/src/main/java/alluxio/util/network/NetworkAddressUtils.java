@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -71,6 +70,11 @@ public final class NetworkAddressUtils {
    * bind address.
    */
   public enum ServiceType {
+    /**
+     * FUSE web service (Jetty).
+     */
+    FUSE_WEB("Alluxio FUSE Web service", PropertyKey.FUSE_WEB_HOSTNAME,
+        PropertyKey.FUSE_WEB_BIND_HOST, PropertyKey.FUSE_WEB_PORT),
     /**
      * Job master Raft service (Netty). The bind and connect hosts are the same because the
      * underlying Raft implementation doesn't differentiate between bind and connect hosts.
@@ -138,6 +142,24 @@ public final class NetworkAddressUtils {
      */
     PROXY_WEB("Alluxio Proxy Web service", PropertyKey.PROXY_WEB_HOSTNAME,
         PropertyKey.PROXY_WEB_BIND_HOST, PropertyKey.PROXY_WEB_PORT),
+
+    /**
+     * Hub Agent RPC service (gRPC).
+     */
+    HUB_AGENT_RPC("Alluxio Hub Agent RPC service", PropertyKey.HUB_AGENT_RPC_HOSTNAME,
+            PropertyKey.HUB_AGENT_RPC_BIND_HOST, PropertyKey.HUB_AGENT_RPC_PORT),
+
+    /**
+     * Hub Manager RPC service (gRPC).
+     */
+    HUB_MANAGER_RPC("Alluxio Hub Manager RPC service", PropertyKey.HUB_MANAGER_RPC_HOSTNAME,
+            PropertyKey.HUB_MANAGER_RPC_BIND_HOST, PropertyKey.HUB_MANAGER_RPC_PORT),
+
+    /**
+     * Hub Hosted RPC service (gRPC).
+     */
+    HUB_HOSTED_RPC("Alluxio Hub Hosted RPC service", PropertyKey.HUB_HOSTED_RPC_HOSTNAME,
+            PropertyKey.HUB_HOSTED_RPC_BIND_HOST, PropertyKey.HUB_HOSTED_RPC_PORT),
     ;
 
     // service name

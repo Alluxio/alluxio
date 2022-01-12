@@ -18,6 +18,7 @@ import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -27,7 +28,6 @@ import java.io.Closeable;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -48,6 +48,7 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
   private final BlockDeletionContext mBlockDeletionContext;
   private final JournalContext mJournalContext;
   private final OperationContext mOperationContext;
+  private String mOpdId = null;
 
   // Used during close to keep track of thrown exceptions.
   private Throwable mThrown = null;
@@ -106,6 +107,15 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
       throw new RuntimeException(String.format("Call cancelled by trackers: %s", cancelledTrackers
           .stream().map((t) -> t.getType().name()).collect(Collectors.joining(", "))));
     }
+  }
+
+  /**
+   * gets op id.
+   *
+   * @return the op id
+   */
+  public OperationId getOpId() {
+    return mOperationContext.getOperationId();
   }
 
   /**

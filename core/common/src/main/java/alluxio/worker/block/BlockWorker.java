@@ -11,13 +11,17 @@
 
 package alluxio.worker.block;
 
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
+import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
@@ -27,9 +31,9 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.Nullable;
 
 /**
@@ -292,8 +296,18 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
+   *
+   * @deprecated This method will be deprecated as of v3.0, use {@link cache}
    */
+  @Deprecated
   void asyncCache(AsyncCacheRequest request);
+
+  /**
+   * Submits the cache request to cache manager to execute.
+   *
+   * @param request the cache request
+   */
+  void cache(CacheRequest request) throws AlluxioException, IOException;
 
   /**
    * Sets the pinlist for the underlying block store.
@@ -314,4 +328,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Clears the worker metrics.
    */
   void clearMetrics();
+
+  /**
+   * @param options method options
+   * @return configuration information list
+   */
+  Configuration getConfiguration(GetConfigurationPOptions options);
+
+  /**
+   * @return the white list
+   */
+  List<String> getWhiteList();
 }

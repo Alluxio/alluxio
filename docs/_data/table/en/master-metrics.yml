@@ -1,15 +1,19 @@
 Master.AbsentCacheHits:
   'Number of cache hits on the absent cache'
-Master.AbsentCacheInvalidations:
-  'Number of invalidations on the absent cache'
 Master.AbsentCacheMisses:
   'Number of cache misses on the absent cache'
 Master.AbsentCacheSize:
   'Size of the absent cache'
+Master.AuditLogEntriesSize:
+  'The size of the audit log entries blocking queue'
 Master.BlockHeapSize:
   'An estimate of the blocks heap size'
+Master.BlockReplicaCount:
+  'Total number of block replicas in Alluxio'
 Master.CompleteFileOps:
   'Total number of the CompleteFile operations'
+Master.CompletedOperationRetryCount:
+  'Total number of completed operations that has been retried by client.'
 Master.CreateDirectoryOps:
   'Total number of the CreateDirectory operations'
 Master.CreateFileOps:
@@ -31,15 +35,15 @@ Master.EdgeCacheSize:
 Master.EdgeLockPoolSize:
   'The size of master edge lock pool'
 Master.EmbeddedJournalSnapshotDownloadGenerate:
-  'The timer statistics of journal snapshot download from other masters'
+  'Describes the amount of time taken to download journal snapshots from other masters in the cluster. Only valid when using the embedded journal. Use this metric to determine if there are potential communication bottlenecks between Alluxio masters.'
 Master.EmbeddedJournalSnapshotGenerateTimer:
-  'The timer statistics of journal snapshot generation by this master'
+  'Describes the amount of time taken to generate local journal snapshots on this master. Only valid when using the embedded journal. Use this metric to measure the performance of Alluxio''s snapshot generation.'
 Master.EmbeddedJournalSnapshotInstallTimer:
-  'The timer statistics of journal snapshot install'
+  'Describes the amount of time taken to install a downloaded journal snapshot from another master. Only valid only when using the embedded journal. Use this metric to determine the performance of Alluxio when installing snapshots from the leader. Higher numbers may indicate a slow disk or CPU contention.'
 Master.EmbeddedJournalSnapshotLastIndex:
-  'The last index of the latest journal snapshot created by this master or downloaded from other masters'
+  'Represents the latest journal index that was recorded by this master in the most recent local snapshot or from a snapshot downloaded from another master in the cluster. Only valid when using the embedded journal.'
 Master.EmbeddedJournalSnapshotReplayTimer:
-  'The timer statistics of journal snapshot replay'
+  'Describes the amount of time taken to replay a journal snapshot onto the master''s state machine. Only valid only when using the embedded journal. Use this metric to determine the performance of Alluxio when replaying journal snapshot file. Higher numbers may indicate a slow disk or CPU contention'
 Master.FileBlockInfosGot:
   'Total number of succeed GetFileBlockInfo operations'
 Master.FileInfosGot:
@@ -72,8 +76,6 @@ Master.InodeCacheHitRatio:
   'Inode Cache hit ratio'
 Master.InodeCacheHits:
   'Total number of hits in the inodes (inode metadata) cache.'
-Master.InodeCacheLoadTimer:
-  'Total load latency in the inodes (inode metadata) cache'
 Master.InodeCacheLoadTimes:
   'Total load times in the inodes (inode metadata) cache that resulted from a cache miss.'
 Master.InodeCacheMisses:
@@ -84,6 +86,20 @@ Master.InodeHeapSize:
   'An estimate of the inode heap size'
 Master.InodeLockPoolSize:
   'The size of master inode lock pool'
+Master.JobCanceled:
+  'The number of canceled status job'
+Master.JobCompleted:
+  'The number of completed status job'
+Master.JobCount:
+  'The number of all status job'
+Master.JobCreated:
+  'The number of created status job'
+Master.JobFailed:
+  'The number of failed status job'
+Master.JobRunning:
+  'The number of running status job'
+Master.JournalCheckpointWarn:
+  'If the raft log index exceeds alluxio.master.journal.checkpoint.period.entries, and the last checkpoint exceeds alluxio.master.journal.checkpoint.warning.threshold.time, it returns 1 to indicate that a warning is required, otherwise it returns 0'
 Master.JournalEntriesSinceCheckPoint:
   'Journal entries since last checkpoint'
 Master.JournalFlushFailure:
@@ -91,11 +107,13 @@ Master.JournalFlushFailure:
 Master.JournalFlushTimer:
   'The timer statistics of journal flush'
 Master.JournalFreeBytes:
-  'Bytes left on the journal disk(s) for an Alluxio master'
+  'Bytes left on the journal disk(s) for an Alluxio master. This metric is only valid on Linux and when embedded journal is used. Use this metric to monitor whether your journal is running out of disk space.'
 Master.JournalFreePercent:
-  'Percentage of free space left on the journal disk(s) for an Alluxio master'
+  'Percentage of free space left on the journal disk(s) for an Alluxio master.This metric is only valid on Linux and when embedded journal is used. Use this metric to monitor whether your journal is running out of disk space.'
 Master.JournalGainPrimacyTimer:
   'The timer statistics of journal gain primacy'
+Master.JournalLastAppliedCommitIndex:
+  'The last raft log index which was applied to the state machine'
 Master.JournalLastCheckPointTime:
   'Last Journal Checkpoint Time'
 Master.JournalSequenceNumber:
@@ -118,6 +136,10 @@ Master.ListingCacheMisses:
   'The total number of misses in master listing cache'
 Master.ListingCacheSize:
   'The size of master listing cache'
+Master.LostBlockCount:
+  'Count of lost unique blocks'
+Master.LostFileCount:
+  'Count of lost files. This number is cached and may not be in sync with Master.LostBlockCount'
 Master.MountOps:
   'Total number of Mount operations'
 Master.NewBlocksGot:
@@ -132,19 +154,25 @@ Master.PathsUnmounted:
   'Total number of succeed Unmount operations'
 Master.RenamePathOps:
   'Total number of Rename operations'
+Master.ReplicaMgmtActiveJobSize:
+  'Number of active block replication/eviction jobs. These jobs are created by the master to maintain the block replica factor. The value is an estimate with lag. '
+Master.RpcQueueLength:
+  'Length of the master rpc queue. Use this metric to monitor the RPC pressure on master.'
 Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:
   'Total number of SetAttribute operations'
-Master.TotalBlocks:
-  'Total number of blocks in Alluxio'
 Master.TotalPaths:
   'Total number of files and directory in Alluxio namespace'
+Master.TotalRpcs:
+  'Throughput of master RPC calls. This metrics indicates how busy the master is serving client and worker requests'
 Master.UfsJournalCatchupTimer:
-  'The timer statistics of journal catchup'
+  'The timer statistics of journal catchupOnly valid when ufs journal is used. This provides a summary of how long a standby master takes to catch up with primary master, and should be monitored if master transition takes too long'
 Master.UfsJournalFailureRecoverTimer:
   'The timer statistics of ufs journal failure recover'
 Master.UfsJournalInitialReplayTimeMs:
-  'The process time of the ufs journal initial replay'
+  'The process time of the ufs journal initial replay.Only valid when ufs journal is used. It records the time it took for the very first journal replay. Use this metric to monitor when your master boot-up time is high。'
+Master.UniqueBlocks:
+  'Total number of unique blocks in Alluxio'
 Master.UnmountOps:
   'Total number of Unmount operations'

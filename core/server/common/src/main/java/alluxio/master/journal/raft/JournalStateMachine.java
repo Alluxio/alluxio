@@ -13,6 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.Constants;
 import alluxio.ProcessUtils;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
@@ -31,7 +32,6 @@ import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
@@ -67,7 +67,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -107,6 +108,8 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
 
+  private final ExecutorService mJournalPool;
+
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
    * the states. It helps prevent dirty read/write of the states when the journal is reloading.
@@ -139,8 +142,13 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param journals      master journals; these journals are still owned by the caller, not by the
    *                      journal state machine
    * @param journalSystem the raft journal system
+   * @param maxConcurrencyPoolSize the maximum concurrency for notifyTermIndexUpdated
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem) {
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
+                             Integer maxConcurrencyPoolSize) {
+    mJournalPool = new ForkJoinPool(maxConcurrencyPoolSize);
+    LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}",
+        maxConcurrencyPoolSize);
     mJournals = journals;
     mJournalApplier = new BufferedJournalApplier(journals,
         () -> journalSystem.getJournalSinks(null));
@@ -158,6 +166,16 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
         () -> mLastCheckPointTime);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
+        () -> mLastAppliedCommitIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
+        () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex
+                > ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+                && System.currentTimeMillis() - mLastCheckPointTime > ServerConfiguration.getMs(
+                PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
+    );
   }
 
   @Override
@@ -195,6 +213,7 @@ public class JournalStateMachine extends BaseStateMachine {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
       install(snapshotFile);
+      mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
     }
@@ -216,6 +235,9 @@ public class JournalStateMachine extends BaseStateMachine {
         SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
       }
       long index = mSnapshotManager.maybeCopySnapshotFromFollower();
+      if (index != RaftLog.INVALID_LOG_INDEX) {
+        mSnapshotLastIndex = index;
+      }
       mLastCheckPointTime = System.currentTimeMillis();
       return index;
     } else {
@@ -296,7 +318,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void notifyTermIndexUpdated(long term, long index) {
     super.notifyTermIndexUpdated(term, index);
-    CompletableFuture.runAsync(mJournalSystem::updateGroup);
+    CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
   }
 
   private long getNextIndex() {
@@ -396,8 +418,8 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   private void applyEntry(JournalEntry entry) {
     Preconditions.checkState(
-        entry.getAllFields().size() <= 1
-            || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+        entry.getAllFields().size() <= 2
+            || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
         "Raft journal entries should never set multiple fields in addition to sequence "
             + "number, but found %s",
         entry);
@@ -629,7 +651,7 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * Upgrades the journal state machine to primary mode.
    *
-   * @return the last sequence number read while in secondary mode
+   * @return the last sequence number read while in standby mode
    */
   public synchronized long upgrade() {
     // Resume the journal applier if was suspended.

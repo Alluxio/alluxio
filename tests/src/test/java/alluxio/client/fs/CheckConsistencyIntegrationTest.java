@@ -13,8 +13,8 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -178,6 +178,19 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     Collections.sort(expected);
     Collections.sort(result);
     Assert.assertEquals(expected, result);
+  }
+
+  @Test
+  public void existsInUfsButNotAlluxio() throws Exception {
+    String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
+        ServerConfiguration.global());
+    String filename = "ufs_exists";
+    String newPath = ufsDirectory + AlluxioURI.SEPARATOR + filename;
+    ufs.mkdirs(newPath);
+    List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY.join(filename));
+    Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(DIRECTORY,
+        CheckConsistencyContext.defaults()));
   }
 
   /**

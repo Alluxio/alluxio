@@ -51,6 +51,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
@@ -71,7 +72,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
-
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -120,6 +121,8 @@ public final class MultiProcessCluster {
   private File mWorkDir;
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
+  /** Unique IDs for all masters. Should have the same size as {@link #mMasters} */
+  private List<String> mMasterIds = new ArrayList<>();
   private State mState;
   private TestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
@@ -199,6 +202,11 @@ public final class MultiProcessCluster {
       mMasterAddresses = new ArrayList<>();
     }
     List<MasterNetAddress> masterAddresses = generateMasterAddresses(count);
+    for (MasterNetAddress newMasterAddress : masterAddresses) {
+      String id = newMasterAddress.getEmbeddedJournalPort()
+          + "-" + RandomString.make(RandomString.DEFAULT_LENGTH);
+      mMasterIds.add(id);
+    }
     mMasterAddresses.addAll(masterAddresses);
     mNumMasters = mMasterAddresses.size();
 
@@ -260,9 +268,12 @@ public final class MultiProcessCluster {
     writeConf();
     ServerConfiguration.merge(mProperties, Source.RUNTIME);
 
+    final int MASTER_START_DELAY_MS = 500; // in ms
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
+      wait(MASTER_START_DELAY_MS);
     }
+    mFilesystemContext = null;
   }
 
   /**
@@ -523,6 +534,41 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Removes master i from the cluster.
+   *
+   * @param i index of the master to be removed
+   * @throws IOException
+   */
+  public synchronized void stopAndRemoveMaster(int i) throws IOException {
+    stopMaster(i);
+    mMasterAddresses.remove(i);
+    mMasterIds.remove(i);
+    mMasters.remove(i);
+    mMasterProperties.remove(i);
+    mNumMasters--;
+    switch (mDeployMode) {
+      case EMBEDDED:
+        String journalAddresses = mMasterAddresses.stream()
+            .map(addr -> String.format("%s:%d", addr.getHostname(), addr.getEmbeddedJournalPort()))
+            .collect(Collectors.joining(","));
+        String rpcAddresses = mMasterAddresses.stream()
+            .map(addr -> String.format("%s:%d", addr.getHostname(), addr.getRpcPort()))
+            .collect(Collectors.joining(","));
+        mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
+        mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
+        ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        break;
+      case ZOOKEEPER_HA: // zk will take care of fault tolerance
+        break;
+      default: // UFS_NON_HA: can't remove the only master in the cluster
+        throw new IllegalStateException("Unimplemented deploy mode: " + mDeployMode);
+    }
+    // reset file system context after cluster size shrinks
+    mFilesystemContext = null;
+  }
+
+  /**
    * Updates master configuration for all masters. This will take effect on a master the next time
    * the master is started.
    *
@@ -623,9 +669,10 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create masters");
     MasterNetAddress address = mMasterAddresses.get(i);
-    File confDir = new File(mWorkDir, "conf-master" + i);
-    File metastoreDir = new File(mWorkDir, "metastore-master" + i);
-    File logsDir = new File(mWorkDir, "logs-master" + i);
+    String extension = "-" + mMasterIds.get(i);
+    File confDir = new File(mWorkDir, "conf-master" + extension);
+    File metastoreDir = new File(mWorkDir, "metastore-master" + extension);
+    File logsDir = new File(mWorkDir, "logs-master" + extension);
     logsDir.mkdirs();
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
@@ -638,7 +685,7 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         Integer.toString(address.getEmbeddedJournalPort()));
     if (mDeployMode.equals(DeployMode.EMBEDDED)) {
-      File journalDir = new File(mWorkDir, "journal" + i);
+      File journalDir = new File(mWorkDir, "journal" + extension);
       journalDir.mkdirs();
       conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
     }
@@ -739,7 +786,8 @@ public final class MultiProcessCluster {
    */
   private void writeConf() throws IOException {
     for (int i = 0; i < mNumMasters; i++) {
-      File confDir = new File(mWorkDir, "conf-master" + i);
+      String extension = "-" + mMasterIds.get(i);
+      File confDir = new File(mWorkDir, "conf-master" + extension);
       writeConfToFile(confDir, mMasterProperties.getOrDefault(i, new HashMap<>()));
     }
     for (int i = 0; i < mNumWorkers; i++) {

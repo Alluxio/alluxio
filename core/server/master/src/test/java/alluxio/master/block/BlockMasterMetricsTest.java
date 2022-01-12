@@ -35,12 +35,12 @@ public final class BlockMasterMetricsTest {
   private static final String MEM = Constants.MEDIUM_MEM;
   private static final String HDD = Constants.MEDIUM_HDD;
 
-  private BlockMaster mBlockMaster;
+  private DefaultBlockMaster mBlockMaster;
 
   @Before
   public void before() throws Exception {
     MetricsSystem.clearAllMetrics();
-    mBlockMaster = Mockito.mock(BlockMaster.class);
+    mBlockMaster = Mockito.mock(DefaultBlockMaster.class);
     StorageTierAssoc assoc = new MasterStorageTierAssoc(Lists.newArrayList(MEM, HDD));
     when(mBlockMaster.getGlobalStorageTierAssoc()).thenReturn(assoc);
     Metrics.registerGauges(mBlockMaster);
@@ -71,6 +71,12 @@ public final class BlockMasterMetricsTest {
         getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + MEM));
     assertEquals(1800L,
         getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + HDD));
+  }
+
+  @Test
+  public void testSize() {
+    when(mBlockMaster.getUniqueBlockCount()).thenReturn(100L);
+    assertEquals(100L, getGauge(MetricKey.MASTER_UNIQUE_BLOCKS.getName()));
   }
 
   public void testMetricWorkers() {
