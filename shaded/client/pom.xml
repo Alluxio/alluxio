@@ -39,11 +39,11 @@
       <artifactId>hadoop-client</artifactId>
       <scope>provided</scope>
     </dependency>
-    <!-- Have RocksDB dependency in provided scope by default to reduce client jar size -->
+    <!-- Have RocksDB dependency in runtime scope by default -->
     <dependency>
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
-      <scope>provided</scope>
+      <scope>runtime</scope>
     </dependency>
     <!-- Runtime logging dependencies -->
     <dependency>
