@@ -58,7 +58,7 @@ public class MigrateConfig implements PlanConfig {
   /**
    * @return the source path
    */
-  public String getFilePath() {
+  public String getSource() {
     return mSource;
   }
 

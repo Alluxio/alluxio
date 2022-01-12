@@ -268,20 +268,20 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     @Override
     public void logFailedAttempt(JobInfo jobInfo) {
       System.out.println(String.format("Attempt %d to copy %s to %s failed because: %s",
-          mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(), mJobConfig.getDestination(),
+          mRetryPolicy.getAttemptCount(), mJobConfig.getSource(), mJobConfig.getDestination(),
           jobInfo.getErrorMessage()));
     }
 
     @Override
     protected void logFailed() {
       System.out.println(String.format("Failed to complete copying %s to %s after %d retries.",
-          mJobConfig.getFilePath(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
+          mJobConfig.getSource(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
     }
 
     @Override
     public void logCompleted() {
       System.out.println(String.format("Successfully copied %s to %s after %d attempts",
-          mJobConfig.getFilePath(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
+          mJobConfig.getSource(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
     }
   }
 

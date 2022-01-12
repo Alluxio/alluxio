@@ -293,7 +293,8 @@ public final class PlanCoordinator {
           break;
         case COMPLETED:
           completed++;
-          DistributedCmdMetrics.incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
+          DistributedCmdMetrics
+                  .incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
           break;
         case CREATED:
           // do nothing
