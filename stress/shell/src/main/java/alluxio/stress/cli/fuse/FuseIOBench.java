@@ -125,6 +125,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   }
 
   @Override
+  public String checkIfMultipleTask()
+  {
+    return null;
+  }
+
+  @Override
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster) {
       // For cluster mode, this function is called once before the job is submitted to the job

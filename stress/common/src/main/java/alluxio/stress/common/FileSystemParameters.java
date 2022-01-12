@@ -33,6 +33,12 @@ public class FileSystemParameters extends Parameters {
       converter = FileSystemParameters.FileSystemParametersReadTypeConverter.class)
   public ReadType mReadType = ReadType.CACHE;
 
+  @Parameter(names = {"--write-type"},
+      description = "The write type to use when creating alluxio files. Options are[MUST_CACHE, "
+          + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH]",
+      converter = FileSystemParameters.FileSystemWriteTypeConverter.class)
+  public WriteType mWriteType = WriteType.ASYNC_THROUGH;
+
   /**
    * @return FileSystemClientType of this bench
    * Converts from String to FileSystemClientType instance.
@@ -53,6 +59,17 @@ public class FileSystemParameters extends Parameters {
     @Override
     public ReadType convert(String value) {
       return ReadType.fromString(value);
+    }
+  }
+
+  /**
+   * @return FileSystemWriteType of this bench
+   * Converts from String to FileSystemWriteType instance.
+   */
+  public static class FileSystemWriteTypeConverter implements IStringConverter<WriteType> {
+    @Override
+    public WriteType convert(String value) {
+      return WriteType.fromString(value);
     }
   }
 }

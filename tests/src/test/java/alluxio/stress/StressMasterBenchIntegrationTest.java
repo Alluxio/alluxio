@@ -13,6 +13,7 @@ package alluxio.stress;
 
 import alluxio.stress.cli.StressMasterBench;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -153,5 +154,69 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     generateAndVerifyReport(
         Arrays.asList("CreateFile", "GetFileStatus", "ListDir", "ListDirLocated", "RenameFile"),
         output1, output2, output3, output4, output5);
+  }
+
+  @Test
+  public void WriteType() throws Exception {
+    String output1 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "MUST_CACHE",
+    });
+
+    String output2 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "DeleteFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "MUST_CACHE",
+    });
+
+    String output3 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateDir",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "MUST_CACHE",
+    });
+
+    String output4 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "ALL",
+    });
+
+    String output5 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateDir",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "ALL",
+    });
+
+    Assert.assertNotNull(output1);
+    Assert.assertNotNull(output2);
+    Assert.assertNotNull(output3);
+    Assert.assertNotNull(output4);
+    Assert.assertNotNull(output5);
   }
 }

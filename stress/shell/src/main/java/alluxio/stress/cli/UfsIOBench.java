@@ -114,6 +114,12 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   @Override
+  public String checkIfMultipleTask()
+  {
+    return null;
+  }
+
+  @Override
   public void prepare() {
     if (mParameters.mUseUfsConf && !mBaseParameters.mCluster) {
       throw new IllegalArgumentException(String.format(

@@ -21,6 +21,7 @@ import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
+import alluxio.stress.common.WriteType;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -79,6 +80,12 @@ public abstract class Benchmark<T extends TaskResult> {
   //  both in the command side and on each job worker side. We should separate the logic
   //  into two different calls instead of relying on the same prepare().
   public abstract void prepare() throws Exception;
+
+  /**
+   * Check if there are multiple task to run.
+   * @return return the type of multiple task, if it is not multiple task, return null
+   */
+  public abstract String checkIfMultipleTask();
 
   /**
    * Perform post-run cleanups.
@@ -144,6 +151,32 @@ public abstract class Benchmark<T extends TaskResult> {
       System.out.println(getBenchDescription());
       jc.usage();
       throw e;
+    }
+
+    // if the test will execute multiple tasks.
+    String multiTask = checkIfMultipleTask();
+    if (multiTask != null && multiTask.equals("WriteType"))
+    {
+      String result = "";
+      for (int i = 0; i < args.length; i++)
+      {
+        if (args[i].equals("--write-type"))
+        {
+          mBaseParameters = new BaseParameters();
+          args[i + 1] = WriteType.MUST_CACHE.toString();
+          result = "WriteType : Must_Cache \n" + run(args) + "\n";
+          mBaseParameters = new BaseParameters();
+          args[i + 1] = WriteType.CACHE_THROUGH.toString();
+          result = result + "WriteType : Cache_Through \n" + run(args) + "\n";
+          mBaseParameters = new BaseParameters();
+          args[i + 1] = WriteType.ASYNC_THROUGH.toString();
+          result = result + "WriteType : Async_Through \n" + run(args) + "\n";
+          mBaseParameters = new BaseParameters();
+          args[i + 1] = WriteType.THROUGH.toString();
+          result = result + "WriteType : Through \n" + run(args);
+          return result;
+        }
+      }
     }
 
     // prepare the benchmark.

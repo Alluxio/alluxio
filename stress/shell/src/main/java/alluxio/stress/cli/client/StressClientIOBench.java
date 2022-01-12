@@ -97,6 +97,16 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
+  public String checkIfMultipleTask()
+  {
+    if (mParameters.mWriteType.isAll())
+    {
+      return "WriteType";
+    }
+    return null;
+  }
+
+  @Override
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
       throw new IllegalArgumentException(String.format(
@@ -141,6 +151,11 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         ClientIOWritePolicy.class.getName());
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
+    }
+
+    if (!mParameters.mWriteType.isNotSet())
+    {
+      hdfsConf.set("alluxio.user.file.writetype.default", mParameters.mWriteType.toString());
     }
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {

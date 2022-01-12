@@ -90,6 +90,16 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
+  public String checkIfMultipleTask()
+  {
+    if (mParameters.mWriteType.isAll())
+    {
+      return "WriteType";
+    }
+    return null;
+  }
+
+  @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
         "A benchmarking tool to measure the master performance of Alluxio",
@@ -162,6 +172,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         "true");
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
+    }
+
+    if (!mParameters.mWriteType.isNotSet())
+    {
+      hdfsConf.set("alluxio.user.file.writetype.default", mParameters.mWriteType.toString());
     }
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
