@@ -11,8 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.proto.dataserver.Protocol;
-
 import com.google.common.base.MoreObjects;
 
 import javax.annotation.concurrent.ThreadSafe;

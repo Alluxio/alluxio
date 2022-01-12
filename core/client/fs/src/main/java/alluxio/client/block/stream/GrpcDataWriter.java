@@ -31,7 +31,6 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;

@@ -28,13 +28,11 @@ import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Nullable;
 
 /**
  * A block worker in the Alluxio system.
