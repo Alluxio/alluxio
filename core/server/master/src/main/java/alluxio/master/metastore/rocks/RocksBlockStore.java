@@ -171,7 +171,8 @@ public class RocksBlockStore implements BlockStore {
 
     // Explicitly hold a reference to the ReadOptions object from the discussion in
     // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
-    final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(endKey));
+    final Slice slice = new Slice(endKey);
+    final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(slice);
     try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
       iter.seek(startKey);
       List<BlockLocation> locations = new ArrayList<>();
