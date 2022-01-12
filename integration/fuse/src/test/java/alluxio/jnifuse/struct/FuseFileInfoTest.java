@@ -13,11 +13,13 @@ package alluxio.jnifuse.struct;
 
 import static org.junit.Assert.assertEquals;
 
+import jnr.constants.platform.OpenFlags;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class FuseFileInfoTest {
   @Test
