@@ -92,7 +92,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   @Override
   public String checkIfMultipleTask()
   {
-    if (mParameters.mWriteType.isAll())
+    if (mParameters.mWriteType.equals("ALL"))
     {
       return "WriteType";
     }
@@ -174,7 +174,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
 
-    if (!mParameters.mWriteType.isNotSet())
+    if (!mParameters.mWriteType.isEmpty())
     {
       hdfsConf.set("alluxio.user.file.writetype.default", mParameters.mWriteType.toString());
     }

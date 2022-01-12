@@ -21,7 +21,6 @@ import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
-import alluxio.stress.common.WriteType;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -163,16 +162,16 @@ public abstract class Benchmark<T extends TaskResult> {
         if (args[i].equals("--write-type"))
         {
           mBaseParameters = new BaseParameters();
-          args[i + 1] = WriteType.MUST_CACHE.toString();
+          args[i + 1] = "MUST_CACHE";
           result = "WriteType : Must_Cache \n" + run(args) + "\n";
           mBaseParameters = new BaseParameters();
-          args[i + 1] = WriteType.CACHE_THROUGH.toString();
+          args[i + 1] = "CACHE_THROUGH";
           result = result + "WriteType : Cache_Through \n" + run(args) + "\n";
           mBaseParameters = new BaseParameters();
-          args[i + 1] = WriteType.ASYNC_THROUGH.toString();
+          args[i + 1] = "ASYNC_THROUGH";
           result = result + "WriteType : Async_Through \n" + run(args) + "\n";
           mBaseParameters = new BaseParameters();
-          args[i + 1] = WriteType.THROUGH.toString();
+          args[i + 1] = "THROUGH";
           result = result + "WriteType : Through \n" + run(args);
           return result;
         }

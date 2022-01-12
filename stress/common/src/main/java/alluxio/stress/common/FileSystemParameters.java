@@ -35,9 +35,9 @@ public class FileSystemParameters extends Parameters {
 
   @Parameter(names = {"--write-type"},
       description = "The write type to use when creating alluxio files. Options are[MUST_CACHE, "
-          + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH]",
-      converter = FileSystemParameters.FileSystemWriteTypeConverter.class)
-  public WriteType mWriteType = WriteType.ASYNC_THROUGH;
+          + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
+      converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
+  public String mWriteType = "";
 
   /**
    * @return FileSystemClientType of this bench
@@ -62,14 +62,16 @@ public class FileSystemParameters extends Parameters {
     }
   }
 
-  /**
-   * @return FileSystemWriteType of this bench
-   * Converts from String to FileSystemWriteType instance.
-   */
-  public static class FileSystemWriteTypeConverter implements IStringConverter<WriteType> {
+  public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override
-    public WriteType convert(String value) {
-      return WriteType.fromString(value);
+    public String convert(String value)
+    {
+      if(value.equals("MUST_CACHE")  || value.equals("CACHE_THROUGH")  || value.equals("THROUGH") ||
+          value.equals("ASYNC_THROUGH") || value.equals("ALL"))
+      {
+        return value;
+      }
+      throw new IllegalArgumentException("No constant with text " + value + " found");
     }
   }
 }
