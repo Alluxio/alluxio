@@ -25,7 +25,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
-import alluxio.fuse.AlluxioFuseOpenUtils.OpenType;
+import alluxio.fuse.AlluxioFuseOpenUtils.OpenAction;
 import alluxio.cli.FuseShell;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -348,21 +348,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int openInternal(String path, FuseFileInfo fi) {
     final int flags = fi.flags.get();
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    OpenType openType = AlluxioFuseOpenUtils.getOpenType(flags);
-    if (openType == OpenType.UNKNOWN) {
+    OpenAction openType = AlluxioFuseOpenUtils.getOpenAction(flags);
+    if (openType == OpenAction.UNKNOWN) {
       LOG.error(String.format("Unknown open flag 0x%x for path %s, "
           + "please raise a ticket at https://github.com/Alluxio/alluxio/issues", flags, path));
       return -ErrorCodes.EINVAL();
     }
-    if (openType == OpenType.NOT_SUPPORTED) {
+    if (openType == OpenAction.NOT_SUPPORTED) {
       LOG.error(String.format("Not supported open flag 0x%x for path %s. "
-          + "Alluxio does not support file modification. Cannot open directory in fuse.open().", 
+          + "Alluxio does not support file modification. "
+          + "Cannot open directory in fuse.open().",
           flags, path));
       return -ErrorCodes.EINVAL();
     }
     long fid = mNextOpenFileId.getAndIncrement();
     try {
-      if (openType == OpenType.WRITE_ONLY) {
+      if (openType == OpenAction.WRITE_ONLY) {
         if (mFileSystem.exists(uri)) {
           OpenFlags openFlags = OpenFlags.valueOf(flags);
           if (openFlags == OpenFlags.O_CREAT || openFlags == OpenFlags.O_EXCL) {
@@ -376,19 +377,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.debug(String.format("Open path %s with flags 0x%x for overwriting. "
                 + "Alluxio deleted the old file and created a new file for writing",
             path, flags));
-      } else if (openType == OpenType.READ_ONLY){
+      } else if (openType == OpenAction.READ_ONLY) {
         FileInStream is;
         try {
           is = mFileSystem.openFile(uri);
         } catch (FileIncompleteException e) {
           if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-            is = mFileSystem.openFile(ur);
+            is = mFileSystem.openFile(uri);
           } else {
             throw e;
           }
         }
         mOpenFileEntries.put(fid, is);
       }
+      // For OpenAction.READ_WRITE, we defer to the first read() or write() to open or create file.
       fi.fh.set(fid);
       return 0;
     } catch (Throwable e) {
@@ -412,17 +414,26 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final int flags = fi.flags.get();
     try {
       FileInStream is = mOpenFileEntries.get(fd);
-      if (is == null && AlluxioFuseOpenUtils.getOpenType(flags) != OpenType.READ_WRITE) {
+      if (is == null && AlluxioFuseOpenUtils.getOpenAction(flags) != OpenAction.READ_WRITE) {
         LOG.error("Cannot find fd for {} in table", path);
         return -ErrorCodes.EBADFD();
       }
-      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
-      if (ce != null) {
-        LOG.error("Cannot open file {} for reading and writing concurrently", path);
-        return -ErrorCodes.EIO(); // TODO(lu) update code
+      if (is == null) {
+        // Fuse open() file with open flags for reading and writing concurrently.
+        // If the first read(), we open file for reading only.
+        // If opened for write() already, error out.
+        // Alluxio supports read only or write only.
+        CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+        if (ce != null) {
+          LOG.error(String.format("Cannot open file %s with flags 0x%x "
+              + "for reading and writing concurrently", path, flags));
+          return -ErrorCodes.EIO(); // TODO(lu) update code
+        }
+        final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+        is = mFileSystem.openFile(uri);
+        mOpenFileEntries.put(fd, is);
       }
-      // TODO(lu) Create input stream
-      
+
       // FileInStream is not thread safe
       synchronized (is) {
         if (!mOpenFileEntries.containsKey(fd)) {
@@ -462,16 +473,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final long fd = fi.fh.get();
     final int flags = fi.flags.get();
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
-    if (ce == null && AlluxioFuseOpenUtils.getOpenType(flags) != OpenType.READ_WRITE) {
+    if (ce == null && AlluxioFuseOpenUtils.getOpenAction(flags) != OpenAction.READ_WRITE) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
     FileInStream is = mOpenFileEntries.get(fd);
     if (is != null) {
-      LOG.error("Cannot open file {} for reading and writing concurrently", path);
+      LOG.error(String.format("Cannot open file %s with flags 0x%x "
+          + "for reading and writing concurrently", path, flags));
       return -ErrorCodes.EIO(); // TODO(lu) update code
     }
-
     if (ce == null) {
       try {
         final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
@@ -482,17 +493,17 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         ce = new CreateFileEntry(fd, path, os);
         mCreateFileEntries.add(ce);
         mAuthPolicy.setUserGroupIfNeeded(uri);
-        LOG.debug(String.format("Open path %s with flags 0x%x for reading and writing. " 
-            + "Treat as write only and error out if detecting reading behavior. "        
+        LOG.debug(String.format("Open path %s with flags 0x%x for reading and writing. "
+            + "Treat as write only and error out if detecting reading behavior. "
             + "Alluxio deleted the old file and created a new file for writing",
             path, flags));
       } catch (Throwable e) {
-        // TODO(lu) give more info
-        LOG.error("Failed to write, path: {} size: {} offset: {}", path, size, offset, e);
+        LOG.error(String.format("Failed to write path: %s size: %s offset: %s flags: 0x%x",
+            path, size, offset, flags), e);
         return -ErrorCodes.EIO();
       }
     }
-    
+
     FileOutStream os = ce.getOut();
     long bytesWritten = os.getBytesWritten();
     if (offset != bytesWritten && offset + sz > bytesWritten) {

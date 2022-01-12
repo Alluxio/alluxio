@@ -11,13 +11,16 @@
 
 package alluxio.fuse;
 
-
 import jnr.constants.platform.OpenFlags;
 
+/**
+ * Alluxio Fuse utilities to handle different fuse.open() flags.
+ * Decide Alluxio open action based on fuse open flags.
+ */
 public final class AlluxioFuseOpenUtils {
   // TODO(lu) change to bit operation to speed up
   // FUSE open flags accordance to open flags on Linux:
-  
+
   // r Open file for reading. An exception occurs if the file does not exist.
   // (Decimal): 32768 (Octal): 00000100000 (Hexadecimal): 00008000
   // (Binary ): 00000000000000001000000000000000
@@ -31,7 +34,7 @@ public final class AlluxioFuseOpenUtils {
   // rs Open file for reading in synchronous mode. Instructs the operating
   // system to bypass the local file system cache. This is primarily useful
   // for opening files on NFS mounts as it allows you to skip the
-  // potentially stale local cache. It has a very real impact on I/O 
+  // potentially stale local cache. It has a very real impact on I/O
   // performance so don't use this flag unless you need it. Note that this
   // doesn't turn fs.open() into a synchronous blocking call. If that's
   // what you want then you should be using fs.openSync().
@@ -61,52 +64,69 @@ public final class AlluxioFuseOpenUtils {
   private static final int APPEND_PLUS = 33794;
   // ax+ FUSE.open() is never called
 
-  public static OpenType getOpenType(int flag) {
+  /**
+   * Gets Alluxio Fuse open action based on open flag.
+   *
+   * @param flag the open flag
+   * @return the open action
+   */
+  public static OpenAction getOpenAction(int flag) {
     OpenFlags openFlags = OpenFlags.valueOf(flag);
     switch (openFlags) {
       case O_RDONLY:
       case O_NONBLOCK:
       case O_EVTONLY:
-        return OpenType.READ_ONLY;
+        return OpenAction.READ_ONLY;
       case O_WRONLY:
       // If file exists, error out with EEXIST
       case O_CREAT:
       // Truncate to length 0
       case O_TRUNC:
       // If file exists, error out with EEXIST
-      case O_EXCL: 
+      case O_EXCL:
       case O_SYNC:
-        return OpenType.WRITE_ONLY;
+        return OpenAction.WRITE_ONLY;
       case O_RDWR:
-        return OpenType.READ_WRITE;
+        return OpenAction.READ_WRITE;
       case O_APPEND:
       // Use readdir() to read directory
       case O_DIRECTORY:
-        return OpenType.NOT_SUPPORTED;
+        return OpenAction.NOT_SUPPORTED;
       default:
-        return getSpecialOpenType(flag);
-    }
-  }
-  
-  private static OpenType getSpecialOpenType(int flag) {
-    switch (flag) {
-      case READ:
-      case READ_SYNC:
-        return OpenType.READ_ONLY;
-      case R_OR_W_PLUS:
-      case RS_PLUS:
-        return OpenType.READ_WRITE;
-      case WRITE:
-        return OpenType.WRITE_ONLY;
-      case APPEND:
-      case APPEND_PLUS:
-        return OpenType.NOT_SUPPORTED;
-      default:
-        return OpenType.UNKNOWN;
+        return getExtraOpenAction(flag);
     }
   }
 
-  public enum OpenType {
+  /**
+   * Gets Fuse open action based on open flag
+   * constants defined in this class.
+   *
+   * @param flag the open flag
+   * @return the open action
+   */
+  private static OpenAction getExtraOpenAction(int flag) {
+    switch (flag) {
+      case READ:
+      case READ_SYNC:
+        return OpenAction.READ_ONLY;
+      case R_OR_W_PLUS:
+      case RS_PLUS:
+        return OpenAction.READ_WRITE;
+      case WRITE:
+        return OpenAction.WRITE_ONLY;
+      case APPEND:
+      case APPEND_PLUS:
+        return OpenAction.NOT_SUPPORTED;
+      default:
+        return OpenAction.UNKNOWN;
+    }
+  }
+
+  /**
+   * Alluxio Fuse open action.
+   * Defines what operation Alluxio should perform in the Fuse.open().
+   */
+  public enum OpenAction {
     READ_ONLY,
     WRITE_ONLY,
     // TODO(maobaolong): Add an option to decide whether reject rw flag
