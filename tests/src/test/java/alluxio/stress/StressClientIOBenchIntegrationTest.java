@@ -13,6 +13,7 @@ package alluxio.stress;
 
 import alluxio.stress.cli.client.StressClientIOBench;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -118,4 +119,35 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "PosRead-test", "PosReadFully"),
         output1, output2, output3, output4, output5, output6, output7);
   }
+
+  @Test
+  public void WriteType() throws Exception {
+    String output1 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "MUST_CACHE",
+    });
+
+    String output2 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "ALL",
+    });
+
+    Assert.assertNotNull(output1);
+    Assert.assertNotNull(output2);
+  }
+
 }
