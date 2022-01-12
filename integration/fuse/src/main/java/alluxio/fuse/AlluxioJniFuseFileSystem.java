@@ -348,13 +348,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int openInternal(String path, FuseFileInfo fi) {
     final int flags = fi.flags.get();
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    OpenAction openType = AlluxioFuseOpenUtils.getOpenAction(flags);
-    if (openType == OpenAction.UNKNOWN) {
+    OpenAction openAction = AlluxioFuseOpenUtils.getOpenAction(flags);
+    if (openAction == OpenAction.UNKNOWN) {
       LOG.error(String.format("Unknown open flag 0x%x for path %s, "
           + "please raise a ticket at https://github.com/Alluxio/alluxio/issues", flags, path));
       return -ErrorCodes.EINVAL();
     }
-    if (openType == OpenAction.NOT_SUPPORTED) {
+    if (openAction == OpenAction.NOT_SUPPORTED) {
       LOG.error(String.format("Not supported open flag 0x%x for path %s. "
           + "Alluxio does not support file modification. "
           + "Cannot open directory in fuse.open().",
@@ -363,7 +363,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     long fid = mNextOpenFileId.getAndIncrement();
     try {
-      if (openType == OpenAction.WRITE_ONLY) {
+      if (openAction == OpenAction.WRITE_ONLY) {
         if (mFileSystem.exists(uri)) {
           OpenFlags openFlags = OpenFlags.valueOf(flags);
           if (openFlags == OpenFlags.O_CREAT || openFlags == OpenFlags.O_EXCL) {
@@ -377,7 +377,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.debug(String.format("Open path %s with flags 0x%x for overwriting. "
                 + "Alluxio deleted the old file and created a new file for writing",
             path, flags));
-      } else if (openType == OpenAction.READ_ONLY) {
+      } else if (openAction == OpenAction.READ_ONLY) {
         FileInStream is;
         try {
           is = mFileSystem.openFile(uri);
@@ -394,7 +394,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       fi.fh.set(fid);
       return 0;
     } catch (Throwable e) {
-      LOG.error("Failed to open path={},openType={}: ", path, openType, e);
+      LOG.error("Failed to open path={},openAction={}: ", path, openAction, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -427,7 +427,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         if (ce != null) {
           LOG.error(String.format("Cannot open file %s with flags 0x%x "
               + "for reading and writing concurrently", path, flags));
-          return -ErrorCodes.EIO(); // TODO(lu) update code
+          return -ErrorCodes.EIO();
         }
         final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
         is = mFileSystem.openFile(uri);
@@ -481,7 +481,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (is != null) {
       LOG.error(String.format("Cannot open file %s with flags 0x%x "
           + "for reading and writing concurrently", path, flags));
-      return -ErrorCodes.EIO(); // TODO(lu) update code
+      return -ErrorCodes.EIO();
     }
     if (ce == null) {
       try {

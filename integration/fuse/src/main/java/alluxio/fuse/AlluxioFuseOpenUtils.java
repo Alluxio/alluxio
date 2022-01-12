@@ -19,7 +19,8 @@ import jnr.constants.platform.OpenFlags;
  */
 public final class AlluxioFuseOpenUtils {
   // TODO(lu) change to bit operation to speed up
-  // FUSE open flags accordance to open flags on Linux:
+  // Extra commonly used Fuse open flags other than defined in
+  // {@link jnr.constants.Constant.OpenFlags}
 
   // r Open file for reading. An exception occurs if the file does not exist.
   // (Decimal): 32768 (Octal): 00000100000 (Hexadecimal): 00008000
@@ -93,27 +94,27 @@ public final class AlluxioFuseOpenUtils {
       case O_DIRECTORY:
         return OpenAction.NOT_SUPPORTED;
       default:
-        return getExtraOpenAction(flag);
+        return getOpenActionFromExtraOpenFlags(flag);
     }
   }
 
   /**
-   * Gets Fuse open action based on open flag
-   * constants defined in this class.
+   * Gets Fuse open action based on extra open flags
+   * defined in this class.
    *
    * @param flag the open flag
    * @return the open action
    */
-  private static OpenAction getExtraOpenAction(int flag) {
+  private static OpenAction getOpenActionFromExtraOpenFlags(int flag) {
     switch (flag) {
       case READ:
       case READ_SYNC:
         return OpenAction.READ_ONLY;
+      case WRITE:
+        return OpenAction.WRITE_ONLY;
       case R_OR_W_PLUS:
       case RS_PLUS:
         return OpenAction.READ_WRITE;
-      case WRITE:
-        return OpenAction.WRITE_ONLY;
       case APPEND:
       case APPEND_PLUS:
         return OpenAction.NOT_SUPPORTED;
