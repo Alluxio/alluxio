@@ -11,14 +11,13 @@
 
 package alluxio.stress;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.stress.cli.client.StressClientIOBench;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests {@link StressClientIOBench}.
@@ -151,5 +150,4 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
     assertTrue(output1.contains("\"errors\" : [ ],"));
     assertTrue(output2.contains("\"errors\" : [ ],"));
   }
-
 }
