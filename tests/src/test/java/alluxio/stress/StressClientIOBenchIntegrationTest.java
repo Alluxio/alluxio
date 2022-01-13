@@ -18,6 +18,8 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests {@link StressClientIOBench}.
  */
@@ -146,8 +148,8 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "--write-type", "ALL",
     });
 
-    Assert.assertNotNull(output1);
-    Assert.assertNotNull(output2);
+    assertTrue(output1.contains("\"errors\" : [ ],"));
+    assertTrue(output2.contains("\"errors\" : [ ],"));
   }
 
 }

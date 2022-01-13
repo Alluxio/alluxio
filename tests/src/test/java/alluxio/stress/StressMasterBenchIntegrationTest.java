@@ -19,6 +19,9 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
+
 /**
  * Tests {@link StressMasterBench}.
  */
@@ -157,15 +160,15 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
   }
 
   @Test
-  public void WriteType() throws Exception {
+  public void writeType() throws Exception {
     String output1 = new StressMasterBench().run(new String[] {
         "--in-process",
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
         "--operation", "CreateFile",
         "--fixed-count", "20",
-        "--target-throughput", "100",
+        "--target-throughput", "300",
         "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
+        "--warmup", "0s", "--duration", "3s",
         "--write-type", "MUST_CACHE",
     });
 
@@ -213,10 +216,10 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--write-type", "ALL",
     });
 
-    Assert.assertNotNull(output1);
-    Assert.assertNotNull(output2);
-    Assert.assertNotNull(output3);
-    Assert.assertNotNull(output4);
-    Assert.assertNotNull(output5);
+    assertTrue(output1.contains("\"errors\" : { },"));
+    assertTrue(output2.contains("\"errors\" : { },"));
+    assertTrue(output3.contains("\"errors\" : { },"));
+    assertTrue(output4.contains("\"errors\" : { },"));
+    assertTrue(output5.contains("\"errors\" : { },"));
   }
 }

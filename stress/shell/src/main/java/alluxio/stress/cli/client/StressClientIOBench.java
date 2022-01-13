@@ -127,7 +127,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       // set hdfs conf for preparation client
       Configuration hdfsConf = new Configuration();
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+      if (!mParameters.mWriteType.isEmpty())
+      {
+        hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
+      }
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)

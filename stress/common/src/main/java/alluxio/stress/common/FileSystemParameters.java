@@ -62,12 +62,16 @@ public class FileSystemParameters extends Parameters {
     }
   }
 
+  /**
+   * @return FileSystemWriteType of this bench
+   * Converts from String to a valid FileSystemWriteType String.
+   */
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override
     public String convert(String value)
     {
-      if(value.equals("MUST_CACHE")  || value.equals("CACHE_THROUGH")  || value.equals("THROUGH") ||
-          value.equals("ASYNC_THROUGH") || value.equals("ALL"))
+      if (value.equals("MUST_CACHE")  || value.equals("CACHE_THROUGH")  || value.equals("THROUGH")
+          || value.equals("ASYNC_THROUGH") || value.equals("ALL"))
       {
         return value;
       }
