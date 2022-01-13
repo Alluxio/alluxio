@@ -214,12 +214,12 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-client</artifactId>
-        <version>5.0.1</version>
+        <version>5.0.2</version>
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-model</artifactId>
-        <version>5.0.1</version>
+        <version>5.0.2</version>
       </dependency>
       <dependency>
         <groupId>com.beust</groupId>
