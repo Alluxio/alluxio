@@ -838,6 +838,22 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public void commitBlockWithoutLocation(long blockId, long length) throws UnavailableException {
+    LOG.debug("Commit block without location. blockId: {}, length: {}", blockId, length);
+    try (JournalContext journalContext = createJournalContext();
+         LockResource r = lockBlock(blockId)) {
+      if (mBlockStore.getBlock(blockId).isPresent()) {
+        // Block metadata already exists, so do not need to create a new one.
+        return;
+      }
+      mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
+      BlockInfoEntry blockInfo =
+          BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
+      journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+    }
+  }
+
+  @Override
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException, UnavailableException {
     return generateBlockInfo(blockId)
         .orElseThrow(() -> new BlockInfoException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId));

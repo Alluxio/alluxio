@@ -1597,7 +1597,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      // mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      mBlockMaster.commitBlockWithoutLocation(blockId, currentBlockSize);
       currLength -= currentBlockSize;
     }
   }

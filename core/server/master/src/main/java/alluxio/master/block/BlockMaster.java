@@ -150,6 +150,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws NotFoundException, UnavailableException;
 
   /**
+   * Marks a block as committed, but without a worker location.
+   *
+   * @param blockId the id of the block to commit
+   * @param length the length of the block
+   */
+  void commitBlockWithoutLocation(long blockId, long length) throws UnavailableException;
+
+  /**
    * @param blockId the block id to get information for
    * @return the {@link BlockInfo} for the given block id
    * @throws BlockInfoException if the block info is not found

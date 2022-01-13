@@ -755,7 +755,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   private void prepareBlocksOnMaster(Collection<Long> blockIds) throws UnavailableException {
     for (long id : blockIds) {
-      mBlockMaster.commitBlockInUFS(id, BLOCK_SIZE);
+      mBlockMaster.commitBlockWithoutLocation(id, BLOCK_SIZE);
     }
   }
 
@@ -764,7 +764,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
       List<LocationBlockIdListEntry> entries = chunk.getCurrentBlocksList();
       for (LocationBlockIdListEntry entry : entries) {
         for (long blockId : entry.getValue().getBlockIdList()) {
-          mBlockMaster.commitBlockInUFS(blockId, BLOCK_SIZE);
+          mBlockMaster.commitBlockWithoutLocation(blockId, BLOCK_SIZE);
         }
       }
     }
