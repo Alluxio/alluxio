@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -92,6 +93,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
   }
 
   @Override
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public int getOrdinal(String alias) {
     return mAliasToOrdinal.get(alias);
   }
