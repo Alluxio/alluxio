@@ -25,13 +25,13 @@ public final class AlluxioFuseOpenUtils {
   // r Open file for reading. An exception occurs if the file does not exist.
   // (Decimal): 32768 (Octal): 00000100000 (Hexadecimal): 00008000
   // (Binary ): 00000000000000001000000000000000
-  private static final int READ =  32768;
+  private static final int READ = 0x8000;
   // r+/w+ Open file for reading and writing. An exception occurs if the file
   // does not exist. If open for writing, the file is created (if it does not
   // exist) or truncated (if it exists).
   // (Decimal): 32770 (Octal): 00000100002 (Hexadecimal): 00008002
   // (Binary ): 00000000000000001000000000000010
-  private static final int R_OR_W_PLUS =  32770;
+  private static final int R_OR_W_PLUS = 0x8002;
   // rs Open file for reading in synchronous mode. Instructs the operating
   // system to bypass the local file system cache. This is primarily useful
   // for opening files on NFS mounts as it allows you to skip the
@@ -41,28 +41,28 @@ public final class AlluxioFuseOpenUtils {
   // what you want then you should be using fs.openSync().
   // (Decimal): 36864 (Octal): 00000110000 (Hexadecimal): 00009000
   // (Binary ): 00000000000000001001000000000000
-  private static final int READ_SYNC =  36864;
+  private static final int READ_SYNC = 0x9000;
   // rs+ Open file for reading and writing, telling the OS to open it
   // synchronously. See notes for 'rs' about using this with caution.
   //(Decimal): 36866 (Octal): 00000110002 (Hexadecimal): 00009002
   // (Binary ): 00000000000000001001000000000010
-  private static final int RS_PLUS =  36866;
+  private static final int RS_PLUS = 0x9002;
   // w Open file for writing. The file is created (if it does not exist) or
   // truncated (if it exists).
   // (Decimal): 32769 (Octal): 00000100001 (Hexadecimal): 00008001
   // (Binary ): 00000000000000001000000000000001
-  private static final int WRITE =  32769;
+  private static final int WRITE = 0x8001;
   // wx  FUSE.open() is never called
   // a Open file for appending. The file is created if it does not exist.
   // (Decimal): 33793 (Octal): 00000102001 (Hexadecimal): 00008401
   // (Binary ): 00000000000000001000010000000001
-  private static final int APPEND = 33793;
+  private static final int APPEND = 0x8401;
   // ax  FUSE.open() is never called
   // a+  # Open file for reading and appending. The file is created if it
   // does not exist.
   // (Decimal): 33794 (Octal): 00000102002 (Hexadecimal): 00008402
   // (Binary ): 00000000000000001000010000000010
-  private static final int APPEND_PLUS = 33794;
+  private static final int APPEND_PLUS = 0x8402;
   // ax+ FUSE.open() is never called
 
   /**

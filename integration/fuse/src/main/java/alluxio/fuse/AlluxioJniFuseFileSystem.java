@@ -363,6 +363,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     long fid = mNextOpenFileId.getAndIncrement();
     try {
+      // TODO(lu) how to deal with concurrent open() for read/write or write/write
       if (openAction == OpenAction.WRITE_ONLY) {
         if (mFileSystem.exists(uri)) {
           OpenFlags openFlags = OpenFlags.valueOf(flags);
