@@ -36,6 +36,12 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+/**
+ * Tests stat counter values and output of CANCEL operations for distributed commands.
+ * The tests will depend on the timing of the actual job runs.
+ * If the job completes fast enough before the CANCEL operations runs,then the test would fail.
+ * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
+ */
 public class DistributedCommandsCancelStatsTest extends JobShellTest {
   @ClassRule
   public static LocalAlluxioClusterResource sResource =
