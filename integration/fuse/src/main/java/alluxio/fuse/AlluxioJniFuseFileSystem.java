@@ -870,10 +870,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           path, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
+    // Case 8: Truncate size != 0, file is being written by current Fuse
     FileOutStream os = ce.getOut();
     long bytesWritten = os.getBytesWritten();
     if (bytesWritten == size) {
-      // no need to truncate
       return 0;
     }
     // error out otherwise
