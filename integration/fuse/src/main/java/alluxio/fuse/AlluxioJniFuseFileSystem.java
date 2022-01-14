@@ -388,7 +388,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           return -ErrorCodes.EIO();
         }
       } else if (openAction == OpenAction.WRITE_ONLY) {
-        LOG.error("Cannot open incomplete file {} for  writing", path);
+        LOG.error("Cannot open incomplete file {} for writing", path);
         return -ErrorCodes.EOPNOTSUPP();
       }
     }
@@ -812,10 +812,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int truncateInternal(String path, long size) {
     // Truncate scenarios:
     // 1. Truncate size = 0, file does not exist => no-op
-    // 2. Truncate size = 0, file exists and completed => delete file
+    // 2. Truncate size = 0, file exists and completed
+    // => noop if file size = 0 or delete file
     // TODO(lu) delete open file entry if any
     // 3. Truncate size = 0, file exists and is being written by current Fuse
-    // => delete file and update create file entry
+    // => noop if written size = 0, otherwise delete file and update create file entry
     // 4. Truncate size = 0, file exists and is being written by other applications
     // => error out
     // 5. Truncate size != 0, file does not exist => error out
@@ -843,7 +844,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return 0;
       }
       try {
-        // Case 2: Truncate size = 0, file exists and completed => delete file
+        // Case 2: Truncate size = 0, file exists and completed
         if (status.isCompleted()) {
           if (status.getLength() == 0) {
             return 0;
