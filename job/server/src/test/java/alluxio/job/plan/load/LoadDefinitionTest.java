@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.load;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
