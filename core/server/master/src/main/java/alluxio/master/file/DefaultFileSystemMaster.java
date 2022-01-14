@@ -1561,6 +1561,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setLastAccessTimeMs(opTimeMs)
           .setOverwriteModificationTime(true);
     }
+    mInodeTree.updateInode(rpcContext, builder.build());
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 
     Metrics.FILES_COMPLETED.inc();
