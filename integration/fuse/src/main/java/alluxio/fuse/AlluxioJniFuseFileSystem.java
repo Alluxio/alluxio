@@ -48,7 +48,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import jnr.constants.platform.OpenFlags;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -779,7 +778,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   /**
    * Since files can be written only once, only sequentially,
    * and never be modified in Alluxio, truncate is not supported internally by Alluxio.
-   * 
+   *
    * In Alluxio Fuse, we support truncate in some special cases.
    *
    * @param path the file to truncate
@@ -793,16 +792,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int truncateInternal(String path, long size) {
-    // Truncate cases supported:
+    // Truncate scenarios:
     // 1. Truncate size = 0, file does not exist => no-op
-    // 2. Truncate size = 0, file exists => delete file, remove create file entries if any
-    // 3. Truncate size != 0, file does not exist => error out
-    // 4. Truncate size != 0, file is completed 
+    // 2. Truncate size = 0, file exists and completed => delete file
+    // TODO(lu) delete open file entry if any
+    // 3. Truncate size = 0, file exists and is being written by current Fuse
+    // => delete file and remove create file entries
+    // 4. Truncate size = 0, file exists and is being written by other applications
+    // => error out
+    // 5. Truncate size != 0, file does not exist => error out
+    // 6. Truncate size != 0, file is completed
     // => no-op if file size = truncate size, error out otherwise
-    // 5. Truncate size != 0, file is being written by other applications 
+    // 7. Truncate size != 0, file is being written by other applications
     // => error out, don't know exact file written size
-    // 6. Truncate size != 0, file is being written by current Fuse 
+    // 8. Truncate size != 0, file is being written by current Fuse
     // => no-op if written size = truncate size, error out otherwise
+    // Error out in all other cases
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     URIStatus status = null;
     try {
@@ -815,25 +820,42 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
     if (size == 0) {
-      if (status != null) {
-        try {
-          mFileSystem.delete(uri);  
-        } catch (Throwable t) {
-          LOG.error("Failed to truncate path {} to {}. Failed to delete path {} from Alluxio",
-              path, size, path);
-          return -ErrorCodes.EIO();
+      if (status == null) {
+        // Case 1: Truncate size = 0, file does not exist => no-op
+        return 0;
+      }
+      try {
+        // Case 2: Truncate size = 0, file exists and completed => delete file
+        if (status.isCompleted()) {
+          // TODO(lu) delete existing opened file entry if any
+          // require libfuse 3 which truncate() has fd info
+          // otherwise we need to change OpenFileEntries to include PATH_INDEX
+          mFileSystem.delete(uri);
+          return 0;
         }
+        // Case 3: Truncate size = 0, file exists and is being written by current Fuse
         if (ce != null) {
           mCreateFileEntries.remove(ce);
+          mFileSystem.delete(uri);
+          return 0;
         }
-        // TODO(lu) delete existing opened file entry
+        // Case 4: Truncate size = 0, file exists and is being written by other applications
+        LOG.error("Failed to truncate path {} to size 0, "
+            + "file is being written in other applications",
+            path);
+        return -ErrorCodes.EOPNOTSUPP();
+      } catch (Throwable t) {
+        LOG.error("Failed to truncate path {} to {}. Failed to delete path {} from Alluxio",
+            path, size, path);
+        return -ErrorCodes.EIO();
       }
-      return 0;
     }
+    // Case 5: Truncate size != 0, file does not exist => error out
     if (status == null) {
       LOG.error("Cannot truncate non-existing file {} to size {}", path, size);
       return -ErrorCodes.EEXIST();
     }
+    // Case 6: Truncate size != 0, file is completed
     if (status.isCompleted()) {
       if (size == status.getLength()) {
         return 0;
@@ -841,8 +863,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Cannot truncate file {} to non-zero size {}", path, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
-    if (ce == null) { // File is being written in other Fuse or APIs and truncate size is not 0
-      LOG.error("Cannot truncate {} to {}. File is being written in other Fuse applications or APIs", path, size);
+    // Case 7: Truncate size != 0, file is being written by other applications
+    if (ce == null) {
+      LOG.error("Cannot truncate {} to {}. "
+          + "File is being written in other Fuse applications or APIs",
+          path, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
     FileOutStream os = ce.getOut();
@@ -851,6 +876,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       // no need to truncate
       return 0;
     }
+    // error out otherwise
     LOG.error("Truncate file {} of size {} to size {} is not supported. "
         + "Alluxio supports sequential writes only and the written contents cannot be modified",
         path, bytesWritten, size);
