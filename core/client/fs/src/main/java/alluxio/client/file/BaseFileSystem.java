@@ -56,10 +56,12 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.master.EmbeddedLogicalMasterInquireClient;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
+import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
@@ -134,7 +136,7 @@ public class BaseFileSystem implements FileSystem {
   public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       CheckAccessPOptions mergedOptions = FileSystemOptions
           .checkAccessDefaults(mFsContext.getPathConf(path))
           .toBuilder().mergeFrom(options).build();
@@ -148,7 +150,7 @@ public class BaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       CreateDirectoryPOptions mergedOptions = FileSystemOptions.createDirectoryDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.createDirectory(path, mergedOptions);
@@ -161,7 +163,7 @@ public class BaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
+    return rpc(path, client -> {
       CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       URIStatus status = client.createFile(path, mergedOptions);
@@ -185,7 +187,7 @@ public class BaseFileSystem implements FileSystem {
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       DeletePOptions mergedOptions = FileSystemOptions.deleteDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.delete(path, mergedOptions);
@@ -199,7 +201,7 @@ public class BaseFileSystem implements FileSystem {
       throws IOException, AlluxioException {
     checkUri(path);
     try {
-      return rpc(client -> {
+      return rpc(path, client -> {
         ExistsPOptions mergedOptions = FileSystemOptions.existsDefaults(
             mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
         // TODO(calvin): Make this more efficient
@@ -215,7 +217,7 @@ public class BaseFileSystem implements FileSystem {
   public void free(AlluxioURI path, final FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       FreePOptions mergedOptions = FileSystemOptions.freeDefaults(mFsContext.getPathConf(path))
           .toBuilder().mergeFrom(options).build();
       client.free(path, mergedOptions);
@@ -271,7 +273,7 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    URIStatus status = rpc(client -> {
+    URIStatus status = rpc(path, client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return client.getStatus(path, mergedOptions);
@@ -286,7 +288,7 @@ public class BaseFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
+    return rpc(path, client -> {
       // TODO(calvin): Fix the exception handling in the master
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -299,7 +301,7 @@ public class BaseFileSystem implements FileSystem {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       // TODO(calvin): Fix the exception handling in the master
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -312,7 +314,7 @@ public class BaseFileSystem implements FileSystem {
   public void loadMetadata(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options)
           .setLoadMetadataType(LoadMetadataPType.ALWAYS).setLoadMetadataOnly(true).build();
@@ -325,7 +327,7 @@ public class BaseFileSystem implements FileSystem {
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
       throws IOException, AlluxioException {
     checkUri(alluxioPath);
-    rpc(client -> {
+    rpc(alluxioPath, client -> {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       // TODO(calvin): Make this fail on the master side
@@ -339,7 +341,7 @@ public class BaseFileSystem implements FileSystem {
   public void updateMount(AlluxioURI alluxioPath, final MountPOptions options)
       throws IOException, AlluxioException {
     checkUri(alluxioPath);
-    rpc(client -> {
+    rpc(alluxioPath, client -> {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       client.updateMount(alluxioPath, mergedOptions);
@@ -350,19 +352,19 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return rpc(FileSystemMasterClient::getMountTable);
+    return rpc(null, FileSystemMasterClient::getMountTable);
   }
 
   @Override
   public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-    return rpc(FileSystemMasterClient::getSyncPathList);
+    return rpc(null, FileSystemMasterClient::getSyncPathList);
   }
 
   @Override
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       ScheduleAsyncPersistencePOptions mergedOptions =
           FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getPathConf(path)).toBuilder()
               .mergeFrom(options).build();
@@ -409,7 +411,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(src);
     checkUri(dst);
-    rpc(client -> {
+    rpc(src, client -> {
       RenamePOptions mergedOptions = FileSystemOptions.renameDefaults(mFsContext.getPathConf(dst))
           .toBuilder().mergeFrom(options).build();
       // TODO(calvin): Update this code on the master side.
@@ -421,7 +423,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException {
-    return rpc(client -> {
+    return rpc(ufsUri, client -> {
       AlluxioURI path = client.reverseResolve(ufsUri);
       LOG.debug("Reverse resolved {} to {}", ufsUri, path.getPath());
       return path;
@@ -432,7 +434,7 @@ public class BaseFileSystem implements FileSystem {
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       SetAclPOptions mergedOptions = FileSystemOptions.setAclDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.setAcl(path, action, entries, mergedOptions);
@@ -449,7 +451,7 @@ public class BaseFileSystem implements FileSystem {
     SetAttributePOptions mergedOptions =
         FileSystemOptions.setAttributeClientDefaults(mFsContext.getPathConf(path))
             .toBuilder().mergeFrom(options).build();
-    rpc(client -> {
+    rpc(path, client -> {
       client.setAttribute(path, mergedOptions);
       LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
       return null;
@@ -464,7 +466,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void startSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    rpc(client -> {
+    rpc(path, client -> {
       client.startSync(path);
       LOG.debug("Start syncing for {}", path.getPath());
       return null;
@@ -478,7 +480,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void stopSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    rpc(client -> {
+    rpc(path, client -> {
       client.stopSync(path);
       LOG.debug("Stop syncing for {}", path.getPath());
       return null;
@@ -489,7 +491,7 @@ public class BaseFileSystem implements FileSystem {
   public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
-    rpc(client -> {
+    rpc(path, client -> {
       UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.unmount(path);
@@ -531,14 +533,21 @@ public class BaseFileSystem implements FileSystem {
       boolean skipAuthorityCheck = conf.isSet(PropertyKey.USER_SKIP_AUTHORITY_CHECK)
               && conf.getBoolean(PropertyKey.USER_SKIP_AUTHORITY_CHECK);
       if (!skipAuthorityCheck) {
+        MasterInquireClient masterInquireClient = MasterInquireClient.Factory
+            .create(mFsContext.getClusterConf(),
+                mFsContext.getClientContext().getUserState());
+        //Skip EmbeddedLogicalAuthority because of will be handled by
+        // EmbeddedLogicalMasterInquireClient
+        if (uri.getAuthority() instanceof EmbeddedLogicalAuthority
+            && masterInquireClient instanceof EmbeddedLogicalMasterInquireClient) {
+          return;
+        }
+
         /* Even if we choose to log the warning, check if the Configuration host matches what the
          * user passes. If not, throw an exception letting the user know they don't match.
          */
-        Authority configured =
-                MasterInquireClient.Factory
-                        .create(mFsContext.getClusterConf(),
-                                mFsContext.getClientContext().getUserState())
-                        .getConnectDetails().toAuthority();
+        Authority configured = masterInquireClient.getConnectDetails().toAuthority();
+
         if (!configured.equals(uri.getAuthority())) {
           throw new IllegalArgumentException(
                   String.format("The URI authority %s does not match the configured value of %s.",
@@ -563,13 +572,13 @@ public class BaseFileSystem implements FileSystem {
    * @param <R> the type of return value for the RPC
    * @return the RPC result
    */
-  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
+  private <R> R rpc(AlluxioURI uri, RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
     try (ReinitBlockerResource r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       // Explicitly connect to trigger loading configuration from meta master.
-      client.get().connect();
+      client.get().connect(uri.getAuthority());
       return fn.call(client.get());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
