@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +41,7 @@ import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -82,7 +82,7 @@ public class BlockInStreamTest {
       return null;
     }).when(requestObserver).onNext(any(OpenLocalBlockRequest.class));
     mMockContext = Mockito.mock(FileSystemContext.class);
-    when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
+    when(mMockContext.acquireBlockWorkerClient(ArgumentMatchers.any(WorkerNetAddress.class)))
         .thenReturn(new NoopClosableResource<>(workerClient));
     when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     when(mMockContext.getClusterConf()).thenReturn(mConf);
@@ -169,10 +169,12 @@ public class BlockInStreamTest {
   @Test
   public void createDomainSocketEnabled() throws Exception {
     PowerMockito.mockStatic(NettyUtils.class);
-    PowerMockito.when(NettyUtils.isDomainSocketAccessible(Matchers.any(WorkerNetAddress.class),
-        Matchers.any(InstancedConfiguration.class)))
+    PowerMockito.when(
+        NettyUtils.isDomainSocketAccessible(ArgumentMatchers.any(WorkerNetAddress.class),
+            ArgumentMatchers.any(InstancedConfiguration.class)))
         .thenReturn(true);
-    PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class)))
+    PowerMockito.when(
+        NettyUtils.isDomainSocketSupported(ArgumentMatchers.any(WorkerNetAddress.class)))
         .thenReturn(true);
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;

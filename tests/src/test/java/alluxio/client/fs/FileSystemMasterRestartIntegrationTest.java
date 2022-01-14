@@ -56,7 +56,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -233,15 +233,16 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     String ufsBase = "test://test/";
 
     UnderFileSystemFactory mockUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
-    Mockito.when(mockUfsFactory.supportsPath(Matchers.anyString(), Matchers.any()))
+    Mockito.when(mockUfsFactory.supportsPath(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
         .thenReturn(Boolean.FALSE);
-    Mockito.when(mockUfsFactory.supportsPath(Matchers.eq(ufsBase), Matchers.any()))
+    Mockito.when(mockUfsFactory.supportsPath(ArgumentMatchers.eq(ufsBase), ArgumentMatchers.any()))
         .thenReturn(Boolean.TRUE);
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
-    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
+    Mockito.when(mockUfsFactory.create(ArgumentMatchers.eq(ufsBase), ArgumentMatchers.any()))
+        .thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));
@@ -249,7 +250,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
     Mockito.when(mockUfs.getExistingDirectoryStatus(ufsBase))
         .thenReturn(ufsStatus);
-    Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
+    Mockito.when(mockUfs.mkdirs(ArgumentMatchers.eq(ufsBase + "/dir1"), ArgumentMatchers.any()))
         .thenThrow(new IOException("ufs unavailable"));
     Mockito.when(mockUfs.getStatus(ufsBase))
         .thenReturn(ufsStatus);
