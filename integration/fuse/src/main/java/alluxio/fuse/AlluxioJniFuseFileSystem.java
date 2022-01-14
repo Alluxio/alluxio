@@ -51,6 +51,7 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
@@ -366,10 +367,35 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EOPNOTSUPP();
     }
     long fid = mNextOpenFileId.getAndIncrement();
+    URIStatus status = null;
     try {
-      // TODO(lu) how to deal with concurrent open() for read/write or write/write
+      status = mFileSystem.getStatus(uri);
+    } catch (InvalidPathException | FileNotFoundException e) {
+      status = null;
+    } catch (Throwable t) {
+      LOG.error("Failed to get status of path {} when opening it.", path);
+      return -ErrorCodes.EIO();
+    }
+    if (status != null && !status.isCompleted()) {
+      // Cannot open incomplete file for read or write
+      // wait for file to complete in read or read_write mode
+      if (openAction == OpenAction.READ_ONLY
+          || openAction == OpenAction.READ_WRITE) {
+        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          LOG.error(String.format("Cannot open incomplete file %s. "
+              + "Failed to wait for file completed with flag 0x%x",
+              path, flags));
+          return -ErrorCodes.EIO();
+        }
+      } else if (openAction == OpenAction.WRITE_ONLY) {
+        LOG.error("Cannot open incomplete file {} for  writing", path);
+        return -ErrorCodes.EOPNOTSUPP();
+      }
+    }
+
+    try {
       if (openAction == OpenAction.WRITE_ONLY) {
-        if (mFileSystem.exists(uri)) {
+        if (status != null) {
           OpenFlags openFlags = OpenFlags.valueOf(flags);
           if (openFlags == OpenFlags.O_CREAT || openFlags == OpenFlags.O_EXCL) {
             return -ErrorCodes.EEXIST();
@@ -384,15 +410,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             path, flags));
       } else if (openAction == OpenAction.READ_ONLY) {
         FileInStream is;
-        try {
-          is = mFileSystem.openFile(uri);
-        } catch (FileIncompleteException e) {
-          if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-            is = mFileSystem.openFile(uri);
-          } else {
-            throw e;
-          }
-        }
+        is = mFileSystem.openFile(uri);
         mOpenFileEntries.put(fid, is);
       }
       // For OpenAction.READ_WRITE, we defer to the first read() or write() to open or create file.
@@ -797,7 +815,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     // 2. Truncate size = 0, file exists and completed => delete file
     // TODO(lu) delete open file entry if any
     // 3. Truncate size = 0, file exists and is being written by current Fuse
-    // => delete file and remove create file entries
+    // => delete file and update create file entry
     // 4. Truncate size = 0, file exists and is being written by other applications
     // => error out
     // 5. Truncate size != 0, file does not exist => error out
@@ -827,16 +845,31 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       try {
         // Case 2: Truncate size = 0, file exists and completed => delete file
         if (status.isCompleted()) {
+          if (status.getLength() == 0) {
+            return 0;
+          }
+          mFileSystem.delete(uri);
           // TODO(lu) delete existing opened file entry if any
           // require libfuse 3 which truncate() has fd info
           // otherwise we need to change OpenFileEntries to include PATH_INDEX
-          mFileSystem.delete(uri);
+          // now fuse.read() will error out but it's acceptable
+          // because concurrent read and delete are not supported
           return 0;
         }
         // Case 3: Truncate size = 0, file exists and is being written by current Fuse
         if (ce != null) {
+          FileOutStream os = ce.getOut();
+          long bytesWritten = os.getBytesWritten();
+          if (bytesWritten == size) {
+            return 0;
+          }
           mCreateFileEntries.remove(ce);
           mFileSystem.delete(uri);
+          os = mFileSystem.createFile(uri);
+          final long fd = ce.getId();
+          ce = new CreateFileEntry(fd, path, os);
+          mCreateFileEntries.add(ce);
+          mAuthPolicy.setUserGroupIfNeeded(uri);
           return 0;
         }
         // Case 4: Truncate size = 0, file exists and is being written by other applications
