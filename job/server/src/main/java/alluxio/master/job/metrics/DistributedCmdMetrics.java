@@ -199,7 +199,7 @@ public class DistributedCmdMetrics {
         long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
         incrementFileSize(jobType, fileSize);
         break;
-      } catch (IOException | AlluxioException e) {
+      } catch (IOException | AlluxioException | RuntimeException e) {
         LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
                 filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
       }
@@ -255,7 +255,7 @@ public class DistributedCmdMetrics {
               LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
                     finalPathMapKey, retryPolicy.getAttemptCount(),
                       Arrays.toString(e.getStackTrace()));
-            } catch (NullPointerException e) {
+            } catch (RuntimeException e) {
               LOG.warn("Null key is found for config map with key = {}, more info is {}",
                       finalPathMapKey, Arrays.toString(e.getStackTrace()));
               break;
