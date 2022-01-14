@@ -150,12 +150,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws NotFoundException, UnavailableException;
 
   /**
-   * Marks a block as committed, but without a worker location.
+   * Marks a block as committed, but without a worker location. This means the block is only in ufs.
    *
    * @param blockId the id of the block to commit
    * @param length the length of the block
    */
-  void commitBlockWithoutLocation(long blockId, long length) throws UnavailableException;
+  void commitBlockInUFS(long blockId, long length) throws UnavailableException;
 
   /**
    * @param blockId the block id to get information for

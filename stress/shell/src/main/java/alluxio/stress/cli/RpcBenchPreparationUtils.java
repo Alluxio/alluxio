@@ -101,15 +101,16 @@ public class RpcBenchPreparationUtils {
             new BlockMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(sConf))
                 .build());
-        // TODO(lu) see if we can avoid adding new RPC for this method
-        /*for (Long blockId : job) {
+        for (Long blockId : job) {
           try {
-            client.commitBlockWithoutLocation(blockId, blockSize);
-           } catch (IOException e) {
+            // TODO(lu) change to another RPC
+            // commitBlockInUfs is deprecated and is abused here
+            client.commitBlockInUfs(blockId, blockSize);
+          } catch (IOException e) {
             LOG.error("Failed to commitBlockInUfs in batch {}, blockId={} total={}",
                 batchIndex, blockId, totalBlocksFinal, e);
           }
-        }*/
+        }
         long finishedCount = progress.addAndGet(batchSize);
         LOG.info("Generated {}th batch of {} blocks, {}% completed",
             batchIndex, batchSize, String.format("%.2f", 100.0 * finishedCount / totalBlocksFinal));
