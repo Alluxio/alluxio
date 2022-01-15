@@ -213,6 +213,8 @@ message CommitBlockPRequest {
 
 message CommitBlockPOptions {}
 
+// CommitBlockInUfs is deprecated since v2.8.0 and will be removed in v2.9.0.
+// Use commitBlock instead.
 message CommitBlockInUfsPRequest {
   /** the id of the worker */
   optional int64 blockId = 1;
@@ -220,7 +222,6 @@ message CommitBlockInUfsPRequest {
   optional int64 length = 2;
   optional CommitBlockInUfsPOptions options = 3;
 }
-
 message CommitBlockInUfsPOptions {}
 message CommitBlockInUfsPResponse {}
 
@@ -285,8 +286,11 @@ service BlockMasterWorkerService {
   rpc CommitBlock(CommitBlockPRequest) returns(CommitBlockPResponse);
 
   /**
- * Marks the given block as committed which resides in UFS.
- */
+   * Marks the given block as committed which resides in UFS.
+   *
+   * This is deprecated since 2.8.0 and will be removed in 2.9.0.
+   * Use commitBlock instead. Do not abuse this method.
+   */
   rpc CommitBlockInUfs(CommitBlockInUfsPRequest) returns(CommitBlockInUfsPResponse);
 
   /**

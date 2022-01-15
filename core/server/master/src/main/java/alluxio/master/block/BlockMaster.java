@@ -152,9 +152,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
    *
+   * @deprecated in v2.8.0 and will be removed in v2.9.0.
+   * Use {@link #commitBlock(long, long, String, String, long, long)} (Path, boolean)} instead.
+   * Do not abuse this method.
+   *
    * @param blockId the id of the block to commit
    * @param length the length of the block
    */
+  @Deprecated
   void commitBlockInUFS(long blockId, long length) throws UnavailableException;
 
   /**

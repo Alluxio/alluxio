@@ -838,6 +838,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  @Deprecated
   public void commitBlockInUFS(long blockId, long length) throws UnavailableException {
     LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
     try (JournalContext journalContext = createJournalContext();
