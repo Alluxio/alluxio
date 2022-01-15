@@ -189,6 +189,7 @@ public class MultiMasterAuthority implements Authority {
       }
       h ^= segmentHashCode;
     }
+
     mHashCode = h;
     return h;
   }

@@ -11,10 +11,8 @@
 
 package alluxio.uri;
 
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MultiMasterAuthorityTest {
+public class ZookeeperAuthorityTest {
   @Test
   public void permutationsUnordered() {
     testPermutationsEqual(ImmutableList.of("host1:port1", "host2:port2"));
@@ -40,7 +38,7 @@ public class MultiMasterAuthorityTest {
     // test different port
     testPermutationsDifferent(ImmutableList.of("host1:port1", "host2:port2"),
         ImmutableList.of("host1:port1", "host2:port3"));
-    // test different numbers of masters
+    // test different numbers of addresses
     testPermutationsDifferent(ImmutableList.of("host1:port1", "host2:port2"),
         ImmutableList.of("host1:port1"));
     testPermutationsDifferent(ImmutableList.of("host1:port1", "host2:port2", "host3:port3"),
@@ -50,47 +48,47 @@ public class MultiMasterAuthorityTest {
         ImmutableList.of("host1:port1", "longHostname:differentPort", "remotehost:19998"));
   }
 
-  private void testPermutationsEqual(List<String> masters) {
-    Set<String> allPermutations = Collections2.permutations(masters)
+  private void testPermutationsEqual(List<String> zookeepers) {
+    Set<String> allPermutations = Collections2.permutations(zookeepers)
         .stream()
         .map((list) -> String.join(",", list))
         .collect(Collectors.toSet());
-    // make sure all master strings are different so none are skipped when put in a set
-    assertEquals(IntMath.factorial(masters.size()), allPermutations.size());
+    // make sure all address strings are different so none are skipped when put in a set
+    assertEquals(IntMath.factorial(zookeepers.size()), allPermutations.size());
 
     for (Set<String> pair : Sets.combinations(allPermutations, 2)) {
       String[] two = pair.toArray(new String[0]);
       assertEquals(2, two.length);
-      MultiMasterAuthority a1 = new MultiMasterAuthority(two[0]);
-      MultiMasterAuthority a2 = new MultiMasterAuthority(two[1]);
-      assertTrue(a1.equals(a2));
+      ZookeeperAuthority a1 = new ZookeeperAuthority(two[0]);
+      ZookeeperAuthority a2 = new ZookeeperAuthority(two[1]);
+      assertEquals(a1, a2);
       assertEquals(a1.hashCode(), a2.hashCode());
       assertEquals(a1.compareTo(a2), 0);
     }
   }
 
-  private void testPermutationsDifferent(List<String> master1, List<String> master2) {
-    Set<String> allPermutations1 = Collections2.permutations(master1)
+  private void testPermutationsDifferent(List<String> zookeeper1, List<String> zookeeper2) {
+    Set<String> allPermutations1 = Collections2.permutations(zookeeper1)
         .stream()
         .map((list) -> String.join(",", list))
         .collect(Collectors.toSet());
 
-    Set<String> allPermutations2 = Collections2.permutations(master2)
+    Set<String> allPermutations2 = Collections2.permutations(zookeeper2)
         .stream()
         .map((list) -> String.join(",", list))
         .collect(Collectors.toSet());
 
-    // make sure all master strings are different so none are skipped when put in a set
-    assertEquals(IntMath.factorial(master1.size()), allPermutations1.size());
-    assertEquals(IntMath.factorial(master2.size()), allPermutations2.size());
+    // make sure all address strings are different so none are skipped when put in a set
+    assertEquals(IntMath.factorial(zookeeper1.size()), allPermutations1.size());
+    assertEquals(IntMath.factorial(zookeeper2.size()), allPermutations2.size());
 
     for (String authority1 : allPermutations1)
     {
       for (String authority2 : allPermutations2)
       {
-        MultiMasterAuthority a1 = new MultiMasterAuthority(authority1);
-        MultiMasterAuthority a2 = new MultiMasterAuthority(authority2);
-        assertFalse(a1.equals(a2));
+        ZookeeperAuthority a1 = new ZookeeperAuthority(authority1);
+        ZookeeperAuthority a2 = new ZookeeperAuthority(authority2);
+        assertNotEquals(a1, a2);
         assertNotEquals(a1.hashCode(), a2.hashCode());
         assertNotEquals(a1.compareTo(a2), 0);
       }
@@ -98,62 +96,62 @@ public class MultiMasterAuthorityTest {
   }
 
   @Test
-  public void equalsSingleMaster() {
-    MultiMasterAuthority a1 = new MultiMasterAuthority("host1:port1");
-    MultiMasterAuthority a1Duplicate = new MultiMasterAuthority("host1:port1");
-    assertTrue(a1.equals(a1Duplicate));
+  public void equalsSingleZookeeper() {
+    ZookeeperAuthority a1 = new ZookeeperAuthority("host1:port1");
+    ZookeeperAuthority a1Duplicate = new ZookeeperAuthority("host1:port1");
+    assertEquals(a1, a1Duplicate);
     assertEquals(a1.hashCode(), a1Duplicate.hashCode());
     assertEquals(a1.compareTo(a1Duplicate), 0);
   }
 
   @Test
   public void equalsEmpty() {
-    MultiMasterAuthority empty = new MultiMasterAuthority("");
-    MultiMasterAuthority alsoEmpty = new MultiMasterAuthority("");
-    assertTrue(empty.equals(alsoEmpty));
+    ZookeeperAuthority empty = new ZookeeperAuthority("");
+    ZookeeperAuthority alsoEmpty = new ZookeeperAuthority("");
+    assertEquals(empty, alsoEmpty);
     assertEquals(empty.hashCode(), alsoEmpty.hashCode());
     assertEquals(empty.compareTo(alsoEmpty), 0);
 
-    MultiMasterAuthority empty2 = new MultiMasterAuthority(",");
-    MultiMasterAuthority alsoEmpty2 = new MultiMasterAuthority(",");
-    assertTrue(empty2.equals(alsoEmpty2));
+    ZookeeperAuthority empty2 = new ZookeeperAuthority(",");
+    ZookeeperAuthority alsoEmpty2 = new ZookeeperAuthority(",");
+    assertEquals(empty2, alsoEmpty2);
     assertEquals(empty2.hashCode(), alsoEmpty2.hashCode());
     assertEquals(empty2.compareTo(alsoEmpty2), 0);
   }
 
   @Test
   public void notEqualEmptyNonEmpty() {
-    MultiMasterAuthority nonEmpty = new MultiMasterAuthority("host1:port1,host2:port2");
-    MultiMasterAuthority empty = new MultiMasterAuthority("");
-    MultiMasterAuthority alsoEmpty = new MultiMasterAuthority(",");
+    ZookeeperAuthority nonEmpty = new ZookeeperAuthority("host1:port1,host2:port2");
+    ZookeeperAuthority empty = new ZookeeperAuthority("");
+    ZookeeperAuthority alsoEmpty = new ZookeeperAuthority(",");
 
-    assertFalse(nonEmpty.equals(empty));
+    assertNotEquals(nonEmpty, empty);
     assertNotEquals(nonEmpty.hashCode(), empty.hashCode());
     assertNotEquals(nonEmpty.compareTo(empty), 0);
 
-    assertFalse(nonEmpty.equals(alsoEmpty));
+    assertNotEquals(nonEmpty, alsoEmpty);
     assertNotEquals(nonEmpty.hashCode(), alsoEmpty.hashCode());
     assertNotEquals(nonEmpty.compareTo(alsoEmpty), 0);
   }
 
   @Test
   public void notEqualEmptySegments() {
-    MultiMasterAuthority empty = new MultiMasterAuthority("");
-    MultiMasterAuthority seg1 = new MultiMasterAuthority(",");
-    MultiMasterAuthority seg2 = new MultiMasterAuthority(",,");
-    assertFalse(empty.equals(seg1));
+    ZookeeperAuthority empty = new ZookeeperAuthority("");
+    ZookeeperAuthority seg1 = new ZookeeperAuthority(",");
+    ZookeeperAuthority seg2 = new ZookeeperAuthority(",,");
+    assertNotEquals(empty, seg1);
     assertNotEquals(empty.compareTo(seg1), 0);
-    assertFalse(seg1.equals(seg2));
+    assertNotEquals(seg1, seg2);
     assertNotEquals(seg1.compareTo(seg2), 0);
-    assertFalse(seg2.equals(empty));
+    assertNotEquals(seg2, empty);
     assertNotEquals(seg2.compareTo(empty), 0);
   }
 
   @Test
   public void notEqualsDuplicates() {
-    MultiMasterAuthority normal = new MultiMasterAuthority("host1:port1");
-    MultiMasterAuthority insane = new MultiMasterAuthority("host1:port1,host1:port1");
-    assertFalse(normal.equals(insane));
+    ZookeeperAuthority normal = new ZookeeperAuthority("host1:port1");
+    ZookeeperAuthority insane = new ZookeeperAuthority("host1:port1,host1:port1");
+    assertNotEquals(normal, insane);
     assertNotEquals(normal.compareTo(insane), 0);
   }
 }
