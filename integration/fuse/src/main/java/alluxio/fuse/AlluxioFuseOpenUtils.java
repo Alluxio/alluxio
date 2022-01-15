@@ -65,6 +65,10 @@ public final class AlluxioFuseOpenUtils {
   private static final int APPEND_PLUS = 0x8402;
   // ax+ FUSE.open() is never called
 
+  // Additional Open flags found through actual workloads
+  // found by filebench using to open a file for reading
+  private static final int READ_TWO = 0xc002;
+
   /**
    * Gets Alluxio Fuse open action based on open flag.
    *
@@ -108,6 +112,7 @@ public final class AlluxioFuseOpenUtils {
   private static OpenAction getOpenActionFromExtraOpenFlags(int flag) {
     switch (flag) {
       case READ:
+      case READ_TWO:
       case READ_SYNC:
         return OpenAction.READ_ONLY;
       case WRITE:

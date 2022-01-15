@@ -22,7 +22,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
@@ -51,6 +50,7 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
@@ -365,11 +365,36 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           flags, path));
       return -ErrorCodes.EINVAL();
     }
+    URIStatus status = null;
+    try {
+      status = mFileSystem.getStatus(uri);
+    } catch (InvalidPathException | FileNotFoundException e) {
+      status = null;
+    } catch (Throwable t) {
+      LOG.error("Failed to get status of path {} when opening it.", path);
+      return -ErrorCodes.EIO();
+    }
+    if (status != null && !status.isCompleted()) {
+      // Cannot open incomplete file for read or write
+      // wait for file to complete in read or read_write mode
+      if (openAction == OpenAction.READ_ONLY
+          || openAction == OpenAction.READ_WRITE) {
+        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          LOG.error(String.format("Cannot open incomplete file %s. "
+                  + "Failed to wait for file completed with flag 0x%x",
+              path, flags));
+          return -ErrorCodes.EIO();
+        }
+      } else if (openAction == OpenAction.WRITE_ONLY) {
+        LOG.error("Cannot open incomplete file {} for writing", path);
+        return -ErrorCodes.EOPNOTSUPP();
+      }
+    }
+
     long fid = mNextOpenFileId.getAndIncrement();
     try {
-      // TODO(lu) how to deal with concurrent open() for read/write or write/write
       if (openAction == OpenAction.WRITE_ONLY) {
-        if (mFileSystem.exists(uri)) {
+        if (status != null) {
           OpenFlags openFlags = OpenFlags.valueOf(flags);
           if (openFlags == OpenFlags.O_CREAT || openFlags == OpenFlags.O_EXCL) {
             return -ErrorCodes.EEXIST();
@@ -384,15 +409,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             path, flags));
       } else if (openAction == OpenAction.READ_ONLY) {
         FileInStream is;
-        try {
-          is = mFileSystem.openFile(uri);
-        } catch (FileIncompleteException e) {
-          if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-            is = mFileSystem.openFile(uri);
-          } else {
-            throw e;
-          }
-        }
+        is = mFileSystem.openFile(uri);
         mOpenFileEntries.put(fid, is);
       }
       // For OpenAction.READ_WRITE, we defer to the first read() or write() to open or create file.
