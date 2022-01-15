@@ -196,7 +196,6 @@ public final class FileSystemMasterTest {
       put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
           .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
       put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, "false");
-      put(PropertyKey.MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED, "false");
     }
   }, ServerConfiguration.global());
 
@@ -276,16 +275,6 @@ public final class FileSystemMasterTest {
   public void createFileUsesOperationTime() throws Exception {
     AlluxioURI path = new AlluxioURI("/test");
     mFileSystemMaster.createFile(path, CreateFileContext.defaults().setOperationTimeMs(100));
-    FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
-    assertEquals(100, info.getLastModificationTimeMs());
-    assertEquals(100, info.getLastAccessTimeMs());
-  }
-
-  @Test
-  public void createFileWithNoMtimeUpdatedAfterComplete() throws Exception {
-    AlluxioURI path = new AlluxioURI("/test");
-    mFileSystemMaster.createFile(path, CreateFileContext.defaults().setOperationTimeMs(100));
-    mFileSystemMaster.completeFile(path, CompleteFileContext.defaults().setOperationTimeMs(200));
     FileInfo info = mFileSystemMaster.getFileInfo(path, GetStatusContext.defaults());
     assertEquals(100, info.getLastModificationTimeMs());
     assertEquals(100, info.getLastAccessTimeMs());

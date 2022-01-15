@@ -134,6 +134,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1kb")
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
           .setProperty(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false)
+          .setProperty(PropertyKey.MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED, false)
           .build();
 
   @Rule
@@ -514,11 +515,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void lastModificationTimeCompleteFile() throws Exception {
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults()).getFileId();
     long opTimeMs = TEST_TIME_MS;
+    CreateFileContext context = CreateFileContext.defaults().setOperationTimeMs(opTimeMs);
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), context).getFileId();
     mFsMaster.completeFile(new AlluxioURI("/testFile"), CompleteFileContext
-        .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0)).setOperationTimeMs(opTimeMs));
+        .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0)));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
     Assert.assertEquals(opTimeMs, fileInfo.getLastAccessTimeMs());
