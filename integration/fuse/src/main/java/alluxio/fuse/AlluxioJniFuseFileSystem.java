@@ -22,7 +22,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
