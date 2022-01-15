@@ -303,7 +303,7 @@ public final class DistributedLoadUtils {
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }
-        BatchedJobConfig config = new BatchedJobConfig("Load", configs);
+        BatchedJobConfig config = new BatchedJobConfig(LoadConfig.NAME, configs);
         if (printOut) {
           jobAttempt = new BatchedLoadJobAttempt(command.mClient, config, new CountingRetry(3));
         } else {
