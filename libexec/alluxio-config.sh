@@ -32,12 +32,22 @@ ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
-ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
-ALLUXIO_USER_LOGS_DIR="${ALLUXIO_USER_LOGS_DIR:-${ALLUXIO_LOGS_DIR}/user}"
 
 if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
   . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
+
+ALLUXIO_LOGS_DIR_JAVA_OPT_PRE="-Dalluxio.logs.dir="
+if [[  -n "${ALLUXIO_LOGS_DIR}" ]]; then
+  ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR}"
+elif [[ ${ALLUXIO_JAVA_OPTS} == *${ALLUXIO_LOGS_DIR_JAVA_OPT_PRE}* ]]; then
+  ALLUXIO_LOGS_DIR_TMP=${ALLUXIO_JAVA_OPTS#*${ALLUXIO_LOGS_DIR_JAVA_OPT_PRE}}
+  ALLUXIO_LOGS_DIR=$(echo "${ALLUXIO_LOGS_DIR_TMP}"|awk '{print $1}')
+  ALLUXIO_LOGS_DIR_FROM_ALLUXIO_JAVA_OPTS_TAG="true"
+else
+  ALLUXIO_LOGS_DIR="${ALLUXIO_HOME}/logs"
+fi
+ALLUXIO_USER_LOGS_DIR="${ALLUXIO_USER_LOGS_DIR:-${ALLUXIO_LOGS_DIR}/user}"
 
 # Check if java is found
 if [[ -z "${JAVA}" ]]; then
@@ -67,7 +77,11 @@ if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
 
-ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
+if [[ ${ALLUXIO_LOGS_DIR_FROM_ALLUXIO_JAVA_OPTS_TAG} == "true" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
+else
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
+fi
 
 if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.alias=MEM"
