@@ -151,10 +151,9 @@ public class RaftJournalDumper extends AbstractJournalDumper {
       return;
     }
     Preconditions.checkState(
-        entry.getAllFields().size() <= 1
-            || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+        entry.toBuilder().clearOperationId().clearSequenceNumber().getAllFields().size() <= 1,
         "Raft journal entries should never set multiple fields in addition to sequence "
-            + "number, but found %s",
+            + "number, but found\n%s",
         entry);
     if (entry.getJournalEntriesCount() > 0) {
       // This entry aggregates multiple entries.
