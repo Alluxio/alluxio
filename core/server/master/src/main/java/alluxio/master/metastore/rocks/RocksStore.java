@@ -128,13 +128,11 @@ public final class RocksStore implements Closeable {
         });
         mDb.close();
         mCheckpoint.close();
-        mDbOpts.close();
       } catch (Throwable t) {
         LOG.error("Failed to close rocks database", t);
       }
       mDb = null;
       mCheckpoint = null;
-      mDbOpts = null;
     }
   }
 
@@ -227,6 +225,8 @@ public final class RocksStore implements Closeable {
   @Override
   public synchronized void close() {
     stopDb();
+    mDbOpts.close();
+    mDbOpts = null;
     LOG.info("Closed store at {}", mDbPath);
   }
 }
