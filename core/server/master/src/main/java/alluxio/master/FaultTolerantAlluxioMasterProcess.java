@@ -266,7 +266,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     boolean standbyWebEnabled =
         ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
-    // The logic of starting web service is same with metric sink service.
+    // Same as the metrics sink service
     if ((mLeaderSelector.getState() == State.STANDBY && standbyWebEnabled)
         || (mLeaderSelector.getState() == State.PRIMARY && !standbyWebEnabled)) {
       LOG.info("Start web server.");
