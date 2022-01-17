@@ -24,7 +24,6 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -79,21 +78,21 @@ public class RocksBlockStore implements BlockStore {
     mCfOpts = new ColumnFamilyOptions()
             .setMemTableConfig(new HashLinkedListMemTableConfig())
             .setCompressionType(CompressionType.NO_COMPRESSION);
-      List<ColumnFamilyDescriptor> columns =
-              Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mCfOpts),
-                      new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mCfOpts));
-      String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
-      String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
-      // Create block store db path if it does not exist.
-      if (!FileUtils.exists(dbPath)) {
-        try {
-          FileUtils.createDir(dbPath);
-        } catch (IOException e) {
-          LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
-        }
+    List<ColumnFamilyDescriptor> columns =
+        Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mCfOpts),
+            new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mCfOpts));
+    String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
+    String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
+    // Create block store db path if it does not exist.
+    if (!FileUtils.exists(dbPath)) {
+      try {
+        FileUtils.createDir(dbPath);
+      } catch (IOException e) {
+        LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
       }
-      mRocksStore = new RocksStore("BlockStore", dbPath, backupPath, columns,
-              Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
+    }
+    mRocksStore = new RocksStore("BlockStore", dbPath, backupPath, columns,
+        Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
 
   @Override

@@ -23,7 +23,6 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.RocksDB;
 import org.rocksdb.WriteOptions;
@@ -63,7 +62,8 @@ public class RocksStoreTest {
 
     String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
     store =
-        new RocksStore("test-new", newBbDir, backupsDir, columnDescriptors, Arrays.asList(testColumn));
+        new RocksStore("test-new", newBbDir, backupsDir, columnDescriptors,
+            Arrays.asList(testColumn));
     store.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     db = store.getDb();

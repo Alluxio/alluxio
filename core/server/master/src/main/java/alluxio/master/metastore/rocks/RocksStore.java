@@ -62,6 +62,7 @@ public final class RocksStore implements Closeable {
   private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
+   * @param name a name to distinguish what store this is
    * @param dbPath a path for the rocks database
    * @param checkpointPath a path for taking database checkpoints
    * @param columnFamilyDescriptors columns to create within the rocks database

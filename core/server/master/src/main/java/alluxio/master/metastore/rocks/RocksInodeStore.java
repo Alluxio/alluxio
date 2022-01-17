@@ -30,7 +30,6 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
