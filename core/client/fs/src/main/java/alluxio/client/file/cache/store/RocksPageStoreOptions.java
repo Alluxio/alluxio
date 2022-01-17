@@ -21,7 +21,6 @@ import org.rocksdb.CompressionType;
 /**
  * Options used to instantiate {@link RocksPageStore}.
  */
-// TODO(jiacheng): lord gimme strength to fix this too
 public class RocksPageStoreOptions extends PageStoreOptions {
   // TODO(feng): consider making the overhead ratio configurable
   // We assume 20% overhead using Rocksdb as a page store, i.e., with 1GB space allocated, we

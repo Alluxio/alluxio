@@ -40,7 +40,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A page store implementation which utilizes rocksDB to persist the data. This implementation
  * will not be included to client jar by default to reduce client jar size.
  */
-// TODO(jiacheng): lord gimme strength to fix this too
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
@@ -48,25 +47,27 @@ public class RocksPageStore implements PageStore {
 
   private final long mCapacity;
   private final RocksDB mDb;
-  private final RocksPageStoreOptions mOptions;
+  private final RocksPageStoreOptions mPsOptions;
+  private final Options mDbOptions;
 
   /**
-   * @param options options for the rocks page store
+   * @param psOptions options for the rocks page store
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore open(RocksPageStoreOptions options) throws IOException {
-    Preconditions.checkArgument(options.getMaxPageSize() > 0);
+  public static RocksPageStore open(RocksPageStoreOptions psOptions) throws IOException {
+    Preconditions.checkArgument(psOptions.getMaxPageSize() > 0);
     RocksDB.loadLibrary();
-    Options rocksOptions = new Options();
-    rocksOptions.setCreateIfMissing(true);
-    rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
-    rocksOptions.setCompressionType(options.getCompressionType());
+    // The RocksObject will be closed together with the RocksPageStore
+    Options rocksOptions = new Options()
+            .setCreateIfMissing(true)
+            .setWriteBufferSize(psOptions.getWriteBufferSize())
+            .setCompressionType(psOptions.getCompressionType());
     RocksDB db = null;
     try {
-      db = RocksDB.open(rocksOptions, options.getRootDir());
+      db = RocksDB.open(rocksOptions, psOptions.getRootDir());
       byte[] confData = db.get(CONF_KEY);
-      Cache.PRocksPageStoreOptions pOptions = options.toProto();
+      Cache.PRocksPageStoreOptions pOptions = psOptions.toProto();
       if (confData != null) {
         Cache.PRocksPageStoreOptions persistedOptions =
             Cache.PRocksPageStoreOptions.parseFrom(confData);
@@ -82,17 +83,18 @@ public class RocksPageStore implements PageStore {
       }
       throw new IOException("Couldn't open rocksDB database", e);
     }
-    return new RocksPageStore(options, db);
+    return new RocksPageStore(psOptions, db, rocksOptions);
   }
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
    *
-   * @param options options for the rocks page store
+   * @param psOptions options for the rocks page store
    */
-  private RocksPageStore(RocksPageStoreOptions options, RocksDB rocksDB) {
-    mOptions = options;
-    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
+  private RocksPageStore(RocksPageStoreOptions psOptions, RocksDB rocksDB, Options dbOptions) {
+    mPsOptions = psOptions;
+    mDbOptions = dbOptions;
+    mCapacity = (long) (psOptions.getCacheSize() / (1 + psOptions.getOverheadRatio()));
     mDb = rocksDB;
   }
 
@@ -155,6 +157,9 @@ public class RocksPageStore implements PageStore {
   @Override
   public void close() {
     mDb.close();
+    mDbOptions.close();
+    // TODO(jiacheng): set this to null?
+//    mDb = null;
   }
 
   private static byte[] getKeyFromPageId(PageId pageId) {
