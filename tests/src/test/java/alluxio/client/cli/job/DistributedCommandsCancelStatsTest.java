@@ -80,7 +80,7 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED));
+        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), 45);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
@@ -125,7 +125,7 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED));
+            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), 45);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
@@ -167,7 +167,7 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED));
+            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), 45);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
