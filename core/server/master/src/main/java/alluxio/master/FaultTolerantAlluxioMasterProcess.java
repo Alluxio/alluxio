@@ -249,13 +249,13 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   protected void startCommonServices() {
     boolean standbyMetricsSinkEnabled =
         ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
-    // If enabled metric sink service for standby master, it means that alluxio
-    // masters should start this service before the master become primary and never stopped,
-    // after gain primary, no need to start metric sink service again.
+    // Masters will always start from standby state, and later be elected to primary.
+    // If standby masters are enabled to start metric sink service,
+    // the service will have been started before the master is promoted to primary.
+    // Thus when the master is primary, no need to start metric sink service again.
     //
-    // If disabled metric sink service, it means that alluxio masters should not start this service
-    // before gain primacy, but after gain primacy, it should start the metric service because the
-    // metric service is not started in standby state or stopped after lose primary.
+    // Vice versa, if the standby masters do not start the metric sink service,
+    // the master should start the metric sink when it is primacy.
     //
     if ((mLeaderSelector.getState() == State.STANDBY && standbyMetricsSinkEnabled)
         || (mLeaderSelector.getState() == State.PRIMARY && !standbyMetricsSinkEnabled)) {
