@@ -43,6 +43,8 @@ import java.util.Collections;
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
 public class DistributedCommandsCancelStatsTest extends JobShellTest {
+  static final int TEST_TIMEOUT = 45;
+
   @ClassRule
   public static LocalAlluxioClusterResource sResource =
       new LocalAlluxioClusterResource.Builder()
@@ -80,7 +82,7 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), 45);
+        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
@@ -125,7 +127,7 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), 45);
+            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
@@ -167,7 +169,7 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
     sJobShell.run("cancel", Long.toString(jobId));
 
     JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), 45);
+            .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
 
     sJobShell.run("stat", "-v", Long.toString(jobId));
 
