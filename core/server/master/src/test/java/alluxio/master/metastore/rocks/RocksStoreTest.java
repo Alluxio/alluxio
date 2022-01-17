@@ -44,12 +44,6 @@ public class RocksStoreTest {
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
-    DBOptions dbOpts = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
 
     List<ColumnFamilyDescriptor> columnDescriptors =
         Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
@@ -57,7 +51,7 @@ public class RocksStoreTest {
     String backupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
     AtomicReference<ColumnFamilyHandle> testColumn = new AtomicReference<>();
     RocksStore store =
-        new RocksStore(dbDir, backupsDir, columnDescriptors, dbOpts, Arrays.asList(testColumn));
+        new RocksStore("test", dbDir, backupsDir, columnDescriptors, Arrays.asList(testColumn));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db = store.getDb();
     int count = 10;
@@ -69,7 +63,7 @@ public class RocksStoreTest {
 
     String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
     store =
-        new RocksStore(newBbDir, backupsDir, columnDescriptors, dbOpts, Arrays.asList(testColumn));
+        new RocksStore("test-new", newBbDir, backupsDir, columnDescriptors, Arrays.asList(testColumn));
     store.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     db = store.getDb();

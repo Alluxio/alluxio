@@ -68,6 +68,7 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
+  private final ColumnFamilyOptions mCfOpts;
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
@@ -85,20 +86,14 @@ public class RocksInodeStore implements InodeStore {
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
-    ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
+    mCfOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), cfOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), cfOpts));
-    DBOptions dbOpts = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
-    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
+        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mCfOpts),
+        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mCfOpts));
+    mRocksStore = new RocksStore("InodeStore", dbPath, backupPath, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
   }
 
@@ -249,6 +244,7 @@ public class RocksInodeStore implements InodeStore {
    * @return an iterator over stored inodes
    */
   public Iterator<InodeView> iterator() {
+    // TODO(jiacheng): where is this iterator closed?
     return RocksUtils.createIterator(db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
   }
@@ -332,6 +328,8 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public void close() {
     mRocksStore.close();
+    mCfOpts.close();
+    // TODO(jiacheng): set ref to null?
   }
 
   private RocksDB db() {
@@ -344,8 +342,9 @@ public class RocksInodeStore implements InodeStore {
    */
   public String toStringEntries() {
     StringBuilder sb = new StringBuilder();
-    try (RocksIterator inodeIter =
-        db().newIterator(mInodesColumn.get(), new ReadOptions().setTotalOrderSeek(true))) {
+    try (
+        ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
+        RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
       inodeIter.seekToFirst();
       while (inodeIter.isValid()) {
         MutableInode<?> inode;

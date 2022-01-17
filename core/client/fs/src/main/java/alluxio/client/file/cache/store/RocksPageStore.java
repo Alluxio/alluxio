@@ -40,6 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A page store implementation which utilizes rocksDB to persist the data. This implementation
  * will not be included to client jar by default to reduce client jar size.
  */
+// TODO(jiacheng): lord gimme strength to fix this too
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);

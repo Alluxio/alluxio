@@ -58,8 +58,10 @@ public class RocksBlockStore implements BlockStore {
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mIteratorOption;
+  private final ColumnFamilyOptions mCfOpts;
 
   private final RocksStore mRocksStore;
+  // The handles are closed in RocksStore
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
@@ -74,30 +76,24 @@ public class RocksBlockStore implements BlockStore {
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
-    ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION);
-    List<ColumnFamilyDescriptor> columns =
-        Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), cfOpts),
-            new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), cfOpts));
-    DBOptions dbOpts = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
-    String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
-    String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
-    // Create block store db path if it does not exist.
-    if (!FileUtils.exists(dbPath)) {
-      try {
-        FileUtils.createDir(dbPath);
-      } catch (IOException e) {
-        LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
+    mCfOpts = new ColumnFamilyOptions()
+            .setMemTableConfig(new HashLinkedListMemTableConfig())
+            .setCompressionType(CompressionType.NO_COMPRESSION);
+      List<ColumnFamilyDescriptor> columns =
+              Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mCfOpts),
+                      new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mCfOpts));
+      String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
+      String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
+      // Create block store db path if it does not exist.
+      if (!FileUtils.exists(dbPath)) {
+        try {
+          FileUtils.createDir(dbPath);
+        } catch (IOException e) {
+          LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
+        }
       }
-    }
-    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
-        Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
+      mRocksStore = new RocksStore("BlockStore", dbPath, backupPath, columns,
+              Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
 
   @Override
@@ -161,7 +157,14 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void close() {
     mSize.reset();
+    LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
+    mIteratorOption.close();
+    mDisableWAL.close();
+    mCfOpts.close();
+    // TODO(jiacheng): not final, can't set to null
+    // mDisableWAL = null;
+    LOG.info("RocksBlockStore closed");
   }
 
   @Override
@@ -169,10 +172,13 @@ public class RocksBlockStore implements BlockStore {
     byte[] startKey = RocksUtils.toByteArray(id, 0);
     byte[] endKey = RocksUtils.toByteArray(id, Long.MAX_VALUE);
 
-    // Explicitly hold a reference to the ReadOptions object from the discussion in
+    // Explicitly hold a reference to the objects from the discussion in
     // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
-    final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(endKey));
-    try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
+    try (
+         // TODO(jiacheng): why final?
+         final Slice slice = new Slice(endKey);
+         final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(slice);
+         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
       iter.seek(startKey);
       List<BlockLocation> locations = new ArrayList<>();
       for (; iter.isValid(); iter.next()) {
@@ -208,7 +214,10 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
-    return RocksUtils.createIterator(db().newIterator(mBlockMetaColumn.get(), mIteratorOption),
+    // TODO(jiacheng): where is this iterator closed?
+    //  The iterator must also be closed before the db!
+    RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
+    return RocksUtils.createIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
   }
 
