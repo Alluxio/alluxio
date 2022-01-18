@@ -80,7 +80,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
-  private static final int MAX_TRY = 5;
+  protected static final int MAX_TRY = 5;
   private static final String HDFS_USER = "";
   /** Name of the class for the HDFS Acl provider. */
   private static final String HDFS_ACL_PROVIDER_CLASS =
@@ -825,7 +825,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /**
    * @return the underlying HDFS {@link FileSystem} object
    */
-  private FileSystem getFs() throws IOException {
+  protected FileSystem getFs() throws IOException {
     try {
       // TODO(gpang): handle different users
       return mUserFs.get(HDFS_USER);
