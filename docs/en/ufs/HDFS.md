@@ -115,6 +115,8 @@ to verify the files and directories created by Alluxio exist. For this test, you
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 [http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
+(The default port of HDFS web UI is 9870 in the version over 3.0.0)
+
 Stop Alluxio by running:
 
 ```console
