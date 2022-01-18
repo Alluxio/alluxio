@@ -51,23 +51,23 @@ public class RocksPageStore implements PageStore {
   private final Options mDbOptions;
 
   /**
-   * @param psOptions options for the rocks page store
+   * @param pageStoreOptions options for the rocks page store
    * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
-  public static RocksPageStore open(RocksPageStoreOptions psOptions) throws IOException {
-    Preconditions.checkArgument(psOptions.getMaxPageSize() > 0);
+  public static RocksPageStore open(RocksPageStoreOptions pageStoreOptions) throws IOException {
+    Preconditions.checkArgument(pageStoreOptions.getMaxPageSize() > 0);
     RocksDB.loadLibrary();
     // The RocksObject will be closed together with the RocksPageStore
     Options rocksOptions = new Options()
-            .setCreateIfMissing(true)
-            .setWriteBufferSize(psOptions.getWriteBufferSize())
-            .setCompressionType(psOptions.getCompressionType());
+        .setCreateIfMissing(true)
+        .setWriteBufferSize(pageStoreOptions.getWriteBufferSize())
+        .setCompressionType(pageStoreOptions.getCompressionType());
     RocksDB db = null;
     try {
-      db = RocksDB.open(rocksOptions, psOptions.getRootDir());
+      db = RocksDB.open(rocksOptions, pageStoreOptions.getRootDir());
       byte[] confData = db.get(CONF_KEY);
-      Cache.PRocksPageStoreOptions pOptions = psOptions.toProto();
+      Cache.PRocksPageStoreOptions pOptions = pageStoreOptions.toProto();
       if (confData != null) {
         Cache.PRocksPageStoreOptions persistedOptions =
             Cache.PRocksPageStoreOptions.parseFrom(confData);
@@ -81,9 +81,10 @@ public class RocksPageStore implements PageStore {
       if (db != null) {
         db.close();
       }
+      rocksOptions.close();
       throw new IOException("Couldn't open rocksDB database", e);
     }
-    return new RocksPageStore(psOptions, db, rocksOptions);
+    return new RocksPageStore(pageStoreOptions, db, rocksOptions);
   }
 
   /**
@@ -158,8 +159,6 @@ public class RocksPageStore implements PageStore {
   public void close() {
     mDb.close();
     mDbOptions.close();
-    // TODO(jiacheng): set this to null?
-//    mDb = null;
   }
 
   private static byte[] getKeyFromPageId(PageId pageId) {

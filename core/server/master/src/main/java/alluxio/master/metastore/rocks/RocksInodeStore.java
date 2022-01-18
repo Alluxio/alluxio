@@ -60,6 +60,7 @@ public class RocksInodeStore implements InodeStore {
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
   private static final String EDGES_COLUMN = "edges";
+  private static final String ROCKS_STORE_NAME = "InodeStore";
 
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
@@ -67,7 +68,7 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
-  private final ColumnFamilyOptions mCfOpts;
+  private final ColumnFamilyOptions mColumnFamilyOpts;
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
@@ -85,14 +86,14 @@ public class RocksInodeStore implements InodeStore {
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
-    mCfOpts = new ColumnFamilyOptions()
+    mColumnFamilyOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mCfOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mCfOpts));
-    mRocksStore = new RocksStore("InodeStore", dbPath, backupPath, columns,
+        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mColumnFamilyOpts),
+        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mColumnFamilyOpts));
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
   }
 
@@ -326,9 +327,10 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void close() {
+    LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
-    mCfOpts.close();
-    // TODO(jiacheng): set ref to null?
+    mColumnFamilyOpts.close();
+    LOG.info("RocksInodeStore closed");
   }
 
   private RocksDB db() {

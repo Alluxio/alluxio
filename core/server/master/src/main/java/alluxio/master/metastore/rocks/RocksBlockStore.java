@@ -53,11 +53,12 @@ public class RocksBlockStore implements BlockStore {
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
   private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
+  private static final String ROCKS_STORE_NAME = "BlockStore";
 
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mIteratorOption;
-  private final ColumnFamilyOptions mCfOpts;
+  private final ColumnFamilyOptions mColumnFamilyOptions;
 
   private final RocksStore mRocksStore;
   // The handles are closed in RocksStore
@@ -75,12 +76,12 @@ public class RocksBlockStore implements BlockStore {
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
-    mCfOpts = new ColumnFamilyOptions()
-            .setMemTableConfig(new HashLinkedListMemTableConfig())
-            .setCompressionType(CompressionType.NO_COMPRESSION);
-    List<ColumnFamilyDescriptor> columns =
-        Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mCfOpts),
-            new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mCfOpts));
+    mColumnFamilyOptions = new ColumnFamilyOptions()
+        .setMemTableConfig(new HashLinkedListMemTableConfig())
+        .setCompressionType(CompressionType.NO_COMPRESSION);
+    List<ColumnFamilyDescriptor> columns = Arrays.asList(
+        new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mColumnFamilyOptions),
+        new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mColumnFamilyOptions));
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
     // Create block store db path if it does not exist.
@@ -91,7 +92,7 @@ public class RocksBlockStore implements BlockStore {
         LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
       }
     }
-    mRocksStore = new RocksStore("BlockStore", dbPath, backupPath, columns,
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
         Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
 
@@ -160,9 +161,7 @@ public class RocksBlockStore implements BlockStore {
     mRocksStore.close();
     mIteratorOption.close();
     mDisableWAL.close();
-    mCfOpts.close();
-    // TODO(jiacheng): not final, can't set to null
-    // mDisableWAL = null;
+    mColumnFamilyOptions.close();
     LOG.info("RocksBlockStore closed");
   }
 
@@ -171,11 +170,14 @@ public class RocksBlockStore implements BlockStore {
     byte[] startKey = RocksUtils.toByteArray(id, 0);
     byte[] endKey = RocksUtils.toByteArray(id, Long.MAX_VALUE);
 
-    // Explicitly hold a reference to the objects from the discussion in
-    // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
-    try (
-         // TODO(jiacheng): why final?
-         final Slice slice = new Slice(endKey);
+    // References to the RocksObject need to be held explicitly and kept from GC
+    // In order to prevent segfaults in the native code execution
+    // Ref: https://github.com/facebook/rocksdb/issues/9378
+    // All RocksObject should be closed properly at the end of usage
+    // When there are multiple resources declared in the try-with-resource block
+    // They are closed in the opposite order of declaration
+    // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
+    try (final Slice slice = new Slice(endKey);
          final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(slice);
          final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
       iter.seek(startKey);
@@ -213,8 +215,7 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
-    // TODO(jiacheng): where is this iterator closed?
-    //  The iterator must also be closed before the db!
+    // TODO(jiacheng): close the iterator when we iterate the BlockStore for backup
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
     return RocksUtils.createIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
