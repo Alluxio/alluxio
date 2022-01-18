@@ -54,7 +54,7 @@ public final class RocksStore implements Closeable {
   private final String mDbPath;
   private final String mDbCheckpointPath;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
-  private DBOptions mDbOpts;
+  private final DBOptions mDbOpts;
 
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
@@ -227,7 +227,6 @@ public final class RocksStore implements Closeable {
   public synchronized void close() {
     stopDb();
     mDbOpts.close();
-    mDbOpts = null;
     LOG.info("Closed store at {}", mDbPath);
   }
 }

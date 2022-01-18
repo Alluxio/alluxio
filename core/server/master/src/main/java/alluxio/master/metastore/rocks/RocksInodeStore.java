@@ -244,7 +244,7 @@ public class RocksInodeStore implements InodeStore {
    * @return an iterator over stored inodes
    */
   public Iterator<InodeView> iterator() {
-    // TODO(jiacheng): where is this iterator closed?
+    // TODO(jiacheng): close the iterator when we iterate the BlockStore for backup
     return RocksUtils.createIterator(db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
   }
@@ -343,8 +343,7 @@ public class RocksInodeStore implements InodeStore {
    */
   public String toStringEntries() {
     StringBuilder sb = new StringBuilder();
-    try (
-        ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
+    try (ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
         RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
       inodeIter.seekToFirst();
       while (inodeIter.isValid()) {

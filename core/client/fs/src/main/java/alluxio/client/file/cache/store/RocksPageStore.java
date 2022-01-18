@@ -47,7 +47,7 @@ public class RocksPageStore implements PageStore {
 
   private final long mCapacity;
   private final RocksDB mDb;
-  private final RocksPageStoreOptions mPsOptions;
+  private final RocksPageStoreOptions mPageStoreOptions;
   private final Options mDbOptions;
 
   /**
@@ -90,12 +90,15 @@ public class RocksPageStore implements PageStore {
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
    *
-   * @param psOptions options for the rocks page store
+   * @param pageStoreOptions options for the rocks page store
+   * @param rocksDB RocksDB instance
+   * @param dbOptions the RocksDB options
    */
-  private RocksPageStore(RocksPageStoreOptions psOptions, RocksDB rocksDB, Options dbOptions) {
-    mPsOptions = psOptions;
+  private RocksPageStore(RocksPageStoreOptions pageStoreOptions, RocksDB rocksDB,
+      Options dbOptions) {
+    mPageStoreOptions = pageStoreOptions;
     mDbOptions = dbOptions;
-    mCapacity = (long) (psOptions.getCacheSize() / (1 + psOptions.getOverheadRatio()));
+    mCapacity = (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio()));
     mDb = rocksDB;
   }
 
@@ -157,8 +160,10 @@ public class RocksPageStore implements PageStore {
 
   @Override
   public void close() {
+    LOG.info("Closing RocksPageStore and recycling all RocksDB JNI objects");
     mDb.close();
     mDbOptions.close();
+    LOG.info("RocksPageStore closed");
   }
 
   private static byte[] getKeyFromPageId(PageId pageId) {
