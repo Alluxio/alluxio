@@ -37,16 +37,27 @@ if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
   . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
 
+# This will set the value of ALLUXIO_LOGS_DIR based in the user configuration.
+# the environment variable ${ALLUXIO_LOGS_DIR} will be firstly consider.
 ALLUXIO_LOGS_DIR_JAVA_OPT_PRE="-Dalluxio.logs.dir="
 if [[  -n "${ALLUXIO_LOGS_DIR}" ]]; then
+  # If user set ALLUXIO_LOGS_DIR, use this.
   ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR}"
 elif [[ ${ALLUXIO_JAVA_OPTS} == *${ALLUXIO_LOGS_DIR_JAVA_OPT_PRE}* ]]; then
+  # If user set alluxio.logs.dir in ALLUXIO_JAVA_OPTS, use this.
+  # Extract "XXX -Dalluxio.logs.dir=<value> XXX".
+  # First get "<value> XXX".
   ALLUXIO_LOGS_DIR_TMP=${ALLUXIO_JAVA_OPTS#*${ALLUXIO_LOGS_DIR_JAVA_OPT_PRE}}
+  # Then get "<value>".
   ALLUXIO_LOGS_DIR=$(echo "${ALLUXIO_LOGS_DIR_TMP}"|awk '{print $1}')
+  # Set ALLUXIO_LOGS_DIR_FROM_ALLUXIO_JAVA_OPTS_TAG to true is let ALLUXIO_JAVA_OPTS
+  # not append -Dalluxio.user.logs.dir=<value> later, since it already have.
   ALLUXIO_LOGS_DIR_FROM_ALLUXIO_JAVA_OPTS_TAG="true"
 else
+  # Else set ALLUXIO_LOGS_DIR to default value.
   ALLUXIO_LOGS_DIR="${ALLUXIO_HOME}/logs"
 fi
+
 ALLUXIO_USER_LOGS_DIR="${ALLUXIO_USER_LOGS_DIR:-${ALLUXIO_LOGS_DIR}/user}"
 
 # Check if java is found
