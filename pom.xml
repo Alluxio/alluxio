@@ -1375,13 +1375,6 @@
 
     <!-- Requires hadoop.version to be 2.4.0 or later -->
     <profile>
-      <id>yarn</id>
-      <modules>
-        <module>integration/yarn</module>
-      </modules>
-    </profile>
-
-    <profile>
       <id>java11</id>
       <activation>
         <jdk>11</jdk>
@@ -1419,16 +1412,6 @@
     </profile>
 
     <!-- profile that Alluxio developers should use -->
-    <profile>
-      <id>developer</id>
-      <modules>
-        <module>integration/yarn</module>
-      </modules>
-      <properties>
-        <hadoop.version>3.3.0</hadoop.version>
-      </properties>
-    </profile>
-
     <profile>
       <id>generateDocs</id>
       <build>
