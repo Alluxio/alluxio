@@ -36,7 +36,7 @@ public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
   @Override
   public boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
     if (supportsPath(path)) {
-      if (!conf.isSet(PropertyKey.UNDERFS_VERSION)
+      if (!conf.isSetByUser(PropertyKey.UNDERFS_VERSION)
           || conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
         return true;
       }

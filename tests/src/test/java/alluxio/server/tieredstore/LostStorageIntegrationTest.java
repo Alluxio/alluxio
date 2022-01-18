@@ -39,7 +39,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -128,18 +128,18 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
 
     // Mock no write permission so worker storage paths cannot be initialize
     PowerMockito.mockStatic(DefaultStorageDir.class);
-    Mockito.when(DefaultStorageDir.newStorageDir(Matchers.any(DefaultStorageTier.class),
-        Matchers.anyInt(),
-        Matchers.anyLong(),
-        Matchers.anyLong(),
-        Matchers.anyString(),
-        Matchers.anyString())).thenCallRealMethod();
-    Mockito.when(DefaultStorageDir.newStorageDir(Matchers.any(DefaultStorageTier.class),
-        Matchers.anyInt(),
-        Matchers.anyLong(),
-        Matchers.anyLong(),
-        Matchers.startsWith(ssdPath),
-        Matchers.anyString())).thenThrow(
+    Mockito.when(DefaultStorageDir.newStorageDir(ArgumentMatchers.any(DefaultStorageTier.class),
+        ArgumentMatchers.anyInt(),
+        ArgumentMatchers.anyLong(),
+        ArgumentMatchers.anyLong(),
+        ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString())).thenCallRealMethod();
+    Mockito.when(DefaultStorageDir.newStorageDir(ArgumentMatchers.any(DefaultStorageTier.class),
+        ArgumentMatchers.anyInt(),
+        ArgumentMatchers.anyLong(),
+        ArgumentMatchers.anyLong(),
+        ArgumentMatchers.startsWith(ssdPath),
+        ArgumentMatchers.anyString())).thenThrow(
             new IOException("mock no write permission exception"));
 
     startClusterWithWorkerStorage(ssdPath, hddPath);
