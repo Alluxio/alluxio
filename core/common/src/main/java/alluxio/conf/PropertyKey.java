@@ -2931,7 +2931,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED =
       new Builder(Name.MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("If false, complete file operation will not update mtime and ctime.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
