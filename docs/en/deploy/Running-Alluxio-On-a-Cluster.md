@@ -32,6 +32,7 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
 * Enable SSH login without password from the master node to worker nodes and from the master node to itself.
   You can add a public SSH key for the host into `~/.ssh/authorized_keys`.
   See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
+* Enable sudo command can be used without inputting the password, or it will always fall into the wait state.
 * TCP traffic across all nodes is allowed.
   For basic functionality, make sure RPC port (default:19998) is open on all nodes.
 * Allow `sudo` privilege for the OS user that Alluxio will be running as.
