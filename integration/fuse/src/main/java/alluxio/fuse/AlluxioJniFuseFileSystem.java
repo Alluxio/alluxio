@@ -903,7 +903,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         if (ce != null) {
           FileOutStream os = ce.getOut();
           long bytesWritten = os.getBytesWritten();
-          if (bytesWritten == size) {
+          if (bytesWritten == 0) {
             return 0;
           }
           mCreateFileEntries.remove(ce);
