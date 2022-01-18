@@ -98,7 +98,8 @@ public class RocksPageStore implements PageStore {
       Options dbOptions) {
     mPageStoreOptions = pageStoreOptions;
     mDbOptions = dbOptions;
-    mCapacity = (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio()));
+    mCapacity =
+        (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio()));
     mDb = rocksDB;
   }
 
