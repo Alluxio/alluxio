@@ -1981,9 +1981,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
-          .setDefaultValue(Math.min(Integer.MAX_VALUE / 2,
-              Runtime.getRuntime().maxMemory() / 2000 / 2))
+          .setDefaultSupplier(() -> Math.min(Integer.MAX_VALUE / 2,
+              Runtime.getRuntime().maxMemory() / 2000 / 2),
+              "{Max memory of master JVM} / 2 / 2 KB per inode")
           .setDescription("The number of inodes to cache on-heap. "
+              + "The default value is chosen based on half the amount of maximum available memory "
+              + "of master JVM at runtime, and the estimation that each inode takes up "
+              + "approximately 2 KB of memory. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
