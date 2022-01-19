@@ -267,7 +267,7 @@ public final class AlluxioFuse {
     }
 
     if (alluxioConf.getBoolean(PropertyKey.FUSE_PERMISSION_CHECK_ENABLED)) {
-      // TODO(lu) double check if two default_permissions fuse options will error out
+      // double same fuse mount options will not error out
       res.add("-odefault_permissions");
     }
     return res;
