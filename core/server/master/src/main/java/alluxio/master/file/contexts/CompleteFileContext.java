@@ -26,6 +26,7 @@ public class CompleteFileContext
 
   private long mOperationTimeMs;
   private UfsStatus mUfsStatus;
+  private boolean mUpdateLastModifytime;
 
   /**
    * Creates rename context with given option data.
@@ -36,6 +37,7 @@ public class CompleteFileContext
     super(mergedOptionsBuilder);
     mOperationTimeMs = System.currentTimeMillis();
     mUfsStatus = null;
+    mUpdateLastModifytime = mergedOptionsBuilder.getUpdateLastModifyTime();
   }
 
   /**
@@ -89,6 +91,13 @@ public class CompleteFileContext
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return whether update last modify time
+   */
+  public boolean shouldUpdateLastModifyTime() {
+    return mUpdateLastModifytime;
   }
 
   /**

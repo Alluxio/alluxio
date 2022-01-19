@@ -29,12 +29,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class FileOutStream extends OutputStream implements Cancelable {
   /** The number of bytes written. */
   protected long mBytesWritten = 0;
+  protected boolean mUpdateLastModifyTime = true;
 
   /**
    * @return the number of bytes written to this stream
    */
   public long getBytesWritten() {
     return mBytesWritten;
+  }
+
+  /**
+   * Disable mtime and atime updated when complete file.
+   */
+  public void disableUpdateLastModifyTime() {
+    mUpdateLastModifyTime = false;
   }
 
   /**

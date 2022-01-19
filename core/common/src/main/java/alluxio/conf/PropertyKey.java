@@ -2929,13 +2929,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED =
-      new Builder(Name.MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("If false, complete file operation will not update mtime and ctime.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
 
   //
   // Worker related properties
@@ -6583,8 +6576,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.filesystem.operation.retry.cache.enabled";
     public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
         "alluxio.master.filesystem.operation.retry.cache.size";
-    public static final String MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED =
-        "allluxio.master.filesystem.complete.time.update.enabled";
     //
     // Secondary master related properties
     //

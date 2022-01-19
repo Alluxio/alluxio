@@ -486,6 +486,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return sz;
     }
 
+    // Here update write state, it means we should update last modify time when complete file.
+    ce.updateWriteState();
     try {
       final byte[] dest = new byte[sz];
       buf.get(dest, 0, sz);
@@ -550,7 +552,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         mReleasingWriteEntries.put(fd, ce);
         try {
           synchronized (ce) {
+            if (!ce.getWriteState()) {
+              FileOutStream os = ce.getOut();
+              os.disableUpdateLastModifyTime();
+            }
             ce.close();
+            ce.resetWriteState();
           }
         } finally {
           mReleasingWriteEntries.remove(fd);

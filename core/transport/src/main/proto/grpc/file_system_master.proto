@@ -73,6 +73,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool updateLastModifyTime = 4 [default = true];
 }
 message CompleteFilePRequest {
   /** the path of the file */

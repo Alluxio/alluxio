@@ -1500,7 +1500,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
 
     completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
-        ufsFingerprint);
+        context.shouldUpdateLastModifyTime(), ufsFingerprint);
   }
 
   /**
@@ -1508,10 +1508,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the {@link LockedInodePath} to complete
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
+   * @param shouldUpdateLastModifyTime whether to update last modify time
    * @param ufsFingerprint the ufs fingerprint
    */
   private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath, long length,
-      long opTimeMs, String ufsFingerprint)
+      long opTimeMs, boolean shouldUpdateLastModifyTime, String ufsFingerprint)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException, UnavailableException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
@@ -1555,8 +1556,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     UpdateInodeEntry.Builder builder = UpdateInodeEntry.newBuilder()
         .setId(inode.getId())
         .setUfsFingerprint(ufsFingerprint);
-    if (ServerConfiguration.getBoolean(PropertyKey
-        .MASTER_FILE_SYSTEM_COMPLETE_TIME_UPDATE_ENABLED)) {
+    if (shouldUpdateLastModifyTime) {
       builder.setLastModificationTimeMs(opTimeMs)
           .setLastAccessTimeMs(opTimeMs)
           .setOverwriteModificationTime(true);

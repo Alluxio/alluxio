@@ -195,6 +195,7 @@ public class AlluxioFileOutStream extends FileOutStream {
                 .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()));
       }
 
+      optionsBuilder.setUpdateLastModifyTime(mUpdateLastModifyTime);
       // Complete the file if it's ready to be completed.
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
         try (CloseableResource<FileSystemMasterClient> masterClient = mContext

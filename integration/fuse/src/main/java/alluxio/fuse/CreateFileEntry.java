@@ -30,6 +30,8 @@ public final class CreateFileEntry<T extends OutputStream>
   private final T mOut;
   // Path is likely to be changed when fuse rename() is called
   private String mPath;
+  // Indicate whether th entry is being used for write.
+  private boolean mWriteState;
 
   /**
    * Constructs a new {@link CreateFileEntry} for an Alluxio file.
@@ -44,6 +46,7 @@ public final class CreateFileEntry<T extends OutputStream>
     mId = id;
     mOut = out;
     mPath = path;
+    mWriteState = false;
   }
 
   /**
@@ -58,6 +61,28 @@ public final class CreateFileEntry<T extends OutputStream>
    */
   public String getPath() {
     return mPath;
+  }
+
+  /**
+   * Update write state.
+   */
+  public void  updateWriteState() {
+    mWriteState = true;
+  }
+
+  /**
+   * Reset write state.
+   */
+  public void resetWriteState() {
+    mWriteState = false;
+  }
+
+  /**
+   * Get write state.
+   * @return the write state
+   */
+  public boolean getWriteState() {
+    return mWriteState;
   }
 
   /**
