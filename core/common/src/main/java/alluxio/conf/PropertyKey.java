@@ -1984,8 +1984,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               Runtime.getRuntime().maxMemory() / 2000 / 2),
               "{Max memory of master JVM} / 2 / 2 KB per inode")
           .setDescription("The number of inodes to cache on-heap. "
-              + "The default value is chosen based on the amount of maximum available memory of "
-              + "master JVM at runtime, and the estimation that each inode takes up "
+              + "The default value is chosen based on half the amount of maximum available memory "
+              + "of master JVM at runtime, and the estimation that each inode takes up "
               + "approximately 2 KB of memory. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
