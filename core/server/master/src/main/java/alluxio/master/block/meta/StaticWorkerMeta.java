@@ -15,7 +15,8 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import net.jcip.annotations.ThreadSafe;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An object representation of the worker metadata. All fields are final in this object.
