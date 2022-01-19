@@ -265,6 +265,11 @@ public final class AlluxioFuse {
       final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
       res.add(String.format("-omax_write=%d", maxWrite));
     }
+
+    if (alluxioConf.getBoolean(PropertyKey.FUSE_PERMISSION_CHECK_ENABLED)) {
+      // TODO(lu) double check if two default_permissions fuse options will error out
+      res.add("-Odefault_permissions");
+    }
     return res;
   }
 
