@@ -1413,6 +1413,15 @@
 
     <!-- profile that Alluxio developers should use -->
     <profile>
+      <id>developer</id>
+      <modules>
+      </modules>
+      <properties>
+        <hadoop.version>3.3.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>generateDocs</id>
       <build>
         <plugins>
