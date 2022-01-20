@@ -14,12 +14,9 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
@@ -28,13 +25,11 @@ import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 
 import com.google.common.collect.Sets;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collections;
