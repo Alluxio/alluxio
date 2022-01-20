@@ -48,9 +48,11 @@ import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -516,15 +518,12 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         openMs = System.currentTimeMillis() - startMs;
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
         try {
           long startTransferMs = System.currentTimeMillis();
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-          }
+          ByteBuffer buf = blockReader.read(offset, len);
           transferMs = System.currentTimeMillis() - startTransferMs;
-          return new NettyDataBuffer(buf);
+          return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
         } catch (Throwable e) {
-          buf.release();
           throw e;
         }
       } finally {
