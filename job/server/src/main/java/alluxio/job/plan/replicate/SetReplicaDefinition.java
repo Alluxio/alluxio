@@ -169,7 +169,7 @@ public final class SetReplicaDefinition
     // renamed, the job is still working on the correct file.
     URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getPath()));
 
-    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null);
+    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
     LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
   }
 }
