@@ -43,6 +43,13 @@ Master.InodeCacheMisses,GAUGE
 Master.InodeCacheSize,GAUGE
 Master.InodeHeapSize,GAUGE
 Master.InodeLockPoolSize,GAUGE
+Master.JobCanceled,COUNTER
+Master.JobCompleted,COUNTER
+Master.JobCount,GAUGE
+Master.JobCreated,COUNTER
+Master.JobFailed,COUNTER
+Master.JobRunning,COUNTER
+Master.JournalCheckpointWarn,GAUGE
 Master.JournalEntriesSinceCheckPoint,GAUGE
 Master.JournalFlushFailure,COUNTER
 Master.JournalFlushTimer,TIMER
@@ -63,7 +70,6 @@ Master.ListingCacheMisses,COUNTER
 Master.ListingCacheSize,GAUGE
 Master.LostBlockCount,GAUGE
 Master.LostFileCount,GAUGE
-Master.MasterHeartbeatTriggeredActiveJobSize,GAUGE
 Master.MountOps,COUNTER
 Master.NewBlocksGot,COUNTER
 Master.PathsDeleted,COUNTER
@@ -71,6 +77,7 @@ Master.PathsMounted,COUNTER
 Master.PathsRenamed,COUNTER
 Master.PathsUnmounted,COUNTER
 Master.RenamePathOps,COUNTER
+Master.ReplicaMgmtActiveJobSize,GAUGE
 Master.RpcQueueLength,GAUGE
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER

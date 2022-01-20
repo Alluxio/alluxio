@@ -3,7 +3,7 @@ alluxio.master.audit.logging.enabled:
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.abandon.timeout:
-  'Duration after which leader will abandon the backup if not received heartbeat from backup-worker.'
+  'Duration after which leader will abandon the backup if it has not received heartbeat from backup-worker.'
 alluxio.master.backup.connect.interval.max:
   'Maximum delay between each connection attempt to backup-leader.'
 alluxio.master.backup.connect.interval.min:
@@ -15,7 +15,7 @@ alluxio.master.backup.directory:
 alluxio.master.backup.entry.buffer.count:
   'How many journal entries to buffer during a back-up.'
 alluxio.master.backup.heartbeat.interval:
-  'Interval at which follower updates the leader on ongoing backup.'
+  'Interval at which stand-by master that is taking the backup will update the leading master with current backup status.'
 alluxio.master.backup.state.lock.exclusive.duration:
   'Alluxio master will allow only exclusive locking of the state-lock for this duration. This duration starts after masters are started for the first time. User RPCs will fail to acquire state-lock during this phase and a backup is guaranteed take the state-lock meanwhile.'
 alluxio.master.backup.state.lock.forced.duration:
@@ -27,7 +27,7 @@ alluxio.master.backup.state.lock.interrupt.cycle.interval:
 alluxio.master.backup.suspend.timeout:
   'Timeout for when suspend request is not followed by a backup request.'
 alluxio.master.backup.transport.timeout:
-  'Request timeout for backup messaging.'
+  'Communication timeout for messaging between masters for coordinating backup.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
 alluxio.master.daily.backup.enabled:
@@ -49,13 +49,13 @@ alluxio.master.embedded.journal.addresses:
 alluxio.master.embedded.journal.bind.host:
   'Used to bind embedded journal servers to a proxied host.Proxy hostname will still make use of alluxio.master.embedded.journal.port for bind port.'
 alluxio.master.embedded.journal.catchup.retry.wait:
-  'Time for embedded journal leader to wait before retrying a catch up.'
+  'Time for embedded journal leader to wait before retrying a catch up. This is added to avoid excessive retries when server is not ready.'
 alluxio.master.embedded.journal.election.timeout.max:
   'The max election timeout for the embedded journal. When a random period between ${alluxio.master.embedded.journal.election.timeout.min} and ${alluxio.master.embedded.journal.election.timeout.max} elapses without a master receiving any messages, the master will attempt to become the primary Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
 alluxio.master.embedded.journal.election.timeout.min:
   'The min election timeout for the embedded journal.'
 alluxio.master.embedded.journal.entry.size.max:
-  'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
+  'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. Set to a larger value to allow larger journal entries when using the Alluxio Catalog service.'
 alluxio.master.embedded.journal.flush.size.max:
   'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
 alluxio.master.embedded.journal.port:
@@ -67,7 +67,7 @@ alluxio.master.embedded.journal.snapshot.replication.chunk.size:
 alluxio.master.embedded.journal.transport.max.inbound.message.size:
   'The maximum size of a message that can be sent to the embedded journal server node.'
 alluxio.master.embedded.journal.transport.request.timeout.ms:
-  'Timeout for requests between embedded journal masters.'
+  'The duration after which embedded journal masters will timeout messages sent between each other. Lower values might cause leadership instability when the network is slow.'
 alluxio.master.embedded.journal.write.timeout:
   'Maximum time to wait for a write/flush on embedded journal.'
 alluxio.master.file.access.time.journal.flush.interval:
@@ -106,6 +106,8 @@ alluxio.master.journal.gc.threshold:
   'Minimum age for garbage collecting checkpoints.'
 alluxio.master.journal.init.from.backup:
   'A uri for a backup to initialize the journal from. When the master becomes primary, if it sees that its journal is freshly formatted, it will restore its state from the backup. When running multiple masters, this property must be configured on all masters since it isn''t known during startup which master will become the first primary.'
+alluxio.master.journal.log.concurrency.max:
+  'Max concurrency for notifyTermIndexUpdated method, be sure it''s enough'
 alluxio.master.journal.log.size.bytes.max:
   'If a log file is bigger than this value, it will rotate to next file.'
 alluxio.master.journal.retry.interval:

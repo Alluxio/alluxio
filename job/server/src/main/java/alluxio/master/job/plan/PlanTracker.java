@@ -29,7 +29,6 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +45,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The {@link PlanTracker} is used to create, remove, and provide access to the set of currently

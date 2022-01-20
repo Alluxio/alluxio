@@ -115,6 +115,8 @@ to verify the files and directories created by Alluxio exist. For this test, you
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 [http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
+(The default port of HDFS web UI is 9870 in the version over 3.0.0. See [this tutorial](https://hadoop.apache.org/docs/r3.2.0/hadoop-project-dist/hadoop-common/ClusterSetup.html) for more details.)
+
 Stop Alluxio by running:
 
 ```console
@@ -257,7 +259,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
 
 Alluxio supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
-- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3
+- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.0, 3.1, 3.2, 3.3
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
 To build this module yourself, build the shaded hadoop client and then the UFS module. 

@@ -1485,7 +1485,7 @@ Now you can put the PVC name in your application pod spec to use the Alluxio Fil
 The template `alluxio-nginx-pod.yaml.template` shows how to use PVC in the pod. You can also deploy
 it by running 
 ```console
-$ mv alluxio-nginx-pod.yaml.templte alluxio-nginx-pod.yaml
+$ mv alluxio-nginx-pod.yaml.template alluxio-nginx-pod.yaml
 $ kubectl apply -f alluxio-nginx-pod.yaml
 ```
 to validate that CSI has been deployed, and you can successfully access the data stored in Alluxio. 

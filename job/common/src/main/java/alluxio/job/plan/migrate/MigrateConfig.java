@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class MigrateConfig implements PlanConfig {
   private static final long serialVersionUID = 8014674802258120190L;
-  private static final String NAME = "Migrate";
+  public static final String NAME = "Migrate";
 
   private final String mSource;
   private final String mDestination;

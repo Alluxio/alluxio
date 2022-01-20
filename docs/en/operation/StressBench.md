@@ -743,7 +743,7 @@ The parameters for the Worker Stress Bench are (other than common parameters for
     <tr>
         <td>io-size</td>
         <td>4G</td>
-        <td>The base directory path URI to perform operations in. </td>
+        <td> Size of data to write and then read for each thread. </td>
     </tr>
     <tr>
         <td>path</td>

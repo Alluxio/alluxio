@@ -225,12 +225,16 @@
     </module>
     <module name="EqualsHashCode"/>
 
+    <!-- Checks the Javadoc of a public method or constructor exists. -->
+    <module name="MissingJavadocMethod" />
     <!-- Checks the Javadoc of a public method or constructor. Only applies to production code. -->
     <module name="JavadocMethod">
       <property name="id" value="ProductionScope"/>
       <property name="accessModifiers" value="public"/>
       <property name="validateThrows" value="false"/>
     </module>
+    <!-- Checks the Javadoc of a public class or interface exists. -->
+    <module name="MissingJavadocType" />
     <!-- Checks Javadoc comments for public class and interface definitions. Only applies to
          production code -->
     <module name="JavadocType">

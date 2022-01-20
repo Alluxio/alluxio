@@ -55,8 +55,8 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     AccessControlList acl = new AccessControlList();
     DefaultAccessControlList defaultAcl = new DefaultAccessControlList();
 
-    acl.setOwningUser(hdfsAcl.getOwner());
-    acl.setOwningGroup(hdfsAcl.getGroup());
+    acl.setOwningUser(hdfsAcl.getOwner().intern());
+    acl.setOwningGroup(hdfsAcl.getGroup().intern());
     defaultAcl.setOwningUser(hdfsAcl.getOwner());
     defaultAcl.setOwningGroup(hdfsAcl.getGroup());
     for (AclEntry entry : hdfsAcl.getEntries()) {

@@ -11,7 +11,7 @@
 
 package alluxio.job.plan;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
@@ -132,7 +132,7 @@ public class BatchedJobDefinitionTest {
     for (int i = 0; i < batchSize; i++) {
       createFileWithNoLocations(TEST_URI + i, numBlocks);
       LoadConfig loadConfig = new LoadConfig(TEST_URI + i, replication, Collections.EMPTY_SET,
-          Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET);
+          Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
       ObjectMapper oMapper = new ObjectMapper();
       Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
       configs.add(map);

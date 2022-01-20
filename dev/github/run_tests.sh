@@ -54,5 +54,5 @@ JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
 
 # Run tests
-mvn -Duser.home=/home/jenkins test -Pjacoco -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true -Dmaven.javadoc.skip -Dlicense.skip=true \
+mvn -Duser.home=/home/jenkins test -Pdeveloper -Dmaven.main.skip -Dskip.protoc=true -Dmaven.javadoc.skip -Dlicense.skip=true \
 -Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=2 ${mvn_args} $@

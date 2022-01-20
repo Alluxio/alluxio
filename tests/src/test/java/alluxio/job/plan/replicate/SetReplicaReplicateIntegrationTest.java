@@ -128,6 +128,6 @@ public final class SetReplicaReplicateIntegrationTest extends JobIntegrationTest
     // After logging we expect only one log message to be logged as the job master has a zero job
     // capacity even though there should be 10 replication jobs.
     Assert.assertEquals(1, mLogger.logCount("The job service is busy, will retry later."));
-    Assert.assertEquals(1, mLogger.logCount("Job master is at full capacity of 0 jobs"));
+    Assert.assertEquals(2, mLogger.logCount("Job master is at full capacity of 0 jobs"));
   }
 }

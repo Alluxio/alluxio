@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.executor;
 
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
@@ -56,7 +57,9 @@ public class ExecutorServiceBuilder {
         String.format(
             "Cannot start Alluxio %s gRPC thread pool with %s=%s. "
                 + "The keepalive time must be greater than 0!",
-            executorHost, PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, keepAliveMs));
+            executorHost,
+            PropertyKey.Template.RPC_EXECUTOR_KEEPALIVE.format(executorHost.toString()),
+            keepAliveMs));
 
     // Create the executor service.
     ExecutorService executorService = null;
@@ -126,7 +129,7 @@ public class ExecutorServiceBuilder {
   /**
    * Type of Alluxio process for generating RPC ExecutorServices.
    */
-  enum RpcExecutorHost {
+  public enum RpcExecutorHost {
     MASTER(0),
     JOB_MASTER(1),
     WORKER(2);
@@ -155,7 +158,7 @@ public class ExecutorServiceBuilder {
   /**
    * RPC ExecutorService types.
    */
-  enum RpcExecutorType {
+  public enum RpcExecutorType {
     TPE, // ThreadPoolExecutor.
     FJP  // ForkJoinPool.
   }
@@ -163,7 +166,7 @@ public class ExecutorServiceBuilder {
   /**
    * Internal task queue type for ThreadPoolExecutor.
    */
-  enum ThreadPoolExecutorQueueType {
+  public enum ThreadPoolExecutorQueueType {
     LINKED_BLOCKING_QUEUE,          /** {@link LinkedBlockingQueue}. **/
     LINKED_BLOCKING_QUEUE_WITH_CAP, /** {@link LinkedBlockingQueue}. **/
     ARRAY_BLOCKING_QUEUE,           /** {@link ArrayBlockingQueue}. **/

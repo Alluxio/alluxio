@@ -25,6 +25,7 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicIntegerArray;
@@ -264,12 +265,15 @@ public class CacheManagerWithShadowCache implements CacheManager {
      * @param from source
      * @param into destination
      */
-    public void funnel(PageId from, PrimitiveSink into) {
+    public void funnel(@Nonnull PageId from, PrimitiveSink into) {
       into.putUnencodedChars(from.getFileId()).putLong(from.getPageIndex());
     }
   }
 
   private static final class Metrics {
+    // Note that only counter can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter SHADOW_CACHE_BYTES_READ =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES_READ.getName());
     private static final Counter SHADOW_CACHE_BYTES_HIT =

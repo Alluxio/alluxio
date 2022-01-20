@@ -63,8 +63,10 @@ public interface MasterInquireClient {
      */
     Authority toAuthority();
 
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
   }
 

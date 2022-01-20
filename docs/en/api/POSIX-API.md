@@ -515,10 +515,13 @@ $ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
 For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
 
 ### Fuse metrics
-To monitor Fuse-related metrics for standalone Fuse process, setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
-before launching the standalone Fuse process.
-Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics for
-both standalone Fuse process and Fuse on worker process, and what each metric is used for.
+
+Depending on the Fuse deployment type, Fuse metrics can be exposed as worker metrics (Fuse on worker process) or client metrics (Standalone FUSE process).
+Check out the [metrics introduction doc]({{ '/en/operation/Metrics-System.html' | relativize_url }}) for how to get Fuse metrics.
+
+Fuse metrics include Fuse specific metrics and general client metrics.
+Check out the [Fuse metrics list]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) about more details of
+what metrics are recorded and how to use those metrics.
 
 ## Performance Tuning
 
@@ -607,3 +610,47 @@ $ cd async-profiler && ./profiler.sh -e lock -d 30 -f lock.txt `jps | grep Allux
 - `-d` define the duration. Try to cover the whole POSIX API testing duration
 - `-e` define the profiling target
 - `-f` define the file name to dump the profile information to
+
+## Fuse Shell Tool
+
+The Alluxio JNI-Fuse client provides a useful shell tool to perform some internal operations, such as clearing the client metadata cache. 
+If our Alluxio-Fuse mount point is `/mnt/alluxio-fuse`, the command patten of Fuse Shell is:
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.[COMMAND].[SUBCOMMAND]
+```
+Among them, the `/.alluxiocli` is the identification string of Fuse Shell, `COMMAND` is the main command (such as `metadatacache`), and `SUBCOMMAND` is the subcommand (such as `drop, size, dropAll`).
+Currently, Fuse Shell only supports `metadatacache` command to clear cache or get cache size, and we will expand more commands and interactive methods in the future.
+To use the Fuse shell tool, `alluxio.fuse.special.command.enabled` needs to be set to true in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the Fuse applications:
+```console
+$ alluxio.fuse.special.command.enabled=true
+```
+
+### Metadatacache Command
+
+Client-side metadata cache can be enabled by setting `alluxio.user.metadata.cache.enabled=true` to reduce the latency of metadata cache operations and improve FUSE performance in many workloads. 
+For example, in a scenario that reads a large number of small files such as AI, enabling client metadata caching can relieve Alluxio Master's metadata pressure and improve read performance.
+When the data in Alluxio is updated, the metadata cache of the client needs to be updated. Usually, you need to wait for the timeout configured by `alluxio.user.metadata.cache.expiration.time` to invalidate the metadata cache.
+This means that there is a time window that the cached metadata is outdated. In this case, it is recommended to use the `metadatacache` command of Fuse Shell to manually clean up the client metadata cache. The format of `metadatacache` command is：
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.[dropAll|drop|size]
+```
+
+#### Usage Example
+
+- Clean up all metadata caches：
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll
+```
+- Clear the cache of a path and all parent directory under the mount point：
+```console
+$ ls -l /mnt/alluxio-fuse/dir/dir1/.alluxiocli.metadatacache.drop
+```
+The above command will clear the metadata of `/mnt/alluxio-fuse/dir/dir1` and all parent directory metadata cache.
+- Get the client metadata size
+```console
+$ ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+```
+You will get metadata cache size in file size field, as in the output below:
+```
+---------- 1 root root 13 Jan  1  1970 /mnt/alluxio-fuse/.alluxiocli.metadatacache.size
+```

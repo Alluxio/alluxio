@@ -15,8 +15,8 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -215,6 +215,7 @@ public class AlluxioJniFuseFileSystemTest {
     // set up status
     FileInfo info = new FileInfo();
     info.setLength(4 * Constants.KB + 1);
+    info.setLastAccessTimeMs(1000);
     info.setLastModificationTimeMs(1000);
     String userName = System.getProperty("user.name");
     info.setOwner(userName);
@@ -231,6 +232,9 @@ public class AlluxioJniFuseFileSystemTest {
     assertEquals(0, mFuseFs.getattr("/foo", stat));
     assertEquals(status.getLength(), stat.st_size.longValue());
     assertEquals(9, stat.st_blocks.intValue());
+    assertEquals(status.getLastAccessTimeMs() / 1000, stat.st_atim.tv_sec.get());
+    assertEquals((status.getLastAccessTimeMs() % 1000) * 1000,
+            stat.st_atim.tv_nsec.longValue());
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_ctim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
         stat.st_ctim.tv_nsec.longValue());

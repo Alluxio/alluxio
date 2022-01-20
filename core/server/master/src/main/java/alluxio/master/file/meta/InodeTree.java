@@ -867,8 +867,8 @@ public class InodeTree implements DelegatingJournaled {
         if (context.isMetadataLoad()) {
           // if we are creating the file as a result of loading metadata, the newDir is already
           // persisted, and we got the permissions info from the ufs.
-          newDir.setOwner(context.getOwner())
-              .setGroup(context.getGroup())
+          newDir.setOwner(context.getOwner().intern())
+              .setGroup(context.getGroup().intern())
               .setMode(context.getMode().toShort());
 
           Long operationTimeMs = context.getOperationTimeMs();
@@ -931,8 +931,8 @@ public class InodeTree implements DelegatingJournaled {
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
         && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
       // Inherit owner / group if empty
-      newInode.setOwner(ancestorInode.getOwner());
-      newInode.setGroup(ancestorInode.getGroup());
+      newInode.setOwner(ancestorInode.getOwner().intern());
+      newInode.setGroup(ancestorInode.getGroup().intern());
     }
   }
 
@@ -1233,8 +1233,8 @@ public class InodeTree implements DelegatingJournaled {
     dir.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
     syncPersistDirectory(dir).ifPresent(status -> {
       // If the directory already exists in the UFS, update our metadata to match the UFS.
-      dir.setOwner(status.getOwner())
-          .setGroup(status.getGroup())
+      dir.setOwner(status.getOwner().intern())
+          .setGroup(status.getGroup().intern())
           .setMode(status.getMode())
           .setXAttr(status.getXAttr());
 

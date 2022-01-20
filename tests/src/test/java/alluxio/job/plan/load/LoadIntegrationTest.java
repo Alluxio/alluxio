@@ -54,7 +54,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
 
     // run the load job
     waitForJobToFinish(mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET)));
+        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true)));
 
     // check the file is fully in memory
     status = mFileSystem.getStatus(filePath);
@@ -62,7 +62,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
 
     // a second load should work too, no worker is selected
     long jobId = mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET));
+        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true));
     Assert.assertTrue(mJobMaster.getStatus(jobId).getChildren().isEmpty());
   }
 
@@ -84,7 +84,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
 
     // run the load job
     waitForJobToFinish(mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET)));
+        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true)));
 
     // check the file is fully in memory
     status = mFileSystem.getStatus(filePath);
@@ -92,7 +92,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
 
     // a second load should work too, no worker is selected
     long jobId = mJobMaster.run(new LoadConfig("/test", null, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET));
+        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true));
     Assert.assertTrue(mJobMaster.getStatus(jobId).getChildren().isEmpty());
   }
 }

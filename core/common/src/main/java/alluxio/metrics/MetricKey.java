@@ -738,6 +738,90 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .build();
 
+  // Distributed command related metrics
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
+      new Builder("Master.JobDistributedLoadSuccess")
+          .setDescription("The number of successful DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FAIL =
+      new Builder("Master.JobDistributedLoadFail")
+          .setDescription("The number of failed DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_CANCEL =
+      new Builder("Master.JobDistributedLoadCancel")
+          .setDescription("The number of cancelled DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT =
+      new Builder("Master.JobDistributedLoadFileCount")
+          .setDescription("The number of files by DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE =
+      new Builder("Master.JobDistributedLoadFileSizes")
+          .setDescription("The total file size by DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_RATE =
+      new Builder("Master.JobDistributedLoadRate")
+          .setDescription("The average DistributedLoad loading rate")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_SUCCESS =
+      new Builder("Master.MigrateJobSuccess")
+          .setDescription("The number of successful MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FAIL =
+      new Builder("Master.MigrateJobFail")
+          .setDescription("The number of failed MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_CANCEL =
+      new Builder("Master.MigrateJobCancel")
+          .setDescription("The number of cancelled MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FILE_COUNT =
+      new Builder("Master.MigrateJobFileCount")
+          .setDescription("The number of MigrateJob files")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FILE_SIZE =
+      new Builder("Master.MigrateJobFileSize")
+          .setDescription("The total size of MigrateJob files")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  public static final MetricKey MASTER_ASYNC_PERSIST_SUCCESS =
+      new Builder("Master.AsyncPersistSuccess")
+          .setDescription("The number of successful AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FAIL =
+      new Builder("Master.AsyncPersistFail")
+          .setDescription("The number of failed AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_CANCEL =
+      new Builder("Master.AsyncPersistCancel")
+          .setDescription("The number of cancelled AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FILE_COUNT =
+      new Builder("Master.AsyncPersistFileCount")
+          .setDescription("The number of files created by AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FILE_SIZE =
+      new Builder("Master.AsyncPersistFileSize")
+          .setDescription("The total size of files created by AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
   // Cluster metrics
   public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
       new Builder("Cluster.ActiveRpcReadCount")
@@ -1296,6 +1380,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
+      new Builder("Worker.RpcQueueLength")
+          .setDescription("Length of the worker rpc queue. "
+              + "Use this metric to monitor the RPC pressure on worker.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
@@ -1617,6 +1707,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_TOTAL_RPC_CLIENTS =
+      new Builder("Client.TotalRPCClients")
+          .setDescription("The total number of RPC clients exist that is using to "
+              + "or can be used to connect to master or worker for operations. "
+              + "The sum of the sizes of FileSystemMasterClientPool, "
+              + "BlockMasterClientPool, and BlockWorkerClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
@@ -1638,6 +1737,13 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Fuse.BytesRead")
           .setDescription("Total number of bytes read through Fuse.read() operations.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_TOTAL_CALLS =
+      new Builder("Fuse.TotalCalls")
+          .setDescription("Throughput of JNI FUSE operation calls. "
+              + "This metrics indicates how busy the Alluxio Fuse application is serving requests")
+          .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey FUSE_WRITING_FILE_COUNT =

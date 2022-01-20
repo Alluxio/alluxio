@@ -906,7 +906,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectPath = AlluxioURI.SEPARATOR + objectKey;
     CompleteMultipartUploadResult completeMultipartUploadResult =
         new CompleteMultipartUploadResult(objectPath, bucketName, objectName, etag);
-    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult), result);
+    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult),
+        result.trim());
+    Assert.assertEquals(XML_MAPPER.readValue(result, CompleteMultipartUploadResult.class),
+        completeMultipartUploadResult);
 
     // Verify that the temporary directory is deleted.
     Assert.assertFalse(mFileSystem.exists(tmpDir));

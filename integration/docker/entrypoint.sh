@@ -16,6 +16,7 @@ ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
 MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
+ALLUXIO_PATH="${FUSE_ALLUXIO_PATH:-/}"
 ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
 ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
 ALLUXIO_UID="${ALLUXIO_UID:-0}"
@@ -104,7 +105,7 @@ function mountAlluxioRootFSWithFuseOption {
   ! mkdir -p ${MOUNT_POINT}
   ! umount ${MOUNT_POINT}
   #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
-  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} /
+  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} ${ALLUXIO_PATH}
 }
 
 function startCsiServer {

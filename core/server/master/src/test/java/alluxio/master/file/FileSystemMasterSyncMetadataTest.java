@@ -12,9 +12,9 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
@@ -162,7 +162,7 @@ public final class FileSystemMasterSyncMetadataTest {
     // Mock nested ufs path
     AlluxioURI nestedFilePath = ufsMount.join("dir1").join("file1");
     UfsFileStatus nestedFileStatus = new UfsFileStatus(nestedFilePath.getPath(), "dummy", 0,
-        0, "", "", mode, 1024);
+        null, "", "", mode, 1024);
     Mockito.when(mUfs.getFingerprint(nestedFilePath.toString()))
         .thenReturn(Fingerprint.create("s3", nestedFileStatus).serialize());
     Mockito.when(mUfs.getStatus(nestedFilePath.toString())).thenReturn(nestedFileStatus);
@@ -178,7 +178,7 @@ public final class FileSystemMasterSyncMetadataTest {
     // Mock creating the same directory and nested file in UFS out of band
     Mockito.when(mUfs.listStatus(eq(dir1Path.toString())))
         .thenReturn(new UfsStatus[]{new UfsFileStatus("file1", "dummy", 0,
-        0, "", "", mode, 1024)});
+        null, "", "", mode, 1024)});
 
     // List with sync.interval=0
     List<FileInfo> fileInfoList =

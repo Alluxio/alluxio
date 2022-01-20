@@ -29,6 +29,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -37,7 +38,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.Closeable;
@@ -79,7 +80,7 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void deleteNonRecursiveOnAmazonClientException() throws IOException {
-    Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
+    Mockito.when(mClient.listObjectsV2(ArgumentMatchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
     mThrown.expect(IOException.class);
@@ -88,7 +89,7 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void deleteRecursiveOnAmazonClientException() throws IOException {
-    Mockito.when(mClient.listObjectsV2(Matchers.any(ListObjectsV2Request.class)))
+    Mockito.when(mClient.listObjectsV2(ArgumentMatchers.any(ListObjectsV2Request.class)))
         .thenThrow(AmazonClientException.class);
 
     mThrown.expect(IOException.class);
@@ -99,7 +100,8 @@ public class S3AUnderFileSystemTest {
   public void isFile404() throws IOException {
     AmazonServiceException e = new AmazonServiceException("");
     e.setStatusCode(404);
-    Mockito.when(mClient.getObjectMetadata(Matchers.anyString(), Matchers.anyString()))
+    Mockito.when(
+        mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(e);
 
     Assert.assertFalse(mS3UnderFileSystem.isFile(SRC));
@@ -109,7 +111,8 @@ public class S3AUnderFileSystemTest {
   public void isFileException() throws IOException {
     AmazonServiceException e = new AmazonServiceException("");
     e.setStatusCode(403);
-    Mockito.when(mClient.getObjectMetadata(Matchers.anyString(), Matchers.anyString()))
+    Mockito.when(
+        mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(e);
 
     mThrown.expect(IOException.class);
@@ -118,7 +121,8 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void renameOnAmazonClientException() throws IOException {
-    Mockito.when(mClient.getObjectMetadata(Matchers.anyString(), Matchers.anyString()))
+    Mockito.when(
+        mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenThrow(AmazonClientException.class);
 
     mThrown.expect(IOException.class);
@@ -252,5 +256,14 @@ public class S3AUnderFileSystemTest {
     Assert.assertEquals("test", mS3UnderFileSystem.stripPrefixIfPresent("/test"));
     Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent(""));
     Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("/"));
+  }
+
+  @Test
+  public void getNullLastModifiedTime() throws IOException {
+    Mockito.when(
+        mClient.getObjectMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
+        .thenReturn(new ObjectMetadata());
+    // throw NPE before https://github.com/Alluxio/alluxio/pull/14641
+    mS3UnderFileSystem.getObjectStatus(PATH);
   }
 }
