@@ -51,8 +51,9 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -80,6 +81,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Path mAlluxioRootPath;
   private final String mMountPoint;
   private final String mFsName;
+  private final String mTmpFolder;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
@@ -153,6 +155,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mMountPoint = opts.getMountPoint();
+    mTmpFolder = conf.get(PropertyKey.FUSE_TMP_FOLDER);
     mFuseShell = new FuseShell(fs, conf);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
@@ -550,25 +553,23 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
       }
     }
-
-    FileOutStream os = ce.getOut();
-    long bytesWritten = os.getBytesWritten();
-    if (offset != bytesWritten && offset + sz > bytesWritten) {
-      LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
-          + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
+    RandomAccessFile tmpFile;
+    try {
+      File tmpFolder = new File(mTmpFolder);
+      if (!tmpFolder.exists()){
+        tmpFolder.mkdirs();
+      }
+      tmpFile = new RandomAccessFile(Paths.get(mTmpFolder, path).toString(), "rw");
+    } catch (FileNotFoundException e) {
+      LOG.error("Failed to create temporary file {}: ", Paths.get(mTmpFolder, path), e);
       return -ErrorCodes.EIO();
     }
-    if (offset + sz <= bytesWritten) {
-      LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
-          path, offset, sz, bytesWritten);
-      // To fulfill vim :wq
-      return sz;
-    }
-
     try {
       final byte[] dest = new byte[sz];
       buf.get(dest, 0, sz);
-      os.write(dest);
+      tmpFile.seek(offset);
+      tmpFile.write(dest);
+      tmpFile.close();
     } catch (IOException e) {
       LOG.error("IOException while writing to {}.", path, e);
       return -ErrorCodes.EIO();
@@ -616,9 +617,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int releaseInternal(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
     try {
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+      if (ce != null) {
+        FileOutStream os = ce.getOut();
+        FileInputStream tmpFileInputStream = new FileInputStream(
+            Paths.get(mTmpFolder, path).toString());
+        byte[] buf = new byte[64 * 1024];
+        int bytesRead = 0;
+        while (bytesRead != -1) {
+          bytesRead = tmpFileInputStream.read(buf);
+          if (bytesRead > 0) {
+            os.write(buf, 0, bytesRead);
+          }
+        }
+        tmpFileInputStream.close();
+        Files.delete(Paths.get(mTmpFolder, path));
+      }
       mOpenReadWriteLocks.remove(fd);
       FileInStream is = mOpenFileEntries.remove(fd);
-      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
       if (is == null && ce == null) {
         LOG.error("Cannot find fd {} for {}", fd, path);
         return -ErrorCodes.EBADFD();

@@ -5328,6 +5328,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_TMP_FOLDER =
+      new Builder(Name.FUSE_TMP_FOLDER)
+          .setDefaultValue("/tmp/alluxio-fuse")
+          .setDescription("A temporary folder for writing files through fuse. Files are first "
+              + "written to this folder, then written to Alluxio upon finish writing the file")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       new Builder(Name.FUSE_UMOUNT_TIMEOUT)
           .setDefaultValue("1min")
@@ -7073,6 +7081,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_TMP_FOLDER = "alluxio.fuse.tmp.folder";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
