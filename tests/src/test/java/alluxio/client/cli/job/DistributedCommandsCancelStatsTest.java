@@ -14,9 +14,11 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
@@ -30,6 +32,7 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 
 import com.google.common.collect.Sets;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -41,6 +44,7 @@ import java.util.Collections;
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
 public class DistributedCommandsCancelStatsTest extends JobShellTest {
+  private static final String TEST_USER = "test";
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
   private static final int TEST_TIMEOUT = 45;
 
@@ -48,10 +52,15 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
         new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
             new SleepingUnderFileSystemOptions()
+                .setIsDirectoryMs(SLEEP_MS)
+                .setIsFileMs(SLEEP_MS)
                 .setGetStatusMs(SLEEP_MS)
-                .setExistsMs(SLEEP_MS)
                 .setListStatusMs(SLEEP_MS)
                 .setListStatusWithOptionsMs(SLEEP_MS)));
+
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+          ServerConfiguration.global());
 
   @Test
   public void testDistributedLoadCancelStats() throws Exception {
