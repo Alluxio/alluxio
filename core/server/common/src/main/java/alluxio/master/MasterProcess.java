@@ -208,7 +208,7 @@ public abstract class MasterProcess implements Process {
       mRejectingRpcServer = new RejectingServer(mRpcBindAddress);
       mRejectingRpcServer.start();
     }
-    if (mRejectingWebServer == null) {
+    if (!isWebServing() && mRejectingWebServer == null) {
       mRejectingWebServer = new RejectingServer(mWebBindAddress);
       mRejectingWebServer.start();
     }
