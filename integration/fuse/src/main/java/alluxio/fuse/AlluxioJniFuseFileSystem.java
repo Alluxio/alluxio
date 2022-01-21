@@ -190,7 +190,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
     if (opts.isDebug()) {
       try {
-        LogUtils.setLogLevel("alluxio.fuse.AlluxioJniFuseFileSystem", "DEBUG");
+        LogUtils.setLogLevel(this.getClass().getCanonicalName(), "DEBUG");
       } catch (IOException e) {
         LOG.error("Failed to set AlluxioJniFuseFileSystem log to debug level", e);
       }
