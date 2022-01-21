@@ -5348,7 +5348,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_TMP_FOLDER =
       new Builder(Name.FUSE_TMP_FOLDER)
-          .setDefaultValue("/tmp/alluxio-fuse")
+          .setDefaultValue("")
           .setDescription("A temporary folder for writing files through fuse. Files are first "
               + "written to this folder, then written to Alluxio upon finish writing the file")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)

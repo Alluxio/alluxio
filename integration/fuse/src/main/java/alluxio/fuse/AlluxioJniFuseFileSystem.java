@@ -573,26 +573,50 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
       }
     }
-    RandomAccessFile tmpFile;
-    try {
-      File tmpFolder = new File(mTmpFolder);
-      if (!tmpFolder.exists()) {
-        tmpFolder.mkdirs();
+    if (!mTmpFolder.isEmpty()) {
+      RandomAccessFile tmpFile;
+      try {
+        File tmpFolder = new File(mTmpFolder);
+        if (!tmpFolder.exists()) {
+          tmpFolder.mkdirs();
+        }
+        tmpFile = new RandomAccessFile(Paths.get(mTmpFolder, path).toString(), "rw");
+      } catch (FileNotFoundException e) {
+        LOG.error("Failed to create temporary file {}: ", Paths.get(mTmpFolder, path), e);
+        return -ErrorCodes.EIO();
       }
-      tmpFile = new RandomAccessFile(Paths.get(mTmpFolder, path).toString(), "rw");
-    } catch (FileNotFoundException e) {
-      LOG.error("Failed to create temporary file {}: ", Paths.get(mTmpFolder, path), e);
-      return -ErrorCodes.EIO();
-    }
-    try {
-      final byte[] dest = new byte[sz];
-      buf.get(dest, 0, sz);
-      tmpFile.seek(offset);
-      tmpFile.write(dest);
-      tmpFile.close();
-    } catch (IOException e) {
-      LOG.error("IOException while writing to {}.", path, e);
-      return -ErrorCodes.EIO();
+      try {
+        final byte[] dest = new byte[sz];
+        buf.get(dest, 0, sz);
+        tmpFile.seek(offset);
+        tmpFile.write(dest);
+        tmpFile.close();
+      } catch (IOException e) {
+        LOG.error("IOException while writing to {}.", path, e);
+        return -ErrorCodes.EIO();
+      }
+    } else {
+      FileOutStream os = ce.getOut();
+      long bytesWritten = os.getBytesWritten();
+      if (offset != bytesWritten && offset + sz > bytesWritten) {
+        LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
+                      + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
+        return -ErrorCodes.EIO();
+      }
+      if (offset + sz <= bytesWritten) {
+        LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
+            path, offset, sz, bytesWritten);
+        // To fulfill vim :wq
+        return sz;
+      }
+      try {
+        final byte[] dest = new byte[sz];
+        buf.get(dest, 0, sz);
+        os.write(dest);
+      } catch (IOException e) {
+        LOG.error("IOException while writing to {}.", path, e);
+        return -ErrorCodes.EIO();
+      }
     }
     return sz;
   }
@@ -638,7 +662,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     long fd = fi.fh.get();
     try {
       CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
-      if (ce != null) {
+      if (!mTmpFolder.isEmpty() && ce != null) {
         FileOutStream os = ce.getOut();
         FileInputStream tmpFileInputStream = new FileInputStream(
             Paths.get(mTmpFolder, path).toString());
