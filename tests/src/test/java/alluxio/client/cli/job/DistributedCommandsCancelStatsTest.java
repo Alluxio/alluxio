@@ -58,10 +58,6 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
                 .setListStatusMs(SLEEP_MS)
                 .setListStatusWithOptionsMs(SLEEP_MS)));
 
-  @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-          ServerConfiguration.global());
-
   @Test
   public void testDistributedLoadCancelStats() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileNew", WritePType.THROUGH, 10);
