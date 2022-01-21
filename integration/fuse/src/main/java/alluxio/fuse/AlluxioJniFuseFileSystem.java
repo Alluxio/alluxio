@@ -51,7 +51,11 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -556,7 +560,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     RandomAccessFile tmpFile;
     try {
       File tmpFolder = new File(mTmpFolder);
-      if (!tmpFolder.exists()){
+      if (!tmpFolder.exists()) {
         tmpFolder.mkdirs();
       }
       tmpFile = new RandomAccessFile(Paths.get(mTmpFolder, path).toString(), "rw");
