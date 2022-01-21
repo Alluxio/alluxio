@@ -151,6 +151,7 @@ public class SnapshotUploader<S, R>
   @Override
   public void onError(Throwable t) {
     LOG.error("Error sending snapshot {} at {}", mSnapshotFile, mOffset, t);
+    mStream.onError(t);
   }
 
   @Override
