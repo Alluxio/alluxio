@@ -127,8 +127,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @Override
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster) {
-      // For cluster mode, this function is called once before the job is submitted to the job
-      // service. Nothing should be done, otherwise the bench will break.
+      // Create test directory /fuseIOStressBench before job submitted to job service.
+      Files.createDirectories(Paths.get(mParameters.mLocalPath, "fuseIOStressBench"));
       return;
     }
     if (mParameters.mThreads > mParameters.mNumDirs
