@@ -19,9 +19,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.underfs.MasterUfsManager;
-import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
-import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -100,17 +97,8 @@ public final class AlluxioSecondaryMaster implements Process {
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor("Secondary master to start", () -> mRunning,
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
+  public boolean isReady() {
+    return mRunning;
   }
 
   @Override

@@ -23,8 +23,6 @@ import alluxio.grpc.GrpcService;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobWorkerWebServer;
@@ -38,7 +36,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -146,20 +143,12 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          () -> isServing()
-              && mWebServer != null
-              && mWebServer.getServer().isRunning(),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
+  public boolean isReady() {
+    boolean ready = isServing();
+    if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      ready &= mWebServer != null && mWebServer.getServer().isRunning();
     }
+    return ready;
   }
 
   @Override

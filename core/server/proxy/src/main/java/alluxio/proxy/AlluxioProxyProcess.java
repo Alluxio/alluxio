@@ -14,8 +14,6 @@ package alluxio.proxy;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -95,34 +92,24 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start", () -> {
-        if (mWebServer == null || !mWebServer.getServer().isRunning()) {
-          return false;
-        }
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost method = new HttpPost(String
-            .format("http://%s:%d%s/%s/%s/%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
-                Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX, "%2f",
-                PathsRestServiceHandler.EXISTS));
-        try {
-          HttpResponse response = client.execute(method);
-          if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            return true;
-          }
-          LOG.debug(IOUtils.toString(response.getEntity().getContent()));
-          return false;
-        } catch (IOException e) {
-          LOG.debug("Exception: ", e);
-          return false;
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+  public boolean isReady() {
+    if (mWebServer == null || !mWebServer.getServer().isRunning()) {
       return false;
-    } catch (TimeoutException e) {
+    }
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpPost method = new HttpPost(String
+        .format("http://%s:%d%s/%s/%s/%s", mWebServer.getBindHost(), mWebServer.getLocalPort(),
+            Constants.REST_API_PREFIX, PathsRestServiceHandler.SERVICE_PREFIX, "%2f",
+            PathsRestServiceHandler.EXISTS));
+    try {
+      HttpResponse response = client.execute(method);
+      if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+        return true;
+      }
+      LOG.debug(IOUtils.toString(response.getEntity().getContent()));
+      return false;
+    } catch (IOException e) {
+      LOG.debug("Exception: ", e);
       return false;
     }
   }

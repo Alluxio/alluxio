@@ -13,15 +13,12 @@ package alluxio.master;
 
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -98,16 +95,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
+  public boolean isReady() {
+    return mServingThread == null || super.isReady();
   }
 }
