@@ -42,6 +42,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -49,7 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Integration tests for the job master.
  */
-public final class JobMasterIntegrationTest extends BaseIntegrationTest {
+public final class  JobMasterIntegrationTest extends BaseIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(JobMasterIntegrationTest.class);
   private static final long WORKER_TIMEOUT_MS = 500;
   private static final long LOST_WORKER_INTERVAL_MS = 500;
   private JobMaster mJobMaster;
@@ -233,7 +236,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
     JobInfo status = mJobMaster.getStatus(jobId);
     List<JobInfo> children = status.getChildren();
-
+    LOG.info("Check job status:{}", status);
     assertEquals(3, children.size());
 
     long child0 = children.get(0).getId();
