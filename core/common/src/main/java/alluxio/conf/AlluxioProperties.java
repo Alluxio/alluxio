@@ -191,7 +191,8 @@ public class AlluxioProperties {
   public boolean isSetByUser(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
-      return val.isPresent();
+      // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
+      return val.isPresent() && (getSource(key).compareTo(Source.CLUSTER_DEFAULT) > 0);
     }
     return false;
   }
