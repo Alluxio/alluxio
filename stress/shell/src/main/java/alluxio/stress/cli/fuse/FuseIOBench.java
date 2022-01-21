@@ -58,6 +58,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   private static final String TEST_DIR_STRING_FORMAT = "%s/%s/dir-%d";
   private static final String TEST_FILE_STRING_FORMAT = "%s/%s/dir-%d/file-%d";
 
+  /** All test operations happen in a designated test directory mLocalpath/fuseIOStressBench. */
+  private static final String TEST_DIR = "fuseIOStressBench";
+
   @ParametersDelegate
   private FuseIOParameters mParameters = new FuseIOParameters();
 
@@ -127,8 +130,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @Override
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster) {
-      // Create test directory /fuseIOStressBench before job submitted to job service.
-      Files.createDirectories(Paths.get(mParameters.mLocalPath, "fuseIOStressBench"));
+      // Create the designated test directory before job submitted to job service.
+      Files.createDirectories(Paths.get(mParameters.mLocalPath, TEST_DIR));
       return;
     }
     if (mParameters.mThreads > mParameters.mNumDirs
@@ -138,8 +141,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               + "be at least the number of threads, preferably a multiple of it."
       ));
     }
-    // All test operations happen in mLocalpath/fuseIOStressBench
-    mParameters.mLocalPath = Paths.get(mParameters.mLocalPath, "fuseIOStressBench").toString();
+    // Update mLocalPath to always include the designated test directory.
+    mParameters.mLocalPath = Paths.get(mParameters.mLocalPath, TEST_DIR).toString();
     File localPath = new File(mParameters.mLocalPath);
 
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
