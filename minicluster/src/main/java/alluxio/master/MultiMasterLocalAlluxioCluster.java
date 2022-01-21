@@ -242,11 +242,15 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     for (int k = 0; k < mNumOfMasters; k++) {
       ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,
           PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
-      master.start();
-      LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
-          master.getAddress());
-      mMasters.add(master);
+      if (mMasters.size() > k) {
+        mMasters.get(k).start();
+      } else {
+        final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
+        master.start();
+        mMasters.add(master);
+      }
+      LOG.info("master NO.{} started, isServing: {}, address: {}", k, mMasters.get(k).isServing(),
+          mMasters.get(k).getAddress());
       // Each master should generate a new port for binding
       ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "0");
       ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, "0");
