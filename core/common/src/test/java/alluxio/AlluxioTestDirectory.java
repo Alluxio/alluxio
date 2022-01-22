@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -70,17 +72,15 @@ public final class AlluxioTestDirectory {
    * @return the testing directory
    */
   private static File createTestingDirectory() {
-    final File tmpDir = new File(System.getProperty("java.io.tmpdir"), "alluxio-tests");
-    if (tmpDir.exists()) {
-      cleanUpOldFiles(tmpDir);
-    }
-    if (!tmpDir.exists()) {
-      if (!tmpDir.mkdir()) {
-        throw new RuntimeException(
-            "Failed to create testing directory " + tmpDir.getAbsolutePath());
+    try {
+      final Path tmpDir = Files.createTempDirectory("alluxio-tests");
+      if (Files.exists(tmpDir)) {
+        cleanUpOldFiles(tmpDir.toFile());
       }
+      return tmpDir.toFile();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-    return tmpDir;
   }
 
   /**
