@@ -195,7 +195,7 @@
             </goals>
             <configuration>
               <sourceDirectory>${basedir}/src/main/java-templates</sourceDirectory>
-              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+              <outputDirectory>${project.build.directory}/generated-sources/java-templates</outputDirectory>
             </configuration>
           </execution>
         </executions>

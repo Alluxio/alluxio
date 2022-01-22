@@ -118,6 +118,7 @@ public final class RocksUtils {
       }
 
       @Override
+      // TODO(jiacheng): close this iterator properly on finish
       public T next() {
         try {
           return parser.next(rocksIterator);

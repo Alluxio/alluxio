@@ -24,7 +24,6 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -54,12 +53,15 @@ public class RocksBlockStore implements BlockStore {
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
   private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
+  private static final String ROCKS_STORE_NAME = "BlockStore";
 
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mIteratorOption;
+  private final ColumnFamilyOptions mColumnFamilyOptions;
 
   private final RocksStore mRocksStore;
+  // The handles are closed in RocksStore
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
@@ -74,18 +76,12 @@ public class RocksBlockStore implements BlockStore {
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
-    ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
+    mColumnFamilyOptions = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION);
-    List<ColumnFamilyDescriptor> columns =
-        Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), cfOpts),
-            new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), cfOpts));
-    DBOptions dbOpts = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
+    List<ColumnFamilyDescriptor> columns = Arrays.asList(
+        new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mColumnFamilyOptions),
+        new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mColumnFamilyOptions));
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
     // Create block store db path if it does not exist.
@@ -96,7 +92,7 @@ public class RocksBlockStore implements BlockStore {
         LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
       }
     }
-    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
         Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
 
@@ -161,7 +157,12 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void close() {
     mSize.reset();
+    LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
+    mIteratorOption.close();
+    mDisableWAL.close();
+    mColumnFamilyOptions.close();
+    LOG.info("RocksBlockStore closed");
   }
 
   @Override
@@ -169,10 +170,16 @@ public class RocksBlockStore implements BlockStore {
     byte[] startKey = RocksUtils.toByteArray(id, 0);
     byte[] endKey = RocksUtils.toByteArray(id, Long.MAX_VALUE);
 
-    // Explicitly hold a reference to the ReadOptions object from the discussion in
-    // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
-    final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(endKey));
-    try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
+    // References to the RocksObject need to be held explicitly and kept from GC
+    // In order to prevent segfaults in the native code execution
+    // Ref: https://github.com/facebook/rocksdb/issues/9378
+    // All RocksObject should be closed properly at the end of usage
+    // When there are multiple resources declared in the try-with-resource block
+    // They are closed in the opposite order of declaration
+    // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
+    try (final Slice slice = new Slice(endKey);
+         final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(slice);
+         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
       iter.seek(startKey);
       List<BlockLocation> locations = new ArrayList<>();
       for (; iter.isValid(); iter.next()) {
@@ -208,7 +215,9 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
-    return RocksUtils.createIterator(db().newIterator(mBlockMetaColumn.get(), mIteratorOption),
+    // TODO(jiacheng): close the iterator when we iterate the BlockStore for backup
+    RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
+    return RocksUtils.createIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
   }
 
