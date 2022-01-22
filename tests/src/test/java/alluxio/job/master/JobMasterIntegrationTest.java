@@ -90,7 +90,7 @@ public final class  JobMasterIntegrationTest extends BaseIntegrationTest {
 
     JobInfo jobStatus = mJobMaster.getStatus(jobId);
     assertEquals(2, jobStatus.getChildren().size());
-
+    LOG.info("Check job status for multipleTasks{}",jobStatus.getStatus());
     JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
 
     jobStatus = mJobMaster.getStatus(jobId);
