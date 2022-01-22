@@ -197,6 +197,8 @@ public final class  JobMasterIntegrationTest extends BaseIntegrationTest {
     mJobMaster.setTaskPoolSize(1);
 
     long jobId0 = mJobMaster.run(new SleepJobConfig(1));
+    JobInfo jobStatus = mJobMaster.getStatus(jobId0);
+    LOG.info("Check job status for throttleJobWorkerTasks{}",jobStatus.getStatus());
     JobTestUtils.waitForJobStatus(mJobMaster, jobId0,
         Sets.newHashSet(Status.RUNNING, Status.COMPLETED));
 
