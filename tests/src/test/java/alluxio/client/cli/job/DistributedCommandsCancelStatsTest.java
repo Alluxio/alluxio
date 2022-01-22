@@ -14,23 +14,21 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.cli.fs.FileSystemShell;
+import alluxio.Constants;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
-import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 
 import com.google.common.collect.Sets;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -43,34 +41,19 @@ import java.util.Collections;
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
 public class DistributedCommandsCancelStatsTest extends JobShellTest {
-  static final int TEST_TIMEOUT = 45;
+  private static final String TEST_USER = "test";
+  private static final long SLEEP_MS = Constants.SECOND_MS / 2;
+  private static final int TEST_TIMEOUT = 45;
 
   @ClassRule
-  public static LocalAlluxioClusterResource sResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setNumWorkers(4)
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
-          .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
-          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, SIZE_BYTES)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
-          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
-          .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
-          .build();
-
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-
-    sLocalAlluxioCluster = sResource.get();
-    sLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    sLocalAlluxioJobCluster.start();
-    sFileSystem = sLocalAlluxioCluster.getClient();
-    sJobMaster = sLocalAlluxioJobCluster.getMaster().getJobMaster();
-    sJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
-    sFsShell = new FileSystemShell(ServerConfiguration.global());
-  }
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
+        new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
+            new SleepingUnderFileSystemOptions()
+                .setIsDirectoryMs(SLEEP_MS)
+                .setIsFileMs(SLEEP_MS)
+                .setGetStatusMs(SLEEP_MS)
+                .setListStatusMs(SLEEP_MS)
+                .setListStatusWithOptionsMs(SLEEP_MS)));
 
   @Test
   public void testDistributedLoadCancelStats() throws Exception {
