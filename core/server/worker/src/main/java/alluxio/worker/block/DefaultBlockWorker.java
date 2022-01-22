@@ -643,6 +643,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return reader;
       }
+      if (!request.isPersisted()) {
+        throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+      }
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       try {
         Metrics.WORKER_ACTIVE_CLIENTS.inc();
