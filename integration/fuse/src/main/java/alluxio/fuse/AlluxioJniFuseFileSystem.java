@@ -362,6 +362,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           + "please raise a ticket at https://github.com/Alluxio/alluxio/issues", flags, path));
       return -ErrorCodes.EOPNOTSUPP();
     }
+
     if (openAction == OpenAction.NOT_SUPPORTED) {
       LOG.error(String.format("Not supported open flag 0x%x for path %s. "
           + "Alluxio does not support file modification. "
@@ -369,7 +370,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           flags, path));
       return -ErrorCodes.EOPNOTSUPP();
     }
-    long fd = mNextOpenFileId.getAndIncrement();
     URIStatus status = null;
     try {
       status = mFileSystem.getStatus(uri);
@@ -379,6 +379,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to get status of path {} when opening it.", path);
       return -ErrorCodes.EIO();
     }
+
     if (status != null && !status.isCompleted()) {
       // Cannot open incomplete file for read or write
       // wait for file to complete in read or read_write mode
@@ -395,17 +396,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return -ErrorCodes.EOPNOTSUPP();
       }
     }
-
+    long fd = mNextOpenFileId.getAndIncrement();
     fi.fh.set(fd);
     try {
-      if (openAction == OpenAction.WRITE_ONLY) {
-        if (status != null) {
-          OpenFlags openFlags = OpenFlags.valueOf(flags);
-          if (openFlags == OpenFlags.O_CREAT || openFlags == OpenFlags.O_EXCL) {
-            return -ErrorCodes.EEXIST();
-          }
-          mFileSystem.delete(uri);
+      // if this is an write operation, and file already exist
+      // we according to O_TRUNC flag to decide whether remove old file
+      // if not specify O_TRUNC, because alluxio can't overwrite part of content of a file, return error for user
+      // attention: according to posix standard, we can't remove file only specify O_WRONLY or O_RDWR flag
+      if (openAction != OpenAction.READ_ONLY && status != null) {
+        if((flags & OpenFlags.O_TRUNC.longValue()) == 0) {
+          LOG.error("Cannot write exist file {} without O_TRUNC flag specify, flags:{}", path, flags);
+          return -ErrorCodes.EEXIST();
         }
+        LOG.debug("delete exist file:{}", path);
+        mFileSystem.delete(uri);
+      }
+      if (openAction == OpenAction.WRITE_ONLY) {
         FileOutStream os = mFileSystem.createFile(uri);
         mCreateFileEntries.add(new CreateFileEntry(fd, path, os));
         mAuthPolicy.setUserGroupIfNeeded(uri);
