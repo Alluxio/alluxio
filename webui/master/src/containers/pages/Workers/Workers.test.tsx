@@ -59,21 +59,5 @@ describe('Workers', () => {
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });
-
-    it('Hostname in Kubernetes environment', () => {
-      shallowWrapper.setProps({
-        workersData: { ...props.workersData, normalNodeInfos: [{ host: 'hostIp (podIp)', workerId: 1 }] },
-      });
-      expect(shallowWrapper.find('#id-1').props().children).toEqual('Node Name(Container Host)');
-      expect(shallowWrapper.find('#id-1-link').prop('href')).toEqual(`//hostIp:${props.initData.workerPort}`);
-    });
-
-    it('Hostname in bare-metal environment', () => {
-      shallowWrapper.setProps({
-        workersData: { ...props.workersData, normalNodeInfos: [{ host: 'hostIp', workerId: 1 }] },
-      });
-      expect(shallowWrapper.find('#id-1').props().children).toEqual('Node Name');
-      expect(shallowWrapper.find('#id-1-link').prop('href')).toEqual(`//hostIp:${props.initData.workerPort}`);
-    });
   });
 });
