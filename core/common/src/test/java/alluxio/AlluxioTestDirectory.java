@@ -51,7 +51,7 @@ public final class AlluxioTestDirectory {
    * @param prefix a prefix to use in naming the temporary directory
    * @return the created directory
    */
-  public static File createTemporaryDirectory(File parent, String prefix) {
+  private static File createTemporaryDirectory(File parent, String prefix) {
     final File file = new File(parent, prefix + "-" + UUID.randomUUID());
     if (!file.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
