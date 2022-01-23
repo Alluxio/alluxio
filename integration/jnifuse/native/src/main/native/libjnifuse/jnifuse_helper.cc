@@ -46,6 +46,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     LOGD("argv[%d]=%s", i, argv[i]);
   }
 
+  jnifuse_oper.init = init_wrapper;
   jnifuse_oper.chmod = chmod_wrapper;
   jnifuse_oper.chown = chown_wrapper;
   jnifuse_oper.create = create_wrapper;
