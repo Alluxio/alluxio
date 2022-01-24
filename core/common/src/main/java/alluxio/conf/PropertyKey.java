@@ -5346,11 +5346,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_TMP_FOLDER =
-      new Builder(Name.FUSE_TMP_FOLDER)
-          .setDefaultValue("")
-          .setDescription("A temporary folder for writing files through fuse. Files are first "
-              + "written to this folder, then written to Alluxio upon finish writing the file")
+  public static final PropertyKey FUSE_RANDOM_WRITE_ENABLED =
+      new Builder(Name.FUSE_RANDOM_WRITE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable random write when writing through POSIX API. "
+              + "By setting this value to true, the files written through POSIX API are first "
+              + "written to a temporary directory, then written to Alluxio upon finishing. "
+              + "This local-then-Alluxio way of writing supports random write.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_TMP_DIR =
+      new Builder(Name.FUSE_TMP_DIR)
+          .setDefaultValue("/tmp/alluxio-fuse")
+          .setDescription("The temporary directory for writing files through POSIX API when "
+              + "alluxio.fuse.random.write.enabled is set to true.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -7101,7 +7111,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
-    public static final String FUSE_TMP_FOLDER = "alluxio.fuse.tmp.folder";
+    public static final String FUSE_RANDOM_WRITE_ENABLED = "alluxio.fuse.random.write.enabled";
+    public static final String FUSE_TMP_DIR = "alluxio.fuse.tmp.dir";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =

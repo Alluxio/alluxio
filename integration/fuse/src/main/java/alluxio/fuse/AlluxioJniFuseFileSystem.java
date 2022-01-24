@@ -50,7 +50,6 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -84,7 +83,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Path mAlluxioRootPath;
   private final String mMountPoint;
   private final String mFsName;
-  private final String mTmpFolder;
+  private final boolean mRandomWriteEnabled;
+  private final String mTmpDir;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
@@ -158,7 +158,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mMountPoint = opts.getMountPoint();
-    mTmpFolder = conf.get(PropertyKey.FUSE_TMP_FOLDER);
+    mRandomWriteEnabled = conf.getBoolean(PropertyKey.FUSE_RANDOM_WRITE_ENABLED);
+    mTmpDir = conf.get(PropertyKey.FUSE_TMP_DIR);
     mFuseShell = new FuseShell(fs, conf);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
@@ -573,16 +574,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
       }
     }
-    if (!mTmpFolder.isEmpty()) {
+    if (mRandomWriteEnabled) {
       RandomAccessFile tmpFile;
       try {
-        File tmpFolder = new File(mTmpFolder);
-        if (!tmpFolder.exists()) {
-          tmpFolder.mkdirs();
-        }
-        tmpFile = new RandomAccessFile(Paths.get(mTmpFolder, path).toString(), "rw");
+        tmpFile = new RandomAccessFile(Paths.get(mTmpDir, path).toString(), "rw");
       } catch (FileNotFoundException e) {
-        LOG.error("Failed to create temporary file {}: ", Paths.get(mTmpFolder, path), e);
+        LOG.error("Failed to create temporary file {}: ", Paths.get(mTmpDir, path), e);
         return -ErrorCodes.EIO();
       }
       try {
@@ -662,10 +659,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     long fd = fi.fh.get();
     try {
       CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
-      if (!mTmpFolder.isEmpty() && ce != null) {
+      if (mRandomWriteEnabled && ce != null) {
         FileOutStream os = ce.getOut();
         FileInputStream tmpFileInputStream = new FileInputStream(
-            Paths.get(mTmpFolder, path).toString());
+            Paths.get(mTmpDir, path).toString());
         byte[] buf = new byte[64 * 1024];
         int bytesRead = 0;
         while (bytesRead != -1) {
@@ -675,7 +672,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           }
         }
         tmpFileInputStream.close();
-        Files.delete(Paths.get(mTmpFolder, path));
+        Files.delete(Paths.get(mTmpDir, path));
       }
       mOpenReadWriteLocks.remove(fd);
       FileInStream is = mOpenFileEntries.remove(fd);
