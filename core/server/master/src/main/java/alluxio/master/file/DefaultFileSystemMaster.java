@@ -3962,7 +3962,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
               PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
           LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
-              tempUfsPath, resolution.getUri().toString());
+              tempUfsPath, resolution.getUri());
         }
       }
 

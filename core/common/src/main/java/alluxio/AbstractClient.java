@@ -217,7 +217,7 @@ public abstract class AbstractClient implements Client {
         mAddress = getAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
-            getServiceName(), retryPolicy.getAttemptCount(), e.toString());
+            getServiceName(), retryPolicy.getAttemptCount(), e);
         continue;
       }
       try {
@@ -415,7 +415,7 @@ public abstract class AbstractClient implements Client {
           throw se;
         }
       }
-      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex);
       onRetry.get();
       disconnect();
     }

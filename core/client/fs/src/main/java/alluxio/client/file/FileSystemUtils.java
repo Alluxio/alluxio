@@ -163,8 +163,7 @@ public final class FileSystemUtils {
         LOG.debug("Polling file system master for the status of {}", uri);
         return fs.getStatus(uri);
       } catch (Exception e) {
-        LOG.debug("Exception when attempting to getStatus while waiting for persistence {}",
-            e.toString());
+        LOG.debug("Exception when attempting to getStatus while waiting for persistence", e);
         Throwables.throwIfUnchecked(e);
         throw new RuntimeException(e);
       }

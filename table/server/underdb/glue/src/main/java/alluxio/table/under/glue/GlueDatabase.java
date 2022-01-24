@@ -501,7 +501,7 @@ public class GlueDatabase implements UnderDatabase {
         if (LOG.isDebugEnabled()) {
           partitions.stream().forEach(partition ->
               LOG.debug("Glue table {}.{} with partition: {}.",
-                  partition.getDatabaseName(), tableName, partition.toString()));
+                  partition.getDatabaseName(), tableName, partition));
         }
       }
       return partitions;

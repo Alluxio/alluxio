@@ -1162,7 +1162,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         return op.apply();
       } catch (IOException e) {
         LOG.debug("Attempt {} to {} failed with exception : {}", retryPolicy.getAttemptCount(),
-            description.get(), e.toString());
+            description.get(), e);
         thrownException = e;
       }
     }

@@ -931,7 +931,7 @@ public class InodeSyncStream {
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.
-      LOG.debug("Failed to load file metadata: {}", e.toString());
+      LOG.debug("Failed to load file metadata: ", e);
     }
     // Re-traverse the path to pick up any newly created inodes.
     inodePath.traverse();

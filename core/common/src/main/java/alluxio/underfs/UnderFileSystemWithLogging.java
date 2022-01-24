@@ -1221,7 +1221,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       durationMs = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       LOG.debug("Exit (Error): {}({}) in {} ms, Error={}",
-          methodName, callable, durationMs, e.toString());
+          methodName, callable, durationMs, e);
       if (durationMs >= mLoggingThreshold) {
         LOG.warn("{}({}) returned \"{}\" in {} ms (>={} ms)", methodName,
             callable, e.toString(), durationMs, mLoggingThreshold);
