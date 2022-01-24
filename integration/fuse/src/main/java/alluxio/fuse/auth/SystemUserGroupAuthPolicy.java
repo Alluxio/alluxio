@@ -61,7 +61,7 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
           @Override
           public String load(Long uid) {
             try {
-              String userName = AlluxioFuseUtils.getGroupName(uid);
+              String userName = AlluxioFuseUtils.getUserName(uid);
               return userName.isEmpty() ? DEFAULT_USER_NAME : userName;
             } catch (IOException e) {
               // This should never be reached since input uid is always valid
