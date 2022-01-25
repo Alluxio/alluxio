@@ -165,30 +165,50 @@ public final class MigrateDefinition
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     final AlluxioURI destinationURI = new AlluxioURI(destination);
+    String tmpPath =
+        PathUtils.temporaryFileName(System.currentTimeMillis(), destinationURI.toString());
+    AlluxioURI tmpUri = new AlluxioURI(tmpPath);
     boolean retry;
-    do {
-      retry = false;
-      try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
-        try {
-          IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
-        } catch (Throwable t) {
+    boolean cleanUpRename = false;
+    try {
+      do {
+        retry = false;
+        try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
+            FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
           try {
-            out.cancel();
-          } catch (Throwable t2) {
-            t.addSuppressed(t2);
+            IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
+          } catch (Throwable t) {
+            try {
+              out.cancel();
+              fileSystem.rename(tmpUri, destinationURI);
+            } catch (Throwable t2) {
+              t.addSuppressed(t2);
+            }
+            throw t;
           }
-          throw t;
+          if (cleanUpRename) {
+            fileSystem.delete(tmpUri);
+          }
+        } catch (FileAlreadyExistsException e) {
+          if (overwrite) {
+            fileSystem.rename(destinationURI, tmpUri);
+            retry = true;
+            cleanUpRename = true;
+          } else {
+            throw e;
+          }
         }
-      } catch (FileAlreadyExistsException e) {
-        if (overwrite) {
-          fileSystem.delete(destinationURI);
-          retry = true;
-        } else {
-          throw e;
+      } while (retry);
+    } catch (Throwable t) {
+      try {
+        if (fileSystem.exists(tmpUri) && !fileSystem.exists(destinationURI)) {
+          fileSystem.rename(tmpUri, destinationURI);
         }
+      } catch (Throwable t2) {
+        t.addSuppressed(t2);
       }
-    } while (retry);
+      throw t;
+    }
   }
 
   @Override
