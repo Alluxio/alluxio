@@ -11,6 +11,11 @@
 
 package alluxio;
 
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+
+import java.util.concurrent.TimeoutException;
+
 /**
  * Interface representing an Alluxio process.
  */
@@ -29,11 +34,28 @@ public interface Process {
   void stop() throws Exception;
 
   /**
+   * Indicate the readiness status of the process.
+   *
+   * @return true if the process is ready for processing
+   */
+  boolean isReady();
+
+  /**
    * Waits until the process is ready to serve requests.
    *
    * @param timeoutMs how long to wait in milliseconds
    * @return whether the process became ready before the specified timeout
    */
-  // TODO(jiri): Replace with isServing.
-  boolean waitForReady(int timeoutMs);
+  default boolean waitForReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start",
+          this::isReady, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
+  }
 }

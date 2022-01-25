@@ -22,9 +22,7 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
 import alluxio.network.RejectingServer;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
@@ -36,7 +34,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -159,23 +156,12 @@ public abstract class MasterProcess implements Process {
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          () -> {
-            boolean ready = isServing();
-            if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-              ready &= mWebServer != null && mWebServer.getServer().isRunning();
-            }
-            return ready;
-          }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
+  public boolean isReady() {
+    boolean ready = isServing();
+    if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      ready &= mWebServer != null && mWebServer.getServer().isRunning();
     }
+    return ready;
   }
 
   protected void startRejectingServers() {

@@ -21,7 +21,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NettyUtils;
@@ -45,7 +44,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -309,19 +307,13 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
-              && mWebServer != null && mWebServer.getServer().isRunning(),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
+  public boolean isReady() {
+    boolean ready = isServing()
+        && mRegistry.get(BlockWorker.class).getWorkerId() != null;
+    if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      ready &= mWebServer != null && mWebServer.getServer().isRunning();
     }
+    return ready;
   }
 
   @Override
