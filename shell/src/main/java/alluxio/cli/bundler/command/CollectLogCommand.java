@@ -58,6 +58,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       "worker.out",
       "job_worker.log",
       "job_worker.out",
+      "fuse.log",
+      "fuse.out",
       "proxy.log",
       "proxy.out",
       "task.log",
