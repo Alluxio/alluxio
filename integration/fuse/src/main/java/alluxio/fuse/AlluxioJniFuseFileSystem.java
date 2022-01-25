@@ -251,7 +251,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       long size = status.getLength();
       if (!status.isCompleted()) {
-        if (mCreateFileEntries.contains(PATH_INDEX, path)) {
+        if (mRandomWriteEnabled) {
+          size = (int) new File(Paths.get(mTmpDir, path).toString()).length();
+        } else if (mCreateFileEntries.contains(PATH_INDEX, path)) {
           // Alluxio master will not update file length until file is completed
           // get file length from the current output stream
           CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
@@ -269,11 +271,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           size = status.getLength();
         }
       }
-      if (mRandomWriteEnabled) {
-        stat.st_size.set((int) new File(Paths.get(mTmpDir, path).toString()).length());
-      } else {
-        stat.st_size.set(size);
-      }
+      stat.st_size.set(size);
 
       // Sets block number to fulfill du command needs
       // `st_blksize` is ignored in `getattr` according to
