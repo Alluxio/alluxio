@@ -11,9 +11,6 @@
 
 package alluxio.stress.cli.suite;
 
-import alluxio.ClientContext;
-import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressJobServiceBench;
 import alluxio.stress.common.GeneralBenchSummary;
@@ -21,15 +18,10 @@ import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchSummary;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceMaxThroughputSummary;
-import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.JsonSerializable;
-import alluxio.worker.job.JobMasterClientContext;
 
-import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,13 +30,6 @@ import java.util.List;
 public class JobServiceMaxThroughput extends
     AbstractMaxThroughput<JobServiceBenchTaskResult, JobServiceMaxThroughputSummary,
         GeneralBenchSummary<JobServiceBenchTaskResult>, JobServiceBenchParameters> {
-
-  /** Reuse the existing parameters. */
-  @ParametersDelegate
-  private JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
-
-  private int mNumWorkers = 0;
-
   /**
    * @param args the command-line args
    */
@@ -55,29 +40,36 @@ public class JobServiceMaxThroughput extends
   private JobServiceMaxThroughput() {}
 
   @Override
-  public JobServiceMaxThroughputSummary runSuite(String[] args) throws Exception {
-    try (JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientContext
-        .newBuilder(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())))
-        .build())) {
-      mNumWorkers = client.getAllWorkerHealth().size();
-    }
-    if (mNumWorkers <= 0) {
-      throw new IllegalStateException("No workers available for testing!");
-    }
-    JobServiceMaxThroughputSummary summary = new JobServiceMaxThroughputSummary();
-    summary.setParameters(mParameters);
-    List<String> baseArgs = new ArrayList<>(Arrays.asList(args));
-    int best = getBestThroughput(mParameters.mTargetThroughput, summary, baseArgs, mNumWorkers);
-    LOG.info("max throughput: " + best);
-    summary.setEndTimeMs(CommonUtils.getCurrentMs());
-    summary.setMaxThroughput(best);
-    return summary;
+  public void initParameters(List<String> baseArgs) {
+    mParameters = new JobServiceBenchParameters();
   }
 
   @Override
-  protected JobServiceBenchSummary runSingleTest(List<String> args) throws Exception {
+  public String getBenchDescription() {
+    return String.join("\n", ImmutableList.of(
+        "",
+        "A benchmarking tool to measure the job service max throughput of Alluxio.",
+        "Example:",
+        "# this would continuously run `CreateFiles` opeartion and record the throughput after "
+            + "5s warmup.",
+        "$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput \\",
+        "--operation CreateFiles --warmup 5s",
+        ""
+    ));
+  }
+
+  @Override
+  protected JobServiceBenchSummary runSingleTest(List<String> args,
+      int targetThroughput) throws Exception {
     Benchmark b = new StressJobServiceBench();
     String result = b.run(args.toArray(new String[0]));
-    return JsonSerializable.fromJson(result, new JobServiceBenchSummary[0]);
+    return JsonSerializable.fromJson(parseBenchmarkResult(result), new JobServiceBenchSummary[0]);
+  }
+
+  @Override
+  public void prepare() {
+    mMaxThroughputResult = new JobServiceMaxThroughputSummary();
+    mMaxThroughputResult.setParameters(mParameters);
+    mTargetThroughput = mParameters.mTargetThroughput;
   }
 }

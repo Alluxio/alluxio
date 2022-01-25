@@ -17,6 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -194,6 +195,16 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     }
     FileStatus[] subDirs = fs.listStatus(basePath);
     if (subDirs.length == 0) {
+      return;
+    }
+
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      fs.delete(basePath, true);
+      if (fs.exists(basePath)) {
+        throw new UnexpectedAlluxioException(String.format("Unable to delete the files"
+            + " in path %s.Please confirm whether it is HDFS file system."
+            + " You may need to modify `--client-type` parameter", basePath));
+      }
       return;
     }
 

@@ -9,20 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.stress.common;
+package alluxio.stress.master;
 
-import alluxio.stress.Parameters;
+import alluxio.stress.common.AbstractMaxThroughputSummary;
+import alluxio.stress.common.GeneralBenchSummary;
 
 /**
- * abstract class for general Parameters used in stressBench.
+ * The result for the master max throughput test.
  */
-public abstract class GeneralParameters extends Parameters {
-
-  /**
-   * Notice the function name can't be getOperation since Jackson would transfer this function in to
-   * json value, break Parameter serialization and cause serialization error.
-   *
-   * @return the Operation Enum
-   */
-  public abstract Enum<?> operation();
+public final class MasterMaxThroughputSummary
+    extends AbstractMaxThroughputSummary<MasterBenchParameters, GeneralBenchSummary<MasterBenchTaskResult>> {
 }
