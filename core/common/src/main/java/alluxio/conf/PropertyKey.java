@@ -5419,6 +5419,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS =
+      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS =
+      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
       new Builder(Name.SECURITY_AUTHENTICATION_TYPE)
           .setDefaultValue("SIMPLE")
@@ -7112,6 +7123,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
         "alluxio.security.authentication.custom.provider.class";
+    public static final String SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS =
+        "alluxio.security.authentication.custom.sasl.client.handler.class";
+    public static final String SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS =
+        "alluxio.security.authentication.custom.sasl.server.handler.class";
     public static final String SECURITY_AUTHENTICATION_TYPE =
         "alluxio.security.authentication.type";
     public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =

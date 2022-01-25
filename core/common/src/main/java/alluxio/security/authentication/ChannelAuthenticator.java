@@ -164,9 +164,21 @@ public class ChannelAuthenticator {
       ChannelAuthenticationScheme authScheme, Subject subject) throws UnauthenticatedException {
     switch (authScheme) {
       case SIMPLE:
-      case CUSTOM:
         return new alluxio.security.authentication.plain.SaslClientHandlerPlain(mParentSubject,
             mConfiguration);
+      case CUSTOM:
+        Class clazz = mConfiguration.getClass(
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS);
+        try {
+          return (SaslClientHandler) clazz.getConstructor(
+                  new Class[] {Subject.class, AlluxioConfiguration.class})
+              .newInstance(mParentSubject, mConfiguration);
+        } catch (ReflectiveOperationException e) {
+          throw new IllegalStateException(
+              PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS.getName()
+                  + " configured to invalid class "
+                  + clazz + ". Cannot create SaslClientHandler.", e);
+        }
       default:
         throw new UnauthenticatedException(
             String.format("Channel authentication scheme not supported: %s", authScheme.name()));

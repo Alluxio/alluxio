@@ -128,8 +128,21 @@ public class DefaultAuthenticationServer
       throws SaslException {
     switch (authScheme) {
       case SIMPLE:
-      case CUSTOM:
         return new SaslServerHandlerPlain(mHostName, mConfiguration, mImpersonationAuthenticator);
+      case CUSTOM:
+        Class clazz = mConfiguration.getClass(
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS);
+        try {
+          return (SaslServerHandler) clazz.getConstructor(
+                  new Class[] {String.class, AlluxioConfiguration.class,
+                      ImpersonationAuthenticator.class})
+              .newInstance(mHostName, mConfiguration, mImpersonationAuthenticator);
+        } catch (ReflectiveOperationException e) {
+          throw new IllegalStateException(
+              PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS.getName()
+                  + " configured to invalid class "
+                  + clazz + ". Cannot create SaslServerHandler.", e);
+        }
       default:
         throw new StatusRuntimeException(Status.UNAUTHENTICATED.augmentDescription(
             String.format("Authentication scheme:%s is not supported", authScheme)));
