@@ -200,6 +200,8 @@ public final class MigrateDefinition
         }
       } while (retry);
     } catch (Throwable t) {
+      // this handles the situation that we get exception after we rename destination file and
+      // before copying files.
       try {
         if (fileSystem.exists(tmpUri) && !fileSystem.exists(destinationURI)) {
           fileSystem.rename(tmpUri, destinationURI);
