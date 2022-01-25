@@ -40,6 +40,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
+import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -187,6 +188,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
+    if (opts.isDebug()) {
+      try {
+        LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
+      } catch (IOException e) {
+        LOG.error("Failed to set AlluxioJniFuseFileSystem log to debug level", e);
+      }
+    }
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.FUSE_READING_FILE_COUNT.getName()),
         mOpenFileEntries::size);
