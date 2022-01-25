@@ -164,53 +164,43 @@ public final class MigrateDefinition
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-    final AlluxioURI destinationURI = new AlluxioURI(destination);
+    AlluxioURI destinationURI = new AlluxioURI(destination);
     String tmpPath =
         PathUtils.temporaryFileName(System.currentTimeMillis(), destinationURI.toString());
     AlluxioURI tmpUri = new AlluxioURI(tmpPath);
     boolean retry;
     boolean cleanUpRename = false;
-    try {
-      do {
-        retry = false;
-        try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-            FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+
+    do {
+      retry = false;
+      try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
+          FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+        try {
+          IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
+        } catch (Throwable t) {
           try {
-            IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
-          } catch (Throwable t) {
-            try {
-              out.cancel();
-              fileSystem.rename(tmpUri, destinationURI);
-            } catch (Throwable t2) {
-              t.addSuppressed(t2);
-            }
-            throw t;
+            out.cancel();
+          } catch (Throwable t2) {
+            t.addSuppressed(t2);
           }
-          if (cleanUpRename) {
-            fileSystem.delete(tmpUri);
-          }
-        } catch (FileAlreadyExistsException e) {
-          if (overwrite) {
-            fileSystem.rename(destinationURI, tmpUri);
-            retry = true;
-            cleanUpRename = true;
-          } else {
-            throw e;
-          }
+          throw t;
         }
-      } while (retry);
-    } catch (Throwable t) {
-      // this handles the situation that we get exception after we rename destination file and
-      // before copying files.
-      try {
-        if (fileSystem.exists(tmpUri) && !fileSystem.exists(destinationURI)) {
-          fileSystem.rename(tmpUri, destinationURI);
+        if (cleanUpRename) {
+          fileSystem.delete(tmpUri);
+          fileSystem.rename(destinationURI, tmpUri);
         }
-      } catch (Throwable t2) {
-        t.addSuppressed(t2);
+      } catch (FileAlreadyExistsException e) {
+        if (overwrite) {
+          AlluxioURI reservedURI = destinationURI;
+          destinationURI = tmpUri;
+          tmpUri = reservedURI;
+          retry = true;
+          cleanUpRename = true;
+        } else {
+          throw e;
+        }
       }
-      throw t;
-    }
+    } while (retry);
   }
 
   @Override
