@@ -50,10 +50,7 @@ import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -272,7 +269,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           size = status.getLength();
         }
       }
-      stat.st_size.set(size);
+      if (mRandomWriteEnabled) {
+        stat.st_size.set((int) new File(Paths.get(mTmpDir, path).toString()).length());
+      } else {
+        stat.st_size.set(size);
+      }
 
       // Sets block number to fulfill du command needs
       // `st_blksize` is ignored in `getattr` according to
