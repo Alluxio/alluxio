@@ -10,8 +10,14 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# This script is used as a convenience method for monitoring & capturing
-# the HTTP JSON sink for Alluxio metrics
+# This script is analogous to `alluxio collectInfo collectMetrics` in that
+# it periodically collects the output from the Alluxio HTTP JSON metrics sink.
+# However you may also use it as a way to monitor differences in metrics
+# over time due to the implementation using `watch`.
+# - You can filter which specific metric(s) to collect via `jq` filters
+#
+# This process will output a new file containing the metrics at each
+# polling interval into the specified metrics directory.
 
 # Alluxio-related arguments
 host=""
@@ -24,7 +30,10 @@ time_step=2  # 2s is the default interval for `watch`
 watch=""
 jq_filter=""
 
-USAGE="Usage:
+USAGE="This script is used as a convenience method for monitoring &
+periodically capturing the HTTP JSON sink for Alluxio metrics.
+
+Usage:
 Required:
   -H hostname              the host of the metrics HTTP server
   -p port                  the port of the metrics HTTP server
