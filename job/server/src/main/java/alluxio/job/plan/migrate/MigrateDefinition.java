@@ -170,11 +170,10 @@ public final class MigrateDefinition
     AlluxioURI tmpUri = new AlluxioURI(tmpPath);
     boolean retry;
     boolean cleanUpRename = false;
-
     do {
       retry = false;
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-          FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         } catch (Throwable t) {
