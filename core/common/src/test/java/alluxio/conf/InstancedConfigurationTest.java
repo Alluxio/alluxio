@@ -831,7 +831,7 @@ public class InstancedConfigurationTest {
   @Test
   public void getNestedCredentialsDisplayValue() {
     PropertyKey nestedProperty =
-        PropertyKey.fromString("alluxio.master.journal.ufs.option.aws.secretKey");
+        PropertyKey.fromString("alluxio.master.journal.ufs.option.s3a.secretKey");
     String testValue = "12345";
     mConfiguration.set(nestedProperty, testValue);
 

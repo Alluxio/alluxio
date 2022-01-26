@@ -65,8 +65,8 @@ $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 为了配置 Alluxio 与 Amazon S3 交互，请在`conf/alluxio-site.properties`文件中向 Alluxio 配置添加 AWS 访问信息。以下命令将更新该配置。
 
 ```console
-$ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
+$ echo "s3a.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
+$ echo "s3a.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
 你必须将**`<AWS_ACCESS_KEY_ID>`**替换成你的 AWS access key id，将**`<AWS_SECRET_ACCESS_KEY>`**替换成你的 AWS secret access key。
