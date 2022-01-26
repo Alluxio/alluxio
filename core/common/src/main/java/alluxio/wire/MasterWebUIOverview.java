@@ -53,6 +53,8 @@ public final class MasterWebUIOverview implements Serializable {
   private String mUsedCapacity;
   private String mUniqueBlockCount;
   private String mVersion;
+  private String mMasterRole;
+  private String mLeaderId;
 
   /**
    * Creates a new instance of {@link MasterWebUIOverview}.
@@ -270,6 +272,24 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getReplicaBlockCount() {
     return mReplicaBlockCount;
+  }
+
+  /**
+   * Gets master role name.
+   *
+   * @return the master role name
+   */
+  public String getMasterRole() {
+    return mMasterRole;
+  }
+
+  /**
+   * Gets leader id.
+   *
+   * @return the leader id
+   */
+  public String getLeaderId() {
+    return mLeaderId;
   }
 
   /**
@@ -535,6 +555,28 @@ public final class MasterWebUIOverview implements Serializable {
     return this;
   }
 
+  /**
+   * Sets the master role name.
+   *
+   * @param roleName the master role name
+   * @return master role name
+   */
+  public MasterWebUIOverview setMasterRole(String roleName) {
+    mMasterRole = roleName;
+    return this;
+  }
+
+  /**
+   * Sets the leader id.
+   *
+   * @param leaderId the leader id
+   * @return leader id
+   */
+  public MasterWebUIOverview setLeaderId(String leaderId) {
+    mLeaderId = leaderId;
+    return this;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
@@ -551,6 +593,8 @@ public final class MasterWebUIOverview implements Serializable {
         .add("startTime", mStartTime).add("storageTierInfos", mStorageTierInfos)
         .add("totalPath", mTotalPath).add("uniqueBlockCount", mUniqueBlockCount)
         .add("uptime", mUptime).add("usedCapacity", mUsedCapacity).add("version", mVersion)
+        .add("leaderId", mLeaderId)
+        .add("masterRole", mMasterRole)
         .toString();
   }
 }
