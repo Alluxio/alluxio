@@ -12,6 +12,9 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -36,12 +39,15 @@ import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
+import alluxio.jnifuse.struct.Statvfs;
+import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -57,7 +63,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -978,6 +987,59 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public int symlink(String linkname, String path) {
     LOG.warn("Not supported symlink operation, linkname {}, path{}", linkname, path);
     return -ErrorCodes.ENOTSUP();
+  }
+
+  /**
+   * Gets the filesystem statistics.
+   *
+   * @param path The FS path of the directory
+   * @param stbuf Statistics of a filesystem
+   * @return 0 on success, a negative value on error
+   */
+  @Override
+  public int statfs(String path, Statvfs stbuf) {
+    return AlluxioFuseUtils.call(LOG, () -> statfsInternal(path, stbuf),
+        "fuse.statfs", "path=%s", path);
+  }
+
+  private int statfsInternal(String path, Statvfs stbuf) {
+    ClientContext ctx = ClientContext.create(mConf);
+
+    try (BlockMasterClient blockClient =
+             BlockMasterClient.Factory.create(
+                 MasterClientContext.newBuilder(ctx).build())) {
+      Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter =
+          new HashSet<>(Arrays.asList(
+              BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES,
+              BlockMasterInfo.BlockMasterInfoField.FREE_BYTES,
+              BlockMasterInfo.BlockMasterInfoField.USED_BYTES));
+      BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
+
+      // although user may set different block size for different files,
+      // small block size can result more accurate compute.
+      long blockSize = 4L * Constants.KB;
+      // fs block size
+      // The size in bytes of the minimum unit of allocation on this file system
+      stbuf.f_bsize.set(blockSize);
+      // The preferred length of I/O requests for files on this file system.
+      stbuf.f_frsize.set(blockSize);
+      // total data blocks in fs
+      stbuf.f_blocks.set(blockMasterInfo.getCapacityBytes() / blockSize);
+      // free blocks in fs
+      long freeBlocks = blockMasterInfo.getFreeBytes() / blockSize;
+      stbuf.f_bfree.set(freeBlocks);
+      stbuf.f_bavail.set(freeBlocks);
+      // inode info in fs
+      stbuf.f_files.set(UNKNOWN_INODES);
+      stbuf.f_ffree.set(UNKNOWN_INODES);
+      stbuf.f_favail.set(UNKNOWN_INODES);
+      // max file name length
+      stbuf.f_namemax.set(MAX_NAME_LENGTH);
+    } catch (IOException e) {
+      LOG.error("statfs({}) failed:", path, e);
+      return -ErrorCodes.EIO();
+    }
+    return 0;
   }
 
   /**

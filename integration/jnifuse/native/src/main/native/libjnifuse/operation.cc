@@ -437,6 +437,28 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
   return ret;
 }
 
+StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "statfsCallback", signature);
+}
+
+int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jobject statvfs = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct statvfs));
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, statvfs);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(statvfs);
+
+  return ret;
+}
+
 SymlinkOperation::SymlinkOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
   JNIEnv *env = this->fs->getEnv();
