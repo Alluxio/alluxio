@@ -778,6 +778,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_HDFS_IMPERSONATE_ENABLED =
+      new Builder(Name.UNDERFS_HDFS_IMPERSONATE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable the HdfsUnderFileSystem to impersonate as"
+              + " client user to access HDFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
       new Builder(Name.UNDERFS_HDFS_PREFIXES)
           .setDefaultValue("hdfs://,glusterfs:///")
@@ -6164,6 +6172,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_GCS_VERSION = "alluxio.underfs.gcs.version";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
+    public static final String UNDERFS_HDFS_IMPERSONATE_ENABLED =
+        "alluxio.underfs.hdfs.impersonate.enabled";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =

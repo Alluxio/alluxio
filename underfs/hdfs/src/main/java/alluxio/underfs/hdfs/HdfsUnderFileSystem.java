@@ -16,9 +16,13 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.UfsConstants;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -63,6 +67,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.net.URI;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -183,7 +188,14 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           // Set the class loader to ensure FileSystem implementations are
           // loaded by the same class loader to avoid ServerConfigurationError
           Thread.currentThread().setContextClassLoader(currentClassLoader);
-          return path.getFileSystem(hdfsConf);
+          if (UserGroupInformation.isSecurityEnabled() && !userKey.equals(HDFS_USER)) {
+            UserGroupInformation proxyUser = UserGroupInformation.createProxyUser(userKey,
+                UserGroupInformation.getLoginUser());
+            return proxyUser.doAs((PrivilegedExceptionAction<FileSystem>) () ->
+                path.getFileSystem(hdfsConf));
+          } else {
+            return path.getFileSystem(hdfsConf);
+          }
         } finally {
           Thread.currentThread().setContextClassLoader(previousClassLoader);
         }
@@ -827,8 +839,19 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    */
   private FileSystem getFs() throws IOException {
     try {
-      // TODO(gpang): handle different users
-      return mUserFs.get(HDFS_USER);
+      // handle different users
+      String userName = HDFS_USER;
+      boolean impersonate = mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_IMPERSONATE_ENABLED);
+      if (impersonate) {
+        try {
+          AlluxioConfiguration configuration =
+              new InstancedConfiguration(mUfsConf.copyProperties());
+          userName = AuthenticatedClientUser.getClientUser(configuration);
+        } catch (AccessControlException e) {
+          userName = HDFS_USER;
+        }
+      }
+      return mUserFs.get(userName);
     } catch (ExecutionException e) {
       throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
     }
