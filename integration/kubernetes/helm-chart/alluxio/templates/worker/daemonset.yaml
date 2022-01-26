@@ -293,9 +293,9 @@ spec:
             name: job-web
           volumeMounts:
             {{- if .Values.hub.enabled }}
-              - name: conf-volume
-                mountPath: /opt/alluxio/conf
-                readOnly: false
+            - name: conf-volume
+              mountPath: /opt/alluxio/conf
+              readOnly: false
             {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume

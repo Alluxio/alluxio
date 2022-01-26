@@ -22,7 +22,9 @@
 {{- /*         ALLUXIO_JAVA_OPTS             */}}
 {{- /* ===================================== */}}
 {{- $alluxioJavaOpts := list }}
-{{- $alluxioJavaOpts = print "-Dalluxio.hub.agent.rpc.hostname=${ALLUXIO_HUB_AGENT_RPC_HOSTNAME}" | append $alluxioJavaOpts }}
+{{- if .Values.hub.enabled }}
+  {{- $alluxioJavaOpts = print "-Dalluxio.hub.agent.rpc.hostname=${ALLUXIO_HUB_AGENT_RPC_HOSTNAME}" | append $alluxioJavaOpts }}
+{{- end }}
 {{- /* Specify master hostname if single master */}}
 {{- if $isSingleMaster }}
   {{- $alluxioJavaOpts = printf "-Dalluxio.master.hostname=%v-%v" $fullName $defaultMasterName | append $alluxioJavaOpts }}

@@ -69,6 +69,11 @@ function writeConf {
       echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
     fi
   done
+  LOG4J_FILE_TEMPLATE="/tmp/log4j.properties"
+  LOG4J_FILE="conf/log4j.properties"
+  if [ -f "$LOG4J_FILE_TEMPLATE" ] && [ ! -f "$LOG4J_FILE" ]; then
+    cp $LOG4J_FILE_TEMPLATE $LOG4J_FILE
+  fi
 }
 
 function formatMasterIfSpecified {
