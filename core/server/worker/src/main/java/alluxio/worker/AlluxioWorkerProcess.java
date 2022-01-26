@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricKey;
@@ -95,6 +94,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     try {
       mStartTimeMs = System.currentTimeMillis();
       mUfsManager = new WorkerUfsManager();
+      
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceLoader.load(WorkerFactory.class,
@@ -110,7 +110,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // registered at worker registry, so the maximum timeout here is set to the multiply of
       // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * 10 * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
+          (long) callables.size() * ServerConfiguration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
       // Setup web server
       mWebServer =
