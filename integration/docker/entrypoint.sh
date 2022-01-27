@@ -61,18 +61,26 @@ function printUsage {
 
 function writeConf {
   local IFS=$'\n' # split by line instead of space
-  for keyvaluepair in $(env); do
-    # split around the first "="
-    key=$(echo ${keyvaluepair} | cut -d= -f1)
-    value=$(echo ${keyvaluepair} | cut -d= -f2-)
-    if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
-      echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
-    fi
-  done
+  if [ ! -f "conf/alluxio-env.sh" ]; then
+    for keyvaluepair in $(env); do
+      # split around the first "="
+      key=$(echo ${keyvaluepair} | cut -d= -f1)
+      value=$(echo ${keyvaluepair} | cut -d= -f2-)
+      if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
+        echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
+      fi
+    done
+  fi
   LOG4J_FILE_TEMPLATE="/tmp/log4j.properties"
   LOG4J_FILE="conf/log4j.properties"
   if [ -f "$LOG4J_FILE_TEMPLATE" ] && [ ! -f "$LOG4J_FILE" ]; then
     cp $LOG4J_FILE_TEMPLATE $LOG4J_FILE
+  fi
+  if [[ ! -z "${ALLUXIO_LOG4J_PROPERTIES}" ]]; then
+    echo "${ALLUXIO_LOG4J_PROPERTIES}" > $LOG4J_FILE
+  fi
+  if [[ ! -z "${ALLUXIO_SITE_PROPERTIES}" ]]; then
+    echo "${ALLUXIO_SITE_PROPERTIES}" > conf/alluxio-site.properties
   fi
 }
 
