@@ -3123,7 +3123,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_STARTUP_TIMEOUT =
       new Builder(Name.WORKER_STARTUP_TIMEOUT)
-          .setDefaultValue("60sec")
+          .setDefaultValue("10min")
           .setDescription("Maximum time to wait for worker startup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
@@ -6785,8 +6785,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_RPC_EXECUTOR_FJP_ASYNC =
         "alluxio.worker.rpc.executor.fjp.async";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
-    public static final String WORKER_STARTUP_TIMEOUT =
-        "alluxio.worker.startup.timeout";
+    public static final String WORKER_STARTUP_TIMEOUT = "alluxio.worker.startup.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =
         "alluxio.worker.storage.checker.enabled";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =

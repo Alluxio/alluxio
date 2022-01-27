@@ -94,7 +94,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     try {
       mStartTimeMs = System.currentTimeMillis();
       mUfsManager = new WorkerUfsManager();
-      
       mRegistry = new WorkerRegistry();
       List<Callable<Void>> callables = new ArrayList<>();
       for (final WorkerFactory factory : ServiceLoader.load(WorkerFactory.class,
@@ -107,8 +106,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         });
       }
       // In the worst case, each worker factory is blocked waiting for the dependent servers to be
-      // registered at worker registry, so the maximum timeout here is set to the multiply of
-      // the number of factories by the default timeout of getting a worker from the registry.
+      // registered at worker registry. The maximum timeout here is set by configuration
+      // alluxio.worker.startup.timeout
       CommonUtils.invokeAll(callables,
           (long) callables.size() * ServerConfiguration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
