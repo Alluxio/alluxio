@@ -253,7 +253,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
-      URIStatus status = null;
+      URIStatus status;
       // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
           && mFuseShell.isSpecialCommand(uri)) {
@@ -264,22 +264,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       long size = status.getLength();
       if (!status.isCompleted()) {
-        if (mCreateFileEntries.contains(PATH_INDEX, path)) {
-          // Alluxio master will not update file length until file is completed
-          // get file length from the current output stream
-          CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
-          if (ce != null) {
-            FileOutStream os = ce.getOut();
-            size = os.getBytesWritten();
-          }
-        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          // Always block waiting for file to be completed except when the file is writing
-          // We do not want to block the writing process
-          LOG.error("File {} is not completed", path);
-        } else {
-          // Update the file status after waiting
-          status = mFileSystem.getStatus(uri);
-          size = status.getLength();
+        CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
+        // Alluxio master will not update file length until file is completed
+        // get file length from the current output stream
+        if (ce != null) {
+          FileOutStream os = ce.getOut();
+          size = os.getBytesWritten();
         }
       }
       stat.st_size.set(size);
@@ -401,7 +391,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       // wait for file to complete in read or read_write mode
       if (openAction == OpenAction.READ_ONLY
           || openAction == OpenAction.READ_WRITE) {
-        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri, 1000)) {
           LOG.error(String.format("Cannot open incomplete file %s. "
               + "Failed to wait for file completed with flag 0x%x",
               path, flags));

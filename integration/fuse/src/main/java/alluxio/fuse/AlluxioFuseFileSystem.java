@@ -389,16 +389,20 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     try {
       URIStatus status = mFileSystem.getStatus(turi);
+      long size = status.getLength();
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process
-        if (!mOpenFiles.contains(PATH_INDEX, path)
-            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, turi)) {
-          LOG.error("File {} is not completed", path);
+        OpenFileEntry<FileInStream, FileOutStream> openFileEntry =
+            mOpenFiles.getFirstByField(PATH_INDEX, path);
+        if (openFileEntry != null) {
+          FileOutStream os = openFileEntry.getOut();
+          if (os != null) {
+            size = os.getBytesWritten();
+          }
         }
-        status = mFileSystem.getStatus(turi);
       }
-      long size = status.getLength();
+
       stat.st_size.set(size);
 
       // Sets block number to fulfill du command needs
@@ -549,7 +553,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
       try {
         is = mFileSystem.openFile(uri);
       } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri, 1000)) {
           is = mFileSystem.openFile(uri);
         } else {
           throw e;
