@@ -5408,6 +5408,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_WORKAROUND_LIST =
+      new Builder(Name.FUSE_WORKAROUND_LIST)
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   //
   // Standalone FUSE process related properties
   //
@@ -7134,6 +7140,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.user.group.translation.enabled";
     public static final String FUSE_SPECIAL_COMMAND_ENABLED =
         "alluxio.fuse.special.command.enabled";
+    public static final String FUSE_WORKAROUND_LIST =
+        "alluxio.fuse.workaround.list";
     //
     // Standalone FUSE process related properties
     //
