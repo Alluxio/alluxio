@@ -101,7 +101,8 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
 
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(new RaftStorageImpl(raftDir,
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -144,7 +145,8 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(new RaftStorageImpl(raftDir,
-        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();

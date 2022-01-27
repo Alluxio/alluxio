@@ -62,7 +62,7 @@ public class SnapshotReplicationManagerTest {
       new ConfigurationRule(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE,
           "32KB", ServerConfiguration.global());
 
-  private WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
+  private final WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
   private SnapshotReplicationManager mLeaderSnapshotManager;
   private SnapshotReplicationManager mFollowerSnapshotManager;
   private RaftJournalSystem mLeader;
@@ -120,7 +120,8 @@ public class SnapshotReplicationManagerTest {
 
   private SimpleStateMachineStorage getSimpleStateMachineStorage() throws IOException {
     RaftStorage rs = new RaftStorageImpl(mFolder.newFolder(CommonUtils.randomAlphaNumString(6)),
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault());
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault(),
+        RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
     SimpleStateMachineStorage snapshotStore = new SimpleStateMachineStorage();
     snapshotStore.init(rs);
     return snapshotStore;
