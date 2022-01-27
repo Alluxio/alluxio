@@ -229,8 +229,11 @@ public class UfsStatusCache {
       while (true) {
         try {
           Collection<UfsStatus> statuses = prefetchJob.get(100, TimeUnit.MILLISECONDS);
-          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.inc(statuses.size());
-          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.inc();
+          // TODO(jiacheng): why would this return null?
+          if (statuses != null) {
+            DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.inc(statuses.size());
+            DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.inc();
+          }
           return statuses;
         } catch (TimeoutException e) {
           if (rpcContext != null) {

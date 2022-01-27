@@ -101,6 +101,9 @@ public final class MasterBenchParameters extends FileSystemParameters {
       description = "If true, skip the prepare.")
   public boolean mSkipPrepare = false;
 
+  @Parameter(names = {"--force-sync"},
+          description = "If true, force sync on every operation")
+  public boolean mForceSync = false;
   /**
    * Converts from String to Operation instance.
    */

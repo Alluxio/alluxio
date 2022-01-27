@@ -13,6 +13,7 @@ package alluxio.stress.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -20,6 +21,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -631,13 +635,16 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           mFs.getStatus(new AlluxioURI(path.toString()));
           break;
         case LIST_DIR:
-          List<alluxio.client.file.URIStatus> files
-              = mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()));
-          if (files.size() != mParameters.mFixedCount) {
-            throw new IOException(String
-                .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
-                    mParameters.mFixedCount, files.size()));
+          ListStatusPOptions.Builder optionBuilder = ListStatusPOptions.newBuilder().setLoadMetadataOnly(true);
+          if (mParameters.mForceSync) {
+            FileSystemMasterCommonPOptions forceLoad =
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+            optionBuilder.setRecursive(true).setCommonOptions(forceLoad).setLoadMetadataType(LoadMetadataPType.ALWAYS);
           }
+          // When loadMetadataOnly=true, no results are returned
+          // We also do not want to keep a huge list at the client side
+          mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()),
+            optionBuilder.build());
           break;
         case LIST_DIR_LOCATED:
           throw new UnsupportedOperationException("LIST_DIR_LOCATED is not supported!");
