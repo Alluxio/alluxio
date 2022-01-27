@@ -70,8 +70,7 @@ public class MasterBenchPlan extends BenchPlan {
     if (mOperation.equals("MasterComprehensiveFileTestPlan")) {
       String[] operations = {"CreateFile", "ListDir", "ListDirLocated", "GetBlockLocations",
           "GetFileStatus", "OpenFile", "DeleteFile"};
-      for(String op : operations)
-      {
+      for (String op : operations) {
         commands.add(new String[] {
             "--operation", op,
             "--base", mParameter.mBasePath,
