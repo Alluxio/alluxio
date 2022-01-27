@@ -29,7 +29,6 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PrimarySelectorClient extends AbstractPrimarySelector
-    implements Closeable, LeaderSelectorListener {
+    implements LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(PrimarySelectorClient.class);
 
   /** A constant session Id for when selector is not a leader. */
@@ -93,16 +92,11 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   }
 
   @Override
-  public synchronized void close() throws IOException {
+  public synchronized void stop() throws IOException {
     if (mLifecycleState == LifecycleState.STARTED) {
       mLeaderSelector.close();
     }
     mLifecycleState = LifecycleState.STOPPED;
-  }
-
-  @Override
-  public void stop() throws IOException {
-    close();
   }
 
   /**
