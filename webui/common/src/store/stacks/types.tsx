@@ -9,11 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export { default as App } from './App/App';
+import { AxiosResponse } from 'axios';
 
-export { default as Overview } from './pages/Overview/Overview';
-export { default as WorkerLogs } from './pages/WorkerLogs/WorkerLogs';
-export { default as Metrics } from './pages/Metrics/Metrics';
-export { default as BlockInfo } from './pages/BlockInfo/BlockInfo';
-export { default as Stacks } from './pages/WorkerStacks/WorkerStacks';
-export { default as WorkerConfiguration } from './pages/WorkerConfiguration/WorkerConfiguration';
+export enum StacksActionTypes {
+  FETCH_REQUEST = '@@stacks/FETCH_REQUEST',
+  FETCH_SUCCESS = '@@stacks/FETCH_SUCCESS',
+  FETCH_ERROR = '@@stacks/FETCH_ERROR',
+}
+
+export interface IStacksState {
+  readonly data: string;
+  readonly errors?: AxiosResponse;
+  readonly loading: boolean;
+  readonly response?: AxiosResponse;
+}

@@ -392,6 +392,8 @@ alluxio.web.refresh.interval:
   'The amount of time to await before refreshing the Web UI if it is set to auto refresh.'
 alluxio.web.threads:
   'How many threads to serve Alluxio web UI.'
+alluxio.web.threaddump.log.enabled:
+  'Whether thread information is also printed to the log when the thread dump api is accessed'
 alluxio.web.ui.enabled:
   'Whether the master/worker will have Web UI enabled. If set to false, the master/worker will not have Web UI page, but the RESTful endpoints and metrics will still be available.'
 alluxio.work.dir:
