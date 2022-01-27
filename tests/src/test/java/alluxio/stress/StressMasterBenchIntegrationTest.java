@@ -192,32 +192,8 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--write-type", "MUST_CACHE",
     });
 
-    String output4 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateFile",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ALL",
-    });
-
-    String output5 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateDir",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ALL",
-    });
-
     assertTrue(output1.contains("\"errors\" : { },"));
     assertTrue(output2.contains("\"errors\" : { },"));
     assertTrue(output3.contains("\"errors\" : { },"));
-    assertTrue(output4.contains("\"errors\" : { },"));
-    assertTrue(output5.contains("\"errors\" : { },"));
   }
 }
