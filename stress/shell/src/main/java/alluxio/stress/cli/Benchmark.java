@@ -20,10 +20,12 @@ import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
+import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.JsonSerializable;
 import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
@@ -91,6 +93,18 @@ public abstract class Benchmark<T extends TaskResult> {
    */
   public void cleanup() throws Exception {}
 
+  /**
+   * run the tasks according to the plan.
+   *
+   * @param args arguments
+   * @return the Summary of the result
+   * */
+  public Summary runMultipleTask(String[] args) throws Exception {
+    String result = run(args);
+    Summary s = (Summary) JsonSerializable.fromJson(result);
+    return s;
+  }
+
   protected static void mainInternal(String[] args, Benchmark benchmark) {
     int exitCode = 0;
     try {
@@ -152,32 +166,6 @@ public abstract class Benchmark<T extends TaskResult> {
       throw e;
     }
 
-    // if the test will execute multiple tasks.
-    String multiTask = checkIfMultipleTask();
-    if (multiTask != null && multiTask.equals("WriteType"))
-    {
-      String result = "";
-      for (int i = 0; i < args.length; i++)
-      {
-        if (args[i].equals("--write-type"))
-        {
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "MUST_CACHE";
-          result = "WriteType : Must_Cache \n" + run(args) + "\n";
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "CACHE_THROUGH";
-          result = result + "WriteType : Cache_Through \n" + run(args) + "\n";
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "ASYNC_THROUGH";
-          result = result + "WriteType : Async_Through \n" + run(args) + "\n";
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "THROUGH";
-          result = result + "WriteType : Through \n" + run(args);
-          return result;
-        }
-      }
-    }
-
     // prepare the benchmark.
     prepare();
 
@@ -194,7 +182,7 @@ public abstract class Benchmark<T extends TaskResult> {
       long jobId =
           JobGrpcClientUtils.run(generateJobConfig(args), 0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
-      return jobInfo.getResult().toString();
+      return  jobInfo.getResult().toString();
     }
 
     // run locally

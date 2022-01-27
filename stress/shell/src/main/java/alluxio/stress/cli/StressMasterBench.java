@@ -177,8 +177,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
 
-    if (!mParameters.mWriteType.isEmpty())
-    {
+    if (!mParameters.mWriteType.isEmpty()) {
       hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
     }
 
