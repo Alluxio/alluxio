@@ -158,7 +158,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
   }
 
   @Test
-  public void writeType() throws Exception {
+  public void writeTypeParameterTest() throws Exception {
     String output1 = new StressMasterBench().run(new String[] {
         "--in-process",
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",

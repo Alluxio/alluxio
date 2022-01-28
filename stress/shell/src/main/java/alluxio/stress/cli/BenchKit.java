@@ -12,12 +12,12 @@
 package alluxio.stress.cli;
 
 /**
- * Base class for Bench plan.
+ * Base class for Bench test kit.
  */
-public abstract class BenchPlan {
+public abstract class BenchKit {
 
   /**
-   * Run the StressBench plan.
+   * Run the StressBench test kit.
    * @param args command-line arguments
    */
   public abstract void run(String[] args);

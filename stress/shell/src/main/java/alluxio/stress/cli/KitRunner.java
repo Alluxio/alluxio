@@ -16,24 +16,24 @@ import com.google.common.collect.ImmutableSet;
 /**
  * A tool to run multiple tasks for StressBench.
  */
-public class PlanRunner {
-  private static final ImmutableSet<String> MASTER_PLAN_NAMES = ImmutableSet.of(
-      "MasterOpenFilePlan", "MasterGetBlockLocationsPlan",
-      "MasterGetFileStatusPlan", "MasterRenameFilePlan", "MasterListDirPlan",
-      "MasterDeleteFilePlan", "MasterComprehensiveFileTestPlan");
+public class KitRunner {
+  private static final ImmutableSet<String> MASTER_KIT_NAMES = ImmutableSet.of(
+      "MasterOpenFileKit", "MasterGetBlockLocationsKit",
+      "MasterGetFileStatusKit", "MasterRenameFileKit", "MasterListDirKit",
+      "MasterDeleteFileKit", "MasterComprehensiveFileTestKit");
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    BenchPlan plan;
-    if (MASTER_PLAN_NAMES.contains(args[0])) {
-      plan = new MasterBenchPlan();
+    BenchKit kit;
+    if (MASTER_KIT_NAMES.contains(args[0])) {
+      kit = new MasterBenchKit();
     }
     else {
-      System.out.println("Please input a valid plan");
+      System.out.println("Please input a valid test kit");
       return;
     }
-    plan.run(args);
+    kit.run(args);
   }
 }

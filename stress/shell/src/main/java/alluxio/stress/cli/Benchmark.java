@@ -88,7 +88,7 @@ public abstract class Benchmark<T extends TaskResult> {
   public void cleanup() throws Exception {}
 
   /**
-   * run the tasks according to the plan.
+   * run the tasks according to the test kit.
    *
    * @param args arguments
    * @return the Summary of the result

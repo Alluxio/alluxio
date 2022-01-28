@@ -12,7 +12,7 @@
 package alluxio.stress.cli;
 
 import alluxio.stress.Summary;
-import alluxio.stress.master.MasterBenchPlanParameters;
+import alluxio.stress.master.MasterBenchKitParameters;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParametersDelegate;
@@ -26,8 +26,8 @@ import java.util.List;
 /**
  * Multiple tasks runner for Master StressBench.
  */
-public class MasterBenchPlan extends BenchPlan {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterBenchPlan.class);
+public class MasterBenchKit extends BenchKit {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterBenchKit.class);
   private int mTargetThroughput = 1000000;
   private String mWarmUp = "0s";
   private String mDuration = "21600s";
@@ -36,7 +36,7 @@ public class MasterBenchPlan extends BenchPlan {
   private String mOperation;
 
   @ParametersDelegate
-  private MasterBenchPlanParameters mParameter = new MasterBenchPlanParameters();
+  private MasterBenchKitParameters mParameter = new MasterBenchKitParameters();
 
   @Override
   public void run(String[] args) {
@@ -67,7 +67,7 @@ public class MasterBenchPlan extends BenchPlan {
   private List<String[]> getCommand() {
     List<String[]> commands = new ArrayList<>();
 
-    if (mOperation.equals("MasterComprehensiveFileTestPlan")) {
+    if (mOperation.equals("MasterComprehensiveFileTestKit")) {
       String[] operations = {"CreateFile", "ListDir", "ListDirLocated", "GetBlockLocations",
           "GetFileStatus", "OpenFile", "DeleteFile"};
       for (String op : operations) {
@@ -83,8 +83,7 @@ public class MasterBenchPlan extends BenchPlan {
             mCluster,
         });
       }
-    }
-    else {
+    } else {
       String[] operations = {"CreateFile", "ListDir", "RenameFile", "ListDirLocated",
           "GetBlockLocations", "GetFileStatus", "OpenFile", "DeleteFile"};
       commands.add(new String[] {

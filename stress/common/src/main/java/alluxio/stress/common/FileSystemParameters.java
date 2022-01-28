@@ -12,6 +12,7 @@
 package alluxio.stress.common;
 
 import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.IStringConverter;
@@ -69,8 +70,8 @@ public class FileSystemParameters extends Parameters {
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override
     public String convert(String value) {
-      if (value.equals("MUST_CACHE")  || value.equals("CACHE_THROUGH")  || value.equals("THROUGH")
-          || value.equals("ASYNC_THROUGH")) {
+      WriteType type = WriteType.valueOf(value);
+      if (type != WriteType.NONE) {
         return value;
       }
       throw new IllegalArgumentException("No constant with text " + value + " found");
