@@ -90,16 +90,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
-  public String checkIfMultipleTask()
-  {
-    if (mParameters.mWriteType.equals("ALL"))
-    {
-      return "WriteType";
-    }
-    return null;
-  }
-
-  @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
         "A benchmarking tool to measure the master performance of Alluxio",
@@ -126,8 +116,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       Configuration hdfsConf = new Configuration();
       // force delete, create dirs through to UFS
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      if (!mParameters.mWriteType.isEmpty())
-      {
+      if (!mParameters.mWriteType.isEmpty()) {
         hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       }
       // more threads for parallel deletes for cleanup

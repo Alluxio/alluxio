@@ -74,12 +74,6 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
   }
 
   @Override
-  public String checkIfMultipleTask()
-  {
-    return null;
-  }
-
-  @Override
   public void prepare() throws Exception {
     mFilePath = new Path(mParameters.mBasePath, "data");
 
@@ -140,7 +134,6 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
-
     mCachedFs = new FileSystem[mParameters.mClients];
     for (int i = 0; i < mCachedFs.length; i++) {
       mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);

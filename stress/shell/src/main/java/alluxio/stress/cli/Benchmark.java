@@ -83,12 +83,6 @@ public abstract class Benchmark<T extends TaskResult> {
   public abstract void prepare() throws Exception;
 
   /**
-   * Check if there are multiple task to run.
-   * @return return the type of multiple task, if it is not multiple task, return null
-   */
-  public abstract String checkIfMultipleTask();
-
-  /**
    * Perform post-run cleanups.
    */
   public void cleanup() throws Exception {}
@@ -182,7 +176,7 @@ public abstract class Benchmark<T extends TaskResult> {
       long jobId =
           JobGrpcClientUtils.run(generateJobConfig(args), 0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
-      return  jobInfo.getResult().toString();
+      return jobInfo.getResult().toString();
     }
 
     // run locally

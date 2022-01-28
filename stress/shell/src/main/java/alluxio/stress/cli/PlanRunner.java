@@ -11,38 +11,29 @@
 
 package alluxio.stress.cli;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A tool to run multiple tasks for StressBench.
  */
 public class PlanRunner {
-  private static String[] sMasterPlan = {"MasterOpenFilePlan", "MasterGetBlockLocationsPlan",
+  private static final ImmutableSet<String> MASTER_PLAN_NAMES = ImmutableSet.of(
+      "MasterOpenFilePlan", "MasterGetBlockLocationsPlan",
       "MasterGetFileStatusPlan", "MasterRenameFilePlan", "MasterListDirPlan",
-      "MasterDeleteFilePlan", "MasterComprehensiveFileTestPlan"};
+      "MasterDeleteFilePlan", "MasterComprehensiveFileTestPlan");
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    int type = getPlanType(args[0]);
     BenchPlan plan;
-    switch (type) {
-      case 1 :
-        plan = new MasterBenchPlan();
-        break;
-      default:
-        System.out.println("Please input a valid plan");
-        return;
+    if (MASTER_PLAN_NAMES.contains(args[0])) {
+      plan = new MasterBenchPlan();
+    }
+    else {
+      System.out.println("Please input a valid plan");
+      return;
     }
     plan.run(args);
-  }
-
-  private static int getPlanType(String plan) {
-    HashMap<String, Integer> map = new HashMap<>();
-    for (String s : sMasterPlan) {
-      map.put(s, 1);
-    }
-    return map.getOrDefault(plan, 0);
   }
 }

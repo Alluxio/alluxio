@@ -87,12 +87,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   }
 
   @Override
-  public String checkIfMultipleTask()
-  {
-    return null;
-  }
-
-  @Override
   public void prepare() throws Exception {
     mFsContext =
         FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
