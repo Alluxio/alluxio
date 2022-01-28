@@ -149,10 +149,11 @@ public class SnapshotReplicationManager {
     mSnapshotCandidates = new PriorityQueue<>((pair1, pair2) -> {
       SnapshotMetadata first = pair1.getFirst();
       SnapshotMetadata second = pair2.getFirst();
+      // deliberately reversing the compare order to have bigger numbers rise to the top
       if (first.getSnapshotTerm() == second.getSnapshotTerm()) {
-        return Long.compare(first.getSnapshotIndex(), second.getSnapshotIndex());
+        return Long.compare(second.getSnapshotIndex(), first.getSnapshotIndex());
       }
-      return Long.compare(first.getSnapshotTerm(), second.getSnapshotTerm());
+      return Long.compare(second.getSnapshotTerm(), first.getSnapshotTerm());
     });
   }
 
@@ -436,7 +437,7 @@ public class SnapshotReplicationManager {
   /**
    * Finds a follower with latest snapshot and sends a request to download it.
    */
-  private void requestSnapshotFromFollowers() {
+  private synchronized void requestSnapshotFromFollowers() {
     DownloadState state = mDownloadState.get();
     switch (state) {
       case IDLE:
@@ -469,6 +470,7 @@ public class SnapshotReplicationManager {
               .setSnapshotTerm(latestSnapshot.getTerm())
               .setSnapshotIndex(latestSnapshot.getIndex())
               .build();
+      // build SnapshotInfoRequests
       Map<RaftPeerId, CompletableFuture<RaftClientReply>> jobs = mJournalSystem
           .getQuorumServerInfoList()
           .stream()
@@ -479,9 +481,9 @@ public class SnapshotReplicationManager {
           .filter(peerId -> !peerId.equals(mJournalSystem.getLocalPeerId()))
           .collect(Collectors.toMap(Function.identity(),
               peerId -> mJournalSystem.sendMessageAsync(peerId, toMessage(JournalQueryRequest
-                  .newBuilder()
-                  .setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
+                  .newBuilder().setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
                   .build()))));
+      // query all secondary masters for their snapshots
       for (Map.Entry<RaftPeerId, CompletableFuture<RaftClientReply>> job : jobs.entrySet()) {
         RaftPeerId peerId = job.getKey();
         try {
@@ -529,7 +531,7 @@ public class SnapshotReplicationManager {
         }
         return true;
       } catch (Exception e) {
-        LOG.error("Failed to request snapshot data from {}", mSnapshotCandidates, e);
+        LOG.error("Failed to request snapshot data from {}: {}", peerId, e);
       }
     }
     // return failure if there are no more candidates to ask snapshot from
