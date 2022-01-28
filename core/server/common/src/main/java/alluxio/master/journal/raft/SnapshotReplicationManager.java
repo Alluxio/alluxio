@@ -264,16 +264,14 @@ public class SnapshotReplicationManager {
    * if no snapshot is installed.
    */
   public long maybeCopySnapshotFromFollower() {
-    switch (mDownloadState.get()) {
-      case DOWNLOADED:
-        return installDownloadedSnapshot();
-      case REQUEST_DATA:
-      case IDLE:
-        CompletableFuture.runAsync(this::requestSnapshotFromFollowers);
-        // fallthrough on purpose
-      default:
-        return RaftLog.INVALID_LOG_INDEX;
+    if (mDownloadState.get() == DownloadState.DOWNLOADED) {
+      return installDownloadedSnapshot();
     }
+    if (mDownloadState.get() == DownloadState.REQUEST_DATA
+        || mDownloadState.get() == DownloadState.IDLE) {
+      CompletableFuture.runAsync(this::requestSnapshotFromFollowers);
+    }
+    return RaftLog.INVALID_LOG_INDEX;
   }
 
   /**
@@ -438,26 +436,20 @@ public class SnapshotReplicationManager {
    * Finds a follower with latest snapshot and sends a request to download it.
    */
   private synchronized void requestSnapshotFromFollowers() {
-    DownloadState state = mDownloadState.get();
-    switch (state) {
-      case IDLE:
-        if (!transitionState(DownloadState.IDLE, DownloadState.REQUEST_INFO)) {
-          return;
-        }
-        if (!requestInfo()) {
-          transitionState(DownloadState.REQUEST_INFO, DownloadState.IDLE);
-          return;
-        }
-        transitionState(DownloadState.REQUEST_INFO, DownloadState.REQUEST_DATA);
-        // this fallthrough is on purpose.
-      case REQUEST_DATA:
-        if (!requestData()) {
-          transitionState(DownloadState.REQUEST_DATA, DownloadState.IDLE);
-        }
-        break;
-      default:
-        LOG.warn("Requested snapshot from followers from state {}. Only request snapshots in "
-            + "states {} and {}", state, DownloadState.IDLE, DownloadState.REQUEST_DATA);
+    if (mDownloadState.get() == DownloadState.IDLE) {
+      if (!transitionState(DownloadState.IDLE, DownloadState.REQUEST_INFO)) {
+        return;
+      }
+      if (!requestInfo()) {
+        transitionState(DownloadState.REQUEST_INFO, DownloadState.IDLE);
+        return;
+      }
+      transitionState(DownloadState.REQUEST_INFO, DownloadState.REQUEST_DATA);
+    }
+    if (mDownloadState.get() == DownloadState.REQUEST_DATA) {
+      if (!requestData()) {
+        transitionState(DownloadState.REQUEST_DATA, DownloadState.IDLE);
+      }
     }
   }
 
