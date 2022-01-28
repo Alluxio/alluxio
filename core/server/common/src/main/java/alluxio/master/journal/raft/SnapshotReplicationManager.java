@@ -46,7 +46,6 @@ import io.grpc.stub.StreamObserver;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftPeerId;
-import org.apache.ratis.protocol.exceptions.RaftException;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.server.storage.FileInfo;
@@ -267,8 +266,7 @@ public class SnapshotReplicationManager {
     if (mDownloadState.get() == DownloadState.DOWNLOADED) {
       return installDownloadedSnapshot();
     }
-    if (mDownloadState.get() == DownloadState.REQUEST_DATA
-        || mDownloadState.get() == DownloadState.IDLE) {
+    if (mDownloadState.get() == DownloadState.IDLE) {
       CompletableFuture.runAsync(this::requestSnapshotFromFollowers);
     }
     return RaftLog.INVALID_LOG_INDEX;
@@ -299,6 +297,7 @@ public class SnapshotReplicationManager {
         }).exceptionally(e -> {
           LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
           transitionState(DownloadState.STREAM_DATA, DownloadState.REQUEST_DATA);
+          CompletableFuture.runAsync(this::requestSnapshotFromFollowers);
           return null;
         });
     return observer;
@@ -435,7 +434,7 @@ public class SnapshotReplicationManager {
   /**
    * Finds a follower with latest snapshot and sends a request to download it.
    */
-  private synchronized void requestSnapshotFromFollowers() {
+  private void requestSnapshotFromFollowers() {
     if (mDownloadState.get() == DownloadState.IDLE) {
       if (!transitionState(DownloadState.IDLE, DownloadState.REQUEST_INFO)) {
         return;
@@ -487,7 +486,7 @@ public class SnapshotReplicationManager {
               reply.getMessage().getContent().asReadOnlyByteBuffer());
           LOG.debug("Received snapshot info from follower {} - {}", peerId, response);
           if (!response.hasSnapshotInfoResponse()) {
-            throw new RaftException("Invalid response for GetSnapshotInfoRequest " + response);
+            throw new IOException("Invalid response for GetSnapshotInfoRequest " + response);
           }
           SnapshotMetadata latest = response.getSnapshotInfoResponse().getLatest();
           if (snapshotMetadata == null
@@ -523,7 +522,7 @@ public class SnapshotReplicationManager {
         }
         return true;
       } catch (Exception e) {
-        LOG.error("Failed to request snapshot data from {}: {}", peerId, e);
+        LOG.warn("Failed to request snapshot data from {}: {}", peerId, e);
       }
     }
     // return failure if there are no more candidates to ask snapshot from
