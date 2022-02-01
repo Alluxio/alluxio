@@ -104,3 +104,5 @@ Worker.CapacityTotal:
   'Total capacity (in bytes) on all tiers of a specific Alluxio worker'
 Worker.CapacityUsed:
   'Total used bytes on all tiers of a specific Alluxio worker'
+Worker.RpcQueueLength:
+  'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'

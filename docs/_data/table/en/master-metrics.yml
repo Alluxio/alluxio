@@ -4,6 +4,16 @@ Master.AbsentCacheMisses:
   'Number of cache misses on the absent cache'
 Master.AbsentCacheSize:
   'Size of the absent cache'
+Master.AsyncPersistCancel:
+  'The number of cancelled AsyncPersist operations'
+Master.AsyncPersistFail:
+  'The number of failed AsyncPersist operations'
+Master.AsyncPersistFileCount:
+  'The number of files created by AsyncPersist operations'
+Master.AsyncPersistFileSize:
+  'The total size of files created by AsyncPersist operations'
+Master.AsyncPersistSuccess:
+  'The number of successful AsyncPersist operations'
 Master.AuditLogEntriesSize:
   'The size of the audit log entries blocking queue'
 Master.BlockHeapSize:
@@ -94,6 +104,18 @@ Master.JobCount:
   'The number of all status job'
 Master.JobCreated:
   'The number of created status job'
+Master.JobDistributedLoadCancel:
+  'The number of cancelled DistributedLoad operations'
+Master.JobDistributedLoadFail:
+  'The number of failed DistributedLoad operations'
+Master.JobDistributedLoadFileCount:
+  'The number of files by DistributedLoad operations'
+Master.JobDistributedLoadFileSizes:
+  'The total file size by DistributedLoad operations'
+Master.JobDistributedLoadRate:
+  'The average DistributedLoad loading rate'
+Master.JobDistributedLoadSuccess:
+  'The number of successful DistributedLoad operations'
 Master.JobFailed:
   'The number of failed status job'
 Master.JobRunning:
@@ -140,6 +162,16 @@ Master.LostBlockCount:
   'Count of lost unique blocks'
 Master.LostFileCount:
   'Count of lost files. This number is cached and may not be in sync with Master.LostBlockCount'
+Master.MigrateJobCancel:
+  'The number of cancelled MigrateJob operations'
+Master.MigrateJobFail:
+  'The number of failed MigrateJob operations'
+Master.MigrateJobFileCount:
+  'The number of MigrateJob files'
+Master.MigrateJobFileSize:
+  'The total size of MigrateJob files'
+Master.MigrateJobSuccess:
+  'The number of successful MigrateJob operations'
 Master.MountOps:
   'Total number of Mount operations'
 Master.NewBlocksGot:
@@ -156,6 +188,8 @@ Master.RenamePathOps:
   'Total number of Rename operations'
 Master.ReplicaMgmtActiveJobSize:
   'Number of active block replication/eviction jobs. These jobs are created by the master to maintain the block replica factor. The value is an estimate with lag. '
+Master.RoleId:
+  'Display master role id'
 Master.RpcQueueLength:
   'Length of the master rpc queue. Use this metric to monitor the RPC pressure on master.'
 Master.SetAclOps:
