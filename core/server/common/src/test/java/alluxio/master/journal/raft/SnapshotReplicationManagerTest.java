@@ -148,9 +148,14 @@ public class SnapshotReplicationManagerTest {
   }
 
   private void validateSnapshotFile(SimpleStateMachineStorage storage) throws IOException {
+    validateSnapshotFile(storage, 0, 1);
+  }
+
+  private void validateSnapshotFile(SimpleStateMachineStorage storage, long term, long index)
+      throws IOException {
     SingleFileSnapshotInfo snapshot = storage.getLatestSnapshot();
     Assert.assertNotNull(snapshot);
-    Assert.assertEquals(TermIndex.valueOf(0, 1), snapshot.getTermIndex());
+    Assert.assertEquals(TermIndex.valueOf(term, index), snapshot.getTermIndex());
     byte[] received = FileUtils.readFileToByteArray(snapshot.getFiles().get(0).getPath().toFile());
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SNAPSHOT_SIZE, received));
   }
@@ -195,29 +200,21 @@ public class SnapshotReplicationManagerTest {
   public void selectDifferentFollowerForSnapshot() throws Exception {
     SimpleStateMachineStorage secondFollowerStore = getSimpleStateMachineStorage();
     RaftJournalSystem secondFollower = Mockito.mock(RaftJournalSystem.class);
-    SnapshotReplicationManager secondFollowerReplicationManager =
-        new SnapshotReplicationManager(secondFollower, secondFollowerStore, mClient);
+    SnapshotReplicationManager secondFollowerReplicationManager = PowerMockito.spy(
+        new SnapshotReplicationManager(secondFollower, secondFollowerStore, mClient));
 
     createSnapshotFile(mFollowerStore);
     createSnapshotFile(secondFollowerStore, 0, 2); // preferable to the default 0, 1 snapshot
 
-    SnapshotUploader<UploadSnapshotPRequest, UploadSnapshotPResponse> spy =
-        PowerMockito.spy(SnapshotUploader.forFollower(secondFollowerStore,
-            secondFollowerStore.getLatestSnapshot()));
-    Mockito.doNothing().when(spy).onCompleted();
-
-    Mockito.when(mLeaderSnapshotManager.receiveSnapshotFromFollower(spy))
-        .thenAnswer(mock -> {
-          StreamObserver<UploadSnapshotPResponse> streamObserver =
-              mock.getArgument(0, StreamObserver.class);
-          SnapshotDownloader<UploadSnapshotPResponse, UploadSnapshotPRequest> dummy =
-              PowerMockito.spy(
-                  SnapshotDownloader.forLeader(mLeaderStore, streamObserver, "dummy"));
-          PowerMockito.doThrow(new IOException("download failed")).when(dummy, "onNextInternal",
-              any());
-          return dummy;
-        })
-        .thenCallRealMethod();
+    Mockito.doAnswer(mock -> {
+      SingleFileSnapshotInfo snapshot = secondFollowerStore.getLatestSnapshot();
+      StreamObserver<UploadSnapshotPResponse> responseObserver =
+          SnapshotUploader.forFollower(secondFollowerStore, snapshot);
+      StreamObserver<UploadSnapshotPRequest> requestObserver = mClient
+          .uploadSnapshot(responseObserver);
+      requestObserver.onError(new IOException("failed snapshot upload"));
+      return null;
+    }).when(secondFollowerReplicationManager).sendSnapshotToLeader();
 
     ArrayList<QuorumServerInfo> l = new ArrayList<>();
     String idFollower1 = "follower1";
@@ -251,11 +248,8 @@ public class SnapshotReplicationManagerTest {
 
     mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
 
-    try {
-      CommonUtils.waitFor("leader snapshot to complete",
-          () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
-    } finally {
-      validateSnapshotFile(mLeaderStore);
-    }
+    CommonUtils.waitFor("leader snapshot to complete",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    validateSnapshotFile(mLeaderStore);
   }
 }
