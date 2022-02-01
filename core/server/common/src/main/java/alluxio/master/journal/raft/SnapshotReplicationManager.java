@@ -378,6 +378,7 @@ public class SnapshotReplicationManager {
           expected, update, mDownloadState.get());
       return false;
     }
+    LOG.info("Successfully transitioned from {} to {}", expected, update);
     return true;
   }
 
