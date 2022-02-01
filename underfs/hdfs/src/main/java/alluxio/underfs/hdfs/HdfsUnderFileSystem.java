@@ -172,8 +172,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       try {
         Class.forName(JAVAX_WS_RS_CORE_MEDIA_TYPE);
       } catch (ClassNotFoundException e) {
-        LOG.warn("Cannot initialize javax.ws.rs.MediaType. "
-            + e);
+        LOG.warn("Cannot initialize javax.ws.rs.MediaType.", e);
       }
 
 
