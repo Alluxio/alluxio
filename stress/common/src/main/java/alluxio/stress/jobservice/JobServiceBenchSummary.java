@@ -37,7 +37,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
-  private Map<String, JobServiceBenchTaskResult> mNodes;
+  private Map<String, JobServiceBenchTaskResult> mNodeResults;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -69,7 +69,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
     mParameters = mergedTaskResults.getParameters();
     mDurationMs = mEndTimeMs - mergedTaskResults.getRecordStartMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
-    mNodes = nodes;
+    mNodeResults = nodes;
   }
 
   /**
@@ -103,15 +103,15 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   /**
    * @return the list of nodes
    */
-  public Map<String, JobServiceBenchTaskResult> getNodes() {
-    return mNodes;
+  public Map<String, JobServiceBenchTaskResult> getNodeResults() {
+    return mNodeResults;
   }
 
   /**
    * @param nodes the list of nodes
    */
-  public void setNodes(Map<String, JobServiceBenchTaskResult> nodes) {
-    mNodes = nodes;
+  public void setNodeResults(Map<String, JobServiceBenchTaskResult> nodes) {
+    mNodeResults = nodes;
   }
 
   /**
@@ -163,13 +163,11 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   /**
    * @return the error information
    */
-  public List<String> collectErrors() {
+  public List<String> collectErrorsFromAllNodes() {
     List<String> errors = new ArrayList<>();
-    for (JobServiceBenchTaskResult node : mNodes.values())
-    {
-      for (String err : node.getErrors())
-      {
-        errors.add(node.getBaseParameters().mId + ": " + err);
+    for (JobServiceBenchTaskResult node : mNodeResults.values()) {
+      for (String err : node.getErrors()) {
+        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
       }
     }
     return errors;
@@ -219,7 +217,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
         for (JobServiceBenchSummary summary : opSummaries) {
           String series = summary.mParameters.getDescription(fieldNames.getSecond());
           responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
-          responseTimeGraph.setErrors(series, summary.collectErrors());
+          responseTimeGraph.setErrors(series, summary.collectErrorsFromAllNodes());
           // add graph for method call
           for (Map.Entry<String, SummaryStatistics> entry :
               summary.getStatisticsPerMethod().entrySet()) {

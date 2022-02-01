@@ -35,14 +35,14 @@ public final class WorkerBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
-  private Map<String, WorkerBenchTaskResult> mNodes;
+  private Map<String, WorkerBenchTaskResult> mNodeResults;
 
   /**
    * Creates an instance.
    */
   public WorkerBenchSummary() {
     // Default constructor required for json deserialization
-    mNodes = new HashMap<>();
+    mNodeResults = new HashMap<>();
   }
 
   /**
@@ -57,7 +57,7 @@ public final class WorkerBenchSummary implements Summary {
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();
     mParameters = mergedTaskResults.getParameters();
-    mNodes = nodes;
+    mNodeResults = nodes;
   }
 
   /**
@@ -105,15 +105,15 @@ public final class WorkerBenchSummary implements Summary {
   /**
    * @return the list of nodes
    */
-  public Map<String, WorkerBenchTaskResult> getNodes() {
-    return mNodes;
+  public Map<String, WorkerBenchTaskResult> getNodeResults() {
+    return mNodeResults;
   }
 
   /**
    * @param nodes the list of nodes
    */
-  public void setNodes(Map<String, WorkerBenchTaskResult> nodes) {
-    mNodes = nodes;
+  public void setNodeResults(Map<String, WorkerBenchTaskResult> nodes) {
+    mNodeResults = nodes;
   }
 
   /**
@@ -147,13 +147,11 @@ public final class WorkerBenchSummary implements Summary {
   /**
    * @return the error information
    */
-  public List<String> collectErrors() {
+  public List<String> collectErrorsFromAllNodes() {
     List<String> errors = new ArrayList<>();
-    for (WorkerBenchTaskResult node : mNodes.values())
-    {
-      for (String err : node.getErrors())
-      {
-        errors.add(node.getBaseParameters().mId + ": " + err);
+    for (WorkerBenchTaskResult node : mNodeResults.values()) {
+      for (String err : node.getErrors()) {
+        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
       }
     }
     return errors;
@@ -208,7 +206,7 @@ public final class WorkerBenchSummary implements Summary {
           if (value == null) {
             value = new HashMap<>();
           }
-          int totalThreads = summary.getNodes().size() * summary.getParameters().mThreads;
+          int totalThreads = summary.getNodeResults().size() * summary.getParameters().mThreads;
           value.put(totalThreads, summary.getIOMBps());
           return value;
         });
@@ -218,7 +216,7 @@ public final class WorkerBenchSummary implements Summary {
           if (value == null) {
             value = new ArrayList<>();
           }
-          value.addAll(summary.collectErrors());
+          value.addAll(summary.collectErrorsFromAllNodes());
           return value;
         });
       }

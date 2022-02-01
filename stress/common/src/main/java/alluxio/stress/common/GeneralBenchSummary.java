@@ -38,5 +38,5 @@ public abstract class GeneralBenchSummary implements Summary {
   /**
    * @return the error information
    */
-  public abstract List<String> collectErrors();
+  public abstract List<String> collectErrorsFromAllNodes();
 }

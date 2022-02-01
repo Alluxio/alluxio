@@ -52,8 +52,9 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(MasterBenchTaskResult result) throws Exception {
+    //When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
-    mergeWithoutErrors(result);
+    aggregateByWorker(result);
   }
 
   /**
@@ -61,7 +62,9 @@ public final class MasterBenchTaskResult implements TaskResult {
    *
    * @param result  the task result to merge
    */
-  public void mergeWithoutErrors(MasterBenchTaskResult result) throws Exception {
+  public void aggregateByWorker(MasterBenchTaskResult result) throws Exception {
+    //When merging result from different workers, we don't need to merge the error information
+    //since we will keep all the result information in a map.
     mStatistics.merge(result.mStatistics);
 
     mRecordStartMs = result.mRecordStartMs;
@@ -259,7 +262,7 @@ public final class MasterBenchTaskResult implements TaskResult {
           mergingTaskResult = result;
           continue;
         }
-        mergingTaskResult.mergeWithoutErrors(result);
+        mergingTaskResult.aggregateByWorker(result);
       }
 
       return new MasterBenchSummary(mergingTaskResult, nodes);

@@ -48,16 +48,19 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(JobServiceBenchTaskResult result) throws Exception {
+    //When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
-    mergeWithoutErrors(result);
+    aggregateByWorker(result);
   }
 
   /**
    * Merges (updates) a task result with this result except the error information.
    *
-   * @param result  the task result to merge
+   * @param result the task result to merge
    */
-  public void mergeWithoutErrors(JobServiceBenchTaskResult result) throws Exception {
+  public void aggregateByWorker(JobServiceBenchTaskResult result) throws Exception {
+    //When merging result from different workers, we don't need to merge the error information
+    //since we will keep all the result information in a map.
     mStatistics.merge(result.mStatistics);
     mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
     mEndMs = Math.max(mEndMs, result.mEndMs);
@@ -240,7 +243,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
           mergingTaskResult = result;
           continue;
         }
-        mergingTaskResult.mergeWithoutErrors(result);
+        mergingTaskResult.aggregateByWorker(result);
       }
 
       return new JobServiceBenchSummary(mergingTaskResult, nodes);

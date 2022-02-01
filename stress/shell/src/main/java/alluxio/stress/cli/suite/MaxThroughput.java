@@ -129,9 +129,8 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
           "target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower + " "
               + next + " " + upper + "]");
 
-      for (String error : mbr.collectErrors())
-      {
-        LOG.error(String.format("%s", error));
+      for (String error : mbr.collectErrorsFromAllNodes()) {
+        LOG.error("{}", error);
       }
 
       if (Math.abs(current - next) / (float) current <= 0.02) {
@@ -179,10 +178,10 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
     Benchmark b = new StressMasterBench();
     String result = b.run(newArgs.toArray(new String[0]));
     MasterBenchSummary summary = JsonSerializable.fromJson(result, new MasterBenchSummary[0]);
-    if (!summary.collectErrors().isEmpty()) {
+    if (!summary.collectErrorsFromAllNodes().isEmpty()) {
       throw new IllegalStateException(String
           .format("Could not create files for operation (%s). error: %s",
-              mParameters.mOperation, summary.collectErrors().iterator().next()));
+              mParameters.mOperation, summary.collectErrorsFromAllNodes().iterator().next()));
     }
   }
 

@@ -45,8 +45,9 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(WorkerBenchTaskResult result) throws Exception {
+    //When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
-    mergeWithoutErrors(result);
+    aggregateByWorker(result);
   }
 
   /**
@@ -54,7 +55,9 @@ public final class WorkerBenchTaskResult implements TaskResult {
    *
    * @param result  the task result to merge
    */
-  public void mergeWithoutErrors(WorkerBenchTaskResult result) {
+  public void aggregateByWorker(WorkerBenchTaskResult result) {
+    //When merging result from different workers, we don't need to merge the error information
+    //since we will keep all the result information in a map.
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
 
@@ -177,7 +180,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
 
       for (WorkerBenchTaskResult result : results) {
         nodes.put(result.getBaseParameters().mId, result);
-        mergingTaskResult.mergeWithoutErrors(result);
+        mergingTaskResult.aggregateByWorker(result);
       }
 
       return new WorkerBenchSummary(mergingTaskResult, nodes);

@@ -36,7 +36,7 @@ public final class MasterBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
-  private Map<String, MasterBenchTaskResult> mNodes;
+  private Map<String, MasterBenchTaskResult> mNodeResults;
 
   private float mThroughput;
   private SummaryStatistics mStatistics;
@@ -73,7 +73,7 @@ public final class MasterBenchSummary implements Summary {
     mEndTimeMs = mergedTaskResults.getEndMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
-    mNodes = nodes;
+    mNodeResults = nodes;
   }
 
   /**
@@ -121,15 +121,15 @@ public final class MasterBenchSummary implements Summary {
   /**
    * @return the list of nodes
    */
-  public Map<String, MasterBenchTaskResult> getNodes() {
-    return mNodes;
+  public Map<String, MasterBenchTaskResult> getNodeResults() {
+    return mNodeResults;
   }
 
   /**
    * @param nodes the list of nodes
    */
-  public void setNodes(Map<String, MasterBenchTaskResult> nodes) {
-    mNodes = nodes;
+  public void setNodeResults(Map<String, MasterBenchTaskResult> nodes) {
+    mNodeResults = nodes;
   }
 
   /**
@@ -182,17 +182,14 @@ public final class MasterBenchSummary implements Summary {
   /**
    * @return the error information
    */
-  public List<String> collectErrors() {
+  public List<String> collectErrorsFromAllNodes() {
     List<String> errors = new ArrayList<>();
-    for (MasterBenchTaskResult node : mNodes.values())
-    {
+    for (MasterBenchTaskResult node : mNodeResults.values()) {
       // add all the errors for this node, with the node appended to prefix
-      for (String err : node.getErrors())
-      {
-        errors.add(node.getBaseParameters().mId + ": " + err);
+      for (String err : node.getErrors()) {
+        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
       }
     }
-
     return errors;
   }
 
@@ -249,7 +246,7 @@ public final class MasterBenchSummary implements Summary {
         for (MasterBenchSummary summary : opSummaries) {
           String series = summary.mParameters.getDescription(fieldNames.getSecond());
           responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
-          responseTimeGraph.setErrors(series, summary.collectErrors());
+          responseTimeGraph.setErrors(series, summary.collectErrorsFromAllNodes());
 
           for (Map.Entry<String, SummaryStatistics> entry :
               summary.getStatisticsPerMethod().entrySet()) {
