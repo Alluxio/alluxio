@@ -151,6 +151,9 @@ public class SnapshotUploader<S, R>
   @Override
   public void onError(Throwable t) {
     LOG.error("Error sending snapshot {} at {}", mSnapshotFile, mOffset, t);
+    // propagates error to SnapshpotReplicationManager#receiveSnapshotFromFollower ->
+    // observer.getFuture().exceptionally(). This allows leader to request other followers for a
+    // snapshot.
     mStream.onError(t);
   }
 

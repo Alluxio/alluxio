@@ -34,7 +34,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.ClientIpAddressInjector;
-import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Timer;
@@ -109,7 +108,6 @@ public class SnapshotReplicationManager {
 
   private final SimpleStateMachineStorage mStorage;
   private final RaftJournalSystem mJournalSystem;
-  private volatile long mSnapshotRequestTime = 0L;
   private volatile RaftJournalServiceClient mJournalServiceClient;
   private volatile SnapshotInfo mDownloadedSnapshot;
   private final PriorityQueue<Pair<SnapshotMetadata, RaftPeerId>> mSnapshotCandidates;
@@ -149,6 +147,7 @@ public class SnapshotReplicationManager {
       SnapshotMetadata first = pair1.getFirst();
       SnapshotMetadata second = pair2.getFirst();
       // deliberately reversing the compare order to have bigger numbers rise to the top
+      // bigger terms and indexes means a more recent snapshot
       if (first.getSnapshotTerm() == second.getSnapshotTerm()) {
         return Long.compare(second.getSnapshotIndex(), first.getSnapshotIndex());
       }
@@ -296,6 +295,9 @@ public class SnapshotReplicationManager {
           return termIndex;
         }).exceptionally(e -> {
           LOG.error("Unexpected exception downloading snapshot from follower {}.", followerIp, e);
+          // this allows the leading master to request other followers for their snapshots. It
+          // previously collected information about other snapshots in requestInfo(). If no other
+          // snapshots are available requestData() will return false and mDownloadState will be IDLE
           transitionState(DownloadState.STREAM_DATA, DownloadState.REQUEST_DATA);
           CompletableFuture.runAsync(this::requestSnapshotFromFollowers);
           return null;
@@ -378,7 +380,7 @@ public class SnapshotReplicationManager {
           expected, update, mDownloadState.get());
       return false;
     }
-    LOG.info("Successfully transitioned from {} to {}", expected, update);
+    LOG.debug("Successfully transitioned from {} to {}", expected, update);
     return true;
   }
 
@@ -473,9 +475,10 @@ public class SnapshotReplicationManager {
           .filter(peerId -> !peerId.equals(mJournalSystem.getLocalPeerId()))
           .collect(Collectors.toMap(Function.identity(),
               peerId -> mJournalSystem.sendMessageAsync(peerId, toMessage(JournalQueryRequest
-                  .newBuilder().setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
+                  .newBuilder()
+                  .setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
                   .build()))));
-      // query all secondary masters for their snapshots
+      // query all secondary masters for information about their latest snapshot
       for (Map.Entry<RaftPeerId, CompletableFuture<RaftClientReply>> job : jobs.entrySet()) {
         RaftPeerId peerId = job.getKey();
         try {
@@ -512,7 +515,6 @@ public class SnapshotReplicationManager {
     while (!mSnapshotCandidates.isEmpty()) {
       RaftPeerId peerId = mSnapshotCandidates.poll().getSecond();
       LOG.info("Request snapshot data from follower {}", peerId);
-      mSnapshotRequestTime = CommonUtils.getCurrentMs();
       try {
         RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
                 toMessage(JournalQueryRequest.newBuilder()
