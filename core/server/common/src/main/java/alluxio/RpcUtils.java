@@ -144,7 +144,7 @@ public final class RpcUtils {
         }
       }
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
-    } catch (Throwable e) {
+    } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
