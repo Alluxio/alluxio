@@ -11,6 +11,7 @@
 
 package alluxio.job.plan.replicate;
 
+// setReplication Mode
 public enum Mode {
     EVICT, REPLICATE
 }
