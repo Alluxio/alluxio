@@ -9,16 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React from 'react';
+import { AxiosResponse } from 'axios';
+import { action } from 'typesafe-actions';
 
-export class Stacks extends React.Component {
-  public render(): JSX.Element {
-    const path = 'http://' + location.host + location.pathname;
-    return (
-      <div className="stacks-page" style={{ backgroundColor: 'white', minHeight: window.innerHeight }}>
-        <iframe style={{ width: '100%', height: window.innerHeight, overflow: 'visible' }} src={path} />
-      </div>
-    );
-  }
-}
-export default Stacks as typeof React.Component;
+import { StacksActionTypes } from './types';
+import { AnyAction } from 'redux';
+
+export const fetchRequest = (): AnyAction => action(StacksActionTypes.FETCH_REQUEST);
+export const fetchSuccess = (response: AxiosResponse): AnyAction => action(StacksActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string): AnyAction => action(StacksActionTypes.FETCH_ERROR, message);

@@ -116,16 +116,16 @@ spec:
           {{- if .Values.hub.resources }}
 {{ include "alluxio.hub.resources" . | indent 10 }}
           {{- end }}
-        command: [ "tini", "--", "/entrypoint.sh" ]
+          command: [ "tini", "--", "/entrypoint.sh" ]
           {{- if .Values.hub.agent.args }}
-        args:
+          args:
 {{ toYaml .Values.hub.agent.args | trim | indent 12 }}
           {{- end }}
-        env:
+          env:
           {{- range $key, $value := .Values.hub.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
-            {{- end }}
+          {{- end }}
           - name: ALLUXIO_HUB_AGENT_RPC_HOSTNAME
             valueFrom:
               fieldRef:
@@ -134,17 +134,17 @@ spec:
             value: "{{ .Values.user }}"
           - name: ALLUXIO_HUB_NO_START
             value: "true"
-        envFrom:
+          envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-        ports:
-            - containerPort: { { .Values.hub.agent.ports.rpc } }
-              name: agent-rpc
-        volumeMounts:
+          ports:
+          - containerPort: {{ .Values.hub.agent.ports.rpc }}
+            name: agent-rpc
+          volumeMounts:
           - name: conf-volume
             mountPath: /opt/alluxio/conf
             readOnly: false
-          {{- end }}
+        {{- end }}
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}

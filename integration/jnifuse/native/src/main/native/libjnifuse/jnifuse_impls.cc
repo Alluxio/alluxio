@@ -131,6 +131,10 @@ int setxattr_wrapper(const char *path, const char *name,
 }
 #endif
 
+int statfs_wrapper(const char* path, struct statvfs* stbuf) {
+  return jnifuse::JniFuseFileSystem::getInstance()->statfsOper->call(path, stbuf);
+}
+
 int symlink_wrapper(const char *linkname, const char *path) {
   return jnifuse::JniFuseFileSystem::getInstance()->symlinkOper->call(linkname, path);
 }

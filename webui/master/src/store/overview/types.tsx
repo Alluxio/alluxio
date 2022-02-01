@@ -26,9 +26,11 @@ export interface IOverview {
   freeCapacity: string;
   journalCheckpointTimeWarning: string;
   journalDiskWarnings: string[];
+  leaderId: string;
   liveWorkerNodes: number;
   masterNodeAddress: string;
   replicaBlockCount: string;
+  masterRole: string;
   startTime: string;
   storageTierInfos: IStorageTierInfo[];
   totalPath: string;

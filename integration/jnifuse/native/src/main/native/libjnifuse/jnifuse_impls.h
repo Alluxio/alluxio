@@ -32,6 +32,7 @@ int getxattr_wrapper(const char *path, const char *name, char *value, size_t siz
 int setxattr_wrapper(const char *path, const char *name,
                      const char *value, size_t size, int flags);
 #endif
+int statfs_wrapper(const char* path, struct statvfs* stbuf);
 int listxattr_wrapper(const char *path, char *list, size_t size);
 int mkdir_wrapper(const char *path, mode_t mode);
 int open_wrapper(const char *path, struct fuse_file_info *fi);

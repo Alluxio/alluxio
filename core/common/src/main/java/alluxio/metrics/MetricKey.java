@@ -640,6 +640,11 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "master in the cluster. Only valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_ROLE_ID =
+      new Builder("Master.RoleId")
+          .setDescription("Display master role id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder("Master.JournalFlushFailure")
           .setDescription("Total number of failed journal flush")
@@ -1001,7 +1006,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of lost workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey CLUSTER_LEADER_INDEX =
+      new Builder("Cluster.LeaderIndex")
+          .setDescription("Index of current leader")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_LEADER_ID =
+      new Builder("Cluster.LeaderId")
+          .setDescription("Display current leader id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   // Server metrics shared by Master, Worker and other Alluxio servers
   public static final MetricKey TOTAL_EXTRA_TIME =
       new Builder("Server.JvmPauseMonitorTotalExtraTime")

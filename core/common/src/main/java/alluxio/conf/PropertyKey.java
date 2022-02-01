@@ -551,6 +551,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey WEB_THREAD_DUMP_TO_LOG =
+      new Builder(Name.WEB_THREAD_DUMP_TO_LOG)
+          .setDefaultValue(false)
+          .setDescription("Whether thread information is also printed to the log "
+              + "when the thread dump api is accessed")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WEB_UI_ENABLED =
       new Builder(Name.WEB_UI_ENABLED)
           .setDefaultValue(true)
@@ -2895,6 +2903,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
+  public static final PropertyKey STANDBY_MASTER_METRICS_SINK_ENABLED =
+      new Builder(Name.STANDBY_MASTER_METRICS_SINK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs the metric sink")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey STANDBY_MASTER_WEB_ENABLED =
+      new Builder(Name.STANDBY_MASTER_WEB_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs a web server")
+          .setScope(Scope.SERVER)
+          .build();
+
   //
   // Secondary master related properties
   //
@@ -3107,6 +3128,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_STARTUP_TIMEOUT =
+      new Builder(Name.WORKER_STARTUP_TIMEOUT)
+          .setDefaultValue("10min")
+          .setDescription("Maximum time to wait for worker startup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
       new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
@@ -6102,6 +6130,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WEB_CORS_ENABLED = "alluxio.web.cors.enabled";
     public static final String WEB_REFRESH_INTERVAL = "alluxio.web.refresh.interval";
+    public static final String WEB_THREAD_DUMP_TO_LOG = "alluxio.web.threaddump.log.enabled";
     public static final String WEB_UI_ENABLED = "alluxio.web.ui.enabled";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
@@ -6607,6 +6636,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String SECONDARY_MASTER_METASTORE_DIR =
         "alluxio.secondary.master.metastore.dir";
+    public static final String STANDBY_MASTER_METRICS_SINK_ENABLED =
+        "alluxio.standby.master.metrics.sink.enabled";
+    public static final String STANDBY_MASTER_WEB_ENABLED =
+        "alluxio.standby.master.web.enabled";
 
     //
     // Worker related properties
@@ -6761,6 +6794,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_RPC_EXECUTOR_FJP_ASYNC =
         "alluxio.worker.rpc.executor.fjp.async";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
+    public static final String WORKER_STARTUP_TIMEOUT = "alluxio.worker.startup.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =
         "alluxio.worker.storage.checker.enabled";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =

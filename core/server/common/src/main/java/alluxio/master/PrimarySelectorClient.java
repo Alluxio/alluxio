@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 
+import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -28,7 +29,6 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PrimarySelectorClient extends AbstractPrimarySelector
-    implements Closeable, LeaderSelectorListener {
+    implements LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(PrimarySelectorClient.class);
 
   /** A constant session Id for when selector is not a leader. */
@@ -59,7 +59,9 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   /** The sessionID under which leadership is granted. */
   private long mLeaderZkSessionId;
   /** Configured connection error policy for leader election. */
-  private ZookeeperConnectionErrorPolicy mConnectionErrorPolicy;
+  private final ZookeeperConnectionErrorPolicy mConnectionErrorPolicy;
+  /** Lifecycle state of the PrimarySelectorClient. */
+  private LifecycleState mLifecycleState = LifecycleState.INIT;
 
   /**
    * Constructs a new {@link PrimarySelectorClient}.
@@ -90,20 +92,11 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   }
 
   @Override
-  public void close() throws IOException {
-    try {
+  public synchronized void stop() throws IOException {
+    if (mLifecycleState == LifecycleState.STARTED) {
       mLeaderSelector.close();
-    } catch (IllegalStateException e) {
-      // TODO(hy): This should not happen in unit tests.
-      if (!e.getMessage().equals("Already closed or has not been started")) {
-        throw e;
-      }
     }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    close();
+    mLifecycleState = LifecycleState.STOPPED;
   }
 
   /**
@@ -135,7 +128,10 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * gets closed, the calling thread will be interrupted.
    */
   @Override
-  public void start(InetSocketAddress address) throws IOException {
+  public synchronized void start(InetSocketAddress address) throws IOException {
+    Preconditions.checkState(mLifecycleState == LifecycleState.INIT,
+        "Failed to transition from INIT to STARTED: current state is " + mLifecycleState);
+    mLifecycleState = LifecycleState.STARTED;
     mName = address.getHostName() + ":" + address.getPort();
     mLeaderSelector.setId(mName);
     mLeaderSelector.start();
@@ -273,6 +269,16 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     client = curatorBuilder.build();
     client.start();
     return client;
+  }
+
+  /**
+   * Defines the lifecycle state that the PrimarySelectorClient is in.
+   * Possible state transitions: INIT -> STARTED, INIT -> STOPPED, STARTED -> STOPPED.
+   */
+  private enum LifecycleState {
+    INIT,
+    STARTED,
+    STOPPED
   }
 
   /**
