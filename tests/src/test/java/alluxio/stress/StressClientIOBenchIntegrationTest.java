@@ -11,13 +11,18 @@
 
 package alluxio.stress;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.cli.client.StressClientIOBench;
+import alluxio.stress.client.ClientIOTaskResult;
+import alluxio.util.JsonSerializable;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Tests {@link StressClientIOBench}.
@@ -122,7 +127,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
   }
 
   @Test
-  public void WriteType() throws Exception {
+  public void WriteTypeParameterTest() throws Exception {
     String output1 = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
@@ -144,10 +149,51 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "--file-size", "1m",
         "--buffer-size", "128k",
         "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ALL",
+        "--write-type", "CACHE_THROUGH",
     });
 
-    assertTrue(output1.contains("\"errors\" : [ ],"));
-    assertTrue(output2.contains("\"errors\" : [ ],"));
+    String output3 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "THROUGH",
+    });
+
+    String output4 = new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "ASYNC_THROUGH",
+    });
+
+    //convert the result into summary, and check whether it have errors.
+    ClientIOTaskResult summary1 = (ClientIOTaskResult) JsonSerializable.fromJson(output1);
+    ClientIOTaskResult summary2 = (ClientIOTaskResult) JsonSerializable.fromJson(output2);
+    ClientIOTaskResult summary3 = (ClientIOTaskResult) JsonSerializable.fromJson(output3);
+    ClientIOTaskResult summary4 = (ClientIOTaskResult) JsonSerializable.fromJson(output4);
+
+    List<ClientIOTaskResult> testResults = new ArrayList<>();
+    testResults.add(summary1);
+    testResults.add(summary2);
+    testResults.add(summary3);
+    testResults.add(summary4);
+
+    for (ClientIOTaskResult result : testResults) {
+      assertFalse(result.getThreadCountResults().isEmpty());
+      for (ClientIOTaskResult.ThreadCountResult threadResult :
+          result.getThreadCountResults().values()) {
+        assertTrue(threadResult.getErrors().isEmpty());
+      }
+    }
   }
 }

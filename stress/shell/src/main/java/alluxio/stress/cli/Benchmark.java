@@ -82,9 +82,10 @@ public abstract class Benchmark<T extends TaskResult> {
 
   /**
    * Check if there are multiple task to run.
-   * @return return the type of multiple task, if it is not multiple task, return null
+   * @return return a list consist of task to operate on StressBench. The first string
+   * represents type and the following strings are the parameter to use.
    */
-  public abstract String checkIfMultipleTask();
+  public abstract String[] checkIfMultipleTask();
 
   /**
    * Perform post-run cleanups.
@@ -129,6 +130,34 @@ public abstract class Benchmark<T extends TaskResult> {
     return new StressBenchConfig(className, commandArgs, startDelay, mBaseParameters.mClusterLimit);
   }
 
+  private String runMultipleTask(String[] args, String[] taskList) {
+    StringBuilder result = new StringBuilder();
+    for (int i = 0; i < args.length; i++) {
+      // find the argument to be changed
+      if (args[i].equals(taskList[0])) {
+        for (int j = 1; j < taskList.length; j++) {
+          result.append("-----------------------------------------------------\n");
+          result.append(String.format("The result of parameter %s %s is:",
+              taskList[0], taskList[j]) + "\n");
+          result.append("\n");
+          mBaseParameters = new BaseParameters();
+          //change the specific argument
+          args[i + 1] = taskList[j];
+          try {
+            String res = run(args);
+            result.append(res);
+          } catch (Exception e) {
+            result.append(String.format("Task failed when executing parameter %s %s",
+                taskList[0], taskList[j]) + "\n");
+            LOG.error("Failed when executing task:", e);
+          }
+        }
+        result.append("-----------------------------------------------------\n");
+      }
+    }
+    return result.toString();
+  }
+
   /**
    * Runs the test and returns the string output.
    *
@@ -153,29 +182,10 @@ public abstract class Benchmark<T extends TaskResult> {
     }
 
     // if the test will execute multiple tasks.
-    String multiTask = checkIfMultipleTask();
-    if (multiTask != null && multiTask.equals("WriteType"))
-    {
-      String result = "";
-      for (int i = 0; i < args.length; i++)
-      {
-        if (args[i].equals("--write-type"))
-        {
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "MUST_CACHE";
-          result = "WriteType : Must_Cache \n" + run(args) + "\n";
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "CACHE_THROUGH";
-          result = result + "WriteType : Cache_Through \n" + run(args) + "\n";
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "ASYNC_THROUGH";
-          result = result + "WriteType : Async_Through \n" + run(args) + "\n";
-          mBaseParameters = new BaseParameters();
-          args[i + 1] = "THROUGH";
-          result = result + "WriteType : Through \n" + run(args);
-          return result;
-        }
-      }
+    String[] multiTaskList = checkIfMultipleTask();
+    if (!multiTaskList[0].equals("NOT_APPLICABLE")) {
+      String result = runMultipleTask(args, multiTaskList);
+      return result;
     }
 
     // prepare the benchmark.

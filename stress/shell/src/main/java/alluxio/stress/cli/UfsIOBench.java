@@ -114,9 +114,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   @Override
-  public String checkIfMultipleTask()
-  {
-    return null;
+  public String[] checkIfMultipleTask() {
+    return new String[]{"NOT_APPLICABLE"};
   }
 
   @Override

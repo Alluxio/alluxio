@@ -90,13 +90,12 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
-  public String checkIfMultipleTask()
-  {
-    if (mParameters.mWriteType.equals("ALL"))
-    {
-      return "WriteType";
+  public String[] checkIfMultipleTask() {
+    if (mParameters.mWriteType.equals("ALL")) {
+      return new String[]{"--write-type", "MUST_CACHE", "CACHE_THROUGH",
+          "THROUGH", "ASYNC_THROUGH"};
     }
-    return null;
+    return new String[]{"NOT_APPLICABLE"};
   }
 
   @Override
@@ -126,10 +125,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       Configuration hdfsConf = new Configuration();
       // force delete, create dirs through to UFS
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      if (!mParameters.mWriteType.isEmpty())
-      {
-        hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
-      }
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       // more threads for parallel deletes for cleanup
       hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
@@ -177,10 +173,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
 
-    if (!mParameters.mWriteType.isEmpty())
-    {
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
-    }
+    hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");

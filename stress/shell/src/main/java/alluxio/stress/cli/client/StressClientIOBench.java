@@ -97,13 +97,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
-  public String checkIfMultipleTask()
-  {
-    if (mParameters.mWriteType.equals("ALL"))
-    {
-      return "WriteType";
+  public String[] checkIfMultipleTask() {
+    if (mParameters.mWriteType.equals("ALL")) {
+      return new String[]{"--write-type", "MUST_CACHE", "CACHE_THROUGH",
+          "THROUGH", "ASYNC_THROUGH"};
     }
-    return null;
+    return new String[]{"NOT_APPLICABLE"};
   }
 
   @Override
@@ -127,10 +126,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       // set hdfs conf for preparation client
       Configuration hdfsConf = new Configuration();
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      if (!mParameters.mWriteType.isEmpty())
-      {
-        hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
-      }
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -156,10 +152,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
 
-    if (!mParameters.mWriteType.isEmpty())
-    {
-      hdfsConf.set("alluxio.user.file.writetype.default", mParameters.mWriteType.toString());
-    }
+    hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
