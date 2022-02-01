@@ -31,6 +31,7 @@ import io.grpc.Server;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
+import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
@@ -43,25 +44,24 @@ import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SnapshotDownloader.class)
 public class SnapshotReplicationManagerTest {
-  private static final int SNAPSHOT_SIZE = 100000;
+  private static final int SNAPSHOT_SIZE = 100_000;
+  private static final int DEFAULT_SNAPSHOT_TERM = 0;
+  private static final int DEFAULT_SNAPSHOT_INDEX = 1;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -71,34 +71,19 @@ public class SnapshotReplicationManagerTest {
       new ConfigurationRule(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE,
           "32KB", ServerConfiguration.global());
 
-  private final WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30000);
+  private final WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30_000);
   private SnapshotReplicationManager mLeaderSnapshotManager;
-  private SnapshotReplicationManager mFollowerSnapshotManager;
   private RaftJournalSystem mLeader;
-  private RaftJournalSystem mFollower;
   private SimpleStateMachineStorage mLeaderStore;
-  private SimpleStateMachineStorage mFollowerStore;
+  private final Map<RaftPeerId, Follower> mFollowers = new HashMap<>();
+
   private RaftJournalServiceClient mClient;
   private Server mServer;
 
-  @Before
-  public void before() throws Exception {
+  private void before(int numFollowers) throws Exception {
     mLeader = Mockito.mock(RaftJournalSystem.class);
     Mockito.when(mLeader.isLeader()).thenReturn(true);
     Mockito.when(mLeader.getLocalPeerId()).thenReturn(RaftPeerId.getRaftPeerId("leader"));
-    Mockito.when(mLeader.getQuorumServerInfoList()).thenReturn(
-        Collections.singletonList(QuorumServerInfo.newBuilder()
-            .setServerAddress(NetAddress.newBuilder()
-                .setHost("follower").setRpcPort(12345)).build()));
-//    Mockito.when(mLeader.sendMessageAsync(any(), any())).thenAnswer((args) -> {
-//      Message message = args.getArgument(1, Message.class);
-//      JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
-//          message.getContent().asReadOnlyByteBuffer());
-//      Message response = mFollowerSnapshotManager.handleRequest(queryRequest);
-//      RaftClientReply reply = Mockito.mock(RaftClientReply.class);
-//      Mockito.when(reply.getMessage()).thenReturn(response);
-//      return CompletableFuture.completedFuture(reply);
-//    });
     mLeaderStore = getSimpleStateMachineStorage();
     mLeaderSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mLeader, mLeaderStore));
 
@@ -123,9 +108,27 @@ public class SnapshotReplicationManagerTest {
       return stub.uploadSnapshot(responseObserver);
     });
 
-    mFollowerStore = getSimpleStateMachineStorage();
-    mFollower = Mockito.mock(RaftJournalSystem.class);
-    mFollowerSnapshotManager = new SnapshotReplicationManager(mFollower, mFollowerStore, mClient);
+    for (int i = 0; i < numFollowers; i++) {
+      Follower follower = new Follower(mClient);
+      mFollowers.put(follower.getRaftPeerId(), follower);
+    }
+
+    List<QuorumServerInfo> quorumServerInfos = mFollowers.values().stream().map(follower -> {
+      return QuorumServerInfo.newBuilder().setServerAddress(
+          NetAddress.newBuilder().setHost(follower.mHost).setRpcPort(follower.mRpcPort)).build();
+    }).collect(Collectors.toList());
+
+    Mockito.when(mLeader.getQuorumServerInfoList()).thenReturn(quorumServerInfos);
+    Mockito.when(mLeader.sendMessageAsync(any(), any())).thenAnswer((args) -> {
+      RaftPeerId peerId = args.getArgument(0, RaftPeerId.class);
+      Message message = args.getArgument(1, Message.class);
+      JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
+          message.getContent().asReadOnlyByteBuffer());
+      Message response = mFollowers.get(peerId).mSnapshotManager.handleRequest(queryRequest);
+      RaftClientReply reply = Mockito.mock(RaftClientReply.class);
+      Mockito.when(reply.getMessage()).thenReturn(response);
+      return CompletableFuture.completedFuture(reply);
+    });
   }
 
   private SimpleStateMachineStorage getSimpleStateMachineStorage() throws IOException {
@@ -137,7 +140,7 @@ public class SnapshotReplicationManagerTest {
   }
 
   private void createSnapshotFile(SimpleStateMachineStorage storage) throws IOException {
-    createSnapshotFile(storage, 0, 1);
+    createSnapshotFile(storage, DEFAULT_SNAPSHOT_TERM, DEFAULT_SNAPSHOT_INDEX);
   }
 
   private void createSnapshotFile(SimpleStateMachineStorage storage, long term, long index)
@@ -148,7 +151,7 @@ public class SnapshotReplicationManagerTest {
   }
 
   private void validateSnapshotFile(SimpleStateMachineStorage storage) throws IOException {
-    validateSnapshotFile(storage, 0, 1);
+    validateSnapshotFile(storage, DEFAULT_SNAPSHOT_TERM, DEFAULT_SNAPSHOT_INDEX);
   }
 
   private void validateSnapshotFile(SimpleStateMachineStorage storage, long term, long index)
@@ -163,16 +166,20 @@ public class SnapshotReplicationManagerTest {
   @After
   public void After() throws Exception {
     mLeaderSnapshotManager.close();
-    mFollowerSnapshotManager.close();
+    for (Follower follower : mFollowers.values()) {
+      follower.mSnapshotManager.close();
+    }
     mServer.shutdown();
     mServer.awaitTermination();
   }
 
   @Test
   public void copySnapshotToLeader() throws Exception {
-    createSnapshotFile(mFollowerStore);
-    Assert.assertNull(mLeaderStore.getLatestSnapshot());
+    before(1);
+    Follower follower = mFollowers.values().stream().findFirst().get();
+    createSnapshotFile(follower.mStore);
 
+    Assert.assertNull(mLeaderStore.getLatestSnapshot());
     mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
 
     CommonUtils.waitFor("leader snapshot to complete",
@@ -182,74 +189,70 @@ public class SnapshotReplicationManagerTest {
 
   @Test
   public void copySnapshotToFollower() throws Exception {
+    before(1);
     createSnapshotFile(mLeaderStore);
-    Assert.assertNull(mFollowerStore.getLatestSnapshot());
 
-    mFollowerSnapshotManager.installSnapshotFromLeader();
+    Follower follower = mFollowers.values().stream().findFirst().get();
+    Assert.assertNull(follower.mStore.getLatestSnapshot());
+
+    follower.mSnapshotManager.installSnapshotFromLeader();
 
     CommonUtils.waitFor("follower snapshot to complete",
-        () -> mFollowerStore.getLatestSnapshot() != null, mWaitOptions);
-    validateSnapshotFile(mFollowerStore);
+        () -> follower.mStore.getLatestSnapshot() != null, mWaitOptions);
+    validateSnapshotFile(follower.mStore);
   }
 
-  private RaftPeerId peerIdFrom(String id, int port) {
-    return RaftPeerId.valueOf(String.format("%s_%d", id, port));
-  }
-
+  /**
+   * This tests whether the leading master is able to ask for a snapshot from multiple followers
+   * if a snapshot upload fails.
+   */
   @Test
   public void selectDifferentFollowerForSnapshot() throws Exception {
-    SimpleStateMachineStorage secondFollowerStore = getSimpleStateMachineStorage();
-    RaftJournalSystem secondFollower = Mockito.mock(RaftJournalSystem.class);
-    SnapshotReplicationManager secondFollowerReplicationManager = PowerMockito.spy(
-        new SnapshotReplicationManager(secondFollower, secondFollowerStore, mClient));
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
 
-    createSnapshotFile(mFollowerStore);
-    createSnapshotFile(secondFollowerStore, 0, 2); // preferable to the default 0, 1 snapshot
+    createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
+    createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
 
+    // make sure to error out when requesting the better snapshot from secondFollower
     Mockito.doAnswer(mock -> {
-      SingleFileSnapshotInfo snapshot = secondFollowerStore.getLatestSnapshot();
+      SingleFileSnapshotInfo snapshot = secondFollower.mStore.getLatestSnapshot();
       StreamObserver<UploadSnapshotPResponse> responseObserver =
-          SnapshotUploader.forFollower(secondFollowerStore, snapshot);
+          SnapshotUploader.forFollower(secondFollower.mStore, snapshot);
       StreamObserver<UploadSnapshotPRequest> requestObserver = mClient
           .uploadSnapshot(responseObserver);
       requestObserver.onError(new IOException("failed snapshot upload"));
       return null;
-    }).when(secondFollowerReplicationManager).sendSnapshotToLeader();
-
-    ArrayList<QuorumServerInfo> l = new ArrayList<>();
-    String idFollower1 = "follower1";
-    String idFollower2 = "follower2";
-    int rpcPort1 = 12345;
-    int rpcPort2 = 23456;
-    l.add(QuorumServerInfo.newBuilder()
-        .setServerAddress(NetAddress.newBuilder()
-            .setHost(idFollower1).setRpcPort(rpcPort1)).build());
-    l.add(QuorumServerInfo.newBuilder()
-        .setServerAddress(NetAddress.newBuilder()
-            .setHost(idFollower2).setRpcPort(rpcPort2)).build());
-
-    Mockito.when(mLeader.getQuorumServerInfoList()).thenReturn(l);
-
-    Mockito.when(mLeader.sendMessageAsync(any(), any())).thenAnswer((args) -> {
-      RaftPeerId peerId = args.getArgument(0, RaftPeerId.class);
-      Message message = args.getArgument(1, Message.class);
-      JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
-          message.getContent().asReadOnlyByteBuffer());
-      Message response;
-      if (peerId.equals(peerIdFrom(idFollower1, rpcPort1))) {
-        response = mFollowerSnapshotManager.handleRequest(queryRequest);
-      } else {
-        response = secondFollowerReplicationManager.handleRequest(queryRequest);
-      }
-      RaftClientReply reply = Mockito.mock(RaftClientReply.class);
-      Mockito.when(reply.getMessage()).thenReturn(response);
-      return CompletableFuture.completedFuture(reply);
-    });
+    }).when(secondFollower.mSnapshotManager).sendSnapshotToLeader();
 
     mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
 
     CommonUtils.waitFor("leader snapshot to complete",
         () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    // verify that the leader still requests and gets second best snapshot
     validateSnapshotFile(mLeaderStore);
+  }
+
+  private class Follower {
+    final String mHost;
+    final int mRpcPort;
+    SnapshotReplicationManager mSnapshotManager;
+    RaftJournalSystem mJournalSystem;
+    SimpleStateMachineStorage mStore;
+
+    Follower(RaftJournalServiceClient client) throws IOException {
+      mHost = String.format("follower-%s", RandomString.make());
+      mRpcPort = ThreadLocalRandom.current().nextInt(10_000, 99_999);
+      mStore = getSimpleStateMachineStorage();
+      mJournalSystem = Mockito.mock(RaftJournalSystem.class);
+      mSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mJournalSystem,
+        mStore, client));
+    }
+
+    RaftPeerId getRaftPeerId() {
+      return RaftPeerId.valueOf(String.format("%s_%d", mHost, mRpcPort));
+    }
   }
 }
