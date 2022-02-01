@@ -64,6 +64,24 @@ message HubManagerObjects {
     map<string, HubManagerObject> hub_managers = 1;
 }
 
+message ElasticsearchInfo {
+    optional ElasticsearchEnvironmentVariables env_variables = 1;
+    optional ElasticsearchDashboards dashboards = 2;
+
+}
+
+message ElasticsearchEnvironmentVariables {
+    optional string es_domain_endpoint = 1;
+    optional string es_cluster_port = 2;
+    optional string es_username = 3;
+    optional string es_password = 4;
+}
+
+message ElasticsearchDashboards {
+    optional string logs_dashboard_id = 1;
+    optional string metrics_dashboard_id = 2;
+}
+
 message BaseMessage {
     optional HubMetadata hub_metadata = 1;
 }
