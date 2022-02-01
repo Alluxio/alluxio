@@ -187,6 +187,8 @@
                   <include>com.google.code.findbugs:*</include>
                   <include>com.google.re2j:*</include>
                   <include>asm:asm</include>
+                  <include>javax.ws.rs:*</include>
+                  <include>com.sun.jersey:jersey-core</include>
                   <include>io.netty:netty:*</include>
                   <include>io.netty:netty-all:*</include>
                   <include>org.apache.curator:*</include>
