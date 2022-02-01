@@ -480,16 +480,6 @@
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
           <exclusion>
             <groupId>javax.servlet</groupId>
