@@ -334,13 +334,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int readdir(String path, long buff, long filter, long offset,
-                     FuseFileInfo fi) {
+      FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         "Fuse.Readdir", "path=%s,buf=%s", path, buff);
   }
 
   private int readdirInternal(String path, long buff, long filter, long offset,
-                              FuseFileInfo fi) {
+      FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       // standard . and .. entries
@@ -465,9 +465,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         final int flags = fi.flags.get();
         if (AlluxioFuseOpenUtils.getOpenAction(flags) == OpenAction.READ_WRITE) {
           LOG.error(String.format("Alluxio only supports read-only or write-only. "
-                  + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
-                  + "Cannot find stream for reading may because "
-                  + "open with O_RDWR is treated as write-only. ",
+              + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
+              + "Cannot find stream for reading may because "
+              + "open with O_RDWR is treated as write-only. ",
               path, flags));
         } else {
           LOG.error("Cannot find fd for {} in table", path);
@@ -998,15 +998,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
-            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
+            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(), 
             WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mMountPoint);
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
-                + "when unmounting {}. {} fileInStream remain unclosed. "
-                + "{} fileOutStream remain unclosed.",
+            + "when unmounting {}. {} fileInStream remain unclosed. "
+            + "{} fileOutStream remain unclosed.",
             mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
       }
     }

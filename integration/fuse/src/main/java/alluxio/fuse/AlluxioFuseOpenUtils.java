@@ -45,6 +45,7 @@ public final class AlluxioFuseOpenUtils {
       case O_RDWR:
         return OpenAction.READ_WRITE;
       default:
+        // Should not fall here
         return OpenAction.NOT_SUPPORTED;
     }
   }
@@ -69,7 +70,7 @@ public final class AlluxioFuseOpenUtils {
     // If file exists and no truncate flag is provided, treat as READ_ONLY,
     // otherwise treat as WRITE_ONLY
     READ_WRITE,
-    // Should not fall in this area
+    // Should not fall here
     NOT_SUPPORTED,
     ;
   }
