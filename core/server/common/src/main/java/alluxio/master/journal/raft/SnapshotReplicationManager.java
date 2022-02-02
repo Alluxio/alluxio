@@ -442,10 +442,11 @@ public class SnapshotReplicationManager {
       if (!transitionState(DownloadState.IDLE, DownloadState.REQUEST_INFO)) {
         return;
       }
-      if (!requestInfo()) {
-        transitionState(DownloadState.REQUEST_INFO, DownloadState.IDLE);
-        return;
-      }
+      // we want fresh info not polluted by older requests. This ensures that requestData() requests
+      // from at most # followers before requesting new info. Otherwise, the candidate queue might
+      // grow indefinitely.
+      mSnapshotCandidates.clear();
+      requestInfo();
       transitionState(DownloadState.REQUEST_INFO, DownloadState.REQUEST_DATA);
     }
     if (mDownloadState.get() == DownloadState.REQUEST_DATA) {
@@ -455,7 +456,7 @@ public class SnapshotReplicationManager {
     }
   }
 
-  private boolean requestInfo() {
+  private void requestInfo() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_INFO);
     try {
       SingleFileSnapshotInfo latestSnapshot = mStorage.getLatestSnapshot();
@@ -504,17 +505,18 @@ public class SnapshotReplicationManager {
       }
     } catch (Exception e) {
       LogUtils.warnWithException(LOG, "Failed to request snapshot info from followers", e);
-      return false;
     }
-    return true;
   }
 
   private boolean requestData() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_DATA);
     // request snapshots from the most recent to least recent
     while (!mSnapshotCandidates.isEmpty()) {
-      RaftPeerId peerId = mSnapshotCandidates.poll().getSecond();
-      LOG.info("Request snapshot data from follower {}", peerId);
+      Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
+      SnapshotMetadata metadata = candidate.getFirst();
+      RaftPeerId peerId = candidate.getSecond();
+      LOG.info("Request data from follower {} for snapshot (t: {}, i: {})",
+          peerId, metadata.getSnapshotTerm(), metadata.getSnapshotIndex());
       try {
         RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
                 toMessage(JournalQueryRequest.newBuilder()

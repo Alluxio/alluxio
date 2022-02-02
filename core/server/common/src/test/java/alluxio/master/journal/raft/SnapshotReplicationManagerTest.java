@@ -202,12 +202,69 @@ public class SnapshotReplicationManagerTest {
     validateSnapshotFile(follower.mStore);
   }
 
+  @Test
+  public void requestSnapshotEqualTermHigherIndex() throws Exception {
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
+
+    createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
+    createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
+
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+
+    CommonUtils.waitFor("leader snapshot to complete",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    // verify that the leader still requests and gets the best snapshot
+    validateSnapshotFile(mLeaderStore, 0, 2);
+  }
+
+  @Test
+  public void requestSnapshotHigherTermLowerIndex() throws Exception {
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
+
+    createSnapshotFile(firstFollower.mStore, 1, 10);
+    createSnapshotFile(secondFollower.mStore, 2, 1);
+
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+
+    CommonUtils.waitFor("leader snapshot to complete",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    // verify that the leader still requests and gets the best snapshot
+    validateSnapshotFile(mLeaderStore, 2, 1);
+  }
+
+  @Test
+  public void installSnapshotsInSuccession() throws Exception {
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
+
+    createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
+
+    for (int i = 2; i < 12; i++) {
+      if (i % 2 == 0) {
+        createSnapshotFile(secondFollower.mStore, 0, i);
+      } else {
+        createSnapshotFile(firstFollower.mStore, 0, i);
+      }
+      CommonUtils.waitFor("leader snapshot to complete",
+          () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+      validateSnapshotFile(mLeaderStore, 0, i);
+    }
+  }
+
   /**
    * This tests whether the leading master is able to ask for a snapshot from multiple followers
    * if a snapshot upload fails.
    */
   @Test
-  public void selectDifferentFollowerForSnapshot() throws Exception {
+  public void bestSnapshotUploadFailure() throws Exception {
     before(2);
     List<Follower> followers = new ArrayList<>(mFollowers.values());
     Follower firstFollower = followers.get(0);
