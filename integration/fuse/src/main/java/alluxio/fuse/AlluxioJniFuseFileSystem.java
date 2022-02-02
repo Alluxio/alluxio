@@ -998,7 +998,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
-            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(), 
+            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
             WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mMountPoint);
