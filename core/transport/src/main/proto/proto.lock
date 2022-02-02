@@ -1895,6 +1895,31 @@
             ]
           },
           {
+            "name": "ExistsPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "ExistsPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ExistsPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "exists",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "CompleteFilePResponse"
           },
           {
@@ -3377,6 +3402,11 @@
                 "name": "CheckConsistency",
                 "in_type": "CheckConsistencyPRequest",
                 "out_type": "CheckConsistencyPResponse"
+              },
+              {
+                "name": "Exists",
+                "in_type": "ExistsPRequest",
+                "out_type": "ExistsPResponse"
               },
               {
                 "name": "CompleteFile",
