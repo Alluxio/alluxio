@@ -221,7 +221,7 @@ public final class JobUtils {
         .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)
         .setSourcePort(dataSource.getDataPort()).build();
     try (CloseableResource<BlockWorkerClient> blockWorker =
-        context.acquireBlockWorkerClient(localNetAddress)) {
+        context.acquireBlockWorkerClient(dataSource)) {
       blockWorker.get().cache(request);
     } catch (Exception e) {
       throw new IOException(e);
