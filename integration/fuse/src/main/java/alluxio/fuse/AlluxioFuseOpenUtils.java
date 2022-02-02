@@ -11,7 +11,12 @@
 
 package alluxio.fuse;
 
-import static jnr.constants.platform.OpenFlags.*;
+import static jnr.constants.platform.OpenFlags.O_ACCMODE;
+import static jnr.constants.platform.OpenFlags.O_RDONLY;
+import static jnr.constants.platform.OpenFlags.O_RDWR;
+import static jnr.constants.platform.OpenFlags.O_WRONLY;
+
+import jnr.constants.platform.OpenFlags;
 
 /**
  * Alluxio Fuse utilities to handle different fuse.open() flags.
@@ -28,8 +33,11 @@ public final class AlluxioFuseOpenUtils {
   public static OpenAction getOpenAction(int flag) {
     // open flags must contain one of O_RDONLY(0), O_WRONLY(1), O_RDWR(2)
     // O_ACCMODE is mask of read write(3)
-    // for alluxio fuse, can support O_RDONLY or O_WRONLY, for O_RDWR we defer to first read or write
-    switch (valueOf(flag & O_ACCMODE.intValue())) {
+    // Alluxio fuse only supports read-only for completed file
+    // and write-only for file that does not exist or contains open flag O_TRUNC
+    // O_RDWR will be treated as read-only if file exists and no O_TRUNC,
+    // write-only otherwise
+    switch (OpenFlags.valueOf(flag & O_ACCMODE.intValue())) {
       case O_RDONLY:
         return OpenAction.READ_ONLY;
       case O_WRONLY:
@@ -42,19 +50,27 @@ public final class AlluxioFuseOpenUtils {
   }
 
   /**
+   * Checks if the open flag contains truncate open flag.
+   *
+   * @param flag the open flag to check
+   * @return true if contains truncate open flag, false otherwise
+   */
+  public static boolean containsTruncate(int flag) {
+    return (flag & OpenFlags.O_TRUNC.intValue()) != 0;
+  }
+
+  /**
    * Alluxio Fuse open action.
    * Defines what operation Alluxio should perform in the Fuse.open().
    */
   public enum OpenAction {
     READ_ONLY,
     WRITE_ONLY,
-    // TODO(maobaolong): Add an option to decide whether reject rw flag
-    // Alluxio does not support open a file for reading and writing concurrently.
-    // Read or write behavior is decided in the first read() or write()
-    // if read then write or write then read, we error out
+    // If file exists and no truncate flag is provided, treat as READ_ONLY,
+    // otherwise treat as WRITE_ONLY
     READ_WRITE,
+    // Should not fall in this area
     NOT_SUPPORTED,
-    UNKNOWN,
     ;
   }
 }
