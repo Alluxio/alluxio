@@ -420,39 +420,6 @@ public class AlluxioJniFuseFileSystemTest {
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }
-  
-  @Test
-  public void openWrite() throws Exception {
-    // write
-  }
-  
-  @Test
-  public void openWriteExist() throws Exception {
-    // error out
-  }
-
-  @Test
-  public void openWriteTruncateExist() throws Exception {
-    // delete existing file and write
-  }
-  
-  @Test
-  public void openReadWriteExistRead() throws Exception {
-    // read-only
-    // error out if write
-  }
-
-  @Test
-  public void openReadWriteNotExistWrite() throws Exception {
-    // write-only
-    // error out if read
-  }
-
-  @Test
-  public void openReadWriteTruncateExist() throws Exception {
-    // delete existing file and write-only
-    // error out if read
-  }
 
   @Test
   public void rename() throws Exception {
