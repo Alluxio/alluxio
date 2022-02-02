@@ -117,9 +117,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       // set hdfs conf for preparation client
       Configuration hdfsConf = new Configuration();
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      if (!mParameters.mWriteType.isEmpty()) {
-        hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
-      }
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -143,10 +141,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         ClientIOWritePolicy.class.getName());
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
-    }
-
-    if (!mParameters.mWriteType.isEmpty()) {
-      hdfsConf.set("alluxio.user.file.writetype.default", mParameters.mWriteType.toString());
     }
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {

@@ -13,6 +13,8 @@ package alluxio.stress.common;
 
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.IStringConverter;
@@ -35,10 +37,11 @@ public class FileSystemParameters extends Parameters {
   public ReadType mReadType = ReadType.CACHE;
 
   @Parameter(names = {"--write-type"},
-      description = "The write type to use when creating alluxio files. Options are[MUST_CACHE, "
+      description = "The write type to use when creating files. Options are [MUST_CACHE, "
           + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
-  public String mWriteType = "";
+  public String mWriteType = InstancedConfiguration.defaults()
+      .get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
 
   /**
    * @return FileSystemClientType of this bench

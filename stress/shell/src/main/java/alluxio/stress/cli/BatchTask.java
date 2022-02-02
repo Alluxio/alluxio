@@ -12,12 +12,11 @@
 package alluxio.stress.cli;
 
 /**
- * Base class for Bench test kit.
+ * Base class for batch task.
  */
-public abstract class BenchKit {
-
+public abstract class BatchTask {
   /**
-   * Run the StressBench test kit.
+   * Run the StressBench Batch task.
    * @param args command-line arguments
    */
   public abstract void run(String[] args);

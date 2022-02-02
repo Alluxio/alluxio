@@ -11,8 +11,6 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertTrue;
-
 import alluxio.stress.cli.client.StressClientIOBench;
 
 import org.junit.Test;
@@ -119,35 +117,5 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "Write", "ReadArray-NOT_RANDOM", "ReadArray-RANDOM", "ReadByteBuffer", "ReadFully",
         "PosRead-test", "PosReadFully"),
         output1, output2, output3, output4, output5, output6, output7);
-  }
-
-  @Test
-  public void WriteType() throws Exception {
-    String output1 = new StressClientIOBench().run(new String[] {
-        "--in-process",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "Write",
-        "--threads", "2",
-        "--file-size", "1m",
-        "--buffer-size", "128k",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "MUST_CACHE",
-    });
-
-    String output2 = new StressClientIOBench().run(new String[] {
-        "--in-process",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "Write",
-        "--threads", "2",
-        "--file-size", "1m",
-        "--buffer-size", "128k",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ALL",
-    });
-
-    assertTrue(output1.contains("\"errors\" : [ ],"));
-    assertTrue(output2.contains("\"errors\" : [ ],"));
   }
 }

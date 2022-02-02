@@ -16,24 +16,22 @@ import com.google.common.collect.ImmutableSet;
 /**
  * A tool to run multiple tasks for StressBench.
  */
-public class KitRunner {
-  private static final ImmutableSet<String> MASTER_KIT_NAMES = ImmutableSet.of(
-      "MasterOpenFileKit", "MasterGetBlockLocationsKit",
-      "MasterGetFileStatusKit", "MasterRenameFileKit", "MasterListDirKit",
-      "MasterDeleteFileKit", "MasterComprehensiveFileTestKit");
+public class BatchTaskRunner {
+  private static final ImmutableSet<String> MASTER_BATCH_TASK_NAMES = ImmutableSet.of(
+      "MasterOpenFileBatchTask", "MasterGetBlockLocationsBatchTask",
+      "MasterGetFileStatusBatchTask", "MasterRenameFileBatchTask", "MasterListDirBatchTask",
+      "MasterDeleteFileBatchTask", "MasterComprehensiveFileBatchTask");
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    BenchKit kit;
-    if (MASTER_KIT_NAMES.contains(args[0])) {
-      kit = new MasterBenchKit();
-    }
-    else {
-      System.out.println("Please input a valid test kit");
+    if (!MASTER_BATCH_TASK_NAMES.contains(args[0])) {
+      System.out.println(String.format("Unexpected batch task name: %s , expecting one of %s;",
+          args[0], MASTER_BATCH_TASK_NAMES));
       return;
     }
-    kit.run(args);
+    BatchTask task = new MasterBatchTask();
+    task.run(args);
   }
 }

@@ -12,31 +12,34 @@
 package alluxio.stress.cli;
 
 import alluxio.stress.Summary;
-import alluxio.stress.master.MasterBenchKitParameters;
+import alluxio.stress.master.MasterBatchTaskParameters;
+import alluxio.util.JsonSerializable;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Multiple tasks runner for Master StressBench.
  */
-public class MasterBenchKit extends BenchKit {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterBenchKit.class);
-  private int mTargetThroughput = 1000000;
-  private String mWarmUp = "0s";
-  private String mDuration = "21600s";
-  private String mCluster = "--cluster";
+public class MasterBatchTask extends BatchTask {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterBatchTask.class);
+  private static final int TARGETTHROUGHPUT = 1000000;
+  private static final String WARMUP = "0s";
+  private static final String DURATION = "21600s";
+  private static final String CLUSTER = "--cluster";
 
   private String mOperation;
 
   @ParametersDelegate
-  private MasterBenchKitParameters mParameter = new MasterBenchKitParameters();
+  private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
 
   @Override
   public void run(String[] args) {
@@ -54,12 +57,24 @@ public class MasterBenchKit extends BenchKit {
 
     List<String[]> command = getCommand();
     List<Summary> results = new ArrayList<>();
-    try {
-      for (String[] arg : command) {
-        results.add(new StressMasterBench().runMultipleTask(arg));
+    StressMasterBench bench = new StressMasterBench();
+    for (String[] arg : command) {
+      //error on individual task will not end the whole batch task
+      try {
+        String jsonResult = bench.run(arg);
+        Summary result = (Summary) JsonSerializable.fromJson(jsonResult);
+        results.add(result);
+      } catch (Exception e) {
+        System.out.println(String.format("Failed to finish the %s operation", arg[0]));
+        e.printStackTrace();
       }
+    }
+
+    try {
       output(results);
     } catch (Exception e) {
+      LOG.error("Failed to parse json: ", e);
+      System.out.println("Failed to parse json");
       e.printStackTrace();
     }
   }
@@ -67,7 +82,7 @@ public class MasterBenchKit extends BenchKit {
   private List<String[]> getCommand() {
     List<String[]> commands = new ArrayList<>();
 
-    if (mOperation.equals("MasterComprehensiveFileTestKit")) {
+    if (mOperation.equals("MasterComprehensiveFileBatchTask")) {
       String[] operations = {"CreateFile", "ListDir", "ListDirLocated", "GetBlockLocations",
           "GetFileStatus", "OpenFile", "DeleteFile"};
       for (String op : operations) {
@@ -75,45 +90,48 @@ public class MasterBenchKit extends BenchKit {
             "--operation", op,
             "--base", mParameter.mBasePath,
             "--threads", String.valueOf(mParameter.mThreads),
-            "--stop-count", String.valueOf(mParameter.mAmount),
-            "--target-throughput", String.valueOf(mTargetThroughput),
-            "--warmup", mWarmUp,
-            "--duration", mDuration,
+            "--stop-count", String.valueOf(mParameter.mNumFiles),
+            "--target-throughput", String.valueOf(TARGETTHROUGHPUT),
+            "--warmup", WARMUP,
+            "--duration", DURATION,
             "--create-file-size", mParameter.mFileSize,
-            mCluster,
+            CLUSTER,
         });
       }
     } else {
-      String[] operations = {"CreateFile", "ListDir", "RenameFile", "ListDirLocated",
-          "GetBlockLocations", "GetFileStatus", "OpenFile", "DeleteFile"};
+      //store the possible operations
+      Map<String, String> secondOperationMapping = ImmutableMap.<String, String>builder()
+          .put("MasterOpenFileBatchTask", "OpenFile")
+          .put("MasterGetBlockLocationsBatchTask", "GetBlockLocations")
+          .put("MasterGetFileStatusBatchTask", "MasterGetFileStatus")
+          .put("MasterRenameFileBatchTask", "RenameFile")
+          .put("MasterListDirBatchTask", "ListDir")
+          .put("MasterDeleteFileBatchTask", "DeleteFile")
+          .build();
+
+      //first command is creating the base file, second command depends on the task
       commands.add(new String[] {
           "--operation", "CreateFile",
           "--base", mParameter.mBasePath,
           "--threads", String.valueOf(mParameter.mThreads),
-          "--stop-count", String.valueOf(mParameter.mAmount),
-          "--target-throughput", String.valueOf(mTargetThroughput),
-          "--warmup", mWarmUp,
-          "--duration", mDuration,
+          "--stop-count", String.valueOf(mParameter.mNumFiles),
+          "--target-throughput", String.valueOf(TARGETTHROUGHPUT),
+          "--warmup", WARMUP,
+          "--duration", DURATION,
           "--create-file-size", mParameter.mFileSize,
-          mCluster,
+          CLUSTER,
       });
       commands.add(new String[] {
-          "--operation", "",
+          "--operation", secondOperationMapping.get(mOperation),
           "--base", mParameter.mBasePath,
           "--threads", String.valueOf(mParameter.mThreads),
-          "--stop-count", String.valueOf(mParameter.mAmount),
-          "--target-throughput", String.valueOf(mTargetThroughput),
-          "--warmup", mWarmUp,
-          "--duration", mDuration,
+          "--stop-count", String.valueOf(mParameter.mNumFiles),
+          "--target-throughput", String.valueOf(TARGETTHROUGHPUT),
+          "--warmup", WARMUP,
+          "--duration", DURATION,
           "--create-file-size", mParameter.mFileSize,
-          mCluster,
+          CLUSTER,
       });
-      for (String op : operations) {
-        if (mOperation.contains(op)) {
-          commands.get(1)[1] = op;
-          break;
-        }
-      }
     }
     return commands;
   }

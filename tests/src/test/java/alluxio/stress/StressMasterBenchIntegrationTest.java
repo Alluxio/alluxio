@@ -11,8 +11,6 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertTrue;
-
 import alluxio.stress.cli.StressMasterBench;
 
 import org.junit.Test;
@@ -155,45 +153,5 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     generateAndVerifyReport(
         Arrays.asList("CreateFile", "GetFileStatus", "ListDir", "ListDirLocated", "RenameFile"),
         output1, output2, output3, output4, output5);
-  }
-
-  @Test
-  public void writeTypeParameterTest() throws Exception {
-    String output1 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateFile",
-        "--fixed-count", "20",
-        "--target-throughput", "300",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "3s",
-        "--write-type", "MUST_CACHE",
-    });
-
-    String output2 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "DeleteFile",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "MUST_CACHE",
-    });
-
-    String output3 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateDir",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "MUST_CACHE",
-    });
-
-    assertTrue(output1.contains("\"errors\" : { },"));
-    assertTrue(output2.contains("\"errors\" : { },"));
-    assertTrue(output3.contains("\"errors\" : { },"));
   }
 }

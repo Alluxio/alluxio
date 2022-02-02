@@ -20,12 +20,10 @@ import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
-import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.JsonSerializable;
 import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
@@ -86,18 +84,6 @@ public abstract class Benchmark<T extends TaskResult> {
    * Perform post-run cleanups.
    */
   public void cleanup() throws Exception {}
-
-  /**
-   * run the tasks according to the test kit.
-   *
-   * @param args arguments
-   * @return the Summary of the result
-   * */
-  public Summary runMultipleTask(String[] args) throws Exception {
-    String result = run(args);
-    Summary s = (Summary) JsonSerializable.fromJson(result);
-    return s;
-  }
 
   protected static void mainInternal(String[] args, Benchmark benchmark) {
     int exitCode = 0;
