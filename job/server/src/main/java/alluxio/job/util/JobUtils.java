@@ -45,11 +45,14 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.CacheRequestManager;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +68,7 @@ import java.util.stream.Collectors;
  */
 public final class JobUtils {
   // a read buffer that should be ignored
+  private static final Logger LOG = LoggerFactory.getLogger(JobUtils.class);
   private static byte[] sIgnoredReadBuf = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
       new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
@@ -217,6 +221,9 @@ public final class JobUtils {
     if (!dataSource.getContainerHost().equals("")) {
       host = dataSource.getContainerHost();
     }
+    LOG.info("selected dataSource :{}",dataSource);
+    LOG.info("selected worker host:{}",host);
+    LOG.info("selected local net worker address:{}",localNetAddress);
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
         .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)
         .setSourcePort(dataSource.getDataPort()).build();
