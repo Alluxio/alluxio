@@ -219,10 +219,11 @@ message ElasticsearchInfo {
 }
 
 message ElasticsearchEnvironmentVariables {
-  optional string hub_es_domain_endpoint = 1;
+  optional string hub_es_cluster_endpoint = 1;
   optional string hub_es_cluster_port = 2;
   optional string hub_es_username = 3;
   optional string hub_es_password = 4;
+  optional string hub_cluster_id = 5;
 }
 
 message ElasticsearchDashboards {
