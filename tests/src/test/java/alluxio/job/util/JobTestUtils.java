@@ -62,6 +62,7 @@ public final class JobTestUtils {
           JobInfo info;
           try {
             info = jobMaster.getStatus(jobId);
+            System.out.println(info.toString());
             if (statuses.contains(info.getStatus())) {
               singleton.set(info);
             }
