@@ -22,7 +22,9 @@ import alluxio.util.WaitForOptions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -56,21 +58,28 @@ public final class JobTestUtils {
   public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
       final Set<Status> statuses) throws InterruptedException, TimeoutException {
     final AtomicReference<JobInfo> singleton = new AtomicReference<>();
-    CommonUtils.waitFor(
-        String.format("job %d to be one of status %s", jobId, Arrays.toString(statuses.toArray())),
-        () -> {
-          JobInfo info;
-          try {
-            info = jobMaster.getStatus(jobId);
-            System.out.println(info.toString());
-            if (statuses.contains(info.getStatus())) {
-              singleton.set(info);
+    List<String> jobStatus = new ArrayList<>();
+    jobStatus.add("");
+    try {
+      CommonUtils.waitFor(
+          String.format("job %d to be one of status %s", jobId, Arrays.toString(statuses.toArray())),
+          () -> {
+            JobInfo info;
+            try {
+              info = jobMaster.getStatus(jobId);
+              if (statuses.contains(info.getStatus())) {
+                singleton.set(info);
+              }
+              jobStatus.set(0, info.toString());
+              return statuses.contains(info.getStatus());
+            } catch (JobDoesNotExistException e) {
+              throw Throwables.propagate(e);
             }
-            return statuses.contains(info.getStatus());
-          } catch (JobDoesNotExistException e) {
-            throw Throwables.propagate(e);
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
+          }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
+    } catch (TimeoutException e) {
+      throw new TimeoutException(String.format("%s, %s", e.getMessage(), jobStatus.get(0)));
+    }
+
     return singleton.get();
   }
 
