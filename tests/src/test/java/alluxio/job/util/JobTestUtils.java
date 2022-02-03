@@ -56,20 +56,28 @@ public final class JobTestUtils {
   public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
       final Set<Status> statuses) throws InterruptedException, TimeoutException {
     final AtomicReference<JobInfo> singleton = new AtomicReference<>();
-    CommonUtils.waitFor(
-        String.format("job %d to be one of status %s", jobId, Arrays.toString(statuses.toArray())),
-        () -> {
-          JobInfo info;
-          try {
-            info = jobMaster.getStatus(jobId);
-            if (statuses.contains(info.getStatus())) {
-              singleton.set(info);
+    final AtomicReference<String> jobStatus = new AtomicReference<>();
+    try {
+      CommonUtils.waitFor(
+          String.format("job %d to be one of status %s", jobId,
+              Arrays.toString(statuses.toArray())),
+          () -> {
+            JobInfo info;
+            try {
+              info = jobMaster.getStatus(jobId);
+              jobStatus.set(info.toString());
+              if (statuses.contains(info.getStatus())) {
+                singleton.set(info);
+              }
+              return statuses.contains(info.getStatus());
+            } catch (JobDoesNotExistException e) {
+              throw Throwables.propagate(e);
             }
-            return statuses.contains(info.getStatus());
-          } catch (JobDoesNotExistException e) {
-            throw Throwables.propagate(e);
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
+          }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
+    } catch (TimeoutException e) {
+      throw new TimeoutException(String.format("%s, %s", e.getMessage(), jobStatus.toString()));
+    }
+
     return singleton.get();
   }
 

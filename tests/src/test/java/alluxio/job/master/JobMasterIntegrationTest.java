@@ -50,8 +50,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Integration tests for the job master.
  */
 public final class JobMasterIntegrationTest extends BaseIntegrationTest {
-  private static final long WORKER_TIMEOUT_MS = 500;
-  private static final long LOST_WORKER_INTERVAL_MS = 500;
+  private static final long WORKER_TIMEOUT_MS = 2000;
+  private static final long LOST_WORKER_INTERVAL_MS = 2000;
   private JobMaster mJobMaster;
   private JobWorkerProcess mJobWorker;
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
