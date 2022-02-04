@@ -227,22 +227,27 @@ public class SnapshotReplicationManager {
     }
     LOG.debug("Checking latest snapshot to send");
     SnapshotInfo snapshot = mStorage.getLatestSnapshot();
+    LOG.debug("Got latest snapshot info: {}", snapshot);
     if (snapshot == null) {
       throw new NotFoundException("No snapshot available");
     }
     StreamObserver<UploadSnapshotPResponse> responseObserver =
         SnapshotUploader.forFollower(mStorage, snapshot);
+    LOG.debug("Got SnapshotUploader");
     RaftJournalServiceClient client = getJournalServiceClient();
+    LOG.debug("Got RaftJournalServiceClient");
     LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
         snapshot.getTermIndex());
     StreamObserver<UploadSnapshotPRequest> requestObserver = getJournalServiceClient()
         .uploadSnapshot(responseObserver);
+    LOG.debug("Got requestObserver");
     requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
         .setData(SnapshotData.newBuilder()
                 .setSnapshotTerm(snapshot.getTerm())
                 .setSnapshotIndex(snapshot.getIndex())
                 .setOffset(0))
         .build());
+    LOG.debug("Sent stream request");
   }
 
   /**
