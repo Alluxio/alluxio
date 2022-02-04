@@ -670,6 +670,12 @@ csi:
 
 hub:
   enabled: false
+  clusterId:
+  elasticsearch:
+    endpoint: "endpoint"
+    port: "port"
+    username: "username"
+    password: "password"
   env:
   # Example:
   # JAVA_HOME: /opt/java
@@ -685,9 +691,17 @@ hub:
   ports:
     web: 30077
     rpc: 30076
+    logstash: 5044
   agent:
     args: # Arguments to Docker entrypoint
       - hub-agent
     ports:
       rpc: 30075
   serviceAccount: default
+  # Pod annotations for Metricbeat Autodiscovery
+  podAnnotations:
+    co.elastic.metrics/module: prometheus
+    co.elastic.metrics/metricsets: collector
+    co.elastic.metrics/hosts: '${data.host}:${data.ports.web}' # assumes web port exists
+    co.elastic.metrics/period: 1m
+    co.elastic.metrics/metrics_path: /metrics/prometheus
