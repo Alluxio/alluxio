@@ -513,8 +513,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
       if (offset != 0) {
-        // TODO(lu) update the error message
-        LOG.error("Cannot find fd for {} in table", path);
+        LOG.error(String.format("Cannot write to offset %s for path %s with flags 0x%x."
+            + "Output stream is not initiated.",
+            offset, path, fi.flags.get()));
         return -ErrorCodes.EBADFD();
       }
       // Several cases may happen here
@@ -558,8 +559,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         mCreateFileEntries.add(ce);
         mAuthPolicy.setUserGroupIfNeeded(uri);
       } catch (Throwable e) {
-        // TODO(lu) update error message
-        LOG.error("Failed to write to path {}", path, e);
+        LOG.error("Failed to create file output stream for {}", path, e);
         return -ErrorCodes.EIO();
       }
     }
