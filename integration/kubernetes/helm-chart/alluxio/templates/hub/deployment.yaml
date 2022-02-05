@@ -10,10 +10,7 @@
 #
 
 {{ if .Values.hub.enabled -}}
-{{- if ne .Values.hub.clusterId (get .Values.properties "alluxio.hub.cluster.id") }}
-{{- fail ".Values.{hub.clusterId .properties.alluxio.hub.cluster.id} must match" }}
-{{- end }}
-{{- if ne .Values.hub.clusterId (.Values.hub.clusterId | lower) }}
+{{- if eq (regexMatch "^[a-z0-9]{4}$" .Values.hub.clusterId) false }}
 {{- fail ".Values.hub.clusterId must be lowercase" }}
 {{- end }}
 {{- $name := include "alluxio.name" . }}
@@ -75,8 +72,6 @@ spec:
           - configMapRef:
               name: {{ $fullName }}-config
           ports:
-          - containerPort: {{ .Values.hub.ports.web }}
-            name: web
           - containerPort: {{ .Values.hub.ports.rpc }}
             name: rpc
         - name: logstash
@@ -87,7 +82,7 @@ spec:
             - name: LOGSTASH_PORT
               value: {{ .Values.hub.ports.logstash | quote }}
             - name: HUB_CLUSTER_ID
-              value: {{ .Values.hub.clusterId | lower }} # Elasticsearch index suffix - Logstash conf requires all lowercase
+              value: {{ .Values.hub.clusterId }}
           ports:
             - containerPort: {{ .Values.hub.ports.logstash }}
               name: logstash

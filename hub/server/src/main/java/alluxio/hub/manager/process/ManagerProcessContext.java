@@ -135,7 +135,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +159,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -248,8 +248,10 @@ public class ManagerProcessContext implements AutoCloseable {
       }
     }
     String hubClusterId = mConf.get(PropertyKey.HUB_CLUSTER_ID);
-    if (hubClusterId.length() != 4 || !StringUtils.isAlphanumeric(hubClusterId)) {
-      throw new RuntimeException(String.format("%s (%s) must be a 4-character alphanumeric string",
+    if (!checkClusterId(hubClusterId)) {
+      throw new RuntimeException(
+              String.format("%s (%s) is an invalid cluster id - must be a 4-character string"
+                      + " containing only lowercase letters (a-z) and numbers (0-9).",
               PropertyKey.HUB_CLUSTER_ID.getName(), hubClusterId));
     }
     mHubMetadata = HubMetadata.newBuilder()
@@ -281,6 +283,12 @@ public class ManagerProcessContext implements AutoCloseable {
       LOG.error("Failed to connect to Hosted Hub", e);
     }
     LOG.info("Initialized manager context");
+  }
+
+  @VisibleForTesting
+  protected static boolean checkClusterId(String clusterId) {
+    Pattern p = Pattern.compile("^[a-z0-9]{4}$");
+    return p.matcher(clusterId).find();
   }
 
   private void connectToHub(alluxio.hub.proto.AlluxioCluster cluster) throws Exception {

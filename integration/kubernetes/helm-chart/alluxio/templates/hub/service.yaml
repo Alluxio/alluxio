@@ -26,8 +26,6 @@ metadata:
     role: alluxio-hub
 spec:
   ports:
-    - port: {{ int .Values.hub.ports.web }}
-      name: web
     - port: {{ int .Values.hub.ports.rpc }}
       name: rpc
     - port: {{ .Values.hub.ports.logstash }}
