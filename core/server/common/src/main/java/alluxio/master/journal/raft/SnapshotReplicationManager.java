@@ -103,8 +103,7 @@ import java.util.stream.Collectors;
  */
 public class SnapshotReplicationManager {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotReplicationManager.class);
-  private static final long SNAPSHOT_REQUEST_TIMEOUT_MS =
-      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS);
+  private static final long SNAPSHOT_REQUEST_TIMEOUT_MS = 30_000;
 
   private final SimpleStateMachineStorage mStorage;
   private final RaftJournalSystem mJournalSystem;
