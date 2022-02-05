@@ -16,10 +16,23 @@ package alluxio.client.metrics;
  */
 public enum ScopedMetricKey {
   /** Bytes stored of this scope in cache.*/
-  BYTES_IN_CACHE,
+  BYTES_IN_CACHE("Client.BytesInCacheInScope"),
   /** Cache hits. Bytes read of this scope from cache.*/
-  BYTES_READ_CACHE,
+  BYTES_READ_CACHE("Client.BytesReadCacheInScope"),
   /** Bytes read of this scope from external,
    * may be larger than requests due to reading complete pages.*/
-  BYTES_READ_EXTERNAL;
+  BYTES_READ_EXTERNAL("Client.BytesReadExternalInScope");
+
+  private final String mName;
+
+  ScopedMetricKey(String name) {
+    mName = name;
+  }
+
+  /**
+   * @return the name of the scoped metric key
+   */
+  public String getName() {
+    return mName;
+  }
 }

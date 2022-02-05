@@ -29,7 +29,7 @@ public class SegmentedScopedMetrics implements ScopedMetrics {
     mNumOfSegments = numOfSegments;
     mSegmentedMetrics = new ScopedMetrics[numOfSegments];
     for (int i = 0; i < numOfSegments; i++) {
-      mSegmentedMetrics[i] = new ConcurrentScopedMetrics();
+      mSegmentedMetrics[i] = new InMemoryScopedMetrics();
     }
   }
 

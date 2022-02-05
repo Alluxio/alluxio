@@ -18,11 +18,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class ConcurrentScopedMetrics implements ScopedMetrics {
+class InMemoryScopedMetrics implements ScopedMetrics {
 
   Map<CacheScope, MetricItem> mMetrics;
 
-  ConcurrentScopedMetrics() {
+  InMemoryScopedMetrics() {
     mMetrics = new ConcurrentHashMap<>();
   }
 

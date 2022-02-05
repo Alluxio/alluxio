@@ -19,6 +19,9 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests for SegmentedScopedMetrics.
+ */
 public class SegmentedScopedMetricsTest {
   public static final int NUM_OF_SEGMENTS = 4;
   private SegmentedScopedMetrics mScopedMetrics;

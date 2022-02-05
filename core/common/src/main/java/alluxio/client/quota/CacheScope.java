@@ -127,6 +127,13 @@ public class CacheScope {
     return mLevel;
   }
 
+  /**
+   * @return the id of this scope
+   */
+  public String id() {
+    return mId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
