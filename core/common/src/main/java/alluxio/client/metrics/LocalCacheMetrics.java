@@ -11,6 +11,8 @@
 
 package alluxio.client.metrics;
 
+import static alluxio.client.metrics.ScopedMetricsType.*;
+import static alluxio.client.metrics.ScopedMetricsType.ALLUXIO_SYSTEM;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -73,12 +75,28 @@ public class LocalCacheMetrics {
 
     private static LocalCacheMetrics create(AlluxioConfiguration conf) {
       LocalCacheMetrics metrics = new LocalCacheMetrics();
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)
-          || conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED)) {
-        metrics.setLocalCacheMetricsInScope(new ConcurrentScopedMetrics());
-      } else {
-        metrics.setLocalCacheMetricsInScope(new NoOpScopedMetrics());
+      ScopedMetricsType metricsType =
+          conf.getEnum(PropertyKey.USER_CLIENT_CACHE_SCOPED_METRICS_COLLECTING_TYPE,
+              ScopedMetricsType.class);
+      switch (metricsType) {
+        case ALLUXIO_SYSTEM:
+          metrics.setLocalCacheMetricsInScope(new InMemoryScopedMetrics());
+          break;
+        case IN_MEMORY:
+          metrics.setLocalCacheMetricsInScope(new AlluxioSystemScopedMetrics());
+          break;
+        case NO_OP:
+          if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
+            // Scoped metrics breakdown are required when quotas are enabled
+            metrics.setLocalCacheMetricsInScope(new InMemoryScopedMetrics());
+          } else {
+            metrics.setLocalCacheMetricsInScope(new NoOpScopedMetrics());
+          }
+         break;
+        default:
+          throw new IllegalArgumentException("Unsupported scoped metrics type:" + metricsType);
       }
+
       if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED)) {
         int numOfSegments = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM);
         metrics.setShadowCacheMetricsInScope(new SegmentedScopedMetrics(numOfSegments));

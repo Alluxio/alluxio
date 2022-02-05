@@ -12,17 +12,18 @@
 package alluxio.client.metrics;
 
 import alluxio.client.quota.CacheScope;
+import alluxio.metrics.MetricsSystem;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class ConcurrentScopedMetrics implements ScopedMetrics {
+class InMemoryScopedMetrics implements ScopedMetrics {
 
   Map<CacheScope, MetricItem> mMetrics;
 
-  ConcurrentScopedMetrics() {
+  InMemoryScopedMetrics() {
     mMetrics = new ConcurrentHashMap<>();
   }
 
@@ -33,6 +34,7 @@ class ConcurrentScopedMetrics implements ScopedMetrics {
 
   @Override
   public long inc(CacheScope scope, ScopedMetricKey scopedMetricKey, long n) {
+    MetricsSystem.meter(scopedMetricKey.getName() + "." + scope.toString()).mark(n);
     return getMetricItem(scope).inc(scopedMetricKey, n);
   }
 

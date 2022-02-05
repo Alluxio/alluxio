@@ -4044,11 +4044,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED).setDefaultValue(false)
+
+  public static final PropertyKey USER_CLIENT_CACHE_SCOPED_METRICS_COLLECTING_TYPE =
+      new Builder(Name.USER_CLIENT_CACHE_SCOPED_METRICS_COLLECTING_TYPE).setDefaultValue(
+              "NO_OP")
           .setDescription(
-              "If this is enabled, a breakdown metrics will be collected on client side")
+              "The type of client cache metrics breakdown to use,"
+                  + " it could be either 'ALLUXIO_SYSTEM', 'IN_MEMORY' or 'NO_OP'."
+                  + "The 'ALLUXIO_SYSTEM' will expose the metrics to Alluxio system's metrics"
+                  + "The 'IN_MEMORY' will store the metrics in a hashmap in memory."
+                  + "The 'NO_OP' will disable the scoped metrics breakdown.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_ENABLED =
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_ENABLED).setDefaultValue(false).setDescription(
           "If this is enabled, a shadow cache will be created to tracking the working set of "
@@ -6072,8 +6079,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.lfu.logbase";
     public static final String USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
         "alluxio.user.client.cache.evictor.nondeterministic.enabled";
-    public static final String USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED =
-        "alluxio.user.client.cache.metrics.breakdown.enabled";
+    public static final String USER_CLIENT_CACHE_SCOPED_METRICS_COLLECTING_TYPE =
+            "alluxio.user.client.cache.metrics.breakdown.collecting.type";
     public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
         "alluxio.user.client.cache.shadow.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED =

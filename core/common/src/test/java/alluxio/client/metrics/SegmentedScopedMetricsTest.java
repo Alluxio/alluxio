@@ -12,7 +12,6 @@
 package alluxio.client.metrics;
 
 import static org.junit.Assert.assertEquals;
-
 import alluxio.client.quota.CacheScope;
 
 import com.google.common.collect.ImmutableSet;

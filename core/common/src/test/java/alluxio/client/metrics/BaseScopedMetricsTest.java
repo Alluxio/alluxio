@@ -12,23 +12,24 @@
 package alluxio.client.metrics;
 
 import static org.junit.Assert.assertEquals;
-
 import alluxio.client.quota.CacheScope;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ConcurrentScopedMetricsTest {
+public abstract class BaseScopedMetricsTest {
 
-  private ConcurrentScopedMetrics mScopedMetrics;
+  private ScopedMetrics mScopedMetrics;
   private static final CacheScope SCOPE1 = CacheScope.create("db.schema.table1");
   private static final CacheScope SCOPE2 = CacheScope.create("db.schema.table2");
   private static final CacheScope SCOPE3 = CacheScope.create("db.schema.table3");
 
+  protected abstract ScopedMetrics createMetrics();
+
   @Before
   public void before() {
-    mScopedMetrics = new ConcurrentScopedMetrics();
+    mScopedMetrics = createMetrics();
   }
 
   @Test
