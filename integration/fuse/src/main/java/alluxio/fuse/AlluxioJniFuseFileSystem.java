@@ -388,21 +388,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     URIStatus status = null;
     try {
       status = mFileSystem.getStatus(uri);
-    } catch (InvalidPathException | FileNotFoundException e) {
+    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
       status = null;
     } catch (Throwable t) {
       LOG.error("Failed to get status of path {} when opening it.", path);
       return -ErrorCodes.EIO();
-    }
-
-    if (openAction == OpenAction.WRITE_ONLY && status != null && !truncate) {
-      // Attention: according to posix standard,
-      // file cannot be removed with O_WRONLY or O_RDWR flag itself.
-      // O_TRUNC is needed
-      LOG.error(String.format(
-          "Cannot overwrite existing file %s without O_TRUNC flag specify, flags: 0x%x",
-          path, flags));
-      return -ErrorCodes.EEXIST();
     }
 
     if (status != null && !status.isCompleted()) {
@@ -419,6 +409,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     // Alluxio fuse only supports read-only for completed file
     // and write-only for file that does not exist or contains open flag O_TRUNC
     // O_RDWR will be treated as read-only if file exists and no O_TRUNC,
+    // if truncate() or write() is detected, read-only will be transferred to write-only
     // write-only otherwise
     boolean readOnly = openAction == OpenAction.READ_ONLY
         || (openAction == OpenAction.READ_WRITE && status != null && !truncate);
@@ -427,15 +418,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     fi.fh.set(fd);
     try {
       if (status != null && truncate) {
+        // Attention: according to POSIX standard
+        // file cannot be removed with O_WRONLY or O_RDWR flag itself
+        // O_TRUNC or fuse.truncate(size=0) is needed.
         mFileSystem.delete(uri);
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", path, flags));
+        status = null;
       }
       if (readOnly) {
         FileInStream is;
         is = mFileSystem.openFile(uri);
         mOpenFileEntries.put(fd, is);
-      } else {
+      } else if (status == null) {
+        // If O_WRONLY without O_TRUNC
+        // wait for fuse.truncate(size=0) to delete file and create new output stream
+        // otherwise all future write will error out
         FileOutStream os = mFileSystem.createFile(uri);
         mCreateFileEntries.add(new CreateFileEntry(fd, path, os));
         mAuthPolicy.setUserGroupIfNeeded(uri);
@@ -514,16 +512,56 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final long fd = fi.fh.get();
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
-      final int flags = fi.flags.get();
-      if (AlluxioFuseOpenUtils.getOpenAction(flags) == OpenAction.READ_WRITE) {
-        LOG.error(String.format("Alluxio only supports read-only or write-only. "
-            + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
-            + "Cannot find stream for writing may because open READ_WRITE is treated as read-only.",
-            path, flags));
-      } else {
-        LOG.error("Cannot find fd for {} in table", path);
+      if (offset != 0) {
+        LOG.error(String.format("Cannot write to offset %s for path %s with flags 0x%x."
+            + "Output stream is not initiated.",
+            offset, path, fi.flags.get()));
+        return -ErrorCodes.EBADFD();
       }
-      return -ErrorCodes.EBADFD();
+      // Several cases may happen here
+      // 1. open(O_WRONLY) do nothing -> truncate(0) delete file
+      // -> write(offset=0) should create file output stream
+      // 2. open(O_RDWR) -> file exists and no O_TRUNC provided,
+      // treated as read-only first, created file input stream
+      // if truncate(0) delete file,
+      // write(offset=0) should delete input stream and create output stream
+      // if no truncate(0), write(offset=0) should error out
+      final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+      URIStatus status = null;
+      try {
+        status = mFileSystem.getStatus(uri);
+      } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+        status = null;
+      } catch (Throwable t) {
+        LOG.error("Failed to get status of path {} when opening it.", path);
+        return -ErrorCodes.EIO();
+      }
+      if (status != null) {
+        // open (O_WRONLY or O_RDWR) needs O_TRUNC open flag
+        // or fuse.truncate(size = 0) to delete existing file
+        // otherwise cannot overwrite existing file
+        LOG.error(String.format("Cannot overwrite existing file %s "
+            + "without O_TRUNC flag or fuse.truncate(size=0), flag 0x%x",
+            path, fi.flags.get()));
+        return -ErrorCodes.EEXIST();
+      }
+
+      // open(O_RDWR) without O_TRUNC() will be treated as read-only first
+      // fuse.truncate(size=0) delete the file
+      // following write(size=0) will create the new file out stream
+      // and delete file in stream if any
+      mOpenFileEntries.remove(fd);
+
+      // create file out stream
+      try {
+        FileOutStream os = mFileSystem.createFile(uri);
+        ce = new CreateFileEntry(fd, path, os);
+        mCreateFileEntries.add(ce);
+        mAuthPolicy.setUserGroupIfNeeded(uri);
+      } catch (Throwable e) {
+        LOG.error("Failed to create file output stream for {}", path, e);
+        return -ErrorCodes.EIO();
+      }
     }
 
     FileOutStream os = ce.getOut();
@@ -813,7 +851,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     // 1. Truncate size = 0, file does not exist => no-op
     // 2. Truncate size = 0, file exists and completed
     // => noop if file size = 0 or delete file
-    // TODO(lu) delete open file entry if any
+    // TODO(lu) delete open file entry if any, blocked by libfuse 3
     // 3. Truncate size = 0, file exists and is being written by current Fuse
     // => noop if written size = 0, otherwise delete file and update create file entry
     // 4. Truncate size = 0, file exists and is being written by other applications
@@ -848,6 +886,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           if (status.getLength() == 0) {
             return 0;
           }
+          // support open(O_WRONLY or O_RDWR) -> truncate() -> write()
           mFileSystem.delete(uri);
           // TODO(lu) delete existing opened file entry if any
           // require libfuse 3 which truncate() has fd info
