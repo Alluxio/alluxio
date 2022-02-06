@@ -387,9 +387,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
     URIStatus status = null;
     try {
-      status = mFileSystem.getStatus(uri);
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      status = null;
+      status = getPathStatus(uri);
     } catch (Throwable t) {
       LOG.error("Failed to get status of path {} when opening it.", path);
       return -ErrorCodes.EIO();
@@ -529,11 +527,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
       URIStatus status = null;
       try {
-        status = mFileSystem.getStatus(uri);
-      } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-        status = null;
+        status = getPathStatus(uri);
       } catch (Throwable t) {
-        LOG.error("Failed to get status of path {} when opening it.", path);
+        LOG.error("Failed to get status of path {} when writing to it.", path);
         return -ErrorCodes.EIO();
       }
       if (status != null) {
@@ -735,17 +731,30 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           oldPath, newPath, name, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(oldPath);
+    URIStatus status = null;
+    try {
+      status = getPathStatus(uri);
+    } catch (Throwable t) {
+      LOG.error("Failed to get status of path {} when renaming it.", oldPath);
+      return -ErrorCodes.EIO();
+    }
+    if (status == null) {
+      LOG.error("Failed to rename non-existing path {} to {}", oldPath, newPath);
+      return -ErrorCodes.EEXIST();
+    }
+    if (!status.isCompleted()) {
+      // TODO(lu) https://github.com/Alluxio/alluxio/issues/14854
+      // how to support rename while writing
+      LOG.error("Failed to rename incomplete path {} to {}", oldPath, newPath);
+      return -ErrorCodes.EIO();
+    }
     try {
       mFileSystem.rename(oldUri, newUri);
-      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, oldPath);
-      if (ce != null) {
-        ce.setPath(newPath);
-      }
     } catch (Throwable e) {
       LOG.error("Failed to rename {} to {}: ", oldPath, newPath, e);
       return -ErrorCodes.EIO();
     }
-
     return 0;
   }
 
@@ -1086,5 +1095,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
+  }
+
+  /**
+   * Gets the path status.
+   *
+   * @param uri the Alluxio uri to get status of
+   * @return the file status, null if the path does not exist in Alluxio
+   * @throws Exception when failed to get path status
+   */
+  private URIStatus getPathStatus(AlluxioURI uri) throws Exception {
+    try {
+      return mFileSystem.getStatus(uri);
+    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+      return null;
+    }
   }
 }
