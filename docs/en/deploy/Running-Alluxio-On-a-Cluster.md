@@ -36,7 +36,8 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   For basic functionality, make sure RPC port (default:19998) is open on all nodes.
 * Allow `sudo` privilege for the OS user that Alluxio will be running as.
   This is only needed if you expect Alluxio to mount a RAMFS on the workers automatically.
-* Enable sudo command can be used without inputting password. See [this tutorial](https://askubuntu.com/questions/334318/sudoers-file-enable-nopasswd-for-user-all-commands) for more details.
+  To use `sudo` command without entering password, see [this tutorial](https://askubuntu.com/questions/334318/sudoers-file-enable-nopasswd-for-user-all-commands)
+  for more details.
 
 ## Basic Setup
 
