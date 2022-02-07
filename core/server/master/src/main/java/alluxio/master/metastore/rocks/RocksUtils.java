@@ -16,6 +16,8 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
 import org.rocksdb.RocksIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Convenience methods for working with RocksDB.
  */
 public final class RocksUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(RocksUtils.class);
 
   private RocksUtils() {} // Utils class.
 
@@ -123,7 +126,7 @@ public final class RocksUtils {
         try {
           return parser.next(rocksIterator);
         } catch (Exception exc) {
-          // TODO(jiacheng): log this
+          LOG.warn("Iteration aborted because of error", exc);
           rocksIterator.close();
           valid.set(false);
           throw new RuntimeException(exc);

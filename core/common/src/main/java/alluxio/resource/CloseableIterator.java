@@ -18,7 +18,6 @@ import com.google.common.io.Closer;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
@@ -29,9 +28,12 @@ import java.util.function.Consumer;
  * The iterator is not necessarily {@code Closeable} so we do not provide a default implementation
  * for {@code closeResource()}.
  *
+ * Users are required to use the factory methods instead of the constructors to create instances.
+ *
  * @param <T> the type of elements returned by the iterator
  */
-public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>> implements Iterator<T> {
+public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>>
+    implements Iterator<T> {
   Iterator<T> mIter;
 
   /**
@@ -45,7 +47,7 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     mIter = iterator;
   }
 
-  Iterator<T> getIterator() {
+  private Iterator<T> getIterator() {
     return mIter;
   }
 
@@ -59,6 +61,15 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     return mIter.next();
   }
 
+  /**
+   * Wrap around an iterator with a resource to close.
+   * How to close the resource is defined by the caller in the lambda expression.
+   *
+   * @param iterator the iterator to wrap around
+   * @param closeAction the callback to properly clean up the resource
+   * @param <T> the type of the iterable
+   * @return the closeable iterator
+   */
   public static <T> CloseableIterator<T> create(Iterator<T> iterator, Consumer<Void> closeAction) {
     return new CloseableIterator<T>(iterator) {
       @Override
@@ -68,9 +79,8 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     };
   }
 
-
   /**
-   * Wrap around an iterator with no resource to close.
+   * Wraps around an iterator with no resource to close.
    *
    * @param iterator the iterator to wrap around
    * @param <T> the type of the iterable
@@ -99,7 +109,7 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
   }
 
   /**
-   * Concatenate iterators.
+   * Concatenates iterators.
    *
    * @param iterators a list of iterators
    * @param <T> type of iterator
