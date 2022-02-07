@@ -19,62 +19,65 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 /**
  * A {@code CloseableIterator<T>} is an iterator which requires cleanup when it is no longer in use.
  *
  * @param <T> the type of elements returned by the iterator
  */
-public abstract class CloseableIterator<T, R> extends CloseableResource<R> implements Iterator<T> {
+public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>> implements Iterator<T> {
   Iterator<T> mIter;
-  Callable<Void> mCloseAction;
 
-//  /**
-//   * Creates a {@link CloseableIterator} wrapper around the given iterator. This iterator will
-//   * be returned by the {@link CloseableIterator#get()} method.
-//   *
-//   * @param iterator the resource to wrap
-//   */
-//  CloseableIterator(Iterator<T> iterator) {
-//    super(iterator);
-//    mIter = iterator;
-//  }
-
-  // TODO(jiacheng): can you make the generic recursive?
-  CloseableIterator(CloseableIterator<T, R> closeableIterator) {
-    super(closeableIterator.get());
-    mIter = closeableIterator;
-  }
-
-  CloseableIterator(Iterator<T> iterator, R resource) {
-    super(resource);
+  /**
+   * Creates a {@link CloseableIterator} wrapper around the given iterator. This iterator will
+   * be returned by the {@link CloseableIterator#get()} method.
+   *
+   * @param iterator the resource to wrap
+   */
+  CloseableIterator(Iterator<T> iterator) {
+    super(iterator);
     mIter = iterator;
   }
+
+  public static final Consumer<Void> NOOP = whatever -> {};
+
+  // TODO(jiacheng): can you make the generic recursive?
+//  CloseableIterator(CloseableIterator<T> closeableIterator) {
+//    super(closeableIterator.get());
+//    mIter = closeableIterator;
+//  }
+
+//  CloseableIterator(Iterator<T> iterator, R resource) {
+//    super(resource);
+//    mIter = iterator;
+//  }
 
   Iterator<T> getIterator() {
     return mIter;
   }
 
+  @Override
+  public boolean hasNext() {
+    return mIter.hasNext();
+  }
+
+  @Override
+  public T next() {
+    return mIter.next();
+  }
+
   // TODO(jiacheng): avoid the abstract class and anonymous inner classes
-  public static <T, R> CloseableIterator<T, R> create(Iterator<T> iterator, Callable<Void> closeAction) {
-    return new CloseableIterator<T, R>(iterator, null) {
+  public static <T> CloseableIterator<T> create(Iterator<T> iterator, Consumer<Void> closeAction) {
+    return new CloseableIterator<T>(iterator) {
       @Override
       public void closeResource() {
         try {
-          closeAction.call();
+          // TODO(jiacheng): catch all exception?
+          closeAction.accept(null);
         } catch (Exception e) {
           System.err.println(e);
         }
-      }
-
-      @Override
-      public boolean hasNext() {
-        return false;
-      }
-
-      @Override
-      public T next() {
-        return null;
       }
     };
   }
@@ -87,20 +90,10 @@ public abstract class CloseableIterator<T, R> extends CloseableResource<R> imple
    * @param <T> the type of the iterable
    * @return the closeable iterator
    */
-  public static <T, R> CloseableIterator<T, R> noopCloseable(Iterator<T> iterator) {
+  public static <T, R> CloseableIterator<T> noopCloseable(Iterator<T> iterator) {
     // TODO(jiacheng): is there a way to avoid null?
     // There is no resource to close
-    return new CloseableIterator<T, R>(iterator, null) {
-      @Override
-      public boolean hasNext() {
-        return mIter.hasNext();
-      }
-
-      @Override
-      public T next() {
-        return mIter.next();
-      }
-
+    return new CloseableIterator<T>(iterator) {
       @Override
       public void closeResource() {
         // no-op
@@ -116,7 +109,7 @@ public abstract class CloseableIterator<T, R> extends CloseableResource<R> imple
    * @param <T> type of iterator
    * @return the concatenated iterator
    */
-  public static <T, R> CloseableIterator<T, Closer> concat(CloseableIterator<T, R> a, CloseableIterator<T, R> b) {
+  public static <T> CloseableIterator<T> concat(CloseableIterator<T> a, CloseableIterator<T> b) {
     return concat(Lists.newArrayList(a, b));
   }
 
@@ -127,8 +120,8 @@ public abstract class CloseableIterator<T, R> extends CloseableResource<R> imple
    * @param <T> type of iterator
    * @return a concatenated iterator that iterate over all elements from each of the child iterators
    */
-  public static <T, R> CloseableIterator<T, Closer> concat(
-      List<CloseableIterator<T, R>> iterators) {
+  public static <T> CloseableIterator<T> concat(
+      List<CloseableIterator<T>> iterators) {
 //    Iterator<? extends T> it =
 //        Iterators.concat(iterators.stream().map(CloseableIterator::get).iterator());
 //    Iterator<T> concatIter = Iterators.concat(it);
@@ -137,24 +130,14 @@ public abstract class CloseableIterator<T, R> extends CloseableResource<R> imple
     Iterator<T> it =
             Iterators.concat(iterators.stream().map(CloseableIterator::getIterator).iterator());
     // Register the resources
-    Closer c = Closer.create();
-    iterators.forEach(c::register);
+    final Closer closer = Closer.create();
+    iterators.forEach(closer::register);
     // TODO(jiacheng): find a good way of using wildcard generics
-    return new CloseableIterator<T, Closer>(it, c) {
-      @Override
-      public boolean hasNext() {
-        return mIter.hasNext();
-      }
-
-      @Override
-      public T next() {
-        return mIter.next();
-      }
-
+    return new CloseableIterator<T>(it) {
       @Override
       public void closeResource() {
         try {
-          c.close();
+          closer.close();
         } catch (IOException e) {
           throw new RuntimeException("Failed to close iterator", e);
         }

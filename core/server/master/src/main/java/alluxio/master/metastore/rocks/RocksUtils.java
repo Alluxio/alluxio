@@ -138,7 +138,7 @@ public final class RocksUtils {
     };
   }
 
-  public static <T, R> CloseableIterator<T, R> createCloseableIterator(RocksIterator rocksIterator,
+  public static <T> CloseableIterator<T> createCloseableIterator(RocksIterator rocksIterator,
                                                                  RocksIteratorParser<T> parser) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
@@ -167,9 +167,8 @@ public final class RocksUtils {
       }
     };
 
-    return CloseableIterator.create(iter, () -> {
+    return CloseableIterator.create(iter, (whatever) -> {
       rocksIterator.close();
-      return null;
     });
   }
 }
