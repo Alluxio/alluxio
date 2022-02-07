@@ -119,9 +119,9 @@ public final class PlanCoordinator {
       definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     } catch (JobDoesNotExistException e) {
       LOG.info("Exception when getting jobDefinition from jobConfig: ", e);
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
       mPlanInfo.setErrorMessage(e.getMessage());
+      mPlanInfo.setStatus(Status.FAILED);
       throw e;
     }
     SelectExecutorsContext context =
@@ -212,9 +212,9 @@ public final class PlanCoordinator {
    */
   public synchronized void setJobAsFailed(String errorType, String errorMessage) {
     if (!mPlanInfo.getStatus().isFinished()) {
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(errorType);
       mPlanInfo.setErrorMessage(errorMessage);
+      mPlanInfo.setStatus(Status.FAILED);
     }
     mWorkersInfoList = null;
   }
