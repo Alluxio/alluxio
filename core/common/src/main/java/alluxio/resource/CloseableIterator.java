@@ -24,6 +24,11 @@ import java.util.function.Consumer;
 /**
  * A {@code CloseableIterator<T>} is an iterator which requires cleanup when it is no longer in use.
  *
+ * When the user creates {@code CloseableIterator}, the {@code closeResource()} method needs to be
+ * implemented to define how the resource can be closed.
+ * The iterator is not necessarily {@code Closeable} so we do not provide a default implementation
+ * for {@code closeResource()}.
+ *
  * @param <T> the type of elements returned by the iterator
  */
 public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>> implements Iterator<T> {
@@ -40,19 +45,6 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     mIter = iterator;
   }
 
-  public static final Consumer<Void> NOOP = whatever -> {};
-
-  // TODO(jiacheng): can you make the generic recursive?
-//  CloseableIterator(CloseableIterator<T> closeableIterator) {
-//    super(closeableIterator.get());
-//    mIter = closeableIterator;
-//  }
-
-//  CloseableIterator(Iterator<T> iterator, R resource) {
-//    super(resource);
-//    mIter = iterator;
-//  }
-
   Iterator<T> getIterator() {
     return mIter;
   }
@@ -67,17 +59,11 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     return mIter.next();
   }
 
-  // TODO(jiacheng): avoid the abstract class and anonymous inner classes
   public static <T> CloseableIterator<T> create(Iterator<T> iterator, Consumer<Void> closeAction) {
     return new CloseableIterator<T>(iterator) {
       @Override
       public void closeResource() {
-        try {
-          // TODO(jiacheng): catch all exception?
-          closeAction.accept(null);
-        } catch (Exception e) {
-          System.err.println(e);
-        }
+        closeAction.accept(null);
       }
     };
   }
@@ -90,8 +76,7 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
    * @param <T> the type of the iterable
    * @return the closeable iterator
    */
-  public static <T, R> CloseableIterator<T> noopCloseable(Iterator<T> iterator) {
-    // TODO(jiacheng): is there a way to avoid null?
+  public static <T> CloseableIterator<T> noopCloseable(Iterator<T> iterator) {
     // There is no resource to close
     return new CloseableIterator<T>(iterator) {
       @Override
@@ -122,17 +107,12 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
    */
   public static <T> CloseableIterator<T> concat(
       List<CloseableIterator<T>> iterators) {
-//    Iterator<? extends T> it =
-//        Iterators.concat(iterators.stream().map(CloseableIterator::get).iterator());
-//    Iterator<T> concatIter = Iterators.concat(it);
-
     // Concat the iterators
     Iterator<T> it =
-            Iterators.concat(iterators.stream().map(CloseableIterator::getIterator).iterator());
+        Iterators.concat(iterators.stream().map(CloseableIterator::getIterator).iterator());
     // Register the resources
     final Closer closer = Closer.create();
     iterators.forEach(closer::register);
-    // TODO(jiacheng): find a good way of using wildcard generics
     return new CloseableIterator<T>(it) {
       @Override
       public void closeResource() {

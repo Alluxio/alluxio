@@ -414,10 +414,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     });
 
-//    return CloseableIterator.noopCloseable(Iterators
-//        .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
     return CloseableIterator.concat(
-        CloseableIterator.noopCloseable(CommonUtils.singleElementIterator(getContainerIdJournalEntry())),
+        CloseableIterator.noopCloseable(
+            CommonUtils.singleElementIterator(getContainerIdJournalEntry())),
         closeableIterator);
   }
 

@@ -78,15 +78,5 @@ public final class CloseableIteratorTest {
     public boolean isClosed() {
       return mClosed;
     }
-
-    @Override
-    public boolean hasNext() {
-      return mIter.hasNext();
-    }
-
-    @Override
-    public Integer next() {
-      return mIter.next();
-    }
   }
 }
