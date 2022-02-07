@@ -15,6 +15,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
+import alluxio.uri.Authority;
 
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
@@ -54,6 +55,12 @@ public abstract class AbstractMasterClient extends AbstractClient {
   @Override
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
+  }
+
+  @Override
+  public synchronized InetSocketAddress getAddress(Authority authority)
+      throws UnavailableException {
+    return mMasterInquireClient.getPrimaryRpcAddress(authority);
   }
 
   @Override

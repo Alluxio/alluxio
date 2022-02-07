@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.uri.Authority;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -28,6 +29,14 @@ public interface Client extends Closeable {
   void connect() throws IOException;
 
   /**
+   * @param authority {@link Authority}
+   * Connects with the remote.
+   */
+  default void connect(Authority authority) throws IOException {
+    connect();
+  }
+
+  /**
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
    * if the client has not connected with the remote for a while, for example.
    */
@@ -38,6 +47,15 @@ public interface Client extends Closeable {
    * @throws UnavailableException if the primary address cannot be determined
    */
   InetSocketAddress getAddress() throws UnavailableException;
+
+  /**
+   * @param authority {@link Authority}
+   * @return the {@link InetSocketAddress} of the remote
+   * @throws UnavailableException if the primary address cannot be determined
+   */
+  default InetSocketAddress getAddress(Authority authority) throws UnavailableException {
+    return getAddress();
+  }
 
   /**
    * @return the {@link InetSocketAddress} of the configuration remote

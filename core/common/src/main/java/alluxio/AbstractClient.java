@@ -32,6 +32,7 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
@@ -198,6 +199,14 @@ public abstract class AbstractClient implements Client {
    */
   @Override
   public synchronized void connect() throws AlluxioStatusException {
+    connect(null);
+  }
+
+  /**
+   * Connects with the remote.
+   */
+  @Override
+  public synchronized void connect(Authority authority) throws AlluxioStatusException {
     if (mConnected) {
       return;
     }
@@ -214,7 +223,7 @@ public abstract class AbstractClient implements Client {
       // Re-query the address in each loop iteration in case it has changed (e.g. master
       // failover).
       try {
-        mAddress = getAddress();
+        mAddress = getAddress(authority);
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());

@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
@@ -22,8 +23,16 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Preconditions;
+
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -31,6 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface MasterInquireClient {
+
   /**
    * @return the rpc address of the primary master. The implementation should perform retries if
    *         appropriate
@@ -39,10 +49,30 @@ public interface MasterInquireClient {
   InetSocketAddress getPrimaryRpcAddress() throws UnavailableException;
 
   /**
+   * @param authority {@link Authority}
+   * @return the rpc address of the primary master. The implementation should perform retries if
+   * appropriate
+   * @throws UnavailableException if the primary rpc address cannot be determined
+   */
+  default InetSocketAddress getPrimaryRpcAddress(Authority authority) throws UnavailableException {
+    return getPrimaryRpcAddress();
+  }
+
+  /**
    * @return a list of all masters' RPC addresses
    * @throws UnavailableException if the master rpc addresses cannot be determined
    */
   List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException;
+
+  /**
+   * @param authority {@link Authority}
+   * @return a list of all masters' RPC addresses
+   * @throws UnavailableException if the master rpc addresses cannot be determined
+   */
+  default List<InetSocketAddress> getMasterRpcAddresses(Authority authority)
+      throws UnavailableException {
+    return getMasterRpcAddresses();
+  }
 
   /**
    * Returns canonical connect details representing how this client connects to the master.
@@ -87,12 +117,70 @@ public interface MasterInquireClient {
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
             conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
-        List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
-        if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf, userState);
-        } else {
-          return new SingleMasterInquireClient(addresses.get(0));
+        MasterInquireClient client = getDefaultMasterInquireClient(conf, userState);
+        Set<PropertyKey> ebjNameserviceKeys = conf.keySet().stream()
+            .filter(e -> Template.MASTER_LOGICAL_NAMESERVICES.matches(e.getName()))
+            .collect(Collectors.toSet());
+        if (ebjNameserviceKeys.isEmpty()) {
+          return client;
         }
+
+        Map<String, MasterInquireClient> nameserviceToMasterInquireClient = new HashMap<>();
+        for (PropertyKey nameserviceKey : ebjNameserviceKeys) {
+          String[] masterNames = getTrimmedStrings(conf.get(nameserviceKey));
+          Preconditions.checkArgument(masterNames.length != 0,
+              "Invalid uri. You must set %s to use the logical name ", nameserviceKey.getName());
+          List<String> masterRpcAddress = new ArrayList<>();
+          String nameserviceKeyName = nameserviceKey.getName();
+          String logicName = nameserviceKeyName
+              .substring(nameserviceKeyName.lastIndexOf('.') + 1);
+          for (String masterName : masterNames) {
+            String name = PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS
+                .format(logicName, masterName).getName();
+            String address = conf.get(PropertyKey.fromString(name));
+            Preconditions.checkArgument(address != null, "You need to set %s", name);
+            masterRpcAddress.add(address);
+          }
+          nameserviceToMasterInquireClient.put(logicName,
+              parseMasterInquireClient(masterRpcAddress, conf, userState));
+        }
+        return EmbeddedLogicalMasterInquireClient.getClient(nameserviceToMasterInquireClient,
+            client);
+      }
+    }
+
+    private static String[] getTrimmedStrings(String str) {
+      return null != str && !str.trim().isEmpty() ? str.trim().split("\\s*[,\n]\\s*")
+          : new String[0];
+    }
+
+    private static MasterInquireClient getDefaultMasterInquireClient(AlluxioConfiguration conf,
+        UserState userState) {
+      List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
+      if (addresses.size() > 1) {
+        return new PollingMasterInquireClient(addresses, conf, userState);
+      } else {
+        return new SingleMasterInquireClient(addresses.get(0));
+      }
+    }
+
+    private static MasterInquireClient parseMasterInquireClient(List<String> masterRpcAddress,
+        AlluxioConfiguration conf,
+        UserState userState) {
+      List<InetSocketAddress> addresses = new ArrayList<>();
+      for (String address : masterRpcAddress) {
+        try {
+          InetSocketAddress inetSocketAddress = NetworkAddressUtils.parseInetSocketAddress(address);
+          addresses.add(inetSocketAddress);
+        } catch (IOException e) {
+          throw new IllegalArgumentException("Failed to parse host:port: " + address, e);
+        }
+      }
+
+      if (addresses.size() > 1) {
+        return new PollingMasterInquireClient(addresses, conf, userState);
+      } else {
+        return new SingleMasterInquireClient(addresses.get(0));
       }
     }
 
