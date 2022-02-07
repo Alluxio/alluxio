@@ -11,6 +11,7 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -135,5 +136,40 @@ public final class RocksUtils {
         }
       }
     };
+  }
+
+  public static <T, R> CloseableIterator<T, R> createCloseableIterator(RocksIterator rocksIterator,
+                                                                 RocksIteratorParser<T> parser) {
+    rocksIterator.seekToFirst();
+    AtomicBoolean valid = new AtomicBoolean(true);
+    Iterator<T> iter = new Iterator<T>() {
+      @Override
+      public boolean hasNext() {
+        return valid.get() && rocksIterator.isValid();
+      }
+
+      @Override
+      // TODO(jiacheng): close this iterator properly on finish
+      public T next() {
+        try {
+          return parser.next(rocksIterator);
+        } catch (Exception exc) {
+          rocksIterator.close();
+          valid.set(false);
+          throw new RuntimeException(exc);
+        } finally {
+          rocksIterator.next();
+          if (!rocksIterator.isValid()) {
+            rocksIterator.close();
+            valid.set(false);
+          }
+        }
+      }
+    };
+
+    return CloseableIterator.create(iter, () -> {
+      rocksIterator.close();
+      return null;
+    });
   }
 }
