@@ -212,9 +212,9 @@ public final class PlanCoordinator {
    */
   public synchronized void setJobAsFailed(String errorType, String errorMessage) {
     if (!mPlanInfo.getStatus().isFinished()) {
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(errorType);
       mPlanInfo.setErrorMessage(errorMessage);
+      mPlanInfo.setStatus(Status.FAILED);
     }
     mWorkersInfoList = null;
   }
