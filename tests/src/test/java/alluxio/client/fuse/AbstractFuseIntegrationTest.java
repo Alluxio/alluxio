@@ -120,11 +120,6 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   private void stop() throws Exception {
-    try {
-      mAlluxioCluster.stop();
-    } finally {
-      IntegrationTestUtils.releaseMasterPorts();
-    }
     if (fuseMounted()) {
       try {
         umountFuse(mMountPoint);
@@ -134,6 +129,11 @@ public abstract class AbstractFuseIntegrationTest {
       if (fuseMounted()) {
         ShellUtils.execCommand("umount", mMountPoint);
       }
+    }
+    try {
+      mAlluxioCluster.stop();
+    } finally {
+      IntegrationTestUtils.releaseMasterPorts();
     }
   }
 
