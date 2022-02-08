@@ -11,12 +11,12 @@
 
 package alluxio.stress;
 
-import alluxio.stress.cli.worker.StressWorkerBench;
-
 import static org.junit.Assert.assertTrue;
 
+import alluxio.stress.cli.worker.StressWorkerBench;
 import alluxio.stress.worker.WorkerBenchSummary;
 import alluxio.util.JsonSerializable;
+
 import org.junit.Test;
 
 import java.util.Collections;

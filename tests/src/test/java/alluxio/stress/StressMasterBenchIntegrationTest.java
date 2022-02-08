@@ -11,16 +11,16 @@
 
 package alluxio.stress;
 
-import alluxio.stress.cli.StressMasterBench;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.util.JsonSerializable;
+
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests {@link StressMasterBench}.
@@ -166,7 +166,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     String[] operations = {"CreateFile", "GetBlockLocations", "GetFileStatus", "OpenFile",
         "ListDir", "ListDirLocated", "RenameFile", "CreateFile", "DeleteFile", "CreateDir"};
 
-    for(String op : operations) {
+    for (String op : operations) {
       validateTheOutput(op);
     }
   }
