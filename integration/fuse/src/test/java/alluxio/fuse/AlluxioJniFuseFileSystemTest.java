@@ -132,7 +132,7 @@ public class AlluxioJniFuseFileSystemTest {
   @Test
   public void chownWithoutValidGid() throws Exception {
     long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
-    long gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
+    long gid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
     mFuseFs.chown("/foo/bar", uid, gid);
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -141,7 +141,7 @@ public class AlluxioJniFuseFileSystemTest {
         SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
-    gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    gid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
@@ -149,7 +149,7 @@ public class AlluxioJniFuseFileSystemTest {
   @Test
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
-    long uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
+    long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
     long gid = AlluxioFuseUtils.getGid(userName);
     mFuseFs.chown("/foo/bar", uid, gid);
 
@@ -158,20 +158,20 @@ public class AlluxioJniFuseFileSystemTest {
     SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
-    uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    uid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, times(2)).setAttribute(expectedPath, options);
   }
 
   @Test
   public void chownWithoutValidUidAndGid() throws Exception {
-    long uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
-    long gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE;
+    long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
+    long gid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, never()).setAttribute(any());
 
-    uid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
-    gid = AlluxioJniFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
+    uid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
+    gid = AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED;
     mFuseFs.chown("/foo/bar", uid, gid);
     verify(mFileSystem, never()).setAttribute(any());
   }
