@@ -42,5 +42,6 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void umountFuse(String mountPath) throws Exception {
     mFuseFileSystem.umount();
+    umountFromShellIfMounted();
   }
 }
