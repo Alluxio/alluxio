@@ -215,6 +215,7 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
+    System.out.println("Creating RocksBlockStore iterator");
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
     return RocksUtils.createCloseableIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));

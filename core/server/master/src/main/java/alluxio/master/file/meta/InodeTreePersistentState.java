@@ -171,7 +171,8 @@ public class InodeTreePersistentState implements Journaled {
    * @return the root of the inode tree
    */
   public InodeDirectory getRoot() {
-    return mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+    Optional<Inode> node = mInodeStore.get(0);
+    return node.map(Inode::asDirectory).orElse(null);
   }
 
   /**

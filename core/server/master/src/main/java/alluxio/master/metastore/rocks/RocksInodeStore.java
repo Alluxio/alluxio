@@ -23,6 +23,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -44,7 +45,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -241,9 +241,12 @@ public class RocksInodeStore implements InodeStore {
   }
 
   /**
+   * The name is intentional, in order to distinguish from the {@code Iterable} interface.
+   *
    * @return an iterator over stored inodes
    */
-  public Iterator<InodeView> iterator() {
+  public CloseableIterator<InodeView> getCloseableIterator() {
+    System.out.println("Creating RocksInodeStore iterator");
     return RocksUtils.createCloseableIterator(
         db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());

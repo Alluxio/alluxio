@@ -15,6 +15,8 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.security.user.UserState;
@@ -58,6 +60,23 @@ public final class MasterTestUtils {
         .setPort(-1)
         .setUfsManager(new MasterUfsManager())
         .build();
+  }
+
+  public static CoreMasterContext testMasterContext(
+          JournalSystem journalSystem, UserState userState,
+          BlockStore.Factory blockStoreFactory,
+          InodeStore.Factory inodeStoreFactory) {
+    return CoreMasterContext.newBuilder()
+            .setJournalSystem(journalSystem)
+            .setUserState(userState)
+            .setSafeModeManager(new TestSafeModeManager())
+            .setBackupManager(mock(BackupManager.class))
+            .setBlockStoreFactory(blockStoreFactory)
+            .setInodeStoreFactory(inodeStoreFactory)
+            .setStartTimeMs(-1)
+            .setPort(-1)
+            .setUfsManager(new MasterUfsManager())
+            .build();
   }
 
   private MasterTestUtils() {} // Not intended for instatiation.

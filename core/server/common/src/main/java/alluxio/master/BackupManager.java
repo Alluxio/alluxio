@@ -131,12 +131,14 @@ public class BackupManager {
       try {
         for (Master master : mRegistry.getServers()) {
           try (CloseableIterator<JournalEntry> it = master.getJournalEntryIterator()) {
-            while (it.get().hasNext()) {
-              journalEntryQueue.put(it.get().next());
+            while (it.hasNext()) {
+              journalEntryQueue.put(it.next());
               if (Thread.interrupted()) {
                 throw new InterruptedException();
               }
             }
+          } catch (Exception e) {
+            System.out.println("Stop here");
           }
         }
         // Put termination entry for signaling the writer.
