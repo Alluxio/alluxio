@@ -12,7 +12,8 @@
 package alluxio.stress.cli;
 
 /**
- * Base class for batch task.
+ * Base class for batch task. A batch task is a pre-defined group of
+ * StressBench tasks designed to run in an order.
  */
 public abstract class BatchTask {
   /**

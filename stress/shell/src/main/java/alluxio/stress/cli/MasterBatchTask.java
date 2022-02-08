@@ -31,12 +31,24 @@ import java.util.Map;
  */
 public class MasterBatchTask extends BatchTask {
   private static final Logger LOG = LoggerFactory.getLogger(MasterBatchTask.class);
-  private static final int TARGETTHROUGHPUT = 1000000;
+  // Target throughput is set to a huge number to reach the maximum throughput of the task.
+  private static final int TARGET_THROUGHPUT  = 1_000_000;
   private static final String WARMUP = "0s";
-  private static final String DURATION = "21600s";
+  // Duration is set to a huge number to ensure that the task is finished
+  private static final String DURATION = "6h";
   private static final String CLUSTER = "--cluster";
 
   private String mOperation;
+
+  //store the possible operations
+  static Map<String, String> sSecondOperationMapping = ImmutableMap.<String, String>builder()
+      .put("MasterOpenFileBatchTask", "OpenFile")
+      .put("MasterGetBlockLocationsBatchTask", "GetBlockLocations")
+      .put("MasterGetFileStatusBatchTask", "MasterGetFileStatus")
+      .put("MasterRenameFileBatchTask", "RenameFile")
+      .put("MasterListDirBatchTask", "ListDir")
+      .put("MasterDeleteFileBatchTask", "DeleteFile")
+      .build();
 
   @ParametersDelegate
   private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
@@ -59,13 +71,13 @@ public class MasterBatchTask extends BatchTask {
     List<Summary> results = new ArrayList<>();
     StressMasterBench bench = new StressMasterBench();
     for (String[] arg : command) {
-      //error on individual task will not end the whole batch task
+      // error on individual task will not end the whole batch task
       try {
         String jsonResult = bench.run(arg);
         Summary result = (Summary) JsonSerializable.fromJson(jsonResult);
         results.add(result);
       } catch (Exception e) {
-        System.out.println(String.format("Failed to finish the %s operation", arg[0]));
+        System.err.format("Failed to finish the %s operation%n", arg[0]);
         e.printStackTrace();
       }
     }
@@ -74,7 +86,7 @@ public class MasterBatchTask extends BatchTask {
       output(results);
     } catch (Exception e) {
       LOG.error("Failed to parse json: ", e);
-      System.out.println("Failed to parse json");
+      System.err.format("Failed to parse json");
       e.printStackTrace();
     }
   }
@@ -91,7 +103,7 @@ public class MasterBatchTask extends BatchTask {
             "--base", mParameter.mBasePath,
             "--threads", String.valueOf(mParameter.mThreads),
             "--stop-count", String.valueOf(mParameter.mNumFiles),
-            "--target-throughput", String.valueOf(TARGETTHROUGHPUT),
+            "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
             "--warmup", WARMUP,
             "--duration", DURATION,
             "--create-file-size", mParameter.mFileSize,
@@ -99,34 +111,29 @@ public class MasterBatchTask extends BatchTask {
         });
       }
     } else {
-      //store the possible operations
-      Map<String, String> secondOperationMapping = ImmutableMap.<String, String>builder()
-          .put("MasterOpenFileBatchTask", "OpenFile")
-          .put("MasterGetBlockLocationsBatchTask", "GetBlockLocations")
-          .put("MasterGetFileStatusBatchTask", "MasterGetFileStatus")
-          .put("MasterRenameFileBatchTask", "RenameFile")
-          .put("MasterListDirBatchTask", "ListDir")
-          .put("MasterDeleteFileBatchTask", "DeleteFile")
-          .build();
-
       //first command is creating the base file, second command depends on the task
       commands.add(new String[] {
           "--operation", "CreateFile",
           "--base", mParameter.mBasePath,
           "--threads", String.valueOf(mParameter.mThreads),
           "--stop-count", String.valueOf(mParameter.mNumFiles),
-          "--target-throughput", String.valueOf(TARGETTHROUGHPUT),
+          "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
           "--warmup", WARMUP,
           "--duration", DURATION,
           "--create-file-size", mParameter.mFileSize,
           CLUSTER,
       });
+      // ensure the batch task's name is valid.
+      if (!sSecondOperationMapping.containsKey(mOperation)) {
+        throw new IllegalArgumentException(String.format("Unexpected batch task name:%s",
+            mOperation));
+      }
       commands.add(new String[] {
-          "--operation", secondOperationMapping.get(mOperation),
+          "--operation", sSecondOperationMapping.get(mOperation),
           "--base", mParameter.mBasePath,
           "--threads", String.valueOf(mParameter.mThreads),
           "--stop-count", String.valueOf(mParameter.mNumFiles),
-          "--target-throughput", String.valueOf(TARGETTHROUGHPUT),
+          "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
           "--warmup", WARMUP,
           "--duration", DURATION,
           "--create-file-size", mParameter.mFileSize,

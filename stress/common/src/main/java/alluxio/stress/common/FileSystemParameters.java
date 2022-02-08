@@ -74,7 +74,7 @@ public class FileSystemParameters extends Parameters {
     @Override
     public String convert(String value) {
       WriteType type = WriteType.valueOf(value);
-      if (type != WriteType.NONE) {
+      if (type != WriteType.NONE && type != WriteType.TRY_CACHE) {
         return value;
       }
       throw new IllegalArgumentException("No constant with text " + value + " found");
