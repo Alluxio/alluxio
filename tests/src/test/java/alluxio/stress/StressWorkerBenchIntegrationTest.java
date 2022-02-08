@@ -13,6 +13,10 @@ package alluxio.stress;
 
 import alluxio.stress.cli.worker.StressWorkerBench;
 
+import static org.junit.Assert.assertTrue;
+
+import alluxio.stress.worker.WorkerBenchSummary;
+import alluxio.util.JsonSerializable;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -34,6 +38,25 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
         "--warmup", "0s", "--duration", "1s",
     });
 
+    System.out.println(output);
+
     generateAndVerifyReport(Collections.singletonList("Worker Throughput"), output);
+  }
+
+  @Test
+  public void testForMultipleNodeResults() throws Exception {
+    String output = new StressWorkerBench().run(new String[] {
+        "--in-process",
+        "--start-ms", Long.toString(System.currentTimeMillis() + 2000),
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--block-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    WorkerBenchSummary summary = (WorkerBenchSummary) JsonSerializable.fromJson(output);
+    assertTrue(summary.getNodeResults().size() >= 1);
+    assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }

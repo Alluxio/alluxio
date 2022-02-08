@@ -57,7 +57,7 @@ public final class MasterBenchSummary implements Summary {
    * @param nodes the map storing the nodes' result
    */
   public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults,
-                            Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
+       Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();

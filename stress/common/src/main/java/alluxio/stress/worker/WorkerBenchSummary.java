@@ -52,7 +52,7 @@ public final class WorkerBenchSummary implements Summary {
    * @param nodes the list of nodes
    */
   public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults,
-                            Map<String, WorkerBenchTaskResult> nodes) {
+      Map<String, WorkerBenchTaskResult> nodes) {
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();

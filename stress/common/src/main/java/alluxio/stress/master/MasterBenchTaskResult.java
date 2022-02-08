@@ -24,7 +24,6 @@ import java.util.Map;
  * The task result for the master stress tests.
  */
 public final class MasterBenchTaskResult implements TaskResult {
-
   private long mRecordStartMs;
   private long mEndMs;
   private long mDurationMs;
@@ -52,7 +51,7 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(MasterBenchTaskResult result) throws Exception {
-    //When merging results within a node, we need to merge all the error information.
+    // When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
     aggregateByWorker(result);
   }
@@ -63,8 +62,8 @@ public final class MasterBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void aggregateByWorker(MasterBenchTaskResult result) throws Exception {
-    //When merging result from different workers, we don't need to merge the error information
-    //since we will keep all the result information in a map.
+    // When merging result from different workers, we don't need to merge the error information
+    // since we will keep all the result information in a map.
     mStatistics.merge(result.mStatistics);
 
     mRecordStartMs = result.mRecordStartMs;

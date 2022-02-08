@@ -55,8 +55,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
    * @param nodes the list of nodes
    */
   public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults,
-                                Map<String, JobServiceBenchTaskResult> nodes)
-      throws DataFormatException {
+      Map<String, JobServiceBenchTaskResult> nodes) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :

@@ -13,10 +13,14 @@ package alluxio.stress;
 
 import alluxio.stress.cli.StressMasterBench;
 
+import alluxio.stress.master.MasterBenchSummary;
+import alluxio.util.JsonSerializable;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests {@link StressMasterBench}.
@@ -153,5 +157,34 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     generateAndVerifyReport(
         Arrays.asList("CreateFile", "GetFileStatus", "ListDir", "ListDirLocated", "RenameFile"),
         output1, output2, output3, output4, output5);
+  }
+
+  @Test
+  public void testForMultipleNodeResults() throws Exception {
+    // The RenameFile will change the name of the created file, to avoid the DeleteFile
+    // can't find file to delete, operate CreateFile twice
+    String[] operations = {"CreateFile", "GetBlockLocations", "GetFileStatus", "OpenFile",
+        "ListDir", "ListDirLocated", "RenameFile", "CreateFile", "DeleteFile", "CreateDir"};
+
+    for(String op : operations) {
+      validateTheOutput(op);
+    }
+  }
+
+  private void validateTheOutput(String operation) throws Exception {
+    String output = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", operation,
+        "--stop-count", "100",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+    });
+
+    MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(output);
+    assertTrue(summary.getParameters().mOperation.toString().equals(operation));
+    assertTrue(summary.getNodeResults().size() >= 1);
+    assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }
