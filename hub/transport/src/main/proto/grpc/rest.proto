@@ -215,7 +215,6 @@ message SpeedTestParameter {
 message ElasticsearchInfo {
   optional ElasticsearchEnvironmentVariables env_variables = 1;
   optional ElasticsearchDashboards dashboards = 2;
-  map<string, string> errors = 3;
 }
 
 message ElasticsearchEnvironmentVariables {
