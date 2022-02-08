@@ -162,6 +162,14 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
 
   @Test
   public void writeTypeParameterTest() throws Exception {
+    String[] writeType = new String[] {"MUST_CACHE", "CACHE_THROUGH", "THROUGH", "ASYNC_THROUGH"};
+
+    for (int i = 0; i < writeType.length; i++) {
+      validateTheResultWithWriteType(writeType[i]);
+    }
+  }
+
+  private void validateTheResultWithWriteType(String writeType) throws Exception {
     String output1 = new StressMasterBench().run(new String[] {
         "--in-process",
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -170,7 +178,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--target-throughput", "300",
         "--threads", "5",
         "--warmup", "0s", "--duration", "3s",
-        "--write-type", "MUST_CACHE",
+        "--write-type", writeType,
     });
 
     String output2 = new StressMasterBench().run(new String[] {
@@ -181,101 +189,17 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
         "--target-throughput", "100",
         "--threads", "5",
         "--warmup", "0s", "--duration", "1s",
-        "--write-type", "MUST_CACHE",
+        "--write-type", writeType,
     });
 
-    String output3 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateFile",
-        "--fixed-count", "20",
-        "--target-throughput", "300",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "CACHE_THROUGH",
-    });
-
-    String output4 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "DeleteFile",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "CACHE_THROUGH",
-    });
-
-    String output5 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateFile",
-        "--fixed-count", "20",
-        "--target-throughput", "300",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "THROUGH",
-    });
-
-    String output6 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "DeleteFile",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "THROUGH",
-    });
-
-    String output7 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "CreateFile",
-        "--fixed-count", "20",
-        "--target-throughput", "300",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ASYNC_THROUGH",
-    });
-
-    String output8 = new StressMasterBench().run(new String[] {
-        "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-        "--operation", "DeleteFile",
-        "--fixed-count", "20",
-        "--target-throughput", "100",
-        "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ASYNC_THROUGH",
-    });
-
-    //convert the result into summary, and check whether it have errors.
+    // convert the result into summary, and check whether it have errors.
     MasterBenchSummary summary1 = (MasterBenchSummary) JsonSerializable.fromJson(output1);
     MasterBenchSummary summary2 = (MasterBenchSummary) JsonSerializable.fromJson(output2);
-    MasterBenchSummary summary3 = (MasterBenchSummary) JsonSerializable.fromJson(output3);
-    MasterBenchSummary summary4 = (MasterBenchSummary) JsonSerializable.fromJson(output4);
-    MasterBenchSummary summary5 = (MasterBenchSummary) JsonSerializable.fromJson(output5);
-    MasterBenchSummary summary6 = (MasterBenchSummary) JsonSerializable.fromJson(output6);
-    MasterBenchSummary summary7 = (MasterBenchSummary) JsonSerializable.fromJson(output7);
-    MasterBenchSummary summary8 = (MasterBenchSummary) JsonSerializable.fromJson(output8);
 
-    //check there is contents int the result, and doesn't contain errors.
+    // confirm that the results contain information, and they don't contain errors.
     assertFalse(summary1.getNodes().isEmpty());
     assertTrue(summary1.getErrors().isEmpty());
     assertFalse(summary2.getNodes().isEmpty());
     assertTrue(summary2.getErrors().isEmpty());
-    assertFalse(summary3.getNodes().isEmpty());
-    assertTrue(summary3.getErrors().isEmpty());
-    assertFalse(summary4.getNodes().isEmpty());
-    assertTrue(summary4.getErrors().isEmpty());
-    assertFalse(summary5.getNodes().isEmpty());
-    assertTrue(summary5.getErrors().isEmpty());
-    assertFalse(summary6.getNodes().isEmpty());
-    assertTrue(summary6.getErrors().isEmpty());
-    assertFalse(summary7.getNodes().isEmpty());
-    assertTrue(summary7.getErrors().isEmpty());
-    assertFalse(summary8.getNodes().isEmpty());
-    assertTrue(summary8.getErrors().isEmpty());
   }
 }

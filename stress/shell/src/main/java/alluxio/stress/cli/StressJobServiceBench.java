@@ -87,8 +87,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   }
 
   @Override
-  public String[] checkIfMultipleTask() {
-    return new String[]{"NOT_APPLICABLE"};
+  public BatchTask checkIfMultipleTask() {
+    return BatchTask.NOT_APPLICABLE;
   }
 
   @Override

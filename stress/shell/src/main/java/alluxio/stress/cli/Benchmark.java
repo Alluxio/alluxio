@@ -58,6 +58,10 @@ public abstract class Benchmark<T extends TaskResult> {
   @ParametersDelegate
   protected BaseParameters mBaseParameters = new BaseParameters();
 
+  protected enum BatchTask {
+    NOT_APPLICABLE, WRITE_TYPE_TASK
+  }
+
   /**
    * Get the description of the bench.
    *
@@ -85,7 +89,7 @@ public abstract class Benchmark<T extends TaskResult> {
    * @return return a list consist of task to operate on StressBench. The first string
    * represents type and the following strings are the parameter to use.
    */
-  public abstract String[] checkIfMultipleTask();
+  public abstract BatchTask checkIfMultipleTask();
 
   /**
    * Perform post-run cleanups.
@@ -130,6 +134,11 @@ public abstract class Benchmark<T extends TaskResult> {
     return new StressBenchConfig(className, commandArgs, startDelay, mBaseParameters.mClusterLimit);
   }
 
+  /**
+   * Run the tasks according to the batch task type.
+   *
+   * @return the multiple task result
+   */
   private String runMultipleTask(String[] args, String[] taskList) {
     StringBuilder result = new StringBuilder();
     for (int i = 0; i < args.length; i++) {
@@ -159,6 +168,18 @@ public abstract class Benchmark<T extends TaskResult> {
   }
 
   /**
+   * @return the task list according to the batch task type
+   */
+  private String[] getTaskList(BatchTask task) {
+    switch (task) {
+      case WRITE_TYPE_TASK : return new String[]{"--write-type", "MUST_CACHE", "CACHE_THROUGH",
+          "THROUGH", "ASYNC_THROUGH"};
+      default:
+        throw new IllegalArgumentException(String.format("Illegal batch task name: %s", task));
+    }
+  }
+
+  /**
    * Runs the test and returns the string output.
    *
    * @param args the command-line args
@@ -182,8 +203,9 @@ public abstract class Benchmark<T extends TaskResult> {
     }
 
     // if the test will execute multiple tasks.
-    String[] multiTaskList = checkIfMultipleTask();
-    if (!multiTaskList[0].equals("NOT_APPLICABLE")) {
+    BatchTask task = checkIfMultipleTask();
+    if (task != BatchTask.NOT_APPLICABLE) {
+      String[] multiTaskList = getTaskList(task);
       String result = runMultipleTask(args, multiTaskList);
       return result;
     }

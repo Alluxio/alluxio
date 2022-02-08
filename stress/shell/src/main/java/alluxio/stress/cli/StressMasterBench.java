@@ -90,12 +90,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
-  public String[] checkIfMultipleTask() {
+  public BatchTask checkIfMultipleTask() {
     if (mParameters.mWriteType.equals("ALL")) {
-      return new String[]{"--write-type", "MUST_CACHE", "CACHE_THROUGH",
-          "THROUGH", "ASYNC_THROUGH"};
+      return BatchTask.WRITE_TYPE_TASK;
     }
-    return new String[]{"NOT_APPLICABLE"};
+    return BatchTask.NOT_APPLICABLE;
   }
 
   @Override

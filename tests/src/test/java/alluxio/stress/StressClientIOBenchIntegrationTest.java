@@ -20,9 +20,7 @@ import alluxio.util.JsonSerializable;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Tests {@link StressClientIOBench}.
@@ -128,31 +126,15 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
 
   @Test
   public void WriteTypeParameterTest() throws Exception {
-    String output1 = new StressClientIOBench().run(new String[] {
-        "--in-process",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "Write",
-        "--threads", "2",
-        "--file-size", "1m",
-        "--buffer-size", "128k",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "MUST_CACHE",
-    });
+    String[] writeType = new String[] {"MUST_CACHE", "CACHE_THROUGH", "THROUGH", "ASYNC_THROUGH"};
 
-    String output2 = new StressClientIOBench().run(new String[] {
-        "--in-process",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "Write",
-        "--threads", "2",
-        "--file-size", "1m",
-        "--buffer-size", "128k",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "CACHE_THROUGH",
-    });
+    for (int i = 0; i < writeType.length; i++) {
+      validateTheResultWithWriteType(writeType[i]);
+    }
+  }
 
-    String output3 = new StressClientIOBench().run(new String[] {
+  private void validateTheResultWithWriteType(String writeType) throws Exception {
+    String output = new StressClientIOBench().run(new String[] {
         "--in-process",
         "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
@@ -161,39 +143,16 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "--file-size", "1m",
         "--buffer-size", "128k",
         "--warmup", "0s", "--duration", "1s",
-        "--write-type", "THROUGH",
-    });
-
-    String output4 = new StressClientIOBench().run(new String[] {
-        "--in-process",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 5000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
-        "--operation", "Write",
-        "--threads", "2",
-        "--file-size", "1m",
-        "--buffer-size", "128k",
-        "--warmup", "0s", "--duration", "1s",
-        "--write-type", "ASYNC_THROUGH",
+        "--write-type", writeType,
     });
 
     //convert the result into summary, and check whether it have errors.
-    ClientIOTaskResult summary1 = (ClientIOTaskResult) JsonSerializable.fromJson(output1);
-    ClientIOTaskResult summary2 = (ClientIOTaskResult) JsonSerializable.fromJson(output2);
-    ClientIOTaskResult summary3 = (ClientIOTaskResult) JsonSerializable.fromJson(output3);
-    ClientIOTaskResult summary4 = (ClientIOTaskResult) JsonSerializable.fromJson(output4);
+    ClientIOTaskResult summary = (ClientIOTaskResult) JsonSerializable.fromJson(output);
 
-    List<ClientIOTaskResult> testResults = new ArrayList<>();
-    testResults.add(summary1);
-    testResults.add(summary2);
-    testResults.add(summary3);
-    testResults.add(summary4);
-
-    for (ClientIOTaskResult result : testResults) {
-      assertFalse(result.getThreadCountResults().isEmpty());
-      for (ClientIOTaskResult.ThreadCountResult threadResult :
-          result.getThreadCountResults().values()) {
-        assertTrue(threadResult.getErrors().isEmpty());
-      }
+    assertFalse(summary.getThreadCountResults().isEmpty());
+    for (ClientIOTaskResult.ThreadCountResult threadResult :
+        summary.getThreadCountResults().values()) {
+      assertTrue(threadResult.getErrors().isEmpty());
     }
   }
 }

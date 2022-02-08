@@ -40,11 +40,12 @@ public class FileSystemParameters extends Parameters {
           + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
   public String mWriteType = InstancedConfiguration.defaults()
-          .get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
+      .get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
 
   /**
-   * @return FileSystemClientType of this bench
    * Converts from String to FileSystemClientType instance.
+   *
+   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersClientTypeConverter
       implements IStringConverter<FileSystemClientType> {
@@ -56,6 +57,7 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to FileSystemClientType instance.
+   *
    * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersReadTypeConverter implements IStringConverter<ReadType> {
@@ -67,6 +69,7 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to a valid FileSystemWriteType String.
+   *
    * @return FileSystemWriteType of this bench
    */
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
