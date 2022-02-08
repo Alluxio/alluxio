@@ -48,7 +48,6 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       // will try umounting from shell
     }
     umountFromShellIfMounted();
-
   }
 
   @Override

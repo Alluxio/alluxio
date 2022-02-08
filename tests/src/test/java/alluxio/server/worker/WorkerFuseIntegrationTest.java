@@ -42,5 +42,4 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
     // umount the mountpoint
     umountFromShellIfMounted();
   }
-
 }
