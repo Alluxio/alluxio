@@ -149,6 +149,11 @@ public final class RpcUtils {
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
+    } catch (Throwable t) {
+      logger.error("Exit (Error): {}: {}", methodName,
+          String.format(description, processObjects(logger, args)), t);
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      throw new InternalException(t).toGrpcStatusException();
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
     }
