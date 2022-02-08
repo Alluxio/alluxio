@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.FuseMountOptions;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -40,8 +41,18 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   @Override
-  public void umountFuse(String mountPath) throws Exception {
-    mFuseFileSystem.umount(true);
+  public void beforeStop() throws IOException {
+    try {
+      mFuseFileSystem.umount(true);
+    } catch (Exception e) {
+      // will try umounting from shell
+    }
     umountFromShellIfMounted();
+
+  }
+
+  @Override
+  public void afterStop() {
+    // noop
   }
 }

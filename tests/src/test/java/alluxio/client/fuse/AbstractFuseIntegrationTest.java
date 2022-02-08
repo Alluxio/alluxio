@@ -83,11 +83,14 @@ public abstract class AbstractFuseIntegrationTest {
   public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
 
   /**
-   * Umounts the given fuse mount point.
-   *
-   * @param mountPoint the Fuse mount point
+   * Run before cluster stops.
    */
-  public abstract void umountFuse(String mountPoint) throws Exception;
+  public abstract void beforeStop() throws Exception;
+
+  /**
+   * Run after cluster stops.
+   */
+  public abstract void afterStop() throws Exception;
 
   @BeforeClass
   public static void beforeClass() {
@@ -116,7 +119,9 @@ public abstract class AbstractFuseIntegrationTest {
 
   @After
   public void after() throws Exception {
+    beforeStop();
     stop();
+    afterStop();
   }
 
   protected void umountFromShellIfMounted() throws IOException {
@@ -126,13 +131,6 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   private void stop() throws Exception {
-    if (fuseMounted()) {
-      try {
-        umountFuse(mMountPoint);
-      } catch (Exception e) {
-        // The Fuse application may be unmounted by the cluster stop
-      }
-    }
     try {
       mAlluxioCluster.stop();
     } finally {
