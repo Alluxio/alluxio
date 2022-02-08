@@ -134,7 +134,7 @@ spec:
             secretName: hub-elastic-secret
             defaultMode: 0200
         - name: metricbeat-modules
-          emptyDir: { }
+          emptyDir: {}
         - name: logstash-entrypoint
           configMap:
             defaultMode: 0700

@@ -671,11 +671,12 @@ csi:
 hub:
   enabled: false
   clusterId:
+  # For elasticsearch.endpoint, omit http(s) prefix. e.g. use 'example.io' instead of 'https://example.io' 
   elasticsearch:
-    endpoint: "endpoint"
-    port: "port"
-    username: "username"
-    password: "password"
+    endpoint: "" 
+    port: ""
+    username: ""
+    password: ""
   env:
   # Example:
   # JAVA_HOME: /opt/java
@@ -704,3 +705,8 @@ hub:
     co.elastic.metrics/hosts: '${data.host}:${data.ports.web}' # assumes web port exists
     co.elastic.metrics/period: 1m
     co.elastic.metrics/metrics_path: /metrics/prometheus
+  volumes:
+    conf:
+      path: /opt/alluxio/conf
+    logs:
+      path: /opt/alluxio/logs

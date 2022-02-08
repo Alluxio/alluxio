@@ -145,10 +145,10 @@ spec:
             name: agent-rpc
           volumeMounts:
           - name: conf-volume
-            mountPath: /opt/alluxio/conf
+            mountPath: {{ .Values.hub.volumes.conf.path }}
             readOnly: false
           - name: logs-volume
-            mountPath: /opt/alluxio/logs
+            mountPath: {{ .Values.hub.volumes.logs.path }}
             readOnly: false
         - name: filebeat
           image: docker.elastic.co/beats/filebeat-oss:7.12.1
@@ -158,7 +158,7 @@ spec:
           ]
           env:
             - name: ALLUXIO_LOGS_PATH
-              value: /opt/alluxio/logs
+              value: {{ .Values.hub.volumes.logs.path }}
             - name: LOGSTASH_PORT
               value: {{ .Values.hub.ports.logstash | quote }}
           securityContext:
@@ -169,7 +169,7 @@ spec:
               readOnly: false
               subPath: filebeat.yml
             - name: logs-volume
-              mountPath: /opt/alluxio/logs
+              mountPath: {{ .Values.hub.volumes.logs.path }}
               readOnly: false
         {{- end }}
         - name: alluxio-master
@@ -240,10 +240,10 @@ spec:
           volumeMounts:
             {{- if .Values.hub.enabled }}
             - name: conf-volume
-              mountPath: /opt/alluxio/conf
+              mountPath: {{ .Values.hub.volumes.conf.path }}
               readOnly: false
             - name: logs-volume
-              mountPath: /opt/alluxio/logs
+              mountPath: {{ .Values.hub.volumes.logs.path }}
               readOnly: false
             {{- end }}
             {{- if .Values.metrics.enabled }}
@@ -337,10 +337,10 @@ spec:
           volumeMounts:
           {{- if .Values.hub.enabled }}
           - name: conf-volume
-            mountPath: /opt/alluxio/conf
+            mountPath: {{ .Values.hub.volumes.conf.path }}
             readOnly: false
           - name: logs-volume
-            mountPath: /opt/alluxio/logs
+            mountPath: {{ .Values.hub.volumes.logs.path }}
             readOnly: false
           {{- end }}
           {{- if .Values.metrics.enabled }}
@@ -364,7 +364,7 @@ spec:
         - name: conf-volume
           emptyDir: {}
         - name: logs-volume
-          emptyDir: { }
+          emptyDir: {}
         - name: filebeat-config
           configMap:
             defaultMode: 0600
