@@ -75,7 +75,6 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     return new CloseableIterator(iterator) {
       @Override
       public void closeResource() {
-        System.out.println("closing");
         closeAction.accept(null);
       }
     };
@@ -93,7 +92,6 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
     return new CloseableIterator(iterator) {
       @Override
       public void closeResource() {
-        System.out.println("no op");
         // no-op
       }
     };
@@ -130,7 +128,6 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
       @Override
       public void closeResource() {
         try {
-          System.out.println("Closing " + this);
           closer.close();
         } catch (IOException e) {
           throw new RuntimeException("Failed to close iterator", e);

@@ -137,8 +137,6 @@ public class BackupManager {
                 throw new InterruptedException();
               }
             }
-          } catch (Exception e) {
-            System.out.println("Stop here");
           }
         }
         // Put termination entry for signaling the writer.

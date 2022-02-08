@@ -18,26 +18,18 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.clock.ManualClock;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.InodeDirectory;
-import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeDirectoryView;
-import alluxio.master.file.meta.InodeLockManager;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeView;
-import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.BlockStore;
-import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksBlockStore;
@@ -47,17 +39,12 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.meta.Block;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
-import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -80,19 +67,6 @@ public class BackupManagerTest {
   private ManualClock mClock;
   private ExecutorService mExecutorService;
   private MetricsMaster mMetricsMaster;
-  private InodeTree mTree;
-
-  /** Rule to create a new temporary folder during each test. */
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
-
-  /** The exception expected to be thrown. */
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-          HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
   /**
    * Sets up the dependencies before a test runs.
@@ -198,12 +172,6 @@ public class BackupManagerTest {
     mRegistry.add(BlockMaster.class, mBlockMaster);
 
     // Prepare the FileSystemMaster for the backup operation
-    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
-    UfsManager ufsManager = mock(UfsManager.class);
-    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
-    InodeLockManager lockManager = new InodeLockManager();
-    InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
-    mTree = new InodeTree(inodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
     FileSystemMaster fsMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, fsMaster);

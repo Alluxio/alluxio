@@ -246,7 +246,6 @@ public class RocksInodeStore implements InodeStore {
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
-    System.out.println("Creating RocksInodeStore iterator");
     return RocksUtils.createCloseableIterator(
         db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());

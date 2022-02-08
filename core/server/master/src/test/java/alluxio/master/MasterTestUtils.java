@@ -49,35 +49,33 @@ public final class MasterTestUtils {
    */
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
       UserState userState) {
+    return testMasterContext(journalSystem, userState,
+        HeapBlockStore::new, x -> new HeapInodeStore());
+  }
+
+  /**
+   * @return a basic master context for the purpose of testing
+   * @param journalSystem a journal system to use in the context
+   * @param userState the user state to use in the context
+   * @param blockStoreFactory a factory to create {@link BlockStore}
+   * @param inodeStoreFactory a factory to create {@link InodeStore}
+   */
+  public static CoreMasterContext testMasterContext(
+      JournalSystem journalSystem, UserState userState,
+      BlockStore.Factory blockStoreFactory,
+      InodeStore.Factory inodeStoreFactory) {
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
         .setUserState(userState)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(() -> new HeapBlockStore())
-        .setInodeStoreFactory(x -> new HeapInodeStore())
+        .setBlockStoreFactory(blockStoreFactory)
+        .setInodeStoreFactory(inodeStoreFactory)
         .setStartTimeMs(-1)
         .setPort(-1)
         .setUfsManager(new MasterUfsManager())
         .build();
   }
 
-  public static CoreMasterContext testMasterContext(
-          JournalSystem journalSystem, UserState userState,
-          BlockStore.Factory blockStoreFactory,
-          InodeStore.Factory inodeStoreFactory) {
-    return CoreMasterContext.newBuilder()
-            .setJournalSystem(journalSystem)
-            .setUserState(userState)
-            .setSafeModeManager(new TestSafeModeManager())
-            .setBackupManager(mock(BackupManager.class))
-            .setBlockStoreFactory(blockStoreFactory)
-            .setInodeStoreFactory(inodeStoreFactory)
-            .setStartTimeMs(-1)
-            .setPort(-1)
-            .setUfsManager(new MasterUfsManager())
-            .build();
-  }
-
-  private MasterTestUtils() {} // Not intended for instatiation.
+  private MasterTestUtils() {} // Not intended for instantiation.
 }
