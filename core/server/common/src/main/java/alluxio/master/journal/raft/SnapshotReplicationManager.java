@@ -13,7 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.ClientContext;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
@@ -59,11 +58,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,7 +102,6 @@ import java.util.stream.Collectors;
  */
 public class SnapshotReplicationManager {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotReplicationManager.class);
-  private static final long SNAPSHOT_REQUEST_TIMEOUT_MS = 30_000;
 
   private final SimpleStateMachineStorage mStorage;
   private final RaftJournalSystem mJournalSystem;
@@ -230,23 +228,24 @@ public class SnapshotReplicationManager {
     if (snapshot == null) {
       throw new NotFoundException("No snapshot available");
     }
+    TermIndex termIndex = snapshot.getTermIndex();
     StreamObserver<UploadSnapshotPResponse> responseObserver =
         SnapshotUploader.forFollower(mStorage, snapshot);
-    LOG.debug("Got SnapshotUploader");
+    LOG.debug("Got SnapshotUploader for snapshot {}", termIndex);
     RaftJournalServiceClient client = getJournalServiceClient();
-    LOG.debug("Got RaftJournalServiceClient");
-    LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
-        snapshot.getTermIndex());
+    LOG.debug("Got RaftJournalServiceClient for snapshot {}", termIndex);
+    InetSocketAddress leaderAddress = client.getAddress();
+    LOG.info("Sending stream request to {} for snapshot {}", leaderAddress, termIndex);
     StreamObserver<UploadSnapshotPRequest> requestObserver = getJournalServiceClient()
         .uploadSnapshot(responseObserver);
-    LOG.debug("Got requestObserver");
+    LOG.debug("Got requestObserver for snapshot {}", termIndex);
     requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
         .setData(SnapshotData.newBuilder()
                 .setSnapshotTerm(snapshot.getTerm())
                 .setSnapshotIndex(snapshot.getIndex())
                 .setOffset(0))
         .build());
-    LOG.debug("Sent stream request");
+    LOG.debug("Sent stream request for snapshot {}", termIndex);
   }
 
   /**
@@ -525,7 +524,7 @@ public class SnapshotReplicationManager {
         RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
                 toMessage(JournalQueryRequest.newBuilder()
                     .setSnapshotRequest(GetSnapshotRequest.getDefaultInstance()).build()))
-            .get(SNAPSHOT_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            .get();
         if (reply.getException() != null) {
           throw reply.getException();
         }
