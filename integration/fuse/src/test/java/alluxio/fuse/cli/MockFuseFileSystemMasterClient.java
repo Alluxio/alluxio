@@ -22,6 +22,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -76,6 +77,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
 
   @Override
   public void delete(AlluxioURI path, DeletePOptions options) throws AlluxioStatusException {
+  }
+
+  @Override
+  public boolean exists(AlluxioURI path, ExistsPOptions options)
+      throws AlluxioStatusException {
+    return false;
   }
 
   @Override
