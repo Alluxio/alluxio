@@ -165,7 +165,7 @@ public class CollectInfo extends AbstractShell {
    * @return a set of hostnames in the cluster
    * */
   public Set<String> getHosts() {
-    String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
+    String confDirPath = mConfiguration.getString(PropertyKey.CONF_DIR);
     System.out.format("Looking for masters and workers in %s%n", confDirPath);
     Set<String> hosts = ConfigurationUtils.getServerHostnames(mConfiguration);
     System.out.format("Found %s hosts%n", hosts.size());
@@ -287,7 +287,7 @@ public class CollectInfo extends AbstractShell {
 
       CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
         // We make the assumption that the Alluxio WORK_DIR is the same
-        String workDir = mConfiguration.get(PropertyKey.WORK_DIR);
+        String workDir = mConfiguration.getString(PropertyKey.WORK_DIR);
         String alluxioBinPath = Paths.get(workDir, "bin/alluxio")
                 .toAbsolutePath().toString();
         System.out.format("host: %s, alluxio path %s%n", host, alluxioBinPath);

@@ -57,19 +57,19 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
-      String alias = mConf.get(tierAliasConf);
+      String alias = mConf.getString(tierAliasConf);
 
       PropertyKey tierDirPathConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = mConf.get(tierDirPathConf).split(",");
+      String[] dirPaths = mConf.getString(tierDirPathConf).split(",");
 
       PropertyKey tierDirCapacityConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
-      String rawDirQuota = mConf.get(tierDirCapacityConf);
+      String rawDirQuota = mConf.getString(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
         advice.append(String.format("Please check your setting for %s.%n",
-                tierDirCapacityConf.toString()));
+                tierDirCapacityConf));
         return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
                 msg.toString(), advice.toString());
       }
@@ -120,7 +120,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
                     + "Available: %s (Additional %s free space required).%n",
                 level, storageEntry.getKey(),
                 FormatUtils.getSizeFromBytes(quota),
-                builder.toString(),
+                builder,
                 FormatUtils.getSizeFromBytes(used),
                 FormatUtils.getSizeFromBytes(available),
                 FormatUtils.getSizeFromBytes(quota - used - available)));

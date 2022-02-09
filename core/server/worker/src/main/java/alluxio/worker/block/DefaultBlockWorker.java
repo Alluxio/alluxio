@@ -717,7 +717,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
-          String value = ServerConfiguration.getOrDefault(key, null,
+          Object value = ServerConfiguration.getOrDefault(key, null,
                   ConfigurationValueOptions.defaults().useDisplayValue(true)
                           .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);
