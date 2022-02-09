@@ -45,10 +45,11 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
 
   @Test
   public void testForMultipleNodeResults() throws Exception {
+    long startTime = System.currentTimeMillis();
+    String basePath = sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/";
     String output = new StressWorkerBench().run(new String[] {
         "--in-process",
-        "--start-ms", Long.toString(System.currentTimeMillis() + 2000),
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/",
+        "--base", basePath,
         "--threads", "2",
         "--file-size", "1m",
         "--block-size", "128k",
@@ -56,6 +57,16 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
     });
 
     WorkerBenchSummary summary = (WorkerBenchSummary) JsonSerializable.fromJson(output);
+    assertTrue(summary.getParameters().mBasePath.equals(basePath));
+    assertTrue(summary.getParameters().mFileSize.equals("1m"));
+    assertTrue(summary.getParameters().mThreads == 2);
+    assertTrue(summary.getParameters().mBlockSize.equals("128k"));
+    assertTrue(summary.getParameters().mWarmup.equals("0s"));
+    assertTrue(summary.getParameters().mDuration.equals("1s"));
+
+    assertTrue(summary.getEndTimeMs() > startTime);
+    assertTrue(summary.getIOBytes() > 0);
+    assertTrue(summary.getDurationMs() > 0);
     assertTrue(summary.getNodeResults().size() >= 1);
     assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }

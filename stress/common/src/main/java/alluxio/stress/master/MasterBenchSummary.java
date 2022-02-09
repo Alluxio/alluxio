@@ -14,6 +14,7 @@ package alluxio.stress.master;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.MultipleNodeBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
@@ -32,11 +33,10 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the master stress tests.
  */
-public final class MasterBenchSummary implements Summary {
+public final class MasterBenchSummary extends MultipleNodeBenchSummary<MasterBenchTaskResult> {
   private long mDurationMs;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
-  private Map<String, MasterBenchTaskResult> mNodeResults;
 
   private float mThroughput;
   private SummaryStatistics mStatistics;
@@ -119,20 +119,6 @@ public final class MasterBenchSummary implements Summary {
   }
 
   /**
-   * @return the list of nodes
-   */
-  public Map<String, MasterBenchTaskResult> getNodeResults() {
-    return mNodeResults;
-  }
-
-  /**
-   * @param nodes the list of nodes
-   */
-  public void setNodeResults(Map<String, MasterBenchTaskResult> nodes) {
-    mNodeResults = nodes;
-  }
-
-  /**
    * @return the end time (in ms)
    */
   public long getEndTimeMs() {
@@ -177,20 +163,6 @@ public final class MasterBenchSummary implements Summary {
 
   private LineGraph.Data computeResponseTimeData() {
     return mStatistics.computeTimeData();
-  }
-
-  /**
-   * @return the error information
-   */
-  public List<String> collectErrorsFromAllNodes() {
-    List<String> errors = new ArrayList<>();
-    for (MasterBenchTaskResult node : mNodeResults.values()) {
-      // add all the errors for this node, with the node appended to prefix
-      for (String err : node.getErrors()) {
-        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
-      }
-    }
-    return errors;
   }
 
   @Override

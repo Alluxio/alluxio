@@ -172,19 +172,32 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
   }
 
   private void validateTheOutput(String operation) throws Exception {
+    long startTime = System.currentTimeMillis();
+    String basePath = sLocalAlluxioClusterResource.get().getMasterURI() + "/";
     String output = new StressMasterBench().run(new String[] {
         "--in-process",
-        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--base", basePath,
         "--operation", operation,
         "--stop-count", "100",
-        "--target-throughput", "100",
+        "--target-throughput", "1000",
         "--threads", "5",
-        "--warmup", "0s", "--duration", "1s",
+        "--warmup", "0s", "--duration", "10s",
     });
 
     MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(output);
     assertTrue(summary.getParameters().mOperation.toString().equals(operation));
+    assertTrue(summary.getParameters().mBasePath.equals(basePath));
+    assertTrue(summary.getParameters().mStopCount == 100);
+    assertTrue(summary.getParameters().mTargetThroughput == 1000);
+    assertTrue(summary.getParameters().mThreads == 5);
+    assertTrue(summary.getParameters().mWarmup.equals("0s"));
+    assertTrue(summary.getParameters().mDuration.equals("10s"));
+
+    assertTrue(summary.getEndTimeMs() > startTime);
     assertTrue(summary.getNodeResults().size() >= 1);
+    assertTrue(summary.getDurationMs() > 0);
+    assertTrue(summary.getThroughput() > 0);
+    assertTrue(summary.getStatistics().mNumSuccess == 100);
     assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }

@@ -13,19 +13,16 @@ package alluxio.stress.fuse;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
-import alluxio.stress.Summary;
+import alluxio.stress.common.MultipleNodeBenchSummary;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
  * The summary for Fuse IO stress bench.
  */
-public class FuseIOSummary implements Summary {
-  private Map<String, FuseIOTaskResult> mNodeResults;
+public class FuseIOSummary extends MultipleNodeBenchSummary<FuseIOTaskResult> {
   private FuseIOParameters mParameters;
   private BaseParameters mBaseParameters;
   private long mRecordStartMs;
@@ -67,33 +64,6 @@ public class FuseIOSummary implements Summary {
   @Nullable
   public GraphGenerator graphGenerator() {
     return null;
-  }
-
-  /**
-   * @return the list of the unique ids of job workers
-   */
-  public Map<String, FuseIOTaskResult> getNodeResults() {
-    return mNodeResults;
-  }
-
-  /**
-   * @param nodes the list of the unique ids of job workers
-   */
-  public void setNodeResults(Map<String, FuseIOTaskResult> nodes) {
-    mNodeResults = nodes;
-  }
-
-  /**
-   * @return the error information
-   */
-  public List<String> collectErrorsFromAllNodes() {
-    List<String> errors = new ArrayList<>();
-    for (FuseIOTaskResult node : mNodeResults.values()) {
-      for (String err : node.getErrors()) {
-        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
-      }
-    }
-    return errors;
   }
 
   /**

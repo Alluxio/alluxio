@@ -11,14 +11,13 @@
 
 package alluxio.stress.common;
 
-import alluxio.stress.Summary;
-
-import java.util.List;
+import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 
 /**
  * abstract class for BenchSummary.
  */
-public abstract class GeneralBenchSummary implements Summary {
+public abstract class GeneralBenchSummary extends MultipleNodeBenchSummary
+    <JobServiceBenchTaskResult> {
   protected float mThroughput;
 
   /**
@@ -34,9 +33,4 @@ public abstract class GeneralBenchSummary implements Summary {
   public void setThroughput(float throughput) {
     mThroughput = throughput;
   }
-
-  /**
-   * @return the error information
-   */
-  public abstract List<String> collectErrorsFromAllNodes();
 }

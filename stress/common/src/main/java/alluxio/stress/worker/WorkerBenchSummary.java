@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.MultipleNodeBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
@@ -29,13 +30,12 @@ import java.util.stream.Collectors;
 /**
  * The summary for the worker stress tests.
  */
-public final class WorkerBenchSummary implements Summary {
+public final class WorkerBenchSummary extends MultipleNodeBenchSummary<WorkerBenchTaskResult> {
   private WorkerBenchParameters mParameters;
 
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
-  private Map<String, WorkerBenchTaskResult> mNodeResults;
 
   /**
    * Creates an instance.
@@ -103,20 +103,6 @@ public final class WorkerBenchSummary implements Summary {
   }
 
   /**
-   * @return the list of nodes
-   */
-  public Map<String, WorkerBenchTaskResult> getNodeResults() {
-    return mNodeResults;
-  }
-
-  /**
-   * @param nodes the list of nodes
-   */
-  public void setNodeResults(Map<String, WorkerBenchTaskResult> nodes) {
-    mNodeResults = nodes;
-  }
-
-  /**
    * @return the end time (in ms)
    */
   public long getEndTimeMs() {
@@ -142,19 +128,6 @@ public final class WorkerBenchSummary implements Summary {
    */
   public void setIOBytes(long IOBytes) {
     mIOBytes = IOBytes;
-  }
-
-  /**
-   * @return the error information
-   */
-  public List<String> collectErrorsFromAllNodes() {
-    List<String> errors = new ArrayList<>();
-    for (WorkerBenchTaskResult node : mNodeResults.values()) {
-      for (String err : node.getErrors()) {
-        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
-      }
-    }
-    return errors;
   }
 
   @Override

@@ -37,7 +37,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
-  private Map<String, JobServiceBenchTaskResult> mNodeResults;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -100,20 +99,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   }
 
   /**
-   * @return the list of nodes
-   */
-  public Map<String, JobServiceBenchTaskResult> getNodeResults() {
-    return mNodeResults;
-  }
-
-  /**
-   * @param nodes the list of nodes
-   */
-  public void setNodeResults(Map<String, JobServiceBenchTaskResult> nodes) {
-    mNodeResults = nodes;
-  }
-
-  /**
    * @return the end time (in ms)
    */
   public long getEndTimeMs() {
@@ -157,19 +142,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
 
   private LineGraph.Data computeResponseTimeData() {
     return mStatistics.computeTimeData();
-  }
-
-  /**
-   * @return the error information
-   */
-  public List<String> collectErrorsFromAllNodes() {
-    List<String> errors = new ArrayList<>();
-    for (JobServiceBenchTaskResult node : mNodeResults.values()) {
-      for (String err : node.getErrors()) {
-        errors.add(String.format("%s :%s", node.getBaseParameters().mId, err));
-      }
-    }
-    return errors;
   }
 
   @Override
