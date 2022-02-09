@@ -240,7 +240,7 @@ public final class UIFileInfo {
       return "";
     }
     return CommonUtils.convertMsToDate(mCreationTimeMs,
-        mAlluxioConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+        mAlluxioConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
@@ -250,7 +250,7 @@ public final class UIFileInfo {
    */
   public String getModificationTime() {
     return CommonUtils.convertMsToDate(mLastModificationTimeMs,
-        mAlluxioConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+        mAlluxioConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**

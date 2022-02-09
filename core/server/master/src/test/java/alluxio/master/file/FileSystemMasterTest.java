@@ -185,19 +185,20 @@ public final class FileSystemMasterTest {
       ServerConfiguration.global());
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
-    {
-      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
-      put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
-      put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
-      put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
-      put(PropertyKey.WORK_DIR,
-          AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
-      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-          .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
-      put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, "false");
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConfigurationRule =
+          new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+            {
+              put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+              put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+              put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 20);
+              put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);
+              put(PropertyKey.WORK_DIR,
+                      AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
+              put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+                      .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
+              put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
+            }
+          }, ServerConfiguration.global());
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -216,7 +217,7 @@ public final class FileSystemMasterTest {
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
-    mUnderFS = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mUnderFS = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mNestedFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
             .setWriteType(WritePType.MUST_CACHE)

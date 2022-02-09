@@ -92,7 +92,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   private final boolean mStartCluster;
 
   /** ServerConfiguration values for the cluster. */
-  private final Map<PropertyKey, String> mConfiguration = new HashMap<>();
+  private final Map<PropertyKey, Object> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
@@ -108,7 +108,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, boolean includeSecondary,
-      int numWorkers, Map<PropertyKey, String> configuration) {
+      int numWorkers, Map<PropertyKey, Object> configuration) {
     mStartCluster = startCluster;
     mIncludeSecondary = includeSecondary;
     mNumWorkers = numWorkers;
@@ -134,7 +134,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     if (value == null) {
       mConfiguration.remove(key);
     } else {
-      mConfiguration.put(key, value.toString());
+      mConfiguration.put(key, value);
     }
     return this;
   }
@@ -149,7 +149,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
-    for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
+    for (Entry<PropertyKey, Object> entry : mConfiguration.entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.global().validate();
@@ -212,7 +212,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
   private void overrideConfiguration(String[] config) {
     // Override the configuration parameters with any configuration params
     for (int i = 0; i < config.length; i += 2) {
-      mConfiguration.put(PropertyKey.fromString(config[i]), config[i + 1]);
+      PropertyKey key = PropertyKey.fromString(config[i]);
+      mConfiguration.put(key, key.parseValue(config[i + 1]));
     }
   }
 
@@ -235,7 +236,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     private boolean mStartCluster;
     private boolean mIncludeSecondary;
     private int mNumWorkers;
-    private Map<PropertyKey, String> mConfiguration;
+    private Map<PropertyKey, Object> mConfiguration;
 
     /**
      * Constructs the builder with default values.
@@ -276,7 +277,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @param value the value to set it to
      */
     public Builder setProperty(PropertyKey key, Object value) {
-      mConfiguration.put(key, value.toString());
+      mConfiguration.put(key, value);
       return this;
     }
 

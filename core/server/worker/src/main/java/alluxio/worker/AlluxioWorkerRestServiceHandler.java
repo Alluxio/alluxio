@@ -207,7 +207,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
       response.setWorkerInfo(new UIWorkerInfo(mWorkerProcess.getRpcAddress().toString(),
           mWorkerProcess.getStartTimeMs(),
-          ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+          ServerConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
       long capacityBytes = 0L;
       long usedBytes = 0L;
@@ -425,7 +425,7 @@ public final class AlluxioWorkerRestServiceHandler {
       //response.setBaseUrl("./browseLogs");
       //response.setShowPermissions(false);
 
-      String logsPath = ServerConfiguration.get(PropertyKey.LOGS_DIR);
+      String logsPath = ServerConfiguration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -571,7 +571,7 @@ public final class AlluxioWorkerRestServiceHandler {
         .setUsed(mStoreMeta.getUsedBytes());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }

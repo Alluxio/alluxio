@@ -129,10 +129,10 @@ public interface UnderFileSystem extends Closeable {
      * @return the instance of under file system for Alluxio root directory
      */
     public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {
-      String ufsRoot = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String ufsRoot = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean readOnly = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
       boolean shared = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
-      Map<String, String> ufsConf =
+      Map<String, Object> ufsConf =
           conf.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       return create(ufsRoot, UnderFileSystemConfiguration.defaults(conf).setReadOnly(readOnly)
           .setShared(shared).createMountSpecificConf(ufsConf));

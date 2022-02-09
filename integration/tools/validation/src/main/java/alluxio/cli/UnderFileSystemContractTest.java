@@ -178,7 +178,8 @@ public final class UnderFileSystemContractTest {
     return UnderFileSystemConfiguration.defaults(mConf)
         .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
             .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
-            .filter(entry -> mConf.isSet(entry.getKey()) && !entry.getValue().isEmpty())
+            .filter(entry -> mConf.isSet(entry.getKey()) && (!entry.getKey().isStringProperty()
+                || !((String) entry.getValue()).isEmpty()))
             .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
   }
 
@@ -199,8 +200,8 @@ public final class UnderFileSystemContractTest {
 
   private int runS3Operations(PrintStream msgStream,
                               PrintStream adviceStream, PrintStream errStream) throws Exception {
-    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
-    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
+    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, true);
+    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, true);
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 

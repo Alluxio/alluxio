@@ -73,7 +73,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
         .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
-    sUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 
@@ -236,7 +236,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
     // FSDataOutputStream.hflush will be the new one.
     //#ifdef HADOOP1
-    o.sync();
+//    o.sync();
     //#else
     o.hflush();
     //#endif

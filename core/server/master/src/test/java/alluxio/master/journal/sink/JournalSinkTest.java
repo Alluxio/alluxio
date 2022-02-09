@@ -75,18 +75,19 @@ public final class JournalSinkTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
-    {
-      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
-      put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
-      put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
-      put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false");
-      put(PropertyKey.WORK_DIR,
-          AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
-      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-          .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConfigurationRule =
+          new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+            {
+              put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+              put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 20);
+              put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
+              put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
+              put(PropertyKey.WORK_DIR,
+                      AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
+              put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+                      .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
+            }
+          }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {
