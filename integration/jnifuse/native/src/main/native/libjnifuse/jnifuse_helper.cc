@@ -10,7 +10,7 @@
  */
 
 #ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 30
 #endif
 
 #include <errno.h>
@@ -83,7 +83,7 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
   fuse_fill_dir_t filler = (fuse_fill_dir_t)(void *)address;
   const char *fn = env->GetStringUTFChars(name, 0);
 
-  int ret = filler((void *)bufaddr, fn, NULL, 0);
+  int ret = filler((void *)bufaddr, fn, NULL, 0, (fuse_fill_dir_flags)0);
   env->ReleaseStringUTFChars(name, fn);
 
   return ret;
@@ -93,7 +93,7 @@ jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1context(JNIEnv *env, job
   LOGD("enter get_fuse_context");
   struct fuse_context *cxt = fuse_get_context();
   jobject fibuf =
-    env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
+      env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
   return fibuf;
 }
 

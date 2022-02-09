@@ -12,23 +12,20 @@
 package alluxio.jnifuse.struct;
 
 import jnr.ffi.Runtime;
+import jnr.ffi.Struct;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class FuseFileInfo extends ru.serce.jnrfuse.struct.FuseFileInfo {
-  private final ByteBuffer buffer;
+public interface FuseFileInfo {
 
-  public FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
-    super(runtime);
-    this.buffer = buffer;
-    // depends on the arch
-    this.buffer.order(ByteOrder.LITTLE_ENDIAN);
-  }
+  Struct.u_int64_t fh();
 
-  public static FuseFileInfo of(ByteBuffer buffer) {
+  Struct.Signed32 flags();
+
+  static FuseFileInfo of(ByteBuffer buffer) {
     Runtime runtime = Runtime.getSystemRuntime();
-    FuseFileInfo fi = new FuseFileInfo(runtime, buffer);
+    Fuse3FuseFileInfo fi = new Fuse3FuseFileInfo(runtime, buffer);
     fi.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
     return fi;
   }

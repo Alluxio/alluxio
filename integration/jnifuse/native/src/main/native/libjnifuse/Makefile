@@ -11,8 +11,8 @@
 CXX := g++
 UNAME := $(shell uname)
 INCDIR = -I /usr/include -I $(JAVA_HOME)/include -I ./
-FUSE_LIBS = $(shell pkg-config fuse --libs)
-FUSE_CXXFLAGS = $(shell pkg-config fuse --cflags)
+FUSE_LIBS = $(shell pkg-config fuse3 --libs)
+FUSE_CXXFLAGS = $(shell pkg-config fuse3 --cflags)
 
 # Linux
 ifeq ($(UNAME), Linux)

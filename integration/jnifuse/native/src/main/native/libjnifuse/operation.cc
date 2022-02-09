@@ -177,12 +177,14 @@ FlushOperation::FlushOperation(JniFuseFileSystem *fs) {
 }
 
 int FlushOperation::call(const char *path, struct fuse_file_info *fi) {
+  LOGD("into flush: %s", path);
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, fibuf);
+  LOGD("complete flush %s with code %d", path, ret);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(fibuf);
@@ -200,12 +202,14 @@ ReleaseOperation::ReleaseOperation(JniFuseFileSystem *fs) {
 }
 
 int ReleaseOperation::call(const char *path, struct fuse_file_info *fi) {
+  LOGD("into release: %s", path);
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, fibuf);
+  LOGD("complete release %s with code %d", path, ret);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(fibuf);
@@ -382,7 +386,7 @@ int RenameOperation::call(const char *oldPath, const char *newPath) {
   jstring jspath = env->NewStringUTF(oldPath);
   jstring jspathNew = env->NewStringUTF(newPath);
 
-   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jspathNew);
@@ -446,7 +450,7 @@ StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
   this->methodID = env->GetMethodID(this->clazz, "statfsCallback", signature);
 }
 
-int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
+int StatfsOperation::call(const char *path, struct statvfs *stbuf) {
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
   jobject statvfs = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct statvfs));

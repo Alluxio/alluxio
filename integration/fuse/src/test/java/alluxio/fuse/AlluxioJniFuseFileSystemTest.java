@@ -178,7 +178,7 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void create() throws Exception {
-    mFileInfo.flags.set(O_WRONLY.intValue());
+    mFileInfo.flags().set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     verify(mFileSystem).createFile(expectedPath, CreateFilePOptions.newBuilder()
@@ -189,7 +189,7 @@ public class AlluxioJniFuseFileSystemTest {
   @Test
   public void createWithLengthLimit() throws Exception {
     String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
-    mFileInfo.flags.set(O_WRONLY.intValue());
+    mFileInfo.flags().set(O_WRONLY.intValue());
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
         mFuseFs.create("/foo/" + c256, 0, mFileInfo));
   }
@@ -202,7 +202,7 @@ public class AlluxioJniFuseFileSystemTest {
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
-    mFileInfo.flags.set(O_WRONLY.intValue());
+    mFileInfo.flags().set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
 
     // then call flush into it
@@ -403,7 +403,7 @@ public class AlluxioJniFuseFileSystemTest {
         });
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
-    mFileInfo.flags.set(O_RDONLY.intValue());
+    mFileInfo.flags().set(O_RDONLY.intValue());
 
     // prepare something to read to it
     ByteBuffer ptr = ByteBuffer.allocateDirect(4);
@@ -474,7 +474,7 @@ public class AlluxioJniFuseFileSystemTest {
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
-    mFileInfo.flags.set(O_WRONLY.intValue());
+    mFileInfo.flags().set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
 
     // prepare something to write into it
