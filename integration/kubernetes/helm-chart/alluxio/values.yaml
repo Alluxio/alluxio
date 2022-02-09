@@ -670,6 +670,13 @@ csi:
 
 hub:
   enabled: false
+  clusterId:
+  # For elasticsearch.endpoint, omit http(s) prefix. e.g. use 'example.io' instead of 'https://example.io' 
+  elasticsearch:
+    endpoint: "" 
+    port: ""
+    username: ""
+    password: ""
   env:
   # Example:
   # JAVA_HOME: /opt/java
@@ -683,11 +690,23 @@ hub:
       cpu: "1"
       memory: "1G"
   ports:
-    web: 30077
     rpc: 30076
+    logstash: 5044
   agent:
     args: # Arguments to Docker entrypoint
       - hub-agent
     ports:
       rpc: 30075
   serviceAccount: default
+  # Pod annotations for Metricbeat Autodiscovery
+  podAnnotations:
+    co.elastic.metrics/module: prometheus
+    co.elastic.metrics/metricsets: collector
+    co.elastic.metrics/hosts: '${data.host}:${data.ports.web}' # assumes web port exists
+    co.elastic.metrics/period: 1m
+    co.elastic.metrics/metrics_path: /metrics/prometheus
+  volumes:
+    conf:
+      path: /opt/alluxio/conf
+    logs:
+      path: /opt/alluxio/logs

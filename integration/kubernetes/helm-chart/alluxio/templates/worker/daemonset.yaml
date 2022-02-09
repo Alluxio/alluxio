@@ -41,12 +41,15 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
         role: alluxio-worker
-    {{- if or .Values.worker.podAnnotations .Values.metrics.enabled }}
+    {{- if or .Values.worker.podAnnotations .Values.metrics.enabled .Values.hub.enabled }}
       annotations:
       {{- with .Values.worker.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hub.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
@@ -92,7 +95,7 @@ spec:
       {{- end}}
       containers:
         {{ if .Values.hub.enabled -}}
-        - name: alluxio-hub
+        - name: alluxio-hub-agent
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           securityContext:
@@ -127,8 +130,32 @@ spec:
               name: agent-rpc
           volumeMounts:
           - name: conf-volume
-            mountPath: /opt/alluxio/conf
+            mountPath: {{ .Values.hub.volumes.conf.path }}
             readOnly: false
+          - name: logs-volume
+            mountPath: {{ .Values.hub.volumes.logs.path }}
+            readOnly: false
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat-oss:7.12.1
+          args: [
+            "-c", "/usr/share/filebeat/filebeat.yml",
+            "-e",
+          ]
+          env:
+            - name: ALLUXIO_LOGS_PATH
+              value: {{ .Values.hub.volumes.logs.path }}
+            - name: LOGSTASH_PORT
+              value: {{ .Values.hub.ports.logstash | quote }}
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: filebeat-config
+              mountPath: /usr/share/filebeat/filebeat.yml
+              readOnly: false
+              subPath: filebeat.yml
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
+              readOnly: false
         {{- end }}
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -202,7 +229,10 @@ spec:
           volumeMounts:
             {{- if .Values.hub.enabled }}
             - name: conf-volume
-              mountPath: /opt/alluxio/conf
+              mountPath: {{ .Values.hub.volumes.conf.path }}
+              readOnly: false
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
               readOnly: false
             {{- end }}
             {{- if .Values.metrics.enabled }}
@@ -294,7 +324,10 @@ spec:
           volumeMounts:
             {{- if .Values.hub.enabled }}
             - name: conf-volume
-              mountPath: /opt/alluxio/conf
+              mountPath: {{ .Values.hub.volumes.conf.path }}
+              readOnly: false
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
               readOnly: false
             {{- end }}
             {{- if .Values.metrics.enabled }}
@@ -320,7 +353,13 @@ spec:
       volumes:
         {{- if .Values.hub.enabled }}
         - name: conf-volume
-          emptyDir: { }
+          emptyDir: {}
+        - name: logs-volume
+          emptyDir: {}
+        - name: filebeat-config
+          configMap:
+            defaultMode: 0600
+            name: hub-filebeat-config
         {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume

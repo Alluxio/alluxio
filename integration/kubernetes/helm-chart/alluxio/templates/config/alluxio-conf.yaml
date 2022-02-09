@@ -24,6 +24,7 @@
 {{- $alluxioJavaOpts := list }}
 {{- if .Values.hub.enabled }}
   {{- $alluxioJavaOpts = print "-Dalluxio.hub.agent.rpc.hostname=${ALLUXIO_HUB_AGENT_RPC_HOSTNAME}" | append $alluxioJavaOpts }}
+  {{- $alluxioJavaOpts = printf "-Dalluxio.hub.cluster.id=%v" .Values.hub.clusterId | append $alluxioJavaOpts }}
 {{- end }}
 {{- /* Specify master hostname if single master */}}
 {{- if $isSingleMaster }}
