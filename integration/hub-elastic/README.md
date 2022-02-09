@@ -29,3 +29,4 @@ Env variables used by Metricbeat and Logstash to connect to ElasticSearch. The v
 - `HUB_ES_USERNAME` - ElasticSearch username
 - `HUB_ES_PASSWORD` - ElasticSearch password
 - `HUB_CLUSTER_ID` - 4-character alphanumeric identifier (must be identical to `alluxio.hub.cluster.id`)
+- 
