@@ -133,8 +133,11 @@ public class CacheRequestManager {
           e.toString());
       mActiveCacheRequests.remove(blockId);
       if (!async) {
-        throw new CancelledException(
-            "Fail to finish cache request synchronously as the thread pool is at capacity.", e);
+        throw new CancelledException(String.format(
+            "Fail to finish cache request synchronously as the thread pool is at capacity."
+                + " To increase, update the parameter '%s' and '%s'. ",
+            PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX,
+            PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX), e);
       }
     }
     if (future != null && !async) {
