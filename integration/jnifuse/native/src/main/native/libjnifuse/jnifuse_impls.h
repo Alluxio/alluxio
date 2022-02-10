@@ -49,7 +49,7 @@ int utimens_wrapper(const char *path, const struct timespec ts[2], struct fuse_f
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
 
-#endif  // FUSE_USE_VERSION >= 30
+#else
 
 int chmod_wrapper(const char *path, mode_t mode);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid);
@@ -84,4 +84,5 @@ int utimens_wrapper(const char *path, const struct timespec ts[2]);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
 
+#endif // FUSE_USE_VERSION >= 30
 #endif  // FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_
