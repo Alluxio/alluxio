@@ -202,11 +202,11 @@ public final class AlluxioMasterProcessTest {
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
     primarySelector.setState(PrimarySelector.State.STANDBY);
-    t.join(30000);
-    // make these two lines flake less
+    t.join(10000);
+    CommonUtils.waitFor("Master to be stopped", () -> !master.isRunning(),
+        WaitForOptions.defaults().setTimeoutMs(3 * Constants.MINUTE_MS));
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));
-    assertFalse(master.isRunning());
   }
 
   /**
