@@ -121,6 +121,7 @@ public final class PlanCoordinator {
       LOG.info("Exception when getting jobDefinition from jobConfig: ", e);
       mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
       mPlanInfo.setErrorMessage(e.getMessage());
+      DistributedCmdMetrics.incrementForAllConfigsFailStatus(mPlanInfo.getJobConfig());
       mPlanInfo.setStatus(Status.FAILED);
       throw e;
     }
@@ -214,6 +215,7 @@ public final class PlanCoordinator {
     if (!mPlanInfo.getStatus().isFinished()) {
       mPlanInfo.setErrorType(errorType);
       mPlanInfo.setErrorMessage(errorMessage);
+      DistributedCmdMetrics.incrementForAllConfigsFailStatus(mPlanInfo.getJobConfig());
       mPlanInfo.setStatus(Status.FAILED);
     }
     mWorkersInfoList = null;
@@ -278,7 +280,6 @@ public final class PlanCoordinator {
       switch (status) {
         case FAILED:
           setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
-          DistributedCmdMetrics.incrementForAllConfigsFailStatus(config);
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
