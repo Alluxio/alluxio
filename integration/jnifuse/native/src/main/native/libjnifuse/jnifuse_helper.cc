@@ -9,10 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 30
-#endif
-
 #include <errno.h>
 #include <fcntl.h>
 #include <fuse.h>
@@ -83,7 +79,11 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
   fuse_fill_dir_t filler = (fuse_fill_dir_t)(void *)address;
   const char *fn = env->GetStringUTFChars(name, 0);
 
+#if FUSE_USE_VERSION >= 30
   int ret = filler((void *)bufaddr, fn, NULL, 0, (fuse_fill_dir_flags)0);
+#else
+  int ret = filler((void *)bufaddr, fn, NULL, 0);
+#endif
   env->ReleaseStringUTFChars(name, fn);
 
   return ret;
