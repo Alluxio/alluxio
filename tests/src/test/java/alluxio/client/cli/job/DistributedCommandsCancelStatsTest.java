@@ -41,8 +41,7 @@ import java.util.Collections;
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
 public class DistributedCommandsCancelStatsTest extends JobShellTest {
-  private static final String TEST_USER = "test";
-  private static final long SLEEP_MS = Constants.SECOND_MS / 2;
+  private static final long SLEEP_MS = Constants.MINUTE_MS;
   private static final int TEST_TIMEOUT = 45;
 
   @ClassRule
@@ -53,7 +52,9 @@ public class DistributedCommandsCancelStatsTest extends JobShellTest {
                 .setIsFileMs(SLEEP_MS)
                 .setGetStatusMs(SLEEP_MS)
                 .setListStatusMs(SLEEP_MS)
-                .setListStatusWithOptionsMs(SLEEP_MS)));
+                .setListStatusWithOptionsMs(SLEEP_MS)
+                .setExistsMs(SLEEP_MS)
+                .setMkdirsMs(SLEEP_MS)));
 
   @Test
   public void testDistributedLoadCancelStats() throws Exception {
