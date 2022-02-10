@@ -269,11 +269,11 @@ public final class PlanCoordinator {
   private synchronized void updateStatus() {
     int completed = 0;
     List<TaskInfo> taskInfoList = mPlanInfo.getTaskInfoList();
+    JobConfig config = mPlanInfo.getJobConfig();
+    Preconditions.checkNotNull(config);
+    FileSystem fileSystem = mJobServerContext.getFileSystem();
     for (TaskInfo info : taskInfoList) {
-      JobConfig config = mPlanInfo.getJobConfig();
-      Preconditions.checkNotNull(config);
       Status status = info.getStatus();
-      FileSystem fileSystem = mJobServerContext.getFileSystem();
 
       switch (status) {
         case FAILED:
@@ -293,8 +293,6 @@ public final class PlanCoordinator {
           break;
         case COMPLETED:
           completed++;
-          DistributedCmdMetrics
-                  .incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
           break;
         case CREATED:
           // do nothing
@@ -313,6 +311,9 @@ public final class PlanCoordinator {
         // Try to join first, so that in case of failure we don't move to a completed state yet
         mPlanInfo.setResult(join(taskInfoList));
         mPlanInfo.setStatus(Status.COMPLETED);
+        //Increment the counter for Complete status when all the tasks in a job are completed.
+        DistributedCmdMetrics
+          .incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
       } catch (Exception e) {
         LOG.warn("Job error when joining tasks Job Id={} Config={}",
             mPlanInfo.getId(), mPlanInfo.getJobConfig(), e);
