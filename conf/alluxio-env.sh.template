@@ -22,6 +22,9 @@
 # (https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html),
 # and is respected by both external jobs and Alluxio servers (or shell).
 
+# This file also allows you to configure Alluxio remote debugging as outlined here:
+# https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html#alluxio-remote-debug
+
 # JVM is required to run Alluxio.
 # If its path is not set in Shell, please specify either of following environment variables
 # JAVA_HOME
@@ -68,3 +71,7 @@
 # Additional classpath entries for Alluxio processes. (Default: "")
 # E.g. "/path/to/library1/:/path/to/library2/"
 # ALLUXIO_CLASSPATH
+
+# Configuring remote debugging for Alluxio master process
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
+# ALLUXIO_MASTER_ATTACH_OPTS
