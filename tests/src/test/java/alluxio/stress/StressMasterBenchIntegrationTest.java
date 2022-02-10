@@ -11,17 +11,22 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.util.JsonSerializable;
 
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link StressMasterBench}.
@@ -201,5 +206,49 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     assertTrue(summary1.getErrors().isEmpty());
     assertFalse(summary2.getNodes().isEmpty());
     assertTrue(summary2.getErrors().isEmpty());
+  }
+
+  @Test
+  public void writeTypeParameterALLTest() throws Exception {
+    String[] input = new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateFile",
+        "--fixed-count", "20",
+        "--target-throughput", "300",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "3s",
+        "--write-type", "ALL",
+    };
+
+    StressMasterBench spyBench = spy(StressMasterBench.class);
+    spyBench.run(input);
+    ArgumentCaptor<String[]> captor = ArgumentCaptor.forClass(String[].class);
+
+    // get the input of the run method, which is the executed task
+    verify(spyBench, times(5)).run(captor.capture());
+    List<String[]> capturedArgs = captor.getAllValues();
+
+    // check the input task is the same as the expected batch task
+    String[] possibleWriteType = {"ALL", "CACHE_THROUGH", "THROUGH",
+        "MUST_CACHE", "ASYNC_THROUGH"};
+    for (int i = 0; i < capturedArgs.size(); i++) {
+      input[input.length - 1] = possibleWriteType[i];
+      String[] executedTask = capturedArgs.get(i);
+
+      assertTrue(compareString(input, executedTask));
+    }
+  }
+
+  private boolean compareString(String[] a, String[] b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (!a.equals(b)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

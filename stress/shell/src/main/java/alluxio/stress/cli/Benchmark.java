@@ -58,10 +58,6 @@ public abstract class Benchmark<T extends TaskResult> {
   @ParametersDelegate
   protected BaseParameters mBaseParameters = new BaseParameters();
 
-  protected enum BatchTask {
-    NOT_APPLICABLE, WRITE_TYPE_TASK
-  }
-
   /**
    * Get the description of the bench.
    *
@@ -85,11 +81,11 @@ public abstract class Benchmark<T extends TaskResult> {
   public abstract void prepare() throws Exception;
 
   /**
-   * Check if there are multiple task to run.
-   * @return return a list consist of task to operate on StressBench. The first string
-   * represents type and the following strings are the parameter to use.
+   * To get the possible write types to execute.
+   *
+   * @return return a list consist of task to operate on StressBench
    */
-  public abstract BatchTask checkIfMultipleTask();
+  public abstract List<String> parseWriteTypes();
 
   /**
    * Perform post-run cleanups.
@@ -135,29 +131,29 @@ public abstract class Benchmark<T extends TaskResult> {
   }
 
   /**
-   * Run the tasks according to the batch task type.
+   * Run the tasks according to the write-type in the taskList.
    *
    * @return the multiple task result
    */
-  private String runMultipleTask(String[] args, String[] taskList) {
+  private String runMultipleTask(String[] args, List<String> taskList) {
     StringBuilder result = new StringBuilder();
     for (int i = 0; i < args.length; i++) {
       // find the argument to be changed
-      if (args[i].equals(taskList[0])) {
-        for (int j = 1; j < taskList.length; j++) {
+      if (args[i].equals("--write-type")) {
+        for (int j = 0; j < taskList.size(); j++) {
           result.append("-----------------------------------------------------\n");
-          result.append(String.format("The result of parameter %s %s is:",
-              taskList[0], taskList[j]) + "\n");
+          result.append(String.format("The result of parameter --write-type %s is: %n",
+              taskList.get(j)));
           result.append("\n");
           mBaseParameters = new BaseParameters();
           //change the specific argument
-          args[i + 1] = taskList[j];
+          args[i + 1] = taskList.get(j);
           try {
             String res = run(args);
             result.append(res);
           } catch (Exception e) {
-            result.append(String.format("Task failed when executing parameter %s %s",
-                taskList[0], taskList[j]) + "\n");
+            result.append(String.format("Task failed when executing parameter --write-type"
+                + " %s %n", taskList.get(j)));
             LOG.error("Failed when executing task:", e);
           }
         }
@@ -165,18 +161,6 @@ public abstract class Benchmark<T extends TaskResult> {
       }
     }
     return result.toString();
-  }
-
-  /**
-   * @return the task list according to the batch task type
-   */
-  private String[] getTaskList(BatchTask task) {
-    switch (task) {
-      case WRITE_TYPE_TASK : return new String[]{"--write-type", "MUST_CACHE", "CACHE_THROUGH",
-          "THROUGH", "ASYNC_THROUGH"};
-      default:
-        throw new IllegalArgumentException(String.format("Illegal batch task name: %s", task));
-    }
   }
 
   /**
@@ -203,10 +187,9 @@ public abstract class Benchmark<T extends TaskResult> {
     }
 
     // if the test will execute multiple tasks.
-    BatchTask task = checkIfMultipleTask();
-    if (task != BatchTask.NOT_APPLICABLE) {
-      String[] multiTaskList = getTaskList(task);
-      String result = runMultipleTask(args, multiTaskList);
+    List taskList = parseWriteTypes();
+    if (!taskList.isEmpty()) {
+      String result = runMultipleTask(args, taskList);
       return result;
     }
 

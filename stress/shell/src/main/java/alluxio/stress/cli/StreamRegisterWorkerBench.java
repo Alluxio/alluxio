@@ -41,6 +41,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -82,8 +83,8 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
   }
 
   @Override
-  public BatchTask checkIfMultipleTask() {
-    return BatchTask.NOT_APPLICABLE;
+  public List<String> parseWriteTypes() {
+    return new ArrayList<>();
   }
 
   @Override

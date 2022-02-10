@@ -74,8 +74,12 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
   }
 
   @Override
-  public BatchTask checkIfMultipleTask() {
-    return BatchTask.NOT_APPLICABLE;
+  public List<String> parseWriteTypes() {
+    if (mParameters.mWriteType.equals("ALL")) {
+      throw new UnsupportedOperationException("Parameter:--write-type ALL is supported "
+          + "in MasterBench and ClientIOBench. Please remove the parameter");
+    }
+    return new ArrayList<>();
   }
 
   @Override

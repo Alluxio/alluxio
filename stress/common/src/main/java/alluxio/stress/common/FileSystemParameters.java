@@ -79,7 +79,8 @@ public class FileSystemParameters extends Parameters {
           || value.equals("ASYNC_THROUGH") || value.equals("ALL")) {
         return value;
       }
-      throw new IllegalArgumentException("No constant with text " + value + " found");
+      throw new IllegalArgumentException(String.format("%s is not a valid write type. "
+          + "Valid options are: MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH and ALL", value));
     }
   }
 }

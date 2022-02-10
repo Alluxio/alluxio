@@ -11,16 +11,21 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import alluxio.stress.cli.client.StressClientIOBench;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.util.JsonSerializable;
 
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Tests {@link StressClientIOBench}.
@@ -146,7 +151,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         "--write-type", writeType,
     });
 
-    //convert the result into summary, and check whether it have errors.
+    // convert the result into summary, and check whether it have errors.
     ClientIOTaskResult summary = (ClientIOTaskResult) JsonSerializable.fromJson(output);
 
     assertFalse(summary.getThreadCountResults().isEmpty());
@@ -154,5 +159,49 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         summary.getThreadCountResults().values()) {
       assertTrue(threadResult.getErrors().isEmpty());
     }
+  }
+
+  @Test
+  public void writeTypeParameterALLTest() throws Exception {
+    String[] input = new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "ALL",
+    };
+
+    StressClientIOBench spyBench = spy(StressClientIOBench.class);
+    spyBench.run(input);
+    ArgumentCaptor<String[]> captor = ArgumentCaptor.forClass(String[].class);
+
+    // get the input of the run method, which is the executed task
+    verify(spyBench, times(5)).run(captor.capture());
+    List<String[]> capturedArgs = captor.getAllValues();
+
+    // check the input task is the same as the expected batch task
+    String[] possibleWriteType = {"ALL", "CACHE_THROUGH", "THROUGH",
+        "MUST_CACHE", "ASYNC_THROUGH"};
+    for (int i = 0; i < capturedArgs.size(); i++) {
+      input[input.length - 1] = possibleWriteType[i];
+      String[] executedTask = capturedArgs.get(i);
+
+      assertTrue(compareString(input, executedTask));
+    }
+  }
+
+  private boolean compareString(String[] a, String[] b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (!a.equals(b)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

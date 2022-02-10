@@ -36,6 +36,7 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -97,11 +98,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
-  public BatchTask checkIfMultipleTask() {
+  public List<String> parseWriteTypes() {
     if (mParameters.mWriteType.equals("ALL")) {
-      return BatchTask.WRITE_TYPE_TASK;
+      return ImmutableList.of("CACHE_THROUGH", "THROUGH",
+          "MUST_CACHE", "ASYNC_THROUGH");
     }
-    return BatchTask.NOT_APPLICABLE;
+    return new ArrayList<>();
   }
 
   @Override

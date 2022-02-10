@@ -125,8 +125,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   }
 
   @Override
-  public BatchTask checkIfMultipleTask() {
-    return BatchTask.NOT_APPLICABLE;
+  public List<String> parseWriteTypes() {
+    return new ArrayList<>();
   }
 
   @Override

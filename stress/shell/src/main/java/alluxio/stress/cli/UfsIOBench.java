@@ -114,8 +114,8 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   @Override
-  public BatchTask checkIfMultipleTask() {
-    return BatchTask.NOT_APPLICABLE;
+  public List<String> parseWriteTypes() {
+    return new ArrayList<>();
   }
 
   @Override
