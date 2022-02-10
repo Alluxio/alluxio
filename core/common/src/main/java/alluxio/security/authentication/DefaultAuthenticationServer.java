@@ -130,6 +130,10 @@ public class DefaultAuthenticationServer
       case SIMPLE:
         return new SaslServerHandlerPlain(mHostName, mConfiguration, mImpersonationAuthenticator);
       case CUSTOM:
+        if (!mConfiguration.isSetByUser(
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS)) {
+          return new SaslServerHandlerPlain(mHostName, mConfiguration, mImpersonationAuthenticator);
+        }
         Class clazz = mConfiguration.getClass(
             PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS);
         try {

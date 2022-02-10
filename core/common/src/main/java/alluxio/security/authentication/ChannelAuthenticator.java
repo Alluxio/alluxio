@@ -167,6 +167,11 @@ public class ChannelAuthenticator {
         return new alluxio.security.authentication.plain.SaslClientHandlerPlain(mParentSubject,
             mConfiguration);
       case CUSTOM:
+        if (!mConfiguration.isSetByUser(
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS)) {
+          return new alluxio.security.authentication.plain.SaslClientHandlerPlain(mParentSubject,
+              mConfiguration);
+        }
         Class clazz = mConfiguration.getClass(
             PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS);
         try {
