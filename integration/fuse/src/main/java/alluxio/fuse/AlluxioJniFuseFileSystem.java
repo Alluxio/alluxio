@@ -64,7 +64,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -122,7 +121,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
-  private final List<String> mWorkAroundList;
+  private final HashSet<String> mWorkAroundSet;
 
   // Map for holding the async releasing entries for proper umount
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
@@ -194,7 +193,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
-    mWorkAroundList = mConf.getList(PropertyKey.FUSE_WORKAROUND_LIST, ",");
+    mWorkAroundSet = new HashSet<>();
+    mWorkAroundSet.addAll(mConf.getList(PropertyKey.FUSE_WORKAROUND_LIST, ","));
     if (opts.isDebug()) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -396,12 +396,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EIO();
     }
 
-    if (!mWorkAroundList.contains("open")) {
+    if (!mWorkAroundSet.contains("open")) {
       if (status != null && !status.isCompleted()) {
         // Cannot open incomplete file for read or write
         // wait for file to complete in read or read_write mode
         if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          LOG.error(String.format("Cannot open incomplete file %s. " + "Failed to wait for file completed with flag 0x%x",
+          LOG.error(String.format("Cannot open incomplete file %s. "
+                  + "Failed to wait for file completed with flag 0x%x",
               path, flags));
           return -ErrorCodes.EIO();
         }
@@ -769,7 +770,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chmodInternal(String path, long mode) {
-    if (mWorkAroundList.contains("chmod")) {
+    if (mWorkAroundSet.contains("chmod")) {
       return 0;
     }
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
@@ -792,7 +793,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chownInternal(String path, long uid, long gid) {
-    if (mWorkAroundList.contains("chown")) {
+    if (mWorkAroundSet.contains("chown")) {
       return 0;
     }
     if (!mIsUserGroupTranslation) {
@@ -866,7 +867,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int truncateInternal(String path, long size) {
-    if (mWorkAroundList.contains("truncate")) {
+    if (mWorkAroundSet.contains("truncate")) {
       return 0;
     }
     // Truncate scenarios:
