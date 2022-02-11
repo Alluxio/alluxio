@@ -176,9 +176,6 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean isSet(PropertyKey key) {
-    if (isSetByUser(key)) {
-      return true;
-    }
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
       if (val.isPresent()) {
