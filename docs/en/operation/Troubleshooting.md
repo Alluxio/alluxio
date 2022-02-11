@@ -75,9 +75,9 @@ If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set th
 
 ```shell
 # Java 5 through 8
-export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=66009"
+export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
 # Java 9 and up
-export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:66009"
+export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
 ```
 
 After setting this parameter, you can add the `-debug` flag to start a debug server such as `bin/alluxio fs -debug ls /`.
