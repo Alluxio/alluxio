@@ -58,7 +58,21 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mIOBytes = mergedTaskResults.getIOBytes();
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
-    mThroughput = ((float) mIOBytes / mDurationMs) * 1000.0f / Constants.MB;
+    mThroughput = getIOMBps();
+  }
+
+  /**
+   * @return the throughput (MB/s)
+   */
+  public float getIOMBps() {
+    return ((float) mIOBytes / mDurationMs) * 1000.0f / Constants.MB;
+  }
+
+  /**
+   * @param ioMBps the throughput (MB / s)
+   */
+  public void setIOMBps(float ioMBps) {
+    // ignore, since this is computed dynamically
   }
 
   /**
@@ -167,7 +181,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
             value = new HashMap<>();
           }
           int totalThreads = summary.getNodeResults().size() * summary.getParameters().mThreads;
-          value.put(totalThreads, summary.getThroughput());
+          value.put(totalThreads, summary.getIOMBps());
           return value;
         });
 

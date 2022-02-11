@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.HashSet;
 
 public class GeneralBenchSummaryTest {
+  // Add a test implementation to test the abstract parent
   private class TestTaskResult implements TaskResult {
     private BaseParameters mBaseParameters;
     private List<String> mErrors;
@@ -111,7 +112,7 @@ public class GeneralBenchSummaryTest {
     summary.addTaskResultWithErrors(3);
 
     List<String> list = summary.collectErrorsFromAllNodes();
-    assertEquals(list.size() , 3);
+    assertEquals(list.size(), 3);
     Set<String> set = new HashSet<>(list);
     for (int i = 4; i < 6; i++) {
       String message = String.format("task%s :error%s", i, i);

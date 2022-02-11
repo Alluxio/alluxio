@@ -28,6 +28,7 @@ public class FuseIOSummary extends GeneralBenchSummary<FuseIOTaskResult> {
   private long mRecordStartMs;
   private long mEndMs;
   private long mIOBytes;
+  private float mIOMBps;
 
   /**
    * Default constructor required for json deserialization.
@@ -57,6 +58,7 @@ public class FuseIOSummary extends GeneralBenchSummary<FuseIOTaskResult> {
     mEndMs = endMs;
     mIOBytes = ioBytes;
     mThroughput = ioMBps;
+    mIOMBps = mThroughput;
   }
 
   @Override
@@ -133,5 +135,19 @@ public class FuseIOSummary extends GeneralBenchSummary<FuseIOTaskResult> {
    */
   public void setIOBytes(long ioBytes) {
     mIOBytes = ioBytes;
+  }
+
+  /**
+   * @return overall throughput (in MB / s)
+   */
+  public float getIOMBps() {
+    return mIOMBps;
+  }
+
+  /**
+   * @param ioMBps overall throughput (in MB / s)
+   */
+  public void setIOMBps(float ioMBps) {
+    mIOMBps = ioMBps;
   }
 }
