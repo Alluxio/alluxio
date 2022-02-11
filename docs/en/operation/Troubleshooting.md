@@ -63,14 +63,14 @@ In general, you can use `ALLUXIO_<PROCESS>_ATTACH_OPTS` to specify how an Alluxi
 
 `suspend={y | n}` will decide whether the JVM process waits until the debugger connects or not.
 
-`address` determines which port the Alluxio process will use to be attached to by a debugger. If left blank, it will 
+`address` determines which port the Alluxio process will use to be attached to by a debugger. If left blank, it will
 choose an open port by itself.
 
 After completing this setup, learn how [to attach](#to-attach).
 
 ### Debugging shell commands
 
-If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set the `ALLUXIO_USER_DEBUG_JAVA_OPTS` in 
+If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set the `ALLUXIO_USER_DEBUG_JAVA_OPTS` in
 `conf/alluxio-env.sh` as above:
 
 ```shell
@@ -90,7 +90,7 @@ There exists a [comprehensive tutorial on how to attach to and debug a Java proc
 
 Start the process or shell command of interest, then create a new java remote configuration,
 set the debug server's host and port, and start the debug session. If you set a breakpoint which can be reached, the IDE
-will enter debug mode. Yand you can inspect the current context's variables, call stack, thread list, and expression
+will enter debug mode. You can inspect the current context's variables, call stack, thread list, and expression
 evaluation.
 
 ## Alluxio collectInfo command
