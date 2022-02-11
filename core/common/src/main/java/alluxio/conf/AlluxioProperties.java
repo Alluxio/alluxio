@@ -176,7 +176,7 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean isSet(PropertyKey key) {
-    if (isSetByUser(key)) {
+    if (isPresent(key)) {
       return true;
     }
     // In case key is not the reference to the original key
@@ -189,10 +189,13 @@ public class AlluxioProperties {
    *         default value for the key
    */
   public boolean isSetByUser(PropertyKey key) {
+    return isPresent(key) && (getSource(key).compareTo(Source.CLUSTER_DEFAULT) > 0);
+  }
+
+  private boolean isPresent(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
-      // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
-      return val.isPresent() && (getSource(key).compareTo(Source.CLUSTER_DEFAULT) > 0);
+      return val.isPresent();
     }
     return false;
   }
