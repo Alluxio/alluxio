@@ -16,8 +16,10 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressJobServiceBench;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchSummary;
+import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceMaxThroughputSummary;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -34,8 +36,8 @@ import java.util.List;
  * A max throughput suite for job service.
  */
 public class JobServiceMaxThroughput extends
-    AbstractMaxThroughput<JobServiceMaxThroughputSummary, JobServiceBenchSummary,
-        JobServiceBenchParameters> {
+    AbstractMaxThroughput<JobServiceBenchTaskResult, JobServiceMaxThroughputSummary,
+        GeneralBenchSummary<JobServiceBenchTaskResult>, JobServiceBenchParameters> {
 
   /** Reuse the existing parameters. */
   @ParametersDelegate

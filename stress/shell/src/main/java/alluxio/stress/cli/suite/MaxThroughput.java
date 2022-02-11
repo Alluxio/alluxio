@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A max throughput suite.
@@ -129,11 +128,11 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       LOG.info(
           "target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower + " "
               + next + " " + upper + "]");
-      for (Map.Entry<String, List<String>> entry : mbr.getErrors().entrySet()) {
-        for (String error : entry.getValue()) {
-          LOG.error(String.format("%s: %s", entry.getKey(), error));
-        }
+
+      for (String error : mbr.collectErrorsFromAllNodes()) {
+        LOG.error("{}", error);
       }
+
       if (Math.abs(current - next) / (float) current <= 0.02) {
         break;
       }
@@ -179,10 +178,10 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
     Benchmark b = new StressMasterBench();
     String result = b.run(newArgs.toArray(new String[0]));
     MasterBenchSummary summary = JsonSerializable.fromJson(result, new MasterBenchSummary[0]);
-    if (!summary.getErrors().isEmpty()) {
+    if (!summary.collectErrorsFromAllNodes().isEmpty()) {
       throw new IllegalStateException(String
           .format("Could not create files for operation (%s). error: %s",
-              mParameters.mOperation, summary.getErrors().entrySet().iterator().next()));
+              mParameters.mOperation, summary.collectErrorsFromAllNodes().iterator().next()));
     }
   }
 

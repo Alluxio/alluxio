@@ -11,7 +11,12 @@
 
 package alluxio.stress;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.stress.cli.StressMasterBench;
+import alluxio.stress.master.MasterBenchSummary;
+import alluxio.util.JsonSerializable;
 
 import org.junit.Test;
 
@@ -153,5 +158,47 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     generateAndVerifyReport(
         Arrays.asList("CreateFile", "GetFileStatus", "ListDir", "ListDirLocated", "RenameFile"),
         output1, output2, output3, output4, output5);
+  }
+
+  @Test
+  public void testForMultipleNodeResults() throws Exception {
+    // The RenameFile will change the name of the created file, to avoid the DeleteFile
+    // can't find file to delete, operate CreateFile twice
+    String[] operations = {"CreateFile", "GetBlockLocations", "GetFileStatus", "OpenFile",
+        "ListDir", "ListDirLocated", "RenameFile", "CreateFile", "DeleteFile", "CreateDir"};
+
+    for (String op : operations) {
+      validateTheOutput(op);
+    }
+  }
+
+  private void validateTheOutput(String operation) throws Exception {
+    long startTime = System.currentTimeMillis();
+    String basePath = sLocalAlluxioClusterResource.get().getMasterURI() + "/";
+    String output = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", basePath,
+        "--operation", operation,
+        "--stop-count", "100",
+        "--target-throughput", "1000",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "10s",
+    });
+
+    MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(output);
+    assertEquals(summary.getParameters().mOperation.toString(), operation);
+    assertEquals(summary.getParameters().mBasePath, basePath);
+    assertEquals(summary.getParameters().mStopCount, 100);
+    assertEquals(summary.getParameters().mTargetThroughput, 1000);
+    assertEquals(summary.getParameters().mThreads, 5);
+    assertEquals(summary.getParameters().mWarmup, "0s");
+    assertEquals(summary.getParameters().mDuration, "10s");
+
+    assertTrue(summary.getEndTimeMs() > startTime);
+    assertTrue(summary.getNodeResults().size() >= 1);
+    assertTrue(summary.getDurationMs() > 0);
+    assertTrue(summary.getThroughput() > 0);
+    assertEquals(summary.getStatistics().mNumSuccess, 100);
+    assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }
