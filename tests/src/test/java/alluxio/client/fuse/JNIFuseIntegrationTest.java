@@ -19,7 +19,6 @@ import alluxio.fuse.FuseMountOptions;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.util.io.BufferUtils;
 
-<<<<<<< HEAD
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,10 +26,6 @@ import org.junit.Test;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-||||||| 2df1da2d4f
-=======
-import java.io.IOException;
->>>>>>> 697d23e2d1e9fd4c5664d31343b13a22f7813d79
 import java.util.ArrayList;
 
 /**
