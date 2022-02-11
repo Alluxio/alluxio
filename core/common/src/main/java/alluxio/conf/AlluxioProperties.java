@@ -195,7 +195,6 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
       // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
-      // System.out.printf("key: %s, %s, source: %s %n", key, val,getSource(key));
       return val.isPresent() && (getSource(key).compareTo(Source.CLUSTER_DEFAULT) > 0);
     }
     return false;
