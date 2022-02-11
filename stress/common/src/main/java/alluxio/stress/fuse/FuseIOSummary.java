@@ -13,7 +13,7 @@ package alluxio.stress.fuse;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
-import alluxio.stress.common.MultipleNodeBenchSummary;
+import alluxio.stress.common.GeneralBenchSummary;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,13 +22,12 @@ import javax.annotation.Nullable;
 /**
  * The summary for Fuse IO stress bench.
  */
-public class FuseIOSummary extends MultipleNodeBenchSummary<FuseIOTaskResult> {
+public class FuseIOSummary extends GeneralBenchSummary<FuseIOTaskResult> {
   private FuseIOParameters mParameters;
   private BaseParameters mBaseParameters;
   private long mRecordStartMs;
   private long mEndMs;
   private long mIOBytes;
-  private float mIOMBps;
 
   /**
    * Default constructor required for json deserialization.
@@ -57,7 +56,7 @@ public class FuseIOSummary extends MultipleNodeBenchSummary<FuseIOTaskResult> {
     mRecordStartMs = recordStartMs;
     mEndMs = endMs;
     mIOBytes = ioBytes;
-    mIOMBps = ioMBps;
+    mThroughput = ioMBps;
   }
 
   @Override
@@ -134,19 +133,5 @@ public class FuseIOSummary extends MultipleNodeBenchSummary<FuseIOTaskResult> {
    */
   public void setIOBytes(long ioBytes) {
     mIOBytes = ioBytes;
-  }
-
-  /**
-   * @return overall throughput (in MB / s)
-   */
-  public float getIOMBps() {
-    return mIOMBps;
-  }
-
-  /**
-   * @param ioMBps overall throughput (in MB / s)
-   */
-  public void setIOMBps(float ioMBps) {
-    mIOMBps = ioMBps;
   }
 }

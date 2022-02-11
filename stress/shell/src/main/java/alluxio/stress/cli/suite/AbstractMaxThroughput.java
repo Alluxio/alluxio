@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli.suite;
 
+import alluxio.stress.TaskResult;
 import alluxio.stress.common.AbstractMaxThroughputSummary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.GeneralParameters;
@@ -26,9 +27,11 @@ import java.util.List;
  * @param <T> the MaxThroughput bench result summary
  * @param <S> the general Bench Summary with common method
  * @param <P> the stress bench parameter
+ * @param <Q> the single task result
  */
-public abstract class AbstractMaxThroughput<T extends AbstractMaxThroughputSummary<P, S>,
-    S extends GeneralBenchSummary, P extends GeneralParameters> extends Suite<T> {
+public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
+    AbstractMaxThroughputSummary<P, S>, S extends GeneralBenchSummary<Q>, P extends
+    GeneralParameters> extends Suite<T> {
   protected static final Logger LOG = LoggerFactory.getLogger(AbstractMaxThroughput.class);
 
   protected int getBestThroughput(int initialThroughput, T summary, List<String> baseArgs,

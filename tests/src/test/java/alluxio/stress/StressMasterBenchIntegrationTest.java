@@ -12,6 +12,7 @@
 package alluxio.stress;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
@@ -185,19 +186,19 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     });
 
     MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(output);
-    assertTrue(summary.getParameters().mOperation.toString().equals(operation));
-    assertTrue(summary.getParameters().mBasePath.equals(basePath));
-    assertTrue(summary.getParameters().mStopCount == 100);
-    assertTrue(summary.getParameters().mTargetThroughput == 1000);
-    assertTrue(summary.getParameters().mThreads == 5);
-    assertTrue(summary.getParameters().mWarmup.equals("0s"));
-    assertTrue(summary.getParameters().mDuration.equals("10s"));
+    assertEquals(summary.getParameters().mOperation.toString(), operation);
+    assertEquals(summary.getParameters().mBasePath, basePath);
+    assertEquals(summary.getParameters().mStopCount, 100);
+    assertEquals(summary.getParameters().mTargetThroughput, 1000);
+    assertEquals(summary.getParameters().mThreads, 5);
+    assertEquals(summary.getParameters().mWarmup, "0s");
+    assertEquals(summary.getParameters().mDuration, "10s");
 
     assertTrue(summary.getEndTimeMs() > startTime);
     assertTrue(summary.getNodeResults().size() >= 1);
     assertTrue(summary.getDurationMs() > 0);
     assertTrue(summary.getThroughput() > 0);
-    assertTrue(summary.getStatistics().mNumSuccess == 100);
+    assertEquals(summary.getStatistics().mNumSuccess, 100);
     assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }

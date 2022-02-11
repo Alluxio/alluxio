@@ -33,7 +33,7 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the job service stress tests.
  */
-public final class JobServiceBenchSummary extends GeneralBenchSummary {
+public final class JobServiceBenchSummary extends GeneralBenchSummary<JobServiceBenchTaskResult> {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;

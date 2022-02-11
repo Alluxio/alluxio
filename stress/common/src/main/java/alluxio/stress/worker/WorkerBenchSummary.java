@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
-import alluxio.stress.common.MultipleNodeBenchSummary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * The summary for the worker stress tests.
  */
-public final class WorkerBenchSummary extends MultipleNodeBenchSummary<WorkerBenchTaskResult> {
+public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTaskResult> {
   private WorkerBenchParameters mParameters;
 
   private long mDurationMs;
@@ -58,20 +58,7 @@ public final class WorkerBenchSummary extends MultipleNodeBenchSummary<WorkerBen
     mIOBytes = mergedTaskResults.getIOBytes();
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
-  }
-
-  /**
-   * @return the throughput (MB/s)
-   */
-  public float getIOMBps() {
-    return ((float) mIOBytes / mDurationMs) * 1000.0f / Constants.MB;
-  }
-
-  /**
-   * @param ioMBps the throughput (MB / s)
-   */
-  public void setIOMBps(float ioMBps) {
-    // ignore, since this is computed dynamically
+    mThroughput = ((float) mIOBytes / mDurationMs) * 1000.0f / Constants.MB;
   }
 
   /**
@@ -180,7 +167,7 @@ public final class WorkerBenchSummary extends MultipleNodeBenchSummary<WorkerBen
             value = new HashMap<>();
           }
           int totalThreads = summary.getNodeResults().size() * summary.getParameters().mThreads;
-          value.put(totalThreads, summary.getIOMBps());
+          value.put(totalThreads, summary.getThroughput());
           return value;
         });
 

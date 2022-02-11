@@ -14,7 +14,7 @@ package alluxio.stress.master;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
-import alluxio.stress.common.MultipleNodeBenchSummary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
@@ -33,12 +33,11 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the master stress tests.
  */
-public final class MasterBenchSummary extends MultipleNodeBenchSummary<MasterBenchTaskResult> {
+public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTaskResult> {
   private long mDurationMs;
   private long mEndTimeMs;
   private MasterBenchParameters mParameters;
 
-  private float mThroughput;
   private SummaryStatistics mStatistics;
 
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
@@ -74,20 +73,6 @@ public final class MasterBenchSummary extends MultipleNodeBenchSummary<MasterBen
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
-  }
-
-  /**
-   * @return the throughput
-   */
-  public float getThroughput() {
-    return mThroughput;
-  }
-
-  /**
-   * @param throughput the throughput
-   */
-  public void setThroughput(float throughput) {
-    mThroughput = throughput;
   }
 
   /**

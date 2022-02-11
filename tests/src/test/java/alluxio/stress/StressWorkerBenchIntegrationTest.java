@@ -12,6 +12,7 @@
 package alluxio.stress;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.cli.worker.StressWorkerBench;
 import alluxio.stress.worker.WorkerBenchSummary;
@@ -57,12 +58,12 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
     });
 
     WorkerBenchSummary summary = (WorkerBenchSummary) JsonSerializable.fromJson(output);
-    assertTrue(summary.getParameters().mBasePath.equals(basePath));
-    assertTrue(summary.getParameters().mFileSize.equals("1m"));
-    assertTrue(summary.getParameters().mThreads == 2);
-    assertTrue(summary.getParameters().mBlockSize.equals("128k"));
-    assertTrue(summary.getParameters().mWarmup.equals("0s"));
-    assertTrue(summary.getParameters().mDuration.equals("1s"));
+    assertEquals(summary.getParameters().mBasePath, basePath);
+    assertEquals(summary.getParameters().mFileSize, "1m");
+    assertEquals(summary.getParameters().mThreads, 2);
+    assertEquals(summary.getParameters().mBlockSize, "128k");
+    assertEquals(summary.getParameters().mWarmup, "0s");
+    assertEquals(summary.getParameters().mDuration, "1s");
 
     assertTrue(summary.getEndTimeMs() > startTime);
     assertTrue(summary.getIOBytes() > 0);

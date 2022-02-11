@@ -12,6 +12,7 @@
 package alluxio.stress.common;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
@@ -22,10 +23,9 @@ import org.junit.Test;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.HashSet;
 
-public class MultipleNodeSummaryTest {
+public class GeneralBenchSummaryTest {
   private class TestTaskResult implements TaskResult {
     private BaseParameters mBaseParameters;
     private List<String> mErrors;
@@ -55,56 +55,63 @@ public class MultipleNodeSummaryTest {
     }
   }
 
-  private class TestMultipleNodeSummary extends MultipleNodeBenchSummary<TestTaskResult> {
-    private int mCount = 0;
-
+  private class TestMultipleNodeSummary extends GeneralBenchSummary<TestTaskResult> {
     @Override
     public GraphGenerator graphGenerator() {
       return null;
     }
 
-    TestMultipleNodeSummary() {
-      mNodeResults = new HashMap<>();
-    }
-
     public void addTaskResultWithErrors(int n) {
+      int index = mNodeResults.size();
       for (int i = 0; i < n; i++) {
         TestTaskResult result = new TestTaskResult();
-        String taskID = "task" + mCount;
+        String taskID = "task" + index;
         result.getBaseParameters().mId = taskID;
-        result.addErrors("error" + mCount);
+        result.addErrors("error" + index);
         mNodeResults.put(taskID, result);
-        mCount++;
+        index++;
       }
     }
 
     public void addTaskResultWithoutErrors(int n) {
+      int index = mNodeResults.size();
       for (int i = 0; i < n; i++) {
         TestTaskResult result = new TestTaskResult();
-        String taskID = "task" + mCount;
+        String taskID = "task" + index;
         result.getBaseParameters().mId = taskID;
         mNodeResults.put(taskID, result);
-        mCount++;
+        index++;
       }
     }
   }
 
   @Test
-  public void collectErrorFromAllNodesTest() {
+  public void collectErrorFromAllNodesWithEmptyResults() {
     // test summary with empty nodes
     TestMultipleNodeSummary summary = new TestMultipleNodeSummary();
     List<String> emptyList = summary.collectErrorsFromAllNodes();
     assertTrue(emptyList.isEmpty());
+  }
 
-    // test summary with node but has no error
-    summary.addTaskResultWithoutErrors(4);
-    emptyList = summary.collectErrorsFromAllNodes();
+  @Test
+  public void collectErrorFromAllNodesWithNoErrors() {
+    // test summary with node and no error
+    TestMultipleNodeSummary summary = new TestMultipleNodeSummary();
+    summary.addTaskResultWithoutErrors(6);
+    List<String> emptyList = summary.collectErrorsFromAllNodes();
     assertTrue(emptyList.isEmpty());
+  }
 
+  @Test
+  public void collectErrorFromAllNodesWithErrors() {
     // test summary with errors
+    TestMultipleNodeSummary summary = new TestMultipleNodeSummary();
+
+    summary.addTaskResultWithoutErrors(4);
     summary.addTaskResultWithErrors(3);
+
     List<String> list = summary.collectErrorsFromAllNodes();
-    assertTrue(list.size() == 3);
+    assertEquals(list.size() , 3);
     Set<String> set = new HashSet<>(list);
     for (int i = 4; i < 6; i++) {
       String message = String.format("task%s :error%s", i, i);
