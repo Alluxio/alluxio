@@ -42,7 +42,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * A benchmarking tool for the WorkerHeartbeat RPC.
@@ -153,11 +152,6 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
         "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\" --duration 30s",
         ""
     ));
-  }
-
-  @Override
-  public List<String> parseWriteTypes() {
-    return new ArrayList<>();
   }
 
   @Override

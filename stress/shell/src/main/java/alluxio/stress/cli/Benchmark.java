@@ -81,13 +81,6 @@ public abstract class Benchmark<T extends TaskResult> {
   public abstract void prepare() throws Exception;
 
   /**
-   * To get the possible write types to execute.
-   *
-   * @return return a list consist of task to operate on StressBench
-   */
-  public abstract List<String> parseWriteTypes();
-
-  /**
    * Perform post-run cleanups.
    */
   public void cleanup() throws Exception {}
@@ -131,45 +124,17 @@ public abstract class Benchmark<T extends TaskResult> {
   }
 
   /**
-   * Run the tasks according to the write-type in the taskList.
-   *
-   * @return the multiple task result
-   */
-  private String runMultipleTask(String[] args, List<String> taskList) {
-    StringBuilder result = new StringBuilder();
-    for (int i = 0; i < args.length; i++) {
-      // find the argument to be changed
-      if (args[i].equals("--write-type")) {
-        for (int j = 0; j < taskList.size(); j++) {
-          result.append("-----------------------------------------------------\n");
-          result.append(String.format("The result of parameter --write-type %s is: %n",
-              taskList.get(j)));
-          result.append("\n");
-          mBaseParameters = new BaseParameters();
-          //change the specific argument
-          args[i + 1] = taskList.get(j);
-          try {
-            String res = run(args);
-            result.append(res);
-          } catch (Exception e) {
-            result.append(String.format("Task failed when executing parameter --write-type"
-                + " %s %n", taskList.get(j)));
-            LOG.error("Failed when executing task:", e);
-          }
-        }
-        result.append("-----------------------------------------------------\n");
-      }
-    }
-    return result.toString();
-  }
-
-  /**
    * Runs the test and returns the string output.
    *
    * @param args the command-line args
    * @return the string result output
    */
   public String run(String[] args) throws Exception {
+    parseParameter(args);
+    return runSingleTask(args);
+  }
+
+  protected void parseParameter(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {
@@ -185,14 +150,9 @@ public abstract class Benchmark<T extends TaskResult> {
       jc.usage();
       throw e;
     }
+  }
 
-    // if the test will execute multiple tasks.
-    List taskList = parseWriteTypes();
-    if (!taskList.isEmpty()) {
-      String result = runMultipleTask(args, taskList);
-      return result;
-    }
-
+  protected String runSingleTask(String[] args) throws Exception {
     // prepare the benchmark.
     prepare();
 

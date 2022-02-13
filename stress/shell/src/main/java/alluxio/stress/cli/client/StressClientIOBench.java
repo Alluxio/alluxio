@@ -24,7 +24,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
-import alluxio.stress.cli.Benchmark;
+import alluxio.stress.cli.FileSystemBench;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
@@ -35,8 +35,6 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.beust.jcommander.ParametersDelegate;
-import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -63,11 +61,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node client IO stress test.
  */
-public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
+public class StressClientIOBench extends FileSystemBench<ClientIOTaskResult, ClientIOParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
-
-  @ParametersDelegate
-  private ClientIOParameters mParameters = new ClientIOParameters();
 
   /** Cached FS instances. */
   private FileSystem[] mCachedFs;
@@ -82,6 +77,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * Creates instance.
    */
   public StressClientIOBench() {
+    mParameters = new ClientIOParameters();
   }
 
   /**
@@ -95,15 +91,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   public String getBenchDescription() {
     // TODO(David) Fill in description
     return "";
-  }
-
-  @Override
-  public List<String> parseWriteTypes() {
-    if (mParameters.mWriteType.equals("ALL")) {
-      return ImmutableList.of("CACHE_THROUGH", "THROUGH",
-          "MUST_CACHE", "ASYNC_THROUGH");
-    }
-    return new ArrayList<>();
   }
 
   @Override

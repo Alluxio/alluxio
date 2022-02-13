@@ -39,8 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -80,11 +78,6 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
         "--cluster --cluster-limit 2 --num-files 10000 --duration 100ms",
         ""
     ));
-  }
-
-  @Override
-  public List<String> parseWriteTypes() {
-    return new ArrayList<>();
   }
 
   @Override

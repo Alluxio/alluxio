@@ -87,11 +87,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   }
 
   @Override
-  public List<String> parseWriteTypes() {
-    return new ArrayList<>();
-  }
-
-  @Override
   public void prepare() throws Exception {
     mFsContext =
         FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));

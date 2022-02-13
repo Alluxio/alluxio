@@ -34,7 +34,6 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
-import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
@@ -62,11 +61,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Single node stress test.
  */
-public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
+public class StressMasterBench extends FileSystemBench<MasterBenchTaskResult,
+    MasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
-
-  @ParametersDelegate
-  private MasterBenchParameters mParameters = new MasterBenchParameters();
 
   private byte[] mFiledata;
 
@@ -80,6 +77,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
    * Creates instance.
    */
   public StressMasterBench() {
+    mParameters = new MasterBenchParameters();
   }
 
   /**
@@ -87,15 +85,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
    */
   public static void main(String[] args) {
     mainInternal(args, new StressMasterBench());
-  }
-
-  @Override
-  public List<String> parseWriteTypes() {
-    if (mParameters.mWriteType.equals("ALL")) {
-      return ImmutableList.of("CACHE_THROUGH", "THROUGH",
-          "MUST_CACHE", "ASYNC_THROUGH");
-    }
-    return new ArrayList<>();
   }
 
   @Override

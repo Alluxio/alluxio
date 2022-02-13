@@ -42,7 +42,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -82,11 +81,6 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
         "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\"",
         ""
     ));
-  }
-
-  @Override
-  public List<String> parseWriteTypes() {
-    return new ArrayList<>();
   }
 
   @Override

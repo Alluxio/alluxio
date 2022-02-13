@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.cli.Benchmark;
+import alluxio.stress.cli.FileSystemBench;
 import alluxio.stress.cli.client.ClientIOWritePolicy;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
@@ -23,7 +23,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.beust.jcommander.ParametersDelegate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -45,11 +44,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node stress test.
  */
-public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
+public class StressWorkerBench extends FileSystemBench<WorkerBenchTaskResult,
+    WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
-
-  @ParametersDelegate
-  private WorkerBenchParameters mParameters = new WorkerBenchParameters();
 
   private FileSystem[] mCachedFs;
   private Path mFilePath;
@@ -58,6 +55,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
    * Creates instance.
    */
   public StressWorkerBench() {
+    mParameters = new WorkerBenchParameters();
   }
 
   /**
@@ -71,15 +69,6 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
   public String getBenchDescription() {
     // TODO(David) Fill in description
     return "";
-  }
-
-  @Override
-  public List<String> parseWriteTypes() {
-    if (mParameters.mWriteType.equals("ALL")) {
-      throw new UnsupportedOperationException("Parameter:--write-type ALL is supported "
-          + "in MasterBench and ClientIOBench. Please remove the parameter");
-    }
-    return new ArrayList<>();
   }
 
   @Override

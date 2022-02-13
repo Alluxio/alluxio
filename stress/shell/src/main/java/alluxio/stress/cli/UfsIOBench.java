@@ -114,11 +114,6 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   @Override
-  public List<String> parseWriteTypes() {
-    return new ArrayList<>();
-  }
-
-  @Override
   public void prepare() {
     if (mParameters.mUseUfsConf && !mBaseParameters.mCluster) {
       throw new IllegalArgumentException(String.format(
