@@ -257,6 +257,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       }
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
+        if (!file.isCompleted()){
+          return;
+        }
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
           try {
@@ -315,6 +318,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // locking the entire path but just the inode file since this access is read-only.
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
+        if (!file.isCompleted()){
+          continue;
+        }
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
           try {
