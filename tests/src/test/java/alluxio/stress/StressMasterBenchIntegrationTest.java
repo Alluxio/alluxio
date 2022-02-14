@@ -198,12 +198,12 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     MasterBenchSummary summary2 = (MasterBenchSummary) JsonSerializable.fromJson(output2);
 
     // confirm that the results contain information, and they don't contain errors.
-    assertFalse(summary1.getNodes().isEmpty());
-    assertTrue(summary1.getErrors().isEmpty());
-    assertFalse(summary2.getNodes().isEmpty());
-    assertTrue(summary2.getErrors().isEmpty());
+    assertFalse(summary1.getNodeResults().isEmpty());
+    assertTrue(summary1.collectErrorsFromAllNodes().isEmpty());
+    assertFalse(summary2.getNodeResults().isEmpty());
+    assertTrue(summary2.collectErrorsFromAllNodes().isEmpty());
   }
-  
+
   @Test
   public void testForMultipleNodeResults() throws Exception {
     // The RenameFile will change the name of the created file, to avoid the DeleteFile
