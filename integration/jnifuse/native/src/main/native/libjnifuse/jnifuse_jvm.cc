@@ -35,7 +35,7 @@ JNIEnv* GetEnv() {
   // TODO(lu) change to store the value somewhere
   jint status = g_jvm->GetEnv(&env, JNI_VERSION_1_8);
   JNIFUSE_CHECK(((env != nullptr) && (status == JNI_OK)) || ((env == nullptr) && (status == JNI_EDETACHED)),
-            "Unexpected GetEnv return: %d, %s", status, env);
+            "Unexpected GetEnv return: %d", status);
   return reinterpret_cast<JNIEnv*>(env);
 }
 
@@ -51,7 +51,7 @@ static void ThreadDestructor(void* prev_jni_ptr) {
     return;
 
   JNIFUSE_CHECK(GetEnv() == prev_jni_ptr, 
-      "Detaching from another thread: %s : %s", prev_jni_ptr, GetEnv());
+      "Detaching from another thread");
   jint status = g_jvm->DetachCurrentThread();
   JNIFUSE_CHECK(status == JNI_OK, "Failed to detach thread: %d", status);
   JNIFUSE_CHECK(!GetEnv(), "Detaching was a successful no-op???");
@@ -68,7 +68,7 @@ jint InitGlobalJniVariables(JavaVM* jvm) {
   JNIEnv* jni = nullptr;
   jint status = jvm->GetEnv(reinterpret_cast<void**>(&jni), JNI_VERSION_1_8);
   if (status != JNI_OK) {
-    LOGD("Failed to get env with JNI_VERSION_1_8, status is " + status);
+    LOGD("Failed to get env with JNI_VERSION_1_8, status is %d", status);
     if (status == JNI_EDETACHED) {
       status = jvm->AttachCurrentThread(reinterpret_cast<void**>(&jni), NULL);
     }
