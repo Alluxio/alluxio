@@ -391,7 +391,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       // wait for file to complete in read or read_write mode
       if (openAction == OpenAction.READ_ONLY
           || openAction == OpenAction.READ_WRITE) {
-        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri, 1000)) {
+        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           LOG.error(String.format("Cannot open incomplete file %s. "
               + "Failed to wait for file completed with flag 0x%x",
               path, flags));

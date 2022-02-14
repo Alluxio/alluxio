@@ -553,7 +553,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
       try {
         is = mFileSystem.openFile(uri);
       } catch (FileIncompleteException e) {
-        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri, 1000)) {
+        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           is = mFileSystem.openFile(uri);
         } else {
           throw e;

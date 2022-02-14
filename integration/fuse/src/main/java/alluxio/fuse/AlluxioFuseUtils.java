@@ -49,6 +49,7 @@ public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
   private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
+  private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
   private AlluxioFuseUtils() {}
 
@@ -228,11 +229,9 @@ public final class AlluxioFuseUtils {
    *
    * @param fileSystem the file system to get file status
    * @param uri the file path to check
-   * @param timeoutMs how long to wait in milliseconds
    * @return whether the file is completed or not
    */
-  public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri,
-      int timeoutMs) {
+  public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
     try {
       CommonUtils.waitFor("file completed", () -> {
         try {
@@ -240,7 +239,7 @@ public final class AlluxioFuseUtils {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      }, WaitForOptions.defaults().setTimeoutMs(MAX_ASYNC_RELEASE_WAITTIME_MS));
       return true;
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
