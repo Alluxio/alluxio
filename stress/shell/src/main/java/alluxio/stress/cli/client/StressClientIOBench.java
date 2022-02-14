@@ -354,6 +354,7 @@ public class StressClientIOBench extends StressBench<ClientIOTaskResult, ClientI
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');
       mByteBuffer = ByteBuffer.wrap(mBuffer);
+      mByteBuffer.mark();
 
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
       mCurrentOffset = mFileSize;
@@ -462,6 +463,7 @@ public class StressClientIOBench extends StressBench<ClientIOTaskResult, ClientI
         }
         case READ_BYTE_BUFFER: {
           int bytesRead = mInStream.read(mByteBuffer);
+          mByteBuffer.reset();
           if (bytesRead < 0) {
             closeInStream();
             mInStream = mFs.open(mFilePath);
@@ -558,6 +560,7 @@ public class StressClientIOBench extends StressBench<ClientIOTaskResult, ClientI
         }
         case READ_BYTE_BUFFER: {
           int bytesRead = mInStream.read(mByteBuffer);
+          mByteBuffer.reset();
           if (bytesRead < 0) {
             closeInStream();
             mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));

@@ -551,6 +551,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey WEB_THREAD_DUMP_TO_LOG =
+      new Builder(Name.WEB_THREAD_DUMP_TO_LOG)
+          .setDefaultValue(false)
+          .setDescription("Whether thread information is also printed to the log "
+              + "when the thread dump api is accessed")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WEB_UI_ENABLED =
       new Builder(Name.WEB_UI_ENABLED)
           .setDefaultValue(true)
@@ -1980,9 +1988,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
-          .setDefaultValue(Math.min(Integer.MAX_VALUE / 2,
-              Runtime.getRuntime().maxMemory() / 2000 / 2))
+          .setDefaultSupplier(() -> Math.min(Integer.MAX_VALUE / 2,
+              Runtime.getRuntime().maxMemory() / 2000 / 2),
+              "{Max memory of master JVM} / 2 / 2 KB per inode")
           .setDescription("The number of inodes to cache on-heap. "
+              + "The default value is chosen based on half the amount of maximum available memory "
+              + "of master JVM at runtime, and the estimation that each inode takes up "
+              + "approximately 2 KB of memory. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2891,6 +2903,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
+  public static final PropertyKey STANDBY_MASTER_METRICS_SINK_ENABLED =
+      new Builder(Name.STANDBY_MASTER_METRICS_SINK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs the metric sink")
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey STANDBY_MASTER_WEB_ENABLED =
+      new Builder(Name.STANDBY_MASTER_WEB_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether a standby master runs a web server")
+          .setScope(Scope.SERVER)
+          .build();
+
   //
   // Secondary master related properties
   //
@@ -3103,6 +3128,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_STARTUP_TIMEOUT =
+      new Builder(Name.WORKER_STARTUP_TIMEOUT)
+          .setDefaultValue("10min")
+          .setDescription("Maximum time to wait for worker startup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
       new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
@@ -5303,6 +5335,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_PERMISSION_CHECK_ENABLED =
+      new Builder(Name.FUSE_PERMISSION_CHECK_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to add -o default_permissions fuse mount option by default. "
+              + "When this option is enabled, kernel will perform its own permission check "
+              + "instead of deferring all permission checking to Alluxio. "
+              + "Alluxio Fuse does all the permission check "
+              + "with user that launches the Fuse application instead of "
+              + "the user running the Fuse operations. Please do not set this value to false "
+              + "unless permission check is not important in your workloads.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
       new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
           .setDefaultValue(false)
@@ -5913,8 +5959,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey HUB_CLUSTER_ID =
           new Builder(Name.HUB_CLUSTER_ID)
                   .setDescription("A user-defined id for the Hub cluster. Must be unique from "
-                          + "other Hub clusters connecting to the same Hosted Hub tenant. Must be "
-                          + "a 4-character alphanumeric string.")
+                          + "other Hub clusters connecting to the same Hosted Hub tenant. must be"
+                          + " a 4-character string containing only lowercase letters (a-z)"
+                          + "and digits (0-9).")
                   .build();
   public static final PropertyKey HUB_CLUSTER_LABEL =
           new Builder(Name.HUB_CLUSTER_LABEL)
@@ -6005,6 +6052,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
+      new Builder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
+          .setDefaultValue(1)
+          .setDescription("The default replication number of files under the SDS table after "
+                  + "load option.")
+          .setScope(Scope.CLIENT)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -6077,6 +6131,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WEB_CORS_ENABLED = "alluxio.web.cors.enabled";
     public static final String WEB_REFRESH_INTERVAL = "alluxio.web.refresh.interval";
+    public static final String WEB_THREAD_DUMP_TO_LOG = "alluxio.web.threaddump.log.enabled";
     public static final String WEB_UI_ENABLED = "alluxio.web.ui.enabled";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
@@ -6582,6 +6637,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String SECONDARY_MASTER_METASTORE_DIR =
         "alluxio.secondary.master.metastore.dir";
+    public static final String STANDBY_MASTER_METRICS_SINK_ENABLED =
+        "alluxio.standby.master.metrics.sink.enabled";
+    public static final String STANDBY_MASTER_WEB_ENABLED =
+        "alluxio.standby.master.web.enabled";
 
     //
     // Worker related properties
@@ -6736,6 +6795,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_RPC_EXECUTOR_FJP_ASYNC =
         "alluxio.worker.rpc.executor.fjp.async";
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
+    public static final String WORKER_STARTUP_TIMEOUT = "alluxio.worker.startup.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =
         "alluxio.worker.storage.checker.enabled";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
@@ -7062,6 +7122,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
+    public static final String FUSE_PERMISSION_CHECK_ENABLED
+        = "alluxio.fuse.permission.check.enabled";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
@@ -7194,6 +7256,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.udb.hive.clientpool.min";
     public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
         "alluxio.table.udb.hive.clientpool.MAX";
+    public static final String TABLE_LOAD_DEFAULT_REPLICATION =
+        "alluxio.table.load.default.replication";
 
     ///
     /// Alluxio Hub Agent Properties

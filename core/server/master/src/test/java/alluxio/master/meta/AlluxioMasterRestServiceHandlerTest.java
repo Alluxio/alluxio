@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,7 +61,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -166,7 +166,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH), Matchers.any()))
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH), ArgumentMatchers.any()))
         .thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }

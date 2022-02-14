@@ -29,6 +29,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -186,6 +187,16 @@ public interface FileSystemMaster extends Master {
    */
   void checkAccess(AlluxioURI path, CheckAccessContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
+
+  /**
+   * Checks path exists.
+   *
+   * @param path path to check
+   * @param context the method context
+   * @return whether the path exists
+   */
+  boolean exists(AlluxioURI path, ExistsContext context)
+      throws AccessControlException, IOException;
 
   /**
    * Checks the consistency of the files and directories in the subtree under the path.

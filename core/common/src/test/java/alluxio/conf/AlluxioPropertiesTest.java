@@ -101,6 +101,23 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
+  public void isSetByUser() {
+    assertFalse(mProperties.isSetByUser(mKeyWithValue));
+    assertFalse(mProperties.isSetByUser(mKeyWithoutValue));
+    mProperties.put(mKeyWithValue, "value", Source.CLUSTER_DEFAULT);
+    mProperties.put(mKeyWithoutValue, "value", Source.CLUSTER_DEFAULT);
+    assertFalse(mProperties.isSetByUser(mKeyWithValue));
+    assertFalse(mProperties.isSetByUser(mKeyWithoutValue));
+    // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
+    mProperties.put(mKeyWithValue, "value", Source.SYSTEM_PROPERTY);
+    mProperties.put(mKeyWithoutValue, "value", Source.SYSTEM_PROPERTY);
+    assertTrue(mProperties.isSetByUser(mKeyWithValue));
+    assertTrue(mProperties.isSetByUser(mKeyWithoutValue));
+    mProperties.remove(mKeyWithValue);
+    assertFalse(mProperties.isSetByUser(mKeyWithValue));
+  }
+
+  @Test
   public void entrySet() {
     Set<Map.Entry<? extends PropertyKey, String>> expected =
         PropertyKey.defaultKeys().stream()

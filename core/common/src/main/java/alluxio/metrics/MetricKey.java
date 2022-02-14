@@ -640,6 +640,11 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "master in the cluster. Only valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_ROLE_ID =
+      new Builder("Master.RoleId")
+          .setDescription("Display master role id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new Builder("Master.JournalFlushFailure")
           .setDescription("Total number of failed journal flush")
@@ -735,6 +740,90 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_JOB_RUNNING =
       new Builder("Master.JobRunning")
           .setDescription("The number of running status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  // Distributed command related metrics
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
+      new Builder("Master.JobDistributedLoadSuccess")
+          .setDescription("The number of successful DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FAIL =
+      new Builder("Master.JobDistributedLoadFail")
+          .setDescription("The number of failed DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_CANCEL =
+      new Builder("Master.JobDistributedLoadCancel")
+          .setDescription("The number of cancelled DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT =
+      new Builder("Master.JobDistributedLoadFileCount")
+          .setDescription("The number of files by DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE =
+      new Builder("Master.JobDistributedLoadFileSizes")
+          .setDescription("The total file size by DistributedLoad operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_RATE =
+      new Builder("Master.JobDistributedLoadRate")
+          .setDescription("The average DistributedLoad loading rate")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_SUCCESS =
+      new Builder("Master.MigrateJobSuccess")
+          .setDescription("The number of successful MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FAIL =
+      new Builder("Master.MigrateJobFail")
+          .setDescription("The number of failed MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_CANCEL =
+      new Builder("Master.MigrateJobCancel")
+          .setDescription("The number of cancelled MigrateJob operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FILE_COUNT =
+      new Builder("Master.MigrateJobFileCount")
+          .setDescription("The number of MigrateJob files")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_MIGRATE_JOB_FILE_SIZE =
+      new Builder("Master.MigrateJobFileSize")
+          .setDescription("The total size of MigrateJob files")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  public static final MetricKey MASTER_ASYNC_PERSIST_SUCCESS =
+      new Builder("Master.AsyncPersistSuccess")
+          .setDescription("The number of successful AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FAIL =
+      new Builder("Master.AsyncPersistFail")
+          .setDescription("The number of failed AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_CANCEL =
+      new Builder("Master.AsyncPersistCancel")
+          .setDescription("The number of cancelled AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FILE_COUNT =
+      new Builder("Master.AsyncPersistFileCount")
+          .setDescription("The number of files created by AsyncPersist operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_ASYNC_PERSIST_FILE_SIZE =
+      new Builder("Master.AsyncPersistFileSize")
+          .setDescription("The total size of files created by AsyncPersist operations")
           .setMetricType(MetricType.COUNTER)
           .build();
 
@@ -917,7 +1006,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of lost workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey CLUSTER_LEADER_INDEX =
+      new Builder("Cluster.LeaderIndex")
+          .setDescription("Index of current leader")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_LEADER_ID =
+      new Builder("Cluster.LeaderId")
+          .setDescription("Display current leader id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   // Server metrics shared by Master, Worker and other Alluxio servers
   public static final MetricKey TOTAL_EXTRA_TIME =
       new Builder("Server.JvmPauseMonitorTotalExtraTime")

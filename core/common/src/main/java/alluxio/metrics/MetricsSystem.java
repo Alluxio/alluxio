@@ -265,6 +265,14 @@ public final class MetricsSystem {
   }
 
   /**
+   * @return true if the metric system is started, false otherwise
+   */
+  @VisibleForTesting
+  public static synchronized boolean isStarted() {
+    return sSinks != null;
+  }
+
+  /**
    * @return the number of sinks started
    */
   public static synchronized int getNumSinks() {
@@ -821,7 +829,7 @@ public final class MetricsSystem {
             entry.getKey(), metric.getClass().getName());
         continue;
       }
-      metricsMap.put(entry.getKey(), valueBuilder.build());
+      metricsMap.put(unescape(entry.getKey()), valueBuilder.build());
     }
     return metricsMap;
   }

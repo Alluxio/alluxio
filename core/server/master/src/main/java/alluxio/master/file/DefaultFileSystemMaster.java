@@ -77,6 +77,7 @@ import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -1303,6 +1304,42 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return inconsistentUris;
   }
 
+  @Override
+  public boolean exists(AlluxioURI path, ExistsContext context)
+      throws AccessControlException, IOException {
+    try (RpcContext rpcContext = createRpcContext(context);
+         FileSystemMasterAuditContext auditContext =
+             createAuditContext("exists", path, null, null)) {
+      syncMetadata(
+          rpcContext, path, context.getOptions().getCommonOptions(),
+          DescendantType.ONE, auditContext, LockedInodePath::getInodeOrNull,
+          (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
+          false);
+
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(createLockingScheme(path,
+          context.getOptions().getCommonOptions(), LockPattern.READ))) {
+        LoadMetadataContext lmCtx = LoadMetadataContext.create(
+            LoadMetadataPOptions.newBuilder()
+                .setCommonOptions(context.getOptions().getCommonOptions())
+                .setLoadType(context.getOptions().getLoadMetadataType()));
+        if (shouldLoadMetadataIfNotExists(inodePath, lmCtx)) {
+          checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), path);
+          loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
+        }
+      } catch (FileDoesNotExistException e) {
+        return false;
+      }
+
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(createLockingScheme(path,
+          context.getOptions().getCommonOptions(), LockPattern.READ))) {
+        auditContext.setSucceeded(true);
+        return inodePath.fullPathExists();
+      }
+    } catch (InvalidPathException e) {
+      return false;
+    }
+  }
+
   private void checkConsistencyRecursive(LockedInodePath inodePath,
       List<AlluxioURI> inconsistentUris, boolean assertInconsistent, boolean metadataSynced)
           throws IOException, FileDoesNotExistException {
@@ -1518,7 +1555,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     InodeFile inode = inodePath.getInodeFile();
     if (inode.isCompleted() && inode.getLength() != Constants.UNKNOWN_SIZE) {
-      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
+      throw new FileAlreadyCompletedException(String
+          .format("File %s has already been completed.", inode.getName()));
     }
     if (length < 0 && length != Constants.UNKNOWN_SIZE) {
       throw new InvalidFileSizeException(
@@ -3961,7 +3999,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
               PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
           LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
-              tempUfsPath, resolution.getUri().toString());
+              tempUfsPath, resolution.getUri());
         }
       }
 

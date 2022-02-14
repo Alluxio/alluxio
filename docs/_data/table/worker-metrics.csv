@@ -52,3 +52,4 @@ Worker.CacheUfsBlocks,COUNTER
 Worker.CapacityFree,GAUGE
 Worker.CapacityTotal,GAUGE
 Worker.CapacityUsed,GAUGE
+Worker.RpcQueueLength,GAUGE

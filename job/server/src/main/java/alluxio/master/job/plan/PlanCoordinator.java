@@ -11,6 +11,7 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.ErrorUtils;
@@ -24,6 +25,8 @@ import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.job.metrics.DistributedCmdMetrics;
+import alluxio.retry.CountingRetry;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
@@ -116,9 +119,9 @@ public final class PlanCoordinator {
       definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     } catch (JobDoesNotExistException e) {
       LOG.info("Exception when getting jobDefinition from jobConfig: ", e);
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
       mPlanInfo.setErrorMessage(e.getMessage());
+      mPlanInfo.setStatus(Status.FAILED);
       throw e;
     }
     SelectExecutorsContext context =
@@ -209,9 +212,9 @@ public final class PlanCoordinator {
    */
   public synchronized void setJobAsFailed(String errorType, String errorMessage) {
     if (!mPlanInfo.getStatus().isFinished()) {
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(errorType);
       mPlanInfo.setErrorMessage(errorMessage);
+      mPlanInfo.setStatus(Status.FAILED);
     }
     mWorkersInfoList = null;
   }
@@ -267,13 +270,20 @@ public final class PlanCoordinator {
     int completed = 0;
     List<TaskInfo> taskInfoList = mPlanInfo.getTaskInfoList();
     for (TaskInfo info : taskInfoList) {
-      switch (info.getStatus()) {
+      JobConfig config = mPlanInfo.getJobConfig();
+      Preconditions.checkNotNull(config);
+      Status status = info.getStatus();
+      FileSystem fileSystem = mJobServerContext.getFileSystem();
+
+      switch (status) {
         case FAILED:
           setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
+          DistributedCmdMetrics.incrementForAllConfigsFailStatus(config);
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
             mPlanInfo.setStatus(Status.CANCELED);
+            DistributedCmdMetrics.incrementForAllConfigsCancelStatus(config);
           }
           return;
         case RUNNING:
@@ -283,6 +293,8 @@ public final class PlanCoordinator {
           break;
         case COMPLETED:
           completed++;
+          DistributedCmdMetrics
+                  .incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
           break;
         case CREATED:
           // do nothing
