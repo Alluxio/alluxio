@@ -164,22 +164,18 @@ function copyDir {
 
 function runJavaClass {
   CLASS_ARGS=()
-  local debug=false
+  local debug_opts=""
   for arg in "$@"; do
       case "${arg}" in
           -debug)
-              debug=true ;;
+              debug_opts+="${ALLUXIO_USER_ATTACH_OPTS}" ;;
           -D* | -X* | -agentlib* | -javaagent*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
               CLASS_ARGS+=("${arg}")
       esac
   done
-  if $debug; then
-    "${JAVA}" ${ALLUXIO_USER_ATTACH_OPTS} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
-  else
-    "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
-  fi
+  "${JAVA}" ${debug_opts} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
 }
 
 function formatJournal {
