@@ -12,42 +12,38 @@
 package alluxio.cli.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.command.metric.TotalCallsCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.TwoKeyConcurrentMap;
-import alluxio.cli.command.metadatacache.DropAllCommand;
-import alluxio.cli.command.metadatacache.DropCommand;
-import alluxio.cli.command.metadatacache.SizeCommand;
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
+import alluxio.conf.AlluxioConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Gets information of or makes changes to the Fuse client metadata cache.
+ * Gets fuse related metrics.
  */
 @ThreadSafe
-public final class MetadataCacheCommand extends AbstractFuseShellCommand {
+public final class FuseMetricCommand extends AbstractFuseShellCommand {
 
   private static final Map<String, TwoKeyConcurrentMap.TriFunction<FileSystem,
-      AlluxioFuseFileSystemOpts, String, ? extends Command>> SUB_COMMANDS = new HashMap<>();
+      AlluxioConfiguration, String, ? extends Command>> SUB_COMMANDS = new HashMap<>();
 
   static {
-    SUB_COMMANDS.put("dropAll", DropAllCommand::new);
-    SUB_COMMANDS.put("drop", DropCommand::new);
-    SUB_COMMANDS.put("size", SizeCommand::new);
+    SUB_COMMANDS.put("totalCalls", TotalCallsCommand::new);
   }
 
   private final Map<String, Command> mSubCommands = new HashMap<>();
 
   /**
    * @param fs filesystem instance from fuse command
-   * @param fuseFsOpts the options for AlluxioFuse filesystem
+   * @param conf configuration instance from fuse command
    */
-  public MetadataCacheCommand(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
-    super(fs, fuseFsOpts, "");
+  public FuseMetricCommand(FileSystem fs, AlluxioConfiguration conf) {
+    super(fs, conf, "");
     SUB_COMMANDS.forEach((name, constructor) -> {
-      mSubCommands.put(name, constructor.apply(fs, fuseFsOpts, getCommandName()));
+      mSubCommands.put(name, constructor.apply(fs, conf, getCommandName()));
     });
   }
 
@@ -58,11 +54,11 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
 
   @Override
   public String getCommandName() {
-    return "metadatacache";
+    return "fusemetric";
   }
 
   @Override
   public String getDescription() {
-    return "Metadatacache command is used to drop metadata cache or get cache size.";
+    return "Fusemetric command is used to get some useful metric information.";
   }
 }

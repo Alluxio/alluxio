@@ -11,6 +11,7 @@
 
 package alluxio.cli.command;
 
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.cli.FuseCommand;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
@@ -49,5 +50,20 @@ public abstract class AbstractFuseShellCommand implements FuseCommand {
   */
   public String getParentCommandName() {
     return mParentCommandName;
+  }
+
+  /**
+   * Get command usage.
+   * @return the usage information
+   */
+  public String getUsage() {
+    // Show usage: Command.(subcommand1|subcommand2|subcommand3)
+    StringBuilder usage = new StringBuilder("ls -l " + Constants.DEAFULT_FUSE_MOUNT
+        + Constants.ALLUXIO_CLI_PATH + "." + getCommandName() + ".(");
+    for (String cmd : getSubCommands().keySet()) {
+      usage.append(cmd).append("|");
+    }
+    usage.deleteCharAt(usage.length() - 1).append(')');
+    return usage.toString();
   }
 }
