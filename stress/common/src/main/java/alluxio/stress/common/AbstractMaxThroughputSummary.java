@@ -20,7 +20,6 @@ import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
