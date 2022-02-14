@@ -11,6 +11,7 @@
 
 #include "operation.h"
 
+#include "jnifuse_jvm.h"
 #include "debug.h"
 
 namespace jnifuse {
@@ -27,7 +28,7 @@ Operation::~Operation() {}
 
 GetattrOperation::GetattrOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -35,7 +36,7 @@ GetattrOperation::GetattrOperation(JniFuseFileSystem *fs) {
 }
 
 int GetattrOperation::call(const char *path, struct stat *stbuf) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject buffer = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct stat));
 
@@ -49,7 +50,7 @@ int GetattrOperation::call(const char *path, struct stat *stbuf) {
 
 GetxattrOperation::GetxattrOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -57,7 +58,7 @@ GetxattrOperation::GetxattrOperation(JniFuseFileSystem *fs) {
 }
 
 int GetxattrOperation::call(const char *path, const char *name, char *value, size_t size) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jstring jsname = env->NewStringUTF(name);
   jobject buffer = env->NewDirectByteBuffer((void *)value, size);
@@ -73,7 +74,7 @@ int GetxattrOperation::call(const char *path, const char *name, char *value, siz
 
 OpenOperation::OpenOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -81,7 +82,7 @@ OpenOperation::OpenOperation(JniFuseFileSystem *fs) {
 }
 
 int OpenOperation::call(const char *path, struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
@@ -96,7 +97,7 @@ int OpenOperation::call(const char *path, struct fuse_file_info *fi) {
 
 ReadOperation::ReadOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature =
@@ -106,7 +107,7 @@ ReadOperation::ReadOperation(JniFuseFileSystem *fs) {
 
 int ReadOperation::call(const char *path, char *buf, size_t size, off_t offset,
                         struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject buffer = env->NewDirectByteBuffer((void *)buf, size);
   jobject fibuf =
@@ -123,7 +124,7 @@ int ReadOperation::call(const char *path, char *buf, size_t size, off_t offset,
 
 ReaddirOperation::ReaddirOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature =
@@ -134,7 +135,7 @@ ReaddirOperation::ReaddirOperation(JniFuseFileSystem *fs) {
 
 int ReaddirOperation::call(const char *path, void *buf, fuse_fill_dir_t filler,
                            off_t offset, struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
@@ -149,7 +150,7 @@ int ReaddirOperation::call(const char *path, void *buf, fuse_fill_dir_t filler,
 
 UnlinkOperation::UnlinkOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;)I";
@@ -157,7 +158,7 @@ UnlinkOperation::UnlinkOperation(JniFuseFileSystem *fs) {
 }
 
 int UnlinkOperation::call(const char *path) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath);
@@ -169,7 +170,7 @@ int UnlinkOperation::call(const char *path) {
 
 FlushOperation::FlushOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -177,7 +178,7 @@ FlushOperation::FlushOperation(JniFuseFileSystem *fs) {
 }
 
 int FlushOperation::call(const char *path, struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
@@ -192,7 +193,7 @@ int FlushOperation::call(const char *path, struct fuse_file_info *fi) {
 
 ReleaseOperation::ReleaseOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -200,7 +201,7 @@ ReleaseOperation::ReleaseOperation(JniFuseFileSystem *fs) {
 }
 
 int ReleaseOperation::call(const char *path, struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
@@ -215,7 +216,7 @@ int ReleaseOperation::call(const char *path, struct fuse_file_info *fi) {
 
 ListxattrOperation::ListxattrOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -223,7 +224,7 @@ ListxattrOperation::ListxattrOperation(JniFuseFileSystem *fs) {
 }
 
 int ListxattrOperation::call(const char *path, char *list, size_t size) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   int a = 2;
   a++;
@@ -238,7 +239,7 @@ int ListxattrOperation::call(const char *path, char *list, size_t size) {
 
 ChmodOperation::ChmodOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;J)I";
@@ -246,7 +247,7 @@ ChmodOperation::ChmodOperation(JniFuseFileSystem *fs) {
 }
 
 int ChmodOperation::call(const char *path, mode_t mode) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, mode);
@@ -258,7 +259,7 @@ int ChmodOperation::call(const char *path, mode_t mode) {
 
 ChownOperation::ChownOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;JJ)I";
@@ -266,7 +267,7 @@ ChownOperation::ChownOperation(JniFuseFileSystem *fs) {
 }
 
 int ChownOperation::call(const char *path, uid_t uid, gid_t gid) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, uid, gid);
@@ -278,7 +279,7 @@ int ChownOperation::call(const char *path, uid_t uid, gid_t gid) {
 
 CreateOperation::CreateOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;JLjava/nio/ByteBuffer;)I";
@@ -287,7 +288,7 @@ CreateOperation::CreateOperation(JniFuseFileSystem *fs) {
 
 int CreateOperation::call(const char *path, mode_t mode,
                           struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
@@ -302,7 +303,7 @@ int CreateOperation::call(const char *path, mode_t mode,
 
 MkdirOperation::MkdirOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;J)I";
@@ -310,7 +311,7 @@ MkdirOperation::MkdirOperation(JniFuseFileSystem *fs) {
 }
 
 int MkdirOperation::call(const char *path, mode_t mode) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, mode);
@@ -322,7 +323,7 @@ int MkdirOperation::call(const char *path, mode_t mode) {
 
 RmdirOperation::RmdirOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;)I";
@@ -330,7 +331,7 @@ RmdirOperation::RmdirOperation(JniFuseFileSystem *fs) {
 }
 
 int RmdirOperation::call(const char *path) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath);
@@ -342,7 +343,7 @@ int RmdirOperation::call(const char *path) {
 
 WriteOperation::WriteOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature =
@@ -352,7 +353,7 @@ WriteOperation::WriteOperation(JniFuseFileSystem *fs) {
 
 int WriteOperation::call(const char *path, const char *buf, size_t size,
                          off_t off, struct fuse_file_info *fi) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject buffer = env->NewDirectByteBuffer((void *)buf, size);
   jobject fibuf =
@@ -370,7 +371,7 @@ int WriteOperation::call(const char *path, const char *buf, size_t size,
 
 RenameOperation::RenameOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
@@ -378,7 +379,7 @@ RenameOperation::RenameOperation(JniFuseFileSystem *fs) {
 }
 
 int RenameOperation::call(const char *oldPath, const char *newPath) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(oldPath);
   jstring jspathNew = env->NewStringUTF(newPath);
 
@@ -392,7 +393,7 @@ int RenameOperation::call(const char *oldPath, const char *newPath) {
 
 RemovexattrOperation::RemovexattrOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
@@ -400,7 +401,7 @@ RemovexattrOperation::RemovexattrOperation(JniFuseFileSystem *fs) {
 }
 
 int RemovexattrOperation::call(const char *path, const char *list) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jstring jslist = env->NewStringUTF(list);
 
@@ -414,7 +415,7 @@ int RemovexattrOperation::call(const char *path, const char *list) {
 
 SetxattrOperation::SetxattrOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/lang/String;Ljava/nio/ByteBuffer;JI)I";
@@ -423,7 +424,7 @@ SetxattrOperation::SetxattrOperation(JniFuseFileSystem *fs) {
 
 int SetxattrOperation::call(const char *path, const char *name, const char *value,
                             size_t size, int flags) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jstring jsname = env->NewStringUTF(name);
   jobject buffer = env->NewDirectByteBuffer((void *)value, size);
@@ -439,7 +440,7 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
 
 StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
@@ -447,7 +448,7 @@ StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
 }
 
 int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject statvfs = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct statvfs));
 
@@ -461,7 +462,7 @@ int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
 
 SymlinkOperation::SymlinkOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
@@ -469,7 +470,7 @@ SymlinkOperation::SymlinkOperation(JniFuseFileSystem *fs) {
 }
 
 int SymlinkOperation::call(const char *linkname, const char *path) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jlinkname = env->NewStringUTF(linkname);
   jstring jpath = env->NewStringUTF(path);
 
@@ -483,7 +484,7 @@ int SymlinkOperation::call(const char *linkname, const char *path) {
 
 TruncateOperation::TruncateOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;J)I";
@@ -491,7 +492,7 @@ TruncateOperation::TruncateOperation(JniFuseFileSystem *fs) {
 }
 
 int TruncateOperation::call(const char *path, off_t size) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, size);
@@ -503,7 +504,7 @@ int TruncateOperation::call(const char *path, off_t size) {
 
 UtimensOperation::UtimensOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
   this->signature = "(Ljava/lang/String;JJJJ)I";
@@ -511,7 +512,7 @@ UtimensOperation::UtimensOperation(JniFuseFileSystem *fs) {
 }
 
 int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
-  JNIEnv *env = this->fs->getEnv();
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, ts[0].tv_sec, ts[0].tv_nsec, ts[1].tv_sec, ts[1].tv_nsec);
@@ -520,5 +521,4 @@ int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
 
   return ret;
 }
-
 }  // namespace jnifuse
