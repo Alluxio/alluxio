@@ -101,7 +101,7 @@ void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
   if (instance != nullptr) {
     LOGE("you cant initialize more than once");
   }
-  jnit status = pthread_key_create(&jffs_threadKey, thread_data_free);
+  jint status = pthread_key_create(&jffs_threadKey, thread_data_free);
   if (status != JNI_OK) {
     LOGE("Failed in pthread_key_create, status is %d", status);
     exit(-1);
@@ -127,7 +127,7 @@ JNIEnv *JniFuseFileSystem::getEnv() {
       LOGE("Failed to attach current thread as daemon, status is %d", status);
       exit(-1);
     }
-    jint status = pthread_setspecific(jffs_threadKey, td);
+    status = pthread_setspecific(jffs_threadKey, td);
     if (status != JNI_OK) {
       LOGE("Failed in pthread_setspecific, status is %d", status);
       exit(-1);
