@@ -41,7 +41,7 @@ import java.util.Collections;
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
 public class DistributedCommandsCancelStatsTest extends JobShellTest {
-  private static final long SLEEP_MS = Constants.MINUTE_MS;
+  private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;
 
   @ClassRule
