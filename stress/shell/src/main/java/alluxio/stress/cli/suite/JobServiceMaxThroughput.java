@@ -50,10 +50,8 @@ public class JobServiceMaxThroughput extends
         "",
         "A benchmarking tool to measure the job service max throughput of Alluxio.",
         "Example:",
-        "# this would continuously run `CreateFiles` opeartion and record the throughput after "
-            + "5s warmup.",
-        "$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput \\",
-        "--operation CreateFiles --warmup 5s",
+        "# this would continuously run `CreateFiles` opeartion and record the throughput.",
+        "$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --operation Noop",
         ""
     ));
   }
