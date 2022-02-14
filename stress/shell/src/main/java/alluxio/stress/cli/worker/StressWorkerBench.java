@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.cli.FileSystemBench;
+import alluxio.stress.cli.StressBench;
 import alluxio.stress.cli.client.ClientIOWritePolicy;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node stress test.
  */
-public class StressWorkerBench extends FileSystemBench<WorkerBenchTaskResult,
+public class StressWorkerBench extends StressBench<WorkerBenchTaskResult,
     WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
 

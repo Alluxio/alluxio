@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Single node stress test.
  */
-public class StressMasterBench extends FileSystemBench<MasterBenchTaskResult,
+public class StressMasterBench extends StressBench<MasterBenchTaskResult,
     MasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
 

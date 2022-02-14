@@ -14,7 +14,7 @@ package alluxio.stress;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.stress.cli.FileSystemBench;
+import alluxio.stress.cli.StressBench;
 import alluxio.stress.common.FileSystemParameters;
 
 import com.google.common.collect.ImmutableList;
@@ -23,8 +23,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileSystemBenchTest {
-  private class TestStressBench extends FileSystemBench<TaskResult, FileSystemParameters> {
+public class StressBenchTest {
+  private class TestStressBench extends StressBench<TaskResult, FileSystemParameters> {
     // used to store the executed write type and arguments
     List<String> mWriteTypeList = new ArrayList<>();
     List<String[]> mArgsList = new ArrayList<>();

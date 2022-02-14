@@ -24,7 +24,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
-import alluxio.stress.cli.FileSystemBench;
+import alluxio.stress.cli.StressBench;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node client IO stress test.
  */
-public class StressClientIOBench extends FileSystemBench<ClientIOTaskResult, ClientIOParameters> {
+public class StressClientIOBench extends StressBench<ClientIOTaskResult, ClientIOParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
 
   /** Cached FS instances. */

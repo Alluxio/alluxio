@@ -27,9 +27,9 @@ import java.util.List;
  * @param <T> the type of task result
  * @param <P> the type of task parameter
  */
-public abstract class FileSystemBench<T extends TaskResult, P extends FileSystemParameters>
+public abstract class StressBench<T extends TaskResult, P extends FileSystemParameters>
     extends Benchmark<T> {
-  private static final Logger LOG = LoggerFactory.getLogger(FileSystemBench.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StressBench.class);
   @ParametersDelegate
   protected P mParameters;
 
@@ -41,8 +41,8 @@ public abstract class FileSystemBench<T extends TaskResult, P extends FileSystem
     if (mParameters.mWriteType.equals("ALL")) {
       List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
           "ASYNC_THROUGH", "THROUGH");
-      System.out.println(String.format("Now executing %s with all possible write "
-          + "type %s", getClass().toString(), writeTypes));
+      System.out.format("Now executing %s with all possible write "
+              + "type %s %n", getClass().toString(), writeTypes);
 
       for (int i = 0; i < args.length; i++) {
         if (args[i].equals("--write-type")) {
@@ -52,14 +52,14 @@ public abstract class FileSystemBench<T extends TaskResult, P extends FileSystem
             mParameters.mWriteType = type;
 
             System.out.println("-----------------------------------------------------");
-            System.out.println(String.format("Now executing write type %s...", type));
+            System.out.format("Now executing write type %s... %n", type);
 
             try {
               String result = runSingleTask(args);
               System.out.println(result);
             } catch (Exception e) {
-              System.out.println(String.format("Exception occurred when executing parameter"
-                  + " --write-type %s", type));
+              System.out.format("Exception occurred when executing parameter"
+                  + " --write-type %s %n", type);
               System.out.println(e.getMessage());
             }
           }
