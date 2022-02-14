@@ -62,7 +62,7 @@ jint InitGlobalJniVariables(JavaVM* jvm) {
   g_jvm = jvm;
   JNIFUSE_CHECK(g_jvm, "InitGlobalJniVariables handed NULL JVM");
 
-  JNIFUSE_CHECK(pthread_key_create(&g_jni_ptr, &ThreadDestructor),
+  JNIFUSE_CHECK(!pthread_key_create(&g_jni_ptr, &ThreadDestructor),
       "Failed in pthread_key_create");
 
   JNIEnv* jni = nullptr;
