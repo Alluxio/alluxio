@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * abstract class for MaxThroughput benchmark.
@@ -43,7 +42,8 @@ import java.util.Map;
  * @param <Q> the single task result
  */
 public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
-    AbstractMaxThroughputSummary<P, S>, S extends GeneralBenchSummary<Q>, P extends Parameters> extends Benchmark<T> {
+    AbstractMaxThroughputSummary<P, S>, S extends GeneralBenchSummary<Q>,
+    P extends Parameters> extends Benchmark<T> {
   protected static final Logger LOG = LoggerFactory.getLogger(AbstractMaxThroughput.class);
 
   @ParametersDelegate

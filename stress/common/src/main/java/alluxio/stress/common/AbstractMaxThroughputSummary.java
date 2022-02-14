@@ -20,6 +20,7 @@ import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -33,8 +34,8 @@ import java.util.stream.Collectors;
  * @param <T> the stress bench parameter
  * @param <S> the Bench Summary
  */
-public abstract class AbstractMaxThroughputSummary<T extends Parameters, S extends GeneralBenchSummary>
-    implements Summary, TaskResult {
+public abstract class AbstractMaxThroughputSummary<T extends Parameters,
+    S extends GeneralBenchSummary> implements Summary, TaskResult {
   private float mMaxThroughput;
   private long mEndTimeMs;
   private T mParameters;
@@ -217,12 +218,11 @@ public abstract class AbstractMaxThroughputSummary<T extends Parameters, S exten
 
   @Override
   public List<String> getErrors() {
-    throw new UnsupportedOperationException("This method is not implemented yet.");
+    return null;
   }
 
   @Override
-  public BaseParameters getBaseParameters(){
-    throw new UnsupportedOperationException("This method is not implemented yet.");
+  public BaseParameters getBaseParameters() {
+    return null;
   }
-
 }

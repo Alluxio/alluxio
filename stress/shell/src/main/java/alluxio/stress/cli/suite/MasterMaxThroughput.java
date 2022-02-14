@@ -17,7 +17,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.common.GeneralBenchSummary;
-import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.MasterMaxThroughputSummary;
@@ -40,8 +39,8 @@ import java.util.List;
  * A max throughput suite for master.
  */
 public class MasterMaxThroughput extends
-    AbstractMaxThroughput<MasterBenchTaskResult,MasterMaxThroughputSummary, GeneralBenchSummary<MasterBenchTaskResult>,
-        MasterBenchParameters> {
+    AbstractMaxThroughput<MasterBenchTaskResult, MasterMaxThroughputSummary,
+        GeneralBenchSummary<MasterBenchTaskResult>, MasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(MasterMaxThroughput.class);
 
   private int mNumWorkers = 0;

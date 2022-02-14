@@ -17,6 +17,6 @@ import alluxio.stress.common.GeneralBenchSummary;
 /**
  * The result for the master max throughput test.
  */
-public final class MasterMaxThroughputSummary
-    extends AbstractMaxThroughputSummary<MasterBenchParameters, GeneralBenchSummary<MasterBenchTaskResult>> {
+public final class MasterMaxThroughputSummary extends AbstractMaxThroughputSummary
+    <MasterBenchParameters, GeneralBenchSummary<MasterBenchTaskResult>> {
 }

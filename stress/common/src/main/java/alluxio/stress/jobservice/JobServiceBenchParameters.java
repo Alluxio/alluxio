@@ -52,7 +52,7 @@ public final class JobServiceBenchParameters extends Parameters {
   @Parameter(names = {"--warmup"},
       description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
           + "10000ms, etc.)")
-  public String mWarmup = "0s";
+  public String mWarmup = "30s";
 
   @Parameter(names = {"--batch-size"}, description = "The batch size of operations")
   public int mBatchSize = 1;
