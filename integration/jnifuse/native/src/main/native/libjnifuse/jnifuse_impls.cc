@@ -32,12 +32,9 @@ int flush_wrapper(const char *path, struct fuse_file_info *fi) {
 }
 
 int getattr_wrapper(const char *path, struct stat *stbuf) {
-  LOGD("getattr %s", path);
 
   int ret =
       jnifuse::JniFuseFileSystem::getInstance()->getattrOper->call(path, stbuf);
-
-  LOGD("file %s: size=%ld, mod=%d", path, stbuf->st_size, stbuf->st_mode);
 
   return ret;
 }
@@ -61,7 +58,6 @@ int mkdir_wrapper(const char *path, mode_t mode) {
 }
 
 int open_wrapper(const char *path, struct fuse_file_info *fi) {
-  LOGD("open %s", path);
 
   int ret = jnifuse::JniFuseFileSystem::getInstance()->openOper->call(path, fi);
 
@@ -70,19 +66,15 @@ int open_wrapper(const char *path, struct fuse_file_info *fi) {
 
 int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
                  struct fuse_file_info *fi) {
-  LOGD("read: %s", path);
 
   int ret = jnifuse::JniFuseFileSystem::getInstance()->readOper->call(
       path, buf, size, offset, fi);
-
-  LOGD("nread=%d", ret);
 
   return ret;
 }
 
 int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
                     off_t offset, struct fuse_file_info *fi) {
-  LOGD("readdir: %s", path);
 
   int ret = jnifuse::JniFuseFileSystem::getInstance()->readdirOper->call(
       path, buf, filler, offset, fi);

@@ -35,7 +35,10 @@ static pthread_key_t jffs_threadKey;
 static void thread_data_free(void *ptr) {
   ThreadData *td = (ThreadData *)ptr;
   if (td->attachedJVM != nullptr) {
-    td->attachedJVM->DetachCurrentThread();
+    jint status = td->attachedJVM->DetachCurrentThread();
+    if (status != JNI_OK) {
+      LOGE("Failed to attach thread, status code is %d", status);
+    }
   }
   delete td;
 }
@@ -98,7 +101,11 @@ void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
   if (instance != nullptr) {
     LOGE("you cant initialize more than once");
   }
-  pthread_key_create(&jffs_threadKey, thread_data_free);
+  jnit status = pthread_key_create(&jffs_threadKey, thread_data_free);
+  if (status != JNI_OK) {
+    LOGE("Failed in pthread_key_create, status is %d", status);
+    exit(-1);
+  }
   instance = new JniFuseFileSystem(env, obj);
 }
 
@@ -115,8 +122,16 @@ JNIEnv *JniFuseFileSystem::getEnv() {
   if (td == nullptr) {
     td = new ThreadData();
     td->attachedJVM = this->jvm;
-    this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
-    pthread_setspecific(jffs_threadKey, td);
+    jint status = this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
+    if (status != JNI_OK) {
+      LOGE("Failed to attach current thread as daemon, status is %d", status);
+      exit(-1);
+    }
+    jint status = pthread_setspecific(jffs_threadKey, td);
+    if (status != JNI_OK) {
+      LOGE("Failed in pthread_setspecific, status is %d", status);
+      exit(-1);
+    }
     return td->attachedEnv;
   }
   return td->attachedEnv;
