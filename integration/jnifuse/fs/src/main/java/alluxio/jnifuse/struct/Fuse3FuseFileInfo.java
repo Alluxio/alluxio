@@ -44,9 +44,9 @@ public class Fuse3FuseFileInfo extends Struct implements FuseFileInfo {
 
   private final u_int64_t fh;
 
-  private final u_int64_t lock_owner;
+//  private final u_int64_t lock_owner;
 
-  private final u_int32_t poll_events;
+//  private final u_int32_t poll_events;
 
   protected Fuse3FuseFileInfo(jnr.ffi.Runtime runtime, ByteBuffer buffer) {
     super(runtime);
@@ -64,8 +64,8 @@ public class Fuse3FuseFileInfo extends Struct implements FuseFileInfo {
 //    padding = new Padding(NativeType.UCHAR, 25);
 //    padding2 = new Padding(NativeType.UCHAR, 32);
     fh = new u_int64_t();
-    lock_owner = new u_int64_t();
-    poll_events = new u_int32_t();
+//    lock_owner = new u_int64_t();
+//    poll_events = new u_int32_t();
 
     this.buffer = buffer;
     this.buffer.order(ByteOrder.LITTLE_ENDIAN);
