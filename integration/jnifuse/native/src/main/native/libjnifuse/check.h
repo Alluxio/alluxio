@@ -21,3 +21,12 @@ do {                                              \
      exit(-1);                                    \
   }                                               \
 } while (0)
+
+#define JNIFUSE_CHECK_CODE(code, format, ...)     \
+do {                                              \
+  if (code != 0) {                                \
+     LOGE(format, ##__VA_ARGS__);                 \
+     LOGE("Error code is %d", code);              \
+     exit(-1);                                    \
+  }                                               \
+} while (0)

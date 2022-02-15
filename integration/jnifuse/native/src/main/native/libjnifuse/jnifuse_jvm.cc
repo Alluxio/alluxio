@@ -52,8 +52,8 @@ static void ThreadDestructor(void* prev_jni_ptr) {
 
   JNIFUSE_CHECK(GetEnv() == prev_jni_ptr, 
       "Detaching from another thread");
-  jint status = g_jvm->DetachCurrentThread();
-  JNIFUSE_CHECK(status == JNI_OK, "Failed to detach thread: %d", status);
+  JNIFUSE_CHECK_CODE(g_jvm->DetachCurrentThread(),
+      "Failed to detach thread");
   JNIFUSE_CHECK(!GetEnv(), "Detaching was a successful no-op???");
 }
 
@@ -71,6 +71,10 @@ jint InitGlobalJniVariables(JavaVM* jvm) {
     LOGD("Failed to get env with JNI_VERSION_1_8, status is %d", status);
     if (status == JNI_EDETACHED) {
       status = jvm->AttachCurrentThread(reinterpret_cast<void**>(&jni), NULL);
+      if (status != JNI_OK) {
+        LOGE("Failed to attach current thread, error code is %d", status);
+        return JNI_ERR;
+      }
     }
   }  
   if (status != JNI_OK) {
@@ -86,16 +90,17 @@ JNIEnv* AttachCurrentThreadIfNeeded() {
     if (jni) {
       return jni;
     }
-    JNIFUSE_CHECK(!pthread_getspecific(g_jni_ptr),
+    JNIFUSE_CHECK_CODE(pthread_getspecific(g_jni_ptr),
         "This thread has a JNIEnv* but not attached?");
     JNIEnv* env = nullptr;
     // TODO(lu) set args
     // TODO(lu) attach as deomon?
     // TODO(lu) improve error logging with condition and error code
-    JNIFUSE_CHECK(!g_jvm->AttachCurrentThreadAsDaemon((void **)&env, nullptr), "Failed to attach thread");
+    JNIFUSE_CHECK_CODE(g_jvm->AttachCurrentThreadAsDaemon((void **)&env, nullptr),
+        "Failed to attach thread");
     JNIFUSE_CHECK(env, "AttachCurrentThread handed back NULL!");
     jni = reinterpret_cast<JNIEnv*>(env);
-    JNIFUSE_CHECK(!pthread_setspecific(g_jni_ptr, jni), "pthread_setspecific");
+    JNIFUSE_CHECK_CODE(pthread_setspecific(g_jni_ptr, jni), "pthread_setspecific");
     return jni;
 }
 }  // namespace jnifuse
