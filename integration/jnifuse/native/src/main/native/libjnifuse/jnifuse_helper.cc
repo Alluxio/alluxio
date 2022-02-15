@@ -35,6 +35,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     JNIEnv *env, jobject libfuseobj, jobject obj, jint jargc,
     jobjectArray jargv) {
   LOGD("enter fuse_main_real");
+  LOGE("validate standard error is logged");
   jnifuse::JniFuseFileSystem::init(env, obj);
 
   int argc = jargc;
