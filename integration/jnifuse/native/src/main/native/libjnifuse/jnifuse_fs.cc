@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 #include "debug.h"
 
@@ -120,6 +123,8 @@ JniFuseFileSystem *JniFuseFileSystem::getInstance() {
 JNIEnv *JniFuseFileSystem::getEnv() {
   ThreadData *td = (ThreadData *)pthread_getspecific(jffs_threadKey);
   if (td == nullptr) {
+    jint tid = syscall(__NR_gettid);
+    LOGD("Thread id is %d", tid);
     td = new ThreadData();
     td->attachedJVM = this->jvm;
     jint status = this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
