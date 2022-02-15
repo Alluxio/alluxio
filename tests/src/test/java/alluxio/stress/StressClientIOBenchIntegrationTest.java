@@ -13,14 +13,20 @@ package alluxio.stress;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.cli.client.StressClientIOBench;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.util.JsonSerializable;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Tests {@link StressClientIOBench}.
@@ -125,7 +131,7 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
   }
 
   @Test
-  public void WriteTypeParameterTest() throws Exception {
+  public void WriteTypeSingleTaskTest() throws Exception {
     String[] writeType = new String[] {"MUST_CACHE", "CACHE_THROUGH", "THROUGH", "ASYNC_THROUGH"};
 
     for (int i = 0; i < writeType.length; i++) {
@@ -154,5 +160,78 @@ public class StressClientIOBenchIntegrationTest extends AbstractStressBenchInteg
         summary.getThreadCountResults().values()) {
       assertTrue(threadResult.getErrors().isEmpty());
     }
+  }
+
+  @Test
+  public void writeTypeALLTaskTest() throws Exception {
+    // redirect the output stream
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    System.setOut(new PrintStream(out));
+
+    new StressClientIOBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/client/",
+        "--operation", "Write",
+        "--threads", "2",
+        "--file-size", "1m",
+        "--buffer-size", "128k",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", "ALL",
+    });
+
+    String printOutResult = out.toString();
+    List<ClientIOTaskResult> resultList = getJsonResult(printOutResult);
+
+    assertEquals(resultList.size(), 4);
+
+    // the possible write types
+    List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
+        "ASYNC_THROUGH", "THROUGH");
+    for (int i = 0; i < resultList.size(); i++) {
+      ClientIOTaskResult summary = resultList.get(i);
+      // confirm that the task was executed with certain write type and output no errors
+      assertEquals(summary.getParameters().mWriteType, writeTypes.get(i));
+      assertFalse(summary.getThreadCountResults().isEmpty());
+      for (ClientIOTaskResult.ThreadCountResult threadResult :
+          summary.getThreadCountResults().values()) {
+        assertTrue(threadResult.getErrors().isEmpty());
+      }
+    }
+
+    // reset the output to the console
+    System.setOut(originalOut);
+  }
+
+  private List<ClientIOTaskResult> getJsonResult(String output) throws Exception {
+    // get the Json parts of the output string and convert them into summaries
+    List<ClientIOTaskResult> res = new ArrayList<>();
+    int bracketsNum = 0;
+    int start = 0;
+    int end = 0;
+
+    while (start < output.length()) {
+      if (output.charAt(start) == '{') {
+        bracketsNum = 1;
+        for (end = start + 1; end < output.length(); end++) {
+          char c = output.charAt(end);
+          if (c == '{') {
+            bracketsNum++;
+          } else if (c == '}') {
+            bracketsNum--;
+          }
+
+          if (bracketsNum == 0) {
+            String json = output.substring(start, end + 1);
+            ClientIOTaskResult summary = (ClientIOTaskResult) JsonSerializable.fromJson(json);
+            res.add(summary);
+            break;
+          }
+        }
+        start = end;
+      }
+      start++;
+    }
+    return res;
   }
 }

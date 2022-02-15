@@ -130,11 +130,11 @@ public abstract class Benchmark<T extends TaskResult> {
    * @return the string result output
    */
   public String run(String[] args) throws Exception {
-    parseParameter(args);
+    parseParameters(args);
     return runSingleTask(args);
   }
 
-  protected void parseParameter(String[] args) {
+  protected void parseParameters(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {

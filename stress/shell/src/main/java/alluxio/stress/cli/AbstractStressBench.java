@@ -22,27 +22,28 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * abstract class for stress benchmarks which use write type and read type.
+ * An abstraction for stress tests which generates a specific workload
+ * on a certain Alluxio component (master, worker, ClientIO).
  *
  * @param <T> the type of task result
  * @param <P> the type of task parameter
  */
-public abstract class StressBench<T extends TaskResult, P extends FileSystemParameters>
+public abstract class AbstractStressBench<T extends TaskResult, P extends FileSystemParameters>
     extends Benchmark<T> {
-  private static final Logger LOG = LoggerFactory.getLogger(StressBench.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractStressBench.class);
   @ParametersDelegate
   protected P mParameters;
 
   @Override
   public String run(String[] args) throws Exception {
-    parseParameter(args);
+    parseParameters(args);
 
     // if the benchmark execute multiple tasks
     if (mParameters.mWriteType.equals("ALL")) {
       List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
           "ASYNC_THROUGH", "THROUGH");
       System.out.format("Now executing %s with all possible write "
-              + "type %s %n", getClass().toString(), writeTypes);
+              + "types %s %n", getClass().toString(), writeTypes);
 
       for (int i = 0; i < args.length; i++) {
         if (args[i].equals("--write-type")) {
@@ -64,7 +65,7 @@ public abstract class StressBench<T extends TaskResult, P extends FileSystemPara
             }
           }
           System.out.println("-----------------------------------------------------");
-          return "Task Finished";
+          return "All tasks finished. You can find the test results in the outputs above.";
         }
       }
     }

@@ -12,9 +12,9 @@
 package alluxio.stress;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 
-import alluxio.stress.cli.StressBench;
+import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 
 import com.google.common.collect.ImmutableList;
@@ -23,8 +23,10 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StressBenchTest {
-  private class TestStressBench extends StressBench<TaskResult, FileSystemParameters> {
+public class AbstractStressBenchTest {
+  private class TestStressBench extends AbstractStressBench<TaskResult, FileSystemParameters> {
+    // an implementation to test the abstract class logic
+
     // used to store the executed write type and arguments
     List<String> mWriteTypeList = new ArrayList<>();
     List<String[]> mArgsList = new ArrayList<>();
@@ -93,7 +95,7 @@ public class StressBenchTest {
       assertEquals(writeTypeList.size(), 1);
 
       // ensure we have executed the desired input
-      assertTrue(compareString(input, argsList.get(0)));
+      assertArrayEquals(input, argsList.get(0));
     }
   }
 
@@ -122,19 +124,7 @@ public class StressBenchTest {
       // compare the executed single task arguments
       input[1] = possibleWriteType.get(i);
       String[] executedTask = argsList.get(i);
-      assertTrue(compareString(input, executedTask));
+      assertArrayEquals(input, executedTask);
     }
-  }
-
-  private boolean compareString(String[] a, String[] b) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (int i = 0; i < a.length; i++) {
-      if (!a[i].equals(b[i])) {
-        return false;
-      }
-    }
-    return true;
   }
 }
