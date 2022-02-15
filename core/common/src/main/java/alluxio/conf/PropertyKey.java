@@ -304,8 +304,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey CONF_DIR =
       new Builder(Name.CONF_DIR)
           .setDefaultValue(String.format("${%s}/conf", Name.HOME))
-          .setDescription("The directory containing files used to configure Alluxio.")
+          .setDescription("The directory of Alluxio configuration files."
+              + " This property is only for internal use."
+              + " To change the location, set environment variable $ALLUXIO_CONF_DIR instead.")
           .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -376,12 +379,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.ALL)
           .build();
+  // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
-          .setDescription("The path under Alluxio home directory to store log files. It has a "
-              + "corresponding environment variable $ALLUXIO_LOGS_DIR.")
+          .setDescription("The path to store logs files of Alluxio servers."
+              + " This property is only for internal use."
+              + " To change the location, set environment variable $ALLUXIO_LOGS_DIR instead.")
           .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -389,9 +395,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
-          .setDescription("The path to store logs of Alluxio shell. To change its value, one can "
-              + " set environment variable $ALLUXIO_USER_LOGS_DIR.")
+          .setDescription("The path to store logs of Alluxio command lines."
+              + " This property is only for internal use."
+              + " To change the location, set environment variable $ALLUXIO_USER_LOGS_DIR instead.")
           .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
