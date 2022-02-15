@@ -28,13 +28,14 @@ namespace jnifuse {
 struct ThreadData {
   JavaVM *attachedJVM;
   JNIEnv *attachedEnv;
+  bool shouldDetach;
 };
 
 static pthread_key_t jffs_threadKey;
 
 static void thread_data_free(void *ptr) {
   ThreadData *td = (ThreadData *)ptr;
-  if (td->attachedJVM != nullptr) {
+  if (td->attachedJVM != nullptr && td->shouldDetach) {
     td->attachedJVM->DetachCurrentThread();
   }
   delete td;
@@ -112,13 +113,23 @@ JniFuseFileSystem *JniFuseFileSystem::getInstance() {
 
 JNIEnv *JniFuseFileSystem::getEnv() {
   ThreadData *td = (ThreadData *)pthread_getspecific(jffs_threadKey);
-  if (td == nullptr) {
-    td = new ThreadData();
-    td->attachedJVM = this->jvm;
-    this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
-    pthread_setspecific(jffs_threadKey, td);
+  if (td != nullptr) {
     return td->attachedEnv;
   }
+  td = new ThreadData();
+  td->attachedJVM = this->jvm;
+  td->shouldDetach = false;
+  jint ret = jvm->GetEnv((void **)&td->attachedEnv, JNI_VERSION_1_8);
+  if (ret != JNI_OK) {
+    ret = this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
+    if (ret == JNI_OK) {
+      td->shouldDetach = true;
+    } else {
+      LOGE("Failed to attach thread to JVM");
+      exit(-1);
+    }
+  }
+  pthread_setspecific(jffs_threadKey, td);
   return td->attachedEnv;
 }
 
