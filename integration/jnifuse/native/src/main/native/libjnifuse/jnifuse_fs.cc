@@ -36,12 +36,17 @@ struct ThreadData {
 static pthread_key_t jffs_threadKey;
 
 static void thread_data_free(void *ptr) {
+  jint tid = syscall(__NR_gettid);
+  LOGD("Thread %d starts freeing data", tid);
   ThreadData *td = (ThreadData *)ptr;
   if (td->attachedJVM != nullptr) {
     jint status = td->attachedJVM->DetachCurrentThread();
     if (status != JNI_OK) {
       LOGE("Failed to attach thread, status code is %d", status);
     }
+    LOGD("Thread %d detached from current thread", tid);
+  } else {
+    LOGD("Thread %d do not need to detach", tid);
   }
   delete td;
 }
@@ -124,7 +129,7 @@ JNIEnv *JniFuseFileSystem::getEnv() {
   ThreadData *td = (ThreadData *)pthread_getspecific(jffs_threadKey);
   if (td == nullptr) {
     jint tid = syscall(__NR_gettid);
-    LOGD("Thread id is %d", tid);
+    LOGD("Thread %d start attaching to JVM", tid);
     td = new ThreadData();
     td->attachedJVM = this->jvm;
     jint status = this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
@@ -137,6 +142,7 @@ JNIEnv *JniFuseFileSystem::getEnv() {
       LOGE("Failed in pthread_setspecific, status is %d", status);
       exit(-1);
     }
+    LOGD("Thread %d attached to JVM", tid);
     return td->attachedEnv;
   }
   return td->attachedEnv;
