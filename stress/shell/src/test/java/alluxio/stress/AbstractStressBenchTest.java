@@ -24,9 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AbstractStressBenchTest {
+  // an implementation to test the abstract class logic
   private class TestStressBench extends AbstractStressBench<TaskResult, FileSystemParameters> {
-    // an implementation to test the abstract class logic
-
     // used to store the executed write type and arguments
     List<String> mWriteTypeList = new ArrayList<>();
     List<String[]> mArgsList = new ArrayList<>();

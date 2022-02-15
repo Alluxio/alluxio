@@ -24,7 +24,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -228,7 +227,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     });
 
     String printOutResult = out.toString();
-    List<MasterBenchSummary> resultList = getJsonResult(printOutResult);
+    List<String> resultList = getJsonResult(printOutResult);
 
     assertEquals(resultList.size(), 4);
 
@@ -236,7 +235,8 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
         "ASYNC_THROUGH", "THROUGH");
     for (int i = 0; i < resultList.size(); i++) {
-      MasterBenchSummary summary = resultList.get(i);
+      MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
+          resultList.get(i));
       // confirm that the task was executed with certain write type and output no errors
       assertEquals(summary.getParameters().mWriteType, writeTypes.get(i));
       assertFalse(summary.getNodeResults().isEmpty());
@@ -245,38 +245,6 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
 
     // reset the output to the console
     System.setOut(originalOut);
-  }
-
-  private List<MasterBenchSummary> getJsonResult(String output) throws Exception {
-    // get the Json parts of the output string and convert them into summaries
-    List<MasterBenchSummary> res = new ArrayList<>();
-    int bracketsNum = 0;
-    int start = 0;
-    int end = 0;
-
-    while (start < output.length()) {
-      if (output.charAt(start) == '{') {
-        bracketsNum = 1;
-        for (end = start + 1; end < output.length(); end++) {
-          char c = output.charAt(end);
-          if (c == '{') {
-            bracketsNum++;
-          } else if (c == '}') {
-            bracketsNum--;
-          }
-
-          if (bracketsNum == 0) {
-            String json = output.substring(start, end + 1);
-            MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(json);
-            res.add(summary);
-            break;
-          }
-        }
-        start = end;
-      }
-      start++;
-    }
-    return res;
   }
 
   @Test
