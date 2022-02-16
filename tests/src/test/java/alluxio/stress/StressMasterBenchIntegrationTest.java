@@ -12,16 +12,21 @@
 package alluxio.stress;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.util.JsonSerializable;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link StressMasterBench}.
@@ -158,6 +163,88 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     generateAndVerifyReport(
         Arrays.asList("CreateFile", "GetFileStatus", "ListDir", "ListDirLocated", "RenameFile"),
         output1, output2, output3, output4, output5);
+  }
+
+  @Test
+  public void writeTypeSingleTaskTest() throws Exception {
+    String[] writeType = new String[] {"MUST_CACHE", "CACHE_THROUGH", "THROUGH", "ASYNC_THROUGH"};
+
+    for (int i = 0; i < writeType.length; i++) {
+      validateTheResultWithWriteType(writeType[i]);
+    }
+  }
+
+  private void validateTheResultWithWriteType(String writeType) throws Exception {
+    String output1 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateFile",
+        "--fixed-count", "20",
+        "--target-throughput", "300",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "3s",
+        "--write-type", writeType,
+    });
+
+    String output2 = new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "DeleteFile",
+        "--fixed-count", "20",
+        "--target-throughput", "100",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "1s",
+        "--write-type", writeType,
+    });
+
+    // convert the result into summary, and check whether it have errors.
+    MasterBenchSummary summary1 = (MasterBenchSummary) JsonSerializable.fromJson(output1);
+    MasterBenchSummary summary2 = (MasterBenchSummary) JsonSerializable.fromJson(output2);
+
+    // confirm that the results contain information, and they don't contain errors.
+    assertFalse(summary1.getNodeResults().isEmpty());
+    assertTrue(summary1.collectErrorsFromAllNodes().isEmpty());
+    assertFalse(summary2.getNodeResults().isEmpty());
+    assertTrue(summary2.collectErrorsFromAllNodes().isEmpty());
+  }
+
+  @Test
+  public void writeTypeALLTaskTest() throws Exception {
+    // redirect the output stream
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    PrintStream originalOut = System.out;
+    System.setOut(new PrintStream(out));
+
+    new StressMasterBench().run(new String[] {
+        "--in-process",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--operation", "CreateFile",
+        "--fixed-count", "20",
+        "--target-throughput", "300",
+        "--threads", "5",
+        "--warmup", "0s", "--duration", "3s",
+        "--write-type", "ALL",
+    });
+
+    String printOutResult = out.toString();
+    List<String> resultList = getJsonResult(printOutResult);
+
+    assertEquals(resultList.size(), 4);
+
+    // the possible write types
+    List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
+        "ASYNC_THROUGH", "THROUGH");
+    for (int i = 0; i < resultList.size(); i++) {
+      MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
+          resultList.get(i));
+      // confirm that the task was executed with certain write type and output no errors
+      assertEquals(summary.getParameters().mWriteType, writeTypes.get(i));
+      assertFalse(summary.getNodeResults().isEmpty());
+      assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
+    }
+
+    // reset the output to the console
+    System.setOut(originalOut);
   }
 
   @Test
