@@ -14,7 +14,6 @@ package alluxio.master.file;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Interface for a class which gathers block deletion requests, then handles them during close.
