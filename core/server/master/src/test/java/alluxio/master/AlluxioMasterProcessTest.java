@@ -183,6 +183,7 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
+  @Ignore
   public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
