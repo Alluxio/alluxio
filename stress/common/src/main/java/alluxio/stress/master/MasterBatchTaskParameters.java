@@ -11,15 +11,14 @@
 
 package alluxio.stress.master;
 
-import alluxio.stress.Parameters;
+import alluxio.stress.common.BatchTaskParameters;
 
 import com.beust.jcommander.Parameter;
 
 /**
- * This holds all the parameters. All fields are public for easier json ser/de without all the
- * getters and setters.
+ * This holds all the parameters for Master Batch Task.
  */
-public class MasterBatchTaskParameters extends Parameters {
+public class MasterBatchTaskParameters extends BatchTaskParameters {
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
   public String mBasePath = "alluxio:///stress-master-base";

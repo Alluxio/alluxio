@@ -11,20 +11,16 @@
 
 package alluxio.stress.cli;
 
-import alluxio.stress.Summary;
 import alluxio.stress.master.MasterBatchTaskParameters;
-import alluxio.util.JsonSerializable;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParametersDelegate;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Multiple tasks runner for Master StressBench.
@@ -34,67 +30,46 @@ public class MasterBatchTask extends BatchTask {
   // Target throughput is set to a huge number to reach the maximum throughput of the task.
   private static final int TARGET_THROUGHPUT  = 1_000_000;
   private static final String WARMUP = "0s";
-  // Duration is set to a huge number to ensure that the task is finished
-  private static final String DURATION = "6h";
   private static final String CLUSTER = "--cluster";
-
-  private String mOperation;
-
-  //store the possible operations
-  static Map<String, String> sSecondOperationMapping = ImmutableMap.<String, String>builder()
-      .put("MasterOpenFileBatchTask", "OpenFile")
-      .put("MasterGetBlockLocationsBatchTask", "GetBlockLocations")
-      .put("MasterGetFileStatusBatchTask", "MasterGetFileStatus")
-      .put("MasterRenameFileBatchTask", "RenameFile")
-      .put("MasterListDirBatchTask", "ListDir")
-      .put("MasterDeleteFileBatchTask", "DeleteFile")
-      .build();
 
   @ParametersDelegate
   private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
 
   @Override
   public void run(String[] args) {
-    mOperation = args[0];
-    String[] input = Arrays.copyOfRange(args, 1, args.length);
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {
-      jc.parse(input);
+      jc.parse(args);
     } catch (Exception e) {
       LOG.error("Failed to parse command: ", e);
-      jc.usage();
+      System.out.println(getDescription());
       throw e;
     }
 
     List<String[]> command = getCommand();
-    List<Summary> results = new ArrayList<>();
     StressMasterBench bench = new StressMasterBench();
     for (String[] arg : command) {
+      System.out.println("-----------------------------------------------------");
+      System.out.format("Now executing command : %s on MasterStressBench...%n", arg[1]);
       // error on individual task will not end the whole batch task
       try {
         String jsonResult = bench.run(arg);
-        Summary result = (Summary) JsonSerializable.fromJson(jsonResult);
-        results.add(result);
+        System.out.println("Task finished successfully. The result is following :");
+        System.out.println(jsonResult);
       } catch (Exception e) {
-        System.err.format("Failed to finish the %s operation%n", arg[0]);
+        System.err.format("Failed to finish the %s operation%n", arg[1]);
         e.printStackTrace();
       }
     }
-
-    try {
-      output(results);
-    } catch (Exception e) {
-      LOG.error("Failed to parse json: ", e);
-      System.err.format("Failed to parse json");
-      e.printStackTrace();
-    }
+    System.out.println("-----------------------------------------------------");
+    System.out.println("All tasks finished. You can find the test results in the outputs above.");
   }
 
   private List<String[]> getCommand() {
     List<String[]> commands = new ArrayList<>();
 
-    if (mOperation.equals("MasterComprehensiveFileBatchTask")) {
+    if (mParameter.mTaskName.equals("MasterComprehensiveFileBatchTask")) {
       String[] operations = {"CreateFile", "ListDir", "ListDirLocated", "GetBlockLocations",
           "GetFileStatus", "OpenFile", "DeleteFile"};
       for (String op : operations) {
@@ -105,47 +80,27 @@ public class MasterBatchTask extends BatchTask {
             "--stop-count", String.valueOf(mParameter.mNumFiles),
             "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
             "--warmup", WARMUP,
-            "--duration", DURATION,
             "--create-file-size", mParameter.mFileSize,
             CLUSTER,
         });
       }
-    } else {
-      //first command is creating the base file, second command depends on the task
-      commands.add(new String[] {
-          "--operation", "CreateFile",
-          "--base", mParameter.mBasePath,
-          "--threads", String.valueOf(mParameter.mThreads),
-          "--stop-count", String.valueOf(mParameter.mNumFiles),
-          "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
-          "--warmup", WARMUP,
-          "--duration", DURATION,
-          "--create-file-size", mParameter.mFileSize,
-          CLUSTER,
-      });
-      // ensure the batch task's name is valid.
-      if (!sSecondOperationMapping.containsKey(mOperation)) {
-        throw new IllegalArgumentException(String.format("Unexpected batch task name:%s",
-            mOperation));
-      }
-      commands.add(new String[] {
-          "--operation", sSecondOperationMapping.get(mOperation),
-          "--base", mParameter.mBasePath,
-          "--threads", String.valueOf(mParameter.mThreads),
-          "--stop-count", String.valueOf(mParameter.mNumFiles),
-          "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
-          "--warmup", WARMUP,
-          "--duration", DURATION,
-          "--create-file-size", mParameter.mFileSize,
-          CLUSTER,
-      });
     }
     return commands;
   }
 
-  private void output(List<Summary> results) throws Exception {
-    for (Summary res : results) {
-      System.out.println(res.toJson());
-    }
+  private String getDescription() {
+    return String.join("\n", ImmutableList.of(
+        "BatchTaskRunner is a tool to execute pre-defined group of MasterStressBench tasks",
+        "",
+        "Example:",
+        "# this would run `CreateFile', 'ListDir', 'ListDirLocated', 'GetBlockLocations', "
+            + "'GetFileStatus', 'OpenFile', 'DeleteFile' operations for 1000 files with size 1KB"
+            + " in 10 threads and record the throughput. The file will be created in directory"
+            + " alluxio:///stress-master-base",
+        "$ bin/alluxio runClass alluxio.stress.cli.BatchTaskRunner"
+            + " MasterComprehensiveFileBatchTask --num-files 1000 --threads 10 --create-file-size"
+            + " 1k --base alluxio:///stress-master-base",
+        ""
+    ));
   }
 }

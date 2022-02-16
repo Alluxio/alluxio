@@ -18,17 +18,15 @@ import com.google.common.collect.ImmutableSet;
  */
 public class BatchTaskRunner {
   private static final ImmutableSet<String> MASTER_BATCH_TASK_NAMES = ImmutableSet.of(
-      "MasterOpenFileBatchTask", "MasterGetBlockLocationsBatchTask",
-      "MasterGetFileStatusBatchTask", "MasterRenameFileBatchTask", "MasterListDirBatchTask",
-      "MasterDeleteFileBatchTask", "MasterComprehensiveFileBatchTask");
+      "MasterComprehensiveFileBatchTask");
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
     if (!MASTER_BATCH_TASK_NAMES.contains(args[0])) {
-      System.out.println(String.format("Unexpected batch task name: %s , expecting one of %s;",
-          args[0], MASTER_BATCH_TASK_NAMES));
+      System.out.format("Unexpected batch task name: %s, expecting one of %s;",
+          args[0], MASTER_BATCH_TASK_NAMES);
       return;
     }
     BatchTask task = new MasterBatchTask();
