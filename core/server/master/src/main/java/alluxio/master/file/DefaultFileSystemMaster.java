@@ -1822,15 +1822,19 @@ public final class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, null)) {
 
-      syncMetadata(rpcContext,
-          path,
-          context.getOptions().getCommonOptions(),
-          context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
-          auditContext,
-          LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
-          false
-      );
+      if (context.getOptions().getAlluxioOnly()) {
+        LOG.debug("alluxio-only deletion on path {} skips metadata sync", path);
+      } else {
+        syncMetadata(rpcContext,
+            path,
+            context.getOptions().getCommonOptions(),
+            context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
+            auditContext,
+            LockedInodePath::getInodeOrNull,
+            (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+            false
+        );
+      }
 
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
