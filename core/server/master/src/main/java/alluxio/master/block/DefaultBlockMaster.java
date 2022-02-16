@@ -674,7 +674,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
+  public void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
         Set<Long> workerIds;

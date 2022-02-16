@@ -42,6 +42,6 @@ public interface BlockDeletionContext extends Closeable {
      *
      * @param blocks the deleted blocks
      */
-    void process(List<Long> blocks) throws IOException;
+    void process(Collection<Long> blocks) throws IOException;
   }
 }
