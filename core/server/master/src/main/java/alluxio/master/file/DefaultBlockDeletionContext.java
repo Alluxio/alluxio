@@ -48,10 +48,10 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
 
   @Override
   public void close() throws IOException {
-    // Make sure every listener gets called, even if some throw exceptions.
-    Throwable thrown = null;
     // Prevent accidental modification from the listeners
     Collection<Long> viewOnlyBlocks = Collections.unmodifiableCollection(mBlocks);
+    // Make sure every listener gets called, even if some throw exceptions.
+    Throwable thrown = null;
     for (BlockDeletionListener listener : mListeners) {
       try {
         listener.process(viewOnlyBlocks);
