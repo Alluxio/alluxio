@@ -61,6 +61,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Single node stress test.
  */
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
 public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult,
     MasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
@@ -103,6 +104,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
@@ -258,6 +260,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public MasterBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
@@ -296,6 +299,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     return context.getResult();
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private BenchThread getBenchThread(BenchContext context, int index) {
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length]);
@@ -315,6 +319,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     /** The results. Access must be synchronized for thread safety. */
     private MasterBenchTaskResult mResult;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     public BenchContext(RateLimiter rateLimiter, long startMs, long endMs) {
       mRateLimiter = rateLimiter;
       mStartMs = startMs;
@@ -415,6 +420,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     public Void call() {
       try {
         runInternal();
@@ -435,6 +441,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -501,6 +508,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
       Path path;
       switch (mParameters.mOperation) {
@@ -597,6 +605,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException, AlluxioException {
       Path path;
       switch (mParameters.mOperation) {

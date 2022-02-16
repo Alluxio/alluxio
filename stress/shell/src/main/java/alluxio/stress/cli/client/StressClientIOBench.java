@@ -61,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node client IO stress test.
  */
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
 public class StressClientIOBench extends AbstractStressBench
     <ClientIOTaskResult, ClientIOParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
@@ -95,6 +96,7 @@ public class StressClientIOBench extends AbstractStressBench
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
       throw new IllegalArgumentException(String.format(
@@ -165,6 +167,7 @@ public class StressClientIOBench extends AbstractStressBench
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public ClientIOTaskResult runLocal() throws Exception {
     List<Integer> threadCounts = new ArrayList<>(mParameters.mThreads);
     threadCounts.sort(Comparator.comparingInt(i -> i));
@@ -186,6 +189,7 @@ public class StressClientIOBench extends AbstractStressBench
     return taskResult;
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private BenchThread getBenchThread(BenchContext context, int index) {
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length], index);
@@ -195,6 +199,7 @@ public class StressClientIOBench extends AbstractStressBench
         mCachedNativeFs[index % mCachedNativeFs.length], index);
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private ClientIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
@@ -341,6 +346,7 @@ public class StressClientIOBench extends AbstractStressBench
 
     protected long mCurrentOffset;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected BenchThread(BenchContext context, int threadId) {
       mContext = context;
       mThreadId = threadId;
@@ -383,6 +389,7 @@ public class StressClientIOBench extends AbstractStressBench
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -435,6 +442,7 @@ public class StressClientIOBench extends AbstractStressBench
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected int applyOperation() throws IOException {
       if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {
@@ -532,6 +540,7 @@ public class StressClientIOBench extends AbstractStressBench
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected int applyOperation() throws IOException, AlluxioException {
       if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {

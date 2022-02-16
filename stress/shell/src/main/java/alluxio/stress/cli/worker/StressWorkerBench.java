@@ -13,6 +13,7 @@ package alluxio.stress.cli.worker;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
@@ -44,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node stress test.
  */
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
 public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult,
     WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
@@ -72,6 +74,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     mFilePath = new Path(mParameters.mBasePath, "data");
 
@@ -140,6 +143,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public WorkerBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
@@ -211,6 +215,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     private FSDataInputStream mInStream = null;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private BenchThread(BenchContext context, FileSystem fs) {
       mContext = context;
       mFs = fs;
@@ -240,6 +245,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
