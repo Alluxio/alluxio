@@ -149,7 +149,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   @Override
   public void stop() throws Exception {
     stopRejectingServers();
-    if (isServing()) {
+    if (isGrpcServing()) {
       stopServing();
     }
     mJournalSystem.stop();
@@ -251,7 +251,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   protected void stopServing() throws Exception {
-    if (isServing()) {
+    if (isGrpcServing()) {
       LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
       if (!mGrpcServer.shutdown()) {
         LOG.warn("Alluxio job master RPC server shutdown timed out.");

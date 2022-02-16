@@ -25,6 +25,7 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicIntegerArray;
@@ -264,7 +265,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
      * @param from source
      * @param into destination
      */
-    public void funnel(PageId from, PrimitiveSink into) {
+    public void funnel(@Nonnull PageId from, PrimitiveSink into) {
       into.putUnencodedChars(from.getFileId()).putLong(from.getPageIndex());
     }
   }

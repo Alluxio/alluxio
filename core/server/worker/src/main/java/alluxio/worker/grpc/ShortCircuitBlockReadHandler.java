@@ -115,7 +115,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
     }, "OpenBlock", true, false, mResponseObserver, "Session=%d, Request=%s",
-        mSessionId, mRequest);
+        mSessionId, request);
+  // Must use request object directly for this log as mRequest is only set in the Callable
   }
 
   @Override

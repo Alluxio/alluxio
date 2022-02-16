@@ -153,7 +153,12 @@ public final class FormatUtils {
       return String.format(Locale.ENGLISH, "%.2fTB", ret);
     }
     ret /= 1024;
-    return String.format(Locale.ENGLISH, "%.2fPB", ret);
+    if (ret <= 1024 * 5) {
+      return String.format(Locale.ENGLISH, "%.2fPB", ret);
+    }
+    ret /= 1024;
+    //Long.MAX_VALUE bytes approximately equals to 8EB.
+    return String.format(Locale.ENGLISH, "%.2fEB", ret);
   }
 
   /**

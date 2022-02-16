@@ -50,8 +50,8 @@ public class CustomAuthPolicy implements AuthPolicy {
       return;
     }
     SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(mUname)
-        .setOwner(mGname)
+        .setGroup(mGname)
+        .setOwner(mUname)
         .build();
     mFileSystem.setAttribute(uri, attributeOptions);
     LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);

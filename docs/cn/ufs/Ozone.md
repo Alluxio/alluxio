@@ -17,8 +17,8 @@ Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 具有正确的Hadoop版本(推荐))，或 
 [从Alluxio源代码编译二进制文件]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url}})(适用于高级用户)。
 
-在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://ozone.apache.org/docs/1.1.0/start/onprem.html)
-安装Ozone集群，并遵循[Cli命令](https://ozone.apache.org/docs/1.1.0/interface/cli.html)创建Ozone集群的卷和存储桶。
+在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://ozone.apache.org/docs/1.2.1/zh/start/onprem.html)
+安装Ozone集群，并遵循[Cli命令](https://ozone.apache.org/docs/1.2.1/interface/cli.html)创建Ozone集群的卷和存储桶。
 
 ## 基本设置
 
@@ -47,7 +47,7 @@ $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
 
-这将启动Alluxio master和Alluxio worker。可以在[http:// localhost:19999](http:// localhost:19999)上看到 master UI。
+这将启动Alluxio master和Alluxio worker。可以在[http://localhost:19999](http://localhost:19999)上看到 master UI。
 
 运行一个简单的示例程序
 
@@ -75,25 +75,11 @@ $ ./bin/alluxio-stop.sh local
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml:<DIR>/core-site.xml \
+  --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-可能的`core-site.xml`和`ozone-site.xml`文件设置
-- `core-site.xml`
-
-```xml
-<configuration>
-  <property>
-    <name>fs.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzoneFileSystem</value>
-  </property>
-  <property>
-    <name>fs.AbstractFileSystem.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.OzFs</value>
-  </property>
-</configuration>
-```
+可能的 `ozone-site.xml` 文件设置
 
 - `ozone-site.xml`
 
@@ -103,26 +89,6 @@ $ ./bin/alluxio fs mount \
     <name>ozone.om.address</name>
     <value>localhost</value>
   </property>
-  <property>
-    <name>scm.container.client.max.size</name>
-    <value>256</value>
-  </property>
-  <property>
-    <name>scm.container.client.idle.threshold</name>
-    <value>10s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.request.timeout</name>
-    <value>60s</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.async.outstanding-requests.max</name>
-    <value>32</value>
-  </property>
-  <property>
-    <name>hdds.ratis.raft.client.rpc.watch.request.timeout</name>
-    <value>180s</value>
-  </property>
 </configuration>
 ```
 
@@ -130,4 +96,4 @@ $ ./bin/alluxio fs mount \
 
 ### 支持的Ozone版本
 
-当前，唯一经过与Alluxio测试Ozone版本是`1.0.0`。
+当前，与 Alluxio 测试过的 Ozone 版本是 `1.0.0`, `1.1.0`, `1.2.1`。

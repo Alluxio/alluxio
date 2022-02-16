@@ -68,6 +68,14 @@ message CheckConsistencyPRequest {
   optional CheckConsistencyPOptions options = 2;
 }
 
+message ExistsPRequest {
+  optional string path = 1;
+  optional ExistsPOptions options = 2;
+}
+message ExistsPResponse {
+  optional bool exists = 1;
+}
+
 message CompleteFilePResponse {}
 message CompleteFilePOptions {
   optional int64 ufsLength = 1;
@@ -510,6 +518,11 @@ service FileSystemMasterClientService {
    * Checks the consistency of the files and directores with the path as the root of the subtree
    */
   rpc CheckConsistency(CheckConsistencyPRequest) returns (CheckConsistencyPResponse);
+
+  /**
+   * Checks the existence of the file or directory.
+   */
+  rpc Exists(ExistsPRequest) returns (ExistsPResponse);
 
   /**
    * Marks a file as completed.

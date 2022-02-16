@@ -2,6 +2,11 @@ metricName,metricType
 Master.AbsentCacheHits,GAUGE
 Master.AbsentCacheMisses,GAUGE
 Master.AbsentCacheSize,GAUGE
+Master.AsyncPersistCancel,COUNTER
+Master.AsyncPersistFail,COUNTER
+Master.AsyncPersistFileCount,COUNTER
+Master.AsyncPersistFileSize,COUNTER
+Master.AsyncPersistSuccess,COUNTER
 Master.AuditLogEntriesSize,GAUGE
 Master.BlockHeapSize,GAUGE
 Master.BlockReplicaCount,GAUGE
@@ -47,6 +52,12 @@ Master.JobCanceled,COUNTER
 Master.JobCompleted,COUNTER
 Master.JobCount,GAUGE
 Master.JobCreated,COUNTER
+Master.JobDistributedLoadCancel,COUNTER
+Master.JobDistributedLoadFail,COUNTER
+Master.JobDistributedLoadFileCount,COUNTER
+Master.JobDistributedLoadFileSizes,COUNTER
+Master.JobDistributedLoadRate,METER
+Master.JobDistributedLoadSuccess,COUNTER
 Master.JobFailed,COUNTER
 Master.JobRunning,COUNTER
 Master.JournalCheckpointWarn,GAUGE
@@ -70,6 +81,11 @@ Master.ListingCacheMisses,COUNTER
 Master.ListingCacheSize,GAUGE
 Master.LostBlockCount,GAUGE
 Master.LostFileCount,GAUGE
+Master.MigrateJobCancel,COUNTER
+Master.MigrateJobFail,COUNTER
+Master.MigrateJobFileCount,COUNTER
+Master.MigrateJobFileSize,COUNTER
+Master.MigrateJobSuccess,COUNTER
 Master.MountOps,COUNTER
 Master.NewBlocksGot,COUNTER
 Master.PathsDeleted,COUNTER
@@ -78,6 +94,7 @@ Master.PathsRenamed,COUNTER
 Master.PathsUnmounted,COUNTER
 Master.RenamePathOps,COUNTER
 Master.ReplicaMgmtActiveJobSize,GAUGE
+Master.RoleId,GAUGE
 Master.RpcQueueLength,GAUGE
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER

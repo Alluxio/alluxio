@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Stacks Shallow component Matches snapshot 1`] = `
+<div
+  className="col-12"
+>
+  <Form
+    className="mb-3 viewData-file-form"
+    id="viewDataFileForm"
+    inline={true}
+    tag="form"
+  >
+    <FormGroup
+      className="mb-2 mr-sm-2 w-100"
+      tag="div"
+    >
+      <Input
+        className="w-100"
+        readOnly={true}
+        style={
+          Object {
+            "height": "80vh",
+          }
+        }
+        type="textarea"
+        value=""
+      />
+    </FormGroup>
+  </Form>
+</div>
+`;

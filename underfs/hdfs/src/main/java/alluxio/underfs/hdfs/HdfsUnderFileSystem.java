@@ -97,6 +97,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
       "org.apache.hadoop.io.erasurecode.CodecRegistry";
 
+  private static final String JAVAX_WS_RS_CORE_MEDIA_TYPE =
+      "javax.ws.rs.core.MediaType";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
 
@@ -162,8 +165,17 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
         } catch (ClassNotFoundException e) {
           LOG.warn("Cannot initialize HDFS EC CodecRegistry. "
-              + "HDFS EC will not be supported: {}", e.toString());
+              + "HDFS EC will not be supported:", e);
         }
+      }
+
+      try {
+        // If this class is not loaded here, it will be later loaded by the system classloader
+        // from alluxio server jar, but will be called by a class loaded with extension
+        // classloader.
+        Class.forName(JAVAX_WS_RS_CORE_MEDIA_TYPE);
+      } catch (ClassNotFoundException e) {
+        LOG.warn("Cannot initialize javax.ws.rs.MediaType.", e);
       }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);

@@ -415,7 +415,7 @@ public abstract class AbstractClient implements Client {
           throw se;
         }
       }
-      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      LOG.debug("Rpc failed ({}): ", retryPolicy.getAttemptCount(), ex);
       onRetry.get();
       disconnect();
     }

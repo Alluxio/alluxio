@@ -235,17 +235,19 @@ Here are the guidelines for deciding which level to use.
 
 #### Error Log Level
 
-Error level logging (`LOG.error`) indicates system level problems which cannot be recovered
-from. It should always be accompanied by a stack trace.
+Error level logging (`LOG.error`) indicates system level problems which cannot be recovered from. 
+It should be accompanied by a stack trace of the exception thrown to help debug the issue.
 
 ```java
-// Recommended
+// Recommended: a stack trace will be shown in the log
 LOG.error("Failed to do something due to an exception", e);
 ```
 
 ```java
-// Not recommended: stack trace will not be logged
+// Not recommended: wrong logging syntax
 LOG.error("Failed to do something due to an exception {}", e);
+// Not recommended: stack trace will not be logged
+LOG.error("Failed to do something due to an exception {}", e.toString());
 ```
 
 **When to Use**
@@ -263,21 +265,23 @@ level thread loop.
 #### Warn Log Level
 
 Warn level logging (`LOG.warn`) indicates a logical mismatch between user intended behavior
-and Alluxio behavior. Warn level logs are accompanied by an exception message. The associated stack
-trace may be found in debug level logs.
+and Alluxio behavior.
+Warn level logs are accompanied by an exception message using `e.toString()`.
+The associated stack trace is typically not included to avoid spamming the logs.
+If needed, print the details in separate debug level logs.
 
 ```java
 // Recommended
 LOG.warn("Failed to do something: {}", e.toString());
-// Recommended
-LOG.warn("Failed to do something: {}", e);
 ```
 
 ```java
-// Not recommended: this will print out the stack trace
+// Not recommended: wrong logging syntax 
+LOG.warn("Failed to do something: {}", e);
+// Not recommended: this will print out the stack trace, can be noisy
 LOG.warn("Failed to do something", e);
 // Not recommended: the exception class name is not included
-LOG.warn("Failed to do something", e.getMessage());
+LOG.warn("Failed to do something {}", e.getMessage());
 
 ```
 

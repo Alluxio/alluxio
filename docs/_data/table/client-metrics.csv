@@ -51,3 +51,4 @@ Client.CacheStoreGetTimeout,COUNTER
 Client.CacheStorePutTimeout,COUNTER
 Client.CacheStoreThreadsRejected,COUNTER
 Client.MetadataCacheSize,GAUGE
+Client.TotalRPCClients,COUNTER

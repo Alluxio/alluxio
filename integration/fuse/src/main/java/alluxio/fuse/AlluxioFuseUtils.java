@@ -32,12 +32,12 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -52,45 +52,16 @@ public final class AlluxioFuseUtils {
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
-  // Open flags
-  // TODO(maobaolong): Add an option to decide whether reject rw flag
-  //  or fallback to truncate
-  // TODO(lu) improve open flag handling https://github.com/mafintosh/fuse-bindings/issues/25
-  // 0x8001 stand for 'w' which means open file for writing
-  private static final int OPEN_WRITE = 32769;
-  // 0x8002 stand for 'r+' which means Open file for reading and writing
-  private static final int OPEN_READ_WRITE = 32770;
+  public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
+  public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
+  public static final String DEFAULT_GROUP_NAME = getGroupName(DEFAULT_USER_NAME);
+  public static final long DEFAULT_GID = getGidFromGroupName(DEFAULT_GROUP_NAME);
+
+  public static final String INVALID_USER_GROUP_NAME = "";
+  public static final long ID_NOT_SET_VALUE = -1;
+  public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   private AlluxioFuseUtils() {}
-
-  /**
-   * Detects if open file for overwriting.
-   *
-   * @param flags the open flags
-   * @return true if open a file for overwriting, false otherwise
-   */
-  public static boolean isOpenOverwrite(int flags) {
-    boolean overwrite = OpenFlags.valueOf(flags) == OpenFlags.O_WRONLY
-        || flags == OPEN_WRITE;
-    return overwrite;
-  }
-
-  /**
-   * Detects if open file for reading and writing.
-   *
-   * @param flags the open flags
-   * @return true if open a file for reading and writing, false otherwise
-   */
-  public static boolean isOpenReadWrite(int flags) {
-    if (flags == OPEN_READ_WRITE) {
-      LOG.debug(String.format("Open file with flags 0x%x for reading and writing. "
-          + "Alluxio does not support reading and writing a file concurrently. "
-          + "Treat as read first. Close input stream, "
-          + "delete file, and create a new file when detected first write.", flags));
-      return true;
-    }
-    return false;
-  }
 
   /**
    * Retrieves the uid of the given user.
@@ -119,20 +90,21 @@ public final class AlluxioFuseUtils {
    * @return gid or -1 on failures
    */
   public static long getGidFromGroupName(String groupName) {
-    String result = "";
     try {
       if (OSUtils.isLinux()) {
         String script = "getent group " + groupName + " | cut -d: -f3";
-        result = ShellUtils.execCommand("bash", "-c", script).trim();
+        String result = ShellUtils.execCommand("bash", "-c", script).trim();
+        return Long.parseLong(result);
       } else if (OSUtils.isMacOS()) {
         String script = "dscl . -read /Groups/" + groupName
             + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
-        result = ShellUtils.execCommand("bash", "-c", script).trim();
+        String result = ShellUtils.execCommand("bash", "-c", script).trim();
+        return Long.parseLong(result);
       }
-      return Long.parseLong(result);
+      return ID_NOT_SET_VALUE;
     } catch (NumberFormatException | IOException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
-      return -1;
+      return ID_NOT_SET_VALUE;
     }
   }
 
@@ -142,8 +114,13 @@ public final class AlluxioFuseUtils {
    * @param uid user id
    * @return user name
    */
-  public static String getUserName(long uid) throws IOException {
-    return ShellUtils.execCommand("id", "-nu", Long.toString(uid)).trim();
+  public static String getUserName(long uid) {
+    try {
+      return ShellUtils.execCommand("bash", "-c", "id -nu", Long.toString(uid)).trim();
+    } catch (IOException e) {
+      LOG.error("Failed to get user name of uid {}", uid, e);
+      return INVALID_USER_GROUP_NAME;
+    }
   }
 
   /**
@@ -152,8 +129,14 @@ public final class AlluxioFuseUtils {
    * @param userName the user name
    * @return group name
    */
-  public static String getGroupName(String userName) throws IOException {
-    return ShellUtils.execCommand("id", "-ng", userName).trim();
+  public static String getGroupName(String userName) {
+    try {
+      List<String> groups = CommonUtils.getUnixGroups(userName);
+      return groups.isEmpty() ? INVALID_USER_GROUP_NAME : groups.get(0);
+    } catch (IOException e) {
+      LOG.error("Failed to get group name of user name {}", userName, e);
+      return INVALID_USER_GROUP_NAME;
+    }
   }
 
   /**
@@ -162,16 +145,21 @@ public final class AlluxioFuseUtils {
    * @param gid the group id
    * @return group name
    */
-  public static String getGroupName(long gid) throws IOException {
-    if (OSUtils.isLinux()) {
-      String script = "getent group " + gid + " | cut -d: -f1";
-      return ShellUtils.execCommand("bash", "-c", script).trim();
-    } else if (OSUtils.isMacOS()) {
-      String script =
-          "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
-      return ShellUtils.execCommand("bash", "-c", script).trim();
+  public static String getGroupName(long gid) {
+    try {
+      if (OSUtils.isLinux()) {
+        String script = "getent group " + gid + " | cut -d: -f1";
+        return ShellUtils.execCommand("bash", "-c", script).trim();
+      } else if (OSUtils.isMacOS()) {
+        String script =
+            "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
+        return ShellUtils.execCommand("bash", "-c", script).trim();
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to get group name of gid {}", gid, e);
+      return INVALID_USER_GROUP_NAME;
     }
-    return "";
+    return INVALID_USER_GROUP_NAME;
   }
 
   /**
@@ -203,14 +191,13 @@ public final class AlluxioFuseUtils {
    * @return the uid (-u) or gid (-g) of username
    */
   private static long getIdInfo(String option, String username) {
-    String output;
     try {
-      output = ShellUtils.execCommand("id", option, username).trim();
-    } catch (IOException e) {
+      String output = ShellUtils.execCommand("id", option, username).trim();
+      return Long.parseLong(output);
+    } catch (IOException | NumberFormatException e) {
       LOG.error("Failed to get id from {} with option {}", username, option);
-      return -1;
+      return ID_NOT_SET_VALUE;
     }
-    return Long.parseLong(output);
   }
 
   /**

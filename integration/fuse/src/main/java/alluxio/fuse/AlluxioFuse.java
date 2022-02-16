@@ -265,6 +265,11 @@ public final class AlluxioFuse {
       final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
       res.add(String.format("-omax_write=%d", maxWrite));
     }
+
+    if (alluxioConf.getBoolean(PropertyKey.FUSE_PERMISSION_CHECK_ENABLED)) {
+      // double same fuse mount options will not error out
+      res.add("-odefault_permissions");
+    }
     return res;
   }
 

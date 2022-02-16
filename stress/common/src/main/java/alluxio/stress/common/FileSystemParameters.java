@@ -12,7 +12,6 @@
 package alluxio.stress.common;
 
 import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.Parameters;
@@ -38,14 +37,15 @@ public class FileSystemParameters extends Parameters {
 
   @Parameter(names = {"--write-type"},
       description = "The write type to use when creating files. Options are [MUST_CACHE, "
-          + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH]",
+          + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
   public String mWriteType = InstancedConfiguration.defaults()
       .get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
 
   /**
-   * @return FileSystemClientType of this bench
    * Converts from String to FileSystemClientType instance.
+   *
+   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersClientTypeConverter
       implements IStringConverter<FileSystemClientType> {
@@ -56,8 +56,9 @@ public class FileSystemParameters extends Parameters {
   }
 
   /**
-   * @return FileSystemClientType of this bench
    * Converts from String to FileSystemClientType instance.
+   *
+   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersReadTypeConverter implements IStringConverter<ReadType> {
     @Override
@@ -67,17 +68,19 @@ public class FileSystemParameters extends Parameters {
   }
 
   /**
-   * @return FileSystemWriteType of this bench
    * Converts from String to a valid FileSystemWriteType String.
+   *
+   * @return FileSystemWriteType of this bench
    */
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override
     public String convert(String value) {
-      WriteType type = WriteType.valueOf(value);
-      if (type != WriteType.NONE && type != WriteType.TRY_CACHE) {
+      if (value.equals("MUST_CACHE")  || value.equals("CACHE_THROUGH")  || value.equals("THROUGH")
+          || value.equals("ASYNC_THROUGH") || value.equals("ALL")) {
         return value;
       }
-      throw new IllegalArgumentException("No constant with text " + value + " found");
+      throw new IllegalArgumentException(String.format("%s is not a valid write type. "
+          + "Valid options are: MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH and ALL", value));
     }
   }
 }

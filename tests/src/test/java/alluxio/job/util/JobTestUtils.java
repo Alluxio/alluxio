@@ -56,6 +56,43 @@ public final class JobTestUtils {
   public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
       final Set<Status> statuses) throws InterruptedException, TimeoutException {
     final AtomicReference<JobInfo> singleton = new AtomicReference<>();
+    final AtomicReference<String> jobStatus = new AtomicReference<>();
+    try {
+      CommonUtils.waitFor(
+          String.format("job %d to be one of status %s", jobId,
+              Arrays.toString(statuses.toArray())),
+          () -> {
+            JobInfo info;
+            try {
+              info = jobMaster.getStatus(jobId);
+              jobStatus.set(info.toString());
+              if (statuses.contains(info.getStatus())) {
+                singleton.set(info);
+              }
+              return statuses.contains(info.getStatus());
+            } catch (JobDoesNotExistException e) {
+              throw Throwables.propagate(e);
+            }
+          }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
+    } catch (TimeoutException e) {
+      throw new TimeoutException(String.format("%s, %s", e.getMessage(), jobStatus.toString()));
+    }
+
+    return singleton.get();
+  }
+
+  /**
+   * Waits for the job with the given job ID to be in the one of given states in provided timeout.
+   *
+   * @param jobMaster the job master running the job
+   * @param jobId the ID of the job
+   * @param statuses set of statuses to wait for
+   * @param timeout the timeout for the wait period
+   * @return the status of the job waited for
+   */
+  public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
+      final Set<Status> statuses, int timeout) throws InterruptedException, TimeoutException {
+    final AtomicReference<JobInfo> singleton = new AtomicReference<>();
     CommonUtils.waitFor(
         String.format("job %d to be one of status %s", jobId, Arrays.toString(statuses.toArray())),
         () -> {
@@ -69,7 +106,7 @@ public final class JobTestUtils {
           } catch (JobDoesNotExistException e) {
             throw Throwables.propagate(e);
           }
-        }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
+        }, WaitForOptions.defaults().setTimeoutMs(timeout * Constants.SECOND_MS));
     return singleton.get();
   }
 
