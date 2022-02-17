@@ -16,27 +16,18 @@ import jnr.ffi.Runtime;
 
 import java.nio.ByteBuffer;
 
+/** Maps to struct fuse_file_info in /usr/include/fuse/fuse_common.h */
 public class Fuse2FuseFileInfo extends FuseFileInfo {
-  public final NumberField fh_old;
-  //  public final Padding direct_io;
-  //  public final Padding keep_cache;
-  //  public final Padding flush;
-  //  public final Padding nonseekable;
-  //  public final Padding flock_release;
-  public final Padding padding;
-  public final u_int64_t lock_owner;
+
+  // unused fields are omitted
 
   public Fuse2FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
     super(runtime, buffer);
+
     this.flags = new Signed32();
-    this.fh_old = new UnsignedLong();
-//      this.direct_io = new Padding(this, NativeType.UCHAR, 1);
-//      this.keep_cache = new Padding(this, NativeType.UCHAR, 1);
-//      this.flush = new Padding(this, NativeType.UCHAR, 1);
-//      this.nonseekable = new Padding(this, NativeType.UCHAR, 1);
-//      this.flock_release = new Padding(this, NativeType.UCHAR, 1);
-    this.padding = new Padding(NativeType.UCHAR, 4);
+    new UnsignedLong(); // fh_old
+    new Padding(NativeType.UCHAR, 4); // unused flags and paddings
     this.fh = new u_int64_t();
-    this.lock_owner = new u_int64_t();
+    new u_int64_t(); // lock_owner
   }
 }

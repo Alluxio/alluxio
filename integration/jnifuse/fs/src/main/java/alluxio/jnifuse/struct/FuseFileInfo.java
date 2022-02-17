@@ -16,6 +16,7 @@ import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class FuseFileInfo extends Struct {
 
@@ -28,6 +29,7 @@ public class FuseFileInfo extends Struct {
   public FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
     super(runtime);
     this.buffer = buffer;
+    this.buffer.order(ByteOrder.LITTLE_ENDIAN);
   }
 
   public static FuseFileInfo of(ByteBuffer buffer) {
@@ -35,6 +37,7 @@ public class FuseFileInfo extends Struct {
     // select the actual FuseFileInfo by loaded version
     NativeLibraryLoader.LoadState state = NativeLibraryLoader.getLoadState();
     if (state == NativeLibraryLoader.LoadState.NOT_LOADED) {
+      // TODO which exception to throw?
       throw new RuntimeException("NativeLibraryLoader is not loaded");
     }
     FuseFileInfo fi = state == NativeLibraryLoader.LoadState.LOADED_2
