@@ -222,7 +222,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
               .build());
       long fid = mNextOpenFileId.getAndIncrement();
       mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
-      fi.fh().set(fid);
+      fi.fh.set(fid);
       mAuthPolicy.setUserGroupIfNeeded(uri);
     } catch (Throwable e) {
       LOG.error("Failed to create {}: ", path, e);
@@ -352,13 +352,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int open(String path, FuseFileInfo fi) {
-    final int flags = fi.flags().get();
+    final int flags = fi.flags.get();
     return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi),
         "Fuse.open", "path=%s,flags=0x%x", path, flags);
   }
 
   private int openInternal(String path, FuseFileInfo fi) {
-    final int flags = fi.flags().get();
+    final int flags = fi.flags.get();
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     OpenAction openAction = AlluxioFuseOpenUtils.getOpenAction(flags);
 
@@ -405,7 +405,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         || (openAction == OpenAction.READ_WRITE && status != null && !truncate);
 
     long fd = mNextOpenFileId.getAndIncrement();
-    fi.fh().set(fd);
+    fi.fh.set(fd);
     try {
       if (status != null && truncate) {
         // Attention: according to POSIX standard
@@ -446,11 +446,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final int sz = (int) size;
     int nread = 0;
     int rd = 0;
-    final long fd = fi.fh().get();
+    final long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.get(fd);
       if (is == null) {
-        final int flags = fi.flags().get();
+        final int flags = fi.flags.get();
         if (AlluxioFuseOpenUtils.getOpenAction(flags) == OpenAction.READ_WRITE) {
           LOG.error(String.format("Alluxio only supports read-only or write-only. "
               + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
@@ -499,13 +499,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return ErrorCodes.EIO();
     }
     final int sz = (int) size;
-    final long fd = fi.fh().get();
+    final long fd = fi.fh.get();
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
       if (offset != 0) {
         LOG.error(String.format("Cannot write to offset %s for path %s with flags 0x%x."
             + "Output stream is not initiated.",
-            offset, path, fi.flags().get()));
+            offset, path, fi.flags.get()));
         return -ErrorCodes.EBADFD();
       }
       // Several cases may happen here
@@ -530,7 +530,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // otherwise cannot overwrite existing file
         LOG.error(String.format("Cannot overwrite existing file %s "
             + "without O_TRUNC flag or fuse.truncate(size=0), flag 0x%x",
-            path, fi.flags().get()));
+            path, fi.flags.get()));
         return -ErrorCodes.EEXIST();
       }
 
@@ -583,7 +583,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int flushInternal(String path, FuseFileInfo fi) {
-    final long fd = fi.fh().get();
+    final long fd = fi.fh.get();
 
     FileInStream is = mOpenFileEntries.get(fd);
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
@@ -615,7 +615,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int releaseInternal(String path, FuseFileInfo fi) {
-    long fd = fi.fh().get();
+    long fd = fi.fh.get();
     try {
       FileInStream is = mOpenFileEntries.remove(fd);
       CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);

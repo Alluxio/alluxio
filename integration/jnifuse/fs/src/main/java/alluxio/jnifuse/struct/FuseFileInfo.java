@@ -16,17 +16,21 @@ import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
-public interface FuseFileInfo {
+public class FuseFileInfo extends Struct {
 
-  Struct.u_int64_t fh();
+  public u_int64_t fh;
 
-  Struct.Signed32 flags();
+  public Signed32 flags;
 
-  void useMemory(jnr.ffi.Pointer address);
+  public ByteBuffer buffer;
 
-  static FuseFileInfo of(ByteBuffer buffer) {
+  public FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
+    super(runtime);
+    this.buffer = buffer;
+  }
+
+  public static FuseFileInfo of(ByteBuffer buffer) {
     Runtime runtime = Runtime.getSystemRuntime();
     // select the actual FuseFileInfo by loaded version
     NativeLibraryLoader.LoadState state = NativeLibraryLoader.getLoadState();

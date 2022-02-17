@@ -12,18 +12,11 @@
 package alluxio.jnifuse.struct;
 
 import jnr.ffi.NativeType;
-import jnr.ffi.Runtime;
-import jnr.ffi.Struct;
-import jnr.posix.util.Platform;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class Fuse3FuseFileInfo extends Struct implements FuseFileInfo {
-
-  private ByteBuffer buffer;
-
-  private final Signed32 flags;
+public class Fuse3FuseFileInfo extends FuseFileInfo {
 
 //  private final Padding writepage;
 //
@@ -42,14 +35,12 @@ public class Fuse3FuseFileInfo extends Struct implements FuseFileInfo {
 //  private final Padding padding;
 //  private final Padding padding2;
 
-  private final u_int64_t fh;
-
 //  private final u_int64_t lock_owner;
 
 //  private final u_int32_t poll_events;
 
   protected Fuse3FuseFileInfo(jnr.ffi.Runtime runtime, ByteBuffer buffer) {
-    super(runtime);
+    super(runtime, buffer);
     // TODO Windows support
     flags = new Signed32();
     // TODO map each bitfield. total length is 64bit
@@ -70,15 +61,4 @@ public class Fuse3FuseFileInfo extends Struct implements FuseFileInfo {
     this.buffer = buffer;
     this.buffer.order(ByteOrder.LITTLE_ENDIAN);
   }
-
-  @Override
-  public u_int64_t fh() {
-    return this.fh;
-  }
-
-  @Override
-  public Signed32 flags() {
-    return this.flags;
-  }
-
 }

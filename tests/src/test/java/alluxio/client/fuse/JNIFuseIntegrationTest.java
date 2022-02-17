@@ -75,7 +75,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo fuseFileInfo = info.getFuseFileInfo();
 
       // cannot open non-existing file for read
-      fuseFileInfo.flags().set(OpenFlags.O_RDONLY.intValue());
+      fuseFileInfo.flags.set(OpenFlags.O_RDONLY.intValue());
       Assert.assertNotEquals(0, mFuseFileSystem.open(testFile, fuseFileInfo));
 
       // open existing file for read
@@ -92,7 +92,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     String testFile = "/openWriteNonExisting";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
-      info.flags().set(OpenFlags.O_WRONLY.intValue());
+      info.flags.set(OpenFlags.O_WRONLY.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
       try {
@@ -114,7 +114,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN);
 
-      info.flags().set(OpenFlags.O_WRONLY.intValue());
+      info.flags.set(OpenFlags.O_WRONLY.intValue());
       try {
         Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
@@ -136,7 +136,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN / 2);
 
-      info.flags().set(OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue());
+      info.flags.set(OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue());
       try {
         Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
@@ -159,7 +159,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN / 2);
 
-      info.flags().set(OpenFlags.O_WRONLY.intValue());
+      info.flags.set(OpenFlags.O_WRONLY.intValue());
       try {
         Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
@@ -180,7 +180,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     String testFile = "/openReadWriteNonExistingFile";
     try (CloseableFuseFileInfo closeableFuseFileInfo = new CloseableFuseFileInfo()) {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
-      info.flags().set(OpenFlags.O_RDWR.intValue());
+      info.flags.set(OpenFlags.O_RDWR.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
@@ -204,7 +204,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN);
 
-      info.flags().set(OpenFlags.O_RDWR.intValue());
+      info.flags.set(OpenFlags.O_RDWR.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
@@ -228,7 +228,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN / 2);
 
-      info.flags().set(OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue());
+      info.flags.set(OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
@@ -253,7 +253,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FuseFileInfo info = closeableFuseFileInfo.getFuseFileInfo();
       createTestFile(testFile, info, FILE_LEN / 2);
 
-      info.flags().set(OpenFlags.O_RDWR.intValue());
+      info.flags.set(OpenFlags.O_RDWR.intValue());
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         // read-only first
@@ -277,7 +277,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   private void createTestFile(String testFile, FuseFileInfo info, int fileLen) {
-    info.flags().set(OpenFlags.O_WRONLY.intValue());
+    info.flags.set(OpenFlags.O_WRONLY.intValue());
     Assert.assertEquals(0, mFuseFileSystem.create(testFile, 100644, info));
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(fileLen);
     try {
@@ -288,7 +288,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   private void readAndValidateTestFile(String testFile, FuseFileInfo info, int fileLen) {
-    info.flags().set(OpenFlags.O_RDONLY.intValue());
+    info.flags.set(OpenFlags.O_RDONLY.intValue());
     Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
     try {
       ByteBuffer buffer = ByteBuffer.wrap(new byte[fileLen]);
