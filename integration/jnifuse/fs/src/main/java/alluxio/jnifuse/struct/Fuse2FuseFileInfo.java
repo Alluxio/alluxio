@@ -17,7 +17,6 @@ import jnr.ffi.Runtime;
 import java.nio.ByteBuffer;
 
 public class Fuse2FuseFileInfo extends FuseFileInfo {
-  public final Signed32 flags;
   public final NumberField fh_old;
   //  public final Padding direct_io;
   //  public final Padding keep_cache;
@@ -25,7 +24,6 @@ public class Fuse2FuseFileInfo extends FuseFileInfo {
   //  public final Padding nonseekable;
   //  public final Padding flock_release;
   public final Padding padding;
-  public final u_int64_t fh;
   public final u_int64_t lock_owner;
 
   public Fuse2FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
