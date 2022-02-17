@@ -80,7 +80,7 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
   const char *fn = env->GetStringUTFChars(name, 0);
 
 #if FUSE_USE_VERSION >= 30
-  int ret = filler((void *)bufaddr, fn, NULL, 0, (fuse_fill_dir_flags)0);
+  int ret = filler((void *)bufaddr, fn, NULL, 0, fuse_fill_dir_flags::FUSE_FILL_DIR_PLUS);
 #else
   int ret = filler((void *)bufaddr, fn, NULL, 0);
 #endif
