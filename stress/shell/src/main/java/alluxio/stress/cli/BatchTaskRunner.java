@@ -30,6 +30,7 @@ public class BatchTaskRunner {
       return;
     }
     BatchTask task = new MasterBatchTask();
-    task.run(args);
+    StressMasterBench bench = new StressMasterBench();
+    task.run(args, bench);
   }
 }

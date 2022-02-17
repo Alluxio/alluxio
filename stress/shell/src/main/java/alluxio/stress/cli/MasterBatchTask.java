@@ -36,7 +36,7 @@ public class MasterBatchTask extends BatchTask {
   private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
 
   @Override
-  public void run(String[] args) {
+  public void run(String[] args, Benchmark bench) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {
@@ -48,7 +48,6 @@ public class MasterBatchTask extends BatchTask {
     }
 
     List<String[]> command = getCommand();
-    StressMasterBench bench = new StressMasterBench();
     for (String[] arg : command) {
       System.out.println("-----------------------------------------------------");
       System.out.format("Now executing command : %s on MasterStressBench...%n", arg[1]);
