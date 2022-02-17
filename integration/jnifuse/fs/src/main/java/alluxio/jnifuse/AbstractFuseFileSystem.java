@@ -18,6 +18,7 @@ import alluxio.jnifuse.struct.Statvfs;
 import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.jnifuse.utils.SecurityUtils;
 
+import alluxio.jnifuse.utils.VersionPreference;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Abstract class for other File System to extend and integrate with Fuse.
  */
 public abstract class AbstractFuseFileSystem implements FuseFileSystem {
+
+  static {
+    LibFuse.loadLibrary(VersionPreference.NO);
+  }
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
 
