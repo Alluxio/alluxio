@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -73,79 +74,97 @@ public class NativeLibraryLoader {
    * Try run the loading function.
    *
    * @param run the function to load library
-   * @return true if the loading function completes successfully; false if UnsatisfiedLinkError is encountered.
+   * @return the error if UnsatisfiedLinkError is encountered, empty if it completes successfully.
    * @throws IOException if a filesystem operation fails
    */
-  private boolean tryLoad(Load run) throws IOException {
+  private Optional<UnsatisfiedLinkError> tryLoad(Load run) throws IOException {
     try {
       run.load();
-      return true;
+      return Optional.empty();
     } catch (final UnsatisfiedLinkError ule) {
-      return false;
+      return Optional.of(ule);
     }
   }
 
   /**
    * Load a version of libjnifuse.
-   *
+   * <p>
    * Firstly attempts to load the library from <i>java.library.path</i>,
    * if that fails then it falls back to extracting
    * the library from the classpath.
    * {@link NativeLibraryLoader#loadLibraryFromJar(String, String, String)}
    */
-  private boolean load(
+  private Optional<UnsatisfiedLinkError> load(
       final String sharedLibraryName, final String jniLibraryName,
       final String sharedLibraryFileName, final String jniLibraryFileName,
       final String tmpDir) throws IOException {
-    return tryLoad(() -> {
+
+    Optional<UnsatisfiedLinkError> err = tryLoad(() -> {
       System.loadLibrary(sharedLibraryName);
       LOG.info("Loaded {} by System.loadLibrary.", sharedLibraryName);
-    }) || tryLoad(() -> {
+    });
+
+    if (!err.isPresent()) {
+      return err;
+    }
+
+    err = tryLoad(() -> {
       System.loadLibrary(jniLibraryName);
       LOG.info("Loaded {} by System.loadLibrary.", jniLibraryName);
-    }) || tryLoad(() -> {
-      loadLibraryFromJar(sharedLibraryFileName, jniLibraryFileName, tmpDir);
     });
+
+    if (!err.isPresent()) {
+      return err;
+    }
+
+    return tryLoad(() -> loadLibraryFromJar(sharedLibraryFileName, jniLibraryFileName, tmpDir));
   }
 
-  private boolean load2(final String tmpDir) throws IOException {
+  private Optional<UnsatisfiedLinkError> load2(final String tmpDir) throws IOException {
     final String SHARED_LIBRARY_NAME =
-            Environment.getSharedLibraryName("jnifuse");
+        Environment.getSharedLibraryName("jnifuse");
     final String SHARED_LIBRARY_FILE_NAME =
-            Environment.getSharedLibraryFileName("jnifuse");
+        Environment.getSharedLibraryFileName("jnifuse");
     final String JNI_LIBRARY_NAME =
-            Environment.getJniLibraryName("jnifuse");
+        Environment.getJniLibraryName("jnifuse");
     final String JNI_LIBRARY_FILE_NAME =
-            Environment.getJniLibraryFileName("jnifuse");
+        Environment.getJniLibraryFileName("jnifuse");
 
-    if (load(SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME, tmpDir)) {
+    Optional<UnsatisfiedLinkError> err = load(
+        SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME,
+        tmpDir
+    );
+
+    if (!err.isPresent()) {
       LOG.info("Loaded libjnifuse with libfuse version 2.");
       setLoadState(LoadState.LOADED_2);
-      return true;
-    } else {
-      return false;
     }
+
+    return err;
   }
 
-  private boolean load3(final String tmpDir) throws IOException {
+  private Optional<UnsatisfiedLinkError> load3(final String tmpDir) throws IOException {
     final String SHARED_LIBRARY_NAME =
-            Environment.getSharedLibraryName("jnifuse3");
+        Environment.getSharedLibraryName("jnifuse3");
     final String SHARED_LIBRARY_FILE_NAME =
-            Environment.getSharedLibraryFileName("jnifuse3");
+        Environment.getSharedLibraryFileName("jnifuse3");
     final String JNI_LIBRARY_NAME =
-            Environment.getJniLibraryName("jnifuse3");
+        Environment.getJniLibraryName("jnifuse3");
     final String JNI_LIBRARY_FILE_NAME =
-            Environment.getJniLibraryFileName("jnifuse3");
+        Environment.getJniLibraryFileName("jnifuse3");
 
-    if (load(SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME, tmpDir)) {
+    Optional<UnsatisfiedLinkError> err = load(
+        SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME,
+        tmpDir
+    );
+
+    if (!err.isPresent()) {
       LOG.info("Loaded libjnifuse with libfuse version 3.");
       setLoadState(LoadState.LOADED_3);
-      return true;
-    } else {
-      return false;
     }
-  }
 
+    return err;
+  }
 
 
   /**
@@ -162,22 +181,32 @@ public class NativeLibraryLoader {
    */
   public synchronized void loadLibrary(final VersionPreference preference, final String tmpDir) throws IOException {
 
+    Optional<UnsatisfiedLinkError> err;
+
     if (preference == VersionPreference.VERSION_2) {
-      load2(tmpDir);
+      err = load2(tmpDir);
+      if (err.isPresent()) {
+        throw err.get();
+      }
       return;
     }
     if (preference == VersionPreference.VERSION_3) {
-      load3(tmpDir);
+      err = load3(tmpDir);
+      if (err.isPresent()) {
+        throw err.get();
+      }
       return;
     }
 
     // load libfuse2 first
-    if (load2(tmpDir)) {
+    err = load2(tmpDir);
+    if (!err.isPresent()) {
       return;
     }
 
     // if libfuse2 failed, load libfuse3
-    if (load3(tmpDir)) {
+    err = load3(tmpDir);
+    if (!err.isPresent()) {
       return;
     }
 
