@@ -51,7 +51,7 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
 
   protected T mMaxThroughputResult;
 
-  protected int mTargetThroughput = 1000;
+  protected int mInitialThroughput = -1;
 
   /**
    * Construct parameters with user command-line args.
@@ -114,7 +114,7 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
     int lower = 0;
     int upper = Integer.MAX_VALUE;
     // use the input target throughput as the starting point
-    int next = mTargetThroughput;
+    int next = mInitialThroughput;
     int best = 0;
     while (true) {
       int perWorkerThroughput = next / numWorkers;

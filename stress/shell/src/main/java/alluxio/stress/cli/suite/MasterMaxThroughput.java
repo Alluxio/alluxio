@@ -70,7 +70,7 @@ public class MasterMaxThroughput extends
   public void prepare() throws Exception {
     mMaxThroughputResult = new MasterMaxThroughputSummary();
     mMaxThroughputResult.setParameters(mParameters);
-    mTargetThroughput = mParameters.mTargetThroughput;
+    mInitialThroughput = mParameters.mTargetThroughput;
     if (!mParameters.mSkipPrepare) {
       prepareBeforeAllTests(mBaseArgs);
     }

@@ -68,6 +68,6 @@ public class JobServiceMaxThroughput extends
   public void prepare() {
     mMaxThroughputResult = new JobServiceMaxThroughputSummary();
     mMaxThroughputResult.setParameters(mParameters);
-    mTargetThroughput = mParameters.mTargetThroughput;
+    mInitialThroughput = mParameters.mTargetThroughput;
   }
 }
