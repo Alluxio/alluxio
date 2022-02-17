@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -29,14 +30,12 @@ public class MasterBatchTask extends BatchTask {
   private static final Logger LOG = LoggerFactory.getLogger(MasterBatchTask.class);
   // Target throughput is set to a huge number to reach the maximum throughput of the task.
   private static final int TARGET_THROUGHPUT  = 1_000_000;
-  private static final String WARMUP = "0s";
-  private static final String CLUSTER = "--cluster";
 
   @ParametersDelegate
   private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
 
   @Override
-  public void run(String[] args, Benchmark bench) {
+  public void run(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {
@@ -47,12 +46,19 @@ public class MasterBatchTask extends BatchTask {
       throw e;
     }
 
+    if (mParameter.mWriteType.equals("ALL")) {
+      System.out.format("Parameter write-type ALL is not supported in batch task %s",
+          mParameter.mTaskName);
+      return;
+    }
+
     List<String[]> command = getCommand();
     for (String[] arg : command) {
       System.out.println("-----------------------------------------------------");
       System.out.format("Now executing command : %s on MasterStressBench...%n", arg[1]);
       // error on individual task will not end the whole batch task
       try {
+        StressMasterBench bench = new StressMasterBench();
         String jsonResult = bench.run(arg);
         System.out.println("Task finished successfully. The result is following :");
         System.out.println(jsonResult);
@@ -66,25 +72,36 @@ public class MasterBatchTask extends BatchTask {
   }
 
   private List<String[]> getCommand() {
-    List<String[]> commands = new ArrayList<>();
+    List<String[]> commandList = new ArrayList<>();
 
     if (mParameter.mTaskName.equals("MasterComprehensiveFileBatchTask")) {
       String[] operations = {"CreateFile", "ListDir", "ListDirLocated", "GetBlockLocations",
           "GetFileStatus", "OpenFile", "DeleteFile"};
       for (String op : operations) {
-        commands.add(new String[] {
+        List<String> command = new ArrayList<>(Arrays.asList(
             "--operation", op,
             "--base", mParameter.mBasePath,
             "--threads", String.valueOf(mParameter.mThreads),
-            "--stop-count", String.valueOf(mParameter.mNumFiles),
+            "--stop-count", String.valueOf(mParameter.mStopCount),
             "--target-throughput", String.valueOf(TARGET_THROUGHPUT),
-            "--warmup", WARMUP,
-            "--create-file-size", mParameter.mFileSize,
-            CLUSTER,
-        });
+            "--warmup", mParameter.mWarmup,
+            "--create-file-size", mParameter.mCreateFileSize,
+            "--write-type", mParameter.mWriteType,
+            "--clients", String.valueOf(mParameter.mClients),
+            "--client-type", mParameter.mClientType.toString(),
+            "--read-type", mParameter.mReadType.toString()
+        ));
+        if (mParameter.mCluster) {
+          command.add("--cluster");
+        }
+        if (mParameter.mInProcess) {
+          command.add("--in-process");
+        }
+
+        commandList.add(command.toArray(new String[command.size()]));
       }
     }
-    return commands;
+    return commandList;
   }
 
   private String getDescription() {
@@ -98,7 +115,7 @@ public class MasterBatchTask extends BatchTask {
             + " alluxio:///stress-master-base",
         "$ bin/alluxio runClass alluxio.stress.cli.BatchTaskRunner"
             + " MasterComprehensiveFileBatchTask --num-files 1000 --threads 10 --create-file-size"
-            + " 1k --base alluxio:///stress-master-base",
+            + " 1k --base alluxio:///stress-master-base --warmup 0s",
         ""
     ));
   }
