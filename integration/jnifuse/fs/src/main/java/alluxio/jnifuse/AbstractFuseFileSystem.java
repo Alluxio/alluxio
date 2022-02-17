@@ -15,6 +15,7 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.jnifuse.utils.SecurityUtils;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -36,10 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFuseFileSystem.class);
-
-  static {
-    LibFuse.loadLibrary();
-  }
 
   // timeout to mount a JNI fuse file system in ms
   private static final int MOUNT_TIMEOUT_MS = 2000;

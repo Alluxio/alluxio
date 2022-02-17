@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -24,6 +25,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -62,6 +64,22 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Get the libjnifuse version preference set by user.
+   * @param conf the configuration object
+   * @return the version preference
+   */
+  public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
+    final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_VERSION);
+    if (val == 2) {
+      return VersionPreference.VERSION_2;
+    } else if (val == 3) {
+      return VersionPreference.VERSION_3;
+    } else {
+      return VersionPreference.NO;
+    }
+  }
 
   /**
    * Retrieves the uid of the given user.

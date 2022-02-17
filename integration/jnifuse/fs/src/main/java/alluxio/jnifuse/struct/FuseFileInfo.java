@@ -11,6 +11,7 @@
 
 package alluxio.jnifuse.struct;
 
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.Struct;
 
@@ -23,9 +24,18 @@ public interface FuseFileInfo {
 
   Struct.Signed32 flags();
 
+  void useMemory(jnr.ffi.Pointer address);
+
   static FuseFileInfo of(ByteBuffer buffer) {
     Runtime runtime = Runtime.getSystemRuntime();
-    Fuse3FuseFileInfo fi = new Fuse3FuseFileInfo(runtime, buffer);
+    // select the actual FuseFileInfo by loaded version
+    NativeLibraryLoader.LoadState state = NativeLibraryLoader.getLoadState();
+    if (state == NativeLibraryLoader.LoadState.NOT_LOADED) {
+      throw new RuntimeException("NativeLibraryLoader is not loaded");
+    }
+    FuseFileInfo fi = state == NativeLibraryLoader.LoadState.LOADED_2
+        ? new Fuse2FuseFileInfo(runtime, buffer)
+        : new Fuse3FuseFileInfo(runtime, buffer);
     fi.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
     return fi;
   }

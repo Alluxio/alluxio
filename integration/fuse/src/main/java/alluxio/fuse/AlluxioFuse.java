@@ -20,6 +20,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.jnifuse.FuseException;
+import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
@@ -117,6 +118,9 @@ public final class AlluxioFuse {
           + "Proceed with local configuration for FUSE: {}", e.toString());
     }
     conf = fsContext.getClusterConf();
+
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+
     final FuseMountOptions opts = parseOptions(args, conf);
     if (opts == null) {
       System.exit(1);

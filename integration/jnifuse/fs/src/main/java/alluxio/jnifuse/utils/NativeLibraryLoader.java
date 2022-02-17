@@ -19,42 +19,36 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This class is used to load the shared library from within the jar.
  * The shared library is extracted to a temp folder and loaded from there.
  */
 public class NativeLibraryLoader {
+
+  public enum LoadState {
+    NOT_LOADED,
+    LOADED_2,
+    LOADED_3,
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(NativeLibraryLoader.class);
   //singleton
   private static final NativeLibraryLoader INSTANCE = new NativeLibraryLoader();
-  private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
-
-  private static final String SHARED_LIBRARY_NAME =
-      Environment.getSharedLibraryName("jnifuse");
-  private static final String SHARED_LIBRARY_FILE_NAME =
-      Environment.getSharedLibraryFileName("jnifuse");
-  private static final String JNI_LIBRARY_NAME =
-      Environment.getJniLibraryName("jnifuse");
-  private static final String JNI_LIBRARY_FILE_NAME =
-      Environment.getJniLibraryFileName("jnifuse");
-
-  private static final String FUSE3_SHARED_LIBRARY_NAME =
-      Environment.getSharedLibraryName("jnifuse3");
-  private static final String FUSE3_SHARED_LIBRARY_FILE_NAME =
-      Environment.getSharedLibraryFileName("jnifuse3");
-  private static final String FUSE3_JNI_LIBRARY_NAME =
-      Environment.getJniLibraryName("jnifuse3");
-  private static final String FUSE3_JNI_LIBRARY_FILE_NAME =
-      Environment.getJniLibraryFileName("jnifuse3");
+  private static final AtomicReference<LoadState> LOAD_STATE = new AtomicReference<>(LoadState.NOT_LOADED);
 
   private static final String TEMP_FILE_PREFIX = "libjnifuse";
   private static final String TEMP_FILE_SUFFIX =
       Environment.getJniLibraryExtension();
 
-  private static void setInitialized(boolean initialized) {
-    INITIALIZED.set(initialized);
+
+  public static LoadState getLoadState() {
+    return LOAD_STATE.get();
+  }
+
+  private static void setLoadState(LoadState loadState) {
+    LOAD_STATE.set(loadState);
   }
 
   /**
@@ -114,6 +108,46 @@ public class NativeLibraryLoader {
     });
   }
 
+  private boolean load2(final String tmpDir) throws IOException {
+    final String SHARED_LIBRARY_NAME =
+            Environment.getSharedLibraryName("jnifuse");
+    final String SHARED_LIBRARY_FILE_NAME =
+            Environment.getSharedLibraryFileName("jnifuse");
+    final String JNI_LIBRARY_NAME =
+            Environment.getJniLibraryName("jnifuse");
+    final String JNI_LIBRARY_FILE_NAME =
+            Environment.getJniLibraryFileName("jnifuse");
+
+    if (load(SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME, tmpDir)) {
+      LOG.info("Loaded libjnifuse with libfuse version 2.");
+      setLoadState(LoadState.LOADED_2);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private boolean load3(final String tmpDir) throws IOException {
+    final String SHARED_LIBRARY_NAME =
+            Environment.getSharedLibraryName("jnifuse3");
+    final String SHARED_LIBRARY_FILE_NAME =
+            Environment.getSharedLibraryFileName("jnifuse3");
+    final String JNI_LIBRARY_NAME =
+            Environment.getJniLibraryName("jnifuse3");
+    final String JNI_LIBRARY_FILE_NAME =
+            Environment.getJniLibraryFileName("jnifuse3");
+
+    if (load(SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME, tmpDir)) {
+      LOG.info("Loaded libjnifuse with libfuse version 3.");
+      setLoadState(LoadState.LOADED_3);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+
+
   /**
    * Load the library.
    *
@@ -126,18 +160,24 @@ public class NativeLibraryLoader {
    *               on exit.
    * @throws IOException if a filesystem operation fails
    */
-  public synchronized void loadLibrary(final String tmpDir) throws IOException {
-    // TODO manual configuration on which version is loaded
+  public synchronized void loadLibrary(final VersionPreference preference, final String tmpDir) throws IOException {
+
+    if (preference == VersionPreference.VERSION_2) {
+      load2(tmpDir);
+      return;
+    }
+    if (preference == VersionPreference.VERSION_3) {
+      load3(tmpDir);
+      return;
+    }
 
     // load libfuse2 first
-    if (load(SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME, tmpDir)) {
-      LOG.info("Loaded libjnifuse with libfuse version 2.");
+    if (load2(tmpDir)) {
       return;
     }
 
     // if libfuse2 failed, load libfuse3
-    if (load(FUSE3_SHARED_LIBRARY_NAME, FUSE3_JNI_LIBRARY_NAME, FUSE3_SHARED_LIBRARY_FILE_NAME, FUSE3_JNI_LIBRARY_FILE_NAME, tmpDir)) {
-      LOG.info("Loaded libjnifuse with libfuse version 3.");
+    if (load3(tmpDir)) {
       return;
     }
 
@@ -165,10 +205,9 @@ public class NativeLibraryLoader {
    */
   void loadLibraryFromJar(final String sharedLibraryFileName, final String jniLibraryFileName, final String tmpDir)
       throws IOException {
-    if (!INITIALIZED.get()) {
+    if (LOAD_STATE.get() == LoadState.NOT_LOADED) {
       String libPath = loadLibraryFromJarToTemp(sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
       System.load(libPath);
-      setInitialized(true);
       LOG.info("Loaded lib by jar from path {}.", libPath);
     }
   }

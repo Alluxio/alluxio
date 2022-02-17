@@ -81,12 +81,4 @@ public class Fuse3FuseFileInfo extends Struct implements FuseFileInfo {
     return this.flags;
   }
 
-
-  public static Fuse3FuseFileInfo of(ByteBuffer buffer) {
-    Runtime runtime = Runtime.getSystemRuntime();
-    Fuse3FuseFileInfo fi = new Fuse3FuseFileInfo(runtime, buffer);
-    fi.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
-    return fi;
-  }
-
 }

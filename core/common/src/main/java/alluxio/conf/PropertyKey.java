@@ -5434,6 +5434,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port Alluxio FUSE web UI runs on.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_JNIFUSE_VERSION =
+      new Builder(Name.FUSE_JNIFUSE_VERSION)
+          .setDefaultValue(0)
+          .setDescription("The version of libjnifuse. "
+              + "Set 2 to force load libjnifuse with libfuse2, 3 to libfuse3, and "
+              + "other value to load libfuse2 first, libfuse3 if libfuse2 failed")
+          .setScope(Scope.ALL)
+          .build();
 
   //
   // Security related properties
@@ -7141,6 +7149,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
+    public static final String FUSE_JNIFUSE_VERSION = "alluxio.fuse.jnifuse.version";
 
     //
     // Security related properties
