@@ -303,6 +303,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LOST_BLOCK_COUNT.getName(),
         this::getLostBlocksCount);
+    if (ServerConfiguration.global().getBoolean(
+        PropertyKey.MASTER_COUNT_TO_REMOVE_BLOCKS_ENABLE)) {
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TO_REMOVE_BLOCK_COUNT.getName(),
+          this::getToRemoveBlockCount);
+    }
   }
 
   /**
@@ -1362,6 +1367,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public int getLostBlocksCount() {
     return mLostBlocks.size();
+  }
+
+  private int getToRemoveBlockCount() {
+    return mWorkers.stream().map(MasterWorkerInfo::getToRemoveBlockCount).reduce(0, Integer::sum);
   }
 
   /**
