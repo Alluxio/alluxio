@@ -28,7 +28,6 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.master.StateLockOptions;
-import alluxio.master.journal.raft.RaftJournal;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
 
