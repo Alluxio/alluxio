@@ -198,7 +198,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       return;
     }
 
-    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+    if (FileSystemClientType.ALLUXIO_HDFS == mParameters.mClientType) {
       fs.delete(basePath, true);
       if (fs.exists(basePath)) {
         throw new UnexpectedAlluxioException(String.format("Unable to delete the files"
