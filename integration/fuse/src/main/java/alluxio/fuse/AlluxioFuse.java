@@ -119,8 +119,6 @@ public final class AlluxioFuse {
     }
     conf = fsContext.getClusterConf();
 
-    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
-
     final FuseMountOptions opts = parseOptions(args, conf);
     if (opts == null) {
       System.exit(1);
@@ -157,6 +155,9 @@ public final class AlluxioFuse {
       FuseMountOptions opts, boolean blocking) throws IOException {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
+
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+
     try {
       String mountPoint = opts.getMountPoint();
       if (!FileUtils.exists(mountPoint)) {
