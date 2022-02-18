@@ -71,7 +71,7 @@ public final class AlluxioFuseUtils {
    * @return the version preference
    */
   public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
-    final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_VERSION);
+    final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
     if (val == 2) {
       return VersionPreference.VERSION_2;
     } else if (val == 3) {
