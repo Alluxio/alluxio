@@ -276,16 +276,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
+      long uid;
+      long gid;
       if (mIsUserGroupTranslation) {
         // Translate the file owner/group to unix uid/gid
         // Show as uid==-1 (nobody) if owner does not exist in unix
         // Show as gid==-1 (nogroup) if group does not exist in unix
-        stat.st_uid.set(mUidCache.get(status.getOwner()));
-        stat.st_gid.set(mGidCache.get(status.getGroup()));
+        uid = mUidCache.get(status.getOwner());
+        gid = mGidCache.get(status.getGroup());
       } else {
-        stat.st_uid.set(SystemUserGroupAuthPolicy.DEFAULT_UID);
-        stat.st_gid.set(SystemUserGroupAuthPolicy.DEFAULT_GID);
+        uid = SystemUserGroupAuthPolicy.DEFAULT_UID;
+        gid = SystemUserGroupAuthPolicy.DEFAULT_GID;
       }
+      stat.st_uid.set(uid);
+      stat.st_gid.set(gid);
 
       int mode = status.getMode();
       if (status.isFolder()) {
@@ -295,6 +299,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
+      
+      if (path.equals("/")) {
+        LOG.info("Getattr of path / receives size = {}, ctime_sec = {}, owner = {}, group = {}, mode = {}, is folder {}",
+            size, ctime_sec, uid, gid, mode, status.isFolder());
+      }
     } catch (FileDoesNotExistException | InvalidPathException e) {
       LOG.debug("Failed to get info of {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();

@@ -102,6 +102,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       if (res != 0) {
         throw new FuseException("Unable to mount FS, return code = " + res);
       }
+      LOG.info("Fuse mounted");
     } catch (Exception e) {
       mounted.set(false);
       throw new FuseException("Unable to mount FS", e);
