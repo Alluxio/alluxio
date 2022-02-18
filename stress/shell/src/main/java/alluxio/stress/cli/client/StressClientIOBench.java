@@ -24,7 +24,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
-import alluxio.stress.cli.Benchmark;
+import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
@@ -35,7 +35,6 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.beust.jcommander.ParametersDelegate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -62,11 +61,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node client IO stress test.
  */
-public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
+public class StressClientIOBench extends AbstractStressBench
+    <ClientIOTaskResult, ClientIOParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
-
-  @ParametersDelegate
-  private ClientIOParameters mParameters = new ClientIOParameters();
 
   /** Cached FS instances. */
   private FileSystem[] mCachedFs;
@@ -81,6 +79,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * Creates instance.
    */
   public StressClientIOBench() {
+    mParameters = new ClientIOParameters();
   }
 
   /**
@@ -97,6 +96,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
       throw new IllegalArgumentException(String.format(
@@ -117,7 +117,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       // set hdfs conf for preparation client
       Configuration hdfsConf = new Configuration();
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       // initialize the base, for only the non-distributed task (the cluster launching task)
@@ -143,6 +143,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
 
+    hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
+
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
       mCachedFs = new FileSystem[mParameters.mClients];
@@ -165,6 +167,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public ClientIOTaskResult runLocal() throws Exception {
     List<Integer> threadCounts = new ArrayList<>(mParameters.mThreads);
     threadCounts.sort(Comparator.comparingInt(i -> i));
@@ -186,6 +189,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     return taskResult;
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private BenchThread getBenchThread(BenchContext context, int index) {
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length], index);
@@ -195,6 +199,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         mCachedNativeFs[index % mCachedNativeFs.length], index);
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private ClientIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
@@ -341,6 +346,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     protected long mCurrentOffset;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected BenchThread(BenchContext context, int threadId) {
       mContext = context;
       mThreadId = threadId;
@@ -383,6 +389,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -435,6 +442,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected int applyOperation() throws IOException {
       if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {
@@ -532,6 +540,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected int applyOperation() throws IOException, AlluxioException {
       if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {

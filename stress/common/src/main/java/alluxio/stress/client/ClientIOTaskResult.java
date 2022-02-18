@@ -205,7 +205,10 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
     }
   }
 
-  private List<String> collectErrors() {
+  /**
+   * @return the list of errors in the result
+   */
+  public List<String> getErrors() {
     List<String> errors = new ArrayList<>();
     for (Map.Entry<Integer, ThreadCountResult> entry : mThreadCountResults.entrySet()) {
       // add all the errors for this thread count, with the thread count appended to prefix
@@ -297,7 +300,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
             for (ClientIOTaskResult summary : opSummaries) {
               String series = summary.mParameters.getDescription(fieldNames.getSecond());
               responseTimeGraph.addDataSeries(series, summary.getThroughputData());
-              responseTimeGraph.setErrors(series, summary.collectErrors());
+              responseTimeGraph.setErrors(series, summary.getErrors());
 
               summary.getNumSuccessData(series, numSuccessGraph);
 

@@ -215,9 +215,8 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
-    // TODO(jiacheng): close the iterator when we iterate the BlockStore for backup
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
-    return RocksUtils.createIterator(iterator,
+    return RocksUtils.createCloseableIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
   }
 

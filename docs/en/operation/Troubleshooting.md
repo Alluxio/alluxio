@@ -44,25 +44,53 @@ For more information about logging, please check out
 
 ## Alluxio remote debug
 
-Java remote debugging makes it easier to debug Alluxio at the source level without modifying any code. You
-will need to append the JVM remote debugging parameters and start a debugging server. There are several ways to append
-the remote debugging parameters; you can export the following configuration properties in shell or `alluxio-env.sh`:
+### Debugging Alluxio processes
 
-```bash
-export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
-export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6607"
-export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
+Java remote debugging makes it easier to debug Alluxio at the source level without modifying any code. You
+will need to set the JVM remote debugging parameters before starting the process. There are several ways to add
+the remote debugging parameters; you can export the following configuration properties in shell or `conf/alluxio-env.sh`:
+
+```shell
+# Java 5 through 8
+export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
+export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
+# Java 9 and up
+export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60001"
+export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60002"
 ```
 
-If you want to debug shell commands, you can add the `-debug` flag to start a debug server with the JVM debug
-parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`, such as `alluxio fs -debug ls /`.
+In general, you can use `ALLUXIO_<PROCESS>_ATTACH_OPTS` to specify how an Alluxio process should be attached to.
 
-`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the
-shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` to avoid unnecessary waiting time.
+`suspend={y | n}` will decide whether the JVM process waits until the debugger connects or not.
 
-After starting the master or worker, use Eclipse, IntelliJ IDEA, or another java IDE, create a new java remote configuration,
+`address` determines which port the Alluxio process will use to be attached to by a debugger. If left blank, it will
+choose an open port by itself.
+
+After completing this setup, learn how [to attach](#to-attach).
+
+### Debugging shell commands
+
+If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set the `ALLUXIO_USER_DEBUG_JAVA_OPTS` in
+`conf/alluxio-env.sh` as above:
+
+```shell
+# Java 5 through 8
+export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
+# Java 9 and up
+export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
+```
+
+After setting this parameter, you can add the `-debug` flag to start a debug server such as `bin/alluxio fs -debug ls /`.
+
+After completing this setup, learn how [to attach](#to-attach).
+
+### To attach
+
+There exists a [comprehensive tutorial on how to attach to and debug a Java process in IntelliJ](https://www.jetbrains.com/help/idea/attaching-to-local-process.html).
+
+Start the process or shell command of interest, then create a new java remote configuration,
 set the debug server's host and port, and start the debug session. If you set a breakpoint which can be reached, the IDE
-will enter debug mode and you can inspect the current context's variables, call stack, thread list, and expression
+will enter debug mode. You can inspect the current context's variables, call stack, thread list, and expression
 evaluation.
 
 ## Alluxio collectInfo command
@@ -313,7 +341,7 @@ See [Spark on Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}) for more
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
-```properties
+```
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
