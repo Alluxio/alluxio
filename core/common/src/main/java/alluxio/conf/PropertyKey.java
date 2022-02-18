@@ -5335,6 +5335,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
+      new Builder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
+          .setDefaultValue(0)
+          .setDescription("The version of libfuse used by libjnifuse. "
+              + "Set 2 to force use libfuse2, 3 to libfuse3, and "
+              + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_PERMISSION_CHECK_ENABLED =
       new Builder(Name.FUSE_PERMISSION_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -5433,14 +5441,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(49999)
           .setDescription("The port Alluxio FUSE web UI runs on.")
           .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
-      new Builder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
-          .setDefaultValue(0)
-          .setDescription("The version of libfuse used by libjnifuse. "
-              + "Set 2 to force use libfuse2, 3 to libfuse3, and "
-              + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
-          .setScope(Scope.ALL)
           .build();
 
   //
