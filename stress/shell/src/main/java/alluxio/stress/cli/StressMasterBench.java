@@ -188,6 +188,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     }
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private void deletePaths(FileSystem fs, Path basePath) throws Exception {
     // the base dir has sub directories per task id
     if (!fs.exists(basePath)) {
