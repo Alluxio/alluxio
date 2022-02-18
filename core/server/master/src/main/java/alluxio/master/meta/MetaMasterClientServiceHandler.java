@@ -28,6 +28,8 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.master.StateLockOptions;
+import alluxio.master.journal.raft.RaftJournal;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
@@ -123,6 +125,17 @@ public final class MetaMasterClientServiceHandler
               masterInfo.addAllZookeeperAddresses(
                   Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }
+            break;
+          case RAFT_ADDRESSES:
+            if (ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
+              masterInfo.addAllRaftAddress(
+                  Arrays.asList(ServerConfiguration.get(
+                      PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES).split(",")));
+            }
+            break;
+          case RAFT_JOURNAL:
+            masterInfo.setRaftJournal(mMetaMaster.getMasterContext().getJournalSystem()
+                instanceof RaftJournalSystem);
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);
