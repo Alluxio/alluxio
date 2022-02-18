@@ -7149,7 +7149,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
-    public static final String FUSE_JNIFUSE_LIBFUSE_VERSION = "alluxio.fuse.jnifuse.libfuse.version";
+    public static final String FUSE_JNIFUSE_LIBFUSE_VERSION =
+        "alluxio.fuse.jnifuse.libfuse.version";
 
     //
     // Security related properties
