@@ -33,7 +33,13 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   @Override
-  public void umountFuse(String mountPath) throws Exception {
+  public void beforeStop() throws Exception {
     // Fuse application is unmounted automatically when stopping the worker
+  }
+
+  @Override
+  public void afterStop() throws Exception {
+    // umount the mountpoint
+    umountFromShellIfMounted();
   }
 }

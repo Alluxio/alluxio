@@ -43,7 +43,7 @@ public abstract class AbstractMaster implements Master {
   private static final long SHUTDOWN_TIMEOUT_MS = 10L * Constants.SECOND_MS;
 
   /** A factory for creating executor services when they are needed. */
-  private ExecutorServiceFactory mExecutorServiceFactory;
+  private final ExecutorServiceFactory mExecutorServiceFactory;
   /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService;
   /** A handler to the journal for this master. */

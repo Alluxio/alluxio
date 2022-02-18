@@ -27,7 +27,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
-import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
 import alluxio.fuse.AlluxioFuseOpenUtils.OpenAction;
 import alluxio.cli.FuseShell;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -127,11 +126,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Map<Long, CreateFileEntry<FileOutStream>> mReleasingWriteEntries =
       new ConcurrentHashMap<>();
 
-  // To make test build
-  @VisibleForTesting
-  public static final long ID_NOT_SET_VALUE = -1;
-  @VisibleForTesting
-  public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
   /**
    * df command will treat -1 as an unknown value.
    */
@@ -176,8 +170,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         .build(new CacheLoader<String, Long>() {
           @Override
           public Long load(String userName) {
-            long uid = AlluxioFuseUtils.getUid(userName);
-            return uid == -1 ? SystemUserGroupAuthPolicy.DEFAULT_UID : uid;
+            return AlluxioFuseUtils.getUid(userName);
           }
         });
     mGidCache = CacheBuilder.newBuilder()
@@ -185,8 +178,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         .build(new CacheLoader<String, Long>() {
           @Override
           public Long load(String groupName) {
-            long gid = AlluxioFuseUtils.getGidFromGroupName(groupName);
-            return gid == -1 ? SystemUserGroupAuthPolicy.DEFAULT_GID : gid;
+            return AlluxioFuseUtils.getGidFromGroupName(groupName);
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
@@ -306,8 +298,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         stat.st_uid.set(mUidCache.get(status.getOwner()));
         stat.st_gid.set(mGidCache.get(status.getGroup()));
       } else {
-        stat.st_uid.set(SystemUserGroupAuthPolicy.DEFAULT_UID);
-        stat.st_gid.set(SystemUserGroupAuthPolicy.DEFAULT_GID);
+        stat.st_uid.set(AlluxioFuseUtils.DEFAULT_UID);
+        stat.st_gid.set(AlluxioFuseUtils.DEFAULT_GID);
       }
 
       int mode = status.getMode();
@@ -797,7 +789,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       String userName = "";
-      if (uid != ID_NOT_SET_VALUE && uid != ID_NOT_SET_VALUE_UNSIGNED) {
+      if (uid != AlluxioFuseUtils.ID_NOT_SET_VALUE
+          && uid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
         userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
@@ -808,7 +801,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
 
       String groupName = "";
-      if (gid != ID_NOT_SET_VALUE && gid != ID_NOT_SET_VALUE_UNSIGNED) {
+      if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
+          && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
         groupName = AlluxioFuseUtils.getGroupName(gid);
         if (groupName.isEmpty()) {
           // This should never be reached

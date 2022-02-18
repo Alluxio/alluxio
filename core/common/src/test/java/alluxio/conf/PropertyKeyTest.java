@@ -14,13 +14,12 @@ package alluxio.conf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.DefaultSupplier;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Builder;
 import alluxio.conf.PropertyKey.Template;
-import alluxio.conf.RemovedKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.After;
@@ -28,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 
 /**
@@ -317,5 +317,26 @@ public final class PropertyKeyTest {
 
     final PropertyKey accessKey = PropertyKey.getOrBuildCustom("test.accessKeyId");
     assertEquals(PropertyKey.DisplayType.CREDENTIALS, accessKey.getDisplayType());
+  }
+
+  @Test
+  public void testValueValidation() {
+    Function<Object, Boolean> booleanValidationFunction = (value) -> {
+      try {
+        Boolean.parseBoolean((String) value);
+        return true;
+      } catch (Exception e) {
+        return false;
+      }
+    };
+
+    new Builder("test_boolean_property")
+        .setDefaultValue(true)
+        .setValueValidationFunction(booleanValidationFunction)
+        .build();
+    assertThrows(IllegalStateException.class, () -> new Builder("test_boolean_property")
+        .setDefaultValue(100)
+        .setValueValidationFunction(booleanValidationFunction)
+        .build());
   }
 }
