@@ -78,7 +78,6 @@ action from the `Navigate > Search Everywhere` dialog.
 2. Restart IntelliJ IDEA
 3. Edit `conf/alluxio-site.properties` to contain these configurations
    ```console
-   alluxio.home=/path/to/alluxio
    alluxio.master.hostname=localhost
    alluxio.job.master.hostname=localhost
    alluxio.master.journal.type=UFS
@@ -118,7 +117,6 @@ action from the `Navigate > Search Everywhere` dialog.
 3. Restart IntelliJ IDEA
 4. Edit `conf/alluxio-site.properties` to contain these configurations
     ```console
-    alluxio.home=/path/to/alluxio
     alluxio.master.hostname=localhost
     alluxio.job.master.hostname=localhost
     alluxio.master.embedded.journal.addresses=localhost:19200,localhost:19201,localhost:19202
