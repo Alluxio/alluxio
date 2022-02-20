@@ -11,6 +11,7 @@
 
 package alluxio.cli.command;
 
+import alluxio.Constants;
 import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.TwoKeyConcurrentMap;
@@ -59,6 +60,18 @@ public final class MetadataCacheCommand extends AbstractFuseShellCommand {
   @Override
   public String getCommandName() {
     return "metadatacache";
+  }
+
+  @Override
+  public String getUsage() {
+    // Show usage: metadatacache.(drop|size|dropAll)
+    StringBuilder usage = new StringBuilder("ls -l " + Constants.DEAFULT_FUSE_MOUNT
+        + Constants.ALLUXIO_CLI_PATH + "." + getCommandName() + ".(");
+    for (String cmd : SUB_COMMANDS.keySet()) {
+      usage.append(cmd).append("|");
+    }
+    usage.deleteCharAt(usage.length() - 1).append(')');
+    return usage.toString();
   }
 
   @Override

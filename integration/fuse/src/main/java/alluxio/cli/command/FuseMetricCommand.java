@@ -11,14 +11,16 @@
 
 package alluxio.cli.command;
 
-import alluxio.cli.Command;
-import alluxio.cli.command.metric.TotalCallsCommand;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
+import alluxio.wire.FileInfo;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -27,38 +29,67 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FuseMetricCommand extends AbstractFuseShellCommand {
 
-  private static final Map<String, TwoKeyConcurrentMap.TriFunction<FileSystem,
-      AlluxioConfiguration, String, ? extends Command>> SUB_COMMANDS = new HashMap<>();
-
-  static {
-    SUB_COMMANDS.put("totalCalls", TotalCallsCommand::new);
-  }
-
-  private final Map<String, Command> mSubCommands = new HashMap<>();
-
   /**
    * @param fs filesystem instance from fuse command
    * @param conf configuration instance from fuse command
    */
   public FuseMetricCommand(FileSystem fs, AlluxioConfiguration conf) {
     super(fs, conf, "");
-    SUB_COMMANDS.forEach((name, constructor) -> {
-      mSubCommands.put(name, constructor.apply(fs, conf, getCommandName()));
-    });
   }
 
+  /**
+   * Get metric from metric system, only support numeric metric display now.
+   * @param path the path uri from fuse command
+   * @param argv the metric name
+   * @return the result of running the command
+   */
   @Override
-  public Map<String, Command> getSubCommands() {
-    return mSubCommands;
+  public URIStatus run(AlluxioURI path, String[] argv) throws InvalidArgumentException {
+    // Metric Key name consist of twp parts: scope and name,
+    // so the argv array has two elements, combine them to metric key.
+    if (argv.length != 2) {
+      throw new InvalidArgumentException("Invalid metric key!");
+    }
+    String metricName = argv[0] + "." + argv[1];
+    String fullMetricName = MetricsSystem.getMetricName(metricName);
+    Metric metric = MetricsSystem.getMetricValue(fullMetricName);
+    if (metric == null) {
+      throw new InvalidArgumentException(String.format("No such metric %s found in system!",
+          argv[0]));
+    }
+    long value = 0;
+    switch (metric.getMetricType()) {
+      case COUNTER:
+        value = MetricsSystem.counter(metricName).getCount();
+        break;
+      case METER:
+        value = MetricsSystem.meter(metricName).getCount();
+        break;
+      case TIMER:
+        value = MetricsSystem.timer(metricName).getCount();
+        break;
+      default:
+        throw new InvalidArgumentException("Unsupported metric type");
+    }
+    return new URIStatus(new FileInfo().setLength(value).setCompleted(true));
   }
 
   @Override
   public String getCommandName() {
-    return "fusemetric";
+    return "metric";
+  }
+
+  /**
+   * Get metric command usage.
+   * @return the usage information
+   */
+  public String getUsage() {
+    return String.format("%s%s.metric.[metric key name]", Constants.DEAFULT_FUSE_MOUNT,
+        Constants.ALLUXIO_CLI_PATH);
   }
 
   @Override
   public String getDescription() {
-    return "Fusemetric command is used to get some useful metric information.";
+    return "Metric command is used to get some useful metric information.";
   }
 }
