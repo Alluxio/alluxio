@@ -8,7 +8,12 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
- 
+
+#ifndef FUSE_NATIVE_LIBJNIFUSE_JVM_H_
+#define FUSE_NATIVE_LIBJNIFUSE_JVM_H_
+
+#include <jni.h>
+
 namespace jnifuse {
 
 jint InitGlobalJniVariables(JavaVM* jvm);
@@ -18,7 +23,9 @@ JNIEnv* GetEnv();
 
 JavaVM* GetJVM();
 
-// Return a |JNIEnv*| usable on this thread.  Attaches to `g_jvm` if necessary.
+// Return a |JNIEnv*| usable on this thread.  Attaches to JVM if necessary.
 JNIEnv* AttachCurrentThreadIfNeeded();
 
 }  // namespace jnifuse
+
+#endif  // FUSE_NATIVE_LIBJNIFUSE_JVM_H_

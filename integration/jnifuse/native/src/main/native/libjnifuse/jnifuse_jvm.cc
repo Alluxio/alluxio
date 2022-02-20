@@ -19,20 +19,19 @@ namespace jnifuse {
 
 static JavaVM* g_jvm = nullptr;
 
-// Key for per-thread JNIEnv* data.  Non-NULL in threads attached to `g_jvm` by
+// Key for per-thread JNIEnv* data. Non-NULL in threads attached to `g_jvm` by
 // AttachCurrentThreadIfNeeded(), NULL in unattached threads and threads that
 // were attached by the JVM because of a Java->native call.
 static pthread_key_t g_jni_ptr;
 
 JavaVM* GetJVM() {
-  JNIFUSE_CHECK(g_jvm, "JNI_OnLoad failed to run?");
+  JNIFUSE_CHECK(g_jvm, "Failed to run JNI_OnLoad?");
   return g_jvm;
 }
 
 // Return a |JNIEnv*| usable on this thread or NULL if this thread is detached.
 JNIEnv* GetEnv() {
   void* env = nullptr;
-  // TODO(lu) change to store the value somewhere
   jint status = g_jvm->GetEnv(&env, JNI_VERSION_1_8);
   JNIFUSE_CHECK(((env != nullptr) && (status == JNI_OK)) || ((env == nullptr) && (status == JNI_EDETACHED)),
             "Unexpected GetEnv return: %d", status);
@@ -47,20 +46,25 @@ static void ThreadDestructor(void* prev_jni_ptr) {
   // the JVMs accounting info for this thread may already be wiped out by the
   // time this is called. Thus it may appear we are already detached even though
   // it was our responsibility to detach!  Oh well.
-  if (!GetEnv())
-    return;
+  if (!GetEnv()) {
+    return; // JNI_EDETACHED
+  }
 
   JNIFUSE_CHECK(GetEnv() == prev_jni_ptr, 
       "Detaching from another thread");
+  // DetachCurrentThread may throws SIGSEGV in JDK 8
+  // Using JDK 11 if facing this issue
+  // See https://github.com/Alluxio/alluxio/issues/15015 for more details
   JNIFUSE_CHECK_CODE(g_jvm->DetachCurrentThread(),
       "Failed to detach thread");
-  JNIFUSE_CHECK(!GetEnv(), "Detaching was a successful no-op???");
+  JNIFUSE_CHECK(!GetEnv(), "Detach current thread function succeed but thread still attaches to JVM??");
+  LOGD("Detached thread from JVM");
 }
 
 jint InitGlobalJniVariables(JavaVM* jvm) {
   JNIFUSE_CHECK(!g_jvm, "Cannot initialize global jni variables more than once");
   g_jvm = jvm;
-  JNIFUSE_CHECK(g_jvm, "InitGlobalJniVariables handed NULL JVM");
+  JNIFUSE_CHECK(g_jvm, "Initialize global jni variables with NULL JVM");
 
   JNIFUSE_CHECK(!pthread_key_create(&g_jni_ptr, &ThreadDestructor),
       "Failed in pthread_key_create");
@@ -68,39 +72,29 @@ jint InitGlobalJniVariables(JavaVM* jvm) {
   JNIEnv* jni = nullptr;
   jint status = jvm->GetEnv(reinterpret_cast<void**>(&jni), JNI_VERSION_1_8);
   if (status != JNI_OK) {
-    LOGD("Failed to get env with JNI_VERSION_1_8, status is %d", status);
-    if (status == JNI_EDETACHED) {
-      status = jvm->AttachCurrentThread(reinterpret_cast<void**>(&jni), NULL);
-      if (status != JNI_OK) {
-        LOGE("Failed to attach current thread, error code is %d", status);
-        return JNI_ERR;
-      }
-    }
-  }  
-  if (status != JNI_OK) {
+    // status is JNI_DETACHED, which should not happen since this function is calling from a java thread
+    LOGE("JNI_DETACHED when getting env when initiating global JNI variables");
     return JNI_ERR;
   }
-  // TODO(lu) validate if this works well with java 11
+  // This version works with JDK 11
   return JNI_VERSION_1_8;
 }
 
-// Return a |JNIEnv*| usable on this thread.  Attaches to `g_jvm` if necessary.
+// Return a |JNIEnv*| usable on this thread. Attaches to JVM if necessary.
 JNIEnv* AttachCurrentThreadIfNeeded() {
     JNIEnv* jni = GetEnv();
     if (jni) {
       return jni;
     }
-    JNIFUSE_CHECK_CODE(pthread_getspecific(g_jni_ptr),
+    JNIFUSE_CHECK(!pthread_getspecific(g_jni_ptr),
         "This thread has a JNIEnv* but not attached?");
     JNIEnv* env = nullptr;
-    // TODO(lu) set args
-    // TODO(lu) attach as deomon?
-    // TODO(lu) improve error logging with condition and error code
     JNIFUSE_CHECK_CODE(g_jvm->AttachCurrentThreadAsDaemon((void **)&env, nullptr),
         "Failed to attach thread");
-    JNIFUSE_CHECK(env, "AttachCurrentThread handed back NULL!");
+    JNIFUSE_CHECK(env, "Failed to get env after AttachCurrentThread, env is null");
     jni = reinterpret_cast<JNIEnv*>(env);
-    JNIFUSE_CHECK_CODE(pthread_setspecific(g_jni_ptr, jni), "pthread_setspecific");
+    JNIFUSE_CHECK_CODE(pthread_setspecific(g_jni_ptr, jni), "Failed to associate JNI env to thread");
+    LOGD("Attach thread to JVM");
     return jni;
 }
 }  // namespace jnifuse

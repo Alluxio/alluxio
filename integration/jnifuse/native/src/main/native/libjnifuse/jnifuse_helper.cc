@@ -34,8 +34,8 @@ static struct fuse_operations jnifuse_oper;
 JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     JNIEnv *env, jobject libfuseobj, jobject obj, jint jargc,
     jobjectArray jargv) {
-  LOGD("enter fuse_main_real");
-  LOGE("validate standard error is logged");
+  LOGI("Start initializing JNIFuse");
+  LOGE("Validate standard errors can be logged as expected");
   jnifuse::JniFuseFileSystem::init(env, obj);
 
   int argc = jargc;
@@ -73,6 +73,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   int ret = fuse_main_real(argc, argv, &jnifuse_oper,
                            sizeof(struct fuse_operations), NULL);
   free(argv);
+  LOGI("JNIFuse initialized");
   return ret;
 }
 

@@ -11,14 +11,18 @@
 
 #include <jni.h>
 
+#include "debug.h"
 #include "jnifuse_jvm.h"
 
 namespace jnifuse {
 extern "C" jint JNIEXPORT JNICALL JNI_OnLoad(JavaVM* jvm, void* reserved) {
+  LOGD("Start loading libjnifuse");
   jint ret = InitGlobalJniVariables(jvm);
   if (ret < 0) {
+    LOGE("Failed to load libjnifuse");
     return -1;
   }
+  LOGI("Loaded libjnifuse");
   return ret;
 }
 

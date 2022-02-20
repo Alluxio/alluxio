@@ -9,6 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+#ifndef FUSE_NATIVE_LIBJNIFUSE_CHECK_H_
+#define FUSE_NATIVE_LIBJNIFUSE_CHECK_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,3 +33,5 @@ do {                                              \
      exit(-1);                                    \
   }                                               \
 } while (0)
+
+#endif  // FUSE_NATIVE_LIBJNIFUSE_CHECK_H_

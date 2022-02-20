@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include "operation.h"
-
-#include "jnifuse_jvm.h"
 #include "debug.h"
+#include "jnifuse_jvm.h"
+#include "operation.h"
 
 namespace jnifuse {
 
