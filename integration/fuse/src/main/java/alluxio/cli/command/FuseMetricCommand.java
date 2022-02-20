@@ -83,6 +83,7 @@ public final class FuseMetricCommand extends AbstractFuseShellCommand {
    * Get metric command usage.
    * @return the usage information
    */
+  @Override
   public String getUsage() {
     return String.format("%s%s.metric.[metric key name]", Constants.DEAFULT_FUSE_MOUNT,
         Constants.ALLUXIO_CLI_PATH);
