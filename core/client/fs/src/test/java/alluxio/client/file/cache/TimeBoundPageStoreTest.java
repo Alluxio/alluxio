@@ -177,7 +177,7 @@ public class TimeBoundPageStoreTest {
       int index = i;
       futures.add(executor.submit(() -> {
         try {
-          mTimeBoundPageStore.put(PAGE_INFO, PAGE);
+          mTimeBoundPageStore.put(new PageInfo(pageId, PAGE_SIZE_BYTES, FILE_INFO), PAGE);
         } catch (Exception e) {
           exceptions[index] = e;
         }

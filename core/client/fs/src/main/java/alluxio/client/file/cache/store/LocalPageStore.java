@@ -95,11 +95,16 @@ public class LocalPageStore implements PageStore {
         if (!Files.exists(timestampPath)) { //new timestamp, new file or file got updated
           Path fileLevelPath = Preconditions
               .checkNotNull(timestampPath.getParent(), "file level path should not be null");
-          if (Files.exists(fileLevelPath)) {
-            //clear stale timestamp folders
-            FileUtils.cleanDirectory(fileLevelPath.toFile());
-          } else {
-            Files.createDirectories(fileLevelPath);
+          try {
+            if (Files.exists(fileLevelPath)) {
+              //clear stale timestamp folders
+              FileUtils.cleanDirectory(fileLevelPath.toFile());
+            } else {
+              Files.createDirectories(fileLevelPath);
+            }
+          } catch (IOException e) {
+            LOG.debug("{} has been deleted or created, likely due to a benign race",
+                fileLevelPath);
           }
           //TODO(beinan): risk of race condition, the pageInfo with an older fileInfo might win.
           // But we always have a most up-to-date fileInfo in the memory,
@@ -286,7 +291,7 @@ public class LocalPageStore implements PageStore {
             // remove all the stale sub-folder
             // the timestamp of which is not equal to the last modified time in fileInfo
             Files.list(pathToFileDir)
-                .filter(path -> Files.isDirectory(path) && !path.getFileName().toString()
+                .filter(path -> Files.isDirectory(path) && !String.valueOf(path.getFileName())
                     .equals(String.valueOf(fileInfo.getLastModificationTimeMs())))
                 .forEach(path -> {
                   try {

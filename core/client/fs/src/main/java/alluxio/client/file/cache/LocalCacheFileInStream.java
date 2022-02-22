@@ -97,10 +97,14 @@ public class LocalCacheFileInStream extends FileInStream {
     mStatus = status;
     // Currently quota is only supported when it is set by external systems in status context
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
-    if (mQuotaEnabled && status.getCacheContext() != null) {
+    if (status.getCacheContext() != null) {
       mCacheContext = status.getCacheContext();
     } else {
       mCacheContext = CacheContext.defaults();
+    }
+    if (mCacheContext.getLastModificationTimeMs()
+        == CacheContext.LAST_MODIFICATION_TIME_NOT_SET) {
+      mCacheContext.setLastModificationTimeMs(mStatus.getFileInfo().getLastModificationTimeMs());
     }
     Metrics.registerGauges();
   }
@@ -139,11 +143,6 @@ public class LocalCacheFileInStream extends FileInStream {
     long lengthToRead = Math.min(len, mStatus.getLength() - pos);
     // used in positionedRead, so make stopwatch a local variable rather than class member
     Stopwatch stopwatch = createUnstartedStopwatch();
-    CacheContext cacheContext = mStatus.getCacheContext();
-    if (cacheContext != null && cacheContext.getLastModificationTimeMs()
-        == CacheContext.LAST_MODIFICATION_TIME_NOT_SET) {
-      cacheContext.setLastModificationTimeMs(mStatus.getFileInfo().getLastModificationTimeMs());
-    }
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
       long currentPage = currentPosition / mPageSize;
@@ -151,8 +150,8 @@ public class LocalCacheFileInStream extends FileInStream {
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
       PageId pageId;
-      if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
-        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
+      if (mCacheContext != null && mCacheContext.getCacheIdentifier() != null) {
+        pageId = new PageId(mCacheContext.getCacheIdentifier(), currentPage);
       } else {
         pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
       }
@@ -165,10 +164,10 @@ public class LocalCacheFileInStream extends FileInStream {
         totalBytesRead += bytesRead;
         currentPosition += bytesRead;
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
-        if (cacheContext != null) {
-          cacheContext
+        if (mCacheContext != null) {
+          mCacheContext
               .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
-          cacheContext.incrementCounter(
+          mCacheContext.incrementCounter(
               MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
               stopwatch.elapsed(TimeUnit.NANOSECONDS));
         }
@@ -185,10 +184,10 @@ public class LocalCacheFileInStream extends FileInStream {
           // cache misses
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
               .mark(bytesLeftInPage);
-          if (cacheContext != null) {
-            cacheContext.incrementCounter(
+          if (mCacheContext != null) {
+            mCacheContext.incrementCounter(
                 MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
-            cacheContext.incrementCounter(
+            mCacheContext.incrementCounter(
                 MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
                 stopwatch.elapsed(TimeUnit.NANOSECONDS)
             );

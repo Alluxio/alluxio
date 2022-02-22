@@ -65,7 +65,6 @@ import java.util.stream.Stream;
  * Tests for the {@link LocalCacheManager} class.
  */
 public final class LocalCacheManagerTest {
-
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int CACHE_SIZE_BYTES = 512 * Constants.KB;
   private static final PageId PAGE_ID1 = new PageId("0L", 0L);
@@ -452,9 +451,7 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putWithQuotaMoreThanCacheCapacity() throws Exception {
-    int cachePages = 5;
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES * cachePages);
     CacheScope partitionCacheScope = CacheScope.create("schema.table.partition");
     CacheScope tableCacheScope = CacheScope.create("schema.table");
     CacheScope schemaCacheScope = CacheScope.create("schema");
@@ -945,7 +942,6 @@ public final class LocalCacheManagerTest {
    * A PageStore where put can throw IOException on put or delete.
    */
   private class FaultyPageStore extends LocalPageStore {
-
     public FaultyPageStore() {
       super(PageStoreOptions.create(mConf).toOptions());
     }
@@ -983,9 +979,7 @@ public final class LocalCacheManagerTest {
    * A PageStore with slow scan.
    */
   private class SlowGetPageStore extends LocalPageStore {
-
     private class NonStoppingSlowPageIterator implements Iterator<PageInfo> {
-
       @Override
       public boolean hasNext() {
         return !mScanComplete.get();

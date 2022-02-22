@@ -427,7 +427,6 @@ public class LocalCacheManager implements CacheManager {
       }
       // phase2: remove victim and add new page in pagestore
       // Regardless of enoughSpace, delete the victim as it has been removed from the metastore
-      PageId victim = victimPageInfo.getPageId();
       try {
         mPageStore.delete(victimPageInfo);
         // Bytes evicted from the cache
@@ -556,6 +555,11 @@ public class LocalCacheManager implements CacheManager {
         // Cached page is newer than we expect, it might be caused by
         // the underlying data file got changed during the presto query running
         //TODO(beinan): add a metrics to count the number of this invalid state
+        LOG.warn("Cached page {} is newer than we expect, actual cached {}, client expect {}",
+            pageId, pageInfo.getFileInfo()
+                .getLastModificationTimeMs(),
+            cacheContext.getLastModificationTimeMs() < pageInfo.getFileInfo()
+                .getLastModificationTimeMs());
       }
       int bytesRead = getPage(pageInfo, pageOffset,
           bytesToRead, buffer, offsetInBuffer);
