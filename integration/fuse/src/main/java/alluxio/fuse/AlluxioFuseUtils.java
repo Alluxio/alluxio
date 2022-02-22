@@ -25,6 +25,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -71,6 +72,12 @@ public final class AlluxioFuseUtils {
    * @return the version preference
    */
   public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
+
+    if (Environment.isMac()) {
+      LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
+      return VersionPreference.VERSION_2;
+    }
+
     final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
     if (val == 2) {
       return VersionPreference.VERSION_2;
