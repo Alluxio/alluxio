@@ -1,33 +1,18 @@
-name: Java 11 Integration Tests
+name: Java 8 Integration Tests
 
-on: [pull_request]
+on:
+  pull_request:
 
 jobs:
   build:
-    name: "modules: "
+    name: "modules: fuse"
 
     strategy:
       fail-fast: false
       matrix:
-        modules:
-          - >-
-            alluxio.client.cli.**,!alluxio.client.cli.fs.**
-          - >-
-            alluxio.client.cli.fs.**
-          - >-
-            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
-          - >-
-            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
-          - >-
-            alluxio.job.**,alluxio.master.**,alluxio.stress.**
-          - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.**,!alluxio.server.ft.**
+        java: ["8", "11"]
+        version: ["2", "3"]
+
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -46,7 +31,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-java11-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-java${{ matrix.java }}-${{ hashFiles('**/pom.xml') }}
+
+      - name: Install local fuse package
 
       - name: Run tests
         id: test0
@@ -56,8 +43,7 @@ jobs:
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/abfs,!underfs/cosn,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
-          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.6-jdk11 \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
+          dev/github/run_docker.sh "\"-Dtest=alluxio.client.fuse.**\" -Dalluxio.fuse.jnifuse.libfuse.version=${{ matrix.version }}" -pl tests
         timeout-minutes: 60
 
       - name: Archive artifacts
