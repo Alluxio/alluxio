@@ -44,10 +44,8 @@ public class FuseSignalHandler implements SignalHandler {
         signal.getName(), signal.getNumber());
     int number = signal.getNumber();
     if (number == 15) {
-      LOG.info("Receive signal number {}, umounting Fuse", number);
       try {
         mFuseUmountable.umount(false);
-        LOG.info("Fuse umounted");
       } catch (FuseException e) {
         LOG.error("unable to umount fuse.", e);
         return;
