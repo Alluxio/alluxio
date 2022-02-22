@@ -1837,12 +1837,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
               LockPattern.WRITE_EDGE);
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
+        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
         mMountTable.checkUnderWritableMountPoint(path);
         if (!inodePath.fullPathExists()) {
           throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
               .getMessage(path));
         }
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
 
         if (context.getOptions().getRecursive()) {
           List<String> failedChildren = new ArrayList<>();
