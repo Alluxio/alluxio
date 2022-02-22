@@ -2,8 +2,6 @@ name: Fuse Integration Tests
 
 on: [pull_request]
 
-
-
 jobs:
   build:
     name: "modules: fuse"
@@ -33,8 +31,6 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-java${{ matrix.java }}-${{ hashFiles('**/pom.xml') }}
-
-      - name: Install local fuse package
 
       - name: Run tests
         id: test0
