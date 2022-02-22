@@ -1,5 +1,4 @@
 propertyName,defaultValue
-alluxio.conf.dir,"${alluxio.home}/conf"
 alluxio.conf.dynamic.update.enabled,"false"
 alluxio.debug,"false"
 alluxio.extensions.dir,"${alluxio.home}/extensions"
@@ -81,7 +80,6 @@ alluxio.locality.node,""
 alluxio.locality.order,"node,rack"
 alluxio.locality.rack,""
 alluxio.locality.script,"alluxio-locality.sh"
-alluxio.logs.dir,"${alluxio.work.dir}/logs"
 alluxio.logserver.hostname,""
 alluxio.logserver.logs.dir,"${alluxio.work.dir}/logs"
 alluxio.logserver.port,"45600"

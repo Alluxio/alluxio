@@ -39,8 +39,6 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
         "--warmup", "0s", "--duration", "1s",
     });
 
-    System.out.println(output);
-
     generateAndVerifyReport(Collections.singletonList("Worker Throughput"), output);
   }
 

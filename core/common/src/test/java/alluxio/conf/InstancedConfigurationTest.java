@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -113,6 +114,12 @@ public class InstancedConfigurationTest {
     assertFalse(mConfiguration.isSet(PropertyKey.MASTER_WEB_HOSTNAME));
     mConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     assertTrue(mConfiguration.isSet(PropertyKey.MASTER_WEB_HOSTNAME));
+  }
+
+  @Test
+  public void setValidation() {
+    assertThrows(IllegalStateException.class,
+        () -> mConfiguration.set(PropertyKey.MASTER_KEYTAB_KEY_FILE, "/file/not/exist"));
   }
 
   @Test

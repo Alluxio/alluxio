@@ -106,6 +106,7 @@ public final class ClientIOParameters extends FileSystemParameters {
 
   /**
    * @return ClientIOOperation of this bench
+   *
    * Converts from String to ClientIOOperation instance.
    */
   public static class ClientIOOperationConverter implements IStringConverter<ClientIOOperation> {
