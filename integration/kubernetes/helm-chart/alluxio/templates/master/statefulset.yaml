@@ -101,9 +101,12 @@ spec:
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["alluxio","formatJournal"]
+        envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
         volumeMounts:
           - name: alluxio-journal
-            mountPath: /journal
+            mountPath: {{ .Values.journal.folder }}
       {{- end}}
       {{ if .Values.hub.enabled -}}
       shareProcessNamespace: true
@@ -252,7 +255,7 @@ spec:
             {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
-              mountPath: /journal
+              mountPath: {{ .Values.journal.folder }}
             {{- end }}
             {{- if .Values.metastore }}
             - name: alluxio-metastore

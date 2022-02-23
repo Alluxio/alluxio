@@ -194,18 +194,27 @@ jobMaster:
 # UFS journal with HDFS example
 # journal:
 #   type: "UFS"
+#   ufsType: "non-local"
 #   folder: "hdfs://{$hostname}:{$hostport}/journal"
 # EMBEDDED journal to /journal example
 # journal:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  type: "UFS" # "UFS" or "EMBEDDED"
-  ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
-  folder: "/journal" # Master journal folder
+  # [ Required arguments ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  # [ Conditionally required arguments ]
+  #
+  # [[ UFS-backed journal options (journal.type="UFS") ]]
+  ufsType: "local" # One of "local" or "non-local"
+  #
+  # [[ K8s volume options ]]
+  # - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  # - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  #
   # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: persistentVolumeClaim
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
   size: 1Gi
   # Attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
@@ -213,6 +222,7 @@ journal:
     - ReadWriteOnce
   # Attributes to use when the journal is emptyDir
   medium: ""
+  # [ Optional arguments ]
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal

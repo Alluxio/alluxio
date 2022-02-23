@@ -254,3 +254,7 @@
 
 - Fix CSI controller rbac rule not specifying namespace.
 - Fix CSI driver compatibility issue under kubernetes 18+ version.
+
+0.6.40
+
+- Fix incorrect directory when mounting & formatting master journal volume
