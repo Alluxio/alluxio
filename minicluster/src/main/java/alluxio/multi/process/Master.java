@@ -53,7 +53,7 @@ public final class Master implements Closeable {
    * @param key the conf key to update
    * @param value the value to set, or null to unset the key
    */
-  public void updateConf(PropertyKey key, @Nullable String value) {
+  public void updateConf(PropertyKey key, @Nullable Object value) {
     if (value == null) {
       mProperties.remove(key);
     } else {

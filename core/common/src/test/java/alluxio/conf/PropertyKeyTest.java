@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -222,12 +223,12 @@ public final class PropertyKeyTest {
   @Test
   public void defaultSupplier() throws Exception {
     AtomicInteger x = new AtomicInteger(100);
-    PropertyKey key = new Builder("test")
+    PropertyKey key = intBuilder("test")
         .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "test description"))
         .build();
-    assertEquals("100", key.getDefaultStringValue());
+    assertEquals(100, key.getDefaultValue());
     x.set(20);
-    assertEquals("20", key.getDefaultStringValue());
+    assertEquals(20, key.getDefaultValue());
     assertEquals("test description", key.getDefaultSupplier().getDescription());
   }
 
