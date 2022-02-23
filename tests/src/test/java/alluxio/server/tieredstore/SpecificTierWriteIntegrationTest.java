@@ -60,7 +60,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false)
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false)
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 3)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
               .format(1), Constants.MEDIUM_SSD)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS

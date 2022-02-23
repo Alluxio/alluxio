@@ -316,7 +316,7 @@ public class AlluxioCatalogTest {
     Table table = mCatalog.getTable(dbName, tableName);
 
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "8080");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 8080);
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://localhost:8080/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());

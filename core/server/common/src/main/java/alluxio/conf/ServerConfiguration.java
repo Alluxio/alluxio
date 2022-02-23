@@ -11,6 +11,9 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.PropertyType.BOOLEAN;
+import static alluxio.conf.PropertyKey.PropertyType.INTEGER;
+
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.Scope;
@@ -106,7 +109,7 @@ public final class ServerConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void set(PropertyKey key, Object value, Source source) {
-    if (!(key.getType() == PropertyKey.PropertyType.BOOLEAN)) {
+    if (!(key.getType() == BOOLEAN) && !(key.getType() == INTEGER)) {
       value = String.valueOf(value);
     }
     sConf.set(key, value, source);

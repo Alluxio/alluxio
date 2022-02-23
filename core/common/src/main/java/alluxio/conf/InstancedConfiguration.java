@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.PropertyType.BOOLEAN;
+import static alluxio.conf.PropertyKey.PropertyType.INTEGER;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import alluxio.conf.PropertyKey.Template;
@@ -216,7 +217,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
             + "ServerConfiguration.unset to remove a key from the configuration.", key);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
-    if (!(key.getType() == BOOLEAN)) {
+    if (!(key.getType() == BOOLEAN) && !(key.getType() == INTEGER)) {
       value = String.valueOf(value);
     }
     mProperties.put(key, value, source);
@@ -264,14 +265,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public int getInt(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return Integer.parseInt(rawValue);
-    } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, key));
-    }
+  public int getInt(PropertyKey key)
+  {
+    return (Integer) get(key);
   }
 
   @Override
@@ -480,7 +476,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         stringValue = String.valueOf(lookupRecursively(key, (String) value , seen));
       }
       else if (value != null) {
-        stringValue = String.valueOf(mProperties.get(key));
+        stringValue = String.valueOf(value);
       }
       seen.remove(match);
       if (stringValue == null) {

@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import alluxio.Constants;
@@ -187,6 +188,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder booleanBuilder(String name) {
       return new Builder(name, PropertyType.BOOLEAN);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for int properties
+     */
+    public static Builder intBuilder(String name) {
+      return new Builder(name, PropertyType.INTEGER);
     }
 
     /**
@@ -648,7 +657,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey WEB_THREADS =
-      new Builder(Name.WEB_THREADS)
+      intBuilder(Name.WEB_THREADS)
           .setDefaultValue(1)
           .setDescription("How many threads to serve Alluxio web UI.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -725,7 +734,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
-      new Builder(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT)
+      intBuilder(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT)
           .setDefaultValue(10)
           .setDescription("The number of retries to inquire leader from ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -794,7 +803,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey UNDERFS_LISTING_LENGTH =
-      new Builder(Name.UNDERFS_LISTING_LENGTH)
+      intBuilder(Name.UNDERFS_LISTING_LENGTH)
           .setDefaultValue(1000)
           .setDescription("The maximum number of directory entries to list in a single query "
               + "to under file system. If the total number of entries is greater than the "
@@ -850,7 +859,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
-      new Builder(Name.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER)
+      intBuilder(Name.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER)
           .setDefaultValue(2)
           .setDescription("Delay multiplier while retrying requests on the ufs")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -871,14 +880,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_RETRY_MAX =
-      new Builder(Name.UNDERFS_GCS_RETRY_MAX)
+      intBuilder(Name.UNDERFS_GCS_RETRY_MAX)
           .setDefaultValue(60)
           .setDescription("Maximum Number of retries on the ufs")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_VERSION =
-      new Builder(Name.UNDERFS_GCS_VERSION)
+      intBuilder(Name.UNDERFS_GCS_VERSION)
           .setDefaultValue(2)
           .setDescription(String.format("Specify the version of GCS module to use. "
               + "GCS version \"1\" builds on top of jets3t package "
@@ -980,7 +989,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
+      intBuilder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setDefaultValue(20)
           .setDescription("The number of threads in executor pool for parallel object store "
               + "UFS operations, such as directory renames and deletes.")
@@ -1018,7 +1027,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
-      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
+      intBuilder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
           .setDefaultValue(20)
           .setDescription("To handle eventually consistent storage semantics "
               + "for certain under storages, Alluxio will perform retries "
@@ -1040,7 +1049,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
-      new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
+      intBuilder(Name.UNDERFS_OSS_CONNECT_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of OSS connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1070,7 +1079,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
-      new Builder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
+      intBuilder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
           .setDefaultValue(20)
           .setDescription("The maximum number of threads to use for metadata operations when "
               + "communicating with S3. These operations may be fairly concurrent and "
@@ -1133,7 +1142,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_THREADS_MAX =
-      new Builder(Name.UNDERFS_S3_THREADS_MAX)
+      intBuilder(Name.UNDERFS_S3_THREADS_MAX)
           .setDefaultValue(40)
           .setDescription("The maximum number of threads to use for communicating with S3 and "
               + "the maximum number of concurrent connections to S3. Includes both threads "
@@ -1143,7 +1152,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
-      new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
+      intBuilder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
           .setDefaultValue(20)
           .setDescription("For an Alluxio worker, this is the maximum number of threads to use "
               + "for uploading data to S3 for multipart uploads. These operations can be fairly "
@@ -1293,7 +1302,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_KODO_REQUESTS_MAX =
-      new Builder(Name.UNDERFS_KODO_REQUESTS_MAX)
+      intBuilder(Name.UNDERFS_KODO_REQUESTS_MAX)
           .setDefaultValue(64)
           .setDescription("The maximum number of kodo connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1361,14 +1370,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MOUNT_UID =
       new Builder(Name.UNDERFS_CEPHFS_MOUNT_UID)
-          .setDefaultValue(0)
+          .setDefaultValue("0")
           .setDescription("The user ID of CephFS mount.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MOUNT_GID =
       new Builder(Name.UNDERFS_CEPHFS_MOUNT_GID)
-          .setDefaultValue(0)
+          .setDefaultValue("0")
           .setDescription("The group ID of CephFS mount.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -1502,7 +1511,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey COS_CONNECTION_MAX =
-      new Builder(Name.COS_CONNECTION_MAX)
+      intBuilder(Name.COS_CONNECTION_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of COS connections.")
           .setScope(Scope.SERVER)
@@ -1652,7 +1661,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
-      new Builder(Name.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY)
+      intBuilder(Name.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY)
           .setDefaultValue(10000)
           .setDescription("Capacity of the queue used by audit logging.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1669,8 +1678,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_ENTRY_BUFFER_COUNT =
-      new Builder(Name.MASTER_BACKUP_ENTRY_BUFFER_COUNT)
-          .setDefaultValue("10000")
+      intBuilder(Name.MASTER_BACKUP_ENTRY_BUFFER_COUNT)
+          .setDefaultValue(10000)
           .setDescription("How many journal entries to buffer during a back-up.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -1771,7 +1780,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_FILES_RETAINED =
-      new Builder(Name.MASTER_DAILY_BACKUP_FILES_RETAINED)
+      intBuilder(Name.MASTER_DAILY_BACKUP_FILES_RETAINED)
           .setDefaultValue(3)
           .setDescription("The maximum number of backup files to keep in the backup directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1947,7 +1956,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PORT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
+      intBuilder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription("The port to use for embedded journal communication with other masters.")
           .setDefaultValue(19200)
           .setScope(Scope.ALL)
@@ -2076,10 +2085,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
-      new Builder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
+      intBuilder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
           // TODO(andrew): benchmark different batch sizes to improve the default and provide a
           // tuning guideline
-          .setDefaultValue("1000")
+          .setDefaultValue(1000)
           .setDescription("The batch size for evicting entries from the inode cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2106,8 +2115,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
-      new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
-          .setDefaultSupplier(() -> Math.min(Integer.MAX_VALUE / 2,
+      intBuilder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
+          .setDefaultSupplier(() -> (int) Math.min(Integer.MAX_VALUE / 2,
               Runtime.getRuntime().maxMemory() / 2000 / 2),
               "{Max memory of master JVM} / 2 / 2 KB per inode")
           .setDescription("The number of inodes to cache on-heap. "
@@ -2122,7 +2131,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 4.
   public static final PropertyKey MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
-      new Builder(Name.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT)
+      intBuilder(Name.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT)
           .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "Use {CPU core count} for enumeration.")
           .setDescription("The number of threads used during inode tree enumeration.")
@@ -2130,8 +2139,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
-      new Builder(Name.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT)
-          .setDefaultValue("10000")
+      intBuilder(Name.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT)
+          .setDefaultValue(10000)
           .setDescription("The number of entries to buffer during read-ahead enumeration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2152,7 +2161,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
-      new Builder(Name.MASTER_METRICS_SERVICE_THREADS)
+      intBuilder(Name.MASTER_METRICS_SERVICE_THREADS)
           .setDefaultValue(5)
           .setDescription("The number of threads in metrics master executor pool "
               + "for parallel processing metrics submitted by workers or clients "
@@ -2267,13 +2276,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_INITSIZE =
-      new Builder(Name.MASTER_LOCK_POOL_INITSIZE)
+      intBuilder(Name.MASTER_LOCK_POOL_INITSIZE)
           .setDefaultValue(1000)
           .setDescription("Initial size of the lock pool for master inodes.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_LOW_WATERMARK =
-      new Builder(Name.MASTER_LOCK_POOL_LOW_WATERMARK)
+      intBuilder(Name.MASTER_LOCK_POOL_LOW_WATERMARK)
           .setDefaultValue(500000)
           .setDescription("Low watermark of lock pool size. "
               + "When the size grows over the high watermark, a background thread will try to "
@@ -2281,7 +2290,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_HIGH_WATERMARK =
-      new Builder(Name.MASTER_LOCK_POOL_HIGH_WATERMARK)
+      intBuilder(Name.MASTER_LOCK_POOL_HIGH_WATERMARK)
           .setDefaultValue(1000000)
           .setDescription("High watermark of lock pool size. "
               + "When the size grows over the high watermark, a background thread starts evicting "
@@ -2289,7 +2298,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
-      new Builder(Name.MASTER_LOCK_POOL_CONCURRENCY_LEVEL)
+      intBuilder(Name.MASTER_LOCK_POOL_CONCURRENCY_LEVEL)
           .setDefaultValue(100)
           .setDescription("Maximum concurrency level for the lock pool")
           .setScope(Scope.MASTER)
@@ -2408,7 +2417,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
-          new Builder(Name.MASTER_JOURNAL_LOG_CONCURRENCY_MAX)
+          intBuilder(Name.MASTER_JOURNAL_LOG_CONCURRENCY_MAX)
                   .setDefaultValue(256)
                   .setDescription("Max concurrency for notifyTermIndexUpdated method, be sure it's "
                           + "enough")
@@ -2560,7 +2569,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.MASTER)
       .build();
   public static final PropertyKey MASTER_RPC_PORT =
-      new Builder(Name.MASTER_RPC_PORT)
+      intBuilder(Name.MASTER_RPC_PORT)
           .setAlias("alluxio.master.port")
           .setDefaultValue(19998)
           .setDescription("The port for Alluxio master's RPC service.")
@@ -2618,7 +2627,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
+      intBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
           .setDefaultValue(3)
           .setDescription("The total number of storage tiers in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2648,8 +2657,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_MAX_AGE =
-      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_AGE)
-          .setDefaultValue("10")
+      intBuilder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_AGE)
+          .setDefaultValue(10)
           .setDescription("The maximum number of intervals we will wait to find a quiet "
             + "period before we have to sync the directories")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2664,8 +2673,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES =
-      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES)
-          .setDefaultValue("10")
+      intBuilder(Name.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES)
+          .setDefaultValue(10)
           .setDescription("Max number of changes in a directory "
               + "to be considered for active syncing")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2674,7 +2683,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 2.
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
-      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
+      intBuilder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
           .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
               "The number of threads used by the active sync provider process active sync events."
                   + " A higher number allow the master to use more CPU to process events from "
@@ -2709,8 +2718,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE =
-      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE)
-          .setDefaultValue("1024")
+      intBuilder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE)
+          .setDefaultValue(1024)
           .setDescription("The number of event batches that should be submitted together to a "
               + "single thread for processing.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2718,7 +2727,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
-      new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
+      intBuilder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
           .setDefaultValue(1000000)
           .setDescription("The capacity of the UFS block locations cache. "
               + "This cache caches UFS block locations for files that are persisted "
@@ -2739,7 +2748,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
-      new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
+      intBuilder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
           .setDescription("The capacity of the UFS path cache. This cache is used to "
               + "approximate the `ONCE` metadata load behavior (see "
@@ -2749,7 +2758,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_THREADS =
-      new Builder(Name.MASTER_UFS_PATH_CACHE_THREADS)
+      intBuilder(Name.MASTER_UFS_PATH_CACHE_THREADS)
           .setDefaultValue(64)
           .setDescription("The maximum size of the thread pool for asynchronously processing "
               + "paths for the UFS path cache. Greater number of threads will decrease the "
@@ -2803,7 +2812,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_WEB_PORT =
-      new Builder(Name.MASTER_WEB_PORT)
+      intBuilder(Name.MASTER_WEB_PORT)
           .setDefaultValue(19999)
           .setDescription("The port Alluxio web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2858,7 +2867,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
-      new Builder(Name.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL)
+      intBuilder(Name.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL)
           .setDefaultValue(6)
           .setDescription("The maximum number of concurrent sync tasks running for a given sync "
               + "operation")
@@ -2868,7 +2877,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 4.
   public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
-      new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
+      intBuilder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
           .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "The total number of threads which can concurrently execute metadata sync "
                   + "operations.")
@@ -2888,7 +2897,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
-      new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
+      intBuilder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
           .setDefaultSupplier(() -> Math.max(32, 10 * Runtime.getRuntime().availableProcessors()),
               "The number of threads which can concurrently fetch metadata from UFSes during a "
                   + "metadata sync operations.")
@@ -2906,7 +2915,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_CORE_POOL_SIZE =
-      new Builder(Name.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)
+      intBuilder(Name.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)
           .setDefaultValue(500)
           .setDescription(
               "The number of threads to keep in thread pool of master RPC ExecutorService.")
@@ -2914,7 +2923,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_MAX_POOL_SIZE =
-      new Builder(Name.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
+      intBuilder(Name.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
           .setDefaultValue(500)
           .setDescription("The maximum number of threads allowed for master RPC ExecutorService."
               + " When the maximum is reached, attempts to replace blocked threads fail.")
@@ -2952,7 +2961,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_PARALLELISM =
-      new Builder(Name.MASTER_RPC_EXECUTOR_FJP_PARALLELISM)
+      intBuilder(Name.MASTER_RPC_EXECUTOR_FJP_PARALLELISM)
           .setAlias("alluxio.master.rpc.executor.parallelism")
           .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
@@ -2964,7 +2973,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
-      new Builder(Name.MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+      intBuilder(Name.MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
           .setAlias("alluxio.master.rpc.executor.min.runnable")
           .setDefaultValue(1)
           .setDescription(
@@ -2999,8 +3008,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_COUNT =
-      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_COUNT)
-          .setDefaultValue("25")
+      intBuilder(Name.MASTER_WORKER_REGISTER_LEASE_COUNT)
+          .setDefaultValue(25)
           .setDescription("The number of workers that can register at the same time. "
               + "Others will wait and retry until they are granted a RegisterLease. "
               + "If you observe pressure on the master when many workers start up and register, "
@@ -3052,7 +3061,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // File system master related properties
   //
   public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
-      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE)
+      intBuilder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE)
           .setDefaultValue(10000)
           .setDescription(
               "Count of items on each list-status response message.")
@@ -3068,7 +3077,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
-      new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE)
+      intBuilder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE)
           .setDefaultValue(100_000)
           .setDescription("Size of fs operation retry cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3167,7 +3176,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_TMP_SUBDIR_MAX =
-      new Builder(Name.WORKER_DATA_TMP_SUBDIR_MAX)
+      intBuilder(Name.WORKER_DATA_TMP_SUBDIR_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of sub-directories allowed to be created in "
               + "${alluxio.worker.data.tmp.folder}.")
@@ -3294,7 +3303,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 4.
   public static final PropertyKey WORKER_MANAGEMENT_TASK_THREAD_COUNT =
-      new Builder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
+      intBuilder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
           .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "Use {CPU core count} threads for all management tasks.")
           .setDescription("The number of threads for management task executor")
@@ -3304,7 +3313,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 2.
   public static final PropertyKey WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
-      new Builder(Name.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT)
+      intBuilder(Name.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT)
           .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
               "Use {CPU core count}/2 threads block transfer.")
           .setDescription("Puts a limit to how many block transfers are "
@@ -3335,7 +3344,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_RANGE =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RANGE)
+      intBuilder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RANGE)
           .setDefaultValue(100)
           .setDescription(
               "Maximum number of blocks to consider from one tier for a single alignment task.")
@@ -3343,7 +3352,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_RANGE =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE)
+      intBuilder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE)
           .setDefaultValue(100)
           .setDescription(
               "Maximum number of blocks to consider from one tier for a single promote task.")
@@ -3351,7 +3360,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT)
+      intBuilder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT)
           .setDefaultValue(90)
           .setDescription("Max percentage of each tier that could be used for promotions. "
               + "Promotions will be stopped to a tier once its used space go over this value. "
@@ -3415,7 +3424,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
-      new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
+      intBuilder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
           .setDefaultValue(512)
           .setDescription("The maximum number of outstanding async caching requests to cache "
               + "blocks in each data server")
@@ -3425,7 +3434,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 8.
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
+      intBuilder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
           .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
@@ -3434,21 +3443,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
+      intBuilder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
           .setDefaultValue(2048)
           .setDescription("The maximum number of threads used to read blocks in the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
+      intBuilder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of threads used to write blocks in the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
-      new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
+      intBuilder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(8)
           .setDescription("When a client writes to a remote worker, the maximum number of "
               + "data messages to buffer by the server for each request.")
@@ -3498,7 +3507,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BOSS_THREADS =
-      new Builder(Name.WORKER_NETWORK_NETTY_BOSS_THREADS)
+      intBuilder(Name.WORKER_NETWORK_NETTY_BOSS_THREADS)
           .setDefaultValue(1)
           .setDescription("How many threads to use for accepting new requests.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3539,7 +3548,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WORKER_THREADS =
-      new Builder(Name.WORKER_NETWORK_NETTY_WORKER_THREADS)
+      intBuilder(Name.WORKER_NETWORK_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
           .setDescription("How many threads to use for processing requests. Zero defaults to "
               + "#cpuCores * 2.")
@@ -3589,8 +3598,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_BATCH_SIZE =
-      new Builder(Name.WORKER_REGISTER_STREAM_BATCH_SIZE)
-          .setDefaultValue("1000000")
+      intBuilder(Name.WORKER_REGISTER_STREAM_BATCH_SIZE)
+          .setDefaultValue(1000000)
           .setDescription("When the worker registers with the master using a stream, this defines "
               + "the metadata of how many blocks should be send to the master in each batch.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3641,7 +3650,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
   // master.
   public static final PropertyKey WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
-      new Builder(Name.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE)
+      intBuilder(Name.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE)
           .setDefaultValue(11)
           .setDescription("The block master client pool size on the Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3723,7 +3732,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_PORT =
-      new Builder(Name.WORKER_RPC_PORT)
+      intBuilder(Name.WORKER_RPC_PORT)
           .setAlias("alluxio.worker.port")
           .setDefaultValue(29999)
           .setDescription("The port for Alluxio worker's RPC service.")
@@ -3747,14 +3756,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
-      new Builder(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS)
+      intBuilder(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS)
           .setDefaultValue(1000)
           .setDescription("The max number of concurrent readers for a block lock.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCKS =
-      new Builder(Name.WORKER_TIERED_STORE_BLOCK_LOCKS)
+      intBuilder(Name.WORKER_TIERED_STORE_BLOCK_LOCKS)
           .setDefaultValue(1000)
           .setDescription("Total number of block locks for an Alluxio block worker. Larger "
               + "value leads to finer locking granularity, but uses more space.")
@@ -3935,7 +3944,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
-      new Builder(Name.WORKER_TIERED_STORE_LEVELS)
+      intBuilder(Name.WORKER_TIERED_STORE_LEVELS)
           .setDefaultValue(1)
           .setDescription("The number of storage tiers on the worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3954,7 +3963,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_WEB_PORT =
-      new Builder(Name.WORKER_WEB_PORT)
+      intBuilder(Name.WORKER_WEB_PORT)
           .setDefaultValue(30000)
           .setDescription("The port Alluxio worker's web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3988,8 +3997,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
-      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
-          .setDefaultValue("5000")
+      intBuilder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
+          .setDefaultValue(5000)
           .setDescription("The max entries in the UFS instream cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -4012,7 +4021,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
-      new Builder(Name.WORKER_RPC_EXECUTOR_CORE_POOL_SIZE)
+      intBuilder(Name.WORKER_RPC_EXECUTOR_CORE_POOL_SIZE)
           .setDefaultValue(100)
           .setDescription(
               "The number of threads to keep in thread pool of worker RPC ExecutorService.")
@@ -4020,7 +4029,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_MAX_POOL_SIZE =
-      new Builder(Name.WORKER_RPC_EXECUTOR_MAX_POOL_SIZE)
+      intBuilder(Name.WORKER_RPC_EXECUTOR_MAX_POOL_SIZE)
           .setDefaultValue(1000)
           .setDescription("The maximum number of threads allowed for worker RPC ExecutorService."
               + " When the maximum is reached, attempts to replace blocked threads fail.")
@@ -4070,7 +4079,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
-      new Builder(Name.WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+      intBuilder(Name.WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
           .setAlias("alluxio.worker.rpc.executor.min.runnable")
           .setDefaultValue(1)
           .setDescription(
@@ -4138,7 +4147,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
-      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
+      intBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
           .setDefaultValue(3)
           .setDescription("The retry count when aborting a multipart upload fails.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -4152,14 +4161,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
-      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE)
+      intBuilder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE)
           .setDefaultValue(1)
           .setDescription("The abort multipart upload cleaner pool size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE =
-      new Builder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
+      intBuilder(Name.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE)
           .setDefaultValue(20)
           .setDescription("The complete multipart upload thread pool size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4195,7 +4204,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_WEB_PORT =
-      new Builder(Name.PROXY_WEB_PORT)
+      intBuilder(Name.PROXY_WEB_PORT)
           .setDefaultValue(39999)
           .setDescription("The port Alluxio proxy's web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -4261,7 +4270,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGSERVER_PORT =
-      new Builder(Name.LOGSERVER_PORT)
+      intBuilder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
           .setDescription("Default port of logserver to receive logs from alluxio servers.")
           .setIgnoredSiteProperty(true)
@@ -4269,7 +4278,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MAX =
-      new Builder(Name.LOGSERVER_THREADS_MAX)
+      intBuilder(Name.LOGSERVER_THREADS_MAX)
           .setDefaultValue(2048)
           .setDescription("The maximum number of threads used by logserver to service"
               + " logging requests.")
@@ -4277,7 +4286,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MIN =
-      new Builder(Name.LOGSERVER_THREADS_MIN)
+      intBuilder(Name.LOGSERVER_THREADS_MIN)
           .setDefaultValue(512)
           .setDescription("The minimum number of threads used by logserver to service"
               + " logging requests.")
@@ -4289,7 +4298,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // User related properties
   //
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
-      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
+      intBuilder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of block master clients cached in the block master "
               + "client pool. For long running processes, this should be set to zero.")
@@ -4297,7 +4306,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
-      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
+      intBuilder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
           .setDefaultValue(500)
           .setDescription("The maximum number of block master clients cached in the block master "
               + "client pool.")
@@ -4321,7 +4330,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MIN =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MIN)
+      intBuilder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of block worker clients cached in the block "
               + "worker client pool.")
@@ -4330,13 +4339,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MAX =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MAX)
+      intBuilder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of block worker clients cached in the block "
               + "worker client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setAlias(new String[] {"alluxio.user.block.worker.client.pool.size"})
+          .setAlias("alluxio.user.block.worker.client.pool.size")
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
@@ -4364,20 +4373,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_REPLICATION_MAX =
-      new Builder(Name.USER_FILE_REPLICATION_MAX)
+      intBuilder(Name.USER_FILE_REPLICATION_MAX)
           .setDefaultValue(-1)
           .setDescription("The target max replication level of a file in Alluxio space. Setting "
               + "this property to a negative value means no upper limit.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_REPLICATION_MIN =
-      new Builder(Name.USER_FILE_REPLICATION_MIN)
+      intBuilder(Name.USER_FILE_REPLICATION_MIN)
           .setDefaultValue(0)
           .setDescription("The target min replication level of a file in Alluxio space.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_REPLICATION_DURABLE =
-      new Builder(Name.USER_FILE_REPLICATION_DURABLE)
+      intBuilder(Name.USER_FILE_REPLICATION_DURABLE)
           .setDefaultValue(1)
           .setDescription("The target replication level of a file created by ASYNC_THROUGH writes"
               + "before this file is persisted.")
@@ -4465,7 +4474,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
-      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
+      intBuilder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of fs master clients cached in the fs master "
               + "client pool. For long running processes, this should be set to zero.")
@@ -4473,13 +4482,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
-      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
+      intBuilder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
           .setDefaultValue(500)
           .setDescription("The maximum number of fs master clients cached in the fs master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setAlias(new String[] {"alluxio.user.file.master.client.threads"})
+          .setAlias("alluxio.user.file.master.client.threads")
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
@@ -4630,7 +4639,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_THREADS =
-      new Builder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS)
+      intBuilder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS)
           .setDefaultValue(16)
           .setDescription("Number of threads to asynchronously cache data.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -4687,7 +4696,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The total memory overhead for bloom filters used for tracking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM).setDefaultValue(4)
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM)
+              .setDefaultValue(4)
           .setDescription(
               "The number of bloom filters used for tracking. Each tracks a segment of window")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
@@ -4699,7 +4709,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTION_RETRIES =
-      new Builder(Name.USER_CLIENT_CACHE_EVICTION_RETRIES)
+      intBuilder(Name.USER_CLIENT_CACHE_EVICTION_RETRIES)
           .setDefaultValue(10)
           .setDescription("Max number of eviction retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4717,8 +4727,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_TIMEOUT_THREADS =
-      new Builder(Name.USER_CLIENT_CACHE_TIMEOUT_THREADS)
-          .setDefaultValue("32")
+      intBuilder(Name.USER_CLIENT_CACHE_TIMEOUT_THREADS)
+          .setDefaultValue(32)
           .setDescription("The number of threads to handle cache I/O operation timeout, "
               + "when " + Name.USER_CLIENT_CACHE_TIMEOUT_DURATION + " is positive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4742,8 +4752,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
-      new Builder(Name.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS)
-          .setDefaultValue("1000")
+      intBuilder(Name.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS)
+          .setDefaultValue(1000)
           .setDescription("The number of file buckets for the local page store of the client-side "
               + "cache. It is recommended to set this to a high value if the number of unique "
               + "files is expected to be high (# files / file buckets <= 100,000).")
@@ -4790,7 +4800,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.CLIENT)
       .build();
   public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
-      new Builder(Name.USER_FILE_WRITE_TIER_DEFAULT)
+      intBuilder(Name.USER_FILE_WRITE_TIER_DEFAULT)
           .setDefaultValue(Constants.FIRST_TIER)
           .setDescription("The default tier for choosing a where to write a block. Valid "
               + "option is any integer. Non-negative values identify tiers starting from top "
@@ -4868,7 +4878,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
-      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
+      intBuilder(Name.USER_METADATA_CACHE_MAX_SIZE)
           .setDefaultValue(100000)
           .setDescription("Maximum number of paths with cached metadata. Only valid if "
               + "alluxio.user.metadata.cache.enabled is set to true.")
@@ -4946,7 +4956,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
-      new Builder(Name.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES)
+      intBuilder(Name.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES)
           .setAlias(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
           .setDescription("When a client reads from a remote worker, the maximum number of "
@@ -4973,7 +4983,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES =
-      new Builder(Name.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES)
+      intBuilder(Name.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES)
           .setAlias(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
           .setDescription("When a client writes to a remote worker, the maximum number of messages "
@@ -5161,7 +5171,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
-      new Builder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
+      intBuilder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
           .setDescription("How many threads to use for remote block worker client to read "
               + "from remote block workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5207,7 +5217,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("EPOLL")
           .build();
   public static final PropertyKey USER_NETWORK_RPC_NETTY_WORKER_THREADS =
-      new Builder(Name.USER_NETWORK_RPC_NETTY_WORKER_THREADS)
+      intBuilder(Name.USER_NETWORK_RPC_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
           .setDescription("How many threads to use for rpc client to read "
               + "from remote workers.")
@@ -5215,7 +5225,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_MAX_CONNECTIONS =
-      new Builder(Name.USER_NETWORK_RPC_MAX_CONNECTIONS)
+      intBuilder(Name.USER_NETWORK_RPC_MAX_CONNECTIONS)
           .setDefaultValue(1)
           .setDescription(
               "The maximum number of physical connections to be "
@@ -5268,7 +5278,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("EPOLL")
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_NETTY_WORKER_THREADS =
-      new Builder(Name.USER_NETWORK_STREAMING_NETTY_WORKER_THREADS)
+      intBuilder(Name.USER_NETWORK_STREAMING_NETTY_WORKER_THREADS)
           .setAlias(Name.USER_NETWORK_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
           .setDescription("How many threads to use for streaming client to read "
@@ -5277,7 +5287,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_MAX_CONNECTIONS =
-      new Builder(Name.USER_NETWORK_STREAMING_MAX_CONNECTIONS)
+      intBuilder(Name.USER_NETWORK_STREAMING_MAX_CONNECTIONS)
           .setDefaultValue(64)
           .setDescription(
               "The maximum number of physical connections to be "
@@ -5348,7 +5358,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
-      new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
+      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
           .setDefaultValue(1)
           .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
               + "alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of "
@@ -5357,7 +5367,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
-      new Builder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
+      intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
           .setDescription("The maximum concurrent readers for one UFS block on one Block Worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5430,7 +5440,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
-      new Builder(Name.FUSE_CACHED_PATHS_MAX)
+      intBuilder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
           .setDescription("Maximum number of FUSE-to-Alluxio path mappings to cache "
               + "for FUSE conversion.")
@@ -5553,7 +5563,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_WEB_PORT =
-      new Builder(Name.FUSE_WEB_PORT)
+      intBuilder(Name.FUSE_WEB_PORT)
           .setDefaultValue(49999)
           .setDescription("The port Alluxio FUSE web UI runs on.")
           .setScope(Scope.CLIENT)
@@ -5680,7 +5690,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Yarn related properties
   //
   public static final PropertyKey INTEGRATION_MASTER_RESOURCE_CPU =
-      new Builder(Name.INTEGRATION_MASTER_RESOURCE_CPU)
+      intBuilder(Name.INTEGRATION_MASTER_RESOURCE_CPU)
           .setDefaultValue(1)
           .setDescription("The number of CPUs to run an Alluxio master for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5694,7 +5704,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
-      new Builder(Name.INTEGRATION_WORKER_RESOURCE_CPU)
+      intBuilder(Name.INTEGRATION_WORKER_RESOURCE_CPU)
           .setDefaultValue(1)
           .setDescription("The number of CPUs to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5708,7 +5718,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
-      new Builder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
+      intBuilder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
           .setDefaultValue(1)
           .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5726,7 +5736,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Job service
   //
   public static final PropertyKey JOB_MASTER_CLIENT_THREADS =
-      new Builder(Name.JOB_MASTER_CLIENT_THREADS)
+      intBuilder(Name.JOB_MASTER_CLIENT_THREADS)
           .setDescription("The number of threads the Alluxio master uses to make requests to the "
               + "job master.")
           .setDefaultValue(1024)
@@ -5749,7 +5759,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
-      new Builder(Name.JOB_MASTER_JOB_CAPACITY)
+      intBuilder(Name.JOB_MASTER_JOB_CAPACITY)
           .setDescription("The total possible number of available job statuses in the job master. "
               + "This value includes running and finished jobs which are have completed within "
               + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
@@ -5789,7 +5799,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_RPC_PORT =
-      new Builder(Name.JOB_MASTER_RPC_PORT)
+      intBuilder(Name.JOB_MASTER_RPC_PORT)
           .setDescription("The port for Alluxio job master's RPC service.")
           .setDefaultValue(20001)
           .setScope(Scope.ALL)
@@ -5807,13 +5817,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_WEB_PORT =
-      new Builder(Name.JOB_MASTER_WEB_PORT)
+      intBuilder(Name.JOB_MASTER_WEB_PORT)
           .setDescription("The port the job master web server uses.")
           .setDefaultValue(20002)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_REQUEST_BATCH_SIZE =
-      new Builder(Name.JOB_REQUEST_BATCH_SIZE)
+      intBuilder(Name.JOB_REQUEST_BATCH_SIZE)
           .setDescription("The batch size client uses to make requests to the "
               + "job master.")
           .setDefaultValue(20)
@@ -5826,7 +5836,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_DATA_PORT =
-      new Builder(Name.JOB_WORKER_DATA_PORT)
+      intBuilder(Name.JOB_WORKER_DATA_PORT)
           .setDescription("The port the Alluxio Job worker uses to send data.")
           .setDefaultValue(30002)
           .setScope(Scope.WORKER)
@@ -5838,13 +5848,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
-      new Builder(Name.JOB_WORKER_RPC_PORT)
+      intBuilder(Name.JOB_WORKER_RPC_PORT)
           .setDescription("The port for Alluxio job worker's RPC service.")
           .setDefaultValue(30001)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_THREADPOOL_SIZE =
-      new Builder(Name.JOB_WORKER_THREADPOOL_SIZE)
+      intBuilder(Name.JOB_WORKER_THREADPOOL_SIZE)
           .setDescription("Number of threads in the thread pool for job worker. "
               + "This may be adjusted to a lower value to alleviate resource "
               + "saturation on the job worker nodes (CPU + IO).")
@@ -5865,7 +5875,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_WEB_PORT =
-      new Builder(Name.JOB_WORKER_WEB_PORT)
+      intBuilder(Name.JOB_WORKER_WEB_PORT)
           .setDescription("The port the Alluxio job worker web server uses.")
           .setDefaultValue(30003)
           .setScope(Scope.WORKER)
@@ -5891,7 +5901,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
-      new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
+      intBuilder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription("The port job masters use for embedded journal communications.")
           .setDefaultValue(20003)
           .setScope(Scope.ALL)
@@ -6021,7 +6031,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
-      new Builder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
+      intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
           .setDefaultValue(500)
           .setDescription("The maximum table partitions number in a single journal entry.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -6046,8 +6056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey HUB_AGENT_EXECUTOR_THREADS_MIN =
-          new Builder(Name.HUB_AGENT_EXECUTOR_THREADS_MIN)
-                  .setDefaultValue("2")
+          intBuilder(Name.HUB_AGENT_EXECUTOR_THREADS_MIN)
+                  .setDefaultValue(2)
                   .setDescription("The minimum number of threads used when scheduling tasks.")
                   .build();
   public static final PropertyKey HUB_AGENT_HEARTBEAT_INTERVAL =
@@ -6066,8 +6076,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The host that the hub agent's RPC server should bind to")
                   .build();
   public static final PropertyKey HUB_AGENT_RPC_PORT =
-          new Builder(Name.HUB_AGENT_RPC_PORT)
-                  .setDefaultValue("30075")
+          intBuilder(Name.HUB_AGENT_RPC_PORT)
+                  .setDefaultValue(30075)
                   .setDescription("The port that the hub agent's RPC port should bind to")
                   .build();
   public static final PropertyKey HUB_AUTHENTICATION_API_KEY =
@@ -6106,8 +6116,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                           + "node as a part of the cluster.")
                   .build();
   public static final PropertyKey HUB_MANAGER_EXECUTOR_THREADS_MIN =
-          new Builder(Name.HUB_MANAGER_EXECUTOR_THREADS_MIN)
-                  .setDefaultValue("2")
+          intBuilder(Name.HUB_MANAGER_EXECUTOR_THREADS_MIN)
+                  .setDefaultValue(2)
                   .setDescription("The minimum number of threads used when scheduling tasks.")
                   .build();
   public static final PropertyKey HUB_MANAGER_PRESTO_CONF_PATH =
@@ -6133,8 +6143,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The host that the hub manager's RPC server should bind to")
                   .build();
   public static final PropertyKey HUB_MANAGER_RPC_PORT =
-          new Builder(Name.HUB_MANAGER_RPC_PORT)
-                  .setDefaultValue("30076")
+          intBuilder(Name.HUB_MANAGER_RPC_PORT)
+                  .setDefaultValue(30076)
                   .setDescription("The port that the hub manager's RPC server should bind to")
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_HOSTNAME =
@@ -6150,8 +6160,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setIsHidden(true)
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_PORT =
-          new Builder(Name.HUB_HOSTED_RPC_PORT)
-                  .setDefaultValue("50051")
+          intBuilder(Name.HUB_HOSTED_RPC_PORT)
+                  .setDefaultValue(50051)
                   .setDescription("The port that the hosted hub's RPC server should bind to")
                   .build();
   public static final PropertyKey HUB_NETWORK_TLS_ENABLED =
@@ -6163,21 +6173,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setScope(Scope.ALL)
                   .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
-      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
-          .setDefaultValue("16")
+      intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
+          .setDefaultValue(16)
           .setDescription("The minimum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
-      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
-          .setDefaultValue("256")
+      intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
+          .setDefaultValue(256)
           .setDescription("The maximum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
-      new Builder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
+      intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
           .setDefaultValue(1)
           .setDescription("The default replication number of files under the SDS table after "
                   + "load option.")
@@ -7530,15 +7540,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     USER_NETWORK_NETTY_CHANNEL("alluxio.user.network.%s.netty.channel",
         "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.channel"),
     USER_NETWORK_NETTY_WORKER_THREADS("alluxio.user.network.%s.netty.worker.threads",
-        "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.worker\\.threads"),
+        "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.worker\\.threads",
+            PropertyType.INTEGER),
     USER_NETWORK_MAX_CONNECTIONS("alluxio.user.network.%s.max.connections",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.connections"),
     RPC_EXECUTOR_TYPE("alluxio.%s.rpc.executor.type",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.type"),
     RPC_EXECUTOR_CORE_POOL_SIZE("alluxio.%s.rpc.executor.core.pool.size",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.core\\.pool\\.size"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.core\\.pool\\.size",
+            PropertyType.INTEGER),
     RPC_EXECUTOR_MAX_POOL_SIZE("alluxio.%s.rpc.executor.max.pool.size",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.max\\.pool\\.size"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.max\\.pool\\.size",
+            PropertyType.INTEGER),
     RPC_EXECUTOR_KEEPALIVE("alluxio.%s.rpc.executor.keepalive",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.keep\\.alive"),
     RPC_EXECUTOR_TPE_QUEUE_TYPE("alluxio.%s.rpc.executor.tpe.queue.type",
@@ -7548,9 +7561,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.allow\\.core\\.threads\\.timeout",
          PropertyType.BOOLEAN),
     RPC_EXECUTOR_FJP_PARALLELISM("alluxio.%s.rpc.executor.fjp.parallelism",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.parallelism"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.parallelism",
+            PropertyType.INTEGER),
     RPC_EXECUTOR_FJP_MIN_RUNNABLE("alluxio.%s.rpc.executor.fjp.min.runnable",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.min\\.runnable"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.min\\.runnable",
+            PropertyType.INTEGER),
     RPC_EXECUTOR_FJP_ASYNC("alluxio.%s.rpc.executor.fjp.async",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.async",
          PropertyType.BOOLEAN),
@@ -8058,7 +8073,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public boolean validateValue(Object value) {
     if (!(value instanceof String)
-            && mType == PropertyType.BOOLEAN
+            && (mType == PropertyType.BOOLEAN || mType == PropertyType.INTEGER)
             && !value.getClass().equals(mType.getJavaType())) {
       return false;
     }
@@ -8074,10 +8089,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return property value in the expected type
    */
   public Object parseValue(String stringValue) {
-    if (mType == PropertyType.BOOLEAN) {
-      return Boolean.parseBoolean(stringValue);
+    switch (mType) {
+      case BOOLEAN:
+        return Boolean.parseBoolean(stringValue);
+      case INTEGER:
+        return Integer.parseInt(stringValue);
+      default:
+        return stringValue;
     }
-    return stringValue;
   }
 
   private static final DeprecatedKeyChecker DEPRECATED_CHECKER = new DeprecatedKeyChecker();

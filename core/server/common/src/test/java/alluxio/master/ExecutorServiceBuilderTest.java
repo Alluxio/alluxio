@@ -35,7 +35,7 @@ public class ExecutorServiceBuilderTest {
   @Test
   public void startZeroParallelism() {
     ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "FJP");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, "0");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, 0);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         "Cannot start Alluxio master gRPC thread pool with "
