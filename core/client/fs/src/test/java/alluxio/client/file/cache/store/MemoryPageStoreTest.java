@@ -14,8 +14,11 @@ package alluxio.client.file.cache.store;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import alluxio.client.file.cache.FileInfo;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.client.quota.CacheScope;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +28,10 @@ import java.util.Arrays;
 public class MemoryPageStoreTest {
 
   private MemoryPageStoreOptions mOptions;
+
+  private static final byte[] TEST_PAGE = "test".getBytes();
+  private static final int TEST_PAGE_SIZE = TEST_PAGE.length;
+  private static final FileInfo TEST_FILE_INFO = new FileInfo(CacheScope.GLOBAL, 100);
 
   @Before
   public void before() {
@@ -40,9 +47,10 @@ public class MemoryPageStoreTest {
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
-    store.put(id, msg.getBytes());
+    PageInfo pageInfo = new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO);
+    store.put(pageInfo, msg.getBytes());
     byte[] buf = new byte[1024];
-    assertEquals(msg.getBytes().length, store.get(id, buf));
+    assertEquals(msg.getBytes().length, store.get(pageInfo, buf));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

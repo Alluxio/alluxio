@@ -52,25 +52,28 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
-    PageId pageKey = getKeyFromPageId(pageId);
+  public void put(PageInfo pageInfo, byte[] page) throws ResourceExhaustedException, IOException {
+    PageId pageKey = getKeyFromPageId(pageInfo.getPageId());
     try {
       byte[] mPage = new byte[page.length];
       System.arraycopy(page, 0, mPage, 0, page.length);
       mPageStoreMap.put(pageKey, mPage);
     } catch (Exception e) {
-      throw new IOException("Failed to put cached data in memory for page " + pageId);
+      throw new IOException("Failed to put cached data in memory for page "
+          + pageInfo.getPageId());
     }
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  public int get(PageInfo pageInfo, int pageOffset, int bytesToRead,
+      byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(buffer != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
+    PageId pageId = pageInfo.getPageId();
     PageId pageKey = getKeyFromPageId(pageId);
     if (!mPageStoreMap.containsKey(pageKey)) {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
@@ -85,7 +88,8 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+  public void delete(PageInfo pageInfo) throws IOException, PageNotFoundException {
+    PageId pageId = pageInfo.getPageId();
     PageId pageKey = getKeyFromPageId(pageId);
     if (!mPageStoreMap.containsKey(pageKey)) {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
