@@ -116,14 +116,14 @@ public final class ConfigurationTestUtils {
     // TODO(binfan): eliminate this setting after updating integration tests
     //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    conf.put(PropertyKey.WEB_THREADS, "1");
+    conf.put(PropertyKey.WEB_THREADS, 1);
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
     conf.put(PropertyKey.WORKER_RAMDISK_SIZE, "100MB");
     conf.put(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
-    conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
+    conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, 2);
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");

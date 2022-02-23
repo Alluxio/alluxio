@@ -39,7 +39,7 @@ public class UfsJournalConfTest {
     PropertyKey key =
         PropertyKey.Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
             .format(PropertyKey.UNDERFS_LISTING_LENGTH.toString());
-    String value = "10000";
+    int value = 10000;
     ServerConfiguration.set(key, value);
     UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
     Assert.assertEquals(value, conf.get(PropertyKey.UNDERFS_LISTING_LENGTH));

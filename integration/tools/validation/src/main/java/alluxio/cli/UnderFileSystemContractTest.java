@@ -43,8 +43,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static alluxio.conf.PropertyKey.PropertyType.STRING;
-
 /**
  * Integration tests for Alluxio under filesystems. It describes the contract of Alluxio
  * with the UFS through the UFS interface.
@@ -105,7 +103,7 @@ public final class UnderFileSystemContractTest {
     }
 
     // Set common properties
-    mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+    mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
@@ -148,7 +146,7 @@ public final class UnderFileSystemContractTest {
       }
 
       // Set common properties
-      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
       mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
       // Increase the buffer time of journal writes to speed up tests
       mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");

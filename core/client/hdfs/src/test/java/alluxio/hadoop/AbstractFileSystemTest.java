@@ -242,7 +242,7 @@ public class AbstractFileSystemTest {
 
     Map<PropertyKey, Object> properties = new HashMap<>();
     properties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    properties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    properties.put(PropertyKey.MASTER_RPC_PORT, uri.getPort());
     properties.put(PropertyKey.ZOOKEEPER_ENABLED, false);
     properties.put(PropertyKey.ZOOKEEPER_ADDRESS, null);
     try (Closeable c = new ConfigurationRule(properties, mConfiguration).toResource()) {
@@ -285,7 +285,7 @@ public class AbstractFileSystemTest {
     URI otherUri = URI.create(Constants.HEADER + "alluxioHost:19998/tmp/path.txt");
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(otherUri, conf));
     assertEquals("alluxioHost", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("19998", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(19998, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
     assertFalse(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertFalse(fs.mFileSystem.getConf().isSet(PropertyKey.ZOOKEEPER_ADDRESS));
   }
@@ -374,12 +374,12 @@ public class AbstractFileSystemTest {
     URI uri = URI.create("alluxio://host1:1");
     FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, conf));
     assertEquals("host1", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("1", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(1, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
 
     uri = URI.create("alluxio://host2:2");
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, conf));
     assertEquals("host2", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("2", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(2, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
   }
 
   /**

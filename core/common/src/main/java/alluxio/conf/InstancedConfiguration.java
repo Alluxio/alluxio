@@ -265,14 +265,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public int getInt(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return Integer.parseInt(rawValue);
-    } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, key));
-    }
+  public int getInt(PropertyKey key)
+  {
+    return (Integer) get(key);
   }
 
   @Override
@@ -481,7 +476,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         stringValue = String.valueOf(lookupRecursively(key, (String) value , seen));
       }
       else if (value != null) {
-        stringValue = String.valueOf(mProperties.get(key));
+        stringValue = String.valueOf(value);
       }
       seen.remove(match);
       if (stringValue == null) {

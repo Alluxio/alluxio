@@ -11,6 +11,7 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -124,56 +125,59 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getInt() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "1");
+    mConfiguration.set(PropertyKey.WEB_THREADS, 1);
     assertEquals(1, mConfiguration.getInt(PropertyKey.WEB_THREADS));
   }
 
   @Test
   public void getMalformedIntThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "9448367483758473854738"); // bigger than MAX_INT
-    mThrown.expect(RuntimeException.class);
-    mConfiguration.getInt(PropertyKey.WEB_THREADS);
+    mThrown.expect(IllegalArgumentException.class);
+    mConfiguration.set(PropertyKey.WEB_THREADS, 2147483648L); // bigger than MAX_INT
   }
 
   @Test
   public void getLong() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "12345678910"); // bigger than MAX_INT
-    assertEquals(12345678910L, mConfiguration.getLong(PropertyKey.WEB_THREADS));
+    // bigger than MAX_INT
+    mConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "12345678910");
+    assertEquals(12345678910L,
+        mConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES));
   }
 
   @Test
   public void getMalformedLongThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS,
+    mConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
         "999999999999999999999999999999999999"); // bigger than MAX_LONG
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getLong(PropertyKey.WEB_THREADS);
+    mConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
   }
 
   @Test
   public void getDouble() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "1.1");
-    assertEquals(1.1, mConfiguration.getDouble(PropertyKey.WEB_THREADS),
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE, "1.1");
+    assertEquals(1.1, mConfiguration.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE),
         /*tolerance=*/0.0001);
   }
 
   @Test
   public void getMalformedDoubleThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "1a");
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE, "1a");
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getDouble(PropertyKey.WEB_THREADS);
+    mConfiguration.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE);
   }
 
   @Test
   public void getFloat() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "1.1");
-    assertEquals(1.1, mConfiguration.getFloat(PropertyKey.WEB_THREADS), /*tolerance=*/0.0001);
+    mConfiguration.set(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO, "1.1");
+    assertEquals(1.1,
+        mConfiguration.getFloat(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO),
+        /*tolerance=*/0.0001);
   }
 
   @Test
   public void getMalformedFloatThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "1a");
+    mConfiguration.set(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO, "1a");
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getFloat(PropertyKey.WEB_THREADS);
+    mConfiguration.getFloat(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO);
   }
 
   @Test
@@ -196,9 +200,10 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getList() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "a,b,c");
+    mConfiguration.set(PropertyKey.LOCALITY_ORDER, "a,b,c");
     assertEquals(
-        Lists.newArrayList("a", "b", "c"), mConfiguration.getList(PropertyKey.WEB_THREADS, ","));
+        Lists.newArrayList("a", "b", "c"),
+        mConfiguration.getList(PropertyKey.LOCALITY_ORDER, ","));
   }
 
   private enum TestEnum {
@@ -207,73 +212,79 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getEnum() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "VALUE");
-    assertEquals(
-        TestEnum.VALUE, mConfiguration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class));
+    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "VALUE");
+    assertEquals(TestEnum.VALUE,
+        mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.class));
   }
 
   @Test
   public void getEnumDifferentCase() {
     // Keep configuration backwards compatible: ALLUXIO-3402
-    mConfiguration.set(PropertyKey.WEB_THREADS, "Value");
-    assertEquals(
-        TestEnum.VALUE, mConfiguration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class));
+    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "Value");
+    assertEquals(TestEnum.VALUE,
+        mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.class));
   }
 
   @Test
   public void getMalformedEnum() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "not_a_value");
+    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "not_a_value");
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class);
+    mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.class);
   }
 
   @Test
   public void getBytes() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10b");
-    assertEquals(10, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10b");
+    assertEquals(10, mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getBytesKb() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10kb");
-    assertEquals(10 * Constants.KB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10kb");
+    assertEquals(10 * Constants.KB,
+        mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getBytesMb() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10mb");
-    assertEquals(10 * Constants.MB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10mb");
+    assertEquals(10 * Constants.MB,
+        mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getBytesGb() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10gb");
-    assertEquals(10 * (long) Constants.GB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10gb");
+    assertEquals(10 * (long) Constants.GB,
+        mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getBytesGbUppercase() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10GB");
-    assertEquals(10 * (long) Constants.GB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10GB");
+    assertEquals(10 * (long) Constants.GB,
+        mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getBytesTb() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10tb");
-    assertEquals(10 * Constants.TB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10tb");
+    assertEquals(10 * Constants.TB,
+        mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getBytespT() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "10pb");
-    assertEquals(10 * Constants.PB, mConfiguration.getBytes(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "10pb");
+    assertEquals(10 * Constants.PB,
+        mConfiguration.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 
   @Test
   public void getMalformedBytesThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "100a");
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "100a");
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getBoolean(PropertyKey.WEB_THREADS);
+    mConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
   }
 
   @Test
@@ -466,15 +477,16 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getClassTest() { // The name getClass is already reserved.
-    mConfiguration.set(PropertyKey.WEB_THREADS, "java.lang.String");
-    assertEquals(String.class, mConfiguration.getClass(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS, "java.lang.String");
+    assertEquals(String.class,
+        mConfiguration.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS));
   }
 
   @Test
   public void getMalformedClassThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "java.util.not.a.class");
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS, "java.util.not.a.class");
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getClass(PropertyKey.WEB_THREADS);
+    mConfiguration.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS);
   }
 
   @Test
@@ -505,11 +517,11 @@ public class InstancedConfigurationTest {
   public void twoVariableSubstitution() {
     mConfiguration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
-        PropertyKey.MASTER_RPC_PORT, "value2",
+        PropertyKey.MASTER_RPC_PORT, 123,
         PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.rpc.port}"),
         Source.SYSTEM_PROPERTY);
     String substitution = mConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
-    assertEquals("value1-value2", substitution);
+    assertEquals("value1-123", substitution);
   }
 
   @Test
@@ -693,7 +705,7 @@ public class InstancedConfigurationTest {
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       resetConf();
       assertEquals("host-1", mConfiguration.get(PropertyKey.MASTER_HOSTNAME));
-      assertEquals("123", mConfiguration.get(PropertyKey.WEB_THREADS));
+      assertEquals(123, mConfiguration.get(PropertyKey.WEB_THREADS));
     }
   }
 
@@ -729,7 +741,7 @@ public class InstancedConfigurationTest {
   @Test
   public void getRuntimeDefault() throws Exception {
     AtomicInteger x = new AtomicInteger(100);
-    PropertyKey key = new PropertyKey.Builder("testKey")
+    PropertyKey key = intBuilder("testKey")
         .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "finds x"))
         .build();
     assertEquals(100, mConfiguration.getInt(key));

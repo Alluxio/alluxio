@@ -110,7 +110,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
         mRPCPort = configuredBindAddress.getPort();
       }
       // Reset worker RPC port based on assigned port number
-      ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(mRPCPort));
+      ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, mRPCPort);
 
       mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
           ServerConfiguration.global());
