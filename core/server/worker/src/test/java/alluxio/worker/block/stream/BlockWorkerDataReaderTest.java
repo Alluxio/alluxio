@@ -80,13 +80,13 @@ public class BlockWorkerDataReaderTest {
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
-          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
-          .put(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, String.valueOf(LOCK_NUM))
-          .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, LOCK_NUM)
+          .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory("BlockWorkerDataReaderTest")
                   .getAbsolutePath()).build(), mConf);

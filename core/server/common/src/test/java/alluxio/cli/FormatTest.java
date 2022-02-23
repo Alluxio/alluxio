@@ -64,7 +64,7 @@ public final class FormatTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
         put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
     }, ServerConfiguration.global()).toResource()) {
