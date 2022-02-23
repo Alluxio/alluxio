@@ -43,8 +43,8 @@ public class QuotaMetaStore extends DefaultMetaStore {
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
     super.addPage(pageId, pageInfo);
-    for (CacheScope cacheScope = pageInfo.getScope(); cacheScope != CacheScope.GLOBAL; cacheScope =
-        cacheScope.parent()) {
+    for (CacheScope cacheScope = pageInfo.getFileInfo().getScope(); cacheScope != CacheScope.GLOBAL;
+        cacheScope = cacheScope.parent()) {
       mBytesInScope.compute(cacheScope,
           (k, v) -> (v == null) ? pageInfo.getPageSize() : v + pageInfo.getPageSize());
       CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
@@ -55,8 +55,8 @@ public class QuotaMetaStore extends DefaultMetaStore {
   @Override
   public PageInfo getPageInfo(PageId pageId) throws PageNotFoundException {
     PageInfo pageInfo = super.getPageInfo(pageId);
-    for (CacheScope cacheScope = pageInfo.getScope(); cacheScope != CacheScope.GLOBAL; cacheScope =
-        cacheScope.parent()) {
+    for (CacheScope cacheScope = pageInfo.getFileInfo().getScope(); cacheScope != CacheScope.GLOBAL;
+        cacheScope = cacheScope.parent()) {
       CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
       evictor.updateOnPut(pageId);
     }
@@ -66,8 +66,8 @@ public class QuotaMetaStore extends DefaultMetaStore {
   @Override
   public PageInfo removePage(PageId pageId) throws PageNotFoundException {
     PageInfo pageInfo = super.removePage(pageId);
-    for (CacheScope cacheScope = pageInfo.getScope(); cacheScope != CacheScope.GLOBAL; cacheScope =
-        cacheScope.parent()) {
+    for (CacheScope cacheScope = pageInfo.getFileInfo().getScope(); cacheScope != CacheScope.GLOBAL;
+        cacheScope = cacheScope.parent()) {
       mBytesInScope.computeIfPresent(cacheScope, (k, v) -> v - pageInfo.getPageSize());
       CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
       evictor.updateOnDelete(pageId);

@@ -19,11 +19,13 @@ import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 
@@ -35,6 +37,8 @@ public class DefaultMetaStore implements MetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaStore.class);
   /** A map from PageId to page info. */
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
+  /** A map from fileId to file info.*/
+  private final Map<String, FileInfo> mFileMap = new WeakHashMap<>();
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
   /** The number of pages stored. */
@@ -55,6 +59,28 @@ public class DefaultMetaStore implements MetaStore {
   @VisibleForTesting
   public DefaultMetaStore(CacheEvictor evictor) {
     mEvictor = evictor;
+  }
+
+  @Override
+  public boolean hasFile(String fileId) {
+    return mFileMap.containsKey(fileId);
+  }
+
+  @Override
+  public void addFile(String fileId, FileInfo fileInfo) {
+    mFileMap.put(fileId, fileInfo);
+    Metrics.FILES.inc();
+  }
+
+  @Override
+  public void removeFile(String fileId) {
+    mFileMap.remove(fileId);
+    Metrics.FILES.dec();
+  }
+
+  @Override
+  public FileInfo getFile(String fileId) {
+    return Preconditions.checkNotNull(mFileMap.get(fileId));
   }
 
   @Override
@@ -145,5 +171,8 @@ public class DefaultMetaStore implements MetaStore {
     /** Pages stored in the cache. */
     private static final Counter PAGES =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES.getName());
+    /** Files stored in the cache. */
+    private static final Counter FILES =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_FILES.getName());
   }
 }

@@ -126,6 +126,13 @@ public class CacheScope {
     return mLevel;
   }
 
+  /**
+   * @return scope ID
+   */
+  public String getScopeId() {
+    return mId.substring(0, mLength);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

@@ -1465,6 +1465,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_FILES =
+      new Builder("Client.CacheFiles")
+          .setDescription("Total number of files in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS =
       new Builder("Client.CachePageReadCacheTimeNanos")
           .setDescription("Time in nanoseconds taken to read a page from the client cache "

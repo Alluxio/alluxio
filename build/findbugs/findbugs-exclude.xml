@@ -12,6 +12,10 @@
   </Match>
 
   <Match>
+    <Package name="alluxio.proto.client.file.cache"/>
+  </Match>
+
+  <Match>
     <!--
 	DC: Possible double check of field
 	DE: Method might ignore exception
@@ -48,5 +52,4 @@
       <Bug pattern="REC_CATCH_EXCEPTION"/>
     </Or>
   </Match>
-
 </FindBugsFilter>

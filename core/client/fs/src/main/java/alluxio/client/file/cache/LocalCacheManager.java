@@ -175,6 +175,14 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
+   * @return pageStore for testing
+   */
+  @VisibleForTesting
+  public PageStore getPageStore() {
+    return mPageStore;
+  }
+
+  /**
    * @param pageId page identifier
    * @return the page lock id
    */
@@ -330,20 +338,34 @@ public class LocalCacheManager implements CacheManager {
       boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageInfo victimPageInfo = null;
+    PageInfo newPageInfo = null;
     CacheScope scopeToEvict;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
-          // TODO(binfan): we should return more informative result in the future
-          return PutResult.OK;
+          try {
+            PageInfo pageInfo = mMetaStore.getPageInfo(pageId);
+            //file info contains the latest lastModificationTime of this file
+            FileInfo fileInfo = mMetaStore.getFile(pageId.getFileId());
+            // the client puts a newer page
+            // or there has been newer pages of this file in cache
+            if (isStale(cacheContext, pageInfo, fileInfo)) {
+              LOG.debug("Existing page {} is no longer valid. Trying remove it.", pageId);
+              mMetaStore.removePage(pageId);
+            } else {
+              // TODO(binfan): we should return more informative result in the future
+              return PutResult.OK;
+            }
+          } catch (PageNotFoundException e) {
+            LOG.debug("The page {} that might be invalid has been removed already.", pageId);
+          }
         }
         scopeToEvict = checkScopeToEvict(page.length, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
-          mMetaStore
-              .addPage(pageId, new PageInfo(pageId, page.length, cacheContext.getCacheScope()));
+          newPageInfo = addPageToMetaStore(pageId, page, cacheContext);
         } else {
           if (mQuotaEnabled) {
             victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
@@ -360,7 +382,7 @@ public class LocalCacheManager implements CacheManager {
       }
       if (scopeToEvict == null) {
         try {
-          mPageStore.put(pageId, page);
+          mPageStore.put(newPageInfo, page);
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
               .mark(page.length);
@@ -401,15 +423,13 @@ public class LocalCacheManager implements CacheManager {
         scopeToEvict = checkScopeToEvict(page.length, cacheContext.getCacheScope(),
             cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
-          mMetaStore
-              .addPage(pageId, new PageInfo(pageId, page.length, cacheContext.getCacheScope()));
+          newPageInfo = addPageToMetaStore(pageId, page, cacheContext);
         }
       }
       // phase2: remove victim and add new page in pagestore
       // Regardless of enoughSpace, delete the victim as it has been removed from the metastore
-      PageId victim = victimPageInfo.getPageId();
       try {
-        mPageStore.delete(victim);
+        mPageStore.delete(victimPageInfo);
         // Bytes evicted from the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
             .mark(victimPageInfo.getPageSize());
@@ -428,7 +448,7 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
-        mPageStore.put(pageId, page);
+        mPageStore.put(newPageInfo, page);
         // Bytes written to the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
         return PutResult.OK;
@@ -445,6 +465,32 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.OTHER;
       }
     }
+  }
+
+  private PageInfo addPageToMetaStore(PageId pageId, byte[] page, CacheContext cacheContext) {
+    FileInfo fileInfo;
+    if (mMetaStore.hasFile(pageId.getFileId())) {
+      fileInfo = mMetaStore.getFile(pageId.getFileId());
+      //if the expected timestamp in cacheContext is newer than the timestamp we stored in metastore
+      //replace the file info in metastore.
+      //else if the expected timestamp is older than the timestamp we stored,
+      //do nothing, just use the current file info in metastore
+      //because we're always reading the updated under data file
+      if (cacheContext.getLastModificationTimeMs() > fileInfo.getLastModificationTimeMs()) {
+        mMetaStore.removeFile(pageId.getFileId());
+        fileInfo = new FileInfo(cacheContext.getCacheScope(),
+            cacheContext.getLastModificationTimeMs());
+        mMetaStore.addFile(pageId.getFileId(), fileInfo);
+      }
+    } else {
+      fileInfo = new FileInfo(cacheContext.getCacheScope(),
+          cacheContext.getLastModificationTimeMs());
+      mMetaStore.addFile(pageId.getFileId(), fileInfo);
+    }
+    PageInfo newPageInfo = new PageInfo(pageId, page.length, fileInfo);
+    mMetaStore
+        .addPage(pageId, newPageInfo);
+    return newPageInfo;
   }
 
   private void undoAddPage(PageId pageId) {
@@ -473,13 +519,51 @@ public class LocalCacheManager implements CacheManager {
     }
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
+      PageInfo pageInfo;
+      FileInfo fileInfo;
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
-        mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+        pageInfo = mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+        fileInfo = mMetaStore.getFile(pageId.getFileId());
       } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
       }
-      int bytesRead = getPage(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer);
+      if (isStale(cacheContext, pageInfo, fileInfo)) {
+        //evict the stale page
+        try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
+          pageInfo = mMetaStore.getPageInfo(pageId);
+          fileInfo = mMetaStore.getFile(pageId.getFileId());
+          if (isStale(cacheContext, pageInfo, fileInfo)) {
+            mMetaStore.removePage(pageId);
+          }
+        } catch (PageNotFoundException e) {
+          // best effort to remove the stale page from meta store
+          // ignore the exception
+        } //release the lock on meta store
+        try {
+          mPageStore.delete(pageInfo);
+          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getMetricName())
+              .mark(pageInfo.getPageSize());
+          MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getMetricName())
+              .mark();
+        } catch (IOException | PageNotFoundException e) {
+          // best effort to remove this page from page store
+          // ignore the exception
+        }
+        return 0;
+      } else if (cacheContext.getLastModificationTimeMs() < pageInfo.getFileInfo()
+          .getLastModificationTimeMs()) {
+        // Cached page is newer than we expect, it might be caused by
+        // the underlying data file got changed during the presto query running
+        //TODO(beinan): add a metrics to count the number of this invalid state
+        LOG.warn("Cached page {} is newer than we expect, actual cached {}, client expect {}",
+            pageId, pageInfo.getFileInfo()
+                .getLastModificationTimeMs(),
+            cacheContext.getLastModificationTimeMs() < pageInfo.getFileInfo()
+                .getLastModificationTimeMs());
+      }
+      int bytesRead = getPage(pageInfo, pageOffset,
+          bytesToRead, buffer, offsetInBuffer);
       if (bytesRead <= 0) {
         Metrics.GET_ERRORS.inc();
         Metrics.GET_STORE_READ_ERRORS.inc();
@@ -497,6 +581,14 @@ public class LocalCacheManager implements CacheManager {
     }
   }
 
+  private boolean isStale(CacheContext cacheContext, PageInfo pageInfo, FileInfo fileInfo) {
+    // the client is asking a newer page
+    // or there has been newer pages of this file in cache
+    return cacheContext.getLastModificationTimeMs() > pageInfo.getFileInfo()
+        .getLastModificationTimeMs() || fileInfo.getLastModificationTimeMs() > pageInfo
+        .getFileInfo().getLastModificationTimeMs();
+  }
+
   @Override
   public boolean delete(PageId pageId) {
     LOG.debug("delete({}) enters", pageId);
@@ -506,10 +598,11 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     ReadWriteLock pageLock = getPageLock(pageId);
+    PageInfo pageInfo = null;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
         try {
-          mMetaStore.removePage(pageId);
+          pageInfo = mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
           LOG.error("Failed to delete page {} from metaStore ", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
@@ -517,7 +610,7 @@ public class LocalCacheManager implements CacheManager {
           return false;
         }
       }
-      boolean ok = deletePage(pageId);
+      boolean ok = deletePage(pageInfo);
       LOG.debug("delete({}) exits, success: {}", pageId, ok);
       if (!ok) {
         Metrics.DELETE_STORE_DELETE_ERRORS.inc();
@@ -591,10 +684,13 @@ public class LocalCacheManager implements CacheManager {
                 mMetaStore.bytes() + pageInfo.getPageSize() <= mPageStore.getCacheSize();
             if (enoughSpace) {
               mMetaStore.addPage(pageId, pageInfo);
+              if (!mMetaStore.hasFile(pageId.getFileId())) {
+                mMetaStore.addFile(pageId.getFileId(), pageInfo.getFileInfo());
+              }
             }
           }
           if (!enoughSpace) {
-            mPageStore.delete(pageId);
+            mPageStore.delete(pageInfo);
             discardedPages++;
             discardedBytes += pageInfo.getPageSize();
           }
@@ -625,32 +721,33 @@ public class LocalCacheManager implements CacheManager {
   /**
    * Attempts to delete a page from the page store. The page lock must be acquired before calling
    * this method. The metastore must be updated before calling this method.
-   *
-   * @param pageId page id
+   * @param pageInfo page info
    * @return true if successful, false otherwise
    */
-  private boolean deletePage(PageId pageId) {
+  private boolean deletePage(PageInfo pageInfo) {
     try {
-      mPageStore.delete(pageId);
+      mPageStore.delete(pageInfo);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {} from pageStore", pageId, e);
+      LOG.error("Failed to delete page {} from pageStore", pageInfo.getPageId(), e);
       return false;
     }
     return true;
   }
 
-  private int getPage(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+  private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
+      byte[] buffer,
       int bufferOffset) {
     try {
-      int ret = mPageStore.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset);
+      int ret = mPageStore
+          .get(pageInfo, pageOffset, bytesToRead, buffer, bufferOffset);
       if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore
         LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
-            pageId, bytesToRead, ret);
+            pageInfo.getPageId(), bytesToRead, ret);
         return -1;
       }
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to get existing page {} from pageStore", pageId, e);
+      LOG.error("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
       return -1;
     }
     return bytesToRead;

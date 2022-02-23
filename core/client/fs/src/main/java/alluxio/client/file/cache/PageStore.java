@@ -122,30 +122,32 @@ public interface PageStore extends AutoCloseable {
   /**
    * Writes a new page from a source channel to the store.
    *
-   * @param pageId page identifier
+   * @param pageInfo page info
    * @param page page data
    * @throws ResourceExhaustedException when there is not enough space found on disk
    * @throws IOException when the store fails to write this page
    */
-  void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException;
+  void put(PageInfo pageInfo, byte[] page)
+      throws ResourceExhaustedException, IOException;
 
   /**
    * Gets a page from the store to the destination buffer.
    *
-   * @param pageId page identifier
+   * @param pageInfo page info
    * @param buffer destination buffer
    * @return the number of bytes read
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer.length, buffer, 0);
+  default int get(PageInfo pageInfo, byte[] buffer)
+      throws IOException, PageNotFoundException {
+    return get(pageInfo, 0, buffer.length, buffer, 0);
   }
 
   /**
    * Gets part of a page from the store to the destination buffer.
    *
-   * @param pageId page identifier
+   * @param pageInfo page info
    * @param pageOffset offset within page
    * @param bytesToRead bytes to read in this page
    * @param buffer destination buffer
@@ -155,17 +157,18 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  int get(PageInfo pageInfo, int pageOffset, int bytesToRead,
+      byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException;
 
   /**
    * Deletes a page from the store.
    *
-   * @param pageId page identifier
+   * @param pageInfo page identifier
    * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(PageId pageId) throws IOException, PageNotFoundException;
+  void delete(PageInfo pageInfo) throws IOException, PageNotFoundException;
 
   /**
    * Gets a stream of all pages from the page store. This stream needs to be closed as it may

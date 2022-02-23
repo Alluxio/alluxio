@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.quota.CacheScope;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -41,10 +42,13 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
 
 public class TimeBoundPageStoreTest {
+
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int CACHE_SIZE_BYTES = 512 * Constants.KB;
   private static final PageId PAGE_ID = new PageId("0L", 0L);
   private static final byte[] PAGE = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
+  private static final FileInfo FILE_INFO = new FileInfo(CacheScope.GLOBAL, 100);
+  private static final PageInfo PAGE_INFO = new PageInfo(PAGE_ID, PAGE_SIZE_BYTES, FILE_INFO);
   private byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private PageStoreOptions mPageStoreOptions;
   private HangingPageStore mPageStore;
@@ -71,31 +75,33 @@ public class TimeBoundPageStoreTest {
 
   @Test
   public void put() throws Exception {
-    mTimeBoundPageStore.put(PAGE_ID, PAGE);
-    assertEquals(PAGE.length, mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+    mTimeBoundPageStore.put(PAGE_INFO, PAGE);
+    assertEquals(PAGE.length,
+        mPageStore.get(PAGE_INFO, 0, PAGE.length, mBuf, 0));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void get() throws Exception {
-    mPageStore.put(PAGE_ID, PAGE);
-    assertEquals(PAGE.length, mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+    mPageStore.put(PAGE_INFO, PAGE);
+    assertEquals(PAGE.length, mTimeBoundPageStore
+        .get(PAGE_INFO, 0, PAGE.length, mBuf, 0));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void delete() throws Exception {
-    mPageStore.put(PAGE_ID, PAGE);
-    mTimeBoundPageStore.delete(PAGE_ID);
+    mPageStore.put(PAGE_INFO, PAGE);
+    mTimeBoundPageStore.delete(PAGE_INFO);
     assertThrows(PageNotFoundException.class, () ->
-        mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+        mPageStore.get(PAGE_INFO, 0, PAGE.length, mBuf, 0));
   }
 
   @Test
   public void putTimeout() throws Exception {
     mPageStore.setPutHanging(true);
     try {
-      mTimeBoundPageStore.put(PAGE_ID, PAGE);
+      mTimeBoundPageStore.put(PAGE_INFO, PAGE);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -106,7 +112,8 @@ public class TimeBoundPageStoreTest {
   public void getTimeout() throws Exception {
     mPageStore.setGetHanging(true);
     try {
-      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0);
+      mTimeBoundPageStore
+          .get(PAGE_INFO, 0, PAGE.length, mBuf, 0);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -117,7 +124,7 @@ public class TimeBoundPageStoreTest {
   public void deleteTimeout() throws Exception {
     mPageStore.setDeleteHanging(true);
     try {
-      mTimeBoundPageStore.delete(PAGE_ID);
+      mTimeBoundPageStore.delete(PAGE_INFO);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -170,7 +177,7 @@ public class TimeBoundPageStoreTest {
       int index = i;
       futures.add(executor.submit(() -> {
         try {
-          mTimeBoundPageStore.put(pageId, PAGE);
+          mTimeBoundPageStore.put(new PageInfo(pageId, PAGE_SIZE_BYTES, FILE_INFO), PAGE);
         } catch (Exception e) {
           exceptions[index] = e;
         }

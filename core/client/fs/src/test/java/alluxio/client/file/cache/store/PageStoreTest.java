@@ -18,9 +18,11 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.ProjectConstants;
+import alluxio.client.file.cache.FileInfo;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 
@@ -50,7 +52,7 @@ public class PageStoreTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
+    return Arrays.asList(new Object[][]{
         {new RocksPageStoreOptions()},
         {new LocalPageStoreOptions()}
     });
@@ -60,6 +62,8 @@ public class PageStoreTest {
   public PageStoreOptions mOptions;
 
   private PageStore mPageStore;
+
+  private PageInfo mPageInfo;
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
@@ -71,6 +75,7 @@ public class PageStoreTest {
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
     mPageStore = PageStore.create(mOptions);
+    mPageInfo = new PageInfo(new PageId("0", 0), 1024, new FileInfo(CacheScope.GLOBAL, 100));
   }
 
   @After
@@ -82,14 +87,14 @@ public class PageStoreTest {
   public void helloWorldTest() throws Exception {
     String msg = "Hello, World!";
     byte[] msgBytes = msg.getBytes();
-    PageId id = new PageId("0", 0);
-    mPageStore.put(id, msgBytes);
+    mPageStore.put(mPageInfo, msgBytes);
     byte[] buf = new byte[1024];
-    assertEquals(msgBytes.length, mPageStore.get(id, buf));
+    assertEquals(msgBytes.length,
+        mPageStore.get(mPageInfo, buf));
     assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
-    mPageStore.delete(id);
+    mPageStore.delete(mPageInfo);
     try {
-      mPageStore.get(id, buf);
+      mPageStore.get(mPageInfo, buf);
       fail();
     } catch (PageNotFoundException e) {
       // Test completed successfully;
@@ -99,11 +104,11 @@ public class PageStoreTest {
   @Test
   public void getOffset() throws Exception {
     int len = 32;
-    PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    mPageStore.put(mPageInfo, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[len];
     for (int offset = 1; offset < len; offset++) {
-      int bytesRead = mPageStore.get(id, offset, len, buf, 0);
+      int bytesRead = mPageStore
+          .get(mPageInfo, offset, len, buf, 0);
       assertEquals(len - offset, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -114,11 +119,11 @@ public class PageStoreTest {
   public void getOffsetOverflow() throws Exception {
     int len = 32;
     int offset = 36;
-    PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    mPageStore.put(mPageInfo, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     assertThrows(IllegalArgumentException.class, () ->
-        mPageStore.get(id, offset, len, buf, 0));
+        mPageStore
+            .get(mPageInfo, offset, len, buf, 0));
   }
 
   @Test
@@ -129,7 +134,8 @@ public class PageStoreTest {
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
       PageId id = new PageId("0", i);
-      mPageStore.put(id, data);
+      PageInfo pageInfo = new PageInfo(id, 1024, new FileInfo(CacheScope.GLOBAL, 100));
+      mPageStore.put(pageInfo, data);
       pages.add(new PageInfo(id, data.length));
     }
     Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
@@ -144,7 +150,8 @@ public class PageStoreTest {
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
       PageId id = new PageId(UUID.randomUUID().toString(), i);
-      mPageStore.put(id, data);
+      PageInfo pageInfo = new PageInfo(id, 1024, new FileInfo(CacheScope.GLOBAL, 100));
+      mPageStore.put(pageInfo, data);
       pages.add(new PageInfo(id, data.length));
     }
     Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
@@ -154,11 +161,11 @@ public class PageStoreTest {
   @Test
   public void getSmallLen() throws Exception {
     int len = 32;
-    PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    mPageStore.put(mPageInfo, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     for (int b = 1; b < len; b++) {
-      int bytesRead = mPageStore.get(id, 0, b, buf, 0);
+      int bytesRead = mPageStore
+          .get(mPageInfo, 0, b, buf, 0);
       assertEquals(b, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -168,11 +175,11 @@ public class PageStoreTest {
   @Test
   public void getSmallBuffer() throws Exception {
     int len = 32;
-    PageId id = new PageId("0", 0);
-    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    mPageStore.put(mPageInfo, BufferUtils.getIncreasingByteArray(len));
     for (int b = 1; b < len; b++) {
       byte[] buf = new byte[b];
-      int bytesRead = mPageStore.get(id, 0, len, buf, 0);
+      int bytesRead = mPageStore
+          .get(mPageInfo, 0, len, buf, 0);
       assertEquals(b, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(b),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -195,7 +202,9 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(new PageId("0", pind), b);
+      PageId id = new PageId("0", pind);
+      PageInfo pageInfo = new PageInfo(id, 1024, new FileInfo(CacheScope.GLOBAL, 100));
+      store.put(pageInfo, b);
       pages.add(pind);
     }
 
@@ -207,7 +216,9 @@ public class PageStoreTest {
       long start = System.nanoTime();
       bos.reset();
       for (Integer pageIndex : pages) {
-        store.get(new PageId("0", pageIndex), buf);
+        PageId id = new PageId("0", pageIndex);
+        PageInfo pageInfo = new PageInfo(id, 1024, new FileInfo(CacheScope.GLOBAL, 100));
+        store.get(pageInfo, buf);
       }
       long end = System.nanoTime();
       times.add(end - start);
