@@ -72,6 +72,8 @@ public class DistributedCmdMetrics {
   private static final Counter ASYNC_PERSIST_FILE_SIZE =
           MetricsSystem.counter(MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName());
 
+  private static final long DEFAULT_INCREMENT_VALUE = 1;
+
 /**
  * Increment by counts of operations.
  * @param jobType the job type
@@ -142,17 +144,18 @@ public class DistributedCmdMetrics {
 /**
  * Increment failed job count.
  * @param jobType job type
+ * @param count count to increment
  */
-  public static void incrementForFailStatus(String jobType) {
+  public static void incrementForFailStatus(String jobType, long count) {
     switch (jobType) {
       case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_FAIL.inc();
+        JOB_DISTRIBUTED_LOAD_FAIL.inc(count);
         break;
       case MigrateConfig.NAME:
-        MIGRATE_JOB_FAIL.inc();
+        MIGRATE_JOB_FAIL.inc(count);
         break;
       case PersistConfig.NAME:
-        ASYNC_PERSIST_FAIL.inc();
+        ASYNC_PERSIST_FAIL.inc(count);
         break;
       default:
         LOG.warn("JobType does not belong to Load, Migrate and Persist");
@@ -163,17 +166,18 @@ public class DistributedCmdMetrics {
 /**
  * Increment cancelled job count.
  * @param jobType job type
+ * @param count count to increment
  */
-  public static void incrementForCancelStatus(String jobType) {
+  public static void incrementForCancelStatus(String jobType, long count) {
     switch (jobType) {
       case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_CANCEL.inc();
+        JOB_DISTRIBUTED_LOAD_CANCEL.inc(count);
         break;
       case MigrateConfig.NAME:
-        MIGRATE_JOB_CANCEL.inc();
+        MIGRATE_JOB_CANCEL.inc(count);
         break;
       case PersistConfig.NAME:
-        ASYNC_PERSIST_CANCEL.inc();
+        ASYNC_PERSIST_CANCEL.inc(count);
         break;
       default:
         LOG.warn("JobType does not belong to Load, Migrate and Persist");
@@ -189,19 +193,22 @@ public class DistributedCmdMetrics {
    */
   public static void incrementForCompleteStatusWithRetry(
           JobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
-    String jobType = config.getName();
-    String filePath = getFilePathForNonBatchConfig(config);
-    incrementOperationCount(jobType, 1);
-    incrementFileCount(jobType, 1);
+    if (config instanceof LoadConfig || config instanceof MigrateConfig
+            || config instanceof PersistConfig) {
+      String jobType = config.getName();
+      String filePath = getFilePathForNonBatchConfig(config);
+      incrementOperationCount(jobType, 1);
+      incrementFileCount(jobType, 1);
 
-    while (retryPolicy.attempt()) {
-      try {
-        long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
-        incrementFileSize(jobType, fileSize);
-        break;
-      } catch (IOException | AlluxioException | RuntimeException e) {
-        LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
-                filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
+      while (retryPolicy.attempt()) {
+        try {
+          long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
+          incrementFileSize(jobType, fileSize);
+          break;
+        } catch (IOException | AlluxioException | RuntimeException e) {
+          LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
+                  filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
+        }
       }
     }
   }
@@ -229,40 +236,43 @@ public class DistributedCmdMetrics {
   public static void batchIncrementForCompleteStatusWithRetry(
           BatchedJobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
     String jobType = config.getJobType();
-    long count = config.getJobConfigs().size();
+    if (jobType.equals(MigrateConfig.NAME) || jobType.equals(LoadConfig.NAME)
+        || jobType.equals(PersistConfig.NAME)) {
 
-    incrementOperationCount(jobType, count);
-    incrementFileCount(jobType, count);
+      long count = config.getJobConfigs().size();
+      incrementOperationCount(jobType, count);
+      incrementFileCount(jobType, count);
 
-    // filePath is defined for MigrateConfig, LoadConfig and PersistConfig currently.
-    // The "filePath" is the key to the json map inside config to get the actual file path.
-    String pathMapKey = null;
-    if (jobType.equals(MigrateConfig.NAME)) {
-      pathMapKey = "source";
-    } else if (jobType.equals(LoadConfig.NAME) || jobType.equals(PersistConfig.NAME)) {
-      pathMapKey = "filePath";
-    }
+      // filePath is defined for MigrateConfig, LoadConfig and PersistConfig currently.
+      // The "filePath" is the key to the json map inside config to get the actual file path.
+      String pathMapKey = null;
+      if (jobType.equals(MigrateConfig.NAME)) {
+        pathMapKey = "source";
+      } else if (jobType.equals(LoadConfig.NAME) || jobType.equals(PersistConfig.NAME)) {
+        pathMapKey = "filePath";
+      }
 
-    String finalPathMapKey = pathMapKey;
-    config.getJobConfigs().forEach(jobConfig -> {
-          while (retryPolicy.attempt()) {
-            try {
-              long fileSize = fileSystem.getStatus(
-                      new AlluxioURI(jobConfig.get(finalPathMapKey))).getLength();
-              incrementFileSize(jobType, fileSize);
-              break;
-            } catch (IOException | AlluxioException e) {
-              LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
-                    finalPathMapKey, retryPolicy.getAttemptCount(),
-                      Arrays.toString(e.getStackTrace()));
-            } catch (RuntimeException e) {
-              LOG.warn("Null key is found for config map with key = {}, more info is {}",
-                      finalPathMapKey, Arrays.toString(e.getStackTrace()));
-              break;
+      String finalPathMapKey = pathMapKey;
+      config.getJobConfigs().forEach(jobConfig -> {
+            while (retryPolicy.attempt()) {
+              try {
+                long fileSize = fileSystem.getStatus(
+                        new AlluxioURI(jobConfig.get(finalPathMapKey))).getLength();
+                incrementFileSize(jobType, fileSize);
+                break;
+              } catch (IOException | AlluxioException e) {
+                LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
+                        finalPathMapKey, retryPolicy.getAttemptCount(),
+                        Arrays.toString(e.getStackTrace()));
+              } catch (RuntimeException e) {
+                LOG.warn("Null key is found for config map with key = {}, more info is {}",
+                        finalPathMapKey, Arrays.toString(e.getStackTrace()));
+                break;
+              }
             }
           }
-        }
-    );
+      );
+    }
   }
 
 /**
@@ -271,10 +281,8 @@ public class DistributedCmdMetrics {
  */
   public static void batchIncrementForFailStatus(BatchedJobConfig config) {
     String jobType = config.getJobType();
-    config.getJobConfigs().forEach(jobConfig -> {
-          incrementForFailStatus(jobType);
-        }
-    );
+    long count = config.getJobConfigs().size();
+    incrementForFailStatus(jobType, count);
   }
 
 /**
@@ -283,10 +291,8 @@ public class DistributedCmdMetrics {
  */
   public static void batchIncrementForCancelStatus(BatchedJobConfig config) {
     String jobType = config.getJobType();
-    config.getJobConfigs().forEach(jobConfig -> {
-          incrementForCancelStatus(jobType);
-        }
-    );
+    long count = config.getJobConfigs().size();
+    incrementForCancelStatus(jobType, count);
   }
 
   /**
@@ -312,7 +318,7 @@ public class DistributedCmdMetrics {
     if (config instanceof BatchedJobConfig) {
       batchIncrementForCancelStatus((BatchedJobConfig) config);
     } else {
-      incrementForCancelStatus(config.getName());
+      incrementForCancelStatus(config.getName(), DEFAULT_INCREMENT_VALUE);
     }
   }
 
@@ -324,7 +330,7 @@ public class DistributedCmdMetrics {
     if (config instanceof BatchedJobConfig) {
       batchIncrementForFailStatus((BatchedJobConfig) config);
     } else {
-      incrementForFailStatus(config.getName());
+      incrementForFailStatus(config.getName(), DEFAULT_INCREMENT_VALUE);
     }
   }
 }
