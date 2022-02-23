@@ -216,8 +216,8 @@ public final class MultiProcessCluster {
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
-        mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
-        mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+        mProperties.put(PropertyKey.MASTER_RPC_PORT, masterAddress.getRpcPort());
+        mProperties.put(PropertyKey.MASTER_WEB_PORT, masterAddress.getWebPort());
         break;
       case EMBEDDED:
         List<String> journalAddresses = new ArrayList<>();
@@ -607,7 +607,7 @@ public final class MultiProcessCluster {
         Master master = mMasters.get(i);
         MasterNetAddress address = mMasterAddresses.get(i);
         master.updateConf(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
-            Integer.toString(address.getEmbeddedJournalPort()));
+            address.getEmbeddedJournalPort());
 
         File journalDir = new File(mWorkDir, "journal" + i);
         journalDir.mkdirs();
@@ -680,10 +680,10 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_METASTORE_DIR, metastoreDir.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
-    conf.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(address.getRpcPort()));
-    conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
+    conf.put(PropertyKey.MASTER_RPC_PORT, address.getRpcPort());
+    conf.put(PropertyKey.MASTER_WEB_PORT, address.getWebPort());
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
-        Integer.toString(address.getEmbeddedJournalPort()));
+        address.getEmbeddedJournalPort());
     if (mDeployMode.equals(DeployMode.EMBEDDED)) {
       File journalDir = new File(mWorkDir, "journal" + extension);
       journalDir.mkdirs();
@@ -717,8 +717,8 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
         ramdisk.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
-    conf.put(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
-    conf.put(PropertyKey.WORKER_WEB_PORT, Integer.toString(webPort));
+    conf.put(PropertyKey.WORKER_RPC_PORT, rpcPort);
+    conf.put(PropertyKey.WORKER_WEB_PORT, webPort);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);

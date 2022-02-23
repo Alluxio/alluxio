@@ -58,7 +58,7 @@ public final class MasterInquireClientTest {
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.MASTER_HOSTNAME, host);
-        put(PropertyKey.MASTER_RPC_PORT, Integer.toString(port));
+        put(PropertyKey.MASTER_RPC_PORT, port);
       }
     }, mConfiguration).toResource()) {
       ConnectDetails cs =
