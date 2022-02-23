@@ -65,8 +65,21 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.utimens = utimens_wrapper;
   jnifuse_oper.write = write_wrapper;
 
+// libfuse3: set conn_info_opts for init_wrapper f
+#if FUSE_USE_VERSION >= 30
+  jnifuse_oper.init = init_wrapper;
+  struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+
+  conn_info_opts = fuse_parse_conn_info_opts(&args);
+
+  LOGD("%d", args.argc);
+
+  int ret = fuse_main_real(args.argc, args.argv, &jnifuse_oper,
+                           sizeof(struct fuse_operations), NULL);
+#else
   int ret = fuse_main_real(argc, argv, &jnifuse_oper,
                            sizeof(struct fuse_operations), NULL);
+#endif
   free(argv);
   return ret;
 }

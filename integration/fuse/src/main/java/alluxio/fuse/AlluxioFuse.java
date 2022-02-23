@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
@@ -103,6 +104,10 @@ public final class AlluxioFuse {
   public static void main(String[] args) {
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
+
+    // Parsing options needs to know which version is being used.
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+
     FileSystemContext fsContext = FileSystemContext.create(conf);
     try {
       InetSocketAddress confMasterAddress =
@@ -156,6 +161,8 @@ public final class AlluxioFuse {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
 
+    // There are other entries to this method other than the main function above
+    // It is ok to call this function multiple times.
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
 
     try {
@@ -253,13 +260,24 @@ public final class AlluxioFuse {
    */
   public static List<String> parseFuseOptions(String[] fuseOptions,
       AlluxioConfiguration alluxioConf) {
+
+    boolean using3 =
+        NativeLibraryLoader.getLoadState().equals(NativeLibraryLoader.LoadState.LOADED_3);
+
     List<String> res = new ArrayList<>();
     boolean noUserMaxWrite = true;
     for (final String opt : fuseOptions) {
       if (opt.isEmpty()) {
         continue;
       }
+
+      // libfuse3 has dropped big_writes
+      if (using3 && opt.equals("big_writes")) {
+        continue;
+      }
+
       res.add("-o" + opt);
+
       if (noUserMaxWrite && opt.startsWith("max_write")) {
         noUserMaxWrite = false;
       }

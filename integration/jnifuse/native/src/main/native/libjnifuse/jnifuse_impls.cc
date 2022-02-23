@@ -18,6 +18,13 @@
 
 #if FUSE_USE_VERSION >= 30
 
+struct fuse_conn_info_opts *conn_info_opts;
+
+void *init_wrapper(struct fuse_conn_info *conn, struct fuse_config *cfg) {
+  fuse_apply_conn_info_opts(conn_info_opts, conn);
+  return NULL;
+}
+
 int chmod_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
 }
@@ -278,4 +285,4 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
       path, buf, size, off, fi);
 }
 
-#endif // FUSE_USE_VERSION >= 30
+#endif  // FUSE_USE_VERSION >= 30
