@@ -224,7 +224,7 @@ public final class NetworkAddressUtils {
      * @return default port
      */
     public int getDefaultPort() {
-      return Integer.parseInt(mPortKey.getDefaultStringValue());
+      return (int) mPortKey.getDefaultValue();
     }
   }
 

@@ -93,7 +93,7 @@ public final class TieredBlockStoreTestUtils {
     if (workerDataFolder != null) {
       ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, nTier);
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
@@ -126,7 +126,7 @@ public final class TieredBlockStoreTestUtils {
     if (workerDataFolder != null) {
       ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
     setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity, tierMedia);
   }
 

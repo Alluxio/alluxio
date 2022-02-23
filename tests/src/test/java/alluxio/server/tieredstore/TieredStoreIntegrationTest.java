@@ -256,7 +256,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB")
         .setProperty(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName())
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, String.join(",",
             mTempFolder.newFolder("dir1").getAbsolutePath(),
             mTempFolder.newFolder("dir2").getAbsolutePath()))
