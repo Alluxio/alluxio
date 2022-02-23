@@ -31,20 +31,30 @@ public abstract class PageStoreOptions {
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
     switch (storeType) {
-      case LOCAL:
+      case LOCAL: {
+        Path rootDir = PageStore.getStorePath(storeType,
+            conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
         options = new LocalPageStoreOptions()
-            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS));
+            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS))
+            .setRootDir(rootDir.toString());
         break;
-      case ROCKS:
+      }
+      case ROCKS: {
+        Path rootDir = PageStore.getStorePath(storeType,
+                conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
         options = new RocksPageStoreOptions();
+        options.setRootDir(rootDir.toString());
+        break;
+      }
+      case MEM:
+        options = new MemoryPageStoreOptions();
         break;
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    Path rootDir = PageStore.getStorePath(storeType, conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
-    options.setRootDir(rootDir.toString())
-        .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
+
+    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE))
         .setAlluxioVersion(conf.get(PropertyKey.VERSION))
         .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))

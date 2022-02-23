@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
+import alluxio.client.file.cache.store.MemoryPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
@@ -67,6 +68,9 @@ public interface PageStore extends AutoCloseable {
       case ROCKS:
         pageStore = RocksPageStore.open(options.toOptions());
         break;
+      case MEM:
+        pageStore = new MemoryPageStore(options.toOptions());
+        break;
       default:
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
@@ -96,6 +100,10 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when failed to clean up the specific location
    */
   static void initialize(PageStoreOptions options) throws IOException {
+    if (options.getType() == PageStoreType.MEM) {
+      // Do not need to delete files when page store type is memory
+      return;
+    }
     String rootPath = options.getRootDir();
     Files.createDirectories(Paths.get(rootPath));
     LOG.info("Cleaning cache directory {}", rootPath);
