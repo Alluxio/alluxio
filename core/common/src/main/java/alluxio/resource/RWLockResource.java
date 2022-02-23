@@ -59,13 +59,4 @@ public class RWLockResource extends LockResource {
     mLock = mRwLock.readLock();
     return true;
   }
-
-  /**
-   * This dummy implementation is just to make sure when a subclass of {@link RWLockResource}
-   * calls {@code super.close()}, {@link LockResource#close()} is called.
-   */
-  @Override
-  public void close() {
-    super.close();
-  }
 }

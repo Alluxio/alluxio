@@ -51,6 +51,7 @@ public class RefCountLockResource extends RWLockResource {
    */
   @Override
   public void close() {
+    // Make sure all super classes are properly closed
     super.close();
     mRefCount.decrementAndGet();
   }
