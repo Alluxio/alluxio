@@ -164,10 +164,7 @@ journal:
   ufsType: "local"
   folder: "/journal"
   size: 1Gi
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
   volumeType: persistentVolumeClaim
-  # Attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
@@ -187,10 +184,7 @@ journal:
   ufsType: "local"
   folder: "/journal"
   size: 1Gi
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
   volumeType: emptyDir
-  # Attributes to use when the journal is emptyDir
   medium: ""
 ```
 
@@ -212,7 +206,7 @@ $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DI
 ```properties
 journal:
   type: "UFS"
-  ufsType: "HDFS"
+  ufsType: "non-local"
   folder: "hdfs://{$hostname}:{$hostport}/journal"
 
 properties:
@@ -256,10 +250,7 @@ journal:
   ufsType: "local"
   folder: "/journal"
   size: 1Gi
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
   volumeType: emptyDir
-  # Attributes to use when the journal is emptyDir
   medium: ""
 ```
 
@@ -660,6 +651,9 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
   securityContext:
     runAsUser: 1000
   command: ["alluxio","formatJournal"]
+  envFrom:
+    - configMapRef:
+      name: alluxio-config
   volumeMounts:
     - name: alluxio-journal
       mountPath: /journal
