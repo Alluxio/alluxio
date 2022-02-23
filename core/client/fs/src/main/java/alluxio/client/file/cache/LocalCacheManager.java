@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -567,7 +566,15 @@ public class LocalCacheManager implements CacheManager {
     if (options.getType() == PageStoreType.MEM) {
       return true;
     }
-    Path rootDir = Paths.get(options.getRootDir());
+    for (Path rootDir : options.getRootDirs()) {
+      if (!restoreInternal(rootDir, options)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean restoreInternal(Path rootDir, PageStoreOptions options) {
     if (!Files.exists(rootDir)) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
       return false;
