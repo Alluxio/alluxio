@@ -4217,7 +4217,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setAlias(new String[] {"alluxio.user.block.master.client.threads"})
+          .setAlias("alluxio.user.block.master.client.threads")
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
