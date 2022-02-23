@@ -79,10 +79,6 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     assertTrue(output[5].contains("\tWorker: "));
     assertEquals("\tStatus: COMPLETED", output[7]);
 
-    double cancelledCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_CANCEL.getName()).getValue();
-    double failedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FAIL.getName()).getValue();
     double completedCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS.getName()).getValue();
     double fileCount = MetricsSystem.getMetricValue(
@@ -90,13 +86,15 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     double fileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName()).getValue();
 
-    //Metrics for other job types
+    //Metrics for Migrate job type
     double completedMigrateCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_MIGRATE_JOB_SUCCESS.getName()).getValue();
     double completedMigrateFileCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_MIGRATE_JOB_FILE_COUNT.getName()).getValue();
     double completedMigrateFileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_MIGRATE_JOB_FILE_SIZE.getName()).getValue();
+
+    //Metrics for Persist job type
     double completedPersistCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_ASYNC_PERSIST_SUCCESS.getName()).getValue();
     double completedPersistFileCount = MetricsSystem.getMetricValue(
@@ -104,8 +102,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     double completedPersistFileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
 
-    assertEquals(cancelledCount, 0, 0);
-    assertEquals(failedCount, 0, 0);
+    //test counters for distributed load on Complete status.
     assertEquals(completedCount, 1, 0); //distributedLoad operation count equals 1.
     assertEquals(fileCount, 1, 0); // file count equals 1.
     assertEquals(fileSize, length, 0); // file size equals $length.
@@ -147,23 +144,8 @@ public class DistributedCommandsStatsTest extends JobShellTest {
 
     double cancelledCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_CANCEL.getName()).getValue();
-    double failedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FAIL.getName()).getValue();
-    double completedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS.getName()).getValue();
-    double fileCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT.getName()).getValue();
-    double fileSize = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName()).getValue();
-    double loadRate = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_RATE.getName()).getValue();
 
     assertEquals(cancelledCount, 1, 0);
-    assertEquals(failedCount, 0, 0);
-    assertEquals(completedCount, 0, 0);
-    assertEquals(fileCount, 0, 0);
-    assertEquals(fileSize, 0, 0);
-    assertEquals(loadRate, 0, 0);
   }
 
   @Test
@@ -197,16 +179,10 @@ public class DistributedCommandsStatsTest extends JobShellTest {
             MetricKey.MASTER_MIGRATE_JOB_FAIL.getName()).getValue();
     double completedCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_MIGRATE_JOB_SUCCESS.getName()).getValue();
-    double fileCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_MIGRATE_JOB_FILE_COUNT.getName()).getValue();
-    double fileSize = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_MIGRATE_JOB_FILE_SIZE.getName()).getValue();
 
     assertEquals(cancelledCount, 1, 0);
     assertEquals(failedCount, 0, 0);
     assertEquals(completedCount, 0, 0);
-    assertEquals(fileCount, 0, 0);
-    assertEquals(fileSize, 0, 0);
   }
 
   @Test
@@ -238,15 +214,9 @@ public class DistributedCommandsStatsTest extends JobShellTest {
             MetricKey.MASTER_ASYNC_PERSIST_FAIL.getName()).getValue();
     double completedCount = MetricsSystem.getMetricValue(
             MetricKey.MASTER_ASYNC_PERSIST_SUCCESS.getName()).getValue();
-    double fileCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_ASYNC_PERSIST_FILE_COUNT.getName()).getValue();
-    double fileSize = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
 
     assertEquals(cancelledCount, 1, 0);
     assertEquals(failedCount, 0, 0);
     assertEquals(completedCount, 0, 0);
-    assertEquals(fileCount, 0, 0);
-    assertEquals(fileSize, 0, 0);
   }
 }
