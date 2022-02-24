@@ -60,7 +60,7 @@ public class DistributedCmdTest {
   public ExpectedException mException = ExpectedException.none();
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mLoadJobConfig = Mockito.mock(LoadConfig.class);
     mMigrateJobConfig = Mockito.mock(MigrateConfig.class);
     mPersistJobConfig = Mockito.mock(PersistConfig.class);
@@ -72,9 +72,12 @@ public class DistributedCmdTest {
     mMigrateURIStatus = Mockito.mock(URIStatus.class);
     mPersistURIStatus = Mockito.mock(URIStatus.class);
     mNoopPlanURIStatus = Mockito.mock(URIStatus.class);
+
+    mockFsOnConfigs();
+    MetricsSystem.resetAllMetrics();
   }
 
-  private void initialize() throws Exception {
+  private void mockFsOnConfigs() throws Exception {
     Mockito.when(mLoadURIStatus.getLength()).thenReturn(LOAD_FILE_LENGTH);
 
     Mockito.when(mLoadJobConfig.getFilePath()).thenReturn(LOAD);
@@ -99,18 +102,13 @@ public class DistributedCmdTest {
   }
 
   @Test
-  public void testSupportedConfigForCompleteStatus() throws Exception {
-    initialize();
-    //Run for supported configs.
+  public void testLoadConfigForCompleteStatus() throws Exception {
+    // Run for load config.
     DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
             mLoadJobConfig, mFileSystem, mRetryPolicy);
-    DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
-            mMigrateJobConfig, mFileSystem, mRetryPolicy);
-    DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
-            mPersistJobConfig, mFileSystem, mRetryPolicy);
 
-    ////should expect function calls to fileSystem.getStatus(new AlluxioURI(filePath)).getLength(),
-    // and cooresponding file sizes obtained.
+    // should expect function calls to fileSystem.getStatus(new AlluxioURI(filePath)).getLength()
+    // for LoadConfig only and cooresponding file sizes obtained.
     double loadFileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName()).getValue();
     double migrateFileSize = MetricsSystem.getMetricValue(
@@ -118,15 +116,54 @@ public class DistributedCmdTest {
     double persistFileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
 
-    assertEquals(loadFileSize, LOAD_FILE_LENGTH, 0);
-    assertEquals(migrateFileSize, MIGRATE_FILE_LENGTH, 0);
-    assertEquals(persistFileSize, PERSIST_FILE_LENGTH, 0);
+    assertEquals(loadFileSize, LOAD_FILE_LENGTH, 0); // should equal LOAD_FILE_LENGTH
+    assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+    assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+  }
+
+  @Test
+  public void testMigrateConfigForCompleteStatus() throws Exception {
+    // Run for migrate config.
+    DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
+            mMigrateJobConfig, mFileSystem, mRetryPolicy);
+
+    // should expect function calls to fileSystem.getStatus(new AlluxioURI(filePath)).getLength()
+    // for MigrateConfig only and cooresponding file sizes obtained.
+    double loadFileSize = MetricsSystem.getMetricValue(
+            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName()).getValue();
+    double migrateFileSize = MetricsSystem.getMetricValue(
+            MetricKey.MASTER_MIGRATE_JOB_FILE_SIZE.getName()).getValue();
+    double persistFileSize = MetricsSystem.getMetricValue(
+            MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
+
+    assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+    assertEquals(migrateFileSize, MIGRATE_FILE_LENGTH, 0); // should equal MIGRATE_FILE_LENGTH
+    assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+  }
+
+  @Test
+  public void testPersistConfigForCompleteStatus() throws Exception {
+    // Run for persist config.
+    DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
+            mPersistJobConfig, mFileSystem, mRetryPolicy);
+
+    // should expect function calls to fileSystem.getStatus(new AlluxioURI(filePath)).getLength()
+    // for PersistConfig only and cooresponding file sizes obtained.
+    double loadFileSize = MetricsSystem.getMetricValue(
+            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName()).getValue();
+    double migrateFileSize = MetricsSystem.getMetricValue(
+            MetricKey.MASTER_MIGRATE_JOB_FILE_SIZE.getName()).getValue();
+    double persistFileSize = MetricsSystem.getMetricValue(
+            MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
+
+    assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+    assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+    assertEquals(persistFileSize, PERSIST_FILE_LENGTH, 0); // should equal PERSIST_FILE_LENGTH
   }
 
   @Test
   public void testUnSupportedConfigForCompleteStatus() throws Exception {
-    MetricsSystem.resetAllMetrics();
-    //Run for an unsupported config NoopPlanConfig.
+    // Run for an unsupported config NoopPlanConfig.
     DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
             mNoopPlanConfig, mFileSystem, mRetryPolicy);
 
@@ -137,9 +174,9 @@ public class DistributedCmdTest {
     double persistFileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
 
-    //should expect no call to fileSystem.getStatus(new AlluxioURI(filePath)).getLength().
-    assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0);
-    assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0);
-    assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0);
+    // Should expect no call to fileSystem.getStatus(new AlluxioURI(filePath)).getLength().
+    assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+    assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+    assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
   }
 }
