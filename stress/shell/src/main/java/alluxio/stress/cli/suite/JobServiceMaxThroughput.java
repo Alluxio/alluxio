@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli.suite;
 
+import alluxio.job.util.SerializationUtils;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressJobServiceBench;
 import alluxio.stress.common.GeneralBenchSummary;
@@ -61,7 +62,8 @@ public class JobServiceMaxThroughput extends
       int targetThroughput) throws Exception {
     Benchmark b = new StressJobServiceBench();
     String result = b.run(args.toArray(new String[0]));
-    return JsonSerializable.fromJson(parseBenchmarkResult(result), new JobServiceBenchSummary[0]);
+    return JsonSerializable.fromJson(
+        SerializationUtils.parseBenchmarkResult(result), new JobServiceBenchSummary[0]);
   }
 
   @Override

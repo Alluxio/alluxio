@@ -17,6 +17,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -58,8 +59,6 @@ public abstract class Benchmark<T extends TaskResult> {
   @ParametersDelegate
   protected BaseParameters mBaseParameters = new BaseParameters();
 
-  public static final String BENCHMARK_RESULT_TAG = "BENCHMARK RESULT:";
-
   /**
    * Get the description of the bench.
    *
@@ -91,7 +90,7 @@ public abstract class Benchmark<T extends TaskResult> {
     int exitCode = 0;
     try {
       String result = benchmark.run(args);
-      System.out.println(BENCHMARK_RESULT_TAG);
+      System.out.println(SerializationUtils.BENCHMARK_RESULT_TAG);
       System.out.println(result);
     } catch (Exception e) {
       e.printStackTrace();

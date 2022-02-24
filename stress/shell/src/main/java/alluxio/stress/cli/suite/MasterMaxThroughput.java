@@ -14,6 +14,7 @@ package alluxio.stress.cli.suite;
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.job.util.SerializationUtils;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.common.GeneralBenchSummary;
@@ -91,7 +92,8 @@ public class MasterMaxThroughput extends
     prepareBeforeSingleTest(requiredCount, args);
     Benchmark b = new StressMasterBench();
     String result = b.run(args.toArray(new String[0]));
-    return JsonSerializable.fromJson(parseBenchmarkResult(result), new MasterBenchSummary[0]);
+    return JsonSerializable.fromJson(
+        SerializationUtils.parseBenchmarkResult(result), new MasterBenchSummary[0]);
   }
 
   @Override
@@ -125,7 +127,7 @@ public class MasterMaxThroughput extends
     Benchmark b = new StressMasterBench();
     String result = b.run(newArgs.toArray(new String[0]));
     MasterBenchSummary summary = JsonSerializable.fromJson(
-        parseBenchmarkResult(result), new MasterBenchSummary[0]);
+        SerializationUtils.parseBenchmarkResult(result), new MasterBenchSummary[0]);
     if (!summary.collectErrorsFromAllNodes().isEmpty()) {
       throw new IllegalStateException(String
           .format("Could not create files for operation (%s). error: %s",

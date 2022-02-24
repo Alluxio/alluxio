@@ -163,7 +163,6 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
         break;
       }
     }
-    LOG.info("max throughput: " + best);
     mMaxThroughputResult.setEndTimeMs(CommonUtils.getCurrentMs());
     mMaxThroughputResult.setMaxThroughput(best);
     return mMaxThroughputResult;
@@ -183,22 +182,6 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
     } else {
       // the next index is out of bounds
     }
-  }
-
-  protected String parseBenchmarkResult(String result) {
-    String[] taskResults = result.split("\n");
-    boolean isActualResult = false;
-    StringBuilder actualResult = new StringBuilder();
-
-    for (int i = 0; i < taskResults.length; i++) {
-      if (isActualResult) {
-        actualResult.append(taskResults[i]);
-      }
-      if (taskResults[i].startsWith(BENCHMARK_RESULT_TAG)) {
-        isActualResult = true;
-      }
-    }
-    return actualResult.toString();
   }
 
   @Override
