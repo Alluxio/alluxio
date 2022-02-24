@@ -105,7 +105,6 @@ public class SnapshotReplicationManager {
 
   private final SimpleStateMachineStorage mStorage;
   private final RaftJournalSystem mJournalSystem;
-  private volatile RaftJournalServiceClient mJournalServiceClient;
   private volatile SnapshotInfo mDownloadedSnapshot;
   private final PriorityQueue<Pair<SnapshotMetadata, RaftPeerId>> mSnapshotCandidates;
 
@@ -153,17 +152,6 @@ public class SnapshotReplicationManager {
   }
 
   /**
-   * @param journalSystem the raft journal system
-   * @param storage the snapshot storage
-   */
-  @VisibleForTesting
-  SnapshotReplicationManager(RaftJournalSystem journalSystem,
-      SimpleStateMachineStorage storage, RaftJournalServiceClient client) {
-    this(journalSystem, storage);
-    mJournalServiceClient = client;
-  }
-
-  /**
    * Downloads and installs a snapshot from the leader.
    *
    * @return a future with the term index of the installed snapshot
@@ -177,8 +165,7 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
-    try {
-      RaftJournalServiceClient client = getJournalServiceClient();
+    try (RaftJournalServiceClient client = getJournalServiceClient()) {
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
@@ -232,20 +219,21 @@ public class SnapshotReplicationManager {
     StreamObserver<UploadSnapshotPResponse> responseObserver =
         SnapshotUploader.forFollower(mStorage, snapshot);
     LOG.debug("Got SnapshotUploader for snapshot {}", termIndex);
-    RaftJournalServiceClient client = getJournalServiceClient();
-    LOG.debug("Got RaftJournalServiceClient for snapshot {}", termIndex);
-    InetSocketAddress leaderAddress = client.getAddress();
-    LOG.info("Sending stream request to {} for snapshot {}", leaderAddress, termIndex);
-    StreamObserver<UploadSnapshotPRequest> requestObserver = getJournalServiceClient()
-        .uploadSnapshot(responseObserver);
-    LOG.debug("Got requestObserver for snapshot {}", termIndex);
-    requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
-        .setData(SnapshotData.newBuilder()
-                .setSnapshotTerm(snapshot.getTerm())
-                .setSnapshotIndex(snapshot.getIndex())
-                .setOffset(0))
-        .build());
-    LOG.debug("Sent stream request for snapshot {}", termIndex);
+    try (RaftJournalServiceClient client = getJournalServiceClient()) {
+      LOG.debug("Got RaftJournalServiceClient for snapshot {}", termIndex);
+      InetSocketAddress leaderAddress = client.getAddress();
+      LOG.info("Sending stream request to {} for snapshot {}", leaderAddress, termIndex);
+      StreamObserver<UploadSnapshotPRequest> requestObserver =
+          client.uploadSnapshot(responseObserver);
+      LOG.debug("Got requestObserver for snapshot {}", termIndex);
+      requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
+          .setData(SnapshotData.newBuilder()
+              .setSnapshotTerm(snapshot.getTerm())
+              .setSnapshotIndex(snapshot.getIndex())
+              .setOffset(0))
+          .build());
+      LOG.debug("Sent stream request for snapshot {}", termIndex);
+    }
   }
 
   /**
@@ -537,24 +525,13 @@ public class SnapshotReplicationManager {
     return false;
   }
 
-  private synchronized RaftJournalServiceClient getJournalServiceClient()
+  @VisibleForTesting
+  synchronized RaftJournalServiceClient getJournalServiceClient()
       throws AlluxioStatusException {
-    if (mJournalServiceClient == null) {
-      mJournalServiceClient =
-          new RaftJournalServiceClient(MasterClientContext
-              .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    }
-    mJournalServiceClient.connect();
-    return mJournalServiceClient;
-  }
-
-  /**
-   * Close the manager and release its resources.
-   */
-  public synchronized void close() {
-    if (mJournalServiceClient != null) {
-      mJournalServiceClient.close();
-      mJournalServiceClient = null;
-    }
+    LOG.debug("Creating new RaftJournalServiceClient");
+    RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+    client.connect();
+    return client;
   }
 }
