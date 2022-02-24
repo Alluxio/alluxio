@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static alluxio.conf.PropertyKey.Builder.doubleBuilder;
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -196,6 +197,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder intBuilder(String name) {
       return new Builder(name, PropertyType.INTEGER);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for double properties
+     */
+    public static Builder doubleBuilder(String name) {
+      return new Builder(name, PropertyType.DOUBLE);
     }
 
     /**
@@ -2109,8 +2118,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =
-      new Builder(Name.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO)
-          .setDefaultValue("0.85")
+      doubleBuilder(Name.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO)
+          .setDefaultValue(0.85)
           .setDescription("The high water mark for the inode cache, as a ratio from high water "
               + "mark to total cache size. If this is 0.85 and the max size is 10 million, the "
               + "high water mark value is 8.5 million. When the cache reaches the high "
@@ -2119,8 +2128,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
-      new Builder(Name.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO)
-          .setDefaultValue("0.8")
+      doubleBuilder(Name.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO)
+          .setDefaultValue(0.8)
           .setDescription("The low water mark for the inode cache, as a ratio from low water mark "
               + "to total cache size. If this is 0.8 and the max size is 10 million, the low "
               + "water mark value is 8 million. When the cache reaches the high "
@@ -3234,7 +3243,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
-      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR)
+      doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR)
           .setDefaultValue(2.0)
           .setDescription(
               "A attenuation factor in [2, INF) to control the behavior of LRFU annotator.")
@@ -3242,7 +3251,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
-      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR)
+      doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR)
           .setDefaultValue(0.25)
           .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
               + "makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.")
@@ -3849,7 +3858,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0)
+      new Builder(PropertyType.DOUBLE, Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0)
           .setDefaultValue(0.95)
           .setDescription("The high watermark of the space in the top storage tier (a value "
               + "between 0 and 1).")
@@ -3857,7 +3866,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0)
+      new Builder(PropertyType.DOUBLE, Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0)
           .setDefaultValue(0.7)
           .setDescription("The low watermark of the space in the top storage tier (a value "
               + "between 0 and 1).")
@@ -3900,7 +3909,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1)
+      new Builder(PropertyType.DOUBLE, Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1)
           .setDescription("The high watermark of the space in the second storage tier (a value "
               + "between 0 and 1).")
           .setDefaultValue(0.95)
@@ -3908,7 +3917,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 1)
+      new Builder(PropertyType.DOUBLE, Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 1)
           .setDefaultValue(0.7)
           .setDescription("The low watermark of the space in the second storage tier (a value "
               + "between 0 and 1).")
@@ -3951,7 +3960,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 2)
+      new Builder(PropertyType.DOUBLE, Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 2)
           .setDefaultValue(0.95)
           .setDescription("The high watermark of the space in the third storage tier (a value "
               + "between 0 and 1).")
@@ -3959,7 +3968,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 2)
+      new Builder(PropertyType.DOUBLE, Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 2)
           .setDefaultValue(0.7)
           .setDescription("The low watermark of the space in the third storage tier (a value "
               + "between 0 and 1).")
@@ -4690,7 +4699,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE =
-      new Builder(Name.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE)
+      doubleBuilder(Name.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE)
           .setDefaultValue(2.0)
           .setDescription("The log base for client cache LFU evictor bucket index.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4762,7 +4771,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
-      new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
+      doubleBuilder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
           .setDescription("A fraction value representing the storage overhead writing to disk. "
               + "For example, with 1GB allocated cache space, and 10% storage overhead we expect "
               + "no more than 1024MB / (1 + 10%) user data to store.")
@@ -7553,10 +7562,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.high.ratio",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.high\\.ratio"),
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.high\\.ratio",
+        PropertyType.DOUBLE),
     WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.low.ratio",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio",
+        PropertyType.DOUBLE),
     USER_NETWORK_KEEPALIVE_TIME_MS("alluxio.user.network.%s.keepalive.time",
         "alluxio\\.user\\.network\\.(\\w+)\\.keepalive\\.time"),
     USER_NETWORK_KEEPALIVE_TIMEOUT_MS("alluxio.user.network.%s.keepalive.timeout",
@@ -8093,11 +8104,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return whether the value is a valid value of the property key
    */
   public boolean validateValue(Object value) {
-    if (!(value instanceof String)
-        && (mType == PropertyType.BOOLEAN || mType == PropertyType.INTEGER)
-        && !value.getClass().equals(mType.getJavaType())) {
-
-      return false;
+    if (!(value instanceof String)) {
+      switch (mType) {
+        case BOOLEAN:
+        case INTEGER:
+          if (!mType.getJavaType().equals(value.getClass())) {
+            return false;
+          }
+          break;
+        case DOUBLE:
+          if (!Number.class.isAssignableFrom(value.getClass())) {
+            return false;
+          }
+          break;
+        default:
+          break;
+      }
     }
     if (mValueValidationFunction == null) {
       return true;
@@ -8116,6 +8138,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         return Boolean.parseBoolean(stringValue);
       case INTEGER:
         return Integer.parseInt(stringValue);
+      case DOUBLE:
+        return Double.parseDouble(stringValue);
       default:
         return stringValue;
     }
