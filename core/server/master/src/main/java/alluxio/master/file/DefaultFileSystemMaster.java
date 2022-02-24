@@ -1920,7 +1920,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     // Inodes for which deletion will be attempted
-    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
+    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete =
+        new ArrayList<>((int) inode.asDirectory().getChildCount());
 
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
