@@ -137,16 +137,15 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getDouble() {
-    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE, "1.1");
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE, 1.1);
     assertEquals(1.1, mConfiguration.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE),
         /*tolerance=*/0.0001);
   }
 
   @Test
   public void getMalformedDoubleThrowsException() {
-    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE, "1a");
-    mThrown.expect(RuntimeException.class);
-    mConfiguration.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE);
+    mThrown.expect(IllegalArgumentException.class);
+    mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE, true);
   }
 
   @Test
