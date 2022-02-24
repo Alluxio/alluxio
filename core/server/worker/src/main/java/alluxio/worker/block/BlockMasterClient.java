@@ -286,7 +286,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   public PreRegisterCommand preRegisterWithMaster(String clusterId, final WorkerNetAddress address,
                                                   boolean hasBlockInTier)
       throws AlluxioStatusException {
-    // For compatibility, reuse the RPC of getWorkerID
+    // For compatibility, reuse the RPC of getWorkerID.
     final GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
         .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
         .setHasBlockInTier(hasBlockInTier).build();
