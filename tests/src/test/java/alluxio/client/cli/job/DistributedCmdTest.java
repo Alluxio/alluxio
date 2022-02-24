@@ -12,6 +12,7 @@
 package alluxio.client.cli.job;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.never;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
@@ -36,7 +37,7 @@ public class DistributedCmdTest {
   private static final String LOAD = "/load";
   private static final String MIGRATE = "/migrate";
   private static final String PERSIST = "/persist";
-  private static final String NOOP_PLAN = "/compact";
+  private static final String NOOP_PLAN = "/noop";
 
   private static final long LOAD_FILE_LENGTH = 1;
   private static final long MIGRATE_FILE_LENGTH = 2;
@@ -99,6 +100,8 @@ public class DistributedCmdTest {
     Mockito.when(mFileSystem.getStatus(new AlluxioURI(NOOP_PLAN))).thenReturn(mNoopPlanURIStatus);
     Mockito.when(mFileSystem.getStatus(new AlluxioURI(NOOP_PLAN)).getLength())
             .thenReturn(NOOP_PLAN_FILE_LENGTH);
+
+    Mockito.clearInvocations(mFileSystem);
   }
 
   @Test
@@ -119,6 +122,9 @@ public class DistributedCmdTest {
     assertEquals(loadFileSize, LOAD_FILE_LENGTH, 0); // should equal LOAD_FILE_LENGTH
     assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
     assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+
+    //should expect one call to .getStatus
+    Mockito.verify(mFileSystem).getStatus(new AlluxioURI(LOAD));
   }
 
   @Test
@@ -139,6 +145,9 @@ public class DistributedCmdTest {
     assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
     assertEquals(migrateFileSize, MIGRATE_FILE_LENGTH, 0); // should equal MIGRATE_FILE_LENGTH
     assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+
+    //should expect one call to .getStatus
+    Mockito.verify(mFileSystem).getStatus(new AlluxioURI(MIGRATE));
   }
 
   @Test
@@ -159,6 +168,9 @@ public class DistributedCmdTest {
     assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
     assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
     assertEquals(persistFileSize, PERSIST_FILE_LENGTH, 0); // should equal PERSIST_FILE_LENGTH
+
+    //should expect one call to .getStatus
+    Mockito.verify(mFileSystem).getStatus(new AlluxioURI(PERSIST));
   }
 
   @Test
@@ -178,5 +190,8 @@ public class DistributedCmdTest {
     assertEquals(loadFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
     assertEquals(migrateFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
     assertEquals(persistFileSize, DEFAULT_ZERO_LENGTH, 0); // should equal DEFAULT_ZERO_LENGTH
+
+    // should expect no call to .getStatus
+    Mockito.verify(mFileSystem, never()).getStatus(new AlluxioURI(NOOP_PLAN));
   }
 }
