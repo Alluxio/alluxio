@@ -227,7 +227,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultFileSystemMaster extends CoreMaster
+public class DefaultFileSystemMaster extends CoreMaster
     implements FileSystemMaster, DelegatingJournaled, Reconfigurable {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
@@ -1822,15 +1822,20 @@ public final class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("delete", path, null, null)) {
 
-      syncMetadata(rpcContext,
-          path,
-          context.getOptions().getCommonOptions(),
-          context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
-          auditContext,
-          LockedInodePath::getInodeOrNull,
-          (inodePath, permChecker) -> permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
-          false
-      );
+      if (context.getOptions().getAlluxioOnly()) {
+        LOG.debug("alluxio-only deletion on path {} skips metadata sync", path);
+      } else {
+        syncMetadata(rpcContext,
+            path,
+            context.getOptions().getCommonOptions(),
+            context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE,
+            auditContext,
+            LockedInodePath::getInodeOrNull,
+            (inodePath, permChecker) ->
+                permChecker.checkParentPermission(Mode.Bits.WRITE, inodePath),
+            false
+        );
+      }
 
       LockingScheme lockingScheme =
           createLockingScheme(path, context.getOptions().getCommonOptions(),
@@ -3564,7 +3569,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param isGetFileInfo            true if syncing for a getFileInfo operation
    * @return syncStatus
    */
-  private InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
+  @VisibleForTesting
+  InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
       @Nullable FileSystemMasterAuditContext auditContext,
       @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,

@@ -299,21 +299,35 @@ public final class AlluxioFuseUtils {
    */
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    logger.debug("Enter: {}({})", methodName, debugDesc);
-    long startMs = System.currentTimeMillis();
-    int ret = callable.call();
-    long durationMs = System.currentTimeMillis() - startMs;
-    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
-    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
-    MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
-        .update(durationMs, TimeUnit.MILLISECONDS);
-    if (ret < 0) {
-      MetricsSystem.counter(methodName + "Failures").inc();
-    }
-    if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
-          String.format(description, args), ret, durationMs, THRESHOLD);
+    int ret = -1;
+    try {
+      String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+      logger.debug("Enter: {}({})", methodName, debugDesc);
+      long startMs = System.currentTimeMillis();
+      ret = callable.call();
+      long durationMs = System.currentTimeMillis() - startMs;
+      logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+      MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
+      MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
+          .update(durationMs, TimeUnit.MILLISECONDS);
+      if (ret < 0) {
+        MetricsSystem.counter(methodName + "Failures").inc();
+      }
+      if (durationMs >= THRESHOLD) {
+        logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+            String.format(description, args), ret, durationMs, THRESHOLD);
+      }
+    } catch (Throwable t) {
+      // native code cannot deal with any throwable
+      // wrap all the logics in try catch
+      String errorMessage = "";
+      try {
+        errorMessage = String.format(description, args);
+      } catch (Throwable inner) {
+        errorMessage = "";
+      }
+      LOG.error("Failed to {}({}) with unexpected throwable: ", methodName, errorMessage, t);
+      return -ErrorCodes.EIO();
     }
     return ret;
   }
