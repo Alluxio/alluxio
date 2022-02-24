@@ -67,7 +67,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void catchupState() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "15");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 15);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
@@ -89,7 +89,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void catchStateShutdown() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "15");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 15);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
@@ -109,7 +109,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void checkpointBeforeShutdown() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
@@ -142,7 +142,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void checkpointAfterShutdown() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();

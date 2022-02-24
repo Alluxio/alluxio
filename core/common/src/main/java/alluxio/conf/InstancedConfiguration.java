@@ -271,17 +271,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public long getLong(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return Long.parseLong(rawValue);
-    } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(rawValue, key));
-    }
-  }
-
-  @Override
   public double getDouble(PropertyKey key) {
     String rawValue = getString(key);
 

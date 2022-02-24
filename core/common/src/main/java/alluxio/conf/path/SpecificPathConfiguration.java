@@ -109,11 +109,6 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public long getLong(PropertyKey key) {
-    return conf(key).getLong(key);
-  }
-
-  @Override
   public double getDouble(PropertyKey key) {
     return conf(key).getDouble(key);
   }
