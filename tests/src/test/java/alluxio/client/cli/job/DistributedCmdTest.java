@@ -63,8 +63,7 @@ public class DistributedCmdTest {
     mNoopPlanURIStatus = Mockito.mock(URIStatus.class);
   }
 
-  private void runJob() throws Exception {
-  //  expectException(IOException.class, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("No such path"));
+  private void initialize() throws Exception {
     Mockito.when(mLoadURIStatus.getLength()).thenReturn(LOAD_FILE_LENGTH);
 
     Mockito.when(mLoadJobConfig.getFilePath()).thenReturn(LOAD);
@@ -88,14 +87,9 @@ public class DistributedCmdTest {
             .thenReturn(NOOP_PLAN_FILE_LENGTH);
   }
 
-  private void expectException(Class<? extends Throwable> cls, String msg) {
-    mException.expect(cls);
-    mException.expectMessage(msg);
-  }
-
   @Test
   public void testSupportedConfigForCompleteStatus() throws Exception {
-    runJob();
+    initialize();
     //Run for supported configs.
     DistributedCmdMetrics.incrementForCompleteStatusWithRetry(
             mLoadJobConfig, mFileSystem, mRetryPolicy);
