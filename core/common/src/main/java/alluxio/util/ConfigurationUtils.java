@@ -323,12 +323,12 @@ public final class ConfigurationUtils {
    * @return the property value
    */
   public static float checkRatio(AlluxioConfiguration conf, PropertyKey key) {
-    float value = conf.getFloat(key);
+    double value = conf.getDouble(key);
     Preconditions.checkState(value <= 1.0, "Property %s must not exceed 1, but it is set to %s",
         key.getName(), value);
     Preconditions.checkState(value >= 0.0, "Property %s must be non-negative, but it is set to %s",
         key.getName(), value);
-    return value;
+    return (float) value;
   }
 
   /**

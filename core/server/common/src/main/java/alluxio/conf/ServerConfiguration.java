@@ -223,16 +223,6 @@ public final class ServerConfiguration {
   }
 
   /**
-   * Gets the float representation of the value for the given key.
-   *
-   * @param key the key to get the value for
-   * @return the value for the given key as a {@code float}
-   */
-  public static float getFloat(PropertyKey key) {
-    return sConf.getFloat(key);
-  }
-
-  /**
    * Gets the boolean representation of the value for the given key.
    *
    * @param key the key to get the value for

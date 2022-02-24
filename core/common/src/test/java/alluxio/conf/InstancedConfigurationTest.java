@@ -150,21 +150,6 @@ public class InstancedConfigurationTest {
   }
 
   @Test
-  public void getFloat() {
-    mConfiguration.set(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO, "1.1");
-    assertEquals(1.1,
-        mConfiguration.getFloat(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO),
-        /*tolerance=*/0.0001);
-  }
-
-  @Test
-  public void getMalformedFloatThrowsException() {
-    mConfiguration.set(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO, "1a");
-    mThrown.expect(RuntimeException.class);
-    mConfiguration.getFloat(PropertyKey.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO);
-  }
-
-  @Test
   public void getTrueBoolean() {
     mConfiguration.set(PropertyKey.WEB_THREAD_DUMP_TO_LOG, true);
     assertTrue(mConfiguration.getBoolean(PropertyKey.WEB_THREAD_DUMP_TO_LOG));
