@@ -115,14 +115,6 @@ public interface AlluxioConfiguration {
   double getDouble(PropertyKey key);
 
   /**
-   * Gets the float representation of the value for the given key.
-   *
-   * @param key the key to get the value for
-   * @return the value for the given key as a {@code float}
-   */
-  float getFloat(PropertyKey key);
-
-  /**
    * Gets the boolean representation of the value for the given key.
    *
    * @param key the key to get the value for
