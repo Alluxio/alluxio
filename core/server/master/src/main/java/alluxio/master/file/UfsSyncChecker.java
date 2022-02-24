@@ -62,6 +62,13 @@ public final class UfsSyncChecker {
   /** Directories in sync with the UFS. */
   private final Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
 
+  private static final Predicate<UfsStatus> IS_TEMP_FILE =
+      (status) -> PathUtils.isTemporaryFileName(status.getName());
+  private static final Predicate<UfsStatus> CONTAINS_SEPARATOR = (status) -> {
+        int index = status.getName().indexOf(AlluxioURI.SEPARATOR);
+        return index >=0 && index != status.getName().length();
+      };
+
   /**
    * Create a new instance of {@link UfsSyncChecker}.
    *
@@ -151,28 +158,14 @@ public final class UfsSyncChecker {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       AlluxioURI curUri = ufsUri;
-      while (curUri != null) { // TODO(jiacheng): this can loop many times until ufs /
+      while (curUri != null) {
         if (mListedDirectories.containsKey(curUri.toString())) {
           UfsStatus[] childrenStatuses = mListedDirectories.get(curUri.toString());
-          // TODO(jiacheng): merge this and the trimIndirect?
-          // TODO(jiacheng): smarter sizing?
-          List<UfsStatus> childrenList = new ArrayList<>();
-          for (UfsStatus childStatus : childrenStatuses) {
-            // TODO(jiacheng): this can be optimized too
-            // Find only the children under the target path
-            String childPath = PathUtils.concatPath(curUri, childStatus.getName());
-            if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-              System.out.println("Before copy: " + childStatus);
-              UfsStatus newStatus = childStatus.copy();
-              newStatus.setName(childPath.substring(prefix.length()));
-              childrenList.add(newStatus);
-              System.out.println("After copy: " + newStatus);
-            }
-          }
-          return trimTempAndIndirect(childrenList.toArray(new UfsStatus[0]));
+          return trimAndTranslate(childrenStatuses, curUri, prefix);
         }
 
         // If the URI has not been listed, walk up the tree
+        // TODO(jiacheng): this can loop many times until ufs / is reached
         curUri = curUri.getParent();
       }
 
@@ -204,12 +197,36 @@ public final class UfsSyncChecker {
    */
   // TODO(jiacheng): Compare performance of vanilla java for-loop
   private UfsStatus[] trimTempAndIndirect(UfsStatus[] children) {
-    return Arrays.stream(children).filter((child) -> {
-      if (PathUtils.isTemporaryFileName(child.getName())) {
-        return false;
+    return Arrays.stream(children)
+        .filter((child) -> !IS_TEMP_FILE.apply(child) && !CONTAINS_SEPARATOR.apply(child))
+        .toArray(UfsStatus[]::new);
+  }
+
+  private UfsStatus[] trimAndTranslate(UfsStatus[] children, AlluxioURI baseUri, String prefix) {
+    List<UfsStatus> childrenList = new ArrayList<>();
+    for (UfsStatus childStatus : children) {
+      if (IS_TEMP_FILE.apply(childStatus)) {
+        continue;
       }
-      int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
-      return index < 0 || index == child.getName().length();
-    }).toArray(UfsStatus[]::new);
+      // Find only the children under the target path
+      String childPath = PathUtils.concatPath(baseUri, childStatus.getName());
+      // TODO(jiacheng): check if the part after prefix has separator
+      if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
+        System.out.println("Before copy: " + childStatus);
+        UfsStatus newStatus = childStatus.copy();
+        newStatus.setName(childPath.substring(prefix.length()));
+
+        // If the path is indirect, ignore
+        if (CONTAINS_SEPARATOR.apply(newStatus)) {
+          continue;
+        }
+
+        childrenList.add(newStatus);
+        System.out.println("After copy: " + newStatus);
+      }
+    }
+
+    // TODO(jiacheng): This copy looks unavoidable because of the translation
+    return childrenList.toArray(new UfsStatus[0]);
   }
 }
