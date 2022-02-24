@@ -13,7 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.ClientContext;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
@@ -63,7 +62,6 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,12 +101,9 @@ import java.util.stream.Collectors;
  */
 public class SnapshotReplicationManager {
   private static final Logger LOG = LoggerFactory.getLogger(SnapshotReplicationManager.class);
-  private static final long SNAPSHOT_REQUEST_TIMEOUT_MS =
-      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS);
 
   private final SimpleStateMachineStorage mStorage;
   private final RaftJournalSystem mJournalSystem;
-  private volatile RaftJournalServiceClient mJournalServiceClient;
   private volatile SnapshotInfo mDownloadedSnapshot;
   private final PriorityQueue<Pair<SnapshotMetadata, RaftPeerId>> mSnapshotCandidates;
 
@@ -156,17 +151,6 @@ public class SnapshotReplicationManager {
   }
 
   /**
-   * @param journalSystem the raft journal system
-   * @param storage the snapshot storage
-   */
-  @VisibleForTesting
-  SnapshotReplicationManager(RaftJournalSystem journalSystem,
-      SimpleStateMachineStorage storage, RaftJournalServiceClient client) {
-    this(journalSystem, storage);
-    mJournalServiceClient = client;
-  }
-
-  /**
    * Downloads and installs a snapshot from the leader.
    *
    * @return a future with the term index of the installed snapshot
@@ -180,8 +164,7 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
-    try {
-      RaftJournalServiceClient client = getJournalServiceClient();
+    try (RaftJournalServiceClient client = getJournalServiceClient()) {
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
@@ -232,17 +215,18 @@ public class SnapshotReplicationManager {
     }
     StreamObserver<UploadSnapshotPResponse> responseObserver =
         SnapshotUploader.forFollower(mStorage, snapshot);
-    RaftJournalServiceClient client = getJournalServiceClient();
-    LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
-        snapshot.getTermIndex());
-    StreamObserver<UploadSnapshotPRequest> requestObserver = getJournalServiceClient()
-        .uploadSnapshot(responseObserver);
-    requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
-        .setData(SnapshotData.newBuilder()
-                .setSnapshotTerm(snapshot.getTerm())
-                .setSnapshotIndex(snapshot.getIndex())
-                .setOffset(0))
-        .build());
+    try (RaftJournalServiceClient client = getJournalServiceClient()) {
+      LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
+          snapshot.getTermIndex());
+      StreamObserver<UploadSnapshotPRequest> requestObserver =
+          client.uploadSnapshot(responseObserver);
+      requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
+          .setData(SnapshotData.newBuilder()
+              .setSnapshotTerm(snapshot.getTerm())
+              .setSnapshotIndex(snapshot.getIndex())
+              .setOffset(0))
+          .build());
+    }
   }
 
   /**
@@ -521,7 +505,7 @@ public class SnapshotReplicationManager {
         RaftClientReply reply = mJournalSystem.sendMessageAsync(peerId,
                 toMessage(JournalQueryRequest.newBuilder()
                     .setSnapshotRequest(GetSnapshotRequest.getDefaultInstance()).build()))
-            .get(SNAPSHOT_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            .get();
         if (reply.getException() != null) {
           throw reply.getException();
         }
@@ -534,24 +518,12 @@ public class SnapshotReplicationManager {
     return false;
   }
 
-  private synchronized RaftJournalServiceClient getJournalServiceClient()
+  @VisibleForTesting
+  synchronized RaftJournalServiceClient getJournalServiceClient()
       throws AlluxioStatusException {
-    if (mJournalServiceClient == null) {
-      mJournalServiceClient =
-          new RaftJournalServiceClient(MasterClientContext
-              .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    }
-    mJournalServiceClient.connect();
-    return mJournalServiceClient;
-  }
-
-  /**
-   * Close the manager and release its resources.
-   */
-  public synchronized void close() {
-    if (mJournalServiceClient != null) {
-      mJournalServiceClient.close();
-      mJournalServiceClient = null;
-    }
+    RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+    client.connect();
+    return client;
   }
 }

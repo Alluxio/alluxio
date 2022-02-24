@@ -20,6 +20,7 @@ import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.RaftJournalServiceGrpc;
+import alluxio.grpc.SnapshotData;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 import alluxio.util.CommonUtils;
@@ -28,6 +29,8 @@ import alluxio.util.io.BufferUtils;
 
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -94,19 +97,20 @@ public class SnapshotReplicationManagerTest {
     mServer.start();
     ManagedChannel channel = InProcessChannelBuilder.forName(serverName).directExecutor().build();
     RaftJournalServiceGrpc.RaftJournalServiceStub stub = RaftJournalServiceGrpc.newStub(channel);
+    // mock RaftJournalServiceClient
     mClient = Mockito.mock(RaftJournalServiceClient.class);
-
+    Mockito.doNothing().when(mClient).close();
     // download rpc mock
     Mockito.when(mClient.downloadSnapshot(any())).thenAnswer((args) -> {
       StreamObserver responseObserver = args.getArgument(0, StreamObserver.class);
       return stub.downloadSnapshot(responseObserver);
     });
-
     // upload rpc mock
     Mockito.when(mClient.uploadSnapshot(any())).thenAnswer((args) -> {
       StreamObserver responseObserver = args.getArgument(0, StreamObserver.class);
       return stub.uploadSnapshot(responseObserver);
     });
+    Mockito.doReturn(mClient).when(mLeaderSnapshotManager).getJournalServiceClient();
 
     for (int i = 0; i < numFollowers; i++) {
       Follower follower = new Follower(mClient);
@@ -165,10 +169,6 @@ public class SnapshotReplicationManagerTest {
 
   @After
   public void After() throws Exception {
-    mLeaderSnapshotManager.close();
-    for (Follower follower : mFollowers.values()) {
-      follower.mSnapshotManager.close();
-    }
     mServer.shutdown();
     mServer.awaitTermination();
   }
@@ -260,11 +260,10 @@ public class SnapshotReplicationManagerTest {
   }
 
   /**
-   * This tests whether the leading master is able to ask for a snapshot from multiple followers
-   * if a snapshot upload fails.
+   * Simulates a {@link SnapshotDownloader} error.
    */
   @Test
-  public void bestSnapshotUploadFailure() throws Exception {
+  public void downloadFailure() throws Exception {
     before(2);
     List<Follower> followers = new ArrayList<>(mFollowers.values());
     Follower firstFollower = followers.get(0);
@@ -292,6 +291,44 @@ public class SnapshotReplicationManagerTest {
     validateSnapshotFile(mLeaderStore);
   }
 
+  /**
+   * Simulates a {@link SnapshotUploader} error.
+   */
+  @Test
+  public void uploadFailure() throws Exception {
+    before(2);
+    List<Follower> followers = new ArrayList<>(mFollowers.values());
+    Follower firstFollower = followers.get(0);
+    Follower secondFollower = followers.get(1);
+
+    createSnapshotFile(firstFollower.mStore); // create default 0, 1 snapshot
+    createSnapshotFile(secondFollower.mStore, 0, 2); // preferable to the default 0, 1 snapshot
+
+    // make sure to error out when requesting the better snapshot from secondFollower
+    Mockito.doAnswer(mock -> {
+      SingleFileSnapshotInfo snapshot = secondFollower.mStore.getLatestSnapshot();
+      StreamObserver<UploadSnapshotPResponse> responseObserver =
+          SnapshotUploader.forFollower(secondFollower.mStore, snapshot);
+      StreamObserver<UploadSnapshotPRequest> requestObserver = mClient
+          .uploadSnapshot(responseObserver);
+      responseObserver.onError(new StatusRuntimeException(Status.UNAVAILABLE));
+      requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
+          .setData(SnapshotData.newBuilder()
+              .setSnapshotTerm(snapshot.getTerm())
+              .setSnapshotIndex(snapshot.getIndex())
+              .setOffset(0))
+          .build());
+      return null;
+    }).when(secondFollower.mSnapshotManager).sendSnapshotToLeader();
+
+    mLeaderSnapshotManager.maybeCopySnapshotFromFollower();
+
+    CommonUtils.waitFor("leader snapshot to complete",
+        () -> mLeaderSnapshotManager.maybeCopySnapshotFromFollower() != -1, mWaitOptions);
+    // verify that the leader still requests and gets second best snapshot
+    validateSnapshotFile(mLeaderStore);
+  }
+
   private class Follower {
     final String mHost;
     final int mRpcPort;
@@ -304,8 +341,8 @@ public class SnapshotReplicationManagerTest {
       mRpcPort = ThreadLocalRandom.current().nextInt(10_000, 99_999);
       mStore = getSimpleStateMachineStorage();
       mJournalSystem = Mockito.mock(RaftJournalSystem.class);
-      mSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mJournalSystem,
-        mStore, client));
+      mSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mJournalSystem, mStore));
+      Mockito.doReturn(client).when(mSnapshotManager).getJournalServiceClient();
     }
 
     RaftPeerId getRaftPeerId() {
