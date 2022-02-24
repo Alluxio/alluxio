@@ -11,6 +11,7 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.PropertyType.DOUBLE;
 import static alluxio.conf.PropertyKey.PropertyType.STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -220,6 +221,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (key.getType() == STRING) {
       value = String.valueOf(value);
     }
+    if (key.getType() == DOUBLE) {
+      value = ((Number) value).doubleValue();
+    }
     mProperties.put(key, value, source);
   }
 
@@ -272,13 +276,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public double getDouble(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return Double.parseDouble(rawValue);
-    } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(rawValue, key));
-    }
+    return (Double) get(key);
   }
 
   @Override
