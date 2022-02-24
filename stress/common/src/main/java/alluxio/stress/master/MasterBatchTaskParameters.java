@@ -19,34 +19,23 @@ import com.google.common.collect.ImmutableSet;
 /**
  * This holds all the parameters for Master Batch Task.
  */
-public class MasterBatchTaskParameters extends AbstractMasterBenchParameters {
+public class MasterBatchTaskParameters extends MasterBenchBaseParameters {
+  static final ImmutableSet<String> MASTER_BATCH_TASK_NAMES = ImmutableSet.of(
+      "MasterComprehensiveFileBatchTask");
 
   @Parameter(description = "The batch task to perform. The current possible option is "
-      + "[MasterComprehensiveFileBatchTask]", validateWith = PossibleBatchTaskValidator.class)
+      + "[MasterComprehensiveFileBatchTask]", validateWith = BatchTaskNameValidator.class)
   public String mTaskName = "";
-
-  @Parameter(names = {"--cluster"},
-      description = "If true, runs the benchmark via the job service cluster. Otherwise, runs "
-          + "locally.")
-  public boolean mCluster = false;
-
-  @Parameter(names = {"--in-process"},
-      description = "If true, runs the task in process. Otherwise, will spawn a new process to "
-          + "execute the task",
-      hidden = true)
-  public boolean mInProcess = false;
 
   /**
    * a validator use to check the input batch task type.
    */
-  public static class PossibleBatchTaskValidator implements IParameterValidator {
+  public static class BatchTaskNameValidator implements IParameterValidator {
     @Override
     public void validate(String name, String value) throws ParameterException {
-      ImmutableSet<String> masterBatchTaskNames = ImmutableSet.of(
-          "MasterComprehensiveFileBatchTask");
-      if (!masterBatchTaskNames.contains(value)) {
+      if (!MASTER_BATCH_TASK_NAMES.contains(value)) {
         throw new ParameterException(String.format("Unexpected batch task name: %s, "
-            + "possible batch task are %s;", value, masterBatchTaskNames));
+            + "possible batch task are %s;", value, MASTER_BATCH_TASK_NAMES));
       }
     }
   }

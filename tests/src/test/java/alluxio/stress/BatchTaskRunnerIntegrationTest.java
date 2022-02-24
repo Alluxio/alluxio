@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.stress.cli.BatchTaskRunner;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.master.MasterBenchSummary;
+import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
@@ -26,6 +27,7 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
@@ -46,6 +48,10 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
         "--create-file-size", "0",
         "--client-type", "AlluxioHDFS",
         "--clients", "1",
+        "--cluster-limit", "1",
+        "--cluster-start-delay", "3s",
+        "--bench-timeout", "10m",
+        "--java-opt", " -Xmx4g",
         "--in-process",
     });
 
@@ -69,7 +75,14 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
       assertEquals(summary.getParameters().mCreateFileSize, "0");
       assertEquals(summary.getParameters().mClientType, FileSystemClientType.ALLUXIO_HDFS);
       assertEquals(summary.getParameters().mClients, 1);
-      assertFalse(summary.getNodeResults().isEmpty());
+      Map<String, MasterBenchTaskResult> results = summary.getNodeResults();
+      assertFalse(results.isEmpty());
+      for (MasterBenchTaskResult res : results.values()) {
+        assertEquals(res.getBaseParameters().mClusterLimit, 1);
+        assertEquals(res.getBaseParameters().mClusterStartDelay, "3s");
+        assertEquals(res.getBaseParameters().mBenchTimeout, "10m");
+        assertEquals(res.getBaseParameters().mJavaOpts.get(0), " -Xmx4g");
+      }
       assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
     }
 

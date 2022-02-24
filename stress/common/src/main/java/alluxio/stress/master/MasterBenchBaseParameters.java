@@ -19,7 +19,7 @@ import com.beust.jcommander.Parameter;
 /**
  * This holds all the parameters shared by the MasterBench and MasterBatchTask.
  */
-public class AbstractMasterBenchParameters extends FileSystemParameters {
+public class MasterBenchBaseParameters extends FileSystemParameters {
   /** The stop count value that is invalid. */
   public static final int STOP_COUNT_INVALID = -1;
 

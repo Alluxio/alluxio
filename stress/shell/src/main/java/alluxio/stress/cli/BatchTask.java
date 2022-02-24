@@ -17,7 +17,7 @@ package alluxio.stress.cli;
  */
 public abstract class BatchTask {
   /**
-   * Run the StressBench Batch task.
+   * Runs the StressBench Batch task.
    *
    * @param args command-line arguments
    */

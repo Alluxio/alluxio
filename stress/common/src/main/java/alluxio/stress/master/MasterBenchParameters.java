@@ -24,7 +24,7 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class MasterBenchParameters extends AbstractMasterBenchParameters {
+public final class MasterBenchParameters extends MasterBenchBaseParameters {
 
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
