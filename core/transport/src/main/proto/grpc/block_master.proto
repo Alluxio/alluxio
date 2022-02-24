@@ -231,8 +231,8 @@ message GetWorkerIdPRequest {
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   /** for preRegister information **/
   optional string clusterId = 2;
-  optional bool hasBlockInTier = 4;
-  optional GetWorkerIdPOptions options = 5;
+  optional bool hasBlockInTier = 3;
+  optional GetWorkerIdPOptions options = 4;
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
