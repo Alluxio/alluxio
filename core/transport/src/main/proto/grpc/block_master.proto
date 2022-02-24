@@ -223,14 +223,21 @@ message CommitBlockInUfsPRequest {
 message CommitBlockInUfsPOptions {}
 message CommitBlockInUfsPResponse {}
 
-message GetWorkerIdPOptions {}
+message GetWorkerIdPOptions {
+  optional bool extendedRegisterInfo = 1; // Identify whether there is preRegister information
+}
 message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
-  optional GetWorkerIdPOptions options = 2;
+  /** for preRegister information **/
+  optional string clusterId = 2;
+  optional bool hasBlockInTier = 4;
+  optional GetWorkerIdPOptions options = 5;
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
+  optional grpc.WorkerNetAddress workerNetAddress = 2;
+  optional PreRegisterCommand command = 3;
 }
 
 message GetRegisterLeasePRequest {
@@ -258,19 +265,6 @@ enum PreRegisterCommandType {
   REGISTER_PERSIST_CLUSTERID = 2;
   REGISTER_CLEAN_BLOCKS = 3;
   REJECT_REGISTER = 4;
-}
-
-message PreRegisterWorkerPOptions {}
-message PreRegisterWorkerPRequest {
-  optional string clusterId = 1;
-  optional grpc.WorkerNetAddress workerNetAddress = 2;
-  optional PreRegisterWorkerPOptions options = 3;
-  optional bool hasBlockInTier = 4;
-}
-
-message PreRegisterWorkerPResponse {
-  optional grpc.WorkerNetAddress workerNetAddress = 1;
-  optional PreRegisterCommand command = 2;
 }
 
 message RegisterWorkerPOptions {
@@ -319,11 +313,6 @@ service BlockMasterWorkerService {
    * Returns a worker id for the given network address.
    */
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
-
-  /**
- * preRegisters a worker.
- */
-  rpc preRegisterWorker(PreRegisterWorkerPRequest) returns (PreRegisterWorkerPResponse);
 
   /**
    * Registers a worker.

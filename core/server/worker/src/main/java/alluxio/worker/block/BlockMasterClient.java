@@ -35,7 +35,6 @@ import alluxio.grpc.Metric;
 import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.PreRegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
@@ -287,12 +286,13 @@ public class BlockMasterClient extends AbstractMasterClient {
   public PreRegisterCommand preRegisterWithMaster(String clusterId, final WorkerNetAddress address,
                                                   boolean hasBlockInTier)
       throws AlluxioStatusException {
-    final PreRegisterWorkerPRequest request = PreRegisterWorkerPRequest.newBuilder()
+    // For compatibility, reuse the RPC of getWorkerID
+    final GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
         .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
         .setHasBlockInTier(hasBlockInTier).build();
 
-    return retryRPC(() -> mClient.preRegisterWorker(request).getCommand(),
-        LOG, "preRegisterWithMaster", "clusterId=%s, hasBlockInTier=%s",
+    return retryRPC(() -> mClient.getWorkerId(request).getCommand(),
+        LOG, "getWorkerId", "clusterId=%s, hasBlockInTier=%s",
         clusterId, hasBlockInTier);
   }
 
