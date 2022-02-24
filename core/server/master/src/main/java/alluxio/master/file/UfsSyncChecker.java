@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -26,7 +25,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +36,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -64,10 +63,8 @@ public final class UfsSyncChecker {
 
   private static final Predicate<UfsStatus> IS_TEMP_FILE =
       (status) -> PathUtils.isTemporaryFileName(status.getName());
-  private static final Predicate<UfsStatus> CONTAINS_SEPARATOR = (status) -> {
-        int index = status.getName().indexOf(AlluxioURI.SEPARATOR);
-        return index >=0 && index != status.getName().length();
-      };
+  private static final Predicate<UfsStatus> CONTAINS_SEPARATOR =
+      (status) -> status.getName().contains(AlluxioURI.SEPARATOR);
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -89,14 +86,11 @@ public final class UfsSyncChecker {
    */
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
+    // TODO(jiacheng): try to improve this, especially string sort can be O(N*L)
+    //  and many substring() are used
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-    // TODO(jiacheng): move this filter into getChildrenInUFS
-    // Filter out temporary files
-//    ufsChildren = Arrays.stream(ufsChildren)
-//        .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
-//        .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
     Inode[] alluxioChildren = Iterables.toArray(mInodeStore.getChildren(inode), Inode.class);
     Arrays.sort(alluxioChildren);
@@ -198,14 +192,14 @@ public final class UfsSyncChecker {
   // TODO(jiacheng): Compare performance of vanilla java for-loop
   private UfsStatus[] trimTempAndIndirect(UfsStatus[] children) {
     return Arrays.stream(children)
-        .filter((child) -> !IS_TEMP_FILE.apply(child) && !CONTAINS_SEPARATOR.apply(child))
+        .filter((child) -> !IS_TEMP_FILE.test(child) && !CONTAINS_SEPARATOR.test(child))
         .toArray(UfsStatus[]::new);
   }
 
   private UfsStatus[] trimAndTranslate(UfsStatus[] children, AlluxioURI baseUri, String prefix) {
     List<UfsStatus> childrenList = new ArrayList<>();
     for (UfsStatus childStatus : children) {
-      if (IS_TEMP_FILE.apply(childStatus)) {
+      if (IS_TEMP_FILE.test(childStatus)) {
         continue;
       }
       // Find only the children under the target path
@@ -217,7 +211,7 @@ public final class UfsSyncChecker {
         newStatus.setName(childPath.substring(prefix.length()));
 
         // If the path is indirect, ignore
-        if (CONTAINS_SEPARATOR.apply(newStatus)) {
+        if (CONTAINS_SEPARATOR.test(newStatus)) {
           continue;
         }
 
