@@ -26,6 +26,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,8 @@ public final class UfsSyncChecker {
   private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
 
   /** UFS directories for which list was called. */
-  private Map<String, UfsStatus[]> mListedDirectories;
+  // TODO(jiacheng): use AlluxioURI as key to avoid toString()
+  private final Map<String, UfsStatus[]> mListedDirectories;
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
@@ -58,7 +60,7 @@ public final class UfsSyncChecker {
   private final ReadOnlyInodeStore mInodeStore;
 
   /** Directories in sync with the UFS. */
-  private Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
+  private final Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -83,10 +85,11 @@ public final class UfsSyncChecker {
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
+    // TODO(jiacheng): move this filter into getChildrenInUFS
     // Filter out temporary files
-    ufsChildren = Arrays.stream(ufsChildren)
-        .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
-        .toArray(UfsStatus[]::new);
+//    ufsChildren = Arrays.stream(ufsChildren)
+//        .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
+//        .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
     Inode[] alluxioChildren = Iterables.toArray(mInodeStore.getChildren(inode), Inode.class);
     Arrays.sort(alluxioChildren);
@@ -143,50 +146,70 @@ public final class UfsSyncChecker {
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
+    // Move Outside the for loop
+    String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       AlluxioURI curUri = ufsUri;
-      while (curUri != null) {
+      while (curUri != null) { // TODO(jiacheng): this can loop many times until ufs /
         if (mListedDirectories.containsKey(curUri.toString())) {
+          UfsStatus[] childrenStatuses = mListedDirectories.get(curUri.toString());
+          // TODO(jiacheng): merge this and the trimIndirect?
+          // TODO(jiacheng): smarter sizing?
           List<UfsStatus> childrenList = new ArrayList<>();
-          for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
+          for (UfsStatus childStatus : childrenStatuses) {
+            // TODO(jiacheng): this can be optimized too
+            // Find only the children under the target path
             String childPath = PathUtils.concatPath(curUri, childStatus.getName());
-            String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
             if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
+              System.out.println("Before copy: " + childStatus);
               UfsStatus newStatus = childStatus.copy();
               newStatus.setName(childPath.substring(prefix.length()));
               childrenList.add(newStatus);
+              System.out.println("After copy: " + newStatus);
             }
           }
-          return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
+          return trimTempAndIndirect(childrenList.toArray(new UfsStatus[0]));
         }
+
+        // If the URI has not been listed, walk up the tree
         curUri = curUri.getParent();
       }
-      UfsStatus[] children =
+
+      // List the UFS if the parent dirs have not been listed
+      UfsStatus[] ufsAllChildren =
           ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
+      System.out.println(Arrays.toString(ufsAllChildren));
       // Assumption: multiple mounted UFSs cannot have the same ufsUri
-      if (children == null) {
+      if (ufsAllChildren == null) {
+        // Memoize an empty dir as an empty array to avoid NPE
+        mListedDirectories.put(ufsUri.toString(), EMPTY_CHILDREN);
         return EMPTY_CHILDREN;
       }
-      mListedDirectories.put(ufsUri.toString(), children);
-      return trimIndirect(children);
+
+      // Memoize the listed result
+      // We do not filter the temp files, in order to avoid one copy
+      mListedDirectories.put(ufsUri.toString(), ufsAllChildren);
+
+      return trimTempAndIndirect(ufsAllChildren);
     }
   }
 
   /**
    * Remove indirect children from children list returned from recursive listing.
+   * Also filters out temporary files.
    *
    * @param children list from recursive listing
    * @return trimmed list, null if input is null
    */
-  private UfsStatus[] trimIndirect(UfsStatus[] children) {
-    List<UfsStatus> childrenList = new ArrayList<>();
-    for (UfsStatus child : children) {
-      int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
-      if (index < 0 || index == child.getName().length()) {
-        childrenList.add(child);
+  // TODO(jiacheng): Compare performance of vanilla java for-loop
+  private UfsStatus[] trimTempAndIndirect(UfsStatus[] children) {
+    return Arrays.stream(children).filter((child) -> {
+      if (PathUtils.isTemporaryFileName(child.getName())) {
+        return false;
       }
-    }
-    return childrenList.toArray(new UfsStatus[childrenList.size()]);
+      int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
+      return index < 0 || index == child.getName().length();
+    }).toArray(UfsStatus[]::new);
   }
 }
