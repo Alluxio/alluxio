@@ -114,11 +114,6 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public float getFloat(PropertyKey key) {
-    return conf(key).getFloat(key);
-  }
-
-  @Override
   public boolean getBoolean(PropertyKey key) {
     return conf(key).getBoolean(key);
   }
