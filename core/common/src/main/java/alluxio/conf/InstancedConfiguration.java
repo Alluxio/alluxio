@@ -282,17 +282,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public float getFloat(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return Float.parseFloat(rawValue);
-    } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(rawValue, key));
-    }
-  }
-
-  @Override
   public boolean getBoolean(PropertyKey key) {
     Object rawValue = get(key);
     return (Boolean) rawValue;
