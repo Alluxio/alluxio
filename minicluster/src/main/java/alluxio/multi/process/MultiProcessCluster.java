@@ -237,7 +237,7 @@ public final class MultiProcessCluster {
         mCuratorServer = mCloser.register(
                 new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
-        mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
+        mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, true);
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
@@ -878,7 +878,7 @@ public final class MultiProcessCluster {
      * @param value the value to set
      * @return the builder
      */
-    public Builder addProperty(PropertyKey key, String value) {
+    public Builder addProperty(PropertyKey key, Object value) {
       Preconditions.checkState(!key.equals(PropertyKey.ZOOKEEPER_ENABLED),
           "Enable Zookeeper via #setDeployMode instead of #addProperty");
       mProperties.put(key, value);
@@ -889,8 +889,8 @@ public final class MultiProcessCluster {
      * @param properties alluxio properties for launched masters and workers
      * @return the builder
      */
-    public Builder addProperties(Map<PropertyKey, String> properties) {
-      for (Entry<PropertyKey, String> entry : properties.entrySet()) {
+    public Builder addProperties(Map<PropertyKey, Object> properties) {
+      for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
         addProperty(entry.getKey(), entry.getValue());
       }
       return this;
