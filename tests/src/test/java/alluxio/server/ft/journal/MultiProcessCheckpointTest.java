@@ -38,7 +38,7 @@ public class MultiProcessCheckpointTest {
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "2sec")
         .addProperty(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_METASTORE, "ROCKS")
-        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "100")
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 100)
         .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "500")
         .addProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "500")
         .setNumMasters(2)
