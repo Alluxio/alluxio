@@ -337,7 +337,7 @@ public final class AlluxioMasterRestServiceHandler {
         boolean overThreshold = timeSinceCkpt > ServerConfiguration.getMs(
             PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME);
         boolean passedThreshold = entriesSinceCkpt > ServerConfiguration
-            .getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+            .getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
         if (passedThreshold && overThreshold) {
           String time = lastCkptTime > 0 ? ZonedDateTime
               .ofInstant(Instant.ofEpochMilli(lastCkptTime), ZoneOffset.UTC)
@@ -349,7 +349,7 @@ public final class AlluxioMasterRestServiceHandler {
               + "a timely manner since passing the checkpoint threshold (%d/%d). Last checkpoint:"
               + " %s. %s",
               entriesSinceCkpt,
-              ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
+              ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
               time, advice));
         }
       }

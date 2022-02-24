@@ -212,16 +212,6 @@ public final class ServerConfiguration {
   }
 
   /**
-   * Gets the long representation of the value for the given key.
-   *
-   * @param key the key to get the value for
-   * @return the value for the given key as a {@code long}
-   */
-  public static long getLong(PropertyKey key) {
-    return sConf.getLong(key);
-  }
-
-  /**
    * Gets the double representation of the value for the given key.
    *
    * @param key the key to get the value for

@@ -106,14 +106,6 @@ public interface AlluxioConfiguration {
   int getInt(PropertyKey key);
 
   /**
-   * Gets the long representation of the value for the given key.
-   *
-   * @param key the key to get the value for
-   * @return the value for the given key as a {@code long}
-   */
-  long getLong(PropertyKey key);
-
-  /**
    * Gets the double representation of the value for the given key.
    *
    * @param key the key to get the value for

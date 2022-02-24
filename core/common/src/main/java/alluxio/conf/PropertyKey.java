@@ -2394,7 +2394,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD =
-      new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD)
+      intBuilder(Name.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD)
           .setDefaultValue(10)
           .setDescription("When the percent of free space on any disk which backs the journal "
               + "falls below this percentage, begin logging warning messages to let "
@@ -2468,7 +2468,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
-      new Builder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+      intBuilder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
           .setDefaultValue(2000000)
           .setDescription("The number of journal entries to write before creating a new "
               + "journal checkpoint.")
@@ -5770,12 +5770,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
-      new Builder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
+      intBuilder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
           .setDescription("The maximum amount of jobs to purge at any single time when the job "
               + "master reaches its maximum capacity. It is recommended to set this value when "
               + "setting the capacity of the job master to a large ( > 10M) value. Default is -1 "
               + "denoting an unlimited value")
-          .setDefaultValue("-1")
+          .setDefaultValue(-1)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =

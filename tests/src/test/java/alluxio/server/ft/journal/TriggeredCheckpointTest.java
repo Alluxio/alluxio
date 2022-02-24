@@ -41,7 +41,7 @@ public class TriggeredCheckpointTest {
         .newBuilder(PortCoordination.TRIGGERED_UFS_CHECKPOINT)
         .setClusterName("TriggeredUfsCheckpointTest")
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
-        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, String.valueOf(numFiles))
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, numFiles)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
