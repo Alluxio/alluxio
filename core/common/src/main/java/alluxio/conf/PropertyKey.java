@@ -5421,11 +5421,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS =
       new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS)
+          .setDescription(
+              "The class to provide a custom security authentication sasl client handler.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS =
       new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS)
+          .setDescription(
+              "The class to provide a custom security authentication sasl server handler.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
