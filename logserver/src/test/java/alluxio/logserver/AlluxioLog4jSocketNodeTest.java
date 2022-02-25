@@ -17,7 +17,10 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 
 import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
@@ -59,7 +62,7 @@ public class AlluxioLog4jSocketNodeTest {
 
     @Test
     public void testLoggingEvent() throws IOException, ClassNotFoundException {
-        Logger logger= Logger.getLogger("a");
+        Logger logger = Logger.getLogger("a");
         LoggingEvent event = new LoggingEvent(
                 "fqnOfCategoryClass", logger, Level.DEBUG, "message", new Throwable());
         createOutputStreams();
@@ -71,12 +74,12 @@ public class AlluxioLog4jSocketNodeTest {
 
     @Test
     public void testLocationInfo() throws IOException, ClassNotFoundException {
-        LocationInfo locationInfo = new LocationInfo("c","b","c","d");
+        LocationInfo locationInfo = new LocationInfo("c", "b", "c", "d");
         createOutputStreams();
         mObjectOutputStream.writeObject(locationInfo);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        LocationInfo locationInfo1 =(LocationInfo) mValidatingObjectInputStream.readObject();
+        LocationInfo locationInfo1 = (LocationInfo) mValidatingObjectInputStream.readObject();
     }
 
     @Test
@@ -134,8 +137,8 @@ public class AlluxioLog4jSocketNodeTest {
 
     @Test
     public void testLogEvent() throws IOException, ClassNotFoundException {
-        Logger logger= Logger.getLogger("a");
-        LogEvent logEvent = new LogEvent("category", logger, Level.DEBUG,"message",new Throwable());
+        Logger logger = Logger.getLogger("a");
+        LogEvent logEvent = new LogEvent("category", logger, Level.DEBUG, "message", new Throwable());
         createOutputStreams();
         mObjectOutputStream.writeObject(logEvent);
         write2BufferAndCloseOutputStream();
@@ -145,7 +148,7 @@ public class AlluxioLog4jSocketNodeTest {
 
     @Test
     public void testLogLevel() throws IOException, ClassNotFoundException {
-        LogLevel logLevel = new LogLevel("lable",1);
+        LogLevel logLevel = new LogLevel("lable", 1);
         createOutputStreams();
         mObjectOutputStream.writeObject(logLevel);
         write2BufferAndCloseOutputStream();
@@ -154,7 +157,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testLogRecord()throws IOException, ClassNotFoundException {
+    public void testLogRecord() throws IOException, ClassNotFoundException {
         AdapterLogRecord adapterLogRecord = new AdapterLogRecord();
         createOutputStreams();
         mObjectOutputStream.writeObject(adapterLogRecord);
@@ -164,8 +167,8 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testLog4JLogRecord()throws IOException, ClassNotFoundException {
-        Logger logger= Logger.getLogger("a");
+    public void testLog4JLogRecord() throws IOException, ClassNotFoundException {
+        Logger logger = Logger.getLogger("a");
         Log4JLogRecord log4JLogRecord = new Log4JLogRecord();
         createOutputStreams();
         mObjectOutputStream.writeObject(log4JLogRecord);
@@ -175,7 +178,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testLogTableColumn()throws IOException, ClassNotFoundException {
+    public void testLogTableColumn() throws IOException, ClassNotFoundException {
         LogTableColumn logTableColumn = new LogTableColumn("label");
         createOutputStreams();
         mObjectOutputStream.writeObject(logTableColumn);
@@ -185,7 +188,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testLevel()throws IOException, ClassNotFoundException {
+    public void testLevel() throws IOException, ClassNotFoundException {
         Level level = Level.DEBUG;
         createOutputStreams();
         mObjectOutputStream.writeObject(level);
@@ -195,7 +198,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testUtilLoggingLevel()throws IOException, ClassNotFoundException {
+    public void testUtilLoggingLevel() throws IOException, ClassNotFoundException {
         UtilLoggingLevel utilLoggingLevel = UtilLoggingLevel.INFO;
         createOutputStreams();
         mObjectOutputStream.writeObject(utilLoggingLevel);
@@ -206,7 +209,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testThrowable()throws IOException, ClassNotFoundException {
+    public void testThrowable() throws IOException, ClassNotFoundException {
         Throwable throwable = new Throwable();
         createOutputStreams();
         mObjectOutputStream.writeObject(throwable);
@@ -216,7 +219,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testLogLevelFormatException()throws IOException, ClassNotFoundException {
+    public void testLogLevelFormatException() throws IOException, ClassNotFoundException {
         LogLevelFormatException logLevelFormatException = new LogLevelFormatException("message");
         createOutputStreams();
         mObjectOutputStream.writeObject(logLevelFormatException);
@@ -227,7 +230,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testLogTableColumnFormatException()throws IOException, ClassNotFoundException {
+    public void testLogTableColumnFormatException() throws IOException, ClassNotFoundException {
         LogTableColumnFormatException logTableColumnFormatException =
                 new LogTableColumnFormatException("message");
         createOutputStreams();
@@ -239,7 +242,7 @@ public class AlluxioLog4jSocketNodeTest {
     }
 
     @Test
-    public void testPropertySetterException()throws IOException, ClassNotFoundException {
+    public void testPropertySetterException() throws IOException, ClassNotFoundException {
         PropertySetterException propertySetterException = new PropertySetterException("string");
         createOutputStreams();
         mObjectOutputStream.writeObject(propertySetterException);
