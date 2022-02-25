@@ -1858,6 +1858,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_TIMEOUT)
+          .setDefaultValue("35sec")
+          .setDescription("Duration after which the primary master will ask another secondary "
+              + "master for snapshot data, after it has determined that it needs a snapshot.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_INTERVAL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_INTERVAL)
+          .setDefaultValue("500ms")
+          .setDescription("Interval at which the primary master requests snapshot data from a "
+              + "secondary master, after it has determined that it needs a snapshot.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
           .setDefaultValue("5sec")
@@ -6436,6 +6452,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_TIMEOUT =
+        "alluxio.master.embedded.journal.snapshot.data.request.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_INTERVAL =
+        "alluxio.master.embedded.journal.snapshot.data.request.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
         "alluxio.master.embedded.journal.transport.request.timeout.ms";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =

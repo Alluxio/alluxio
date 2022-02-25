@@ -882,8 +882,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    RaftClient client = createClient(TimeDuration.valueOf(35, TimeUnit.SECONDS),
-        RetryPolicies.retryForeverWithSleep(TimeDuration.valueOf(500, TimeUnit.MILLISECONDS)));
+    long timeoutMs = ServerConfiguration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_TIMEOUT);
+    long retryMs = ServerConfiguration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_INTERVAL);
+    RaftClient client = createClient(TimeDuration.valueOf(timeoutMs, TimeUnit.MILLISECONDS),
+        RetryPolicies.retryForeverWithSleep(TimeDuration.valueOf(retryMs, TimeUnit.MILLISECONDS)));
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)

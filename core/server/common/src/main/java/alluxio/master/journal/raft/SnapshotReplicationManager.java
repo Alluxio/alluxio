@@ -473,10 +473,10 @@ public class SnapshotReplicationManager {
           }
           JournalQueryResponse response = JournalQueryResponse.parseFrom(
               reply.getMessage().getContent().asReadOnlyByteBuffer());
-          LOG.debug("Received snapshot info from follower {} - {}", peerId, response);
           if (!response.hasSnapshotInfoResponse()) {
             throw new IOException("Invalid response for GetSnapshotInfoRequest " + response);
           }
+          LOG.debug("Received snapshot info from follower {} - {}", peerId, response);
           SnapshotMetadata latest = response.getSnapshotInfoResponse().getLatest();
           if (snapshotMetadata == null
               || (latest.getSnapshotTerm() >= snapshotMetadata.getSnapshotTerm())
