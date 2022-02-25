@@ -1971,15 +1971,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_COUNT_TO_REMOVE_BLOCKS_ENABLE =
-      new Builder(PropertyKey.Name.MASTER_COUNT_TO_REMOVE_BLOCKS_ENABLE)
-          .setAlias("alluxio.master.count.to.remove.blocks.enable")
-          .setDefaultValue(false)
-          .setDescription("Whether enable master collect the value of blocks to remove,"
-              + "which is use in the metric MASTER_TO_REMOVE_BLOCK_COUNT.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_METASTORE =
       new Builder(Name.MASTER_METASTORE)
           .setDefaultValue("ROCKS")
@@ -6427,8 +6418,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
-    public static final String MASTER_COUNT_TO_REMOVE_BLOCKS_ENABLE =
-        "alluxio.master.count.to.remove.blocks.enable";
     public static final String MASTER_LOST_WORKER_DETECTION_INTERVAL =
         "alluxio.master.lost.worker.detection.interval";
     public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =

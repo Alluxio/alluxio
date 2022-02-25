@@ -21,6 +21,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -663,6 +664,7 @@ public final class MasterWorkerInfo {
    *
    * @return the count
    */
+  @VisibleForTesting
   public int getToRemoveBlockCount() {
     return mToRemoveBlocks.size();
   }
