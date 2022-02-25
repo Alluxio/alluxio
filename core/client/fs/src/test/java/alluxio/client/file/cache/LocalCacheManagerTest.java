@@ -662,19 +662,12 @@ public final class LocalCacheManagerTest {
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-<<<<<<< HEAD
     mPageStore.put(PAGE_INFO_1, PAGE1);
     mPageStore.put(new PageInfo(pageUuid, PAGE2.length, FILE_INFO), PAGE2);
     Path pagePath = ((LocalPageStore) ((TimeBoundPageStore) mPageStore).getPageStore())
         .getPageFilePath(PAGE_INFO_1);
     FileUtils.createFile(
         Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
-=======
-    mPageStore.put(PAGE_ID1, PAGE1);
-    mPageStore.put(pageUuid, PAGE2);
-    String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
-    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
->>>>>>> upstream/master
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -687,18 +680,11 @@ public final class LocalCacheManagerTest {
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-<<<<<<< HEAD
     mPageStore.put(PAGE_INFO_1, PAGE1);
     mPageStore.put(new PageInfo(pageUuid, PAGE2.length, FILE_INFO), PAGE2);
     Path pagePath = ((LocalPageStore) ((TimeBoundPageStore) mPageStore).getPageStore())
         .getPageFilePath(PAGE_INFO_1);
     FileUtils.createFile(Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
-=======
-    mPageStore.put(PAGE_ID1, PAGE1);
-    mPageStore.put(pageUuid, PAGE2);
-    String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
-    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
->>>>>>> upstream/master
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
@@ -710,15 +696,9 @@ public final class LocalCacheManagerTest {
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-<<<<<<< HEAD
     mPageStore.put(PAGE_INFO_1, PAGE1);
     mPageStore.put(new PageInfo(pageUuid, PAGE2.length, FILE_INFO), PAGE2);
-    String rootDir = mPageStoreOptions.getRootDir();
-=======
-    mPageStore.put(PAGE_ID1, PAGE1);
-    mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
->>>>>>> upstream/master
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
     try {
@@ -736,15 +716,9 @@ public final class LocalCacheManagerTest {
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
-<<<<<<< HEAD
     mPageStore.put(PAGE_INFO_1, PAGE1);
     mPageStore.put(new PageInfo(pageUuid, PAGE2.length, FILE_INFO), PAGE2);
-    String rootDir = mPageStoreOptions.getRootDir();
-=======
-    mPageStore.put(PAGE_ID1, PAGE1);
-    mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
->>>>>>> upstream/master
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
     rootParent.setWritable(false);

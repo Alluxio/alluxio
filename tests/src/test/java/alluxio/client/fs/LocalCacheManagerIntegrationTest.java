@@ -215,15 +215,10 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with an invalid page file stored
     String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
-<<<<<<< HEAD
-        mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
+        mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).get(0).toString();
     Path pagePath = ((LocalPageStore) mCacheManager.getPageStore())
         .getPageFilePath(new PageInfo(PAGE_ID, PAGE_SIZE_BYTES));
     FileUtils.createFile(Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
-=======
-        mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).get(0).toString();
-    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
->>>>>>> upstream/master
     mCacheManager = LocalCacheManager.create(mConf);
     assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
   }

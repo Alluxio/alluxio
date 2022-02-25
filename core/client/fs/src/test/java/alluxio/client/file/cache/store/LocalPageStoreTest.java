@@ -34,28 +34,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-<<<<<<< HEAD
-import java.util.Map;
-import java.util.function.Function;
-=======
 import java.util.Collection;
 import java.util.List;
->>>>>>> upstream/master
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.function.Function;
 
 @RunWith(Parameterized.class)
 public class LocalPageStoreTest {
 
-<<<<<<< HEAD
-  private static final byte[] TEST_PAGE = "test".getBytes();
-  private static final int TEST_PAGE_SIZE = TEST_PAGE.length;
-  private static final FileInfo TEST_FILE_INFO = new FileInfo(CacheScope.GLOBAL, 100);
-=======
   @Parameterized.Parameter
   public int mRootDirCount;
 
   public List<TemporaryFolder> mTempList;
->>>>>>> upstream/master
+
+  private static final byte[] TEST_PAGE = "test".getBytes();
+  private static final int TEST_PAGE_SIZE = TEST_PAGE.length;
+  private static final FileInfo TEST_FILE_INFO = new FileInfo(CacheScope.GLOBAL, 100);
 
   @Rule
   public TemporaryFolder mTemp1 = new TemporaryFolder();
