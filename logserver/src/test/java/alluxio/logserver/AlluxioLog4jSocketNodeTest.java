@@ -184,7 +184,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(log4JLogRecord);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Log4JLogRecord log4JLogRecord1 = (Log4JLogRecord) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      Log4JLogRecord log4JLogRecord1 = (Log4JLogRecord) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
