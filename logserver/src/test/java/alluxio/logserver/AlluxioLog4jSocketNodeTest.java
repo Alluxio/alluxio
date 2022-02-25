@@ -1,5 +1,7 @@
 package alluxio.logserver;
 
+import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
+
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -22,8 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
-
-import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
 
 public class AlluxioLog4jSocketNodeTest {
 
@@ -164,7 +164,8 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(adapterLogRecord);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    AdapterLogRecord adapterLogRecord1 = (AdapterLogRecord) mValidatingObjectInputStream.readObject();
+    AdapterLogRecord adapterLogRecord1 =
+        (AdapterLogRecord) mValidatingObjectInputStream.readObject();
   }
 
   @Test
