@@ -51,7 +51,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private final Socket mSocket;
 
   @VisibleForTesting
-  public static void setAcceptList(ValidatingObjectInputStream validatingObjectInputStream) {
+  static void setAcceptList(ValidatingObjectInputStream validatingObjectInputStream) {
     validatingObjectInputStream.accept(java.util.Hashtable.class);
     validatingObjectInputStream.accept("java.lang.*", "[Ljava.lang.*");
     validatingObjectInputStream.accept(org.apache.log4j.spi.LoggingEvent.class);
