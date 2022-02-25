@@ -249,5 +249,3 @@ public class AlluxioLog4jSocketNodeTest {
                 (PropertySetterException) validatingObjectInputStream.readObject();
     }
 }
-
-
