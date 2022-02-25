@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
-import org.junit.function.ThrowingRunnable;
 
 public class AlluxioLog4jSocketNodeTest {
 
