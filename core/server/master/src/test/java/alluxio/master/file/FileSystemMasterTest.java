@@ -83,6 +83,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -188,7 +189,7 @@ public final class FileSystemMasterTest {
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new HashMap<PropertyKey, Object>() {
         {
-          put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+          put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
           put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
           put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 20);
           put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);

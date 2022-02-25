@@ -27,7 +27,7 @@ public class ConfigOverrides {
    * @param conf the conf to override
    */
   public static void overrideConfigs(InstancedConfiguration conf) {
-    conf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.name());
+    conf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
   }
 
   private ConfigOverrides() {

@@ -107,7 +107,7 @@ public interface UserState {
         }
       }
       throw new UnsupportedOperationException(
-          "No factory could create a UserState with authType: " + authType.getAuthName()
+          "No factory could create a UserState with authType: " + authType
               + ". factories: " + String.join(", ",
               FACTORIES.stream().map((factory) -> factory.getClass().getName())
                   .collect(Collectors.toList())));
