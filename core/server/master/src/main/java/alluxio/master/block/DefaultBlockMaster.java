@@ -304,7 +304,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LOST_BLOCK_COUNT.getName(),
         this::getLostBlocksCount);
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_TO_REMOVE_BLOCK_COUNT.getName(),
-        this::getToRemoveBlockCount, 30, TimeUnit.MICROSECONDS);
+        this::getToRemoveBlockCount, 30, TimeUnit.SECONDS);
   }
 
   /**
