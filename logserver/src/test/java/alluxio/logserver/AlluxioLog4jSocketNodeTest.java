@@ -23,27 +23,27 @@ import java.util.Hashtable;
 import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
 
 public class AlluxioLog4jSocketNodeTest {
-    private ByteArrayOutputStream byteArrayOutputStream;
-    private ObjectOutputStream objectOutputStream;
-    byte[] buffer;
-    private ByteArrayInputStream byteArrayInputStream;
-    private ValidatingObjectInputStream validatingObjectInputStream;
+    private ByteArrayOutputStream mByteArrayOutputStream;
+    private ObjectOutputStream mObjectOutputStream;
+    byte[] mBuffer;
+    private ByteArrayInputStream mByteArrayInputStream;
+    private ValidatingObjectInputStream mValidatingObjectInputStream;
 
     private void createOutputStreams() throws IOException {
-        byteArrayOutputStream = new ByteArrayOutputStream(100);
-        objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+        mByteArrayOutputStream = new ByteArrayOutputStream(100);
+        mObjectOutputStream = new ObjectOutputStream(mByteArrayOutputStream);
     }
 
     private void write2BufferAndCloseOutputStream() throws IOException {
-        buffer = byteArrayOutputStream.toByteArray();
-        objectOutputStream.close();
-        byteArrayOutputStream.close();
+        mBuffer = mByteArrayOutputStream.toByteArray();
+        mObjectOutputStream.close();
+        mByteArrayOutputStream.close();
     }
 
     private void createInputStreamsAndsetAcceptList() throws IOException {
-        byteArrayInputStream = new ByteArrayInputStream(buffer);
-        validatingObjectInputStream = new ValidatingObjectInputStream(byteArrayInputStream);
-        setAcceptList(validatingObjectInputStream);
+        mByteArrayInputStream = new ByteArrayInputStream(mBuffer);
+        mValidatingObjectInputStream = new ValidatingObjectInputStream(mByteArrayInputStream);
+        setAcceptList(mValidatingObjectInputStream);
     }
 
     @Test
@@ -51,10 +51,10 @@ public class AlluxioLog4jSocketNodeTest {
         Hashtable<String, Integer> numbers = new Hashtable<>();
         numbers.put("one", 1);
         createOutputStreams();
-        objectOutputStream.writeObject(numbers);
+        mObjectOutputStream.writeObject(numbers);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        Hashtable<String, Integer> numbers1 = (Hashtable) validatingObjectInputStream.readObject();
+        Hashtable<String, Integer> numbers1 = (Hashtable) mValidatingObjectInputStream.readObject();
     }
 
     @Test
@@ -63,31 +63,31 @@ public class AlluxioLog4jSocketNodeTest {
         LoggingEvent event = new LoggingEvent(
                 "fqnOfCategoryClass", logger, Level.DEBUG, "message", new Throwable());
         createOutputStreams();
-        objectOutputStream.writeObject(event);
+        mObjectOutputStream.writeObject(event);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        LoggingEvent event1 = (LoggingEvent) validatingObjectInputStream.readObject();
+        LoggingEvent event1 = (LoggingEvent) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testLocationInfo() throws IOException, ClassNotFoundException {
         LocationInfo locationInfo = new LocationInfo("c","b","c","d");
         createOutputStreams();
-        objectOutputStream.writeObject(locationInfo);
+        mObjectOutputStream.writeObject(locationInfo);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        LocationInfo locationInfo1 =(LocationInfo) validatingObjectInputStream.readObject();
+        LocationInfo locationInfo1 =(LocationInfo) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testThrowableInformation() throws IOException, ClassNotFoundException {
         ThrowableInformation throwableInformation = new ThrowableInformation(new Throwable());
         createOutputStreams();
-        objectOutputStream.writeObject(throwableInformation);
+        mObjectOutputStream.writeObject(throwableInformation);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
         ThrowableInformation throwableInformation1 =
-                (ThrowableInformation) validatingObjectInputStream.readObject();
+                (ThrowableInformation) mValidatingObjectInputStream.readObject();
     }
 
     /**
@@ -108,28 +108,28 @@ public class AlluxioLog4jSocketNodeTest {
 
         createOutputStreams();
 
-        objectOutputStream.writeObject(bool);
-        objectOutputStream.writeObject(byteNum);
-        objectOutputStream.writeObject(character);
-        objectOutputStream.writeObject(doubleNum);
-        objectOutputStream.writeObject(floatNum);
-        objectOutputStream.writeObject(integer);
-        objectOutputStream.writeObject(longNum);
-        objectOutputStream.writeObject(shortNum);
-        objectOutputStream.writeObject(string);
+        mObjectOutputStream.writeObject(bool);
+        mObjectOutputStream.writeObject(byteNum);
+        mObjectOutputStream.writeObject(character);
+        mObjectOutputStream.writeObject(doubleNum);
+        mObjectOutputStream.writeObject(floatNum);
+        mObjectOutputStream.writeObject(integer);
+        mObjectOutputStream.writeObject(longNum);
+        mObjectOutputStream.writeObject(shortNum);
+        mObjectOutputStream.writeObject(string);
 
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
 
-        Boolean bool1 = (Boolean) validatingObjectInputStream.readObject();
-        Byte byteNum1 = (Byte) validatingObjectInputStream.readObject();
-        Character character1 = (Character) validatingObjectInputStream.readObject();
-        Double doubleNum1 = (Double) validatingObjectInputStream.readObject();
-        Float floatNum1 = (Float) validatingObjectInputStream.readObject();
-        Integer integer1 = (Integer) validatingObjectInputStream.readObject();
-        Long longNum1 = (Long) validatingObjectInputStream.readObject();
-        Short shortNum1 = (Short) validatingObjectInputStream.readObject();
-        String string1 = (String) validatingObjectInputStream.readObject();
+        Boolean bool1 = (Boolean) mValidatingObjectInputStream.readObject();
+        Byte byteNum1 = (Byte) mValidatingObjectInputStream.readObject();
+        Character character1 = (Character) mValidatingObjectInputStream.readObject();
+        Double doubleNum1 = (Double) mValidatingObjectInputStream.readObject();
+        Float floatNum1 = (Float) mValidatingObjectInputStream.readObject();
+        Integer integer1 = (Integer) mValidatingObjectInputStream.readObject();
+        Long longNum1 = (Long) mValidatingObjectInputStream.readObject();
+        Short shortNum1 = (Short) mValidatingObjectInputStream.readObject();
+        String string1 = (String) mValidatingObjectInputStream.readObject();
     }
 
     @Test
@@ -137,30 +137,30 @@ public class AlluxioLog4jSocketNodeTest {
         Logger logger= Logger.getLogger("a");
         LogEvent logEvent = new LogEvent("category", logger, Level.DEBUG,"message",new Throwable());
         createOutputStreams();
-        objectOutputStream.writeObject(logEvent);
+        mObjectOutputStream.writeObject(logEvent);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        LogEvent logEvent1 = (LogEvent) validatingObjectInputStream.readObject();
+        LogEvent logEvent1 = (LogEvent) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testLogLevel() throws IOException, ClassNotFoundException {
         LogLevel logLevel = new LogLevel("lable",1);
         createOutputStreams();
-        objectOutputStream.writeObject(logLevel);
+        mObjectOutputStream.writeObject(logLevel);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        LogLevel logLevel1 = (LogLevel) validatingObjectInputStream.readObject();
+        LogLevel logLevel1 = (LogLevel) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testLogRecord()throws IOException, ClassNotFoundException {
         AdapterLogRecord adapterLogRecord = new AdapterLogRecord();
         createOutputStreams();
-        objectOutputStream.writeObject(adapterLogRecord);
+        mObjectOutputStream.writeObject(adapterLogRecord);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        AdapterLogRecord adapterLogRecord1 = (AdapterLogRecord) validatingObjectInputStream.readObject();
+        AdapterLogRecord adapterLogRecord1 = (AdapterLogRecord) mValidatingObjectInputStream.readObject();
     }
 
     @Test
@@ -168,62 +168,62 @@ public class AlluxioLog4jSocketNodeTest {
         Logger logger= Logger.getLogger("a");
         Log4JLogRecord log4JLogRecord = new Log4JLogRecord();
         createOutputStreams();
-        objectOutputStream.writeObject(log4JLogRecord);
+        mObjectOutputStream.writeObject(log4JLogRecord);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        Log4JLogRecord log4JLogRecord1 = (Log4JLogRecord) validatingObjectInputStream.readObject();
+        Log4JLogRecord log4JLogRecord1 = (Log4JLogRecord) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testLogTableColumn()throws IOException, ClassNotFoundException {
         LogTableColumn logTableColumn = new LogTableColumn("label");
         createOutputStreams();
-        objectOutputStream.writeObject(logTableColumn);
+        mObjectOutputStream.writeObject(logTableColumn);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        LogTableColumn logTableColumn1 = (LogTableColumn) validatingObjectInputStream.readObject();
+        LogTableColumn logTableColumn1 = (LogTableColumn) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testLevel()throws IOException, ClassNotFoundException {
         Level level = Level.DEBUG;
         createOutputStreams();
-        objectOutputStream.writeObject(level);
+        mObjectOutputStream.writeObject(level);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        Level level1 = (Level) validatingObjectInputStream.readObject();
+        Level level1 = (Level) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testUtilLoggingLevel()throws IOException, ClassNotFoundException {
         UtilLoggingLevel utilLoggingLevel = UtilLoggingLevel.INFO;
         createOutputStreams();
-        objectOutputStream.writeObject(utilLoggingLevel);
+        mObjectOutputStream.writeObject(utilLoggingLevel);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
         UtilLoggingLevel utilLoggingLevel1 =
-                (UtilLoggingLevel) validatingObjectInputStream.readObject();
+                (UtilLoggingLevel) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testThrowable()throws IOException, ClassNotFoundException {
         Throwable throwable = new Throwable();
         createOutputStreams();
-        objectOutputStream.writeObject(throwable);
+        mObjectOutputStream.writeObject(throwable);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        Throwable throwable1 = (Throwable) validatingObjectInputStream.readObject();
+        Throwable throwable1 = (Throwable) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testLogLevelFormatException()throws IOException, ClassNotFoundException {
         LogLevelFormatException logLevelFormatException = new LogLevelFormatException("message");
         createOutputStreams();
-        objectOutputStream.writeObject(logLevelFormatException);
+        mObjectOutputStream.writeObject(logLevelFormatException);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
         LogLevelFormatException logLevelFormatException1 =
-                (LogLevelFormatException) validatingObjectInputStream.readObject();
+                (LogLevelFormatException) mValidatingObjectInputStream.readObject();
     }
 
     @Test
@@ -231,21 +231,21 @@ public class AlluxioLog4jSocketNodeTest {
         LogTableColumnFormatException logTableColumnFormatException =
                 new LogTableColumnFormatException("message");
         createOutputStreams();
-        objectOutputStream.writeObject(logTableColumnFormatException);
+        mObjectOutputStream.writeObject(logTableColumnFormatException);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
         LogTableColumnFormatException logTableColumnFormatException1 =
-                (LogTableColumnFormatException) validatingObjectInputStream.readObject();
+                (LogTableColumnFormatException) mValidatingObjectInputStream.readObject();
     }
 
     @Test
     public void testPropertySetterException()throws IOException, ClassNotFoundException {
         PropertySetterException propertySetterException = new PropertySetterException("string");
         createOutputStreams();
-        objectOutputStream.writeObject(propertySetterException);
+        mObjectOutputStream.writeObject(propertySetterException);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
         PropertySetterException propertySetterException1 =
-                (PropertySetterException) validatingObjectInputStream.readObject();
+                (PropertySetterException) mValidatingObjectInputStream.readObject();
     }
 }
