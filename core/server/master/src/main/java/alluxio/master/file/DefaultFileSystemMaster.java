@@ -893,7 +893,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
           if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
-            LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
+            LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.",
                 fileInfo.getPath());
           }
           if (ufsAccessed) {
