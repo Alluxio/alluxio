@@ -26,6 +26,7 @@ import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
 import alluxio.TestLoggerRule;
+import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.test.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -180,24 +181,23 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getEnum() {
-    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "VALUE");
-    assertEquals(TestEnum.VALUE,
-        mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.class));
+    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE);
+    assertEquals(ReadType.NO_CACHE,
+        mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class));
   }
 
   @Test
   public void getEnumDifferentCase() {
     // Keep configuration backwards compatible: ALLUXIO-3402
-    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "Value");
-    assertEquals(TestEnum.VALUE,
-        mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.class));
+    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "Cache");
+    assertEquals(ReadType.CACHE,
+        mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class));
   }
 
   @Test
   public void getMalformedEnum() {
-    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, "not_a_value");
-    mThrown.expect(RuntimeException.class);
-    mConfiguration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.class);
+    mThrown.expect(IllegalArgumentException.class);
+    mConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, TestEnum.VALUE);
   }
 
   @Test

@@ -41,6 +41,7 @@ import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -83,7 +84,7 @@ public final class AccessTimeUpdaterTest {
   public final void before() throws Exception {
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     when(mFileSystemMaster.getName()).thenReturn(Constants.FILE_SYSTEM_MASTER_NAME);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mContext = MasterTestUtils.testMasterContext(journalSystem);

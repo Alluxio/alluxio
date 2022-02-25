@@ -49,7 +49,7 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build()
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE)
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
 
   /**

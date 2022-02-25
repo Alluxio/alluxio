@@ -36,8 +36,10 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.security.authentication.AuthType;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -78,9 +80,9 @@ public final class JournalSinkTest {
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new HashMap<PropertyKey, Object>() {
         {
-          put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+          put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
           put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
-          put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
+          put(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
           put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false);
           put(PropertyKey.WORK_DIR,
               AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());

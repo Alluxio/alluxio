@@ -64,7 +64,7 @@ public final class CreateOptionsTest {
    */
   @Test
   public void securityEnabled() throws IOException {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
     mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,

@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
+import alluxio.master.journal.JournalType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -74,7 +75,7 @@ public final class MasterInquireClientTest {
     String leaderPath = "/my/leader/path";
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
         put(PropertyKey.ZOOKEEPER_ADDRESS, zkAddr);
         put(PropertyKey.ZOOKEEPER_LEADER_PATH, leaderPath);
       }

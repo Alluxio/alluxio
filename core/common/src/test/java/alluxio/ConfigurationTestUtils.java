@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
@@ -80,7 +81,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
 
     // Sets up the journal folder
-    conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    conf.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 
@@ -114,7 +115,7 @@ public final class ConfigurationTestUtils {
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH);
 
     conf.put(PropertyKey.WEB_THREADS, 1);
     conf.put(PropertyKey.WEB_RESOURCES,
