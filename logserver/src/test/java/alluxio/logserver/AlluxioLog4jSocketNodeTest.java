@@ -17,6 +17,7 @@ import org.apache.log4j.pattern.LogEvent;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
+import org.junit.function.ThrowingRunnable;
 
 public class AlluxioLog4jSocketNodeTest {
 
@@ -144,7 +146,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logEvent);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    LogEvent logEvent1 = (LogEvent) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      LogEvent logEvent1 = (LogEvent) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -154,7 +158,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logLevel);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    LogLevel logLevel1 = (LogLevel) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      LogLevel logLevel1 = (LogLevel) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -164,8 +170,10 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(adapterLogRecord);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    AdapterLogRecord adapterLogRecord1 =
-        (AdapterLogRecord) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      AdapterLogRecord adapterLogRecord1 =
+          (AdapterLogRecord) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -186,7 +194,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logTableColumn);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    LogTableColumn logTableColumn1 = (LogTableColumn) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      LogTableColumn logTableColumn1 = (LogTableColumn) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -196,7 +206,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(level);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Level level1 = (Level) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      Level level1 = (Level) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -206,8 +218,10 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(utilLoggingLevel);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    UtilLoggingLevel utilLoggingLevel1 =
-        (UtilLoggingLevel) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      UtilLoggingLevel utilLoggingLevel1 =
+          (UtilLoggingLevel) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -217,7 +231,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(throwable);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Throwable throwable1 = (Throwable) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      Throwable throwable1 = (Throwable) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -227,8 +243,10 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logLevelFormatException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    LogLevelFormatException logLevelFormatException1 =
-        (LogLevelFormatException) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      LogLevelFormatException logLevelFormatException1 =
+          (LogLevelFormatException) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -239,8 +257,10 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logTableColumnFormatException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    LogTableColumnFormatException logTableColumnFormatException1 =
-        (LogTableColumnFormatException) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      LogTableColumnFormatException logTableColumnFormatException1 =
+          (LogTableColumnFormatException) mValidatingObjectInputStream.readObject();
+    });
   }
 
   @Test
@@ -250,7 +270,9 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(propertySetterException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    PropertySetterException propertySetterException1 =
-        (PropertySetterException) mValidatingObjectInputStream.readObject();
+    Assert.assertThrows(Exception.class, () -> {
+      PropertySetterException propertySetterException1 =
+          (PropertySetterException) mValidatingObjectInputStream.readObject();
+    });
   }
 }
