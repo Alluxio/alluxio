@@ -71,15 +71,15 @@ public class NativeLibraryLoader {
   }
 
   /**
-   * Try run the loading function.
+   * Try running the loading function.
    *
-   * @param run the function to load library
+   * @param load the function to load library
    * @return the error if UnsatisfiedLinkError is encountered, empty if it completes successfully.
    * @throws IOException if a filesystem operation fails
    */
-  private Optional<UnsatisfiedLinkError> tryLoad(Load run) throws IOException {
+  private Optional<UnsatisfiedLinkError> tryLoad(Load load) throws IOException {
     try {
-      run.load();
+      load.load();
       return Optional.empty();
     } catch (final UnsatisfiedLinkError ule) {
       return Optional.of(ule);
@@ -104,7 +104,7 @@ public class NativeLibraryLoader {
       LOG.info("Loaded {} by System.loadLibrary.", sharedLibraryName);
     });
 
-    if (!err.isPresent()) {
+    if (err.isPresent()) {
       return err;
     }
 
@@ -113,7 +113,7 @@ public class NativeLibraryLoader {
       LOG.info("Loaded {} by System.loadLibrary.", jniLibraryName);
     });
 
-    if (!err.isPresent()) {
+    if (err.isPresent()) {
       return err;
     }
 
