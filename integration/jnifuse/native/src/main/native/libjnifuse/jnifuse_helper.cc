@@ -65,7 +65,9 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.utimens = utimens_wrapper;
   jnifuse_oper.write = write_wrapper;
 
-// libfuse3: set conn_info_opts for init_wrapper f
+ // libfuse3: conn_info_opts can no longer be passed into fuse_main directly
+ // for details, search for "The treatment of low-level options has been made more consistent" in 
+ // https://github.com/libfuse/libfuse/blob/master/ChangeLog.rst#libfuse-300-2016-12-08
 #if FUSE_USE_VERSION >= 30
   jnifuse_oper.init = init_wrapper;
   struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
