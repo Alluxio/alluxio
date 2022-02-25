@@ -36,6 +36,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +121,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds a list of block ids to remove from Alluxio space
    * @param delete whether to delete blocks' metadata in Master
    */
-  void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException;
+  void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException;
 
   /**
    * Validates the integrity of blocks with respect to the validator. A warning will be printed if
