@@ -24,10 +24,12 @@ import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
+import alluxio.grpc.GetWorkerIdPOptions;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -132,9 +134,13 @@ public final class BlockMasterWorkerServiceHandler extends
       boolean hasBlockInTier = request.getHasBlockInTier();
       RpcUtils.call(LOG,
           (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-            return GetWorkerIdPResponse.newBuilder().setCommand(
-                mBlockMaster.workerPreRegister(clusterId,
-                    GrpcUtils.fromProto(request.getWorkerNetAddress()), hasBlockInTier)).build();
+            // By the Flag, Let the Worker know that preRegister information is included
+            GetWorkerIdPOptions preRegisterFlag =
+                GetWorkerIdPOptions.newBuilder().setExtendedRegisterInfo(true).build();
+            PreRegisterCommand command = mBlockMaster.workerPreRegister(
+                clusterId, GrpcUtils.fromProto(request.getWorkerNetAddress()), hasBlockInTier);
+            return GetWorkerIdPResponse.newBuilder()
+                .setCommand(command).setOptions(preRegisterFlag).build();
           }, "preRegisterWorker", "request=%s", responseObserver, request);
     } else {
       RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {

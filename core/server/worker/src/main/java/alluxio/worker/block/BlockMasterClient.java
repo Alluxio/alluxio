@@ -27,12 +27,15 @@ import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
+import alluxio.grpc.GetWorkerIdPOptions;
 import alluxio.grpc.GetWorkerIdPRequest;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.Metric;
 import alluxio.grpc.PreRegisterCommand;
+import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
@@ -286,13 +289,29 @@ public class BlockMasterClient extends AbstractMasterClient {
   public PreRegisterCommand preRegisterWithMaster(String clusterId, final WorkerNetAddress address,
                                                   boolean hasBlockInTier)
       throws AlluxioStatusException {
-    // For compatibility, reuse the RPC of getWorkerID.
-    final GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
-        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
-        .setHasBlockInTier(hasBlockInTier).build();
+    // By the Flag, Let the Master know that preRegister information is included
+    GetWorkerIdPOptions preRegisterFlag =
+        GetWorkerIdPOptions.newBuilder().setExtendedRegisterInfo(true).build();
 
-    return retryRPC(() -> mClient.getWorkerId(request).getCommand(),
-        LOG, "getWorkerId", "clusterId=%s, hasBlockInTier=%s",
+    // For compatibility, reuse the RPC of getWorkerID.
+    GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
+        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
+        .setHasBlockInTier(hasBlockInTier).setOptions(preRegisterFlag).build();
+
+    return retryRPC(() -> {
+      GetWorkerIdPResponse response = mClient.getWorkerId(request);
+      // For compatibility,  If preRegister information is included,
+      // the Master will set hasExtendedRegisterInfo
+      if (response.getOptions().hasExtendedRegisterInfo()) {
+        return response.getCommand();
+      } else {
+        // just set WorkerId
+        return PreRegisterCommand.newBuilder()
+            .setWorkerId(response.getWorkerId())
+            .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
+            .build();
+      }
+    }, LOG, "getWorkerId", "clusterId=%s, hasBlockInTier=%s",
         clusterId, hasBlockInTier);
   }
 

@@ -230,14 +230,15 @@ message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   /** for preRegister information **/
-  optional string clusterId = 2;
-  optional bool hasBlockInTier = 3;
-  optional GetWorkerIdPOptions options = 4;
+  optional GetWorkerIdPOptions options = 2;
+  optional string clusterId = 3;
+  optional bool hasBlockInTier = 4;
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
   optional grpc.WorkerNetAddress workerNetAddress = 2;
   optional PreRegisterCommand command = 3;
+  optional GetWorkerIdPOptions options = 4;
 }
 
 message GetRegisterLeasePRequest {

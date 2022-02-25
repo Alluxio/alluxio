@@ -300,7 +300,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration.getDuration(
                       PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
-      throw new RuntimeException("Failed to preRegister from block master: " + e.getMessage());
+      throw new RuntimeException("Failed to preRegister from block master: {}", e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
