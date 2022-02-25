@@ -16,11 +16,23 @@ import jnr.ffi.Runtime;
 
 import java.nio.ByteBuffer;
 
-/** Maps to struct fuse_file_info in /usr/include/fuse/fuse_common.h */
+/**
+ * Maps to struct fuse_file_info in /usr/include/fuse/fuse_common.h
+ */
 public class Fuse2FuseFileInfo extends FuseFileInfo {
 
   // unused fields are omitted
 
+  /**
+   * Creates a FuseFileInfo class matching the struct fuse_file_info in libfuse2.
+   *
+   * This struct is not meant to be used directly.
+   * You should use {@link alluxio.jnifuse.struct.FuseFileInfo#of(ByteBuffer)}
+   * to create a FuseFileIfo that matches currently used libfuse.
+   *
+   * @param runtime the JNR runtime
+   * @param buffer the ByteBuffer containing struct fuse_file_info from JNR
+   */
   public Fuse2FuseFileInfo(Runtime runtime, ByteBuffer buffer) {
     super(runtime, buffer);
 

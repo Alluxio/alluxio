@@ -67,12 +67,12 @@ public final class AlluxioFuseUtils {
   private AlluxioFuseUtils() {}
 
   /**
-   * Get the libjnifuse version preference set by user.
+   * Gets the libjnifuse version preference set by user.
+   *
    * @param conf the configuration object
    * @return the version preference
    */
   public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
-
     if (Environment.isMac()) {
       LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
       return VersionPreference.VERSION_2;

@@ -17,6 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.utils.VersionPreference;
+
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import org.junit.Test;

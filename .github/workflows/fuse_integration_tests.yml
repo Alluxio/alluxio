@@ -12,7 +12,6 @@ jobs:
         java: ["8", "11"]
         version: ["2", "3"]
 
-
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
         !contains(github.event.pull_request.title, 'SKIPCI')"
