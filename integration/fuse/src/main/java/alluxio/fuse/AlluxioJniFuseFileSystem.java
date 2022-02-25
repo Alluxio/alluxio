@@ -253,7 +253,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
-      URIStatus status;
+      URIStatus status = null;
       // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
           && mFuseShell.isSpecialCommand(uri)) {
@@ -264,12 +264,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       long size = status.getLength();
       if (!status.isCompleted()) {
-        CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
-        // Alluxio master will not update file length until file is completed
-        // get file length from the current output stream
-        if (ce != null) {
-          FileOutStream os = ce.getOut();
-          size = os.getBytesWritten();
+        if (mCreateFileEntries.contains(PATH_INDEX, path)) {
+          // Alluxio master will not update file length until file is completed
+          // get file length from the current output stream
+          CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
+          if (ce != null) {
+            FileOutStream os = ce.getOut();
+            size = os.getBytesWritten();
+          }
+        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+          // Always block waiting for file to be completed except when the file is writing
+          // We do not want to block the writing process
+          LOG.error("File {} is not completed", path);
+        } else {
+          // Update the file status after waiting
+          status = mFileSystem.getStatus(uri);
+          size = status.getLength();
         }
       }
       stat.st_size.set(size);
