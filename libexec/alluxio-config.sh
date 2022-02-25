@@ -67,6 +67,21 @@ if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
 
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.conf.dir* ]]; then
+  echo "Warning: setting alluxio.conf.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_CONF_DIR instead"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.logs.dir* ]]; then
+  echo "Warning: setting alluxio.logs.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_LOGS_DIR instead"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.user.logs.dir* ]]; then
+  echo "Warning: setting alluxio.user.logs.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_USER_LOGS_DIR instead"
+fi
+
 ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
 
 if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then

@@ -17,6 +17,7 @@ import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
@@ -39,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -656,7 +656,18 @@ public class LocalCacheManager implements CacheManager {
 
   private boolean restore(PageStoreOptions options) {
     LOG.info("Restoring PageStore ({})", options);
-    Path rootDir = Paths.get(options.getRootDir());
+    if (options.getType() == PageStoreType.MEM) {
+      return true;
+    }
+    for (Path rootDir : options.getRootDirs()) {
+      if (!restoreInternal(rootDir, options)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean restoreInternal(Path rootDir, PageStoreOptions options) {
     if (!Files.exists(rootDir)) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
       return false;

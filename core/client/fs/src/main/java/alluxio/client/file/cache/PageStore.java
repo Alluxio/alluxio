@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
+import alluxio.client.file.cache.store.MemoryPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
@@ -29,6 +30,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -67,6 +71,9 @@ public interface PageStore extends AutoCloseable {
       case ROCKS:
         pageStore = RocksPageStore.open(options.toOptions());
         break;
+      case MEM:
+        pageStore = new MemoryPageStore(options.toOptions());
+        break;
       default:
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
@@ -84,8 +91,10 @@ public interface PageStore extends AutoCloseable {
    * @param rootDir the root directory path
    * @return the store directory path
    */
-  static Path getStorePath(PageStoreType storeType, String rootDir) {
-    return Paths.get(rootDir, storeType.name());
+  static List<Path> getStorePath(PageStoreType storeType, String rootDir) {
+    String[] rootDirs = rootDir.split(",");
+    return Arrays.stream(rootDirs).map(dir -> Paths.get(dir, storeType.name())).collect(
+        Collectors.toList());
   }
 
   /**
@@ -96,18 +105,24 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when failed to clean up the specific location
    */
   static void initialize(PageStoreOptions options) throws IOException {
-    String rootPath = options.getRootDir();
-    Files.createDirectories(Paths.get(rootPath));
-    LOG.info("Cleaning cache directory {}", rootPath);
-    try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
-      stream.forEach(path -> {
-        try {
-          FileUtils.deletePathRecursively(path.toString());
-        } catch (IOException e) {
-          Metrics.CACHE_CLEAN_ERRORS.inc();
-          LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
-        }
-      });
+    if (options.getType() == PageStoreType.MEM) {
+      // Do not need to delete files when page store type is memory
+      return;
+    }
+    for (Path rootPath : options.getRootDirs()) {
+      Files.createDirectories(rootPath);
+      LOG.info("Cleaning cache directory {}", rootPath);
+      try (Stream<Path> stream = Files.list(rootPath)) {
+        stream.forEach(path -> {
+          try {
+            FileUtils.deletePathRecursively(path.toString());
+          } catch (IOException e) {
+            Metrics.CACHE_CLEAN_ERRORS.inc();
+            LOG.warn("failed to delete {} in cache directory: {}", path,
+                e.toString());
+          }
+        });
+      }
     }
   }
 

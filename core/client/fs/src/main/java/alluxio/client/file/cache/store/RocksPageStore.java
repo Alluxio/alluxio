@@ -65,7 +65,8 @@ public class RocksPageStore implements PageStore {
         .setCompressionType(pageStoreOptions.getCompressionType());
     RocksDB db = null;
     try {
-      db = RocksDB.open(rocksOptions, pageStoreOptions.getRootDir());
+      // TODO(maobaolong): rocksdb support only one root for now.
+      db = RocksDB.open(rocksOptions, pageStoreOptions.getRootDirs().get(0).toString());
       byte[] confData = db.get(CONF_KEY);
       Cache.PRocksPageStoreOptions pOptions = pageStoreOptions.toProto();
       if (confData != null) {
