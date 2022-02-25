@@ -32,25 +32,25 @@ import java.util.List;
 import java.util.Map;
 
 public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrationTest {
-  private PrintStream originalOut;
-  private ByteArrayOutputStream out;
+  private PrintStream mOriginalOut;
+  private ByteArrayOutputStream mOut;
 
   // the possible operations
-  private List<String> operation = ImmutableList.of("CreateFile", "ListDir", "ListDirLocated",
+  private List<String> mOperation = ImmutableList.of("CreateFile", "ListDir", "ListDirLocated",
       "GetBlockLocations", "GetFileStatus", "OpenFile", "DeleteFile");
 
   @Before
   public void before() {
     // redirect the output stream
-    out = new ByteArrayOutputStream();
-    originalOut = System.out;
-    System.setOut(new PrintStream(out));
+    mOut = new ByteArrayOutputStream();
+    mOriginalOut = System.out;
+    System.setOut(new PrintStream(mOut));
   }
 
   @After
   public void after() {
     // reset the output to the console
-    System.setOut(originalOut);
+    System.setOut(mOriginalOut);
   }
 
   @Test
@@ -73,7 +73,7 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
         "--in-process",
     });
 
-    String printOutResult = out.toString();
+    String printOutResult = mOut.toString();
     List<String> resultList = getJsonResult(printOutResult);
     assertEquals(resultList.size(), 7);
 
@@ -81,7 +81,7 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
       MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
           resultList.get(i));
       // confirm that the task was executed with certain parameter and output no errors
-      assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+      assertEquals(summary.getParameters().mOperation.toString(), mOperation.get(i));
       assertEquals(summary.getParameters().mWarmup, "0s");
       assertEquals(summary.getParameters().mThreads, 1);
       assertEquals(summary.getParameters().mStopCount, 100);
@@ -107,7 +107,7 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
     List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
         "ASYNC_THROUGH", "THROUGH");
 
-    for(String type : writeTypes) {
+    for (String type : writeTypes) {
       BatchTaskRunner.main(new String[]{
           "MasterComprehensiveFileBatchTask",
           "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -121,16 +121,16 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
           "--in-process",
       });
 
-      String printOutResult = out.toString();
+      String printOutResult = mOut.toString();
       List<String> resultList = getJsonResult(printOutResult);
       assertEquals(resultList.size(), 7);
-      out.reset();
+      mOut.reset();
 
       for (int i = 0; i < resultList.size(); i++) {
         MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
             resultList.get(i));
         // confirm that the task was executed with certain parameter and output no errors
-        assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+        assertEquals(summary.getParameters().mOperation.toString(), mOperation.get(i));
         assertEquals(summary.getParameters().mWarmup, "0s");
         assertEquals(summary.getParameters().mThreads, 1);
         assertEquals(summary.getParameters().mStopCount, 100);
@@ -152,18 +152,18 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
     PrintStream originalErr = System.err;
     System.setErr(new PrintStream(err));
 
-      BatchTaskRunner.main(new String[]{
-          "MasterComprehensiveFileBatchTask",
-          "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
-          "--warmup", "0s",
-          "--threads", "1",
-          "--stop-count", "100",
-          "--write-type", "ALL",
-          "--read-type", "NO_CACHE",
-          "--client-type", "AlluxioHDFS",
-          "--create-file-size", "0",
-          "--in-process",
-      });
+    BatchTaskRunner.main(new String[]{
+        "MasterComprehensiveFileBatchTask",
+        "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+        "--warmup", "0s",
+        "--threads", "1",
+        "--stop-count", "100",
+        "--write-type", "ALL",
+        "--read-type", "NO_CACHE",
+        "--client-type", "AlluxioHDFS",
+        "--create-file-size", "0",
+        "--in-process",
+    });
 
     assertEquals(err.toString(), "Parameter write-type ALL is not supported in"
         + " batch task MasterComprehensiveFileBatchTask");
@@ -175,7 +175,7 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
   public void MasterIntegrationFileTestReadType() throws Exception {
     List<String> readTypes = ImmutableList.of("NO_CACHE", "CACHE", "CACHE_PROMOTE");
 
-    for(String type : readTypes) {
+    for (String type : readTypes) {
       BatchTaskRunner.main(new String[]{
           "MasterComprehensiveFileBatchTask",
           "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -189,16 +189,16 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
           "--in-process",
       });
 
-      String printOutResult = out.toString();
+      String printOutResult = mOut.toString();
       List<String> resultList = getJsonResult(printOutResult);
       assertEquals(resultList.size(), 7);
-      out.reset();
+      mOut.reset();
 
       for (int i = 0; i < resultList.size(); i++) {
         MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
             resultList.get(i));
         // confirm that the task was executed with certain parameter and output no errors
-        assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+        assertEquals(summary.getParameters().mOperation.toString(), mOperation.get(i));
         assertEquals(summary.getParameters().mWarmup, "0s");
         assertEquals(summary.getParameters().mThreads, 1);
         assertEquals(summary.getParameters().mStopCount, 100);
@@ -218,7 +218,7 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
   public void MasterIntegrationFileTestFileSize() throws Exception {
     List<String> fileSizes = ImmutableList.of("0", "1k", "5k", "1m");
 
-    for(String size : fileSizes) {
+    for (String size : fileSizes) {
       BatchTaskRunner.main(new String[]{
           "MasterComprehensiveFileBatchTask",
           "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -232,16 +232,16 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
           "--in-process",
       });
 
-      String printOutResult = out.toString();
+      String printOutResult = mOut.toString();
       List<String> resultList = getJsonResult(printOutResult);
       assertEquals(resultList.size(), 7);
-      out.reset();
+      mOut.reset();
 
       for (int i = 0; i < resultList.size(); i++) {
         MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
             resultList.get(i));
         // confirm that the task was executed with certain parameter and output no errors
-        assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+        assertEquals(summary.getParameters().mOperation.toString(), mOperation.get(i));
         assertEquals(summary.getParameters().mWarmup, "0s");
         assertEquals(summary.getParameters().mThreads, 1);
         assertEquals(summary.getParameters().mStopCount, 10);
@@ -256,5 +256,4 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
       }
     }
   }
-
 }

@@ -109,7 +109,7 @@ public class BaseParametersTest {
     // validate the --java-opt
     List<String> optionList = new ArrayList<>();
     for (int i = 0; i < outputArgs.size(); i++) {
-      if(outputArgs.get(i).equals("--java-opt")) {
+      if (outputArgs.get(i).equals("--java-opt")) {
         optionList.add(outputArgs.get(i + 1));
       }
     }
@@ -140,7 +140,7 @@ public class BaseParametersTest {
 
     // validate the --java-opt
     assertFalse(outputArgs.contains("--java-opt"));
-    }
+  }
 
   @Test
   public void parseSingleParametersToArgument() throws Exception {
@@ -157,7 +157,7 @@ public class BaseParametersTest {
         new String[]{"--help"}
     );
 
-    for(String[] s : inputArgs) {
+    for (String[] s : inputArgs) {
       mBaseParameter = new BaseParameters();
       JCommander jc = new JCommander(this);
       jc.parse(s);
@@ -167,11 +167,12 @@ public class BaseParametersTest {
       }
       else {
         validateTheOutput(Arrays.asList(s), outputArgs, 1);
-        }
       }
     }
+  }
 
-  private void validateTheOutput(List<String> inputArgs, List<String> outputArgs, int withValueAmount) {
+  private void validateTheOutput(List<String> inputArgs, List<String> outputArgs,
+      int withValueAmount) {
     // for those that appear in pairs, make sure they appear in the output in certain order
     for (int i = 0; i < withValueAmount; i++) {
       boolean found = false;
