@@ -116,7 +116,7 @@ public class RpcClient<T extends io.grpc.stub.AbstractBlockingStub<T>> implement
       throws AlluxioStatusException {
     InstancedConfiguration modifiedConfig = InstancedConfiguration.defaults();
     Map<String, Object> properties = new HashMap<>(conf.toMap());
-    properties.put(PropertyKey.SECURITY_AUTHENTICATION_TYPE.getName(), AuthType.NOSASL.toString());
+    properties.put(PropertyKey.SECURITY_AUTHENTICATION_TYPE.getName(), AuthType.NOSASL);
     modifiedConfig.merge(properties, Source.RUNTIME);
     LOG.info("Auth type = {}", modifiedConfig.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE));
     GrpcChannelBuilder builder = GrpcChannelBuilder

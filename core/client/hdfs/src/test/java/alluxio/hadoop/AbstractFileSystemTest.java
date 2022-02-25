@@ -332,7 +332,7 @@ public class AbstractFileSystemTest {
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
 
     assertFalse(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals(PropertyKey.MASTER_JOURNAL_TYPE.getDefaultStringValue(),
+    assertEquals(PropertyKey.MASTER_JOURNAL_TYPE.getDefaultValue(),
         fs.mFileSystem.getConf().get(PropertyKey.MASTER_JOURNAL_TYPE));
     assertEquals(1,
         ConfigurationUtils.getMasterRpcAddresses(fs.mFileSystem.getConf()).size());

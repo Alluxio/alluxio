@@ -35,7 +35,7 @@ public class BaseHubTest {
     c.set(PropertyKey.HUB_MANAGER_RPC_PORT, 0);
     c.set(PropertyKey.HUB_MANAGER_EXECUTOR_THREADS_MIN, 0);
     c.set(PropertyKey.HUB_AGENT_RPC_PORT, 0);
-    c.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    c.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     c.set(PropertyKey.CONF_DIR, TEST_CONF_DIR.getRoot().getCanonicalPath());
     c.set(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH, TEST_PRESTO_CONF_DIR.getRoot()
             .getCanonicalPath());

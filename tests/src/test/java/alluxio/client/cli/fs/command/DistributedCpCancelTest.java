@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.util.JobTestUtils;
@@ -61,7 +62,7 @@ public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
   public void testDistributedCpCancelStats() throws Exception {
 
     long jobId = sJobMaster.run(new MigrateConfig(
-        "/mnt/dir/file", "/testFileDest", "THROUGH", false));
+        "/mnt/dir/file", "/testFileDest", WriteType.THROUGH, false));
     // wait for execution until blocked by IOUtils.copyLarge() in migration job
     Thread.sleep(Constants.SECOND_MS * 3);
     sJobShell.run("cancel", Long.toString(jobId));

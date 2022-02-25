@@ -13,19 +13,36 @@ package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
 import static alluxio.conf.PropertyKey.Builder.doubleBuilder;
+import static alluxio.conf.PropertyKey.Builder.enumBuilder;
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.exception.ExceptionMessage;
+import alluxio.executor.RpcExecutorType;
+import alluxio.executor.ThreadPoolExecutorQueueType;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.Scope;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
+import alluxio.master.GraceMode;
+import alluxio.master.ZookeeperConnectionErrorPolicy;
+import alluxio.master.journal.JournalType;
+import alluxio.master.metastore.MetastoreType;
+import alluxio.network.ChannelType;
+import alluxio.security.authentication.AuthType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.management.BackoffStrategy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -36,6 +53,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
+import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +62,7 @@ import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -142,7 +161,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     /**
      * The Property's value represents a data size, stored as a Long in bytes.
      */
-    DATASIZE(Long.class);
+    DATASIZE(Long.class),
+
+    /**
+     * The Property's value is an enum for a predefined enum class.
+     */
+    ENUM(Enum.class);
 
     private final Class<?> mJavaType;
 
@@ -182,6 +206,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private boolean mIsDynamic = true;
     private Function<Object, Boolean> mValueValidationFunction;
     private final PropertyType mType;
+    private final Optional<Class<? extends Enum>> mEnumType;
 
     /**
      * @param name name of the property
@@ -209,6 +234,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * @param name name of the property
+     * @param enumType enum class of the property
+     * @return a Builder for enum properties
+     */
+    public static Builder enumBuilder(String name, Class<? extends Enum> enumType) {
+      return new Builder(name, enumType);
+    }
+
+    /**
+     * @param name name of the property
      */
     public Builder(String name) {
       this(name, PropertyType.STRING);
@@ -221,6 +255,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private Builder(String name, PropertyType type) {
       mName = name;
       mType = type;
+      mEnumType = Optional.empty();
+    }
+
+    private Builder(String name, Class<? extends Enum> enumType) {
+      mName = name;
+      mType = PropertyType.ENUM;
+      mEnumType = Optional.of(enumType);
     }
 
     /**
@@ -237,8 +278,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param params parameters of the template
      */
     public Builder(PropertyType type, PropertyKey.Template template, Object... params) {
-      mName = String.format(template.mFormat, params);
-      mType = type;
+      this(format(template.mFormat, params), type);
     }
 
     /**
@@ -289,6 +329,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setDefaultValue(Object defaultValue) {
       checkArgument(defaultValue.getClass().equals(mType.getJavaType())
+          || (mType == PropertyType.ENUM && defaultValue.getClass().equals(mEnumType.get()))
           || defaultValue.getClass().equals(String.class)
           || (mType == PropertyType.STRING
           && !defaultValue.getClass().equals(Boolean.class)));
@@ -384,7 +425,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public PropertyKey build() {
       PropertyKey key = buildUnregistered();
-      Preconditions.checkState(PropertyKey.register(key), "Cannot register existing key \"%s\"",
+      checkState(PropertyKey.register(key), "Cannot register existing key \"%s\"",
           mName);
       return key;
     }
@@ -409,11 +450,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       }
 
       if (mValueValidationFunction != null && defaultSupplier.get() != null) {
-        Preconditions.checkState(mValueValidationFunction.apply(defaultSupplier.get()),
+        checkState(mValueValidationFunction.apply(defaultSupplier.get()),
             "Invalid value for property key %s: %s", mName, defaultSupplier.get());
       }
 
-      return new PropertyKey(mName, mDescription, mType, defaultSupplier, mAlias,
+      return new PropertyKey(mName, mDescription, mType, mEnumType, defaultSupplier, mAlias,
           mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
           mIsBuiltIn, mIsDynamic, mValueValidationFunction);
     }
@@ -430,7 +471,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey CONF_DIR =
       new Builder(Name.CONF_DIR)
-          .setDefaultValue(String.format("${%s}/conf", Name.HOME))
+          .setDefaultValue(format("${%s}/conf", Name.HOME))
           .setDescription("The directory of Alluxio configuration files."
               + " This property is only for internal use."
               + " To change the location, set environment variable $ALLUXIO_CONF_DIR instead.")
@@ -465,7 +506,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey EXTENSIONS_DIR =
       new Builder(Name.EXTENSIONS_DIR)
-          .setDefaultValue(String.format("${%s}/extensions", Name.HOME))
+          .setDefaultValue(format("${%s}/extensions", Name.HOME))
           .setDescription("The directory containing Alluxio extensions.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -478,8 +519,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey LEAK_DETECTOR_LEVEL =
-      new Builder(Name.LEAK_DETECTOR_LEVEL)
-          .setDefaultValue("DISABLED")
+      enumBuilder(Name.LEAK_DETECTOR_LEVEL, ResourceLeakDetector.Level.class)
+          .setDefaultValue(ResourceLeakDetector.Level.DISABLED)
           .setDescription("Set this to one of {DISABLED, SIMPLE, ADVANCED, PARANOID} to track "
               + "resource leaks in the Alluxio codebase. DISABLED does not track any leaks. "
               + "SIMPLE only samples resources, and doesn't track recent accesses, having a low "
@@ -509,7 +550,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)
-          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/logs", Name.WORK_DIR))
           .setDescription("The path to store logs files of Alluxio servers."
               + " This property is only for internal use."
               + " To change the location, set environment variable $ALLUXIO_LOGS_DIR instead.")
@@ -521,7 +562,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
-          .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
+          .setDefaultValue(format("${%s}/user", Name.LOGS_DIR))
           .setDescription("The path to store logs of Alluxio command lines."
               + " This property is only for internal use."
               + " To change the location, set environment variable $ALLUXIO_USER_LOGS_DIR instead.")
@@ -531,7 +572,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
-          .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
+          .setDefaultValue(format("${%s}/metrics.properties", Name.CONF_DIR))
           .setDescription("The file path of the metrics system configuration file. By default "
               + "it is `metrics.properties` in the `conf` directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -604,11 +645,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
-              () -> String.format("${%s}/,%s/.alluxio/,/etc/alluxio/",
+              () -> format("${%s}/,%s/.alluxio/,/etc/alluxio/",
                   Name.CONF_DIR, System.getProperty("user.home")),
-              String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
+              format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
           .setDescription(
-              String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
+              format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
@@ -657,7 +698,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WEB_RESOURCES =
       new Builder(Name.WEB_RESOURCES)
-          .setDefaultValue(String.format("${%s}/webui/", Name.HOME))
+          .setDefaultValue(format("${%s}/webui/", Name.HOME))
           .setDescription("Path to the web UI resources. User should never modify this property.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -705,7 +746,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORK_DIR =
       new Builder(Name.WORK_DIR)
-          .setDefaultValue(String.format("${%s}", Name.HOME))
+          .setDefaultValue(format("${%s}", Name.HOME))
           .setDescription("The directory to use for Alluxio's working directory. By default, "
               + "the journal, logs, and under file storage data (if using local filesystem) "
               + "are written here.")
@@ -769,8 +810,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
-      new Builder(Name.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY)
-          .setDefaultValue("SESSION")
+      enumBuilder(Name.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY,
+          ZookeeperConnectionErrorPolicy.class)
+          .setDefaultValue(ZookeeperConnectionErrorPolicy.SESSION)
           .setDescription("Connection error policy defines how errors on zookeeper connections "
               + "to be treated in leader election. "
               + "STANDARD policy treats every connection event as failure."
@@ -842,7 +884,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
-          .setDescription(String.format("Optionally, specify a preset gcs owner id "
+          .setDescription(format("Optionally, specify a preset gcs owner id "
               + "to Alluxio username static mapping in the format \"id1=user1;id2=user2\". "
               + "The Google Cloud Storage IDs can be found at the console address "
               + "https://console.cloud.google.com/storage/settings . Please use the "
@@ -896,7 +938,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_GCS_VERSION =
       intBuilder(Name.UNDERFS_GCS_VERSION)
           .setDefaultValue(2)
-          .setDescription(String.format("Specify the version of GCS module to use. "
+          .setDescription(format("Specify the version of GCS module to use. "
               + "GCS version \"1\" builds on top of jets3t package "
               + "which requires %s and %s. GCS version \"2\" build on top "
               + "of Google cloud API which requires %s", Name.GCS_ACCESS_KEY, Name.GCS_SECRET_KEY,
@@ -906,7 +948,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
-          .setDefaultValue(String.format(
+          .setDefaultValue(format(
               "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
           .setDescription("Location of the HDFS configuration file to overwrite "
               + "the default HDFS client configuration. Note that, these files must be available"
@@ -989,7 +1031,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
-          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDefaultValue(format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .setDescription("Default chunk size for ranged reads from multi-range object input "
               + "streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1424,21 +1466,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
-      .setDescription(String.format("The access key of GCS bucket. This property key "
+      .setDescription(format("The access key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
-      .setDescription(String.format("The secret key of GCS bucket. This property key "
+      .setDescription(format("The secret key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey GCS_CREDENTIAL_PATH = new Builder(Name.GCS_CREDENTIAL_PATH)
-      .setDescription(String.format("The json file path of Google application credentials. "
+      .setDescription(format("The json file path of Google application credentials. "
           + "This property key is only valid when %s=2", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
@@ -1645,7 +1687,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
           .setAlias("alluxio.underfs.address")
           .setDescription("The storage address of the UFS at the Alluxio root mount point.")
-          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1808,8 +1850,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
-      new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE)
-          .setDefaultValue("FORCED")
+      enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
+          .setDefaultValue(GraceMode.FORCED)
           .setDescription("Grace mode helps taking the state-lock exclusively for backup "
               + "with minimum disruption to existing RPCs. This low-impact locking phase "
               + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
@@ -1845,8 +1887,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
-      new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE)
-          .setDefaultValue("TIMEOUT")
+      enumBuilder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
+          .setDefaultValue(GraceMode.TIMEOUT)
           .setDescription("Grace mode helps taking the state-lock exclusively for backup "
               + "with minimum disruption to existing RPCs. This low-impact locking phase "
               + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
@@ -1897,7 +1939,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
-          .setDescription(String.format(
+          .setDescription(format(
               "Used to bind embedded journal servers to a proxied host."
                   + "Proxy hostname will still make use of %s for bind port.",
               Name.MASTER_EMBEDDED_JOURNAL_PORT))
@@ -1906,7 +1948,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription(String.format("A comma-separated list of journal addresses for all "
+          .setDescription(format("A comma-separated list of journal addresses for all "
               + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. When "
               + "left unset, Alluxio uses ${%s}:${%s} by default", Name.MASTER_HOSTNAME,
               Name.MASTER_EMBEDDED_JOURNAL_PORT))
@@ -1925,7 +1967,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)
-          .setDescription(String.format(
+          .setDescription(format(
               "The max election timeout for the embedded journal. When a random period between "
               + "${%s} and ${%s} elapses without a master receiving any messages, the master "
               + "will attempt to become the primary Election timeout will be waited initially "
@@ -2091,8 +2133,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE =
-      new Builder(Name.MASTER_METASTORE)
-          .setDefaultValue("ROCKS")
+      enumBuilder(Name.MASTER_METASTORE, MetastoreType.class)
+          .setDefaultValue(MetastoreType.ROCKS)
           .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
               + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
               + "heap and some metadata on disk. The rocks metastore has the advantage of being "
@@ -2103,7 +2145,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_DIR =
       new Builder(Name.MASTER_METASTORE_DIR)
-          .setDefaultValue(String.format("${%s}/metastore", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/metastore", Name.WORK_DIR))
           .setDescription("The metastore work directory. Only some metastores need disk.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2385,7 +2427,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
-          .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/journal", Name.WORK_DIR))
           .setDescription("The path to store master journal logs. When using the UFS journal this "
               + "could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded "
               + "journal this must be a local path")
@@ -2424,8 +2466,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
-      new Builder(Name.MASTER_JOURNAL_TYPE)
-          .setDefaultValue("EMBEDDED")
+      enumBuilder(Name.MASTER_JOURNAL_TYPE, JournalType.class)
+          .setDefaultValue(JournalType.EMBEDDED)
           .setDescription("The type of journal to use. Valid options are UFS (store journal in "
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
@@ -2451,7 +2493,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
       new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
       .setDefaultValue("10min")
-      .setDescription(String.format("How often to check and update information on space "
+      .setDescription(format("How often to check and update information on space "
           + "utilization of the journal disk. This is currently only compatible with linux-based"
           + "systems and when %s is configured to EMBEDDED", Name.MASTER_JOURNAL_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2939,8 +2981,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_TYPE =
-      new Builder(Name.MASTER_RPC_EXECUTOR_TYPE)
-          .setDefaultValue("TPE")
+      enumBuilder(Name.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.class)
+          .setDefaultValue(RpcExecutorType.TPE)
           .setDescription("Type of ExecutorService for Alluxio master gRPC server. "
               + "Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2971,9 +3013,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
-      new Builder(Name.MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE)
-          .setDefaultValue("LINKED_BLOCKING_QUEUE")
-          .setDescription(String.format(
+      enumBuilder(Name.MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE, ThreadPoolExecutorQueueType.class)
+          .setDefaultValue(ThreadPoolExecutorQueueType.LINKED_BLOCKING_QUEUE)
+          .setDescription(format(
               "This property is effective when %s is set to TPE. "
                   + "It specifies the internal task queue that's used by RPC ExecutorService. "
                   + "Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, "
@@ -2986,7 +3028,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
           .setDefaultValue(true)
           .setDescription(
-              String.format("This property is effective when %s is set to ThreadPoolExecutor. "
+              format("This property is effective when %s is set to ThreadPoolExecutor. "
                   + "It controls whether core threads can timeout and terminate "
                   + "when there is no work.", Name.MASTER_RPC_EXECUTOR_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2998,7 +3040,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
           .setDescription(
-              String.format("This property is effective when %s is set to ForkJoinPool. "
+              format("This property is effective when %s is set to ForkJoinPool. "
                   + "It controls the parallelism level (internal queue count) "
                   + "of master RPC ExecutorService.", Name.MASTER_RPC_EXECUTOR_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3009,7 +3051,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias("alluxio.master.rpc.executor.min.runnable")
           .setDefaultValue(1)
           .setDescription(
-              String.format(
+              format(
                   "This property is effective when %s is set to ForkJoinPool. "
                       + "It controls the minimum allowed number of core threads not blocked. "
                       + "A value of 1 ensures liveness. A larger value might improve "
@@ -3021,7 +3063,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_ASYNC =
       booleanBuilder(Name.MASTER_RPC_EXECUTOR_FJP_ASYNC)
           .setDefaultValue(true)
-          .setDescription(String.format(
+          .setDescription(format(
               "This property is effective when %s is set to ForkJoinPool. "
                   + "if true, it establishes local first-in-first-out scheduling mode for "
                   + "forked tasks that are never joined. This mode may be more appropriate "
@@ -3082,7 +3124,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
       new Builder(Name.SECONDARY_MASTER_METASTORE_DIR)
-          .setDefaultValue(String.format("${%s}/secondary-metastore", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/secondary-metastore", Name.WORK_DIR))
           .setDescription(
               "The secondary master metastore work directory. Only some metastores need disk.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3149,7 +3191,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
           .setAlias("alluxio.worker.block.heartbeat.timeout.ms")
-          .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setDefaultValue(format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
           .setDescription("The timeout value of block workers' heartbeats. If the worker can't "
               + "connect to master before this interval expires, the worker will exit.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3268,7 +3310,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_FUSE_MOUNT_ALLUXIO_PATH =
       new Builder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
-          .setDescription(String.format("The Alluxio path to mount to the given "
+          .setDescription(format("The Alluxio path to mount to the given "
                   + "Fuse mount point configured by %s in this worker.",
               Name.WORKER_FUSE_MOUNT_POINT))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3298,8 +3340,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
-      new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
-          .setDefaultValue("ANY")
+      enumBuilder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY, BackoffStrategy.class)
+          .setDefaultValue(BackoffStrategy.ANY)
           .setDescription("Defines the backoff scope respected by background tasks. "
               + "Supported values are ANY / DIRECTORY. "
               + "ANY: Management tasks will backoff from worker when there is any user I/O."
@@ -3546,12 +3588,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
-      new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
+      enumBuilder(Name.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class)
           .setDescription("Netty channel type: NIO or EPOLL. If EPOLL is not available, this will "
               + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
-          .setDefaultValue("EPOLL")
+          .setDefaultValue(ChannelType.EPOLL)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       new Builder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD)
@@ -3647,7 +3689,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
       new Builder(Name.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
-          .setDefaultValue(String.format("${%s}",
+          .setDefaultValue(format("${%s}",
               Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT))
           .setDescription("When the worker registers the master with streaming, "
               + "the worker will be sending messages to the master during the streaming."
@@ -3695,7 +3737,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_ENABLED =
       booleanBuilder(Name.WORKER_REGISTER_LEASE_ENABLED)
-          .setDefaultValue(String.format("${%s}", Name.MASTER_WORKER_REGISTER_LEASE_ENABLED))
+          .setDefaultValue(format("${%s}", Name.MASTER_WORKER_REGISTER_LEASE_ENABLED))
           .setDescription("Whether the worker requests a lease from the master before registering."
               + "This should be consistent with " + Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3717,7 +3759,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_MAX_DURATION =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setDefaultValue(format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
           .setDescription("The total time on retrying to get a register lease, before giving up.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -3836,8 +3878,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
           .setDefaultValue(
-              String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
-          .setDescription(String.format(
+              format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
+          .setDescription(format(
               "A comma-separated list of media types (e.g., \"MEM,MEM,SSD\") for each storage "
                   + "directory on the top storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName))
@@ -3846,8 +3888,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
-          .setDefaultValue(String.format("${%s}", Name.WORKER_RAMDISK_SIZE))
-          .setDescription(String.format(
+          .setDefaultValue(format("${%s}", Name.WORKER_RAMDISK_SIZE))
+          .setDescription(format(
               "A comma-separated list of capacities (e.g., \"500MB,500MB,5GB\") for each storage "
                   + "directory on the top storage tier specified by %s. "
                   + "For any \"MEM\"-type media (i.e, the ramdisks), this value should be set "
@@ -3891,8 +3933,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
           .setDefaultValue(
-              String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
-          .setDescription(String.format(
+              format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
+          .setDescription(format(
               "A list of media types (e.g., \"SSD,SSD,HDD\") for each storage "
                   + "directory on the second storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
@@ -3901,7 +3943,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
-          .setDescription(String.format(
+          .setDescription(format(
               "A comma-separated list of capacities (e.g., \"5GB,5GB,50GB\") for each storage "
                   + "directory on the second storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
@@ -3942,8 +3984,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIUMTYPE =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
           .setDefaultValue(
-              String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
-          .setDescription(String.format(
+              format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
+          .setDescription(format(
               "A list of media types (e.g., \"SSD,HDD,HDD\") for each storage "
                   + "directory on the third storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
@@ -3952,7 +3994,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 2)
-          .setDescription(String.format(
+          .setDescription(format(
               "A comma-separated list of capacities (e.g., \"5GB,50GB,50GB\") for each storage "
                   + "directory on the third storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
@@ -4045,8 +4087,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_TYPE =
-      new Builder(Name.WORKER_RPC_EXECUTOR_TYPE)
-          .setDefaultValue("TPE")
+      enumBuilder(Name.WORKER_RPC_EXECUTOR_TYPE, RpcExecutorType.class)
+          .setDefaultValue(RpcExecutorType.TPE)
           .setDescription("Type of ExecutorService for Alluxio worker gRPC server. "
               + "Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4077,9 +4119,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
-      new Builder(Name.WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE)
-          .setDefaultValue("LINKED_BLOCKING_QUEUE_WITH_CAP")
-          .setDescription(String.format(
+      enumBuilder(Name.WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE, ThreadPoolExecutorQueueType.class)
+          .setDefaultValue(ThreadPoolExecutorQueueType.LINKED_BLOCKING_QUEUE_WITH_CAP)
+          .setDescription(format(
               "This property is effective when %s is set to TPE. "
                   + "It specifies the internal task queue that's used by RPC ExecutorService. "
                   + "Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, "
@@ -4092,7 +4134,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
           .setDefaultValue(true)
           .setDescription(
-              String.format("This property is effective when %s is set to ThreadPoolExecutor. "
+              format("This property is effective when %s is set to ThreadPoolExecutor. "
                   + "It controls whether core threads can timeout and terminate "
                   + "when there is no work.", Name.WORKER_RPC_EXECUTOR_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4104,7 +4146,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
           .setDescription(
-              String.format("This property is effective when %s is set to ForkJoinPool. "
+              format("This property is effective when %s is set to ForkJoinPool. "
                   + "It controls the parallelism level (internal queue count) "
                   + "of master RPC ExecutorService.", Name.WORKER_RPC_EXECUTOR_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4115,7 +4157,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias("alluxio.worker.rpc.executor.min.runnable")
           .setDefaultValue(1)
           .setDescription(
-              String.format(
+              format(
                   "This property is effective when %s is set to ForkJoinPool. "
                       + "It controls the minimum allowed number of core threads not blocked. "
                       + "A value of 1 ensures liveness. A larger value might improve "
@@ -4127,7 +4169,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_ASYNC =
       booleanBuilder(Name.WORKER_RPC_EXECUTOR_FJP_ASYNC)
           .setDefaultValue(true)
-          .setDescription(String.format(
+          .setDescription(format(
               "This property is effective when %s is set to ForkJoinPool. "
                   + "if true, it establishes local first-in-first-out scheduling mode for "
                   + "forked tasks that are never joined. This mode may be more appropriate "
@@ -4142,8 +4184,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Proxy related properties
   //
   public static final PropertyKey PROXY_S3_WRITE_TYPE =
-      new Builder(Name.PROXY_S3_WRITE_TYPE)
-          .setDefaultValue("CACHE_THROUGH")
+      enumBuilder(Name.PROXY_S3_WRITE_TYPE, WriteType.class)
+          .setDefaultValue(WriteType.CACHE_THROUGH)
           .setDescription("Write type when creating buckets and objects through S3 API. "
               + "Valid options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
@@ -4156,7 +4198,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_DELETE_TYPE =
       new Builder(Name.PROXY_S3_DELETE_TYPE)
           .setDefaultValue(Constants.S3_DELETE_IN_ALLUXIO_AND_UFS)
-          .setDescription(String.format(
+          .setDescription(format(
               "Delete type when deleting buckets and objects through S3 API. Valid options are "
                   + "`%s` (delete both in Alluxio and UFS), "
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
@@ -4248,7 +4290,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey LOCALITY_ORDER =
       new Builder(Name.LOCALITY_ORDER)
-          .setDefaultValue(String.format("%s,%s", Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
+          .setDefaultValue(format("%s,%s", Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
           .setDescription("Ordering of locality tiers")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -4287,7 +4329,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGSERVER_LOGS_DIR =
       new Builder(Name.LOGSERVER_LOGS_DIR)
-          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/logs", Name.WORK_DIR))
           .setDescription("Default location for remote log files.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4489,7 +4531,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_RESERVED_BYTES =
       new Builder(Name.USER_FILE_RESERVED_BYTES)
-          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDefaultValue(format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .setDescription("The size to reserve on workers for file system writes."
               + "Using smaller value will improve concurrency for writes smaller than block size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4542,8 +4584,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
-      new Builder(Name.USER_FILE_METADATA_LOAD_TYPE)
-          .setDefaultValue("ONCE")
+      enumBuilder(Name.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataPType.class)
+          .setDefaultValue(LoadMetadataPType.ONCE)
           .setDescription("The behavior of loading metadata from UFS. When information about "
               + "a path is requested and the path does not exist in Alluxio, metadata can be "
               + "loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. "
@@ -4577,8 +4619,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
-      new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
-          .setDefaultValue("CACHE")
+      enumBuilder(Name.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
+          .setDefaultValue(ReadType.CACHE)
           .setDescription("Default read type when creating Alluxio files. Valid options are "
               + "`CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, "
               + "write data into highest tier of local Alluxio if data needs to be read from "
@@ -4599,7 +4641,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
       new Builder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
           .setDefaultValue("0")
-          .setDescription(String.format("Time to wait before starting the persistence job. "
+          .setDescription(format("Time to wait before starting the persistence job. "
               + "When the value is set to -1, the file will be persisted by rename operation "
               + "or persist CLI but will not be automatically persisted in other cases. "
               + "This is to avoid the heavy object copy in rename operation when %s is set to %s. "
@@ -4624,8 +4666,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_CREATE_TTL_ACTION =
-      new Builder(Name.USER_FILE_CREATE_TTL_ACTION)
-          .setDefaultValue("DELETE")
+      enumBuilder(Name.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)
+          .setDefaultValue(TtlAction.DELETE)
           .setDescription("When file's ttl is expired, the action performs on it. Options: "
               + "DELETE (default) or FREE")
           .setScope(Scope.CLIENT)
@@ -4779,8 +4821,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
-      new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
-          .setDefaultValue("LOCAL")
+      enumBuilder(Name.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class)
+          .setDefaultValue(PageStoreType.LOCAL)
           .setDescription("The type of page store to use for client-side cache. Can be either "
               + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
               + "the `ROCKS` page store utilizes rocksDB to persist the data.")
@@ -4818,10 +4860,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
-      new Builder(Name.USER_FILE_WRITE_TYPE_DEFAULT)
-          .setDefaultValue("ASYNC_THROUGH")
+      enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+          .setDefaultValue(WriteType.ASYNC_THROUGH)
       .setDescription(
-          String.format("Default write type when creating Alluxio files. Valid " + "options are "
+          format("Default write type when creating Alluxio files. Valid " + "options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` "
               + "(no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, "
@@ -5196,7 +5238,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
-      new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
+      enumBuilder(Name.USER_NETWORK_NETTY_CHANNEL, ChannelType.class)
           .setDescription("Type of netty channels. If EPOLL is not available, this will "
               + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5245,12 +5287,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_NETTY_CHANNEL =
-      new Builder(Name.USER_NETWORK_RPC_NETTY_CHANNEL)
+      enumBuilder(Name.USER_NETWORK_RPC_NETTY_CHANNEL, ChannelType.class)
           .setDescription("Type of netty channels used by rpc connections. "
               + "If EPOLL is not available, this will automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setDefaultValue("EPOLL")
+          .setDefaultValue(ChannelType.EPOLL)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_NETTY_WORKER_THREADS =
       intBuilder(Name.USER_NETWORK_RPC_NETTY_WORKER_THREADS)
@@ -5305,13 +5347,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_NETTY_CHANNEL =
-      new Builder(Name.USER_NETWORK_STREAMING_NETTY_CHANNEL)
+      enumBuilder(Name.USER_NETWORK_STREAMING_NETTY_CHANNEL, ChannelType.class)
           .setAlias(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels used by streaming connections. "
               + "If EPOLL is not available, this will automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setDefaultValue("EPOLL")
+          .setDefaultValue(ChannelType.EPOLL)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_NETTY_WORKER_THREADS =
       intBuilder(Name.USER_NETWORK_STREAMING_NETTY_WORKER_THREADS)
@@ -5381,7 +5423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
-          .setDescription(String.format("When an Alluxio client reads a file from the UFS, it "
+          .setDescription(format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
               + "which worker to read through. Built-in choices: %s.", Arrays.asList(
               javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
@@ -5612,8 +5654,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_TYPE =
-      new Builder(Name.SECURITY_AUTHENTICATION_TYPE)
-          .setDefaultValue("SIMPLE")
+      enumBuilder(Name.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
+          .setDefaultValue(AuthType.SIMPLE)
           .setDescription("The authentication mode. Currently three modes are supported: "
               + "NOSASL, SIMPLE, CUSTOM. The default value SIMPLE indicates that a simple "
               + "authentication is enabled. Server trusts whoever the client claims to be.")
@@ -5667,7 +5709,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
-      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(String.format(
+      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(format(
           "When %s is set to SIMPLE or CUSTOM, user application uses this property to indicate "
               + "the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, "
               + "or set to %s, impersonation will not be used. A special value of '%s' can be "
@@ -5819,7 +5861,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_MASTER_HOSTNAME =
       new Builder(Name.JOB_MASTER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job master.")
-          .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
+          .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
@@ -5874,7 +5916,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_WORKER_HOSTNAME =
       new Builder(Name.JOB_WORKER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job worker.")
-          .setDefaultValue(String.format("${%s}", Name.WORKER_HOSTNAME))
+          .setDefaultValue(format("${%s}", Name.WORKER_HOSTNAME))
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
@@ -5912,7 +5954,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
-          .setDescription(String.format("A list of comma-separated host:port RPC addresses where "
+          .setDescription(format("A list of comma-separated host:port RPC addresses where "
                   + "the client should look for job masters when using multiple job masters "
                   + "without Zookeeper. This property is not used "
                   + "when Zookeeper is enabled, since Zookeeper already stores the job master "
@@ -5924,7 +5966,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription(String.format("A comma-separated list of journal addresses for all job "
+          .setDescription(format("A comma-separated list of journal addresses for all job "
               + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. "
               + "Defaults to the journal addresses set for the Alluxio masters (%s), but with the "
               + "job master embedded journal port.", Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES))
@@ -6165,7 +6207,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           new Builder(Name.HUB_MANAGER_RPC_HOSTNAME)
                   .setDescription("The hostname (or IP address) that agents should use to connect "
                            + "to the hub manager")
-                  .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
+                  .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
                   .build();
   public static final PropertyKey HUB_MANAGER_RPC_BIND_HOST =
           new Builder(Name.HUB_MANAGER_RPC_BIND_HOST)
@@ -6181,7 +6223,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           new Builder(Name.HUB_HOSTED_RPC_HOSTNAME)
                   .setDescription("The hostname (or IP address) that managers should use to "
                           + "connect to the hosted hub")
-                  .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
+                  .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_BIND_HOST =
           new Builder(Name.HUB_HOSTED_RPC_BIND_HOST)
@@ -6237,7 +6279,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private static String javadocLink(String fullyQualifiedClassname) {
     String javadocPath = fullyQualifiedClassname.replace(".", "/") + ".html";
-    return String.format("<a href=\"%s\">%s</a>",
+    return format("<a href=\"%s\">%s</a>",
         PathUtils.concatPath(RuntimeConstants.ALLUXIO_JAVADOC_URL, javadocPath),
         fullyQualifiedClassname);
   }
@@ -7577,7 +7619,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     USER_NETWORK_FLOWCONTROL_WINDOW("alluxio.user.network.%s.flowcontrol.window",
         "alluxio\\.user\\.network\\.(\\w+)\\.flowcontrol\\.window"),
     USER_NETWORK_NETTY_CHANNEL("alluxio.user.network.%s.netty.channel",
-        "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.channel"),
+        "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.channel",
+        ChannelType.class),
     USER_NETWORK_NETTY_WORKER_THREADS("alluxio.user.network.%s.netty.worker.threads",
         "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.worker\\.threads",
         PropertyType.INTEGER),
@@ -7585,7 +7628,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.connections",
         PropertyType.INTEGER),
     RPC_EXECUTOR_TYPE("alluxio.%s.rpc.executor.type",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.type"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.type",
+        RpcExecutorType.class),
     RPC_EXECUTOR_CORE_POOL_SIZE("alluxio.%s.rpc.executor.core.pool.size",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.core\\.pool\\.size",
         PropertyType.INTEGER),
@@ -7595,7 +7639,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     RPC_EXECUTOR_KEEPALIVE("alluxio.%s.rpc.executor.keepalive",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.keep\\.alive"),
     RPC_EXECUTOR_TPE_QUEUE_TYPE("alluxio.%s.rpc.executor.tpe.queue.type",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.queue\\.type"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.queue\\.type",
+        ThreadPoolExecutorQueueType.class),
     RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT(
         "alluxio.%s.rpc.executor.tpe.allow.core.threads.timeout",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.allow\\.core\\.threads\\.timeout",
@@ -7653,6 +7698,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final String mFormat;
     private final Pattern mPattern;
     private final PropertyType mType;
+    private final Optional<Class<? extends Enum>> mEnumType;
     private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
         PropertyCreators.DEFAULT_PROPERTY_CREATOR;
 
@@ -7671,6 +7717,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mFormat = format;
       mPattern = Pattern.compile(re);
       mType = type;
+      mEnumType = Optional.empty();
+    }
+
+    /**
+     * Constructs a property key format.
+     *
+     * @param format String of this property as formatted string
+     * @param re String of this property as regexp
+     * @param enumType enum class of an enum property
+     */
+    Template(String format, String re, Class<? extends Enum> enumType) {
+      mFormat = format;
+      mPattern = Pattern.compile(re);
+      mType = PropertyType.ENUM;
+      mEnumType = Optional.of(enumType);
     }
 
     /**
@@ -7702,7 +7763,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return corresponding property
      */
     public PropertyKey format(Object... params) {
-      return new PropertyKey(String.format(mFormat, params), mType);
+      return new PropertyKey(String.format(mFormat, params), mType, mEnumType);
     }
 
     /**
@@ -7803,7 +7864,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     if (isRemoved(input)) {
-      String errorMsg = String.format("%s is no longer a valid property. %s", input,
+      String errorMsg = format("%s is no longer a valid property. %s", input,
           PropertyKey.getRemovalMessage(input));
       LOG.error(errorMsg);
       throw new IllegalArgumentException(errorMsg);
@@ -7828,6 +7889,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   /** Property type. */
   private final PropertyType mType;
+
+  /** Property's enum class type, if property type is ENUM. */
+  private final Optional<Class<? extends Enum>> mEnumType;
 
   /** Supplies the Property Key default value. */
   private final DefaultSupplier mDefaultSupplier;
@@ -7874,14 +7938,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param isBuiltIn whether this is an Alluxio built-in property
    */
   private PropertyKey(String name, String description, PropertyType type,
-      DefaultSupplier defaultSupplier, String[] aliases, boolean ignoredSiteProperty,
-      boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel, Scope scope,
-      DisplayType displayType, boolean isBuiltIn, boolean dynamic,
+      Optional<Class<? extends Enum>> enumType, DefaultSupplier defaultSupplier, String[] aliases,
+      boolean ignoredSiteProperty, boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel,
+      Scope scope, DisplayType displayType, boolean isBuiltIn, boolean dynamic,
       Function<Object, Boolean> valueValidationFunction) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mType = type;
+    mEnumType = enumType;
     mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;
@@ -7897,9 +7962,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @param name String of this property
    */
-  private PropertyKey(String name, PropertyType type) {
-    this(name, null, type, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true, null);
+  private PropertyKey(String name, PropertyType type, Optional<Class<? extends Enum>> enumType) {
+    this(name, null, type, enumType, new DefaultSupplier(() -> null, "null"), null, false,
+        false, ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true, null);
   }
 
   /**
@@ -8027,6 +8092,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * @return enum class of the enum property, or throws when property is not of enum type
+   */
+  public Class<? extends Enum> getEnumType()
+  {
+    checkState(mType == PropertyType.ENUM && mEnumType.isPresent(),
+        format("PropertyKey %s is not of enum type", mName));
+    return mEnumType.get();
+  }
+
+  /**
    * TODO(rongrong) this api should be removed.
    * @return the default string value of a property key or null if value not set
    */
@@ -8117,6 +8192,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             return false;
           }
           break;
+        case ENUM:
+          if (!value.getClass().equals(mEnumType.get()))  {
+            return false;
+          }
+          break;
         default:
           break;
       }
@@ -8140,6 +8220,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         return Integer.parseInt(stringValue);
       case DOUBLE:
         return Double.parseDouble(stringValue);
+      case ENUM:
+        // Keep configuration backwards compatible: ALLUXIO-3402
+        // Allow String value and try to use upper case to resolve enum.
+        return Enum.valueOf(getEnumType(), stringValue.toUpperCase());
       default:
         return stringValue;
     }

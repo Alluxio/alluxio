@@ -14,6 +14,7 @@ package alluxio.job.plan.migrate;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
@@ -132,7 +133,7 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
 
     Set<Pair<WorkerInfo, MigrateCommand>> assignments =
         new MigrateDefinition().selectExecutors(
-            new MigrateConfig("/src", "/dst", "THROUGH", true),
+            new MigrateConfig("/src", "/dst", WriteType.THROUGH, true),
             ImmutableList.of(JOB_WORKER_3),
             new SelectExecutorsContext(1,
                 new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
@@ -146,7 +147,7 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
    */
   private Set<Pair<WorkerInfo, MigrateCommand>> assignMigrates(String source,
       String destination) throws Exception {
-    return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false));
+    return assignMigrates(new MigrateConfig(source, destination, WriteType.THROUGH, false));
   }
 
   /**
@@ -164,13 +165,13 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
    * Runs selectExecutors with the expectation that it will throw an exception.
    */
   private void assignMigratesFail(String source, String destination) throws Exception {
-    assignMigratesFail(source, destination, "THROUGH", false);
+    assignMigratesFail(source, destination, WriteType.THROUGH, false);
   }
 
   /**
    * Runs selectExecutors with the expectation that it will throw an exception.
    */
-  private void assignMigratesFail(String source, String destination, String writeType,
+  private void assignMigratesFail(String source, String destination, WriteType writeType,
       boolean overwrite) throws Exception {
     Set<Pair<WorkerInfo, MigrateCommand>> assignment =
         assignMigrates(new MigrateConfig(source, destination, writeType, overwrite));

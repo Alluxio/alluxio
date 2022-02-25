@@ -44,7 +44,7 @@ public class SimpleUserState extends BaseUserState {
       if (authType == AuthType.SIMPLE || authType == AuthType.CUSTOM) {
         return new SimpleUserState(subject, conf);
       }
-      LOG.debug("N/A: auth type is not SIMPLE or CUSTOM. authType: {}", authType.getAuthName());
+      LOG.debug("N/A: auth type is not SIMPLE or CUSTOM. authType: {}", authType);
       return null;
     }
   }

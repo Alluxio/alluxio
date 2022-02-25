@@ -38,16 +38,16 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
   private static final String PATH1 = "/a/b";
   private static final String PATH2 = "/a/b/c";
   private static final String READ_TYPE_NO_CACHE =
-      format(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+      format(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE);
   private static final String READ_TYPE_CACHE =
-      format(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE.toString());
+      format(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE);
   private static final String WRITE_TYPE_CACHE_THROUGH =
-      format(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
+      format(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH);
   private static final String WRITE_TYPE_THROUGH =
-      format(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.THROUGH.toString());
+      format(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.THROUGH);
 
-  private static String format(PropertyKey key, String value) {
-    return key.getName() + "=" + value;
+  private static String format(PropertyKey key, Object value) {
+    return String.format("%s=%s", key.getName(), value);
   }
 
   @Test

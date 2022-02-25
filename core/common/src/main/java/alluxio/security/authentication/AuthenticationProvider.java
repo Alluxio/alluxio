@@ -49,7 +49,7 @@ public interface AuthenticationProvider {
               conf.getString(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
           return new CustomAuthenticationProvider(customProviderName);
         default:
-          throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
+          throw new AuthenticationException("Unsupported AuthType: " + authType);
       }
     }
   }

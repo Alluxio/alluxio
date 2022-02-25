@@ -12,6 +12,7 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
@@ -136,7 +137,7 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH).build();
   private static URI sLocalAlluxioClusterUri = null;
 
   static {

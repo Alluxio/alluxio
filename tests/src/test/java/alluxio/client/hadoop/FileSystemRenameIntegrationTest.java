@@ -11,6 +11,7 @@
 
 package alluxio.client.hadoop;
 
+import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
@@ -41,7 +42,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH).build();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static org.apache.hadoop.fs.FileSystem sTFS;
