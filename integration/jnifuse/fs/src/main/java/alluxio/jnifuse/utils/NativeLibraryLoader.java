@@ -93,6 +93,8 @@ public class NativeLibraryLoader {
    * if that fails then it falls back to extracting
    * the library from the classpath.
    * {@link NativeLibraryLoader#loadLibraryFromJar(String, String, String)}
+   *
+   * @return the error why load is failed. Empty if load is successful.
    */
   private Optional<UnsatisfiedLinkError> load(
       final String sharedLibraryName, final String jniLibraryName,
@@ -104,7 +106,9 @@ public class NativeLibraryLoader {
       LOG.info("Loaded {} by System.loadLibrary.", sharedLibraryName);
     });
 
-    if (err.isPresent()) {
+    // No error means load is successful.
+    // Just return an empty.
+    if (!err.isPresent()) {
       return err;
     }
 
@@ -113,7 +117,7 @@ public class NativeLibraryLoader {
       LOG.info("Loaded {} by System.loadLibrary.", jniLibraryName);
     });
 
-    if (err.isPresent()) {
+    if (!err.isPresent()) {
       return err;
     }
 
