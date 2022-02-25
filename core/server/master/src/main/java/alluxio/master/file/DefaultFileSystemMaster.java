@@ -1920,8 +1920,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     // Inodes for which deletion will be attempted
-    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete =
-        new ArrayList<>((int) inode.asDirectory().getChildCount());
+    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete;
+    if (inode.isDirectory()) {
+      inodesToDelete = new ArrayList<>((int) inode.asDirectory().getChildCount());
+    } else {
+      inodesToDelete = new ArrayList<>(1);
+    }
 
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
@@ -2000,8 +2004,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
       }
 
-      // Delete Inodes
-      for (Pair<AlluxioURI, LockedInodePath> delInodePair : inodesToDelete) {
+      // Delete Inodes from children to parents
+      for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+        Pair<AlluxioURI, LockedInodePath> delInodePair = inodesToDelete.get(i);
         // The entry is null because an error is met from the pre-processing
         if (delInodePair == null) {
           continue;
