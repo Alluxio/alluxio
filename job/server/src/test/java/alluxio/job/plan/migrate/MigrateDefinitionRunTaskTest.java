@@ -221,7 +221,7 @@ public final class MigrateDefinitionRunTaskTest {
   private void runTask(String configSource, String commandSource, String commandDestination,
                        WriteType writeType, boolean overwrite) throws Exception {
     new MigrateDefinition().runTask(
-        new MigrateConfig(configSource, "", writeType.toString(), overwrite),
+        new MigrateConfig(configSource, "", writeType, overwrite),
         new MigrateCommand(commandSource, commandDestination),
         new RunTaskContext(1, 1,
             new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));

@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
@@ -174,7 +175,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
 
     long jobId = sJobMaster.run(new MigrateConfig(
             "/mnt/testFileSource", "/mnt/testFileDest",
-            "THROUGH", false));
+            WriteType.THROUGH, false));
 
     sJobShell.run("cancel", Long.toString(jobId));
 

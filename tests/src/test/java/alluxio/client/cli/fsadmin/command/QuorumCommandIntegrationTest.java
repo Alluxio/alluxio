@@ -77,7 +77,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   public void quorumInfo() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_INFO)
         .setClusterName("QuorumShellInfo").setNumMasters(3).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -121,7 +121,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   public void quorumRemove() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
         .setClusterName("QuorumShellRemove").setNumMasters(5).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -188,7 +188,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
             .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
-            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
             // To make the test run faster.
             .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -223,7 +223,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
         .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -257,7 +257,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   public void quorumCommand() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL)
         .setClusterName("QuorumShell").setNumMasters(3).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")

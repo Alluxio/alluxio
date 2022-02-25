@@ -159,9 +159,10 @@ public final class MultiProcessCluster {
     mState = State.NOT_STARTED;
     mSuccess = false;
 
-    String journalType = (String) mProperties.getOrDefault(PropertyKey.MASTER_JOURNAL_TYPE,
-        ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_TYPE));
-    mDeployMode = journalType.equals(JournalType.EMBEDDED.toString()) ? DeployMode.EMBEDDED
+    JournalType journalType = (JournalType) mProperties.getOrDefault(
+        PropertyKey.MASTER_JOURNAL_TYPE,
+        ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
+    mDeployMode = journalType == JournalType.EMBEDDED ? DeployMode.EMBEDDED
         : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
   }
 
@@ -214,7 +215,7 @@ public final class MultiProcessCluster {
     switch (mDeployMode) {
       case UFS_NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
-        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
+        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, masterAddress.getRpcPort());
         mProperties.put(PropertyKey.MASTER_WEB_PORT, masterAddress.getWebPort());
@@ -227,7 +228,7 @@ public final class MultiProcessCluster {
               .add(String.format("%s:%d", address.getHostname(), address.getEmbeddedJournalPort()));
           rpcAddresses.add(String.format("%s:%d", address.getHostname(), address.getRpcPort()));
         }
-        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
+        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
         mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
             com.google.common.base.Joiner.on(",").join(journalAddresses));
         mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES,
@@ -236,12 +237,12 @@ public final class MultiProcessCluster {
       case ZOOKEEPER_HA:
         mCuratorServer = mCloser.register(
                 new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
-        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
+        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
         mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, true);
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
-        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
+        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
 
     for (Entry<PropertyKey, Object> entry :
@@ -778,7 +779,7 @@ public final class MultiProcessCluster {
             ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
             ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
-        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
+        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
   }
 

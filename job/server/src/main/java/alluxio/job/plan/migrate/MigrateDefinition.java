@@ -141,7 +141,7 @@ public final class MigrateDefinition
       RunTaskContext context) throws Exception {
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-        : WriteType.valueOf(config.getWriteType());
+        : config.getWriteType();
     migrate(command, writeType.toProto(), context.getFileSystem(), config.isOverwrite());
     return null;
   }

@@ -66,7 +66,7 @@ public final class MkdirsOptionsTest {
   @Test
   public void securityEnabled() throws IOException {
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    conf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    conf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
     conf.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,

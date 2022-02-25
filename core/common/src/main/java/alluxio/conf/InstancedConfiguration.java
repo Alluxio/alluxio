@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.PropertyType.DOUBLE;
+import static alluxio.conf.PropertyKey.PropertyType.ENUM;
 import static alluxio.conf.PropertyKey.PropertyType.STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -29,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -220,6 +220,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         "Invalid value for property key %s: %s", key, value);
     if (key.getType() == STRING) {
       value = String.valueOf(value);
+    } else if (key.getType() == ENUM && value instanceof String) {
+      try {
+        // Keep configuration backwards compatible: ALLUXIO-3402
+        // Allow String value and try to use upper case to resolve enum.
+        value = Enum.valueOf(key.getEnumType(), ((String) value).toUpperCase());
+      } catch (IllegalArgumentException e) {
+        // Value can also be string due to property key dependencies, so just ignore here for now.
+      }
     }
     if (key.getType() == DOUBLE) {
       value = ((Number) value).doubleValue();
@@ -295,13 +303,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    String rawValue = getString(key).toUpperCase();
-    try {
-      return Enum.valueOf(enumType, rawValue);
-    } catch (IllegalArgumentException e) {
-      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue, key,
-          Arrays.toString(enumType.getEnumConstants())));
-    }
+    checkArgument(key.getEnumType().equals(enumType), "PropertyKey %s is not of enum type", key);
+    return enumType.cast(get(key));
   }
 
   @Override

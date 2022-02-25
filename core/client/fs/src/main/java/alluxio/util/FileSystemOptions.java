@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CheckAccessPOptions;
@@ -35,7 +36,6 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.OperationId;
 
@@ -69,7 +69,8 @@ public class FileSystemOptions {
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults(),
             conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
-        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
+        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+            .toProto())
         .build();
   }
 
@@ -109,7 +110,8 @@ public class FileSystemOptions {
         .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
         .setReplicationMin(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
         .setWriteTier(conf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
-        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
+        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+            .toProto())
         .build();
   }
 
