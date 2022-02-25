@@ -100,35 +100,12 @@ public class MasterBatchTask extends BatchTask {
             "--clients", String.valueOf(mParameter.mClients),
             "--client-type", mParameter.mClientType.toString(),
             "--read-type", mParameter.mReadType.toString(),
-            "--fixed-count", String.valueOf(mParameter.mStopCount),
-            // add the base parameters
-            "--cluster-limit", String.valueOf(mBaseParameter.mClusterLimit),
-            "--cluster-start-delay", mBaseParameter.mClusterStartDelay,
-            "--profile-agent", mBaseParameter.mProfileAgent,
-            "--bench-timeout", mBaseParameter.mBenchTimeout,
-            "--id", mBaseParameter.mId,
-            "--start-ms", String.valueOf(mBaseParameter.mStartMs)
+            "--fixed-count", String.valueOf(mParameter.mStopCount)
         ));
 
-        if (!mBaseParameter.mJavaOpts.isEmpty()) {
-          for (String s : mBaseParameter.mJavaOpts) {
-            command.add("--java-opt");
-            command.add(s);
-          }
-        }
+        // add all base parameters
+        command.addAll(mBaseParameter.toBatchTaskArgumentString());
 
-        if (mBaseParameter.mCluster) {
-          command.add("--cluster");
-        }
-        if (mBaseParameter.mDistributed) {
-          command.add("--distributed");
-        }
-        if (mBaseParameter.mInProcess) {
-          command.add("--in-process");
-        }
-        if (mBaseParameter.mHelp) {
-          command.add("--h");
-        }
         commandList.add(command.toArray(new String[command.size()]));
       }
     }
