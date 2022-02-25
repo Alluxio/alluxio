@@ -22,6 +22,8 @@ import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -30,13 +32,29 @@ import java.util.List;
 import java.util.Map;
 
 public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrationTest {
-  @Test
-  public void MasterIntegrationFileTest() throws Exception {
-    // redirect the output stream
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    PrintStream originalOut = System.out;
-    System.setOut(new PrintStream(out));
+  private PrintStream originalOut;
+  private ByteArrayOutputStream out;
 
+  // the possible operations
+  private List<String> operation = ImmutableList.of("CreateFile", "ListDir", "ListDirLocated",
+      "GetBlockLocations", "GetFileStatus", "OpenFile", "DeleteFile");
+
+  @Before
+  public void before() {
+    // redirect the output stream
+    out = new ByteArrayOutputStream();
+    originalOut = System.out;
+    System.setOut(new PrintStream(out));
+  }
+
+  @After
+  public void after() {
+    // reset the output to the console
+    System.setOut(originalOut);
+  }
+
+  @Test
+  public void MasterIntegrationFileTestAllParameters() throws Exception {
     BatchTaskRunner.main(new String[]{
         "MasterComprehensiveFileBatchTask",
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
@@ -59,9 +77,6 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
     List<String> resultList = getJsonResult(printOutResult);
     assertEquals(resultList.size(), 7);
 
-    // the possible operations
-    List<String> operation = ImmutableList.of("CreateFile", "ListDir", "ListDirLocated",
-        "GetBlockLocations", "GetFileStatus", "OpenFile", "DeleteFile");
     for (int i = 0; i < resultList.size(); i++) {
       MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
           resultList.get(i));
@@ -85,8 +100,161 @@ public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrati
       }
       assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
     }
-
-    // reset the output to the console
-    System.setOut(originalOut);
   }
+
+  @Test
+  public void MasterIntegrationFileTestWriteType() throws Exception {
+    List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",
+        "ASYNC_THROUGH", "THROUGH");
+
+    for(String type : writeTypes) {
+      BatchTaskRunner.main(new String[]{
+          "MasterComprehensiveFileBatchTask",
+          "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+          "--warmup", "0s",
+          "--threads", "1",
+          "--stop-count", "100",
+          "--write-type", type,
+          "--read-type", "NO_CACHE",
+          "--client-type", "AlluxioHDFS",
+          "--create-file-size", "0",
+          "--in-process",
+      });
+
+      String printOutResult = out.toString();
+      List<String> resultList = getJsonResult(printOutResult);
+      assertEquals(resultList.size(), 7);
+      out.reset();
+
+      for (int i = 0; i < resultList.size(); i++) {
+        MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
+            resultList.get(i));
+        // confirm that the task was executed with certain parameter and output no errors
+        assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+        assertEquals(summary.getParameters().mWarmup, "0s");
+        assertEquals(summary.getParameters().mThreads, 1);
+        assertEquals(summary.getParameters().mStopCount, 100);
+        assertEquals(summary.getParameters().mWriteType, type);
+        assertEquals(summary.getParameters().mReadType.toString(), "NO_CACHE");
+        assertEquals(summary.getParameters().mCreateFileSize, "0");
+        assertEquals(summary.getParameters().mClientType, FileSystemClientType.ALLUXIO_HDFS);
+        Map<String, MasterBenchTaskResult> results = summary.getNodeResults();
+
+        assertFalse(results.isEmpty());
+        assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
+      }
+    }
+  }
+
+  @Test
+  public void MasterIntegrationFileTestWriteTypeAll() throws Exception {
+    ByteArrayOutputStream err = new ByteArrayOutputStream();
+    PrintStream originalErr = System.err;
+    System.setErr(new PrintStream(err));
+
+      BatchTaskRunner.main(new String[]{
+          "MasterComprehensiveFileBatchTask",
+          "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+          "--warmup", "0s",
+          "--threads", "1",
+          "--stop-count", "100",
+          "--write-type", "ALL",
+          "--read-type", "NO_CACHE",
+          "--client-type", "AlluxioHDFS",
+          "--create-file-size", "0",
+          "--in-process",
+      });
+
+    assertEquals(err.toString(), "Parameter write-type ALL is not supported in"
+        + " batch task MasterComprehensiveFileBatchTask");
+
+    System.setErr(originalErr);
+  }
+
+  @Test
+  public void MasterIntegrationFileTestReadType() throws Exception {
+    List<String> readTypes = ImmutableList.of("NO_CACHE", "CACHE", "CACHE_PROMOTE");
+
+    for(String type : readTypes) {
+      BatchTaskRunner.main(new String[]{
+          "MasterComprehensiveFileBatchTask",
+          "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+          "--warmup", "0s",
+          "--threads", "1",
+          "--stop-count", "100",
+          "--write-type", "MUST_CACHE",
+          "--read-type", type,
+          "--client-type", "AlluxioHDFS",
+          "--create-file-size", "0",
+          "--in-process",
+      });
+
+      String printOutResult = out.toString();
+      List<String> resultList = getJsonResult(printOutResult);
+      assertEquals(resultList.size(), 7);
+      out.reset();
+
+      for (int i = 0; i < resultList.size(); i++) {
+        MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
+            resultList.get(i));
+        // confirm that the task was executed with certain parameter and output no errors
+        assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+        assertEquals(summary.getParameters().mWarmup, "0s");
+        assertEquals(summary.getParameters().mThreads, 1);
+        assertEquals(summary.getParameters().mStopCount, 100);
+        assertEquals(summary.getParameters().mWriteType, "MUST_CACHE");
+        assertEquals(summary.getParameters().mReadType.toString(), type);
+        assertEquals(summary.getParameters().mClientType, FileSystemClientType.ALLUXIO_HDFS);
+        assertEquals(summary.getParameters().mCreateFileSize, "0");
+        Map<String, MasterBenchTaskResult> results = summary.getNodeResults();
+
+        assertFalse(results.isEmpty());
+        assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
+      }
+    }
+  }
+
+  @Test
+  public void MasterIntegrationFileTestFileSize() throws Exception {
+    List<String> fileSizes = ImmutableList.of("0", "1k", "5k", "1m");
+
+    for(String size : fileSizes) {
+      BatchTaskRunner.main(new String[]{
+          "MasterComprehensiveFileBatchTask",
+          "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/",
+          "--warmup", "0s",
+          "--threads", "1",
+          "--stop-count", "10",
+          "--write-type", "MUST_CACHE",
+          "--read-type", "NO_CACHE",
+          "--client-type", "AlluxioHDFS",
+          "--create-file-size", size,
+          "--in-process",
+      });
+
+      String printOutResult = out.toString();
+      List<String> resultList = getJsonResult(printOutResult);
+      assertEquals(resultList.size(), 7);
+      out.reset();
+
+      for (int i = 0; i < resultList.size(); i++) {
+        MasterBenchSummary summary = (MasterBenchSummary) JsonSerializable.fromJson(
+            resultList.get(i));
+        // confirm that the task was executed with certain parameter and output no errors
+        assertEquals(summary.getParameters().mOperation.toString(), operation.get(i));
+        assertEquals(summary.getParameters().mWarmup, "0s");
+        assertEquals(summary.getParameters().mThreads, 1);
+        assertEquals(summary.getParameters().mStopCount, 10);
+        assertEquals(summary.getParameters().mWriteType, "MUST_CACHE");
+        assertEquals(summary.getParameters().mReadType.toString(), "NO_CACHE");
+        assertEquals(summary.getParameters().mClientType, FileSystemClientType.ALLUXIO_HDFS);
+        assertEquals(summary.getParameters().mCreateFileSize, size);
+        Map<String, MasterBenchTaskResult> results = summary.getNodeResults();
+
+        assertFalse(results.isEmpty());
+        assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
+      }
+    }
+  }
+
 }
