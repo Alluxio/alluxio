@@ -54,7 +54,7 @@ public class AlluxioLog4jSocketNodeTest {
         objectOutputStream.writeObject(numbers);
         write2BufferAndCloseOutputStream();
         createInputStreamsAndsetAcceptList();
-        Hashtable<String, Integer> numbers1 = (Hashtable<String, Integer>) validatingObjectInputStream.readObject();
+        Hashtable<String, Integer> numbers1 = (Hashtable) validatingObjectInputStream.readObject();
     }
 
     @Test
