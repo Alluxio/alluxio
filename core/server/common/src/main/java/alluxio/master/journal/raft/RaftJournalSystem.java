@@ -63,7 +63,6 @@ import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.protocol.SetConfigurationRequest;
 import org.apache.ratis.protocol.exceptions.LeaderNotReadyException;
 import org.apache.ratis.retry.ExponentialBackoffRetry;
-import org.apache.ratis.retry.RetryPolicies;
 import org.apache.ratis.retry.RetryPolicy;
 import org.apache.ratis.rpc.SupportedRpcType;
 import org.apache.ratis.server.RaftServer;
@@ -230,7 +229,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
-  private final Map<String, TransferLeaderMessage> mErrorMessages;
+  private Map<String, TransferLeaderMessage> mErrorMessages;
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -439,21 +438,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
-    return createClient(
-        TimeDuration.valueOf(15, TimeUnit.SECONDS),
-        ExponentialBackoffRetry.newBuilder()
-            .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
-            .setMaxAttempts(10)
-            .setMaxSleepTime(
-                TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
-            .build()
-        );
-  }
-
-  private RaftClient createClient(TimeDuration timeout, RetryPolicy retryPolicy) {
+    long timeoutMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+    long retryBaseMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
-    RaftClientConfigKeys.Rpc.setRequestTimeout(properties, timeout);
+    RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
+        TimeDuration.valueOf(timeoutMs, TimeUnit.MILLISECONDS));
+    RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
+        .setBaseSleepTime(TimeDuration.valueOf(retryBaseMs, TimeUnit.MILLISECONDS))
+        .setMaxSleepTime(
+            TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
+        .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
         .setClientId(mClientId)
@@ -882,12 +879,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    long timeoutMs = ServerConfiguration.getMs(
-        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_TIMEOUT);
-    long retryMs = ServerConfiguration.getMs(
-        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DATA_REQUEST_INTERVAL);
-    RaftClient client = createClient(TimeDuration.valueOf(timeoutMs, TimeUnit.MILLISECONDS),
-        RetryPolicies.retryForeverWithSleep(TimeDuration.valueOf(retryMs, TimeUnit.MILLISECONDS)));
+    RaftClient client = createClient();
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)
