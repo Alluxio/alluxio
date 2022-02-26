@@ -21,7 +21,6 @@ import alluxio.util.FormatUtils;
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
-import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,12 +118,12 @@ public class RaftJournalWriter implements JournalWriter {
         mLastSubmittedSequenceNumber.set(flushSN);
         LOG.trace("Flushing entry {} ({})", entry, message);
         RaftClientReply reply = mClient
-            .sendAsync(message, TimeDuration.valueOf(mWriteTimeoutMs, TimeUnit.MILLISECONDS))
+            .sendAsync(message)
             .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
-        mLastCommittedSequenceNumber.set(flushSN);
         if (reply.getException() != null) {
           throw reply.getException();
         }
+        mLastCommittedSequenceNumber.set(flushSN);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new IOException(e);
@@ -148,7 +147,6 @@ public class RaftJournalWriter implements JournalWriter {
     LOG.info("Closing journal writer. Last sequence numbers written/submitted/committed: {}/{}/{}",
         mNextSequenceNumberToWrite.get() - 1, mLastSubmittedSequenceNumber.get(),
         mLastCommittedSequenceNumber.get());
-    closeClient();
   }
 
   /**
@@ -156,13 +154,5 @@ public class RaftJournalWriter implements JournalWriter {
    */
   public long getNextSequenceNumberToWrite() {
     return mNextSequenceNumberToWrite.get();
-  }
-
-  private void closeClient() {
-    try {
-      mClient.close();
-    } catch (IOException e) {
-      LOG.warn("Failed to close raft client: {}", e.toString());
-    }
   }
 }

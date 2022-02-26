@@ -475,21 +475,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global());
 
-    Runnable closeClient = () -> {
-      try {
-        client.close();
-      } catch (IOException e) {
-        LOG.warn("Failed to close raft client: {}", e.toString());
-      }
-    };
-
     try {
       catchUp(mStateMachine, client);
     } catch (TimeoutException e) {
-      closeClient.run();
       throw new RuntimeException(e);
     } catch (InterruptedException e) {
-      closeClient.run();
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
@@ -601,8 +591,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from standby master
-    try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId, ServerConfiguration.global())) {
+    try {
+      RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
+          mRawClientId, ServerConfiguration.global());
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
@@ -691,8 +682,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       Exception ex;
       try {
         CompletableFuture<RaftClientReply> future = client.sendAsync(
-            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()),
-            TimeDuration.valueOf(5, TimeUnit.SECONDS));
+            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build())
+        );
         RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
         ex = reply.getException();
       } catch (TimeoutException | ExecutionException | IOException e) {

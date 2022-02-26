@@ -13,7 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.LogUtils;
 
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.protocol.ClientId;
@@ -22,11 +21,9 @@ import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.exceptions.AlreadyClosedException;
 import org.apache.ratis.server.RaftServer;
-import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -35,17 +32,16 @@ import java.util.function.Supplier;
 /**
  * A client to append messages to RAFT log state.
  */
-public class RaftJournalAppender implements Closeable {
+public class RaftJournalAppender {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalAppender.class);
   /** Hosting server for the appender. Used by default for appending log entries. */
   private final RaftServer mServer;
   /** local client ID, provided along with hosting server.  */
-  private ClientId mLocalClientId;
+  private final ClientId mLocalClientId;
   /** Remote raft client. */
   private final Supplier<RaftClient> mClientSupplier;
-  private volatile RaftClient mClient;
   /** Whether to use remote RaftClient for appending log entries. */
-  private boolean mEnableRemoteClient;
+  private final boolean mEnableRemoteClient;
 
   /**
    * @param server the local raft server
@@ -65,21 +61,18 @@ public class RaftJournalAppender implements Closeable {
   /**
    * Sends a request to raft server asynchronously.
    * @param message the message to send
-   * @param timeout the time duration to wait before giving up on the request
    * @return a future of the server reply
    * @throws IOException if an exception occured while sending the request
    */
-  public CompletableFuture<RaftClientReply> sendAsync(Message message,
-      TimeDuration timeout) throws IOException {
+  public CompletableFuture<RaftClientReply> sendAsync(Message message) throws IOException {
     if (mEnableRemoteClient) {
       return sendRemoteRequest(message);
     } else {
-      return sendLocalRequest(message, timeout);
+      return sendLocalRequest(message);
     }
   }
 
-  private CompletableFuture<RaftClientReply> sendLocalRequest(Message message,
-      TimeDuration timeout) throws IOException {
+  private CompletableFuture<RaftClientReply> sendLocalRequest(Message message) throws IOException {
     LOG.trace("Sending local message {}", message);
     // ClientId, ServerId, and GroupId must not be null
     RaftClientRequest request = RaftClientRequest.newBuilder()
@@ -94,45 +87,18 @@ public class RaftJournalAppender implements Closeable {
     return mServer.submitClientRequestAsync(request);
   }
 
-  private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) {
-    ensureClient();
-    LOG.trace("Sending remote message {}", message);
-    return mClient.async().send(message).exceptionally(t -> {
-      // Handle and rethrow exception.
-      handleRemoteException(t);
-      throw new CompletionException(t.getCause());
-    });
-  }
-
-  private void ensureClient() {
-    if (mClient == null) {
-      mClient = mClientSupplier.get();
-    }
-  }
-
-  private void handleRemoteException(Throwable t) {
-    if (t == null) {
-      return;
-    }
-    LOG.trace("Received remote exception", t);
-    if (t instanceof AlreadyClosedException
-        || (t != null && t.getCause() instanceof AlreadyClosedException)) {
-      // create a new client if the current client is already closed
-      LOG.warn("Connection is closed. Closing ratis client.");
-      try {
-        mClient.close();
-      } catch (IOException e) {
-        LogUtils.warnWithException(LOG, "Failed to close client: {}", e.toString());
-      } finally {
-        mClient = null;
-      }
-    }
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (mClient != null) {
-      mClient.close();
+  private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) throws IOException {
+    try (RaftClient client = mClientSupplier.get()) {
+      LOG.trace("Sending remote message {}", message);
+      return client.async().send(message).exceptionally(t -> {
+        // Handle and rethrow exception.
+        LOG.trace("Received remote exception", t);
+        if (t instanceof AlreadyClosedException || t.getCause() instanceof AlreadyClosedException) {
+          // create a new client if the current client is already closed
+          LOG.warn("Connection is closed.");
+        }
+        throw new CompletionException(t.getCause());
+      });
     }
   }
 }
