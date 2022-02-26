@@ -13,6 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.LogUtils;
 
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.protocol.ClientId;
@@ -87,10 +88,16 @@ public class RaftJournalAppender {
     return mServer.submitClientRequestAsync(request);
   }
 
-  private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) throws IOException {
-    try (RaftClient client = mClientSupplier.get()) {
-      LOG.trace("Sending remote message {}", message);
-      return client.async().send(message).exceptionally(t -> {
+  private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) {
+    RaftClient client = mClientSupplier.get();
+    LOG.trace("Sending remote message {}", message);
+    return client.async().send(message).whenComplete((reply, t) -> {
+      try {
+        client.close();
+      } catch (IOException e) {
+        LogUtils.warnWithException(LOG, "Exception occurred closing raft client", e);
+      }
+      if (t != null) {
         // Handle and rethrow exception.
         LOG.trace("Received remote exception", t);
         if (t instanceof AlreadyClosedException || t.getCause() instanceof AlreadyClosedException) {
@@ -98,7 +105,7 @@ public class RaftJournalAppender {
           LOG.warn("Connection is closed.");
         }
         throw new CompletionException(t.getCause());
-      });
-    }
+      }
+    });
   }
 }
