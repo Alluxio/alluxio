@@ -20,7 +20,6 @@ import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
-import org.apache.ratis.protocol.exceptions.AlreadyClosedException;
 import org.apache.ratis.server.RaftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,10 +99,6 @@ public class RaftJournalAppender {
       if (t != null) {
         // Handle and rethrow exception.
         LOG.trace("Received remote exception", t);
-        if (t instanceof AlreadyClosedException || t.getCause() instanceof AlreadyClosedException) {
-          // create a new client if the current client is already closed
-          LOG.warn("Connection is closed.");
-        }
         throw new CompletionException(t.getCause());
       }
     });
