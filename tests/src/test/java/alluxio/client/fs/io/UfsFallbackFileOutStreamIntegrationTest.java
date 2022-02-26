@@ -88,9 +88,9 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
   @Test
   public void shortCircuitWrite() throws Exception {
 
-    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, String.valueOf(mBlockSize));
+        put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, mBlockSize);
       }
     }, ServerConfiguration.global()).toResource()) {
       FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
@@ -119,11 +119,11 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
   @Ignore("Files may be lost due to evicting and committing before file is complete.")
   @Test
   public void grpcWrite() throws Exception {
-    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(mUserFileBufferSize));
-        put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, String.valueOf(mBlockSize));
-        put(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false");
+        put(PropertyKey.USER_FILE_BUFFER_BYTES, mUserFileBufferSize);
+        put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, mBlockSize);
+        put(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false);
       }
     }, ServerConfiguration.global()).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());

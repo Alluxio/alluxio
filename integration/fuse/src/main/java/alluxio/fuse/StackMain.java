@@ -43,7 +43,7 @@ public class StackMain {
       AlluxioConfiguration conf = new InstancedConfiguration(
           ConfigurationUtils.defaults());
       CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-      MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+      MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
       fs.mount(true, false, fuseOpts);
     } catch (Exception e) {
       e.printStackTrace();

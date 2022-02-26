@@ -114,11 +114,12 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
-    {
-      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+        {
+          put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
+        }
+      }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {

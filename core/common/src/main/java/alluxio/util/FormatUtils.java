@@ -250,23 +250,6 @@ public final class FormatUtils {
   }
 
   /**
-   * Parses a boolean from a string.
-   *
-   * @param bool the boolean to parse
-   * @return whether the value was "true" or "false"
-   * @throws IllegalArgumentException if the value cannot be parsed
-   */
-  public static boolean parseBoolean(String bool) throws IllegalArgumentException {
-    if (bool.equalsIgnoreCase("true")) {
-      return true;
-    } else if (bool.equalsIgnoreCase("false")) {
-      return false;
-    } else {
-      throw new IllegalArgumentException("Failed to parse " + bool + " as boolean");
-    }
-  }
-
-  /**
    * Formats digital representation of a model as a human-readable string.
    *
    * @param mode file mode

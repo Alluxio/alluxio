@@ -255,7 +255,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setUptime(CommonUtils
           .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
-              ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)))
+              ServerConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
@@ -685,7 +685,7 @@ public final class AlluxioMasterRestServiceHandler {
       //response.setBaseUrl("./browseLogs");
       //response.setShowPermissions(false);
 
-      String logsPath = ServerConfiguration.get(PropertyKey.LOGS_DIR);
+      String logsPath = ServerConfiguration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -1139,7 +1139,7 @@ public final class AlluxioMasterRestServiceHandler {
         .setUsed(mBlockMaster.getUsedBytes());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }

@@ -67,7 +67,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
     int levels = ServerConfiguration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
-      String alias = ServerConfiguration.get(template.format(i));
+      String alias = ServerConfiguration.getString(template.format(i));
       builder.put(alias, i);
     }
     mAliasToOrdinal = builder.build();

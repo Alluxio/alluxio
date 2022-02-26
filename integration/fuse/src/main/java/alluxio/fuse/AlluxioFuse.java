@@ -122,7 +122,7 @@ public final class AlluxioFuse {
       System.exit(1);
     }
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-    MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
       FuseWebServer webServer = new FuseWebServer(
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),

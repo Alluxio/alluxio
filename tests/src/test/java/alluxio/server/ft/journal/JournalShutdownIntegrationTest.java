@@ -76,10 +76,10 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConfigRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
           .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
-          .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
-          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "128")
+          .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2)
+          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 128)
           .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build(),
           ServerConfiguration.global());
 
