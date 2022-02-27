@@ -15,7 +15,6 @@ import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -128,7 +127,7 @@ public class BlockWorkerDBTest {
     mBlockWorkerDB.setClusterId(clusterId);
     mBlockWorkerDB.reset();
     // after reset, all information will be cleared, so will get IdUtils.EMPTY_CLUSTER_ID
-    Assert.assertEquals(IdUtils.EMPTY_CLUSTER_ID, mBlockWorkerDB.getClusterId());
+    Assert.assertEquals("", mBlockWorkerDB.getClusterId());
   }
 
   @Test
@@ -154,7 +153,7 @@ public class BlockWorkerDBTest {
         mTestFolder.getRoot().getAbsolutePath(), "a", "b", "c");
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, noExistPath);
     // skip BlockWorkerDB.Factory.create "TEST_MODE"
-    ServerConfiguration.set(PropertyKey.TEST_MODE, "false");
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
 
     BlockWorkerDB blockWorkerDB = BlockWorkerDB.Factory.create(ServerConfiguration.global());
     String clusterId = java.util.UUID.randomUUID().toString();

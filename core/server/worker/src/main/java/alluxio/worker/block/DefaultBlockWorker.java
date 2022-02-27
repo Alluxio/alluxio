@@ -259,6 +259,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
   }
 
+  @VisibleForTesting
+  void reset()
+      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
+    cleanBlocks();
+    clearMetrics();
+    mHeartbeatReporter.ClearReport();
+    mBlockWorkerDB.reset();
+  }
+
   /**
    * Handles a master preRegister command.
    *
@@ -275,10 +284,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         break;
       case REGISTER_CLEAN_BLOCKS:
         LOG.warn("Master Command {}", cmd);
-        cleanBlocks();
-        clearMetrics();
-        mHeartbeatReporter.ClearReport();
-        mBlockWorkerDB.reset();
+        reset();
         SetClusterIdAllowFails(cmd.getClusterId());
         break;
       case REJECT_REGISTER:

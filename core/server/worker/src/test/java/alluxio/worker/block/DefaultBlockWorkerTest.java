@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -112,8 +113,8 @@ public class DefaultBlockWorkerTest {
     mUfsManager = mock(UfsManager.class);
 
     setPersistenceConf();
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
-        mSessions, mBlockStore, mUfsManager);
+    mBlockWorker = spy(new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
+        mSessions, mBlockStore, mUfsManager));
   }
 
   @Test
@@ -399,7 +400,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandACK()
+  public void handlePreRegisterCommandACK_REGISTER()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     WorkerPreRegisterInfo cmd = WorkerPreRegisterInfo.newBuilder()
@@ -414,7 +415,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandPERSIST_CLUSTERID()
+  public void handlePreRegisterCommandREGISTER_PERSIST_CLUSTERID()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     WorkerPreRegisterInfo cmd = WorkerPreRegisterInfo.newBuilder()
@@ -428,17 +429,23 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandCLEAN_BLOCK()
+  public void handlePreRegisterCommandREGISTER_CLEAN_BLOCKS()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     WorkerPreRegisterInfo cmd = WorkerPreRegisterInfo.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_CLEAN_BLOCKS)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterInfo(cmd);
+    verify(mBlockWorker, times(1)).reset();
     assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
-    // todo update this after add the function of "clean all block and reset status"
-    //  in PreRegisterCommand
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
+  }
+
+  @Test
+  public void handlePreRegisterCommandREJECT_REGISTER() throws IOException {
+    WorkerPreRegisterInfo info = WorkerPreRegisterInfo.newBuilder()
+        .setPreRegisterCommandType(PreRegisterCommandType.REJECT_REGISTER).build();
+    assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(info));
   }
 
   @Test
@@ -453,13 +460,6 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.setClusterId(mClusterID);
     assertEquals(mClusterID,
         mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
-  }
-
-  @Test
-  public void handlePreRegisterCommandREJECT() throws IOException {
-    WorkerPreRegisterInfo info = WorkerPreRegisterInfo.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.REJECT_REGISTER).build();
-    assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(info));
   }
 
   @Test
