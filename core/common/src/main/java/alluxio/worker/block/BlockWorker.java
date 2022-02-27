@@ -57,6 +57,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   AtomicReference<String> getOrDefaultClusterId(String defaultValue);
 
+  /**
+   * Registers with the Alluxio master. This should be called before the
+   *
+   * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
+   * @param address the worker address
+  preRegister with the Alluxio master. This should be called before the
+   * continuous heartbeat thread begins.
+   */
   void preRegisterWithMaster(WorkerNetAddress address);
 
   /**

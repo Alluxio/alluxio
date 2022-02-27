@@ -72,7 +72,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     }
   }
 
-  public void ClearReport() {
+  void ClearReport() {
     synchronized (mLock) {
       ClearReportInternal();
     }

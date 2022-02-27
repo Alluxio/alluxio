@@ -289,6 +289,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWorkerId.set(cmd.getWorkerId());
   }
 
+  @Override
   public void preRegisterWithMaster(WorkerNetAddress address) {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     final AtomicReference<WorkerPreRegisterInfo> commandFromMaster =

@@ -98,6 +98,30 @@
                 "integer": 9
               }
             ]
+          },
+          {
+            "name": "PreRegisterCommandType",
+            "enum_fields": [
+              {
+                "name": "UNKNOWN"
+              },
+              {
+                "name": "ACK_REGISTER",
+                "integer": 1
+              },
+              {
+                "name": "REGISTER_PERSIST_CLUSTERID",
+                "integer": 2
+              },
+              {
+                "name": "REGISTER_CLEAN_BLOCKS",
+                "integer": 3
+              },
+              {
+                "name": "REJECT_REGISTER",
+                "integer": 4
+              }
+            ]
           }
         ],
         "messages": [
@@ -393,6 +417,11 @@
                 "name": "metrics",
                 "type": "grpc.Metric",
                 "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "hasClusterId",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -445,6 +474,11 @@
                 "name": "addedBlocks",
                 "type": "LocationBlockIdListEntry",
                 "is_repeated": true
+              },
+              {
+                "id": 8,
+                "name": "clusterId",
+                "type": "string"
               }
             ],
             "maps": [
@@ -557,7 +591,14 @@
             "name": "CommitBlockInUfsPResponse"
           },
           {
-            "name": "GetWorkerIdPOptions"
+            "name": "GetWorkerIdPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "extendedRegisterInfo",
+                "type": "bool"
+              }
+            ]
           },
           {
             "name": "GetWorkerIdPRequest",
@@ -571,6 +612,16 @@
                 "id": 2,
                 "name": "options",
                 "type": "GetWorkerIdPOptions"
+              },
+              {
+                "id": 3,
+                "name": "clusterId",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "hasBlockInTier",
+                "type": "bool"
               }
             ]
           },
@@ -581,6 +632,21 @@
                 "id": 1,
                 "name": "workerId",
                 "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "workerNetAddress",
+                "type": "grpc.WorkerNetAddress"
+              },
+              {
+                "id": 3,
+                "name": "workerPreRegisterInfo",
+                "type": "WorkerPreRegisterInfo"
+              },
+              {
+                "id": 4,
+                "name": "options",
+                "type": "GetWorkerIdPOptions"
               }
             ]
           },
@@ -624,6 +690,26 @@
                 "id": 4,
                 "name": "options",
                 "type": "GetRegisterLeasePOptions"
+              }
+            ]
+          },
+          {
+            "name": "WorkerPreRegisterInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "preRegisterCommandType",
+                "type": "PreRegisterCommandType"
+              },
+              {
+                "id": 2,
+                "name": "clusterId",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "workerId",
+                "type": "int64"
               }
             ]
           },
@@ -1341,6 +1427,10 @@
               {
                 "name": "Persist",
                 "integer": 5
+              },
+              {
+                "name": "PreRegisterAndRegister",
+                "integer": 6
               }
             ]
           },
@@ -5174,6 +5264,29 @@
             ]
           },
           {
+            "name": "GetClusterIdInternalPOptions"
+          },
+          {
+            "name": "GetClusterIdInternalPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "GetClusterIdInternalPOptions"
+              }
+            ]
+          },
+          {
+            "name": "GetClusterIdInternalPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "clusterId",
+                "type": "string"
+              }
+            ]
+          },
+          {
             "name": "RegisterMasterPOptions",
             "fields": [
               {
@@ -5325,6 +5438,11 @@
                 "name": "GetMasterId",
                 "in_type": "GetMasterIdPRequest",
                 "out_type": "GetMasterIdPResponse"
+              },
+              {
+                "name": "GetClusterIdInternal",
+                "in_type": "GetClusterIdInternalPRequest",
+                "out_type": "GetClusterIdInternalPResponse"
               },
               {
                 "name": "RegisterMaster",
