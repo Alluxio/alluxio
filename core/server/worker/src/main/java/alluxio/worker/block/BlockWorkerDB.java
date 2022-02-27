@@ -69,7 +69,8 @@ public interface BlockWorkerDB {
      */
     public static BlockWorkerDB create(AlluxioConfiguration conf) {
       // Compatibility test, the test env does not have ${ALLUXIO_HOME} dir write permissions
-      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE) &&
+          !ServerConfiguration.isSetByUser(PropertyKey.WORKER_CLUSTERID_PATH)) {
         Path temTestPath;
         try {
           temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());

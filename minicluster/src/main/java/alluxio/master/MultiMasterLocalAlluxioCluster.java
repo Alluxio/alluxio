@@ -35,9 +35,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -97,6 +100,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
+    Path temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());
+    ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, temTestPath);
   }
 
   @Override
