@@ -315,10 +315,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       if (mRegistry.get(BlockWorker.class).getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get()
-          .equals(IdUtils.INVALID_CLUSTER_ID)) {
+          .equals(IdUtils.EMPTY_CLUSTER_ID)) {
         LOG.warn("BlockWorker clsuter ID: {} "
                 + "This may be caused by the worker process not be able to persist the clusterid"
-                + " to the file {}", IdUtils.INVALID_CLUSTER_ID,
+                + " to the file {}", IdUtils.EMPTY_CLUSTER_ID,
             ServerConfiguration.get(PropertyKey.WORKER_CLUSTERID_PATH));
       }
       return true;

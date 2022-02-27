@@ -189,7 +189,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mSessions = sessions;
     mLocalBlockStore = mResourceCloser.register(blockStore);
     mWorkerId = new AtomicReference<>(-1L);
-    mClusterId = new AtomicReference<>(IdUtils.INVALID_CLUSTER_ID);
+    mClusterId = new AtomicReference<>();
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
