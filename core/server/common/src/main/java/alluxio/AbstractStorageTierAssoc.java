@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -66,7 +67,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
     int levels = ServerConfiguration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
-      String alias = ServerConfiguration.get(template.format(i));
+      String alias = ServerConfiguration.getString(template.format(i));
       builder.put(alias, i);
     }
     mAliasToOrdinal = builder.build();
@@ -92,6 +93,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
   }
 
   @Override
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public int getOrdinal(String alias) {
     return mAliasToOrdinal.get(alias);
   }

@@ -27,6 +27,7 @@ import alluxio.cli.ValidationUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.hub.common.HubUtil;
 import alluxio.hub.manager.util.AlluxioCluster;
@@ -111,6 +112,23 @@ public class ManagerProcessContextTest extends BaseHubTest {
   @After
   public void after() throws IOException {
     mContext.close();
+  }
+
+  @Test
+  public void testClusterId() throws Exception {
+    assertTrue(ManagerProcessContext.checkClusterId("abcd"));
+    assertTrue(ManagerProcessContext.checkClusterId("ab12"));
+    assertTrue(ManagerProcessContext.checkClusterId("1234"));
+    assertFalse(ManagerProcessContext.checkClusterId("ABCD"));
+    assertFalse(ManagerProcessContext.checkClusterId("abc!"));
+    assertFalse(ManagerProcessContext.checkClusterId("123A"));
+    assertFalse(ManagerProcessContext.checkClusterId("abcde"));
+    assertFalse(ManagerProcessContext.checkClusterId("!@#$"));
+    InstancedConfiguration conf = getTestConfig();
+    getTestManagerContext(conf);
+    // invalid cluster id throws exception
+    conf.set(PropertyKey.HUB_CLUSTER_ID, "abcde");
+    assertThrows(RuntimeException.class, () -> getTestManagerContext(conf));
   }
 
   @Test
@@ -451,7 +469,8 @@ public class ManagerProcessContextTest extends BaseHubTest {
     resp = mContext.setPrestoConfDir(
             SetPrestoConfDirRequest.newBuilder()
                     .setPayload(SetPrestoConfDirRequest.Payload.newBuilder()
-                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
+                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH
+                                .getDefaultStringValue()))
                     .build());
     assertTrue(resp.getSuccess());
     assertTrue(resp.getIsDefault());
@@ -466,7 +485,8 @@ public class ManagerProcessContextTest extends BaseHubTest {
     resp = mContext.setPrestoConfDir(
             SetPrestoConfDirRequest.newBuilder()
                     .setPayload(SetPrestoConfDirRequest.Payload.newBuilder()
-                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
+                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH
+                                .getDefaultStringValue()))
                     .build());
     assertFalse(resp.getSuccess());
     assertTrue(resp.getIsDefault());
@@ -478,7 +498,8 @@ public class ManagerProcessContextTest extends BaseHubTest {
     resp = mContext.setPrestoConfDir(
             SetPrestoConfDirRequest.newBuilder()
                     .setPayload(SetPrestoConfDirRequest.Payload.newBuilder()
-                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
+                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH
+                                .getDefaultStringValue()))
                     .build());
     assertFalse(resp.getSuccess());
   }

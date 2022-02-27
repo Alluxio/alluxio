@@ -67,7 +67,8 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
         LOG.debug("Successfully connected to {}", mNodeAddress);
         return true;
       } catch (UnavailableException e) {
-        LOG.debug("Failed to connect to {}", mNodeAddress);
+        LOG.debug("Failed to connect to {} on attempt #{}", mNodeAddress,
+            retry.getAttemptCount());
       } catch (AlluxioStatusException e) {
         throw new RuntimeException(e);
       }

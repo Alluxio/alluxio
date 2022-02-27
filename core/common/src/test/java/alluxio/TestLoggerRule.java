@@ -66,7 +66,8 @@ public class TestLoggerRule extends AbstractResourceRule {
    * @return The number of log messages which match the pattern
    */
   public int logCount(String pattern) {
-    return mAppender.logCount(Pattern.compile(".*" + pattern + ".*"));
+    // [\s\S] will match all character include line break
+    return mAppender.logCount(Pattern.compile("[\\s\\S]*" + pattern + "[\\s\\S]*"));
   }
 
   /**

@@ -106,8 +106,8 @@ public final class GrpcUtils {
       acl = new AccessControlList();
     }
 
-    acl.setOwningUser(pAcl.getOwner());
-    acl.setOwningGroup(pAcl.getOwningGroup());
+    acl.setOwningUser(pAcl.getOwner().intern());
+    acl.setOwningGroup(pAcl.getOwningGroup().intern());
     acl.setMode((short) pAcl.getMode());
 
     if (pAcl.getEntriesCount() > 0) {

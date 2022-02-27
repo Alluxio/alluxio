@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +43,7 @@ public abstract class AbstractMaster implements Master {
   private static final long SHUTDOWN_TIMEOUT_MS = 10L * Constants.SECOND_MS;
 
   /** A factory for creating executor services when they are needed. */
-  private ExecutorServiceFactory mExecutorServiceFactory;
+  private final ExecutorServiceFactory mExecutorServiceFactory;
   /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService;
   /** A handler to the journal for this master. */
@@ -74,7 +74,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public Set<Class<? extends Server>> getDependencies() {
-    return new HashSet<>();
+    return Collections.emptySet();
   }
 
   @Override

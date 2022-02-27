@@ -153,7 +153,12 @@ public final class FormatUtils {
       return String.format(Locale.ENGLISH, "%.2fTB", ret);
     }
     ret /= 1024;
-    return String.format(Locale.ENGLISH, "%.2fPB", ret);
+    if (ret <= 1024 * 5) {
+      return String.format(Locale.ENGLISH, "%.2fPB", ret);
+    }
+    ret /= 1024;
+    //Long.MAX_VALUE bytes approximately equals to 8EB.
+    return String.format(Locale.ENGLISH, "%.2fEB", ret);
   }
 
   /**
@@ -241,23 +246,6 @@ public final class FormatUtils {
       return sign * (long) (douTime * Constants.DAY + alpha);
     } else {
       throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
-    }
-  }
-
-  /**
-   * Parses a boolean from a string.
-   *
-   * @param bool the boolean to parse
-   * @return whether the value was "true" or "false"
-   * @throws IllegalArgumentException if the value cannot be parsed
-   */
-  public static boolean parseBoolean(String bool) throws IllegalArgumentException {
-    if (bool.equalsIgnoreCase("true")) {
-      return true;
-    } else if (bool.equalsIgnoreCase("false")) {
-      return false;
-    } else {
-      throw new IllegalArgumentException("Failed to parse " + bool + " as boolean");
     }
   }
 

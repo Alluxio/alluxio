@@ -15,8 +15,8 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -87,8 +87,8 @@ public class AlluxioFuseFileSystemTest {
 
   @Rule
   public ConfigurationRule mConfiguration =
-      new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, "0",
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, "true"), mConf);
+      new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true), mConf);
 
   @Before
   public void before() throws Exception {

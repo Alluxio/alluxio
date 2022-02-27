@@ -35,12 +35,15 @@ import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +53,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -100,7 +104,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
-      String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
+      String baseDir = ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR);
       mUfsManager = new MasterUfsManager();
       mContext = CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
@@ -158,9 +162,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     LOG.info("Stopping...");
     stopRejectingServers();
-    if (isServing()) {
-      stopServing();
-    }
+    stopServing();
     mJournalSystem.stop();
     closeMasters();
     LOG.info("Stopped.");
@@ -191,11 +193,12 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param isLeader if the Master is leader
    */
   protected void startMasters(boolean isLeader) throws IOException {
-    LOG.info("Starting all masters as: %s.", (isLeader) ? "leader" : "follower");
+    LOG.info("Starting all masters as: {}.", (isLeader) ? "leader" : "follower");
     if (isLeader) {
       if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
         AlluxioURI backup =
-            new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+            new AlluxioURI(ServerConfiguration.getString(
+                PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
         if (mJournalSystem.isEmpty()) {
           initFromBackup(backup);
         } else {
@@ -244,6 +247,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    * server and starting web ui.
    */
   protected void startServingWebServer() {
+    LOG.info("Alluxio master web server version {}. webAddress={}",
+        RuntimeConstants.VERSION, mWebBindAddress);
     stopRejectingWebServer();
     mWebServer =
         new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
@@ -282,12 +287,14 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param stopMessage empty string or the message that the master loses the leadership
    */
   protected void startServing(String startMessage, String stopMessage) {
-    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
-    startServingRPCServer();
-    LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
-    startServingWebServer();
+    // start all common services for non-ha master or leader master
+    startCommonServices();
     startJvmMonitorProcess();
+    startLeaderServing(startMessage, stopMessage);
+  }
+
+  protected void startLeaderServing(String startMessage, String stopMessage) {
+    startServingRPCServer();
     LOG.info(
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
@@ -295,6 +302,15 @@ public class AlluxioMasterProcess extends MasterProcess {
     // Blocks until RPC server is shut down. (via #stopServing)
     mGrpcServer.awaitTermination();
     LOG.info("Alluxio master ended {}", stopMessage);
+  }
+
+  /**
+   * Entrance of the services that can run whether the master state is the primary or standby.
+   */
+  protected void startCommonServices() {
+    MetricsSystem.startSinks(
+        ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+    startServingWebServer();
   }
 
   /**
@@ -358,12 +374,8 @@ public class AlluxioMasterProcess extends MasterProcess {
     return builder.build();
   }
 
-  /**
-   * Stops serving, trying stop RPC server and web ui server and letting {@link MetricsSystem} stop
-   * all the sinks.
-   */
-  protected void stopServing() throws Exception {
-    if (isServing()) {
+  protected void stopLeaderServing() {
+    if (isGrpcServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
@@ -378,14 +390,53 @@ public class AlluxioMasterProcess extends MasterProcess {
         Thread.currentThread().interrupt();
       }
     }
-    if (mJvmPauseMonitor != null) {
-      mJvmPauseMonitor.stop();
-    }
+  }
+
+  protected void stopCommonServices() throws Exception {
+    MetricsSystem.stopSinks();
+    stopServingWebServer();
+  }
+
+  /**
+   * Stops all services.
+   */
+  protected void stopServing() throws Exception {
+    stopLeaderServing();
+    stopCommonServices();
+    stopJvmMonitorProcess();
+  }
+
+  protected void stopServingWebServer() throws Exception {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
     }
-    MetricsSystem.stopSinks();
+  }
+
+  protected void stopJvmMonitorProcess() {
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
+  }
+
+  /**
+   * Waits until the web server is ready to serve requests.
+   *
+   * @param timeoutMs how long to wait in milliseconds
+   * @return whether the web server became ready before the specified timeout
+   */
+  @VisibleForTesting
+  public boolean waitForWebServerReady(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start",
+          this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override

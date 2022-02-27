@@ -232,4 +232,9 @@
 0.6.34
 
 - Enable mounting a specific directory in Alluxio through Fuse
+- Fixes a typo in rendering the fuse mount directory.
+
+0.6.35
+
+- Remove usage of Helm hook annotations in Charts
 

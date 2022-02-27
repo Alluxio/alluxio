@@ -17,6 +17,7 @@ import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
@@ -30,7 +31,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -361,7 +360,9 @@ public class LocalCacheManager implements CacheManager {
       if (scopeToEvict == null) {
         try {
           mPageStore.put(pageId, page);
-          Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
+          // Bytes written to the cache
+          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
+              .mark(page.length);
           return PutResult.OK;
         } catch (ResourceExhaustedException e) {
           undoAddPage(pageId);
@@ -408,8 +409,11 @@ public class LocalCacheManager implements CacheManager {
       PageId victim = victimPageInfo.getPageId();
       try {
         mPageStore.delete(victim);
-        Metrics.BYTES_EVICTED_CACHE.mark(victimPageInfo.getPageSize());
-        Metrics.PAGES_EVICTED_CACHE.mark();
+        // Bytes evicted from the cache
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
+            .mark(victimPageInfo.getPageSize());
+        // Errors when adding pages
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getName()).mark();
       } catch (IOException | PageNotFoundException e) {
         if (scopeToEvict == null) {
           // Failed to evict page, remove new page from metastore as there will not be enough space
@@ -424,7 +428,8 @@ public class LocalCacheManager implements CacheManager {
       }
       try {
         mPageStore.put(pageId, page);
-        Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
+        // Bytes written to the cache
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
         return PutResult.OK;
       } catch (ResourceExhaustedException e) {
         undoAddPage(pageId);
@@ -558,7 +563,18 @@ public class LocalCacheManager implements CacheManager {
 
   private boolean restore(PageStoreOptions options) {
     LOG.info("Restoring PageStore ({})", options);
-    Path rootDir = Paths.get(options.getRootDir());
+    if (options.getType() == PageStoreType.MEM) {
+      return true;
+    }
+    for (Path rootDir : options.getRootDirs()) {
+      if (!restoreInternal(rootDir, options)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean restoreInternal(Path rootDir, PageStoreOptions options) {
     if (!Files.exists(rootDir)) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist", rootDir);
       return false;
@@ -648,12 +664,9 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private static final class Metrics {
-    /** Bytes evicted from the cache. */
-    private static final Meter BYTES_EVICTED_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName());
-    /** Bytes written to the cache. */
-    private static final Meter BYTES_WRITTEN_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName());
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     /** Errors when cleaning up a failed get operation. */
     private static final Counter CLEANUP_GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEANUP_GET_ERRORS.getName());
@@ -681,9 +694,6 @@ public class LocalCacheManager implements CacheManager {
     /** Errors when getting pages due to failed read from page stores. */
     private static final Counter GET_STORE_READ_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_STORE_READ_ERRORS.getName());
-    /** Pages evicted from the cache. */
-    private static final Meter PAGES_EVICTED_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getName());
     /** Errors when adding pages. */
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());

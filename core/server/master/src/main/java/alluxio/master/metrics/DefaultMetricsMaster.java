@@ -171,9 +171,9 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+    mMetricsStore.initMetricKeys();
+    mMetricsStore.clear();
     if (isLeader) {
-      mMetricsStore.initMetricKeys();
-      mMetricsStore.clear();
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
           ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),

@@ -87,7 +87,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -389,11 +388,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
-    Iterator<Block> it = mBlockStore.iterator();
+    Iterator<Block> blockStoreIterator = mBlockStore.iterator();
     Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {
-        return it.hasNext();
+        return blockStoreIterator.hasNext();
       }
 
       @Override
@@ -401,7 +400,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
-        Block block = it.next();
+        Block block = blockStoreIterator.next();
         BlockInfoEntry blockInfoEntry =
             BlockInfoEntry.newBuilder().setBlockId(block.getId())
                 .setLength(block.getMeta().getLength()).build();
@@ -414,8 +413,20 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     };
 
-    return CloseableIterator.noopCloseable(Iterators
-        .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
+    CloseableIterator<JournalEntry> closeableIterator =
+        CloseableIterator.create(blockIterator, (whatever) -> {
+          if (blockStoreIterator instanceof CloseableIterator) {
+            final CloseableIterator<Block> c = (CloseableIterator<Block>) blockStoreIterator;
+            c.close();
+          } else {
+            // no op
+          }
+        });
+
+    return CloseableIterator.concat(
+        CloseableIterator.noopCloseable(
+            CommonUtils.singleElementIterator(getContainerIdJournalEntry())),
+        closeableIterator);
   }
 
   /**
@@ -629,7 +640,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
     }
 
-    List<WorkerInfo> workerInfoList = new ArrayList<>();
+    List<WorkerInfo> workerInfoList = new ArrayList<>(
+        selectedLiveWorkers.size() + selectedLostWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
@@ -671,17 +683,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
+  public void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
-        HashSet<Long> workerIds = new HashSet<>();
-
+        Set<Long> workerIds;
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent()) {
             continue;
           }
-          for (BlockLocation loc : mBlockStore.getLocations(blockId)) {
+          List<BlockLocation> locations = mBlockStore.getLocations(blockId);
+          workerIds = new HashSet<>(locations.size());
+          for (BlockLocation loc : locations) {
             workerIds.add(loc.getWorkerId());
           }
           // Two cases here:
@@ -1125,7 +1138,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Gather all blocks on this worker.
-    HashSet<Long> blocks = new HashSet<>();
+    int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();
+    HashSet<Long> blocks = new HashSet<>(totalSize);
     for (List<Long> blockIds : currentBlocksOnLocation.values()) {
       blocks.addAll(blockIds);
     }

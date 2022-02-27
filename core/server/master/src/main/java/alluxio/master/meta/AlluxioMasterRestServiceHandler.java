@@ -87,6 +87,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.apache.ratis.proto.RaftProtos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,7 +255,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setUptime(CommonUtils
           .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
-              ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)))
+              ServerConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
@@ -353,6 +354,17 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
+      Gauge masterRoleIdGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_ROLE_ID.getName());
+      Gauge leaderIdGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.CLUSTER_LEADER_ID.getName());
+      if (masterRoleIdGauge != null) {
+        response.setMasterRole(RaftProtos.RaftPeerRole.forNumber(
+            (Integer) masterRoleIdGauge.getValue()).name());
+      }
+      if (leaderIdGauge != null) {
+        response.setLeaderId((String) leaderIdGauge.getValue());
+      }
       return response;
     }, ServerConfiguration.global());
   }
@@ -673,7 +685,7 @@ public final class AlluxioMasterRestServiceHandler {
       //response.setBaseUrl("./browseLogs");
       //response.setShowPermissions(false);
 
-      String logsPath = ServerConfiguration.get(PropertyKey.LOGS_DIR);
+      String logsPath = ServerConfiguration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -1127,7 +1139,7 @@ public final class AlluxioMasterRestServiceHandler {
         .setUsed(mBlockMaster.getUsedBytes());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }

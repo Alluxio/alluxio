@@ -86,7 +86,7 @@ public class AlluxioPropertiesTest {
   @Test
   public void remove() {
     mProperties.remove(mKeyWithValue);
-    assertEquals(mKeyWithValue.getDefaultValue(), mProperties.get(mKeyWithValue));
+    assertEquals(mKeyWithValue.getDefaultStringValue(), mProperties.get(mKeyWithValue));
     assertEquals(Source.DEFAULT, mProperties.getSource(mKeyWithValue));
   }
 
@@ -101,8 +101,25 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
+  public void isSetByUser() {
+    assertFalse(mProperties.isSetByUser(mKeyWithValue));
+    assertFalse(mProperties.isSetByUser(mKeyWithoutValue));
+    mProperties.put(mKeyWithValue, "value", Source.CLUSTER_DEFAULT);
+    mProperties.put(mKeyWithoutValue, "value", Source.CLUSTER_DEFAULT);
+    assertFalse(mProperties.isSetByUser(mKeyWithValue));
+    assertFalse(mProperties.isSetByUser(mKeyWithoutValue));
+    // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
+    mProperties.put(mKeyWithValue, "value", Source.SYSTEM_PROPERTY);
+    mProperties.put(mKeyWithoutValue, "value", Source.SYSTEM_PROPERTY);
+    assertTrue(mProperties.isSetByUser(mKeyWithValue));
+    assertTrue(mProperties.isSetByUser(mKeyWithoutValue));
+    mProperties.remove(mKeyWithValue);
+    assertFalse(mProperties.isSetByUser(mKeyWithValue));
+  }
+
+  @Test
   public void entrySet() {
-    Set<Map.Entry<? extends PropertyKey, String>> expected =
+    Set<Map.Entry<? extends PropertyKey, Object>> expected =
         PropertyKey.defaultKeys().stream()
             .map(key -> Maps.immutableEntry(key, key.getDefaultValue())).collect(toSet());
     assertThat(mProperties.entrySet(), is(expected));

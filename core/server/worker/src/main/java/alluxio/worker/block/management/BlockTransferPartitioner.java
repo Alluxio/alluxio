@@ -93,7 +93,7 @@ public class BlockTransferPartitioner {
         partitionDbgStr.append(String.format("Partition-%d:%n ->%s%n", i, balancedPartitions.get(i)
             .stream().map(Objects::toString).collect(Collectors.joining("\n ->"))));
       }
-      LOG.debug(partitionDbgStr.toString());
+      LOG.debug("{}", partitionDbgStr);
     }
     return balancedPartitions;
   }

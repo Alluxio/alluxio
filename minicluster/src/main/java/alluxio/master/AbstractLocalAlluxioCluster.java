@@ -166,7 +166,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void setupTest() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    String underfsAddress = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String underfsAddress = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
     UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
@@ -179,7 +179,7 @@ public abstract class AbstractLocalAlluxioCluster {
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = ServerConfiguration.get(tierLevelDirPath).split(",");
+      String[] dirPaths = ServerConfiguration.getString(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         FileUtils.createDir(dirPath);
       }

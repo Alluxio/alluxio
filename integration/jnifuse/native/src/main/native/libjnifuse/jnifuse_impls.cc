@@ -14,6 +14,19 @@
 #include "debug.h"
 #include "jnifuse_fs.h"
 
+void* init_wrapper(struct fuse_conn_info* conn) {
+  #ifndef __APPLE__
+  if((unsigned int)conn->capable & FUSE_CAP_ATOMIC_O_TRUNC){
+      conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
+  }
+  #endif
+
+  if((unsigned int)conn->capable & FUSE_CAP_BIG_WRITES){
+    conn->want |= FUSE_CAP_BIG_WRITES;
+  }
+  return NULL;
+}
+
 int chmod_wrapper(const char *path, mode_t mode) {
   return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
 }
@@ -117,6 +130,10 @@ int setxattr_wrapper(const char *path, const char *name,
   return jnifuse::JniFuseFileSystem::getInstance()->setxattrOper->call(path, name, value, size, flags);
 }
 #endif
+
+int statfs_wrapper(const char* path, struct statvfs* stbuf) {
+  return jnifuse::JniFuseFileSystem::getInstance()->statfsOper->call(path, stbuf);
+}
 
 int symlink_wrapper(const char *linkname, const char *path) {
   return jnifuse::JniFuseFileSystem::getInstance()->symlinkOper->call(linkname, path);

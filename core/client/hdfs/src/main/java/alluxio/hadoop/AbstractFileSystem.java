@@ -261,7 +261,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.warn("delete failed: {}", e.toString());
+      LOG.debug("delete failed: {}", e.toString());
       return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -419,7 +419,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    */
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    LOG.debug("setMode({},{})", path, permission.toString());
+    LOG.debug("setMode({},{})", path, permission);
     AlluxioURI uri = getAlluxioPath(path);
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(false).build();

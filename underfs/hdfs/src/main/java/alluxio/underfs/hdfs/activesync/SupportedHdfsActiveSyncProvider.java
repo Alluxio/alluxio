@@ -257,7 +257,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   @Override
   public void startSync(AlluxioURI ufsUri) {
-    LOG.debug("Add {} as a sync point", ufsUri.toString());
+    LOG.debug("Add {} as a sync point", ufsUri);
     mUfsUriList.add(ufsUri);
   }
 
@@ -268,7 +268,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   @Override
   public void stopSync(AlluxioURI ufsUri) {
-    LOG.debug("attempt to remove {} from sync point list", ufsUri.toString());
+    LOG.debug("attempt to remove {} from sync point list", ufsUri);
     mUfsUriList.remove(ufsUri);
   }
 

@@ -36,7 +36,7 @@ public class FileSystemIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
-          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true)
           .build();
 
   private static org.apache.hadoop.fs.FileSystem sTFS;

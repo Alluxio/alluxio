@@ -187,10 +187,10 @@ public final class GetConf {
         if (key.isBuiltIn()) {
           ConfigProperty.Builder config = ConfigProperty.newBuilder().setName(key.getName())
               .setSource(alluxioConf.getSource(key).toString());
-          String val = alluxioConf.getOrDefault(key, null,
+          Object val = alluxioConf.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true));
           if (val != null) {
-            config.setValue(val);
+            config.setValue(String.valueOf(val));
           }
           confMap.put(key.getName(), config.build());
         }

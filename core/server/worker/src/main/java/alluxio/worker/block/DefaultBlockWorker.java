@@ -737,6 +737,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           // the sessionId.
           LOG.debug("Invalid worker state while committing block.", e);
         }
+      } else {
+        // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
+        // Counter will not be decrement in the commitblock().
+        // So we should decrement counter here.
+        if (mUnderFileSystemBlockStore.isNoCache(sessionId, blockId)) {
+          Metrics.WORKER_ACTIVE_CLIENTS.dec();
+        }
       }
     } finally {
       mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
@@ -796,7 +803,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
-          String value = ServerConfiguration.getOrDefault(key, null,
+          Object value = ServerConfiguration.getOrDefault(key, null,
                   ConfigurationValueOptions.defaults().useDisplayValue(true)
                           .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);

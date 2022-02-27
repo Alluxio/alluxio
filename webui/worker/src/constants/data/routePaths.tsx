@@ -16,4 +16,5 @@ export const routePaths = {
   logs: '/logs',
   metrics: '/metrics',
   config: '/config',
+  stacks: '/stacks',
 };

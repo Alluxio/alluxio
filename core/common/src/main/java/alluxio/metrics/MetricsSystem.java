@@ -207,7 +207,7 @@ public final class MetricsSystem {
     }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (sourceKey != null && conf.isSet(sourceKey)) {
-      return conf.get(sourceKey);
+      return conf.getString(sourceKey);
     }
     String hostName;
     // Avoid throwing RuntimeException when hostname
@@ -262,6 +262,14 @@ public final class MetricsSystem {
       }
     }
     sSinks = null;
+  }
+
+  /**
+   * @return true if the metric system is started, false otherwise
+   */
+  @VisibleForTesting
+  public static synchronized boolean isStarted() {
+    return sSinks != null;
   }
 
   /**
@@ -625,6 +633,16 @@ public final class MetricsSystem {
   }
 
   /**
+   * Removes the metric with the given name.
+   *
+   * @param name the metric name
+   * @return true if the metric was removed, false otherwise
+   */
+  public static synchronized boolean removeMetrics(String name) {
+    return METRIC_REGISTRY.remove(name);
+  }
+
+  /**
    * This method is used to return a list of RPC metric objects which will be sent to the
    * MetricsMaster.
    *
@@ -811,7 +829,7 @@ public final class MetricsSystem {
             entry.getKey(), metric.getClass().getName());
         continue;
       }
-      metricsMap.put(entry.getKey(), valueBuilder.build());
+      metricsMap.put(unescape(entry.getKey()), valueBuilder.build());
     }
     return metricsMap;
   }

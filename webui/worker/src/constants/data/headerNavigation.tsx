@@ -34,6 +34,10 @@ export const headerNavigationData: INavigationData[] = [
     url: routePaths.config,
   },
   {
+    innerText: 'Stacks',
+    url: routePaths.stacks,
+  },
+  {
     innerText: 'Return to Master',
     url: ({ masterHostname, masterPort }): string => `${window.location.protocol}//${masterHostname}:${masterPort}`,
   },

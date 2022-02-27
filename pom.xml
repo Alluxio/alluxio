@@ -129,31 +129,29 @@
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.37.0</grpc.version>
-    <gson.version>2.8.6</gson.version>
+    <gson.version>2.8.9</gson.version>
     <netty.version>4.1.52.Final</netty.version>
     <rocksdb.version>6.25.3</rocksdb.version>
-    <hadoop.version>3.3.0</hadoop.version>
+    <hadoop.version>3.3.1</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
-    <jersey.version>2.29.1</jersey.version>
+    <jersey.version>2.34</jersey.version>
     <jetty.version>9.4.43.v20210629</jetty.version>
     <junit.version>4.13</junit.version>
-    <log4j.version>2.15.0</log4j.version>
+    <log4j.version>2.17.1</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <orc.version>1.6.3</orc.version>
     <oshi.version>5.3.5</oshi.version>
     <powermock.version>2.0.7</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>29.0-jre</guava.version>
+    <guava.version>31.0.1-jre</guava.version>
     <parquet.version>1.11.0</parquet.version>
-    <protobuf.version>3.12.4</protobuf.version>
+    <protobuf.version>3.19.2</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ratis.version>2.0.0</ratis.version>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.11.1</jackson.version>
-    <ozone.version>1.1.0</ozone.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -215,12 +213,12 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-client</artifactId>
-        <version>5.0.1</version>
+        <version>5.0.2</version>
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-model</artifactId>
-        <version>5.0.1</version>
+        <version>5.0.2</version>
       </dependency>
       <dependency>
         <groupId>com.beust</groupId>
@@ -296,7 +294,7 @@
       <dependency>
         <groupId>com.salesforce.servicelibs</groupId>
         <artifactId>proto-backwards-compatibility</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.7</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -482,16 +480,6 @@
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
         <exclusions>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
           <!-- Excluded to avoid implementation conflict with javax.servlet:servlet-api -->
           <exclusion>
             <groupId>javax.servlet</groupId>
@@ -555,16 +543,6 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-client</artifactId>
         <version>${hadoop.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-client</artifactId>
-        <version>${ozone.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-ozone-filesystem</artifactId>
-        <version>${ozone.version}</version>
       </dependency>
       <dependency>
         <groupId>com.qcloud.cos</groupId>
@@ -723,17 +701,6 @@
         <artifactId>log4j-slf4j-impl</artifactId>
         <version>${log4j.version}</version>
       </dependency>
-      <dependency>
-        <artifactId>ratis-server</artifactId>
-        <groupId>org.apache.ratis</groupId>
-        <version>${ratis.version}</version>
-      </dependency>
-      <dependency>
-        <artifactId>ratis-grpc</artifactId>
-        <groupId>org.apache.ratis</groupId>
-        <version>${ratis.version}</version>
-      </dependency>
-
       <!-- Test scope -->
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -1386,13 +1353,6 @@
 
     <!-- Requires hadoop.version to be 2.4.0 or later -->
     <profile>
-      <id>yarn</id>
-      <modules>
-        <module>integration/yarn</module>
-      </modules>
-    </profile>
-
-    <profile>
       <id>java11</id>
       <activation>
         <jdk>11</jdk>
@@ -1433,7 +1393,6 @@
     <profile>
       <id>developer</id>
       <modules>
-        <module>integration/yarn</module>
       </modules>
       <properties>
         <hadoop.version>3.3.0</hadoop.version>

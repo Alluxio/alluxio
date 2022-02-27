@@ -14,8 +14,8 @@ package alluxio.underfs.hdfs;
 import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.MOVEMENT_LIMIT;
 import static alluxio.underfs.hdfs.HdfsPositionedUnderFileInputStream.SEQUENTIAL_READ_LIMIT;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -58,7 +58,7 @@ public final class HdfsUnderFileSystemTest {
         UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
             .createMountSpecificConf(ImmutableMap.of("hadoop.security.group.mapping",
                 "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
-            PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
+            PropertyKey.UNDERFS_HDFS_IMPL.getDefaultStringValue()));
     mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(
         new AlluxioURI(mTemporaryFolder.getRoot().getAbsolutePath()), conf);
   }

@@ -12,9 +12,11 @@
 package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
@@ -23,19 +25,26 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -47,7 +56,11 @@ import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
@@ -62,9 +75,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -76,6 +94,7 @@ public final class FileSystemMasterSyncMetadataTest {
   private MasterRegistry mRegistry;
   private FileSystemMaster mFileSystemMaster;
   private UnderFileSystem mUfs;
+  private ExecutorService mExecutorService;
 
   @Rule
   public ManuallyScheduleHeartbeat mManualScheduler =
@@ -225,14 +244,84 @@ public final class FileSystemMasterSyncMetadataTest {
     return ufsMount;
   }
 
+  @Test
+  public void deleteAlluxioOnlyNoSync() throws Exception {
+    // Prepare files
+    mFileSystemMaster.createDirectory(new AlluxioURI("/a/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/a/b/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/b/"), CreateDirectoryContext.defaults());
+    // If the sync operation happens, the flag will be marked
+    SyncAwareFileSystemMaster delegateMaster = (SyncAwareFileSystemMaster) mFileSystemMaster;
+    delegateMaster.setSynced(false);
+
+    delegateMaster.delete(new AlluxioURI("/a/"),
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+            .setRecursive(true).setAlluxioOnly(true)));
+    // The files have been deleted
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/a/")));
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/a/b/")));
+    // Irrelevant files are not affected
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/b/")));
+    // Sync has not happened
+    assertFalse(delegateMaster.mSynced.get());
+  }
+
+  private static class SyncAwareFileSystemMaster extends DefaultFileSystemMaster {
+    AtomicBoolean mSynced = new AtomicBoolean(false);
+
+    public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
+                                     ExecutorServiceFactory executorServiceFactory) {
+      super(blockMaster, masterContext, executorServiceFactory);
+    }
+
+    @Override
+    InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
+        FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
+        @Nullable FileSystemMasterAuditContext auditContext,
+        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
+        @Nullable PermissionCheckFunction permissionCheckOperation,
+        boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
+      mSynced.set(true);
+      return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
+              auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo);
+    }
+
+    void setSynced(boolean synced) {
+      mSynced.set(synced);
+    }
+  }
+
+  private class SyncAwareFileSystemMasterFactory implements MasterFactory<CoreMasterContext> {
+    @Override
+    public boolean isEnabled() {
+      return true;
+    }
+
+    @Override
+    public String getName() {
+      return "SyncAwareFileSystemMasterFactory";
+    }
+
+    @Override
+    public FileSystemMaster create(MasterRegistry registry, CoreMasterContext context) {
+      BlockMaster blockMaster = registry.get(BlockMaster.class);
+      FileSystemMaster fileSystemMaster = new SyncAwareFileSystemMaster(blockMaster, context,
+          ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+      registry.add(FileSystemMaster.class, fileSystemMaster);
+      return fileSystemMaster;
+    }
+  }
+
   private void startServices() throws Exception {
+    mExecutorService = Executors
+        .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem =
         JournalTestUtils.createJournalSystem(mJournalFolder.getAbsolutePath());
     CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
     new MetricsMasterFactory().create(mRegistry, context);
     new BlockMasterFactory().create(mRegistry, context);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, context);
+    mFileSystemMaster = new SyncAwareFileSystemMasterFactory().create(mRegistry, context);
     journalSystem.start();
     journalSystem.gainPrimacy();
     mRegistry.start(true);

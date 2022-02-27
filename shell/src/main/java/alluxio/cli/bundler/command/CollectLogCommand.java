@@ -58,6 +58,8 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       "worker.out",
       "job_worker.log",
       "job_worker.out",
+      "fuse.log",
+      "fuse.out",
       "proxy.log",
       "proxy.out",
       "task.log",
@@ -164,7 +166,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
    * */
   public CollectLogCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mLogDirPath = fsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
+    mLogDirPath = fsContext.getClusterConf().getString(PropertyKey.LOGS_DIR);
     mLogDir = new File(mLogDirPath);
     mLogDirUri = mLogDir.toURI();
   }

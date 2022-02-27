@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,7 +61,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -114,11 +114,12 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
-    {
-      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+        {
+          put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
+        }
+      }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {
@@ -166,7 +167,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH), Matchers.any()))
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH), ArgumentMatchers.any()))
         .thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }

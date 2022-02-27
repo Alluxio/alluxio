@@ -154,7 +154,7 @@ Fuse metrics includes:
 {% endfor %}
 </table>
 
-Fuse reading/writing file count can be used as the indicator for Fuse application pressure.
+Fuse reading/writing file count can be used as the indicators for Fuse application pressure.
 If a large amount of concurrent read/write occur in a short period of time, each of the read/write operations may take longer time to finish.
 
 When a user or an application runs a filesystem command under Fuse mount point, 
@@ -168,7 +168,7 @@ The important Fuse metrics include:
 |-------------------------|-----------------------------------------------------|
 | Fuse.readdir | The duration metrics of listing a directory |
 | Fuse.getattr | The duration metrics of getting the metadata of a file |
-| Fuse.open | The duration metrics of opening a file for read |
+| Fuse.open | The duration metrics of opening a file for read or overwrite |
 | Fuse.read | The duration metrics of reading a part of a file |
 | Fuse.create | The duration metrics of creating a file for write |
 | Fuse.write | The duration metrics of writing a file |
@@ -180,10 +180,15 @@ The important Fuse metrics include:
 | Fuse.chown | The duration metrics of modifying the user and/or group ownership of a file or a directory |
 
 Fuse related metrics include:
+* `Client.TotalRPCClients`shows the total number of RPC clients exist that is using to or can be used to connect to master or worker for operations.
 * Worker metrics with `Direct` keyword. When Fuse is embedded in worker process, it can go through worker internal API to read from / write to this worker.
 The related metrics are ended with `Direct`. For example, `Worker.BytesReadDirect` shows how many bytes are served by this worker to its embedded Fuse client for read.
 * If `alluxio.user.block.read.metrics.enabled=true` is configured, `Client.BlockReadChunkRemote` will be recorded. 
 This metric shows the duration statistics of reading data from remote workers via gRPC.
+
+`Client.TotalRPCClients` and `Fuse.TotalCalls` metrics are good indicator of the current load of the Fuse applications.
+If applications (e.g. Tensorflow) are running on top of Alluxio Fuse but these two metrics show a much lower value than before,
+the training job may be stuck with Alluxio.
 
 ## Process Common Metrics
 

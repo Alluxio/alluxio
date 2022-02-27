@@ -23,4 +23,8 @@ public enum PageStoreType {
      * A store that utilizes RocksDB to store and retrieve pages.
      */
     ROCKS,
+    /**
+     * A simple store with pages on the memory (HeapByteBuffer).
+     */
+    MEM,
 }

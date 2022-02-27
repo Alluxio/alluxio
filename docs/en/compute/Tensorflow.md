@@ -100,7 +100,7 @@ If the data is not in a remote data storage, you can copy it to Alluxio namespac
 ```console
 $ wget https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
 $ ./bin/alluxio fs mkdir /training-data/mnist 
-$ ./bin/alluxio fs copyFromLocal mnitt.npz /training-data/mnist 
+$ ./bin/alluxio fs copyFromLocal mnist.npz /training-data/mnist 
 ```
 
 Suppose the MNIST data is stored in an S3 bucket `s3://alluxio-tensorflow-mnist/`, 
@@ -122,7 +122,7 @@ Download the [image recognition script](https://github.com/ssz1997/AlluxioFuseTe
 and run it with the training data `/mnt/fuse/mnist.npz`.
 
 ```console
-$ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py
+$ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py?raw=true
 $ python3 mnist_test.py /mnt/fuse/mnist.npz
 ```
 

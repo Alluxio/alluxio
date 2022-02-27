@@ -328,6 +328,9 @@ public class AlluxioFileOutStream extends FileOutStream {
    */
   @ThreadSafe
   private static final class Metrics {
+    // Note that only counter can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter BYTES_WRITTEN_UFS =
         MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
 

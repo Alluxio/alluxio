@@ -54,9 +54,15 @@ The Alluxio leading master emits both its instance metrics and a summary of the 
 
 ### Default HTTP JSON Sink
 
-By default, `MetricsServlet` is enabled in Alluxio leading master and workers.
+#### Prerequisites
 
-You can send an HTTP request to `/metrics/json/` of the Alluxio leading master or workers to get a snapshot of all metrics in JSON format.
+* Alluxio leading master and workers: no prerequisites, enabled by default
+* [Alluxio standalone Fuse process]({{ '/en/api/POSIX-API.html' | relativize_url }}#choose-deployment-mode):
+setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the standalone Fuse process.
+
+#### Usage
+
+You can send an HTTP request to `/metrics/json/` of the target Alluxio processes to get a snapshot of all metrics in JSON format.
 
 ```console
 # Get the metrics in JSON format from Alluxio leading master or workers
@@ -67,21 +73,18 @@ $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json/
 $ curl 127.0.0.1:19999/metrics/json/
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/json/
-``` 
 
-Send an HTTP request to `/metrics/json/` to fuse web port to get fuse metrics. Check out the [Fuse metrics doc]({{ '/en/api/POSIX-API.html' | relativize_url }}#fuse-metrics) for how to enable fuse metrics.
-
-```console
-# Get the metrics in JSON format from an active Alluxio FUSE process.
-$ curl <FUSE_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json
-
-# For example, get the metrics from fuse process running locally with default web port
+# After setting alluxio.fuse.web.enabled=true and launching the standalone Fuse process,
+# get the metrics with its default web port
+$ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json/
 $ curl 127.0.0.1:49999/metrics/json/
-``` 
+```
 
 ### Prometheus Sink Setup
 
 [Prometheus](https://prometheus.io/) is a monitoring tool that can help to monitor Alluxio metrics changes.
+
+#### Prerequisites
 
 In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default, add the following properties:
 
@@ -93,17 +96,25 @@ sink.prometheus.class=alluxio.metrics.sink.PrometheusMetricsServlet
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
 Restart the Alluxio servers to activate new configuration changes.
 
-You can send an HTTP request to `/metrics/prometheus/` of the Alluxio leading master or workers to get a snapshot of metrics in Prometheus format. 
+To enable Prometheus Sink Setup in the [Alluxio standalone Fuse process]({{ '/en/api/POSIX-API.html' | relativize_url }}#choose-deployment-mode),
+setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the standalone Fuse process.
+
+#### Usage
+
+You can send an HTTP request to `/metrics/prometheus/` of the target Alluxio process to get a snapshot of metrics in Prometheus format.
 
 ```console
-# Get the metrics in Prometheus format from Alluxio leading master or workers
+# Get the metrics in Prometheus format from Alluxio leading master or workers or standalone fuse
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/
+$ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/prometheus/
 
 # For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/prometheus/
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/prometheus/
+# Get the local standalone Fuse process metrics with its default web port 49999
+$ curl 127.0.0.1:49999/metrics/prometheus/
 ```
 
 You can now direct platforms like Grafana or Datadog to these HTTP endpoints and read the metrics in Prometheus format.
@@ -121,6 +132,10 @@ scrape_configs:
       metrics_path: '/metrics/prometheus/'
       static_configs:
       - targets: [ '<WORKER_HOSTNAME>:<WORKER_WEB_PORT>' ]
+  - job_name: "alluxio standalone fuse"
+      metrics_path: '/metrics/prometheus/'
+      static_configs:
+      - targets: [ '<FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>' ]
 ```
 
 <b>Be wary when specifying which metrics you want to poll.</b> Prometheus modifies metrics names in order to process them.

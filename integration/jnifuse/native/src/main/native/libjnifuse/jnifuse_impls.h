@@ -17,6 +17,7 @@
 #endif
 #include <fuse.h>
 
+void* init_wrapper(struct fuse_conn_info* conn);
 int chmod_wrapper(const char *path, mode_t mode);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
@@ -31,6 +32,7 @@ int getxattr_wrapper(const char *path, const char *name, char *value, size_t siz
 int setxattr_wrapper(const char *path, const char *name,
                      const char *value, size_t size, int flags);
 #endif
+int statfs_wrapper(const char* path, struct statvfs* stbuf);
 int listxattr_wrapper(const char *path, char *list, size_t size);
 int mkdir_wrapper(const char *path, mode_t mode);
 int open_wrapper(const char *path, struct fuse_file_info *fi);
