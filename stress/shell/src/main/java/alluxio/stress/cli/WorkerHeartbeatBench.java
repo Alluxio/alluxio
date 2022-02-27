@@ -20,6 +20,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
+import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
@@ -42,6 +43,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A benchmarking tool for the WorkerHeartbeat RPC.
@@ -58,7 +60,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   // Worker IDs to use in the testing stage
-  private Deque<Long> mWorkerPool = new ArrayDeque<>();
+  private Deque<WorkerPreRegisterInfo> mWorkerPool = new ArrayDeque<>();
   // The prepared RPC contents
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
@@ -74,8 +76,8 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
       result.addError("No more worker IDs for use");
       return result;
     }
-    long workerId = mWorkerPool.poll();
-    LOG.info("Acquired worker ID {}", workerId);
+    WorkerPreRegisterInfo info = mWorkerPool.poll();
+    LOG.info("Acquired worker ID {}", info.getWorkerId());
 
     // Use a mocked client to save conversion
     CachingBlockMasterClient client =
@@ -89,7 +91,8 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     LOG.info("Test start time {}, end time {}", startTime, endTime);
 
     // Stop after certain time has elapsed
-    RpcTaskResult taskResult = simulateBlockHeartbeat(client, workerId, endTime);
+    RpcTaskResult taskResult = simulateBlockHeartbeat(client, info.getWorkerId(),
+        info.getClusterId(), endTime);
     LOG.info("Test finished with results: {}", taskResult);
     return taskResult;
   }
@@ -100,7 +103,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   }
 
   private RpcTaskResult simulateBlockHeartbeat(alluxio.worker.block.BlockMasterClient client,
-                                               long workerId,
+                                               long workerId, String clusterId,
                                                Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
 
@@ -109,7 +112,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
       try {
-        Command cmd = client.heartbeat(workerId,
+        Command cmd = client.heartbeat(workerId, clusterId,
             CAPACITY_MEM,
             USED_MEM_EMPTY,
             EMPTY_REMOVED_BLOCKS,
@@ -182,11 +185,13 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     // Prepare simulated workers
     int numWorkers = mParameters.mConcurrency;
     LOG.info("Register {} simulated workers for the test", numWorkers);
-    mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
+    mWorkerPool = RpcBenchPreparationUtils.preparePerRegisterWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers,
         "Expecting %s workers but registered %s",
         numWorkers, mWorkerPool.size());
-    RpcBenchPreparationUtils.registerWorkers(client, mWorkerPool);
+    RpcBenchPreparationUtils.registerWorkers(client, mWorkerPool.stream()
+        .map(WorkerPreRegisterInfo::getWorkerId)
+        .collect(Collectors.toCollection(ArrayDeque::new)));
     LOG.info("All workers registered with the master {}", mWorkerPool);
   }
 

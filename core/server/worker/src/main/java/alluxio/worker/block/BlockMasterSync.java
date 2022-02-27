@@ -193,10 +193,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
-      // todo add the clusterId to heartbeat(), report the running period's clusterId to master
-      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), mClusterId.get(),
+          storeMeta.getCapacityBytesOnTiers(), storeMeta.getUsedBytesOnTiers(),
+          blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(),
+          blockReport.getLostStorage(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
@@ -254,6 +254,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests re-registration
       case Register:
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
+        registerWithMaster();
+        break;
+      case PreRegisterAndRegister:
+        mBlockWorker.preRegisterWithMaster(mWorkerAddress);
         registerWithMaster();
         break;
       // Unknown request

@@ -79,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -104,6 +105,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Command EMPTY_CMD =
       Command.newBuilder().setCommandType(CommandType.Nothing).build();
+  private static final String CLUSTER_ID = UUID.randomUUID().toString();
 
   /**
    * Sets up the dependencies before a test runs.
@@ -867,6 +869,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
   private Command sendHeartbeatToMaster(long workerId) {
     return mBlockMaster.workerHeartbeat(
         workerId,
+        CLUSTER_ID,
         CAPACITY_MAP,
         USAGE_MAP,
         // list of removed blockIds

@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -88,6 +89,7 @@ public final class ReplicationCheckerTest {
       = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map EMPTY = ImmutableMap.of();
+  private static final String CLUSTER_ID = UUID.randomUUID().toString();
 
   /**
    * A mock class of AdjustReplicationHandler, used to test the output of ReplicationChecker.
@@ -278,7 +280,7 @@ public final class ReplicationCheckerTest {
         Block.BlockLocation.newBuilder().setWorkerId(workerId)
             .setTier(Constants.MEDIUM_MEM).setMediumType(Constants.MEDIUM_MEM).build();
 
-    mBlockMaster.workerHeartbeat(workerId, null,
+    mBlockMaster.workerHeartbeat(workerId, CLUSTER_ID, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
         ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS);
   }
@@ -391,7 +393,7 @@ public final class ReplicationCheckerTest {
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(workerId, null,
+    mBlockMaster.workerHeartbeat(workerId, CLUSTER_ID, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
         ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS);
 

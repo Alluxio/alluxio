@@ -67,11 +67,21 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       BlockHeartbeatReport report
           = new BlockHeartbeatReport(mAddedBlocks, mRemovedBlocks, mLostStorage);
       // Clear added and removed blocks
-      mAddedBlocks.clear();
-      mRemovedBlocks.clear();
-      mLostStorage.clear();
+      ClearReportInternal();
       return report;
     }
+  }
+
+  public void ClearReport() {
+    synchronized (mLock) {
+      ClearReportInternal();
+    }
+  }
+
+  private void ClearReportInternal() {
+    mAddedBlocks.clear();
+    mRemovedBlocks.clear();
+    mLostStorage.clear();
   }
 
   @Override

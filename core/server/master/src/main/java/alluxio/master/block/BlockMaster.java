@@ -20,11 +20,11 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.master.Master;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
@@ -196,10 +196,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * Returns a cluster id for the given worker.
    *
-   * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the cluster id for this worker
    */
-  String getClusterId(WorkerNetAddress workerNetAddress) throws IOException;
+  String getClusterId() throws IOException;
 
   /**
    * worker pre registers with the master.
@@ -211,7 +210,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param hasBlockInWorkerTier has any Block in the Worker's Tier
    * @return the PreRegisterCommand for this worker
    */
-  PreRegisterCommand workerPreRegister(String workerClusterId, WorkerNetAddress workerNetAddress,
+  WorkerPreRegisterInfo workerPreRegister(String workerClusterId, WorkerNetAddress workerNetAddress,
       boolean hasBlockInWorkerTier) throws IOException;
 
   /**
@@ -263,6 +262,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Updates metadata when a worker periodically heartbeats with the master.
    *
    * @param workerId the worker id
+   * @param clusterId the worker's cluster id
    * @param capacityBytesOnTiers a mapping from tier alias to the capacity bytes
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
@@ -271,7 +271,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
-  Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+  Command workerHeartbeat(long workerId, String clusterId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<Block.BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,

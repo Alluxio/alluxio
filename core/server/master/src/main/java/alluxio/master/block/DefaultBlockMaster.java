@@ -32,7 +32,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GrpcService;
@@ -43,6 +42,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -1011,7 +1011,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public String getClusterId(WorkerNetAddress workerNetAddress) throws IOException {
+  public String getClusterId() throws IOException {
     // assumed that the cluster will not change if no format the master,
     // so invoke by RPC only first
     if (mClusterId.get().equals(IdUtils.EMPTY_CLUSTER_ID)) {
@@ -1024,16 +1024,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public PreRegisterCommand workerPreRegister(String workerClusterId,
+  public WorkerPreRegisterInfo workerPreRegister(String workerClusterId,
       WorkerNetAddress workerNetAddress, boolean hasBlockInWorkerTier) throws IOException {
     LOG.info("worker {} PreRegister, workerClusterId {}, hasBlockInWorkerTier {}",
         workerNetAddress.getHost(), workerClusterId, hasBlockInWorkerTier);
 
-    String curClusterId = getClusterId(workerNetAddress);
+    String curClusterId = getClusterId();
     PreRegisterCommandType commandType =
         checkWorker(curClusterId, workerClusterId, hasBlockInWorkerTier);
     long workerId = getWorkerId(workerNetAddress);
-    PreRegisterCommand command = PreRegisterCommand.newBuilder()
+    WorkerPreRegisterInfo info = WorkerPreRegisterInfo.newBuilder()
         .setPreRegisterCommandType(commandType)
         .setClusterId(curClusterId)
         .setWorkerId(workerId)
@@ -1041,9 +1041,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     LOG.info("worker {} ,PreRegister result: PreRegisterCommand {}, workerId {},"
             + " current clusterId {}",
-        workerNetAddress.getHost(), command.getPreRegisterCommandType(),
-        command.getWorkerId(), command.getClusterId());
-    return command;
+        workerNetAddress.getHost(), info.getPreRegisterCommandType(),
+        info.getWorkerId(), info.getClusterId());
+    return info;
   }
 
   /**
@@ -1281,11 +1281,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
+  public Command workerHeartbeat(long workerId, String clusterId,
+      Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
+    if (clusterId.equals(mClusterId.get())) {
+      return Command.newBuilder().setCommandType(CommandType.PreRegisterAndRegister).build();
+    }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);

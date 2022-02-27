@@ -32,14 +32,13 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.Metric;
-import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
@@ -67,7 +66,6 @@ public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
   public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient = null;
-  private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient2 = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -198,6 +196,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
+   * @param clusterId the worker's clusterId
    * @param capacityBytesOnTiers a mapping from storage tier alias to capacity bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
@@ -206,13 +205,14 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId,
+  public synchronized Command heartbeat(final long workerId, final String clusterId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
       final Map<String, List<String>> lostStorage, final List<Metric> metrics)
       throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
-        .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
+        .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers)
+        .setHasClusterId(true).build();
 
     final List<LocationBlockIdListEntry> entryList = convertBlockListMapToProto(addedBlocks);
 
@@ -222,7 +222,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
-        .addAllAddedBlocks(entryList).setOptions(options)
+        .addAllAddedBlocks(entryList).setOptions(options).setClusterId(clusterId)
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
@@ -286,8 +286,8 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param hasBlockInTier has any Block in the Tier
    * @return an optional command for the worker to execute
    */
-  public PreRegisterCommand preRegisterWithMaster(String clusterId, final WorkerNetAddress address,
-                                                  boolean hasBlockInTier)
+  public WorkerPreRegisterInfo preRegisterWithMaster(String clusterId,
+      final WorkerNetAddress address, boolean hasBlockInTier)
       throws AlluxioStatusException {
     // By the Flag, Let the Master know that preRegister information is included
     GetWorkerIdPOptions preRegisterFlag =
@@ -299,14 +299,15 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setHasBlockInTier(hasBlockInTier).setOptions(preRegisterFlag).build();
 
     return retryRPC(() -> {
+      // For compatibility, reuse the RPC of getWorkerID.
       GetWorkerIdPResponse response = mClient.getWorkerId(request);
       // For compatibility,  If preRegister information is included,
       // the Master will set hasExtendedRegisterInfo
       if (response.getOptions().hasExtendedRegisterInfo()) {
-        return response.getCommand();
+        return response.getWorkerPreRegisterInfo();
       } else {
         // just set WorkerId
-        return PreRegisterCommand.newBuilder()
+        return WorkerPreRegisterInfo.newBuilder()
             .setWorkerId(response.getWorkerId())
             .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
             .build();

@@ -29,11 +29,11 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
@@ -42,6 +42,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -76,6 +77,16 @@ public final class BlockMasterWorkerServiceHandler extends
     }
 
     final long workerId = request.getWorkerId();
+    final String clusterId;
+    if (request.getOptions().getHasClusterId()) {
+      clusterId = request.getClusterId();
+    } else {
+      try {
+        clusterId = mBlockMaster.getClusterId();
+      } catch (IOException e) {
+        throw new RuntimeException("Failed get Cluster id", e);
+      }
+    }
     final Map<String, Long> capacityBytesOnTiers =
         request.getOptions().getCapacityBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
@@ -90,7 +101,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
+            clusterId, capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
@@ -137,10 +148,10 @@ public final class BlockMasterWorkerServiceHandler extends
             // By the Flag, Let the Worker know that preRegister information is included
             GetWorkerIdPOptions preRegisterFlag =
                 GetWorkerIdPOptions.newBuilder().setExtendedRegisterInfo(true).build();
-            PreRegisterCommand command = mBlockMaster.workerPreRegister(
+            WorkerPreRegisterInfo info = mBlockMaster.workerPreRegister(
                 clusterId, GrpcUtils.fromProto(request.getWorkerNetAddress()), hasBlockInTier);
             return GetWorkerIdPResponse.newBuilder()
-                .setCommand(command).setOptions(preRegisterFlag).build();
+                .setWorkerPreRegisterInfo(info).setOptions(preRegisterFlag).build();
           }, "preRegisterWorker", "request=%s", responseObserver, request);
     } else {
       RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {

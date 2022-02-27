@@ -55,6 +55,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -76,6 +77,7 @@ public class ConcurrentBlockMasterTest {
   private static final long BLOCK1_LENGTH = 49L;
   private static final long BLOCK2_ID = 2L;
   private static final long BLOCK2_LENGTH = 59L;
+  private static final String CLUSTER_ID = UUID.randomUUID().toString();
   private static final Map<String, Long> MEM_CAPACITY = ImmutableMap.of("MEM", 100L);
   private static final Map<String, Long> MEM_USAGE_EMPTY = ImmutableMap.of("MEM", 0L);
   private static final Command FREE_BLOCK1_CMD = Command.newBuilder()
@@ -417,7 +419,7 @@ public class ConcurrentBlockMasterTest {
           // The same block is removed on worker in this heartbeat
           // This should succeed as commit locks the block exclusively and finishes first
           // When the block heartbeat processes the same block, it has been committed
-          Command cmd = mBlockMaster.workerHeartbeat(worker1,
+          Command cmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
               MEM_CAPACITY,
               // 0 used because the block removed on this worker
               MEM_USAGE_EMPTY,
@@ -467,7 +469,7 @@ public class ConcurrentBlockMasterTest {
         () -> {
           // A different block is removed on the same worker
           // This should contend on the worker metadata
-          Command cmd = mBlockMaster.workerHeartbeat(worker1,
+          Command cmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
               MEM_CAPACITY,
               // 0 used because the block is already removed
               MEM_USAGE_EMPTY,
@@ -518,7 +520,7 @@ public class ConcurrentBlockMasterTest {
           // The same block is removed on another worker
           // This should succeed as commit locks the block exclusively and finishes first
           // When the block heartbeat processes the same block, it has been committed
-          Command cmd = mBlockMaster.workerHeartbeat(worker2,
+          Command cmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
               MEM_CAPACITY,
               // 0 used because the block is already removed
               MEM_USAGE_EMPTY,
@@ -580,7 +582,7 @@ public class ConcurrentBlockMasterTest {
         () -> {
           // A different block is removed on the same worker
           // This should contend on the worker metadata
-          Command cmd = mBlockMaster.workerHeartbeat(worker2,
+          Command cmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
               MEM_CAPACITY,
               // 0 used because the block is already removed
               MEM_USAGE_EMPTY,
@@ -672,7 +674,7 @@ public class ConcurrentBlockMasterTest {
             }
 
             // Verify the heartbeat from worker will get a command to remove the block
-            Command worker1HeartbeatCmd = mBlockMaster.workerHeartbeat(worker1,
+            Command worker1HeartbeatCmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
                 MEM_CAPACITY,
                 // the block has not yet been removed
                 ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -685,7 +687,7 @@ public class ConcurrentBlockMasterTest {
 
             if (deleteMetadata) {
               // Block on worker 2 will be freed because the block is already removed
-              Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2,
+              Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
                   MEM_CAPACITY,
                   // the block has not yet been removed
                   ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -703,7 +705,7 @@ public class ConcurrentBlockMasterTest {
               //    In this case the block on worker 2 will be freed
               // 2. Worker 2 registers after the free operation is complete
               //    In this case the block on worker 2 will not be freed
-              Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2,
+              Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
                   MEM_CAPACITY,
                   // the block has not yet been removed
                   ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -782,7 +784,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of(worker2Info));
 
             // Regardless of whether the metadata is removed, the existing block will be freed
-            Command worker1HeartbeatCmd = mBlockMaster.workerHeartbeat(worker1,
+            Command worker1HeartbeatCmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
                 MEM_CAPACITY,
                 // the block has not yet been removed
                 ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -793,7 +795,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableList.of());
             assertEquals(FREE_BLOCK1_CMD, worker1HeartbeatCmd);
 
-            Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2,
+            Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
                 MEM_CAPACITY,
                 // the block has not yet been removed
                 ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -830,7 +832,7 @@ public class ConcurrentBlockMasterTest {
             // The same block is removed on worker in this heartbeat
             // This should succeed as commit locks the block exclusively and finishes first
             // When the block heartbeat processes the same block, it has been committed
-            Command cmd = mBlockMaster.workerHeartbeat(worker1,
+            Command cmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
                 MEM_CAPACITY,
                 // 0 used because the block is already removed
                 MEM_USAGE_EMPTY,
@@ -896,7 +898,7 @@ public class ConcurrentBlockMasterTest {
           () -> {
             // A different block is removed on the same worker
             // This should contend on the worker metadata
-            Command cmd = mBlockMaster.workerHeartbeat(worker1,
+            Command cmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
                 MEM_CAPACITY,
                 // Block 2 is removed but 1 is still on the worker
                 ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -945,7 +947,7 @@ public class ConcurrentBlockMasterTest {
             // because the verifier is run after W1 fully finished
             // and updated the to-be-removed list
             if (!freeCommandSeen.get()) {
-              Command cmd = mBlockMaster.workerHeartbeat(worker1,
+              Command cmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
                   MEM_CAPACITY,
                   // Block 2 is removed but 1 is still on the worker
                   ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -983,7 +985,7 @@ public class ConcurrentBlockMasterTest {
             // The same block is removed on another worker
             // This should succeed as commit locks the block exclusively and finishes first
             // When the block heartbeat processes the same block, it has been committed
-            Command cmd = mBlockMaster.workerHeartbeat(worker2,
+            Command cmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
                 MEM_CAPACITY,
                 // 0 used because the block is already removed
                 MEM_USAGE_EMPTY,
@@ -1019,7 +1021,7 @@ public class ConcurrentBlockMasterTest {
             }
 
             // On the heartbeat worker 1 block will be removed
-            Command cmd = mBlockMaster.workerHeartbeat(worker1,
+            Command cmd = mBlockMaster.workerHeartbeat(worker1, CLUSTER_ID,
                 MEM_CAPACITY,
                 // Block 1 is still on worker 1
                 ImmutableMap.of("MEM", BLOCK1_LENGTH),
@@ -1057,7 +1059,7 @@ public class ConcurrentBlockMasterTest {
           // W2
           () -> {
             // A different block is removed on another worker
-            Command cmd = mBlockMaster.workerHeartbeat(worker2,
+            Command cmd = mBlockMaster.workerHeartbeat(worker2, CLUSTER_ID,
                 MEM_CAPACITY,
                 // 0 used because the block is already removed
                 MEM_USAGE_EMPTY,

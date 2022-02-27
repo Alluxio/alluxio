@@ -23,6 +23,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
@@ -55,6 +56,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * if the cluster ID not found return an {@link IdUtils#EMPTY_CLUSTER_ID} .
    */
   AtomicReference<String> getOrDefaultClusterId(String defaultValue);
+
+  void preRegisterWithMaster(WorkerNetAddress address);
 
   /**
    * Aborts the temporary block created by the session.

@@ -57,6 +57,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2818")
@@ -66,6 +67,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
+  private static final String CLUSTER_ID = UUID.randomUUID().toString();
 
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
@@ -311,11 +313,11 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
       assertEquals(CommandType.Nothing,
-          blockMaster1.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
+          blockMaster1.workerHeartbeat(workerId1a, CLUSTER_ID, null, Collections.EMPTY_MAP,
               Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
               Lists.newArrayList()).getCommandType());
       assertEquals(CommandType.Nothing,
-          blockMaster1.workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP,
+          blockMaster1.workerHeartbeat(workerId2a, CLUSTER_ID, null, Collections.EMPTY_MAP,
               Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
               Lists.newArrayList()).getCommandType());
 
@@ -328,8 +330,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
-          .workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
+          .workerHeartbeat(workerId2a, CLUSTER_ID, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+              Lists.newArrayList()).getCommandType());
 
       // Worker 2 re-registers (and gets a new worker id)
       long workerId2b =
@@ -340,7 +343,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register,
-          blockMaster2.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
+          blockMaster2.workerHeartbeat(workerId1a, CLUSTER_ID, null, Collections.EMPTY_MAP,
               Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
               Lists.newArrayList()).getCommandType());
 

@@ -168,6 +168,7 @@ message StorageList {
 message BlockHeartbeatPOptions {
   repeated grpc.Metric metrics = 1;
   map<string, int64> capacityBytesOnTiers = 2;
+  optional bool hasClusterId = 3;
 }
 
 message LocationBlockIdListEntry {
@@ -189,6 +190,8 @@ message BlockHeartbeatPRequest {
   map<string, StorageList> lostStorage = 6;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry addedBlocks = 7;
+  /** the clusterId of the worker */
+  optional string clusterId = 8;
 }
 
 message BlockHeartbeatPResponse {
@@ -237,7 +240,7 @@ message GetWorkerIdPRequest {
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
   optional grpc.WorkerNetAddress workerNetAddress = 2;
-  optional PreRegisterCommand command = 3;
+  optional WorkerPreRegisterInfo workerPreRegisterInfo = 3;
   optional GetWorkerIdPOptions options = 4;
 }
 
@@ -254,7 +257,7 @@ message GetRegisterLeasePResponse {
   optional GetRegisterLeasePOptions options = 4;
 }
 
-message PreRegisterCommand {
+message WorkerPreRegisterInfo {
   optional PreRegisterCommandType preRegisterCommandType = 1;
   optional string clusterId = 2;
   optional int64 workerId = 3;

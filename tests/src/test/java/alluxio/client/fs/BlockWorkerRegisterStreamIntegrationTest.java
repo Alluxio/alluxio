@@ -503,7 +503,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
     @Override
     public synchronized Command heartbeat(
-        final long workerId, final Map<String, Long> capacityBytesOnTiers,
+        final long workerId, String clusterId, final Map<String, Long> capacityBytesOnTiers,
         final Map<String, Long> usedBytesOnTiers,
         final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
         final Map<String, List<String>> lostStorage, final List<Metric> metrics) {

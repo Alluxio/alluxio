@@ -20,11 +20,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -163,7 +163,7 @@ public class BlockMasterTest {
   BlockMaster mockGetClusterIdAndGetWorkerId() throws IOException {
     // the RPC will be called inner getClusterId(), so we should mock it
     BlockMaster mockBlockMaster = Mockito.spy(mBlockMaster);
-    Mockito.doReturn(mCurrentClusterId).when(mockBlockMaster).getClusterId(NET_ADDRESS_1);
+    Mockito.doReturn(mCurrentClusterId).when(mockBlockMaster).getClusterId();
     Mockito.doReturn(mWorkerId).when(mockBlockMaster).getWorkerId(NET_ADDRESS_1);
     return mockBlockMaster;
   }
@@ -241,8 +241,8 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 0L);
-    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, null, memUsage,
-        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, mCurrentClusterId,
+        null, memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertEquals(ImmutableList.of(1L), heartBeat.getDataList());
   }
 
@@ -262,7 +262,7 @@ public class BlockMasterTest {
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
-    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
+    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, mCurrentClusterId, null,
         memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertEquals(orphanedBlocks, heartBeat.getDataList());
   }
@@ -273,25 +273,25 @@ public class BlockMasterTest {
     // New Worker will be report a IdUtils.EMPTY_CLUSTER_ID
     BlockMaster mockBlockMaster = mockGetClusterIdAndGetWorkerId();
 
-    PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo1 = mockBlockMaster.workerPreRegister(
         IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, false);
-    assertPreRegisterCommandType(exceptCommand1,
+    assertPreRegisterInfo(exceptInfo1,
         PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will force to clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo2 = mockBlockMaster.workerPreRegister(
         IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
-    assertPreRegisterCommandType(exceptCommand2,
+    assertPreRegisterInfo(exceptInfo2,
         PreRegisterCommandType.REGISTER_CLEAN_BLOCKS, mCurrentClusterId, mWorkerId);
 
     // New and dirty(has BLock in the Tier) worker registration,
     //and master will not force to clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    PreRegisterCommand exceptCommand3 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo3 = mockBlockMaster.workerPreRegister(
         IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
-    assertPreRegisterCommandType(exceptCommand3,
+    assertPreRegisterInfo(exceptInfo3,
         PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
   }
 
@@ -301,14 +301,14 @@ public class BlockMasterTest {
     // The restarted worker will report the same id as the current cluster
     BlockMaster mockBlockMaster = mockGetClusterIdAndGetWorkerId();
 
-    PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo1 = mockBlockMaster.workerPreRegister(
         mCurrentClusterId, NET_ADDRESS_1, true);
-    assertPreRegisterCommandType(exceptCommand1,
+    assertPreRegisterInfo(exceptInfo1,
         PreRegisterCommandType.ACK_REGISTER, mCurrentClusterId, mWorkerId);
 
-    PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo2 = mockBlockMaster.workerPreRegister(
         mCurrentClusterId, NET_ADDRESS_1, false);
-    assertPreRegisterCommandType(exceptCommand2,
+    assertPreRegisterInfo(exceptInfo2,
         PreRegisterCommandType.ACK_REGISTER, mCurrentClusterId, mWorkerId);
   }
 
@@ -320,25 +320,25 @@ public class BlockMasterTest {
     BlockMaster mockBlockMaster = mockGetClusterIdAndGetWorkerId();
     String otherClusterId = UUID.randomUUID().toString();
 
-    PreRegisterCommand exceptCommand1 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo1 = mockBlockMaster.workerPreRegister(
         otherClusterId, NET_ADDRESS_1, false);
-    assertPreRegisterCommandType(exceptCommand1,
+    assertPreRegisterInfo(exceptInfo1,
         PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID, mCurrentClusterId, mWorkerId);
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    PreRegisterCommand exceptCommand2 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo2 = mockBlockMaster.workerPreRegister(
         otherClusterId, NET_ADDRESS_1, true);
-    assertPreRegisterCommandType(exceptCommand2,
+    assertPreRegisterInfo(exceptInfo2,
         PreRegisterCommandType.REJECT_REGISTER, mCurrentClusterId, mWorkerId);
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    PreRegisterCommand exceptCommand3 = mockBlockMaster.workerPreRegister(
+    WorkerPreRegisterInfo exceptInfo3 = mockBlockMaster.workerPreRegister(
         otherClusterId, NET_ADDRESS_1, true);
-    assertPreRegisterCommandType(exceptCommand3,
+    assertPreRegisterInfo(exceptInfo3,
         PreRegisterCommandType.REGISTER_CLEAN_BLOCKS, mCurrentClusterId, mWorkerId);
   }
 
-  private void assertPreRegisterCommandType(PreRegisterCommand actual,
+  private void assertPreRegisterInfo(WorkerPreRegisterInfo actual,
       PreRegisterCommandType expectedCmd, String expectedCLusterId, long expectedWorkerId) {
     assertEquals(actual.getPreRegisterCommandType(), expectedCmd);
     assertEquals(actual.getClusterId(), expectedCLusterId);
@@ -357,7 +357,7 @@ public class BlockMasterTest {
 
     // Update used bytes with a worker heartbeat.
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of(Constants.MEDIUM_MEM, 50L);
-    mBlockMaster.workerHeartbeat(worker, null, newUsedBytesOnTiers,
+    mBlockMaster.workerHeartbeat(worker, mCurrentClusterId, null, newUsedBytesOnTiers,
         NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
 
     WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
@@ -377,7 +377,7 @@ public class BlockMasterTest {
         Constants.MEDIUM_MEM, blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(worker, null,
+    mBlockMaster.workerHeartbeat(worker, mCurrentClusterId, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
         ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
@@ -407,7 +407,7 @@ public class BlockMasterTest {
     Block.BlockLocation blockOnWorker2 = Block.BlockLocation.newBuilder()
         .setWorkerId(worker2).setTier(Constants.MEDIUM_MEM)
         .setMediumType(Constants.MEDIUM_MEM).build();
-    mBlockMaster.workerHeartbeat(worker2, null,
+    mBlockMaster.workerHeartbeat(worker2, mCurrentClusterId, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
         ImmutableMap.of(blockOnWorker2, addedBlocks),
         NO_LOST_STORAGE, mMetrics);
@@ -439,11 +439,11 @@ public class BlockMasterTest {
     lostStorageOnWorker2.put(Constants.MEDIUM_HDD,
         StorageList.newBuilder().addStorage("/hdd/one").build());
 
-    mBlockMaster.workerHeartbeat(worker1,
+    mBlockMaster.workerHeartbeat(worker1, mCurrentClusterId,
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_SSD, 0L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_SSD, 0L), NO_BLOCKS,
         NO_BLOCKS_ON_LOCATION, lostStorageOnWorker1, mMetrics);
-    mBlockMaster.workerHeartbeat(worker2,
+    mBlockMaster.workerHeartbeat(worker2, mCurrentClusterId,
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_HDD, 200L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_HDD, 0L), NO_BLOCKS,
         NO_BLOCKS_ON_LOCATION, lostStorageOnWorker2, mMetrics);
@@ -461,7 +461,8 @@ public class BlockMasterTest {
 
   @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
-    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics);
+    Command heartBeat = mBlockMaster.workerHeartbeat(0, mCurrentClusterId,
+        null, null, null, null, null, mMetrics);
     assertEquals(Command.newBuilder().setCommandType(CommandType.Register).build(), heartBeat);
   }
 
