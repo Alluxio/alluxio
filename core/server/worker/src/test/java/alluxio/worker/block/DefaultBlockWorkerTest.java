@@ -410,7 +410,7 @@ public class DefaultBlockWorkerTest {
     // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
     mBlockWorker.handlePreRegisterInfo(cmd);
     assertEquals(IdUtils.EMPTY_CLUSTER_ID,
-        mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -424,7 +424,7 @@ public class DefaultBlockWorkerTest {
 
     // the new cluster ID will be persisted
     mBlockWorker.handlePreRegisterInfo(cmd);
-    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -437,7 +437,7 @@ public class DefaultBlockWorkerTest {
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterInfo(cmd);
     verify(mBlockWorker, times(1)).reset();
-    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -451,7 +451,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void GetClusterIdFromEmpty() {
     assertEquals(IdUtils.EMPTY_CLUSTER_ID,
-        mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test
@@ -459,7 +459,7 @@ public class DefaultBlockWorkerTest {
     String mClusterID = java.util.UUID.randomUUID().toString();
     mBlockWorker.setClusterId(mClusterID);
     assertEquals(mClusterID,
-        mBlockWorker.getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test

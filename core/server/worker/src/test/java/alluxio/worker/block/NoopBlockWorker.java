@@ -49,7 +49,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public AtomicReference<String> getOrDefaultClusterId(String defaultValue) {
+  public AtomicReference<String> getClusterId() {
     return null;
   }
 

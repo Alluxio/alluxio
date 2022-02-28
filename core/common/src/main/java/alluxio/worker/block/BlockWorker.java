@@ -51,11 +51,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
   AtomicReference<Long> getWorkerId();
 
   /**
-   * @param defaultValue the default value of the ClusterId
-   * @return Return the clusterId saved in the persistent storage by the Worker,
-   * if the cluster ID not found return an {@link IdUtils#EMPTY_CLUSTER_ID} .
+   * @return the Cluster id
    */
-  AtomicReference<String> getOrDefaultClusterId(String defaultValue);
+  AtomicReference<String> getClusterId();
 
   /**
    * Registers with the Alluxio master. This should be called before the

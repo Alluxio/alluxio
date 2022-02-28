@@ -189,7 +189,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mSessions = sessions;
     mLocalBlockStore = mResourceCloser.register(blockStore);
     mWorkerId = new AtomicReference<>(-1L);
-    mClusterId = new AtomicReference<>();
+    mClusterId = new AtomicReference<>(IdUtils.INVALID_CLUSTER_ID);
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
@@ -225,11 +225,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     return mWorkerId;
   }
 
+  @VisibleForTesting
+  AtomicReference<String> getOrDefaultClusterIdFromDB(String defaultValue) {
+    String clusterId = mBlockWorkerDB.getClusterId();
+    clusterId = clusterId.isEmpty() ? defaultValue : clusterId;
+    return new AtomicReference<>(clusterId);
+  }
+
   @Override
-  public AtomicReference<String> getOrDefaultClusterId(String defaultValue) {
-    String mClusterId = mBlockWorkerDB.getClusterId();
-    mClusterId = mClusterId.isEmpty() ? defaultValue : mClusterId;
-    return new AtomicReference<>(mClusterId);
+  public AtomicReference<String> getClusterId() {
+    return mClusterId;
   }
 
   @VisibleForTesting
@@ -292,6 +297,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       default:
         throw new RuntimeException("PreRegister Un-recognized command from master " + cmd);
     }
+    mClusterId.set(cmd.getClusterId());
     mWorkerId.set(cmd.getWorkerId());
   }
 
@@ -306,9 +312,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       RetryUtils.retry("worker preRegisterWithMaster ",
           () -> {
-            String clusterId = getOrDefaultClusterId(IdUtils.EMPTY_CLUSTER_ID).get();
             commandFromMaster.set(
-                blockMasterClient.preRegisterWithMaster(clusterId, address, hasBlockInTier));
+                blockMasterClient.preRegisterWithMaster(mClusterId.get(), address, hasBlockInTier));
           }, RetryUtils.defaultWorkerMasterClientRetry(
               ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
       handlePreRegisterInfo(commandFromMaster.get());
@@ -330,6 +335,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
+    mClusterId.set(getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
 
     preRegisterWithMaster(mAddress);
 

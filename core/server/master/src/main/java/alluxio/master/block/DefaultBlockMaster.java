@@ -1301,7 +1301,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
-    if (clusterId.equals(mClusterId.get())) {
+    if (!clusterId.equals(mClusterId.get())) {
+      // todo add unit Test
       return Command.newBuilder().setCommandType(CommandType.PreRegisterAndRegister).build();
     }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
