@@ -11,7 +11,6 @@
 
 package alluxio.master.metastore;
 
-import alluxio.master.metastore.BlockStore.Block;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
@@ -88,6 +87,25 @@ public interface BlockStore {
    */
   long size();
 
+  /**
+   * Gets a {@link CloseableIterator} over the blocks.
+   * The iterator must be closed properly.
+   * One option is to follow the below idiom:
+   * <pre>{@code
+   *   try (CloseableIterator<Block> iter =
+   *       mBlockStore.getCloseableIterator()) {
+   *     for (; iter.hasNext(); ) {
+   *       // take the element and perform operations
+   *     }
+   *   }
+   * }</pre>
+   *
+   * If the iterator must be passed to other methods,
+   * it must be closed at the end of operation or on exceptions.
+   * Otherwise there can be a leak!
+   *
+   * @return a {@link CloseableIterator} over the blocks
+   * */
   CloseableIterator<Block> getCloseableIterator();
 
   /**
