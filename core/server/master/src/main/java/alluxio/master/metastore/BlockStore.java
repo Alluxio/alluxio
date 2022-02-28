@@ -14,6 +14,7 @@ package alluxio.master.metastore;
 import alluxio.master.metastore.BlockStore.Block;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.resource.CloseableIterator;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The block store keeps track of block sizes and block locations.
  */
 @ThreadSafe
-public interface BlockStore extends Iterable<Block> {
+public interface BlockStore {
   /**
    * @param id a block id
    * @return the block's metadata, or empty if the block does not exist
@@ -86,6 +87,8 @@ public interface BlockStore extends Iterable<Block> {
    * @return size of the block store
    */
   long size();
+
+  CloseableIterator<Block> getCloseableIterator();
 
   /**
    * Block metadata.
