@@ -238,7 +238,6 @@ message GetWorkerIdPResponse {
   optional int64 workerId = 1;
   optional PreRegisterCommandType preRegisterCommandType = 2;
   optional string clusterId = 3;
-  optional GetWorkerIdPOptions options = 4;
 }
 
 message GetRegisterLeasePRequest {
