@@ -13,6 +13,7 @@ package alluxio.logserver;
 
 import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
 
+import java.io.InvalidClassException;
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -46,7 +47,7 @@ public class AlluxioLog4jSocketNodeTest {
   private ValidatingObjectInputStream mValidatingObjectInputStream;
 
   private void createOutputStreams() throws IOException {
-    mByteArrayOutputStream = new ByteArrayOutputStream(100);
+    mByteArrayOutputStream = new ByteArrayOutputStream();
     mObjectOutputStream = new ObjectOutputStream(mByteArrayOutputStream);
   }
 
@@ -87,9 +88,9 @@ public class AlluxioLog4jSocketNodeTest {
 
   @Test
   public void testLocationInfo() throws IOException, ClassNotFoundException {
-    LocationInfo locationInfo = new LocationInfo("c", "b", "c", "d");
+    Object object = new LocationInfo("c", "b", "c", "d");
     createOutputStreams();
-    mObjectOutputStream.writeObject(locationInfo);
+    mObjectOutputStream.writeObject(object);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
     LocationInfo locationInfo1 = (LocationInfo) mValidatingObjectInputStream.readObject();
@@ -156,7 +157,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logEvent);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       LogEvent logEvent1 = (LogEvent) mValidatingObjectInputStream.readObject();
     });
   }
@@ -168,19 +169,19 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logLevel);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       LogLevel logLevel1 = (LogLevel) mValidatingObjectInputStream.readObject();
     });
   }
 
   @Test
-  public void testLogRecord() throws IOException, ClassNotFoundException {
+  public void testLogRecord() throws IOException {
     AdapterLogRecord adapterLogRecord = new AdapterLogRecord();
     createOutputStreams();
     mObjectOutputStream.writeObject(adapterLogRecord);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       AdapterLogRecord adapterLogRecord1 =
           (AdapterLogRecord) mValidatingObjectInputStream.readObject();
     });
@@ -194,7 +195,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(log4JLogRecord);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       Log4JLogRecord log4JLogRecord1 = (Log4JLogRecord) mValidatingObjectInputStream.readObject();
     });
   }
@@ -206,7 +207,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logTableColumn);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       LogTableColumn logTableColumn1 = (LogTableColumn) mValidatingObjectInputStream.readObject();
     });
   }
@@ -218,7 +219,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(level);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       Level level1 = (Level) mValidatingObjectInputStream.readObject();
     });
   }
@@ -230,7 +231,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(utilLoggingLevel);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       UtilLoggingLevel utilLoggingLevel1 =
           (UtilLoggingLevel) mValidatingObjectInputStream.readObject();
     });
@@ -243,7 +244,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(throwable);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       Throwable throwable1 = (Throwable) mValidatingObjectInputStream.readObject();
     });
   }
@@ -255,7 +256,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logLevelFormatException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       LogLevelFormatException logLevelFormatException1 =
           (LogLevelFormatException) mValidatingObjectInputStream.readObject();
     });
@@ -269,7 +270,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(logTableColumnFormatException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       LogTableColumnFormatException logTableColumnFormatException1 =
           (LogTableColumnFormatException) mValidatingObjectInputStream.readObject();
     });
@@ -282,7 +283,7 @@ public class AlluxioLog4jSocketNodeTest {
     mObjectOutputStream.writeObject(propertySetterException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
-    Assert.assertThrows(Exception.class, () -> {
+    Assert.assertThrows(InvalidClassException.class, () -> {
       PropertySetterException propertySetterException1 =
           (PropertySetterException) mValidatingObjectInputStream.readObject();
     });
