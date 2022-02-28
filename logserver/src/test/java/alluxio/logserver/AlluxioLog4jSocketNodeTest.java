@@ -14,6 +14,7 @@ package alluxio.logserver;
 import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
 
 import java.io.InvalidClassException;
+
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -65,8 +66,8 @@ public class AlluxioLog4jSocketNodeTest {
 
   @Test
   public void testHashtable() throws IOException, ClassNotFoundException {
-    Hashtable<String, Integer> numbers = new Hashtable<>();
-    numbers.put("one", 1);
+    Object numbers = new Hashtable<>();
+    System.out.println(numbers.getClass());
     createOutputStreams();
     mObjectOutputStream.writeObject(numbers);
     write2BufferAndCloseOutputStream();
@@ -182,8 +183,7 @@ public class AlluxioLog4jSocketNodeTest {
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
     Assert.assertThrows(InvalidClassException.class, () -> {
-      AdapterLogRecord adapterLogRecord1 =
-          (AdapterLogRecord) mValidatingObjectInputStream.readObject();
+      AdapterLogRecord adapterLogRecord1 = (AdapterLogRecord) mValidatingObjectInputStream.readObject();
     });
   }
 
@@ -232,8 +232,7 @@ public class AlluxioLog4jSocketNodeTest {
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
     Assert.assertThrows(InvalidClassException.class, () -> {
-      UtilLoggingLevel utilLoggingLevel1 =
-          (UtilLoggingLevel) mValidatingObjectInputStream.readObject();
+      UtilLoggingLevel utilLoggingLevel1 = (UtilLoggingLevel) mValidatingObjectInputStream.readObject();
     });
   }
 
@@ -257,22 +256,22 @@ public class AlluxioLog4jSocketNodeTest {
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
     Assert.assertThrows(InvalidClassException.class, () -> {
-      LogLevelFormatException logLevelFormatException1 =
-          (LogLevelFormatException) mValidatingObjectInputStream.readObject();
+      LogLevelFormatException logLevelFormatException1 = (
+          LogLevelFormatException) mValidatingObjectInputStream.readObject();
     });
   }
 
   @Test
   public void testLogTableColumnFormatException() throws IOException, ClassNotFoundException {
-    LogTableColumnFormatException logTableColumnFormatException =
-        new LogTableColumnFormatException("message");
+    LogTableColumnFormatException logTableColumnFormatException = new LogTableColumnFormatException(
+        "message");
     createOutputStreams();
     mObjectOutputStream.writeObject(logTableColumnFormatException);
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
     Assert.assertThrows(InvalidClassException.class, () -> {
-      LogTableColumnFormatException logTableColumnFormatException1 =
-          (LogTableColumnFormatException) mValidatingObjectInputStream.readObject();
+      LogTableColumnFormatException logTableColumnFormatException1 = (
+          LogTableColumnFormatException) mValidatingObjectInputStream.readObject();
     });
   }
 
@@ -284,8 +283,8 @@ public class AlluxioLog4jSocketNodeTest {
     write2BufferAndCloseOutputStream();
     createInputStreamsAndsetAcceptList();
     Assert.assertThrows(InvalidClassException.class, () -> {
-      PropertySetterException propertySetterException1 =
-          (PropertySetterException) mValidatingObjectInputStream.readObject();
+      PropertySetterException propertySetterException1 = (
+          PropertySetterException) mValidatingObjectInputStream.readObject();
     });
   }
 }
