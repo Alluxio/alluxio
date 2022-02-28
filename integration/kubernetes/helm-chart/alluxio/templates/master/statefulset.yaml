@@ -336,16 +336,16 @@ spec:
           {{- end }}
           volumeMounts:
           {{- if .Values.hub.enabled }}
-          - name: conf-volume
-            mountPath: {{ .Values.hub.volumes.conf.path }}
-            readOnly: false
-          - name: logs-volume
-            mountPath: {{ .Values.hub.volumes.logs.path }}
-            readOnly: false
+            - name: conf-volume
+              mountPath: {{ .Values.hub.volumes.conf.path }}
+              readOnly: false
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
+              readOnly: false
           {{- end }}
           {{- if .Values.metrics.enabled }}
-          - name: {{ $fullName }}-metrics-volume
-            mountPath: /config/metrics
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
           {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
