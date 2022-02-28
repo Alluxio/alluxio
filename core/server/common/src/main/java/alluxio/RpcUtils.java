@@ -145,6 +145,8 @@ public final class RpcUtils {
       }
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
     } catch (RuntimeException | LinkageError e) {
+      // Linkage error can happen when ufs libraries are improperly included or classloaded,
+      // right now those simply fail silently.
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
