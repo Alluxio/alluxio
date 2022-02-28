@@ -240,4 +240,4 @@
 
 0.6.36
 
-- Fix volumeMounts format in master statefulset
+- Fix volumeMounts indentations in master statefulset
