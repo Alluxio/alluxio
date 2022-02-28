@@ -2013,7 +2013,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         StringBuilder errorReport = new StringBuilder(
             ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths: "));
         boolean trim = failedUris.size() > 20;
-        for (int i = 0; i < (trim ? 20 : failedUris.size()) ; i++) {
+        for (int i = 0; i < (trim ? 20 : failedUris.size()); i++) {
           if (i > 0) {
             errorReport.append(", ");
           }
