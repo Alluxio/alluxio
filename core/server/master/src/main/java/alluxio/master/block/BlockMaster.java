@@ -218,6 +218,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void releaseRegisterLease(long workerId);
 
+  void decommissionWorker(long workerId) throws NotFoundException;
   /**
    * Updates metadata when a worker registers with the master.
    *

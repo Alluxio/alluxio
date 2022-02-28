@@ -273,6 +273,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
               (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
                   ServerConfiguration.global(), ServerUserState.global()));
     }
+    if (!ServerConfiguration.global().getBoolean(PropertyKey.WORKER_SILENT_DECOMMISSION)) {
+      mResourceCloser.register(() -> {
+        LOG.warn("decommission worker {}", mWorkerId);
+        BlockMasterClient client = mBlockMasterClientPool.acquire();
+        client.decommissionWorker(mWorkerId.get());
+        mBlockMasterClientPool.release(client);
+      });
+    }
 
     // Mounts the embedded Fuse application
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {

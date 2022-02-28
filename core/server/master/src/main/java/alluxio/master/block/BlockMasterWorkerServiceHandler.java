@@ -15,23 +15,7 @@ import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.RegisterLeaseNotFoundException;
-import alluxio.grpc.BlockHeartbeatPRequest;
-import alluxio.grpc.BlockHeartbeatPResponse;
-import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockInUfsPResponse;
-import alluxio.grpc.CommitBlockPRequest;
-import alluxio.grpc.CommitBlockPResponse;
-import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.GetRegisterLeasePResponse;
-import alluxio.grpc.GetWorkerIdPRequest;
-import alluxio.grpc.GetWorkerIdPResponse;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.grpc.StorageList;
+import alluxio.grpc.*;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
@@ -138,6 +122,17 @@ public final class BlockMasterWorkerServiceHandler extends
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () ->
         GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request)),
         "getRegisterLease", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPRequest request,
+                                 StreamObserver<DecommissionWorkerPResponse> responseStreamObserver) {
+      LOG.warn("decommission worker id: {}", request.getWorkerId());
+      RpcUtils.call(LOG, ()-> {
+          mBlockMaster.decommissionWorker(request.getWorkerId());
+          return DecommissionWorkerPResponse.getDefaultInstance();
+          }, "DecommissionWorker", "workerId=%d",responseStreamObserver, request.getWorkerId());
+
   }
 
   @Override

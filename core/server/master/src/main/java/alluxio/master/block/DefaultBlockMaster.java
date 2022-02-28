@@ -1015,6 +1015,25 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public void decommissionWorker(long workerId) throws NotFoundException {
+      MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+      if (worker == null) {
+        worker = findUnregisteredWorker(workerId);
+        if (worker != null) {
+          LOG.warn("decommission a lost or registering worker {}", workerId);
+          //TODO: let register complete, and then decommission itself in the next heart beat;
+          return;
+        } else
+          throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      }
+      try (LockResource r = worker.lockWorkerMeta(
+              EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+        // race with LostWorkerDetectionHeartbeat
+        if (mWorkers.getFirstByField(ID_INDEX, workerId) != null)
+          processLostWorker(worker);
+      }
+  }
+  @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
