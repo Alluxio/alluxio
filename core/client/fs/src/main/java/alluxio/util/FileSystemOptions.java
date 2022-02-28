@@ -67,7 +67,7 @@ public class FileSystemOptions {
         .setAllowExists(false)
         .setCommonOptions(commonDefaults(conf, true))
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults(),
-            conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+            conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
         .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
         .build();
@@ -102,7 +102,7 @@ public class FileSystemOptions {
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setCommonOptions(commonDefaults(conf, true))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
-            conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+            conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setPersistenceWaitTime(conf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME))
         .setRecursive(false)
         .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))

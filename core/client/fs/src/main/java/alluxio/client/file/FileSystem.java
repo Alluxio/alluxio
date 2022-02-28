@@ -149,7 +149,7 @@ public interface FileSystem extends Closeable {
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
-          Object value = conf.getOrDefault(key, null);
+          String value = conf.getOrDefault(key, null);
           Source source = conf.getSource(key);
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }

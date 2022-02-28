@@ -143,7 +143,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
-    mWriteType = conf.getString(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
+    mWriteType = conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     distributedCp(srcPath, dstPath, overwrite, batchSize);

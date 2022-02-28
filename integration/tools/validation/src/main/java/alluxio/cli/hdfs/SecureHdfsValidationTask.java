@@ -132,8 +132,8 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
   }
 
   private ValidationTaskResult validatePrincipalLogin() {
-    String principal = (String) mConf.getOrDefault(mPrincipalProperty, "");
-    String keytab = (String) mConf.getOrDefault(mKeytabProperty, "");
+    String principal = mConf.getOrDefault(mPrincipalProperty, "");
+    String keytab = mConf.getOrDefault(mKeytabProperty, "");
 
     if (principal.isEmpty() || keytab.isEmpty()) {
       mMsg.append(String.format("Failed to find Kerberos principal and keytab. "

@@ -92,7 +92,7 @@ public final class BlockMetadataManager {
       if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
         LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-        String evictorType = ServerConfiguration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
+        String evictorType = ServerConfiguration.get(PropertyKey.WORKER_EVICTOR_CLASS);
         switch (evictorType) {
           case DEPRECATED_LRU_EVICTOR:
           case DEPRECATED_PARTIAL_LRUEVICTOR:

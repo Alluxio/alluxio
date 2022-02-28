@@ -96,8 +96,8 @@ public class AllocatorTestBase {
    */
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
     ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             "alluxio.worker.block.reviewer.MockReviewer");
     // Reviewer will not reject by default.

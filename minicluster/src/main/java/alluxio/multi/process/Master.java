@@ -33,7 +33,7 @@ public final class Master implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Master.class);
 
   private final File mLogsDir;
-  private final Map<PropertyKey, Object> mProperties;
+  private final Map<PropertyKey, String> mProperties;
 
   private ExternalProcess mProcess;
 
@@ -41,7 +41,7 @@ public final class Master implements Closeable {
    * @param logsDir logs directory
    * @param properties alluxio properties
    */
-  public Master(File logsDir, Map<PropertyKey, Object> properties) throws IOException {
+  public Master(File logsDir, Map<PropertyKey, String> properties) throws IOException {
     mLogsDir = logsDir;
     mProperties = properties;
   }
@@ -79,7 +79,7 @@ public final class Master implements Closeable {
   /**
    * @return the configuration used by this master
    */
-  public Map<PropertyKey, Object> getConf() {
+  public Map<PropertyKey, String> getConf() {
     return ImmutableMap.copyOf(mProperties);
   }
 

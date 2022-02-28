@@ -77,6 +77,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
               msg.toString(), advice.toString());
     }
     ValidationUtils.State state = ValidationUtils.State.OK;
+    Exception ex = null;
     for (String node : nodes) {
       try {
         Properties props = getNodeConf(node);
@@ -87,8 +88,10 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         msg.append(String.format("Unable to retrieve configuration for %s: %s.",
                 node, e.getMessage()));
         advice.append(String.format("Please check the connection from node %s. ", node));
+        ex = e;
         state = ValidationUtils.State.FAILED;
         // Check all nodes before returning
+        continue;
       }
     }
     for (String propertyName : propertyNames) {
@@ -161,7 +164,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   private Properties getNodeConf(String node) throws IOException {
-    String homeDir = mConf.getString(PropertyKey.HOME);
+    String homeDir = mConf.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio getConf", homeDir);
     String localCommand = String.format(

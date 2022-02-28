@@ -56,25 +56,25 @@ public class FuseManager implements Closeable {
   public void start() {
     AlluxioConfiguration conf = ServerConfiguration.global();
     if (!conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_POINT)
-        || conf.getString(PropertyKey.WORKER_FUSE_MOUNT_POINT).isEmpty()) {
+        || conf.get(PropertyKey.WORKER_FUSE_MOUNT_POINT).isEmpty()) {
       LOG.error("Failed to launch worker internal Fuse application. {} should be set.",
           PropertyKey.WORKER_FUSE_MOUNT_POINT);
       return;
     }
     if (!conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
-        || conf.getString(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+        || conf.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       LOG.error("Failed to launch worker internal Fuse application. {} should be set.",
           PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH.getName());
       return;
     }
-    String fuseMount = conf.getString(PropertyKey.WORKER_FUSE_MOUNT_POINT);
-    String alluxioPath = conf.getString(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
+    String fuseMount = conf.get(PropertyKey.WORKER_FUSE_MOUNT_POINT);
+    String alluxioPath = conf.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
     // TODO(lu) check if the given fuse mount point exists
     // create the folder if it does not exist
     try {
       String[] fuseOptsSeparated = new String[0];
       if (conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS)) {
-        String fuseOptsString = conf.getString(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
+        String fuseOptsString = conf.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
         if (!fuseOptsString.isEmpty()) {
           fuseOptsSeparated = fuseOptsString.split(FUSE_OPTION_SEPARATOR);
         }

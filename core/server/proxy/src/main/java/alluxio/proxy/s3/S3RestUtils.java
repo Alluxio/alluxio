@@ -160,7 +160,7 @@ public final class S3RestUtils {
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
-        ServerConfiguration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+        ServerConfiguration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
     return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 

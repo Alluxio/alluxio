@@ -133,8 +133,7 @@ public final class MutableInodeFileTest extends AbstractInodeTest {
     assertEquals(TEST_OWNER, inode1.getOwner());
     assertEquals(TEST_GROUP, inode1.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
-        ServerConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK))
-            .toShort(),
+        ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toShort(),
         inode1.getMode());
   }
 }

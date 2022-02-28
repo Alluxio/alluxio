@@ -43,7 +43,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   // fix the test setup in SIMPLE mode.
   @ClassRule
   public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
-      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB").build();
 

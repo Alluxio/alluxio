@@ -141,7 +141,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
 
     // Add ufs only paths
-    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "ufs_dir"));
     Files.createFile(Paths.get(ufs, "ufs_file"));
 
@@ -178,7 +178,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     AlluxioURI dir = new AlluxioURI("/dir/");
 
     // Add ufs nested file.
-    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "dir"));
     Files.createFile(Paths.get(ufs, "dir", "file"));
 

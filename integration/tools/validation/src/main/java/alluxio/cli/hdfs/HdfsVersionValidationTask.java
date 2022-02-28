@@ -91,7 +91,7 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
               "Please check if hadoop is on your PATH.");
     }
 
-    String version = mConf.getString(PropertyKey.UNDERFS_VERSION);
+    String version = mConf.get(PropertyKey.UNDERFS_VERSION);
     for (String prefix : new String[] {CDH_PREFIX, HADOOP_PREFIX}) {
       if (version.startsWith(prefix)) {
         version = version.substring(prefix.length());
@@ -101,15 +101,15 @@ public class HdfsVersionValidationTask extends AbstractValidationTask {
     if (hadoopVersion.contains(version)) {
       return new ValidationTaskResult(ValidationUtils.State.OK, getName(),
               String.format("Hadoop version %s contains UFS version defined in alluxio %s=%s.",
-                      hadoopVersion, PropertyKey.UNDERFS_VERSION, version),
+                      hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
               "");
     }
 
     return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
             String.format("Hadoop version %s does not match %s=%s.",
-                    hadoopVersion, PropertyKey.UNDERFS_VERSION, version),
+                    hadoopVersion, PropertyKey.UNDERFS_VERSION.toString(), version),
             String.format("Please configure %s to match the HDFS version.",
-                    PropertyKey.UNDERFS_VERSION));
+                    PropertyKey.UNDERFS_VERSION.toString()));
   }
 
   protected String getHadoopVersion() throws IOException {

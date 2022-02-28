@@ -16,6 +16,9 @@ import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
@@ -50,6 +53,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ServerConfiguration {
+  private static final Logger LOG = LoggerFactory.getLogger(ServerConfiguration.class);
 
   private static InstancedConfiguration sConf;
 
@@ -95,7 +99,7 @@ public final class ServerConfiguration {
    * @param value the value for the key
    */
   public static void set(PropertyKey key, Object value) {
-    set(key, value, Source.RUNTIME);
+    set(key, String.valueOf(value), Source.RUNTIME);
   }
 
   /**
@@ -106,9 +110,6 @@ public final class ServerConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void set(PropertyKey key, Object value, Source source) {
-    if (!(key.getType() == PropertyKey.PropertyType.BOOLEAN)) {
-      value = String.valueOf(value);
-    }
     sConf.set(key, value, source);
   }
 
@@ -128,7 +129,7 @@ public final class ServerConfiguration {
    * @param key the key to get the value for
    * @return the value for the given key
    */
-  public static Object get(PropertyKey key) {
+  public static String get(PropertyKey key) {
     return sConf.get(key);
   }
 
@@ -140,7 +141,7 @@ public final class ServerConfiguration {
    * @param options options for getting configuration value
    * @return the value for the given key
    */
-  public static Object get(PropertyKey key, ConfigurationValueOptions options) {
+  public static String get(PropertyKey key, ConfigurationValueOptions options) {
     return sConf.get(key, options);
   }
 
@@ -149,7 +150,7 @@ public final class ServerConfiguration {
    * @param defaultValue the value to return if no value is set for the specified key
    * @return the value
    */
-  public static Object getOrDefault(PropertyKey key, String defaultValue) {
+  public static String getOrDefault(PropertyKey key, String defaultValue) {
     return sConf.getOrDefault(key, defaultValue);
   }
 
@@ -159,7 +160,7 @@ public final class ServerConfiguration {
    * @param options options for getting configuration value
    * @return the value
    */
-  public static Object getOrDefault(PropertyKey key, String defaultValue,
+  public static String getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
     return sConf.getOrDefault(key, defaultValue, options);
   }
@@ -189,16 +190,6 @@ public final class ServerConfiguration {
    */
   public static Set<PropertyKey> keySet() {
     return sConf.keySet();
-  }
-
-  /**
-   * Gets the String value for the given key.
-   *
-   * @param key the key to get the value for
-   * @return the value for the given key as an {@code String}
-   */
-  public static String getString(PropertyKey key) {
-    return sConf.getString(key);
   }
 
   /**
@@ -323,7 +314,7 @@ public final class ServerConfiguration {
    * @param prefixKey the prefix key
    * @return a map from nested properties aggregated by the prefix
    */
-  public static Map<String, Object> getNestedProperties(PropertyKey prefixKey) {
+  public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
     return sConf.getNestedProperties(prefixKey);
   }
 
@@ -339,7 +330,7 @@ public final class ServerConfiguration {
    * @return a map from all configuration property names to their values; values may potentially be
    *         null
    */
-  public static Map<String, Object> toMap() {
+  public static Map<String, String> toMap() {
     return sConf.toMap();
   }
 
@@ -348,7 +339,7 @@ public final class ServerConfiguration {
    * @return a map from all configuration property names to their values; values may potentially be
    *         null
    */
-  public static Map<String, Object> toMap(ConfigurationValueOptions opts) {
+  public static Map<String, String> toMap(ConfigurationValueOptions opts) {
     return sConf.toMap(opts);
   }
 

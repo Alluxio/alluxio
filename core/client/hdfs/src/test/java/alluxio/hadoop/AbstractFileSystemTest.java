@@ -240,10 +240,10 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    Map<PropertyKey, Object> properties = new HashMap<>();
+    Map<PropertyKey, String> properties = new HashMap<>();
     properties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
     properties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    properties.put(PropertyKey.ZOOKEEPER_ENABLED, false);
+    properties.put(PropertyKey.ZOOKEEPER_ENABLED, "false");
     properties.put(PropertyKey.ZOOKEEPER_ADDRESS, null);
     try (Closeable c = new ConfigurationRule(properties, mConfiguration).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
@@ -332,7 +332,7 @@ public class AbstractFileSystemTest {
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
 
     assertFalse(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals(PropertyKey.MASTER_JOURNAL_TYPE.getDefaultStringValue(),
+    assertEquals(PropertyKey.MASTER_JOURNAL_TYPE.getDefaultValue(),
         fs.mFileSystem.getConf().get(PropertyKey.MASTER_JOURNAL_TYPE));
     assertEquals(1,
         ConfigurationUtils.getMasterRpcAddresses(fs.mFileSystem.getConf()).size());
@@ -604,7 +604,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, true,
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
@@ -634,7 +634,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, true,
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);

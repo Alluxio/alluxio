@@ -149,7 +149,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
    */
   public AlluxioFuseFileSystem(FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
     super();
-    mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
+    mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);

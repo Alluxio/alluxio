@@ -47,9 +47,9 @@ public final class ConfigurationTestUtils {
    * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
-  public static Map<PropertyKey, Object> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
+  public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
       String hostname, String workDirectory) {
-    Map<PropertyKey, Object> conf = new HashMap<>();
+    Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
     conf.put(PropertyKey.WORKER_WEB_BIND_HOST, hostname);
@@ -66,7 +66,7 @@ public final class ConfigurationTestUtils {
     for (int level = 1; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = alluxioConf.getString(tierLevelDirPath).split(",");
+      String[] dirPaths = alluxioConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
         String newPath = workDirectory + dirPath;
@@ -152,7 +152,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 
-    conf.put(PropertyKey.TEST_MODE, true);
+    conf.put(PropertyKey.TEST_MODE, "true");
 
     return conf;
   }
