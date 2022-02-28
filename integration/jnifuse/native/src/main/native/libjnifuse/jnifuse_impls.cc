@@ -22,6 +22,12 @@ struct fuse_conn_info_opts *conn_info_opts;
 
 void *init_wrapper(struct fuse_conn_info *conn, struct fuse_config *cfg) {
   fuse_apply_conn_info_opts(conn_info_opts, conn);
+
+  #ifndef __APPLE__
+  if((unsigned int)conn->capable & FUSE_CAP_ATOMIC_O_TRUNC){
+      conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
+  }
+  #endif
   return NULL;
 }
 
@@ -156,6 +162,19 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
 }
 
 #else
+
+void* init_wrapper(struct fuse_conn_info* conn) {
+  #ifndef __APPLE__
+  if((unsigned int)conn->capable & FUSE_CAP_ATOMIC_O_TRUNC){
+      conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
+  }
+  #endif
+
+  if((unsigned int)conn->capable & FUSE_CAP_BIG_WRITES){
+    conn->want |= FUSE_CAP_BIG_WRITES;
+  }
+  return NULL;
+}
 
 int chmod_wrapper(const char *path, mode_t mode) {
   return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);

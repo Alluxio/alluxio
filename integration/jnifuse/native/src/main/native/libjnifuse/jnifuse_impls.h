@@ -53,6 +53,7 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
 
 #else
 
+void* init_wrapper(struct fuse_conn_info* conn);
 int chmod_wrapper(const char *path, mode_t mode);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);

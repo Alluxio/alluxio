@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Options used to instantiate a {@link alluxio.client.file.cache.PageStore}.
@@ -31,22 +32,28 @@ public abstract class PageStoreOptions {
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
     switch (storeType) {
-      case LOCAL:
+      case LOCAL: {
         options = new LocalPageStoreOptions()
             .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS));
         break;
-      case ROCKS:
+      }
+      case ROCKS: {
         options = new RocksPageStoreOptions();
+        break;
+      }
+      case MEM:
+        options = new MemoryPageStoreOptions();
         break;
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    Path rootDir = PageStore.getStorePath(storeType, conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
-    options.setRootDir(rootDir.toString())
+    List<Path> rootDir = PageStore.getStorePath(
+        storeType, conf.getString(PropertyKey.USER_CLIENT_CACHE_DIR));
+    options.setRootDirs(rootDir)
         .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE))
-        .setAlluxioVersion(conf.get(PropertyKey.VERSION))
+        .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
         .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
         .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
     if (conf.isSet(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD)) {
@@ -72,7 +79,7 @@ public abstract class PageStoreOptions {
   /**
    * Root directory where the data is stored.
    */
-  protected String mRootDir;
+  protected List<Path> mRootDirs;
 
   /**
    * Page size for the data.
@@ -107,19 +114,19 @@ public abstract class PageStoreOptions {
   protected double mOverheadRatio;
 
   /**
-   * @param rootDir the root directory where pages are stored
+   * @param rootDirs the root directories where pages are stored
    * @return the updated options
    */
-  public PageStoreOptions setRootDir(String rootDir) {
-    mRootDir = rootDir;
+  public PageStoreOptions setRootDirs(List<Path> rootDirs) {
+    mRootDirs = rootDirs;
     return this;
   }
 
   /**
-   * @return the root directory where pages are stored
+   * @return the root directories where pages are stored
    */
-  public String getRootDir() {
-    return mRootDir;
+  public List<Path> getRootDirs() {
+    return mRootDirs;
   }
 
   /**

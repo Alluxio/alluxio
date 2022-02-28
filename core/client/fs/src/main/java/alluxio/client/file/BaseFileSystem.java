@@ -270,7 +270,7 @@ public class BaseFileSystem implements FileSystem {
       return client.getStatus(path, mergedOptions);
     });
     if (!status.isCompleted()) {
-      LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.", path);
+      LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", path);
     }
     return status;
   }

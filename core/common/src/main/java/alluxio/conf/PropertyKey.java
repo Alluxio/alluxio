@@ -11,6 +11,9 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.ProjectConstants;
@@ -34,12 +37,14 @@ import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,6 +114,54 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * Indicates property type.
+   */
+  public enum PropertyType {
+    /**
+     * The Property's value is of boolean type, stored as a Boolean.
+     */
+    BOOLEAN(Boolean.class),
+    /**
+     * The Property's value is of integer type, stored as an Integer.
+     */
+    INTEGER(Integer.class),
+    /**
+     * The Property's value is of double type, stored as a Double.
+     */
+    DOUBLE(Double.class),
+    /**
+     * The Property's value is of string type, stored as a String.
+     */
+    STRING(String.class),
+    /**
+     * The Property's value represents a time duration, stored as a Long in ms.
+     */
+    DURATION(Long.class),
+    /**
+     * The Property's value represents a data size, stored as a Long in bytes.
+     */
+    DATASIZE(Long.class);
+
+    private final Class<?> mJavaType;
+
+    PropertyType(Class<?> javaType) {
+      mJavaType = javaType;
+    }
+
+    Class<?> getJavaType() {
+      return mJavaType;
+    }
+  }
+
+  public static final Function<Object, Boolean> CHECK_FILE_EXISTS = (fileName) -> {
+    if (!(fileName instanceof String)) {
+      return false;
+    }
+    File file = new File((String) fileName);
+    return file.exists();
+  };
+
+  /**
    * Builder to create {@link PropertyKey} instances. Note that, <code>Builder.build()</code> will
    * throw exception if there is an existing property built with the same name.
    */
@@ -125,12 +178,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private Scope mScope = Scope.ALL;
     private DisplayType mDisplayType = DisplayType.DEFAULT;
     private boolean mIsDynamic = true;
+    private Function<Object, Boolean> mValueValidationFunction;
+    private final PropertyType mType;
+
+    /**
+     * @param name name of the property
+     * @return a Builder for boolean properties
+     */
+    public static Builder booleanBuilder(String name) {
+      return new Builder(name, PropertyType.BOOLEAN);
+    }
 
     /**
      * @param name name of the property
      */
     public Builder(String name) {
+      this(name, PropertyType.STRING);
+    }
+
+    /**
+     * @param name name of the property
+     * @param type type of the property
+     */
+    private Builder(String name, PropertyType type) {
       mName = name;
+      mType = type;
     }
 
     /**
@@ -138,7 +210,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param params parameters of the template
      */
     public Builder(PropertyKey.Template template, Object... params) {
+      this(PropertyType.STRING, template, params);
+    }
+
+    /**
+     * @param type type of the property
+     * @param template template for the property name
+     * @param params parameters of the template
+     */
+    public Builder(PropertyType type, PropertyKey.Template template, Object... params) {
       mName = String.format(template.mFormat, params);
+      mType = type;
     }
 
     /**
@@ -164,7 +246,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the updated builder instance
      */
     public Builder setDefaultSupplier(DefaultSupplier defaultSupplier) {
-      mDefaultSupplier = defaultSupplier;
+      if (defaultSupplier.get() == null
+          || defaultSupplier.get().getClass().equals(mType.getJavaType())) {
+        mDefaultSupplier = defaultSupplier;
+      } else {
+        mDefaultSupplier = new DefaultSupplier(() -> String.valueOf(defaultSupplier.get()),
+            defaultSupplier.getDescription());
+      }
       return this;
     }
 
@@ -174,8 +262,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the updated builder instance
      */
     public Builder setDefaultSupplier(Supplier<Object> supplier, String description) {
-      mDefaultSupplier = new DefaultSupplier(supplier, description);
-      return this;
+      return setDefaultSupplier(new DefaultSupplier(supplier, description));
     }
 
     /**
@@ -183,6 +270,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the updated builder instance
      */
     public Builder setDefaultValue(Object defaultValue) {
+      checkArgument(defaultValue.getClass().equals(mType.getJavaType())
+          || defaultValue.getClass().equals(String.class)
+          || (mType == PropertyType.STRING
+          && !defaultValue.getClass().equals(Boolean.class)));
       mDefaultValue = defaultValue;
       return this;
     }
@@ -260,6 +351,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param valueValidationFunction custom function to validate the property value
+     * @return the updated builder instance
+     */
+    public Builder setValueValidationFunction(Function<Object, Boolean> valueValidationFunction) {
+      mValueValidationFunction = valueValidationFunction;
+      return this;
+    }
+
+    /**
      * Creates and registers the property key.
      *
      * @return the created property key instance
@@ -279,16 +379,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public PropertyKey buildUnregistered() {
       DefaultSupplier defaultSupplier = mDefaultSupplier;
       if (defaultSupplier == null) {
-        String defaultString = String.valueOf(mDefaultValue);
-        defaultSupplier = (mDefaultValue == null)
-            ? new DefaultSupplier(() -> null, "null")
-            : new DefaultSupplier(() -> defaultString, defaultString);
+        if (mDefaultValue == null) {
+          defaultSupplier = new DefaultSupplier(() -> null, "null");
+        }
+        else if (mType == PropertyType.STRING) {
+          String defaultString = String.valueOf(mDefaultValue);
+          defaultSupplier = new DefaultSupplier(() -> defaultString, defaultString);
+        } else {
+          defaultSupplier = new DefaultSupplier(() -> mDefaultValue, String.valueOf(mDefaultValue));
+        }
       }
 
-      PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
+      if (mValueValidationFunction != null && defaultSupplier.get() != null) {
+        Preconditions.checkState(mValueValidationFunction.apply(defaultSupplier.get()),
+            "Invalid value for property key %s: %s", mName, defaultSupplier.get());
+      }
+
+      return new PropertyKey(mName, mDescription, mType, defaultSupplier, mAlias,
           mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
-          mIsBuiltIn, mIsDynamic);
-      return key;
+          mIsBuiltIn, mIsDynamic, mValueValidationFunction);
     }
 
     @Override
@@ -304,20 +413,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey CONF_DIR =
       new Builder(Name.CONF_DIR)
           .setDefaultValue(String.format("${%s}/conf", Name.HOME))
-          .setDescription("The directory containing files used to configure Alluxio.")
+          .setDescription("The directory of Alluxio configuration files."
+              + " This property is only for internal use."
+              + " To change the location, set environment variable $ALLUXIO_CONF_DIR instead.")
           .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey CONF_DYNAMIC_UPDATE_ENABLED =
-      new Builder(Name.CONF_DYNAMIC_UPDATE_ENABLED)
+      booleanBuilder(Name.CONF_DYNAMIC_UPDATE_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to support dynamic update property.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey CONF_VALIDATION_ENABLED =
-      new Builder(Name.CONF_VALIDATION_ENABLED)
+      booleanBuilder(Name.CONF_VALIDATION_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to validate the configuration properties when initializing "
               + "Alluxio clients or server process.")
@@ -326,7 +438,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey DEBUG =
-      new Builder(Name.DEBUG)
+      booleanBuilder(Name.DEBUG)
           .setDefaultValue(false)
           .setDescription("Set to true to enable debug mode which has additional logging and "
               + "info in the Web UI.")
@@ -360,7 +472,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey LEAK_DETECTOR_EXIT_ON_LEAK =
-      new Builder(Name.LEAK_DETECTOR_EXIT_ON_LEAK)
+      booleanBuilder(Name.LEAK_DETECTOR_EXIT_ON_LEAK)
           .setDefaultValue(false)
           .setDescription("If set to true, the JVM will exit as soon as a leak is detected. Use "
               + "only in testing environments.")
@@ -376,12 +488,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.ALL)
           .build();
+  // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGS_DIR =
       new Builder(Name.LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
-          .setDescription("The path under Alluxio home directory to store log files. It has a "
-              + "corresponding environment variable $ALLUXIO_LOGS_DIR.")
+          .setDescription("The path to store logs files of Alluxio servers."
+              + " This property is only for internal use."
+              + " To change the location, set environment variable $ALLUXIO_LOGS_DIR instead.")
           .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -389,9 +504,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
-          .setDescription("The path to store logs of Alluxio shell. To change its value, one can "
-              + " set environment variable $ALLUXIO_USER_LOGS_DIR.")
+          .setDescription("The path to store logs of Alluxio command lines."
+              + " This property is only for internal use."
+              + " To change the location, set environment variable $ALLUXIO_USER_LOGS_DIR instead.")
           .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
@@ -479,7 +596,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey NETWORK_IP_ADDRESS_USED =
-      new Builder(Name.NETWORK_IP_ADDRESS_USED)
+      booleanBuilder(Name.NETWORK_IP_ADDRESS_USED)
           .setDefaultValue(false)
           .setDescription("If true, when alluxio.<service_name>.hostname and "
               + "alluxio.<service_name>.bind.host of a service not specified, "
@@ -488,7 +605,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey TEST_MODE =
-      new Builder(Name.TEST_MODE)
+      booleanBuilder(Name.TEST_MODE)
           .setDefaultValue(false)
           .setDescription("Flag used only during tests to allow special behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -514,7 +631,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WEB_FILE_INFO_ENABLED =
-      new Builder(Name.WEB_FILE_INFO_ENABLED)
+      booleanBuilder(Name.WEB_FILE_INFO_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether detailed file information are enabled for the web UI.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -536,7 +653,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WEB_CORS_ENABLED =
-      new Builder(Name.WEB_CORS_ENABLED)
+      booleanBuilder(Name.WEB_CORS_ENABLED)
           .setDefaultValue(false)
           .setDescription("Set to true to enable Cross-Origin Resource Sharing for RESTful API"
               + "endpoints.")
@@ -552,7 +669,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WEB_THREAD_DUMP_TO_LOG =
-      new Builder(Name.WEB_THREAD_DUMP_TO_LOG)
+      booleanBuilder(Name.WEB_THREAD_DUMP_TO_LOG)
           .setDefaultValue(false)
           .setDescription("Whether thread information is also printed to the log "
               + "when the thread dump api is accessed")
@@ -560,7 +677,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WEB_UI_ENABLED =
-      new Builder(Name.WEB_UI_ENABLED)
+      booleanBuilder(Name.WEB_UI_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether the master/worker will have Web UI enabled. "
               + "If set to false, the master/worker will not have Web UI page, but the RESTful "
@@ -599,7 +716,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ZOOKEEPER_ENABLED =
-      new Builder(Name.ZOOKEEPER_ENABLED)
+      booleanBuilder(Name.ZOOKEEPER_ENABLED)
           .setDefaultValue(false)
           .setDescription("If true, setup master fault tolerant mode using ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -627,7 +744,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey ZOOKEEPER_AUTH_ENABLED =
-      new Builder(Name.ZOOKEEPER_AUTH_ENABLED)
+      booleanBuilder(Name.ZOOKEEPER_AUTH_ENABLED)
           .setDefaultValue(true)
           .setDescription("If true, enable client-side Zookeeper authentication.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -648,7 +765,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * UFS related properties.
    */
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
-      new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
+      booleanBuilder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
           .setDescription("Whether to allow setting owner in UFS to fail. When set to true, "
               + "it is possible file or directory owners diverge between Alluxio and UFS.")
@@ -656,7 +773,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey UNDERFS_CLEANUP_ENABLED =
-      new Builder(Name.UNDERFS_CLEANUP_ENABLED)
+      booleanBuilder(Name.UNDERFS_CLEANUP_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to clean up under file storage periodically."
               + "Some ufs operations may not be completed and cleaned up successfully "
@@ -738,7 +855,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_RETRY_JITTER =
-      new Builder(Name.UNDERFS_GCS_RETRY_JITTER)
+      booleanBuilder(Name.UNDERFS_GCS_RETRY_JITTER)
           .setDefaultValue(true)
           .setDescription("Enable delay jitter while retrying requests on the ufs")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -796,7 +913,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
-      new Builder(Name.UNDERFS_HDFS_REMOTE)
+      booleanBuilder(Name.UNDERFS_HDFS_REMOTE)
           .setDefaultValue(true)
           .setDescription("Boolean indicating whether or not the under storage worker nodes "
               + "are remote with respect to Alluxio worker nodes. If set to true, Alluxio "
@@ -807,7 +924,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
-      new Builder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
+      booleanBuilder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
           .setDefaultValue(false)
           .setDescription("When set to true, any time the local underfs lists a broken "
               + "symlink, it will treat the entry as if it didn't exist at all."
@@ -844,7 +961,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
-      new Builder(Name.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)
+      booleanBuilder(Name.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED)
           .setDefaultValue(true)
           .setDescription("Set this to false to prevent Alluxio from creating zero byte objects "
               + "during read or list operations on object store UFS. Leaving this on enables more"
@@ -869,7 +986,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION =
-      new Builder(Name.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+      booleanBuilder(Name.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
           .setDefaultValue(true)
           .setDescription("Do not create parent directory for new files. Object stores generally "
               + "uses prefix which is not required for creating new files. Skipping parent "
@@ -879,7 +996,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
-      new Builder(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)
+      booleanBuilder(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)
           .setDefaultValue(false)
           .setDescription("Whether or not to share object storage under storage system "
               + "mounted point with all Alluxio users. Note that this configuration has no "
@@ -960,7 +1077,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_DISABLE_DNS_BUCKETS =
-      new Builder(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS)
+      booleanBuilder(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS)
           .setDefaultValue(false)
           .setDescription("Optionally, specify to make all S3 requests path style.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1055,7 +1172,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_BULK_DELETE_ENABLED =
-      new Builder(Name.UNDERFS_S3_BULK_DELETE_ENABLED)
+      booleanBuilder(Name.UNDERFS_S3_BULK_DELETE_ENABLED)
           .setAlias("alluxio.underfs.s3a.bulk.delete.enabled")
           .setDefaultValue(true)
           .setIsHidden(true)
@@ -1063,7 +1180,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_INHERIT_ACL =
-      new Builder(Name.UNDERFS_S3_INHERIT_ACL)
+      booleanBuilder(Name.UNDERFS_S3_INHERIT_ACL)
           .setAlias("alluxio.underfs.s3a.inherit_acl")
           .setDefaultValue(true)
           .setDescription("Set this property to false to disable inheriting bucket ACLs on "
@@ -1086,7 +1203,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_LIST_OBJECTS_V1 =
-      new Builder(Name.UNDERFS_S3_LIST_OBJECTS_V1)
+      booleanBuilder(Name.UNDERFS_S3_LIST_OBJECTS_V1)
           .setAlias("alluxio.underfs.s3a.list.objects.v1")
           .setDefaultValue(false)
           .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
@@ -1113,7 +1230,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_SECURE_HTTP_ENABLED =
-      new Builder(Name.UNDERFS_S3_SECURE_HTTP_ENABLED)
+      booleanBuilder(Name.UNDERFS_S3_SECURE_HTTP_ENABLED)
           .setAlias("alluxio.underfs.s3a.secure.http.enabled")
           .setDefaultValue(false)
           .setDescription("Whether or not to use HTTPS protocol when communicating with S3.")
@@ -1121,7 +1238,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED =
-      new Builder(Name.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED)
+      booleanBuilder(Name.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED)
           .setAlias("alluxio.underfs.s3a.server.side.encryption.enabled")
           .setDefaultValue(false)
           .setDescription("Whether or not to encrypt data stored in S3.")
@@ -1155,7 +1272,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_STREAMING_UPLOAD_ENABLED =
-      new Builder(Name.UNDERFS_S3_STREAMING_UPLOAD_ENABLED)
+      booleanBuilder(Name.UNDERFS_S3_STREAMING_UPLOAD_ENABLED)
           .setAlias("alluxio.underfs.s3a.streaming.upload.enabled")
           .setDefaultValue(false)
           .setDescription("(Experimental) If true, using streaming upload to write to S3.")
@@ -1262,7 +1379,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_LOCALIZE_READS =
-      new Builder(Name.UNDERFS_CEPHFS_LOCALIZE_READS)
+      booleanBuilder(Name.UNDERFS_CEPHFS_LOCALIZE_READS)
           .setDefaultValue(false)
           .setDescription("Utilize Ceph localized reads feature.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1491,14 +1608,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
-      new Builder(Template.MASTER_MOUNT_TABLE_READONLY, "root")
+      new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_READONLY, "root")
           .setDefaultValue(false)
           .setDescription("Whether Alluxio root mount point is readonly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
-      new Builder(Template.MASTER_MOUNT_TABLE_SHARED, "root")
+      new Builder(PropertyType.BOOLEAN, Template.MASTER_MOUNT_TABLE_SHARED, "root")
           .setDefaultValue(true)
           .setDescription("Whether Alluxio root mount point is shared.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1517,7 +1634,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * Master related properties.
    */
   public static final PropertyKey MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
-      new Builder(Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)
+      booleanBuilder(Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)
           .setDefaultValue(true)
           .setDescription("Checks if the size of an async persist file matches the original file "
               + "and fails the async persist job if not.")
@@ -1526,7 +1643,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_ENABLED =
-      new Builder(Name.MASTER_AUDIT_LOGGING_ENABLED)
+      booleanBuilder(Name.MASTER_AUDIT_LOGGING_ENABLED)
           .setDefaultValue(false)
           .setDescription("Set to true to enable file system master audit.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1557,7 +1674,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
-      new Builder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
+      booleanBuilder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1613,7 +1730,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
-      new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED)
+      booleanBuilder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED)
           .setDefaultValue(false)
           .setDescription("This controls whether RPCs that are waiting/holding state-lock "
               + "in shared-mode will be interrupted while state-lock is taken exclusively.")
@@ -1644,7 +1761,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
-      new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
+      booleanBuilder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to enable daily primary master "
               + "metadata backup.")
@@ -1843,7 +1960,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED)
+      booleanBuilder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether the journal writer will write to remote master. This is "
               + "disabled by default and should not be turned on unless Alluxio encounters issues "
@@ -1863,6 +1980,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The stream chunk size used by masters to replicate snapshots.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Time after which calls made through the Raft client timeout.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL)
+          .setDefaultValue("100ms")
+          .setDescription("Base interval for retrying Raft client calls. The retry policy is "
+              + "ExponentialBackoffRetry")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2025,7 +2157,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
-      new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+      booleanBuilder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
           .setDefaultValue(true)
           .setDescription("Whether to inherit the owner/group from the parent when creating a new "
               + "inode path if empty")
@@ -2127,7 +2259,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
-      new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
+      booleanBuilder(Name.MASTER_METRICS_HEAP_ENABLED)
           .setDefaultValue(true)
           .setDescription("Enable master heap estimate metrics")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2176,7 +2308,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
-      new Builder(Name.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)
+      booleanBuilder(Name.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)
           .setDefaultValue(true)
           .setDescription("(Experimental) make sure the journal catchup finish "
               + "before joining the quorum in fault tolerant mode when starting the master process "
@@ -2188,7 +2320,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_EXIT_ON_DEMOTION =
-      new Builder(Name.MASTER_JOURNAL_EXIT_ON_DEMOTION)
+      booleanBuilder(Name.MASTER_JOURNAL_EXIT_ON_DEMOTION)
           .setDefaultValue(false)
           .setDescription("(Experimental) When this flag is set to true, the master process may "
               + "start as the primary or standby in a quorum, but at any point in time after "
@@ -2260,7 +2392,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TOLERATE_CORRUPTION =
-      new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
+      booleanBuilder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
           .setDescription("Whether to tolerate master state corruption "
               + "when leader master recovering from backup and standby master replaying journal. "
@@ -2361,6 +2493,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Kerberos keytab file for Alluxio master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
+          .setValueValidationFunction(CHECK_FILE_EXISTS)
           .build();
   public static final PropertyKey MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)
@@ -2370,7 +2503,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
+      booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
           .setDefaultValue(false)
           .setDescription("Whether the system should delete orphaned blocks found during the "
               + "periodic integrity check. This is an experimental feature.")
@@ -2457,7 +2590,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_SKIP_ROOT_ACL_CHECK =
-      new Builder(Name.MASTER_SKIP_ROOT_ACL_CHECK)
+      booleanBuilder(Name.MASTER_SKIP_ROOT_ACL_CHECK)
           .setDefaultValue(false)
           .setDescription("Skip root directory ACL check when restarting either from journal or "
               + "backup. This is to allow users to restore a backup from a different cluster onto "
@@ -2468,7 +2601,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-      new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
+      booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether the system should be checked on startup for orphaned blocks "
               + "(blocks having no corresponding files but still taking system resource due to "
@@ -2536,7 +2669,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED =
-      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)
+      booleanBuilder(Name.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to perform an initial sync when we add a sync point")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2609,7 +2742,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_MANAGED_BLOCKING_ENABLED =
-      new Builder(Name.MASTER_UFS_MANAGED_BLOCKING_ENABLED)
+      booleanBuilder(Name.MASTER_UFS_MANAGED_BLOCKING_ENABLED)
           .setDescription("Whether to run UFS operations with managed blocking. "
               + "This will provide RPC layer a hint that UFS is possible slow."
               + "The default is true for object stores and false for the rest. "
@@ -2640,8 +2773,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
-      new Builder(Name.MASTER_UPDATE_CHECK_ENABLED)
-          .setDefaultValue(ProjectConstants.UPDATE_CHECK_ENABLED)
+      booleanBuilder(Name.MASTER_UPDATE_CHECK_ENABLED)
+          .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
           .setDescription("Whether to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2654,7 +2787,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
-      new Builder(Name.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
+      booleanBuilder(Name.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
           .setDefaultValue(true)
           .setDescription("When set to false, writing files using ASYNC_THROUGH or persist CLI "
               + "with object stores as the UFS will first create temporary objects "
@@ -2758,7 +2891,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_REPORT_FAILURE =
-      new Builder(Name.MASTER_METADATA_SYNC_REPORT_FAILURE)
+      booleanBuilder(Name.MASTER_METADATA_SYNC_REPORT_FAILURE)
           .setDescription("Report failure if any metadata sync fails")
           .setScope(Scope.MASTER)
           .setDefaultValue(true)
@@ -2822,7 +2955,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
-      new Builder(Name.MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
+      booleanBuilder(Name.MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
           .setDefaultValue(true)
           .setDescription(
               String.format("This property is effective when %s is set to ThreadPoolExecutor. "
@@ -2858,7 +2991,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_ASYNC =
-      new Builder(Name.MASTER_RPC_EXECUTOR_FJP_ASYNC)
+      booleanBuilder(Name.MASTER_RPC_EXECUTOR_FJP_ASYNC)
           .setDefaultValue(true)
           .setDescription(String.format(
               "This property is effective when %s is set to ForkJoinPool. "
@@ -2871,7 +3004,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
-      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+      booleanBuilder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether workers request for leases before they register. "
               + "The RegisterLease is used by the master to control the concurrency of workers"
@@ -2888,7 +3021,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE =
-      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)
+      booleanBuilder(Name.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)
           .setDefaultValue(true)
           .setDescription("Whether the master checks the availability on the JVM before granting"
               + " a lease to a worker. If the master determines the JVM does not have enough"
@@ -2904,13 +3037,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey STANDBY_MASTER_METRICS_SINK_ENABLED =
-      new Builder(Name.STANDBY_MASTER_METRICS_SINK_ENABLED)
+      booleanBuilder(Name.STANDBY_MASTER_METRICS_SINK_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether a standby master runs the metric sink")
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey STANDBY_MASTER_WEB_ENABLED =
-      new Builder(Name.STANDBY_MASTER_WEB_ENABLED)
+      booleanBuilder(Name.STANDBY_MASTER_WEB_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether a standby master runs a web server")
           .setScope(Scope.SERVER)
@@ -2940,7 +3073,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED =
-      new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED)
+      booleanBuilder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED)
           .setDefaultValue(true)
           .setDescription("If enabled, each filesystem operation will be tracked on all masters, "
               + "in order to avoid re-execution of client retries.")
@@ -3029,7 +3162,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
-      new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)
+      booleanBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)
           .setDefaultValue(false)
           .setDescription("If true, the property " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS
               + "is the path to the home directory for the domain socket and a unique identifier "
@@ -3098,7 +3231,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_FUSE_ENABLED =
-      new Builder(Name.WORKER_FUSE_ENABLED)
+      booleanBuilder(Name.WORKER_FUSE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If true, launch worker embedded Fuse application.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3193,21 +3326,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_ENABLED =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)
+      booleanBuilder(Name.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to align tiers based on access pattern.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED)
+      booleanBuilder(Name.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to promote blocks to higher tiers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED)
+      booleanBuilder(Name.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to run management swap-restore task when "
               + "tier alignment cannot make progress.")
@@ -3255,6 +3388,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
+      .setValueValidationFunction(CHECK_FILE_EXISTS)
       .build();
   public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
       new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
@@ -3452,14 +3586,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_ZEROCOPY_ENABLED =
-      new Builder(Name.WORKER_NETWORK_ZEROCOPY_ENABLED)
+      booleanBuilder(Name.WORKER_NETWORK_ZEROCOPY_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether zero copy is enabled on worker when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_ENABLED =
-      new Builder(Name.WORKER_REGISTER_STREAM_ENABLED)
+      booleanBuilder(Name.WORKER_REGISTER_STREAM_ENABLED)
           .setDefaultValue(true)
           .setDescription("When the worker registers with the master, whether the request should be"
               + " broken into a stream of smaller batches. This is useful when the worker's storage"
@@ -3532,7 +3666,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.WORKER)
       .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_ENABLED =
-      new Builder(Name.WORKER_REGISTER_LEASE_ENABLED)
+      booleanBuilder(Name.WORKER_REGISTER_LEASE_ENABLED)
           .setDefaultValue(String.format("${%s}", Name.MASTER_WORKER_REGISTER_LEASE_ENABLED))
           .setDescription("Whether the worker requests a lease from the master before registering."
               + "This should be consistent with " + Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
@@ -3619,7 +3753,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_STORAGE_CHECKER_ENABLED =
-      new Builder(Name.WORKER_STORAGE_CHECKER_ENABLED)
+      booleanBuilder(Name.WORKER_STORAGE_CHECKER_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether periodic storage health checker is enabled on Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3848,7 +3982,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLED =
-      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLED)
+      booleanBuilder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLED)
           .setDefaultValue(true)
           .setDescription("Enable caching for seekable under storage input stream, "
               + "so that subsequent seek operations on the same file will reuse "
@@ -3927,7 +4061,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
-      new Builder(Name.WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
+      booleanBuilder(Name.WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
           .setDefaultValue(true)
           .setDescription(
               String.format("This property is effective when %s is set to ThreadPoolExecutor. "
@@ -3963,7 +4097,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_ASYNC =
-      new Builder(Name.WORKER_RPC_EXECUTOR_FJP_ASYNC)
+      booleanBuilder(Name.WORKER_RPC_EXECUTOR_FJP_ASYNC)
           .setDefaultValue(true)
           .setDescription(String.format(
               "This property is effective when %s is set to ForkJoinPool. "
@@ -4112,7 +4246,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
-          new Builder(Name.LOCALITY_COMPARE_NODE_IP)
+      booleanBuilder(Name.LOCALITY_COMPARE_NODE_IP)
           .setDefaultValue(false)
           .setDescription("Whether try to resolve the node IP address for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4182,7 +4316,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setAlias(new String[] {"alluxio.user.block.master.client.threads"})
+          .setAlias("alluxio.user.block.master.client.threads")
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
@@ -4300,7 +4434,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("2min")
           .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
-      new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+      booleanBuilder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
           .setDefaultValue(true)
           .setDescription("When this property is true, an Alluxio client will load the default "
               + "values of cluster-wide configuration and path-specific configuration set by "
@@ -4337,7 +4471,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
-      new Builder(Name.USER_FILE_DELETE_UNCHECKED)
+      booleanBuilder(Name.USER_FILE_DELETE_UNCHECKED)
           .setDefaultValue(false)
           .setDescription("Whether to check if the UFS contents are in sync with Alluxio "
               + "before attempting to delete persisted directories recursively.")
@@ -4403,7 +4537,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
-      new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
+      booleanBuilder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to cache files to local Alluxio workers when the files are read "
               + "from remote workers (not UFS).")
@@ -4423,7 +4557,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_PERSIST_ON_RENAME =
-      new Builder(Name.USER_FILE_PERSIST_ON_RENAME)
+      booleanBuilder(Name.USER_FILE_PERSIST_ON_RENAME)
           .setDefaultValue(false)
           .setDescription("Whether or not to asynchronously persist any files which have been "
               + "renamed. This is helpful when working with compute frameworks which use rename "
@@ -4465,7 +4599,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
-      new Builder(Name.USER_FILE_UFS_TIER_ENABLED)
+      booleanBuilder(Name.USER_FILE_UFS_TIER_ENABLED)
           .setDescription("When workers run out of available memory, whether the client can skip "
               + "writing data to Alluxio but fallback to write to UFS without stopping the "
               + "application. This property only works when the write type is ASYNC_THROUGH.")
@@ -4473,7 +4607,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
-      new Builder(Name.USER_BLOCK_READ_METRICS_ENABLED)
+      booleanBuilder(Name.USER_BLOCK_READ_METRICS_ENABLED)
           .setDescription("Whether detailed block read metrics will be recorded and sink.")
           .setDefaultValue(false)
           .setScope(Scope.CLIENT)
@@ -4495,14 +4629,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)
+      booleanBuilder(Name.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)
           .setDefaultValue(true)
           .setDescription("If this is enabled, cache restore state asynchronously.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
+      booleanBuilder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
           .setDefaultValue(true)
           .setDescription("If this is enabled, cache data asynchronously.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -4516,7 +4650,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_ENABLED)
+      booleanBuilder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4540,7 +4674,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED).setDefaultValue(false)
+      booleanBuilder(Name.USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED)
+          .setDefaultValue(false)
           .setDescription(
               "If this is enabled, the evictor picks uniformly from the worst k elements."
                   + "Currently only LRU is supported.")
@@ -4548,7 +4683,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_ENABLED).setDefaultValue(false).setDescription(
+      booleanBuilder(Name.USER_CLIENT_CACHE_SHADOW_ENABLED)
+          .setDefaultValue(false)
+          .setDescription(
           "If this is enabled, a shadow cache will be created to tracking the working set of "
               + "a past time window, and measure the hit ratio if the working set fits the cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
@@ -4627,7 +4764,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_QUOTA_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_QUOTA_ENABLED)
+      booleanBuilder(Name.USER_CLIENT_CACHE_QUOTA_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to support cache quota.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4680,7 +4817,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_INCLUDE_OPERATION_ID =
-      new Builder(Name.USER_FILE_INCLUDE_OPERATION_ID)
+      booleanBuilder(Name.USER_FILE_INCLUDE_OPERATION_ID)
           .setDefaultValue(true)
           .setDescription(
               "Whether to send a unique operation id with designated filesystem operations.")
@@ -4733,7 +4870,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METADATA_CACHE_ENABLED =
-      new Builder(Name.USER_METADATA_CACHE_ENABLED)
+      booleanBuilder(Name.USER_METADATA_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, metadata of paths will be cached. "
               + "The cached metadata will be evicted when it expires after "
@@ -4760,7 +4897,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
-      new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
+      booleanBuilder(Name.USER_METRICS_COLLECTION_ENABLED)
           .setDefaultValue(true)
           .setDescription("Enable collecting the client-side metrics and heartbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4785,7 +4922,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "unset to use a randomly generated id.")
           .build();
   public static final PropertyKey USER_SKIP_AUTHORITY_CHECK =
-      new Builder(Name.USER_SKIP_AUTHORITY_CHECK)
+      booleanBuilder(Name.USER_SKIP_AUTHORITY_CHECK)
           .setScope(Scope.CLIENT)
           .setDefaultValue(false)
           .setIsHidden(true)
@@ -4884,7 +5021,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_STREAMING_ZEROCOPY_ENABLED =
-      new Builder(Name.USER_STREAMING_ZEROCOPY_ENABLED)
+      booleanBuilder(Name.USER_STREAMING_ZEROCOPY_ENABLED)
           .setAlias(Name.USER_NETWORK_ZEROCOPY_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether zero copy is enabled on client when processing data streams.")
@@ -4973,7 +5110,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_ZEROCOPY_ENABLED =
-      new Builder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
+      booleanBuilder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
           .setDescription("Whether zero copy is enabled on client when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5179,7 +5316,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
   public static final PropertyKey USER_RPC_SHUFFLE_MASTERS_ENABLED =
-      new Builder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
+      booleanBuilder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
           .setDefaultValue(false)
           .setDescription("Shuffle the client-side configured master rpc addresses.")
           .build();
@@ -5201,7 +5338,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
-      new Builder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
+      booleanBuilder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to return all workers as block location if ufs block locations "
               + "are not co-located with any Alluxio workers or is empty.")
@@ -5240,7 +5377,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_DIRECT_MEMORY_IO_ENABLED =
-      new Builder(Name.USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED)
+      booleanBuilder(Name.USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED)
           .setDefaultValue(false)
           .setAlias("alluxio.user.direct.memory.io.enabled")
           .setIsHidden(true)
@@ -5252,7 +5389,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UPDATE_FILE_ACCESSTIME_DISABLED =
-      new Builder(Name.USER_UPDATE_FILE_ACCESSTIME_DISABLED)
+      booleanBuilder(Name.USER_UPDATE_FILE_ACCESSTIME_DISABLED)
           .setDefaultValue(false)
           .setIsHidden(true)
           .setDescription("(Experimental) If this is enabled, the clients doesn't update file "
@@ -5261,7 +5398,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
-      new Builder(Name.USER_SHORT_CIRCUIT_ENABLED)
+      booleanBuilder(Name.USER_SHORT_CIRCUIT_ENABLED)
           .setDefaultValue(true)
           .setDescription("The short circuit read/write which allows the clients to "
               + "read/write data without going through Alluxio workers if the data is local "
@@ -5270,7 +5407,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_PREFERRED =
-      new Builder(Name.USER_SHORT_CIRCUIT_PREFERRED)
+      booleanBuilder(Name.USER_SHORT_CIRCUIT_PREFERRED)
           .setDefaultValue(false)
           .setDescription("When short circuit and domain socket both enabled, "
               + "prefer to use short circuit.")
@@ -5314,7 +5451,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_DEBUG_ENABLED =
-      new Builder(Name.FUSE_DEBUG_ENABLED)
+      booleanBuilder(Name.FUSE_DEBUG_ENABLED)
           .setDefaultValue(false)
           .setDescription("Run FUSE in debug mode, and have the fuse process log every FS request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -5328,7 +5465,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_JNIFUSE_ENABLED =
-      new Builder(Name.FUSE_JNIFUSE_ENABLED)
+      booleanBuilder(Name.FUSE_JNIFUSE_ENABLED)
           .setDefaultValue(true)
           .setDescription("Use JNI-Fuse library for better performance. "
               + "If disabled, JNR-Fuse will be used.")
@@ -5344,7 +5481,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_PERMISSION_CHECK_ENABLED =
-      new Builder(Name.FUSE_PERMISSION_CHECK_ENABLED)
+      booleanBuilder(Name.FUSE_PERMISSION_CHECK_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to add -o default_permissions fuse mount option by default. "
               + "When this option is enabled, kernel will perform its own permission check "
@@ -5358,7 +5495,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
-      new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
+      booleanBuilder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
           .setDefaultValue(false)
           .setDescription("(Experimental) Use share grpc data reader for better performance "
               + "on multi-process file reading through Alluxio JNI Fuse. "
@@ -5393,7 +5530,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_USER_GROUP_TRANSLATION_ENABLED =
-      new Builder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
+      booleanBuilder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to translate Alluxio users and groups "
               + "into Unix users and groups when exposing Alluxio files through the FUSE API. "
@@ -5403,7 +5540,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
-      new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
+      booleanBuilder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
           .setDefaultValue(false)
           .setDescription("If enabled, user can issue special FUSE commands by using "
               + "'ls -l /path/to/fuse_mount/.alluxiocli.<command_name>.<subcommand_name>', "
@@ -5420,7 +5557,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Standalone FUSE process related properties
   //
   public static final PropertyKey FUSE_WEB_ENABLED =
-      new Builder(Name.FUSE_WEB_ENABLED)
+      booleanBuilder(Name.FUSE_WEB_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to enable FUSE web server.")
           .setScope(Scope.CLIENT)
@@ -5466,7 +5603,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
-      new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
+      booleanBuilder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to enable access control based on file permission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5551,7 +5688,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey NETWORK_TLS_ENABLED =
-      new Builder(Name.NETWORK_TLS_ENABLED)
+      booleanBuilder(Name.NETWORK_TLS_ENABLED)
           .setDescription("If true, enables TLS on all network communication between all Alluxio "
               + "clients, masters, and workers.")
           .setDefaultValue(false)
@@ -5736,7 +5873,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_THROTTLING =
-      new Builder(Name.JOB_WORKER_THROTTLING)
+      booleanBuilder(Name.JOB_WORKER_THROTTLING)
           .setDescription("Whether the job worker should throttle itself based on whether the "
               + "resources are saturated.")
           .setScope(Scope.WORKER)
@@ -5854,7 +5991,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
-      new Builder(Name.MASTER_JVM_MONITOR_ENABLED)
+      booleanBuilder(Name.MASTER_JVM_MONITOR_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to enable start JVM monitor thread on the master. This will "
               + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
@@ -5862,7 +5999,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey WORKER_JVM_MONITOR_ENABLED =
-      new Builder(Name.WORKER_JVM_MONITOR_ENABLED)
+      booleanBuilder(Name.WORKER_JVM_MONITOR_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to enable start JVM monitor thread on the worker. This will "
               + "start a thread to detect JVM-wide pauses induced by GC or other reasons.")
@@ -5870,7 +6007,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey STANDALONE_FUSE_JVM_MONITOR_ENABLED =
-      new Builder(Name.STANDALONE_FUSE_JVM_MONITOR_ENABLED)
+      booleanBuilder(Name.STANDALONE_FUSE_JVM_MONITOR_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to enable start JVM monitor thread "
               + "on the standalone fuse process. This will start a thread "
@@ -5883,7 +6020,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Table service properties
   //
   public static final PropertyKey TABLE_ENABLED =
-      new Builder(Name.TABLE_ENABLED)
+      booleanBuilder(Name.TABLE_ENABLED)
           .setDefaultValue(true)
           .setDescription("(Experimental) Enables the table service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -6039,7 +6176,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The port that the hosted hub's RPC server should bind to")
                   .build();
   public static final PropertyKey HUB_NETWORK_TLS_ENABLED =
-          new Builder(Name.HUB_NETWORK_TLS_ENABLED)
+      booleanBuilder(Name.HUB_NETWORK_TLS_ENABLED)
                   .setDescription("If true, enables TLS on all network communication between "
                           + "hosted Hub and manager.")
                   .setDefaultValue(true)
@@ -6072,7 +6209,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated(message = "This key is used only for testing. It is always deprecated")
   public static final PropertyKey TEST_DEPRECATED_KEY =
-      new Builder("alluxio.test.deprecated.key")
+      booleanBuilder("alluxio.test.deprecated.key")
           .build();
 
   /**
@@ -6461,6 +6598,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
+        "alluxio.master.embedded.journal.raft.client.request.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
+        "alluxio.master.embedded.journal.raft.client.request.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
         "alluxio.master.embedded.journal.transport.request.timeout.ms";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
@@ -7360,14 +7501,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
-        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly"),
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly",
+        PropertyType.BOOLEAN),
     MASTER_MOUNT_TABLE_SHARED("alluxio.master.mount.table.%s.shared",
-        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.shared"),
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.shared",
+        PropertyType.BOOLEAN),
     MASTER_MOUNT_TABLE_UFS("alluxio.master.mount.table.%s.ufs",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
-    MASTER_MOUNT_TABLE_ROOT_OPTION_PROPERTY("alluxio.master.mount.table.root.option.%s",
-        "alluxio\\.master\\.mount\\.table\\.root\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
     UNDERFS_ABFS_ACCOUNT_KEY(
@@ -7432,13 +7572,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.queue\\.type"),
     RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT(
         "alluxio.%s.rpc.executor.tpe.allow.core.threads.timeout",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.allow\\.core\\.threads\\.timeout"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.allow\\.core\\.threads\\.timeout",
+        PropertyType.BOOLEAN),
     RPC_EXECUTOR_FJP_PARALLELISM("alluxio.%s.rpc.executor.fjp.parallelism",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.parallelism"),
     RPC_EXECUTOR_FJP_MIN_RUNNABLE("alluxio.%s.rpc.executor.fjp.min.runnable",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.min\\.runnable"),
     RPC_EXECUTOR_FJP_ASYNC("alluxio.%s.rpc.executor.fjp.async",
-        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.async"),
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.async",
+        PropertyType.BOOLEAN),
 
     /**
      * @deprecated This template is always deprecated. It is used only for testing.
@@ -7482,18 +7624,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private static final String NESTED_GROUP = "nested";
     private final String mFormat;
     private final Pattern mPattern;
+    private final PropertyType mType;
     private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
         PropertyCreators.DEFAULT_PROPERTY_CREATOR;
+
+    Template(String format, String re) {
+      this(format, re, PropertyType.STRING);
+    }
 
     /**
      * Constructs a property key format.
      *
      * @param format String of this property as formatted string
      * @param re String of this property as regexp
+     * @param type type of this property
      */
-    Template(String format, String re) {
+    Template(String format, String re, PropertyType type) {
       mFormat = format;
       mPattern = Pattern.compile(re);
+      mType = type;
     }
 
     /**
@@ -7525,7 +7674,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return corresponding property
      */
     public PropertyKey format(Object... params) {
-      return new PropertyKey(String.format(mFormat, params));
+      return new PropertyKey(String.format(mFormat, params), mType);
     }
 
     /**
@@ -7649,6 +7798,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Property Key description. */
   private final String mDescription;
 
+  /** Property type. */
+  private final PropertyType mType;
+
   /** Supplies the Property Key default value. */
   private final DefaultSupplier mDefaultSupplier;
 
@@ -7676,9 +7828,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Whether the property could be updated dynamically. */
   private final boolean mDynamic;
 
+  /** A custom function to validate the value. */
+  private final Function<Object, Boolean> mValueValidationFunction;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
+   * @Param type the property's type
    * @param defaultSupplier default value supplier
    * @param aliases alias of this property key
    * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property in
@@ -7689,13 +7845,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param displayType how the property value should be displayed
    * @param isBuiltIn whether this is an Alluxio built-in property
    */
-  private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
-      String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
-      ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType,
-      boolean isBuiltIn, boolean dynamic) {
+  private PropertyKey(String name, String description, PropertyType type,
+      DefaultSupplier defaultSupplier, String[] aliases, boolean ignoredSiteProperty,
+      boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel, Scope scope,
+      DisplayType displayType, boolean isBuiltIn, boolean dynamic,
+      Function<Object, Boolean> valueValidationFunction) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
+    mType = type;
     mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;
@@ -7705,14 +7863,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mDisplayType = displayType;
     mIsBuiltIn = isBuiltIn;
     mDynamic = dynamic;
+    mValueValidationFunction = valueValidationFunction;
   }
 
   /**
    * @param name String of this property
    */
-  private PropertyKey(String name) {
-    this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true);
+  private PropertyKey(String name, PropertyType type) {
+    this(name, null, type, new DefaultSupplier(() -> null, "null"), null, false, false,
+        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true, null);
   }
 
   /**
@@ -7812,6 +7971,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * TODO(rongrong) This should really be something more specific as hasDependency or isRecursive.
+   * @return Whether the property value is string
+   */
+  public boolean isStringProperty() {
+    return mType == PropertyType.STRING;
+  }
+
+  /**
    * @return the name of the property
    */
   public String getName() {
@@ -7833,12 +8000,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * @return the default value of a property key or null if value not set
+   * @return the java type of the property
+   */
+  public PropertyType getType() {
+    return mType;
+  }
+
+  /**
+   * TODO(rongrong) this api should be removed.
+   * @return the default string value of a property key or null if value not set
    */
   @Nullable
-  public String getDefaultValue() {
+  public String getDefaultStringValue() {
     Object defaultValue = mDefaultSupplier.get();
     return defaultValue == null ? null : defaultValue.toString();
+  }
+
+  /**
+   * @return the default value of a property key or null if value not set
+   */
+  public Object getDefaultValue() {
+    return mDefaultSupplier.get();
   }
 
   /**
@@ -7895,6 +8077,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public DisplayType getDisplayType() {
     return mDisplayType;
+  }
+
+  /**
+   * @param value the value to be validated
+   * @return whether the value is a valid value of the property key
+   */
+  public boolean validateValue(Object value) {
+    if (!(value instanceof String)
+        && mType == PropertyType.BOOLEAN
+        && !value.getClass().equals(mType.getJavaType())) {
+      return false;
+    }
+    if (mValueValidationFunction == null) {
+      return true;
+    }
+    return mValueValidationFunction.apply(value);
+  }
+
+  /**
+   * Parses value from string.
+   * @param stringValue property value in string format
+   * @return property value in the expected type
+   */
+  public Object parseValue(String stringValue) {
+    if (mType == PropertyType.BOOLEAN) {
+      return Boolean.parseBoolean(stringValue);
+    }
+    return stringValue;
   }
 
   private static final DeprecatedKeyChecker DEPRECATED_CHECKER = new DeprecatedKeyChecker();

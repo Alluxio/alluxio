@@ -140,8 +140,6 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
-alluxio.user.logs.dir:
-  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.user.master.polling.timeout:
   'The maximum time for a rpc client to wait for master to respond.'
 alluxio.user.metadata.cache.enabled:

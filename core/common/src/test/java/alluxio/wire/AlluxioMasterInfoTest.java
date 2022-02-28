@@ -60,7 +60,7 @@ public class AlluxioMasterInfoTest {
     Random random = new Random();
 
     Capacity capacity = CapacityTest.createRandom();
-    Map<String, String> configuration = new HashMap<>();
+    Map<String, Object> configuration = new HashMap<>();
     long numConfiguration = random.nextInt(10);
     for (int i = 0; i < numConfiguration; i++) {
       configuration.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),

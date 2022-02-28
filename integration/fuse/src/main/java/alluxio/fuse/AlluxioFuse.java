@@ -129,7 +129,7 @@ public final class AlluxioFuse {
       System.exit(1);
     }
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-    MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
       FuseWebServer webServer = new FuseWebServer(
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
@@ -187,9 +187,15 @@ public final class AlluxioFuse {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
-          fuseFs.umount(true);
-          throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
-              opts.getAlluxioRoot(), opts.getMountPoint()), e);
+          String errorMessage = String.format("Failed to mount alluxio path %s to mount point %s",
+              opts.getAlluxioRoot(), opts.getMountPoint());
+          LOG.error(errorMessage, e);
+          try {
+            fuseFs.umount(true);
+          } catch (FuseException fe) {
+            LOG.error("Failed to unmount Fuse", fe);
+          }
+          throw new IOException(errorMessage, e);
         }
       } else {
         // Force direct_io in JNR-FUSE: writes and reads bypass the kernel page

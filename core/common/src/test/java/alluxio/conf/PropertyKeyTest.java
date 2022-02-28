@@ -11,16 +11,16 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.DefaultSupplier;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Builder;
 import alluxio.conf.PropertyKey.Template;
-import alluxio.conf.RemovedKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.After;
@@ -28,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 
 /**
@@ -35,7 +36,7 @@ import java.util.regex.Matcher;
  */
 public final class PropertyKeyTest {
 
-  private PropertyKey mTestProperty = new Builder("alluxio.test.property")
+  private PropertyKey mTestProperty = booleanBuilder("alluxio.test.property")
       .setAlias(new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"})
       .setDescription("test")
       .setDefaultValue(false)
@@ -224,9 +225,9 @@ public final class PropertyKeyTest {
     PropertyKey key = new Builder("test")
         .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "test description"))
         .build();
-    assertEquals("100", key.getDefaultValue());
+    assertEquals("100", key.getDefaultStringValue());
     x.set(20);
-    assertEquals("20", key.getDefaultValue());
+    assertEquals("20", key.getDefaultStringValue());
     assertEquals("test description", key.getDefaultSupplier().getDescription());
   }
 
@@ -289,7 +290,7 @@ public final class PropertyKeyTest {
     for (PropertyKey key : PropertyKey.defaultKeys()) {
       assertNotEquals(String.format(
           "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
-          key.getDefaultValue(), "");
+          key.getDefaultStringValue(), "");
     }
   }
 
@@ -317,5 +318,19 @@ public final class PropertyKeyTest {
 
     final PropertyKey accessKey = PropertyKey.getOrBuildCustom("test.accessKeyId");
     assertEquals(PropertyKey.DisplayType.CREDENTIALS, accessKey.getDisplayType());
+  }
+
+  @Test
+  public void testValueValidation() {
+    Function<Object, Boolean> booleanValidationFunction = (value) -> value instanceof Boolean;
+
+    Builder.booleanBuilder("test_boolean_property")
+        .setDefaultValue(true)
+        .setValueValidationFunction(booleanValidationFunction)
+        .build();
+    assertThrows(IllegalStateException.class, () -> new Builder("test_boolean_property")
+        .setDefaultValue(100)
+        .setValueValidationFunction(booleanValidationFunction)
+        .build());
   }
 }

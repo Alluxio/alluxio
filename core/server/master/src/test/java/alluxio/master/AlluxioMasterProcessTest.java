@@ -85,26 +85,26 @@ public final class AlluxioMasterProcessTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {new ImmutableMap.Builder()
-            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "true")
-            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "true")
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true)
             .build()},
         {new ImmutableMap.Builder()
-            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "false")
-            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "false")
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false)
             .build()},
         {new ImmutableMap.Builder()
-            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "true")
-            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "false")
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false)
             .build()},
         {new ImmutableMap.Builder()
-            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "false")
-            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "true")
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false)
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true)
             .build()},
     });
   }
 
   @Parameterized.Parameter
-  public ImmutableMap<PropertyKey, String> mConfigMap;
+  public ImmutableMap<PropertyKey, Object> mConfigMap;
 
   @Before
   public void before() throws Exception {
@@ -118,7 +118,7 @@ public final class AlluxioMasterProcessTest {
     String journalPath = PathUtils.concatPath(mFolder.getRoot(), "journal");
     FileUtils.createDir(journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
-    for (Map.Entry<PropertyKey, String> entry : mConfigMap.entrySet()) {
+    for (Map.Entry<PropertyKey, Object> entry : mConfigMap.entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
   }
@@ -158,7 +158,7 @@ public final class AlluxioMasterProcessTest {
   public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
     FaultTolerantAlluxioMasterProcess spy = PowerMockito.spy(master);
@@ -183,10 +183,11 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
+  @Ignore
   public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, true);
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
     Thread t = new Thread(() -> {

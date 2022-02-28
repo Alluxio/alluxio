@@ -64,8 +64,10 @@ public class TimeBoundPageStore implements PageStore {
     try {
       mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
+      // Task got cancelled by others, interrupt the current thread
+      // and then throw a runtime ex to make the higher level stop.
       Thread.currentThread().interrupt();
-      throw new IOException(e);
+      throw new RuntimeException(e);
     } catch (TimeoutException e) {
       Metrics.STORE_PUT_TIMEOUT.inc();
       throw new IOException(e);
@@ -90,8 +92,10 @@ public class TimeBoundPageStore implements PageStore {
     try {
       return mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
+      // Task got cancelled by others, interrupt the current thread
+      // and then throw a runtime ex to make the higher level stop.
       Thread.currentThread().interrupt();
-      throw new IOException(e);
+      throw new RuntimeException(e);
     } catch (TimeoutException e) {
       Metrics.STORE_GET_TIMEOUT.inc();
       throw new IOException(e);
@@ -113,8 +117,10 @@ public class TimeBoundPageStore implements PageStore {
     try {
       mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
+      // Task got cancelled by others, interrupt the current thread
+      // and then throw a runtime ex to make the higher level stop.
       Thread.currentThread().interrupt();
-      throw new IOException(e);
+      throw new RuntimeException(e);
     } catch (TimeoutException e) {
       Metrics.STORE_DELETE_TIMEOUT.inc();
       throw new IOException(e);
