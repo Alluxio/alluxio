@@ -238,3 +238,6 @@
 
 - Remove usage of Helm hook annotations in Charts
 
+0.6.36
+
+- Fix volumeMounts indentations in master statefulset
