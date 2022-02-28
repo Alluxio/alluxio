@@ -209,7 +209,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         status.getOwner(), status.getGroup(), status.getLength(),
         timestamp, status.getInAlluxioPercentage(),
         status.getPersistenceState(), status.getPath(),
-        mFsContext.getPathConf(new AlluxioURI(status.getPath())).getString(
+        mFsContext.getPathConf(new AlluxioURI(status.getPath())).get(
             PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 

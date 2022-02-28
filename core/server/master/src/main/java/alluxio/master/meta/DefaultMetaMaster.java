@@ -246,7 +246,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mCoreMasterContext = masterContext;
     mMasterAddress =
-        new Address().setHost((String) ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
+        new Address().setHost(ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
             .setRpcPort(mPort);
     mBlockMaster = blockMaster;
@@ -415,7 +415,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
-          Object value = ServerConfiguration.getOrDefault(key, null,
+          String value = ServerConfiguration.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true)
                   .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);
@@ -614,7 +614,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
         if (ServerConfiguration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
-          String oldValue = ServerConfiguration.getString(key);
+          String oldValue = ServerConfiguration.get(key);
           ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
           result.put(entry.getKey(), true);
           successCount++;

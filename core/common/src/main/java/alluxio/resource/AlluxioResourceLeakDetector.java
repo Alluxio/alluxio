@@ -32,7 +32,7 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
 
   static {
     ResourceLeakDetector.Level lev = ResourceLeakDetector.Level.valueOf(
-        (String) ConfigurationUtils.getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL));
+        ConfigurationUtils.getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL));
     ResourceLeakDetector.setLevel(lev);
   }
 

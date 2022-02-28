@@ -42,7 +42,7 @@ public class GetMasterWorkerAddressTest {
     conf.set(PropertyKey.MASTER_RPC_PORT, "10000");
     int resolveTimeout = (int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     String defaultHostname = NetworkAddressUtils.getLocalHostName(resolveTimeout);
-    int defaultPort = Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultStringValue());
+    int defaultPort = Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved("RemoteMaster1", 10000), masterAddress);

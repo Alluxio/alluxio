@@ -189,8 +189,7 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(TEST_OWNER, inode2.getOwner());
     Assert.assertEquals(TEST_GROUP, inode2.getGroup());
     Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults(),
-        ServerConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK))
-            .toShort(),
+        ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toShort(),
         inode2.getMode());
   }
 

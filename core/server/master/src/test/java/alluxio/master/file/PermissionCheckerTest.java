@@ -201,7 +201,7 @@ public final class PermissionCheckerTest {
         FakeUserGroupsMapping.class.getName());
     ServerConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
         AuthType.SIMPLE.getAuthName());
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     ServerConfiguration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     sTree.initializeRoot(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup(), TEST_NORMAL_MODE,

@@ -142,7 +142,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
         String domainSocketPath =
-            ServerConfiguration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+            ServerConfiguration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
         if (ServerConfiguration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
           domainSocketPath =
               PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
@@ -216,7 +216,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks(ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
 
     // Start each worker. This must be done before starting the web or RPC servers.
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
@@ -325,7 +325,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
             ServerConfiguration.global()))
-        .setContainerHost((String) ServerConfiguration.global()
+        .setContainerHost(ServerConfiguration.global()
             .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
         .setRpcPort(mRpcBindAddress.getPort())
         .setDataPort(getDataLocalPort())

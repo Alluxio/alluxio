@@ -74,7 +74,7 @@ public final class InStreamOptions {
     mStatus = status;
     mProtoOptions = openOptions;
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.getString(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
+        alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
     mPositionShort = false;
   }
 

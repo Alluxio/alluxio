@@ -97,7 +97,7 @@ public final class JournalUpgrader {
           getJournalLocation(sJournalDirectoryV0))).create(master);
       mJournalV1 =
           new UfsJournal(getJournalLocation(ServerConfiguration
-              .getString(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
+              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
               Collections::emptySet);
 
       mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0,
@@ -147,7 +147,7 @@ public final class JournalUpgrader {
         if (!mUfs.renameFile(completedLog.toString(), dst.toString()) && !mUfs
             .exists(dst.toString())) {
           throw new IOException(
-              String.format("Failed to rename %s to %s.", completedLog, dst));
+              String.format("Failed to rename %s to %s.", completedLog.toString(), dst.toString()));
         }
       }
 
@@ -192,7 +192,7 @@ public final class JournalUpgrader {
       if (!mUfs.renameFile(mCheckpointV0.toString(), dst.toString()) && !mUfs
           .exists(dst.toString())) {
         throw new IOException(
-            String.format("Failed to rename %s to %s.", mCheckpointV0, dst));
+            String.format("Failed to rename %s to %s.", mCheckpointV0.toString(), dst.toString()));
       }
     }
 
@@ -275,7 +275,7 @@ public final class JournalUpgrader {
     }
     sHelp = cmd.hasOption("help");
     sJournalDirectoryV0 = cmd.getOptionValue("journalDirectoryV0",
-        ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER));
+        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
     return true;
   }
 

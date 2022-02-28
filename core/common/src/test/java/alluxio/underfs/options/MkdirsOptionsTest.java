@@ -55,7 +55,7 @@ public final class MkdirsOptionsTest {
     // Verify that the owner and group are not set.
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    String umask = mConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String umask = mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults(), umask), options.getMode());
   }
 
@@ -79,7 +79,7 @@ public final class MkdirsOptionsTest {
     // Verify that the owner and group are not set.
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    String umask = mConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String umask = mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults(), umask), options.getMode());
   }
 

@@ -74,9 +74,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   private static final int WAIT_NODES_REGISTERED_MS = 30000;
 
   @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
     {
-      put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+      put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
     }
   }, ServerConfiguration.global());
 

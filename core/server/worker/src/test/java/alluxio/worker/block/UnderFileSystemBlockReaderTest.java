@@ -63,7 +63,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      new ConfigurationRule(new HashMap<PropertyKey, String>() {
         {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
               .createTemporaryDirectory("UnderFileSystemBlockReaderTest-RootUfs")
@@ -72,13 +72,13 @@ public final class UnderFileSystemBlockReaderTest {
           put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("UnderFileSystemBlockReaderTest-WorkerDataFolder")
               .getAbsolutePath());
-          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
+          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
         }
       }, ServerConfiguration.global());
 
   @Before
   public void before() throws Exception {
-    String ufsFolder = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String testFilePath = File.createTempFile("temp", null, new File(ufsFolder)).getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE * 2);
     BufferUtils.writeBufferToFile(testFilePath, buffer);

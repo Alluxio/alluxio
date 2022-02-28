@@ -48,7 +48,7 @@ import javax.annotation.Nullable;
  */
 public class FileUtilsTest {
 
-  private String mWorkerDataFolderPerms = (String) ConfigurationUtils.defaults()
+  private String mWorkerDataFolderPerms = ConfigurationUtils.defaults()
       .get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
 
   /**

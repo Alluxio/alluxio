@@ -38,7 +38,7 @@ public final class AbstractStorageTierAssocTest {
     List<String> expectedOrderedAliases = new ArrayList<>();
 
     for (int i = 0; i < size; i++) {
-      String alias = ServerConfiguration.getString(template.format(i));
+      String alias = ServerConfiguration.get(template.format(i));
       Assert.assertEquals(i, assoc.getOrdinal(alias));
       Assert.assertEquals(alias, assoc.getAlias(i));
       expectedOrderedAliases.add(alias);
