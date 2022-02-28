@@ -20,11 +20,11 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.master.Master;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
@@ -214,11 +214,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    *
    * @param workerClusterId the cluster id of the worker registering
    * @param workerNetAddress the worker {@link WorkerNetAddress}
-   * @param hasBlockInWorkerTier has any Block in the Worker's Tier
-   * @return the PreRegisterCommand for this worker
+   * @param blocksNum The number of blocks in the worker
+   * @return the GetWorkerIdPResponse for this worker
    */
-  WorkerPreRegisterInfo workerPreRegister(String workerClusterId, WorkerNetAddress workerNetAddress,
-      boolean hasBlockInWorkerTier) throws IOException;
+  GetWorkerIdPResponse workerPreRegister(String workerClusterId, WorkerNetAddress workerNetAddress,
+      int blocksNum) throws IOException;
 
   /**
    * Try to acquire a {@link RegisterLease} for the worker.

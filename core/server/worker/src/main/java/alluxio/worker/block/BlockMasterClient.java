@@ -27,7 +27,6 @@ import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
-import alluxio.grpc.GetWorkerIdPOptions;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -38,9 +37,9 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryPolicy;
+import alluxio.util.IdUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -211,8 +210,7 @@ public class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<String>> lostStorage, final List<Metric> metrics)
       throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
-        .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers)
-        .setHasClusterId(true).build();
+        .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
 
     final List<LocationBlockIdListEntry> entryList = convertBlockListMapToProto(addedBlocks);
 
@@ -283,37 +281,35 @@ public class BlockMasterClient extends AbstractMasterClient {
    * If it passes check ClusterId and workerId be returned
    * @param clusterId the cluster id of the worker
    * @param address the worker WorkerNetAddress
-   * @param hasBlockInTier has any Block in the Tier
+   * @param blocksNum The number of blocks in the worker
    * @return an optional command for the worker to execute
    */
-  public WorkerPreRegisterInfo preRegisterWithMaster(String clusterId,
-      final WorkerNetAddress address, boolean hasBlockInTier)
+  public GetWorkerIdPResponse preRegisterWithMaster(String clusterId,
+      final WorkerNetAddress address, int blocksNum)
       throws AlluxioStatusException {
-    // By the Flag, Let the Master know that preRegister information is included
-    GetWorkerIdPOptions preRegisterFlag =
-        GetWorkerIdPOptions.newBuilder().setExtendedRegisterInfo(true).build();
 
     // For compatibility, reuse the RPC of getWorkerID.
     GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
         .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
-        .setHasBlockInTier(hasBlockInTier).setOptions(preRegisterFlag).build();
+        .setBlocksNum(blocksNum).build();
 
     return retryRPC(() -> {
       // For compatibility, reuse the RPC of getWorkerID.
       GetWorkerIdPResponse response = mClient.getWorkerId(request);
       // For compatibility,  If preRegister information is included,
       // the Master will set hasExtendedRegisterInfo
-      if (response.getOptions().hasExtendedRegisterInfo()) {
-        return response.getWorkerPreRegisterInfo();
+      if (response.hasClusterId()) {
+        return response;
       } else {
         // just set WorkerId
-        return WorkerPreRegisterInfo.newBuilder()
+        return GetWorkerIdPResponse.newBuilder()
             .setWorkerId(response.getWorkerId())
+            .setClusterId(IdUtils.EMPTY_CLUSTER_ID)
             .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
             .build();
       }
-    }, LOG, "getWorkerId", "clusterId=%s, hasBlockInTier=%s",
-        clusterId, hasBlockInTier);
+    }, LOG, "getWorkerId", "clusterId=%s, blocksNum=%d",
+        clusterId, blocksNum);
   }
 
   /**

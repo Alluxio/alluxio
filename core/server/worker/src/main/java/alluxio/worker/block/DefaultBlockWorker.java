@@ -34,10 +34,10 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.ServiceType;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -276,47 +276,47 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   /**
    * Handles a master preRegister command.
    *
-   * @param cmd the command to execute
+   * @param response the command to execute
    * @throws RuntimeException RuntimeException if fails
    */
-  public void handlePreRegisterInfo(WorkerPreRegisterInfo cmd)
+  public void handlePreRegisterInfo(GetWorkerIdPResponse response)
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
-    switch (cmd.getPreRegisterCommandType()) {
+    switch (response.getPreRegisterCommandType()) {
       case ACK_REGISTER:
         break;
       case REGISTER_PERSIST_CLUSTERID:
-        SetClusterIdAllowFails(cmd.getClusterId());
+        SetClusterIdAllowFails(response.getClusterId());
         break;
       case REGISTER_CLEAN_BLOCKS:
-        LOG.warn("Master Command {}", cmd);
+        LOG.warn("Master Command {}", response);
         reset();
-        SetClusterIdAllowFails(cmd.getClusterId());
+        SetClusterIdAllowFails(response.getClusterId());
         break;
       case REJECT_REGISTER:
         throw new RuntimeException("Master reject to register");
       default:
-        throw new RuntimeException("PreRegister Un-recognized command from master " + cmd);
+        throw new RuntimeException("PreRegister Un-recognized command from master " + response);
     }
-    mClusterId.set(cmd.getClusterId());
-    mWorkerId.set(cmd.getWorkerId());
+    mClusterId.set(response.getClusterId());
+    mWorkerId.set(response.getWorkerId());
   }
 
   @Override
   public void preRegisterWithMaster(WorkerNetAddress address) {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    final AtomicReference<WorkerPreRegisterInfo> commandFromMaster =
-        new AtomicReference<>(WorkerPreRegisterInfo.newBuilder()
+    final AtomicReference<GetWorkerIdPResponse> response =
+        new AtomicReference<>(GetWorkerIdPResponse.newBuilder()
             .setPreRegisterCommandType(PreRegisterCommandType.UNKNOWN).build());
-    boolean hasBlockInTier = getStoreMetaFull().getNumberOfBlocks() != 0;
+    int blocksNum = getStoreMetaFull().getNumberOfBlocks();
 
     try {
       RetryUtils.retry("worker preRegisterWithMaster ",
           () -> {
-            commandFromMaster.set(
-                blockMasterClient.preRegisterWithMaster(mClusterId.get(), address, hasBlockInTier));
+            response.set(
+                blockMasterClient.preRegisterWithMaster(mClusterId.get(), address, blocksNum));
           }, RetryUtils.defaultWorkerMasterClientRetry(
               ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-      handlePreRegisterInfo(commandFromMaster.get());
+      handlePreRegisterInfo(response.get());
     } catch (Exception e) {
       LOG.error("Failed to preRegister from block master: ", e);
       throw new RuntimeException("Failed to preRegister from block master: {}", e);

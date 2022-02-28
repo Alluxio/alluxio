@@ -417,11 +417,6 @@
                 "name": "metrics",
                 "type": "grpc.Metric",
                 "is_repeated": true
-              },
-              {
-                "id": 3,
-                "name": "hasClusterId",
-                "type": "bool"
               }
             ],
             "maps": [
@@ -591,14 +586,7 @@
             "name": "CommitBlockInUfsPResponse"
           },
           {
-            "name": "GetWorkerIdPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "extendedRegisterInfo",
-                "type": "bool"
-              }
-            ]
+            "name": "GetWorkerIdPOptions"
           },
           {
             "name": "GetWorkerIdPRequest",
@@ -620,8 +608,8 @@
               },
               {
                 "id": 4,
-                "name": "hasBlockInTier",
-                "type": "bool"
+                "name": "blocksNum",
+                "type": "int32"
               }
             ]
           },
@@ -635,13 +623,13 @@
               },
               {
                 "id": 2,
-                "name": "workerNetAddress",
-                "type": "grpc.WorkerNetAddress"
+                "name": "preRegisterCommandType",
+                "type": "PreRegisterCommandType"
               },
               {
                 "id": 3,
-                "name": "workerPreRegisterInfo",
-                "type": "WorkerPreRegisterInfo"
+                "name": "clusterId",
+                "type": "string"
               },
               {
                 "id": 4,
@@ -690,26 +678,6 @@
                 "id": 4,
                 "name": "options",
                 "type": "GetRegisterLeasePOptions"
-              }
-            ]
-          },
-          {
-            "name": "WorkerPreRegisterInfo",
-            "fields": [
-              {
-                "id": 1,
-                "name": "preRegisterCommandType",
-                "type": "PreRegisterCommandType"
-              },
-              {
-                "id": 2,
-                "name": "clusterId",
-                "type": "string"
-              },
-              {
-                "id": 3,
-                "name": "workerId",
-                "type": "int64"
               }
             ]
           },

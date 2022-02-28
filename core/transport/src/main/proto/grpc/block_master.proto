@@ -168,7 +168,6 @@ message StorageList {
 message BlockHeartbeatPOptions {
   repeated grpc.Metric metrics = 1;
   map<string, int64> capacityBytesOnTiers = 2;
-  optional bool hasClusterId = 3;
 }
 
 message LocationBlockIdListEntry {
@@ -226,21 +225,19 @@ message CommitBlockInUfsPRequest {
 message CommitBlockInUfsPOptions {}
 message CommitBlockInUfsPResponse {}
 
-message GetWorkerIdPOptions {
-  optional bool extendedRegisterInfo = 1; // Identify whether there is preRegister information
-}
+message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   /** for preRegister information **/
   optional GetWorkerIdPOptions options = 2;
   optional string clusterId = 3;
-  optional bool hasBlockInTier = 4;
+  optional int32 blocksNum = 4;
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
-  optional grpc.WorkerNetAddress workerNetAddress = 2;
-  optional WorkerPreRegisterInfo workerPreRegisterInfo = 3;
+  optional PreRegisterCommandType preRegisterCommandType = 2;
+  optional string clusterId = 3;
   optional GetWorkerIdPOptions options = 4;
 }
 
@@ -255,12 +252,6 @@ message GetRegisterLeasePResponse {
   optional bool allowed = 2;
   optional int64 expiryMs = 3;
   optional GetRegisterLeasePOptions options = 4;
-}
-
-message WorkerPreRegisterInfo {
-  optional PreRegisterCommandType preRegisterCommandType = 1;
-  optional string clusterId = 2;
-  optional int64 workerId = 3;
 }
 
 enum PreRegisterCommandType {

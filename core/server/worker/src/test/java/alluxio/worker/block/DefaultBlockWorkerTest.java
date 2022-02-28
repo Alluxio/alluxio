@@ -35,9 +35,9 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.ReadRequest;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
@@ -393,7 +393,7 @@ public class DefaultBlockWorkerTest {
   }
 
   void setPersistenceConf() {
-    // write permission is required, ,
+    // write permission is required,
     // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
         mTestFolder.getRoot().getAbsolutePath());
@@ -403,12 +403,12 @@ public class DefaultBlockWorkerTest {
   public void handlePreRegisterCommandACK_REGISTER()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
-    WorkerPreRegisterInfo cmd = WorkerPreRegisterInfo.newBuilder()
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
-    mBlockWorker.handlePreRegisterInfo(cmd);
+    mBlockWorker.handlePreRegisterInfo(response);
     assertEquals(IdUtils.EMPTY_CLUSTER_ID,
         mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
@@ -418,12 +418,12 @@ public class DefaultBlockWorkerTest {
   public void handlePreRegisterCommandREGISTER_PERSIST_CLUSTERID()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
-    WorkerPreRegisterInfo cmd = WorkerPreRegisterInfo.newBuilder()
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // the new cluster ID will be persisted
-    mBlockWorker.handlePreRegisterInfo(cmd);
+    mBlockWorker.handlePreRegisterInfo(response);
     assertEquals(newClusterId,
         mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
@@ -433,10 +433,10 @@ public class DefaultBlockWorkerTest {
   public void handlePreRegisterCommandREGISTER_CLEAN_BLOCKS()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
-    WorkerPreRegisterInfo cmd = WorkerPreRegisterInfo.newBuilder()
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_CLEAN_BLOCKS)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
-    mBlockWorker.handlePreRegisterInfo(cmd);
+    mBlockWorker.handlePreRegisterInfo(response);
     verify(mBlockWorker, times(1)).reset();
     assertEquals(newClusterId,
         mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
@@ -445,9 +445,9 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void handlePreRegisterCommandREJECT_REGISTER() throws IOException {
-    WorkerPreRegisterInfo info = WorkerPreRegisterInfo.newBuilder()
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.REJECT_REGISTER).build();
-    assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(info));
+    assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(response));
   }
 
   @Test

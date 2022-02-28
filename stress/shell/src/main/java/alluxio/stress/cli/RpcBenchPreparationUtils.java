@@ -17,7 +17,7 @@ import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.WorkerPreRegisterInfo;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.util.IdUtils;
@@ -131,10 +131,10 @@ public class RpcBenchPreparationUtils {
   /**
    * Reserves a list of worker IDs from the master.
    */
-  static Deque<WorkerPreRegisterInfo> preparePerRegisterWorkerIds(BlockMasterClient client,
+  static Deque<GetWorkerIdPResponse> preparePerRegisterWorkerIds(BlockMasterClient client,
       int numWorkers)
       throws IOException {
-    Deque<WorkerPreRegisterInfo> preRegisterWorkerPool = new ArrayDeque<>();
+    Deque<GetWorkerIdPResponse> preRegisterWorkerPool = new ArrayDeque<>();
     int freePort = 40000;
     for (int i = 0; i < numWorkers; i++) {
       LOG.info("Preparing worker {}", i);
@@ -148,10 +148,10 @@ public class RpcBenchPreparationUtils {
               .setDataPort(freePort++)
               .setRpcPort(freePort++)
               .setWebPort(freePort++);
-      WorkerPreRegisterInfo info =
-          client.preRegisterWithMaster(IdUtils.EMPTY_CLUSTER_ID, address, true);
-      LOG.info("Created worker ID {} on {}", info.getWorkerId(), address);
-      preRegisterWorkerPool.offer(info);
+      GetWorkerIdPResponse response =
+          client.preRegisterWithMaster(IdUtils.EMPTY_CLUSTER_ID, address, 0);
+      LOG.info("Created worker ID {} on {}", response.getWorkerId(), address);
+      preRegisterWorkerPool.offer(response);
     }
     return preRegisterWorkerPool;
   }

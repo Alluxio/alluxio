@@ -33,6 +33,7 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.PreRegisterCommandType;
@@ -41,7 +42,6 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -1042,16 +1042,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public WorkerPreRegisterInfo workerPreRegister(String workerClusterId,
-      WorkerNetAddress workerNetAddress, boolean hasBlockInWorkerTier) throws IOException {
-    LOG.info("worker {} PreRegister, workerClusterId {}, hasBlockInWorkerTier {}",
-        workerNetAddress.getHost(), workerClusterId, hasBlockInWorkerTier);
+  public GetWorkerIdPResponse workerPreRegister(String workerClusterId,
+      WorkerNetAddress workerNetAddress, int blocksNum) throws IOException {
+    LOG.info("worker {} PreRegister, workerClusterId {}, blocksNum {}",
+        workerNetAddress.getHost(), workerClusterId, blocksNum);
 
     String curClusterId = getClusterId();
     PreRegisterCommandType commandType =
-        checkWorker(curClusterId, workerClusterId, hasBlockInWorkerTier);
+        checkWorker(curClusterId, workerClusterId, blocksNum);
     long workerId = getWorkerId(workerNetAddress);
-    WorkerPreRegisterInfo info = WorkerPreRegisterInfo.newBuilder()
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setPreRegisterCommandType(commandType)
         .setClusterId(curClusterId)
         .setWorkerId(workerId)
@@ -1059,9 +1059,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     LOG.info("worker {} ,PreRegister result: PreRegisterCommand {}, workerId {},"
             + " current clusterId {}",
-        workerNetAddress.getHost(), info.getPreRegisterCommandType(),
-        info.getWorkerId(), info.getClusterId());
-    return info;
+        workerNetAddress.getHost(), response.getPreRegisterCommandType(),
+        response.getWorkerId(), response.getClusterId());
+    return response;
   }
 
   /**
@@ -1069,14 +1069,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * whether it may contain dirty data
    * @param curClusterId current cluster ID
    * @param workerClusterId worker report cluster ID
-   * @param hasBlockInWorkerTier has any Block in worker's Tier
+   * @param blocksNum The number of blocks in the worker
    * @return instance of PreRegisterCommandType
    */
   private PreRegisterCommandType checkWorker(String curClusterId, String workerClusterId,
-      boolean hasBlockInWorkerTier) {
+      int blocksNum) {
     if (workerClusterId.equals(IdUtils.EMPTY_CLUSTER_ID)) {
       // A new Worker registers to the Master
-      if (!hasBlockInWorkerTier) {
+      if (blocksNum == 0) {
         // The most common case: a new and clean Worker registers to the Master
         return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       } else {
@@ -1111,7 +1111,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       return PreRegisterCommandType.ACK_REGISTER;
     } else {
       // A Worker of the another cluster registers to the Master
-      if (!hasBlockInWorkerTier) {
+      if (blocksNum == 0) {
         // Even if the worker belongs to another cluster,
         // because it does not have any Block, it will not mess with the data of the current cluster
         //, so  “PERSIST_CLUSTERID” will be return

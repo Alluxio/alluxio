@@ -22,11 +22,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -266,24 +266,24 @@ public class BlockMasterTest {
 
     // New and clean(the Tier is clean without any Blocks) worker registration
     // New Worker will be report a IdUtils.EMPTY_CLUSTER_ID
-    WorkerPreRegisterInfo exceptInfo1 = mBlockMaster.workerPreRegister(
-        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, false);
+    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
+        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, 0);
     assertPreRegisterInfo(exceptInfo1, PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will force clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    WorkerPreRegisterInfo exceptInfo2 = mBlockMaster.workerPreRegister(
-        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
+    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.workerPreRegister(
+        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, 1);
     assertPreRegisterInfo(exceptInfo2, PreRegisterCommandType.REGISTER_CLEAN_BLOCKS,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will not force clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    WorkerPreRegisterInfo exceptInfo3 = mBlockMaster.workerPreRegister(
-        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, true);
+    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.workerPreRegister(
+        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, 1);
     assertPreRegisterInfo(exceptInfo3, PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
@@ -292,13 +292,13 @@ public class BlockMasterTest {
   public void TestReStartedWorkerRegisterWithMaster() throws IOException {
     // Worker ( clusterId has been persisted) restarts normally
     // The restarted worker will report the same id as the current cluster
-    WorkerPreRegisterInfo exceptInfo1 = mBlockMaster.workerPreRegister(
-        mCurrentClusterId, NET_ADDRESS_1, true);
+    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
+        mCurrentClusterId, NET_ADDRESS_1, 1);
     assertPreRegisterInfo(exceptInfo1, PreRegisterCommandType.ACK_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
-    WorkerPreRegisterInfo exceptInfo2 = mBlockMaster.workerPreRegister(
-        mCurrentClusterId, NET_ADDRESS_1, false);
+    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.workerPreRegister(
+        mCurrentClusterId, NET_ADDRESS_1, 0);
     assertPreRegisterInfo(exceptInfo2, PreRegisterCommandType.ACK_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
@@ -310,25 +310,25 @@ public class BlockMasterTest {
     // different with the current cluster
     String otherClusterId = UUID.randomUUID().toString();
 
-    WorkerPreRegisterInfo exceptInfo1 = mBlockMaster.workerPreRegister(
-        otherClusterId, NET_ADDRESS_1, false);
+    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
+        otherClusterId, NET_ADDRESS_1, 0);
     assertPreRegisterInfo(exceptInfo1, PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    WorkerPreRegisterInfo exceptInfo2 = mBlockMaster.workerPreRegister(
-        otherClusterId, NET_ADDRESS_1, true);
+    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.workerPreRegister(
+        otherClusterId, NET_ADDRESS_1, 1);
     assertPreRegisterInfo(exceptInfo2, PreRegisterCommandType.REJECT_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    WorkerPreRegisterInfo exceptInfo3 = mBlockMaster.workerPreRegister(
-        otherClusterId, NET_ADDRESS_1, true);
+    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.workerPreRegister(
+        otherClusterId, NET_ADDRESS_1, 1);
     assertPreRegisterInfo(exceptInfo3, PreRegisterCommandType.REGISTER_CLEAN_BLOCKS,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 
-  private void assertPreRegisterInfo(WorkerPreRegisterInfo actual,
+  private void assertPreRegisterInfo(GetWorkerIdPResponse actual,
       PreRegisterCommandType expectedCmd, String expectedCLusterId, long expectedWorkerId) {
     assertEquals(actual.getPreRegisterCommandType(), expectedCmd);
     assertEquals(actual.getClusterId(), expectedCLusterId);

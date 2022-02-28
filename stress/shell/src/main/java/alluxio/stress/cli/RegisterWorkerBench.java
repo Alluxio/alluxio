@@ -18,8 +18,8 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.WorkerPreRegisterInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
@@ -61,7 +61,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
-  private Deque<WorkerPreRegisterInfo> mWorkerPool = new ArrayDeque<>();
+  private Deque<GetWorkerIdPResponse> mWorkerPool = new ArrayDeque<>();
 
   @Override
   public String getBenchDescription() {
