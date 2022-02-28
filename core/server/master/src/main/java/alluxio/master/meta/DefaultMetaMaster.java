@@ -329,7 +329,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         try (JournalContext context = createJournalContext()) {
           String clusterID = java.util.UUID.randomUUID().toString();
           mState.applyAndJournal(context, clusterID);
-          mBlockMaster.setClusterId(clusterID);
           LOG.info("Created new cluster ID {}", clusterID);
         }
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
@@ -342,6 +341,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
       }
+      mBlockMaster.setClusterId(mState.getClusterID());
       mBackupRole = new BackupLeaderRole(mCoreMasterContext);
     } else {
       if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
