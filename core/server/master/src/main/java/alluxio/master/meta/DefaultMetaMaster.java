@@ -329,6 +329,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         try (JournalContext context = createJournalContext()) {
           String clusterID = java.util.UUID.randomUUID().toString();
           mState.applyAndJournal(context, clusterID);
+          mBlockMaster.setClusterId(clusterID);
           LOG.info("Created new cluster ID {}", clusterID);
         }
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)

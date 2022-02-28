@@ -424,7 +424,8 @@ public class DefaultBlockWorkerTest {
 
     // the new cluster ID will be persisted
     mBlockWorker.handlePreRegisterInfo(cmd);
-    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(newClusterId,
+        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -437,7 +438,8 @@ public class DefaultBlockWorkerTest {
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterInfo(cmd);
     verify(mBlockWorker, times(1)).reset();
-    assertEquals(newClusterId, mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+    assertEquals(newClusterId,
+        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 

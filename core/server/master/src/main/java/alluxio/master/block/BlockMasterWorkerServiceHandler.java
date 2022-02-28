@@ -42,7 +42,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,11 +80,7 @@ public final class BlockMasterWorkerServiceHandler extends
     if (request.getOptions().getHasClusterId()) {
       clusterId = request.getClusterId();
     } else {
-      try {
-        clusterId = mBlockMaster.getClusterId();
-      } catch (IOException e) {
-        throw new RuntimeException("Failed get Cluster id", e);
-      }
+      clusterId = mBlockMaster.getClusterId();
     }
     final Map<String, Long> capacityBytesOnTiers =
         request.getOptions().getCapacityBytesOnTiersMap();
