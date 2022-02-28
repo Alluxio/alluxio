@@ -2010,11 +2010,21 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
 
       if (!failedUris.isEmpty()) {
-        Collection<String> messages = failedUris.stream()
-            .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
-            .collect(Collectors.toList());
-        throw new FailedPreconditionException(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
+        StringBuilder errorReport = new StringBuilder(
+            ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths: "));
+        boolean trim = failedUris.size() > 20;
+        for (int i = 0; i < (trim ? 20 : failedUris.size()) ; i++) {
+          if (i > 0) {
+            errorReport.append(", ");
+          }
+          Pair<String, String> pathAndError = failedUris.get(i);
+          errorReport.append(String.format("%s (%s)",
+              pathAndError.getFirst(), pathAndError.getSecond()));
+        }
+        if (trim) {
+          errorReport.append("...(only 20 errors shown)");
+        }
+        throw new FailedPreconditionException(errorReport.toString());
       }
     }
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
