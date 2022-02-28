@@ -398,7 +398,7 @@ public class ManagerProcessContext implements AutoCloseable {
         mHostedAsyncSub =
                 HostedManagerServiceGrpc.newStub(channel);
       } catch (AlluxioStatusException e) {
-        LOG.error("Error connecting to hosted hub {}", e);
+        LOG.error("Error connecting to hosted hub: ", e);
       }
     }
     return mHostedAsyncSub;
