@@ -3943,6 +3943,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_SILENT_DECOMMISSION =
+      new Builder(Name.WORKER_SILENT_DECOMMISSION)
+          .setDefaultValue(true)
+          .setDescription( "This property specifies whether worker notifies master when "
+              + "it receives terminating signals.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Proxy related properties
@@ -6757,8 +6765,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
-
-    //
+    public static final String WORKER_SILENT_DECOMMISSION = "alluxio.worker.decommission.silent";
     // Proxy related properties
     //
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";

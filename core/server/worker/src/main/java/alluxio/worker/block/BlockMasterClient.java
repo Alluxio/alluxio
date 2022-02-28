@@ -15,25 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
-import alluxio.grpc.BlockHeartbeatPOptions;
-import alluxio.grpc.BlockHeartbeatPRequest;
-import alluxio.grpc.BlockIdList;
-import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.BlockStoreLocationProto;
-import alluxio.grpc.Command;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockPRequest;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.GetRegisterLeasePResponse;
-import alluxio.grpc.GetWorkerIdPRequest;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.Metric;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.StorageList;
+import alluxio.grpc.*;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
@@ -92,6 +74,15 @@ public class BlockMasterClient extends AbstractMasterClient {
     mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }
 
+  public void decommissionWorker(final long workerId) throws IOException{
+    DecommissionWorkerPRequest request = DecommissionWorkerPRequest.newBuilder().setWorkerId(workerId).build();
+    retryRPC(()-> {
+      mClient.decommissionWorker(request);
+      return null;
+    }, LOG, "Decommission",
+            "workerId=%d", workerId);
+
+  }
   /**
    * Commits a block on a worker.
    *
