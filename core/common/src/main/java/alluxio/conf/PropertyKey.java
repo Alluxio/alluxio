@@ -3004,7 +3004,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CLEAN_DIRTY_WORKER =
-      booleanBuilder(Name.MASTER_CLEAN_DIRTY_WORKER)
+      new Builder(Name.MASTER_CLEAN_DIRTY_WORKER)
           .setDefaultValue(false)
           .setDescription("Whether to clean (delete all the blocks of the worker) the worker "
               + "if the worker may contain dirty data")
@@ -3940,7 +3940,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MUST_PRESIST_CLUSTERID =
-      booleanBuilder(Name.WORKER_MUST_PRESIST_CLUSTERID)
+      new Builder(Name.WORKER_MUST_PRESIST_CLUSTERID)
           .setDefaultValue(true)
           .setDescription("Whether the worker must persist the cluster ID,"
                + " If true, worker will exit if it fails")
