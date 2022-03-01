@@ -644,7 +644,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         validateInodeBlocks(true);
       }
 
-      int blockIntegrityCheckInterval = (int) ServerConfiguration
+      long blockIntegrityCheckInterval = ServerConfiguration
           .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
 
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
@@ -656,26 +656,26 @@ public class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
-              (int) ServerConfiguration.getMs(PropertyKey
+              ServerConfiguration.getMs(PropertyKey
                   .MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       mReplicationCheckHeartbeatThread = new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
               mSafeModeManager, mJobMasterClientPool),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
           ServerConfiguration.global(), mMasterContext.getUserState());
       ReconfigurableRegistry.register(this);
       getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
@@ -686,12 +686,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_METRICS_TIME_SERIES,
               new TimeSeriesRecorder(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
+              ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
@@ -704,7 +704,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
-                (int) ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
+                ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
                 ServerConfiguration.global(), mMasterContext.getUserState()));
       }
       mAccessTimeUpdater.start();
@@ -3608,7 +3608,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       long newValue = ServerConfiguration.getMs(
           PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
       mReplicationCheckHeartbeatThread.updateIntervalMs(
-          (int) newValue);
+          newValue);
       LOG.info("The interval of {} updated to {}",
           HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
     }

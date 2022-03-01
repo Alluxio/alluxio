@@ -127,8 +127,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
-              String.valueOf(TTL_CHECKER_INTERVAL_MS))
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, "10mb")
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1kb")
