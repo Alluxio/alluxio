@@ -25,7 +25,7 @@ public class BatchTaskRunner {
    */
   public static void main(String[] args) {
     if (!MASTER_BATCH_TASK_NAMES.contains(args[0])) {
-      System.out.format("Unexpected batch task name: %s, expecting one of %s;",
+      System.out.format("Unexpected batch task name: %s. Available options are: %s%n",
           args[0], MASTER_BATCH_TASK_NAMES);
       return;
     }

@@ -17,7 +17,7 @@ import static org.junit.Assert.assertFalse;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParametersDelegate;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +28,10 @@ import java.util.List;
 public class BaseParametersTest {
   @ParametersDelegate
   private BaseParameters mBaseParameter;
+
+  public static final String ID_FLAG = "--id";
+  public static final String JAVA_OPT_FLAG = "--java-opt";
+  public static final String PROFILE_AGENT = "--profile-agent";
 
   @Before
   public void before() {
@@ -58,7 +62,7 @@ public class BaseParametersTest {
     List<String> outputArgs = mBaseParameter.toBatchTaskArgumentString();
 
     assertEquals(outputArgs.size(), inputArgs.length);
-    validateTheOutput(Arrays.asList(inputArgs), outputArgs, 8);
+    validateOutput(Arrays.asList(inputArgs), outputArgs, 8);
   }
 
   @Test
@@ -80,46 +84,45 @@ public class BaseParametersTest {
     assertEquals(outputArgs.size(), 8);
 
     // the two special parameters should not be parsed
-    assertFalse(outputArgs.contains("--profile-agent"));
-    assertFalse(outputArgs.contains("--id"));
+    assertFalse(outputArgs.contains(PROFILE_AGENT));
+    assertFalse(outputArgs.contains(ID_FLAG));
 
-    validateTheOutput(Arrays.asList(defaultArgs), outputArgs, 4);
+    validateOutput(Arrays.asList(defaultArgs), outputArgs, 4);
   }
 
   @Test
   public void parseParameterToArgumentWithJavaOPT() {
-    String[] inputArgs = new String[]{
+    ImmutableList<String> options = ImmutableList.of(" TestOption1", " TestOption2",
+        " TestOption3", " TestOption4", " TestOption5");
+
+    List<String> inputArgs = new ArrayList<>(Arrays.asList(
         // keys with values
         "--cluster-limit", "4",
         "--cluster-start-delay", "5s",
         "--id", "TestID",
-        "--java-opt", " TestOption1",
-        "--java-opt", " TestOption2",
-        "--java-opt", " TestOption3",
-        "--java-opt", " TestOption4",
-        "--java-opt", " TestOption5",
         // keys with no values
-        "--cluster",
-    };
+        "--cluster"));
+
+    for (String s : options) {
+      inputArgs.add("--java-opt");
+      inputArgs.add(s);
+    }
 
     JCommander jc = new JCommander(this);
-    jc.parse(inputArgs);
+    jc.parse(inputArgs.toArray(new String[0]));
     List<String> outputArgs = mBaseParameter.toBatchTaskArgumentString();
 
     // validate the --java-opt
     List<String> optionList = new ArrayList<>();
     for (int i = 0; i < outputArgs.size(); i++) {
-      if (outputArgs.get(i).equals("--java-opt")) {
+      if (outputArgs.get(i).equals(JAVA_OPT_FLAG)) {
         optionList.add(outputArgs.get(i + 1));
       }
     }
 
-    ImmutableSet<String> possibleOptions = ImmutableSet.of(
-        " TestOption1", " TestOption2", " TestOption3", " TestOption4", " TestOption5");
-
     assertEquals(optionList.size(), 5);
     for (String option : optionList) {
-      assertTrue(possibleOptions.contains(option));
+      assertTrue(options.contains(option));
     }
   }
 
@@ -139,7 +142,7 @@ public class BaseParametersTest {
     List<String> outputArgs = mBaseParameter.toBatchTaskArgumentString();
 
     // validate the --java-opt
-    assertFalse(outputArgs.contains("--java-opt"));
+    assertFalse(outputArgs.contains(JAVA_OPT_FLAG));
   }
 
   @Test
@@ -166,15 +169,15 @@ public class BaseParametersTest {
         assertTrue(outputArgs.contains(s[0]));
       }
       else {
-        validateTheOutput(Arrays.asList(s), outputArgs, 1);
+        validateOutput(Arrays.asList(s), outputArgs, 1);
       }
     }
   }
 
-  private void validateTheOutput(List<String> inputArgs, List<String> outputArgs,
-      int withValueAmount) {
+  private void validateOutput(List<String> inputArgs, List<String> outputArgs,
+      int argWithValueCnt) {
     // for those that appear in pairs, make sure they appear in the output in certain order
-    for (int i = 0; i < withValueAmount; i++) {
+    for (int i = 0; i < argWithValueCnt; i++) {
       boolean found = false;
       for (int j = 0; j < outputArgs.size(); j++) {
         if (inputArgs.get(2 * i).equals(outputArgs.get(j))
@@ -187,7 +190,7 @@ public class BaseParametersTest {
     }
 
     // for those that have no values
-    for (int i = withValueAmount * 2; i < inputArgs.size(); i++) {
+    for (int i = argWithValueCnt * 2; i < inputArgs.size(); i++) {
       assertTrue(outputArgs.contains(inputArgs.get(i)));
     }
   }
