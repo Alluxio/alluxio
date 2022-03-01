@@ -37,7 +37,7 @@ public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(BufferUtils.class);
   private static final Object LOCK = new Object();
   private static final int TRANSFER_BUFFER_SIZE = 4 * Constants.MB;
-  private static Method sCleanerCleanMethod;
+  private static volatile Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
   private static Class sUnsafeClass;
 
