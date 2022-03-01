@@ -216,7 +216,7 @@ public class NativeLibraryLoader {
 
     // throws if neither is loaded
     // TODO better messaging
-    throw new UnsatisfiedLinkError();
+    throw new UnsatisfiedLinkError("Neither libfuse2 nor libfuse3 can be loaded.");
   }
 
   /**
