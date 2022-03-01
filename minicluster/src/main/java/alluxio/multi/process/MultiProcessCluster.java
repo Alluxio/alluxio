@@ -102,7 +102,7 @@ public final class MultiProcessCluster {
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
   private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 30000;
 
-  private final Map<PropertyKey, Object> mProperties;
+  private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
   private final Map<Integer, Map<PropertyKey, String>> mWorkerProperties;
   private int mNumMasters;
@@ -132,7 +132,7 @@ public final class MultiProcessCluster {
    */
   private boolean mSuccess;
 
-  private MultiProcessCluster(Map<PropertyKey, Object> properties,
+  private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
       String clusterName, boolean noFormat,
@@ -159,8 +159,8 @@ public final class MultiProcessCluster {
     mState = State.NOT_STARTED;
     mSuccess = false;
 
-    String journalType = (String) mProperties.getOrDefault(PropertyKey.MASTER_JOURNAL_TYPE,
-        ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_TYPE));
+    String journalType = mProperties.getOrDefault(PropertyKey.MASTER_JOURNAL_TYPE,
+        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
     mDeployMode = journalType.equals(JournalType.EMBEDDED.toString()) ? DeployMode.EMBEDDED
         : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
   }
@@ -244,7 +244,7 @@ public final class MultiProcessCluster {
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
 
-    for (Entry<PropertyKey, Object> entry :
+    for (Entry<PropertyKey, String> entry :
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
@@ -261,7 +261,7 @@ public final class MultiProcessCluster {
     }
     mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
-    new File((String) mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
     if (format) {
       formatJournal();
     }
@@ -627,7 +627,7 @@ public final class MultiProcessCluster {
    * @return the journal directory
    */
   public synchronized String getJournalDir() {
-    return (String) mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    return mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER);
   }
 
   /**
@@ -635,7 +635,7 @@ public final class MultiProcessCluster {
    * @return the journal directory for the specified master
    */
   public String getJournalDir(int masterId) {
-    return (String) mMasters.get(masterId).getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    return mMasters.get(masterId).getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER);
   }
 
   /**
@@ -674,7 +674,7 @@ public final class MultiProcessCluster {
     File metastoreDir = new File(mWorkDir, "metastore-master" + extension);
     File logsDir = new File(mWorkDir, "logs-master" + extension);
     logsDir.mkdirs();
-    Map<PropertyKey, Object> conf = new HashMap<>();
+    Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
     conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
     conf.put(PropertyKey.MASTER_METASTORE_DIR, metastoreDir.getAbsolutePath());
@@ -711,7 +711,7 @@ public final class MultiProcessCluster {
     int dataPort = getNewPort();
     int webPort = getNewPort();
 
-    Map<PropertyKey, Object> conf = new HashMap<>();
+    Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "WORKER_LOGGER");
     conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
@@ -733,8 +733,7 @@ public final class MultiProcessCluster {
   public synchronized void formatJournal() throws IOException {
     if (mDeployMode == DeployMode.EMBEDDED) {
       for (Master master : mMasters) {
-        File journalDir = new File((String) master.getConf()
-                .get(PropertyKey.MASTER_JOURNAL_FOLDER));
+        File journalDir = new File(master.getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER));
         FileUtils.deleteDirectory(journalDir);
         journalDir.mkdirs();
       }
@@ -773,8 +772,8 @@ public final class MultiProcessCluster {
         }
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
-            ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            ServerConfiguration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH),
+            ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
             ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
             ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
@@ -814,13 +813,13 @@ public final class MultiProcessCluster {
    */
   private void writeConfToFile(File dir, Map<PropertyKey, String> properties) throws IOException {
     // Generates the full set of properties to write
-    Map<PropertyKey, Object> map = new HashMap<>(mProperties);
+    Map<PropertyKey, String> map = new HashMap<>(mProperties);
     for (Map.Entry<PropertyKey, String> entry : properties.entrySet()) {
       map.put(entry.getKey(), entry.getValue());
     }
 
     StringBuilder sb = new StringBuilder();
-    for (Entry<PropertyKey, Object> entry : map.entrySet()) {
+    for (Entry<PropertyKey, String> entry : map.entrySet()) {
       sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
     }
 
@@ -860,7 +859,7 @@ public final class MultiProcessCluster {
   public static final class Builder {
     private final List<ReservedPort> mReservedPorts;
 
-    private Map<PropertyKey, Object> mProperties = new HashMap<>();
+    private Map<PropertyKey, String> mProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mMasterProperties = new HashMap<>();
     private Map<Integer, Map<PropertyKey, String>> mWorkerProperties = new HashMap<>();
     private int mNumMasters = 1;

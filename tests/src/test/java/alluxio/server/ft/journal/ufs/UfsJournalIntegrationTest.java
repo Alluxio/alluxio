@@ -73,7 +73,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
               Integer.toString(Constants.KB))
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
-          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .setProperty(PropertyKey.MASTER_METASTORE_DIR,
               AlluxioTestDirectory.createTemporaryDirectory("meta"))
@@ -162,7 +162,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void loadMetadata() throws Exception {
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     ufs.create(ufsRoot + "/xyz").close();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));

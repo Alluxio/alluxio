@@ -153,7 +153,7 @@ public class BlockInStreamTest {
   @Test
   public void createShortCircuitDisabled() throws Exception {
     try (Closeable c =
-        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false, mConf)
+        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf)
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));

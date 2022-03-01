@@ -56,7 +56,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     mPermissionCheckEnabled =
         ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
-        ServerConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+        ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
   }
 
   @Override

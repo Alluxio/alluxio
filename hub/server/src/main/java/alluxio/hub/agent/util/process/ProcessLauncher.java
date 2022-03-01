@@ -52,9 +52,9 @@ public class ProcessLauncher {
    * @throws IOException if the {@code alluxio-start.sh} script cannot be found
    */
   public ProcessLauncher(AlluxioConfiguration conf) throws IOException {
-    mScript = Paths.get(conf.getString(PropertyKey.HOME)).resolve(START_SCRIPT);
+    mScript = Paths.get(conf.get(PropertyKey.HOME)).resolve(START_SCRIPT);
     if (!Files.exists(mScript)) {
-      throw new IOException("Alluxio start script at " + mScript + " does not exist");
+      throw new IOException("Alluxio start script at " + mScript.toString() + " does not exist");
     }
   }
 

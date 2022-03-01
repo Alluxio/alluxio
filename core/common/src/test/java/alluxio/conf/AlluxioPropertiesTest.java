@@ -86,7 +86,7 @@ public class AlluxioPropertiesTest {
   @Test
   public void remove() {
     mProperties.remove(mKeyWithValue);
-    assertEquals(mKeyWithValue.getDefaultStringValue(), mProperties.get(mKeyWithValue));
+    assertEquals(mKeyWithValue.getDefaultValue(), mProperties.get(mKeyWithValue));
     assertEquals(Source.DEFAULT, mProperties.getSource(mKeyWithValue));
   }
 
@@ -119,7 +119,7 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void entrySet() {
-    Set<Map.Entry<? extends PropertyKey, Object>> expected =
+    Set<Map.Entry<? extends PropertyKey, String>> expected =
         PropertyKey.defaultKeys().stream()
             .map(key -> Maps.immutableEntry(key, key.getDefaultValue())).collect(toSet());
     assertThat(mProperties.entrySet(), is(expected));

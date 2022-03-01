@@ -87,7 +87,7 @@ public final class TieredIdentityFactory {
       }
       // Explicit configuration overrides script output.
       if (conf.isSet(Template.LOCALITY_TIER.format(tierName))) {
-        value = conf.getString(Template.LOCALITY_TIER.format(tierName));
+        value = conf.get(Template.LOCALITY_TIER.format(tierName));
       }
       tiers.add(new LocalityTier(tierName, value));
     }
@@ -106,7 +106,7 @@ public final class TieredIdentityFactory {
    */
   @Nullable
   private static TieredIdentity fromScript(AlluxioConfiguration conf) {
-    String scriptName = conf.getString(PropertyKey.LOCALITY_SCRIPT);
+    String scriptName = conf.get(PropertyKey.LOCALITY_SCRIPT);
     Path script = Paths.get(scriptName);
     if (!Files.exists(script)) {
       URL resource = TieredIdentityFactory.class.getClassLoader().getResource(scriptName);

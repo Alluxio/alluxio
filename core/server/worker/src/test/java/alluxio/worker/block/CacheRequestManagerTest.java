@@ -77,8 +77,8 @@ public class CacheRequestManagerTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(
-      new ImmutableMap.Builder<PropertyKey, Object>()
-          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
+      new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
@@ -102,7 +102,7 @@ public class CacheRequestManagerTest {
     Sessions sessions = mock(Sessions.class);
     // Connect to the real UFS for testing
     UfsManager ufsManager = mock(UfsManager.class);
-    mRootUfs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mRootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
         () -> UnderFileSystem.Factory.create(mRootUfs,
             UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),

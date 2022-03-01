@@ -79,7 +79,7 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
       for (final String prefix : alluxioConf.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
         if (path.startsWith(prefix)) {
           if (!conf.isSet(PropertyKey.UNDERFS_VERSION)
-              || HdfsVersion.matches(conf.getString(PropertyKey.UNDERFS_VERSION), getVersion())) {
+              || HdfsVersion.matches(conf.get(PropertyKey.UNDERFS_VERSION), getVersion())) {
             return true;
           }
         }

@@ -50,8 +50,8 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(conf(), ServerConfiguration.global());
 
-  private static Map<PropertyKey, Object> conf() {
-    Map<PropertyKey, Object> map =
+  private static Map<PropertyKey, String> conf() {
+    Map<PropertyKey, String> map =
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),

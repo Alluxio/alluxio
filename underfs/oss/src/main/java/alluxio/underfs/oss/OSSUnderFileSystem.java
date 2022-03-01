@@ -75,9 +75,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
         "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
-    String accessId = conf.getString(PropertyKey.OSS_ACCESS_KEY);
-    String accessKey = conf.getString(PropertyKey.OSS_SECRET_KEY);
-    String endPoint = conf.getString(PropertyKey.OSS_ENDPOINT_KEY);
+    String accessId = conf.get(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
+    String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
     OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);

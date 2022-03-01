@@ -167,7 +167,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
         contentLength = Long.parseLong(header.getValue());
       } else if (headerName.equalsIgnoreCase("Last-Modified")) {
         lastModified = parseTimestamp(header.getValue(),
-            mUfsConf.getString(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
+            mUfsConf.get(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
       }
     }
 

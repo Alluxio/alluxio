@@ -127,7 +127,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
@@ -139,7 +139,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, "0")
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
-          .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
+          .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, "false")
           .build(), ServerConfiguration.global());
 
   private ExecutorService mExecutorService;

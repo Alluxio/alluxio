@@ -30,7 +30,7 @@ public class FileSystemParameters extends Parameters {
   public FileSystemClientType mClientType = FileSystemClientType.ALLUXIO_HDFS;
 
   @Parameter(names = {"--read-type"},
-      description = "the cache mechanism during read. Options are [NONE, CACHE, CACHE_PROMOTE]"
+      description = "the cache mechanism during read. Options are [NO_CACHE, CACHE, CACHE_PROMOTE]"
           + " default is CACHE",
       converter = FileSystemParameters.FileSystemParametersReadTypeConverter.class)
   public ReadType mReadType = ReadType.CACHE;
@@ -40,7 +40,7 @@ public class FileSystemParameters extends Parameters {
           + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
   public String mWriteType = InstancedConfiguration.defaults()
-      .getString(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
+      .get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
 
   /**
    * Converts from String to FileSystemClientType instance.

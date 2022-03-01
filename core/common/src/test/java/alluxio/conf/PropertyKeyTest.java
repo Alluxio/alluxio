@@ -11,7 +11,6 @@
 
 package alluxio.conf;
 
-import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -36,7 +35,7 @@ import java.util.regex.Matcher;
  */
 public final class PropertyKeyTest {
 
-  private PropertyKey mTestProperty = booleanBuilder("alluxio.test.property")
+  private PropertyKey mTestProperty = new Builder("alluxio.test.property")
       .setAlias(new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"})
       .setDescription("test")
       .setDefaultValue(false)
@@ -225,9 +224,9 @@ public final class PropertyKeyTest {
     PropertyKey key = new Builder("test")
         .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "test description"))
         .build();
-    assertEquals("100", key.getDefaultStringValue());
+    assertEquals("100", key.getDefaultValue());
     x.set(20);
-    assertEquals("20", key.getDefaultStringValue());
+    assertEquals("20", key.getDefaultValue());
     assertEquals("test description", key.getDefaultSupplier().getDescription());
   }
 
@@ -290,7 +289,7 @@ public final class PropertyKeyTest {
     for (PropertyKey key : PropertyKey.defaultKeys()) {
       assertNotEquals(String.format(
           "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
-          key.getDefaultStringValue(), "");
+          key.getDefaultValue(), "");
     }
   }
 
@@ -322,9 +321,16 @@ public final class PropertyKeyTest {
 
   @Test
   public void testValueValidation() {
-    Function<Object, Boolean> booleanValidationFunction = (value) -> value instanceof Boolean;
+    Function<Object, Boolean> booleanValidationFunction = (value) -> {
+      try {
+        Boolean.parseBoolean((String) value);
+        return true;
+      } catch (Exception e) {
+        return false;
+      }
+    };
 
-    Builder.booleanBuilder("test_boolean_property")
+    new Builder("test_boolean_property")
         .setDefaultValue(true)
         .setValueValidationFunction(booleanValidationFunction)
         .build();

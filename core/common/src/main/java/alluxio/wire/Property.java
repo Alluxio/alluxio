@@ -27,7 +27,7 @@ public final class Property {
   /** Property key name. */
   private final String mName;
   /** Property value. */
-  private final Object mValue;
+  private final String mValue;
   /**
    * Property source, should be one of the values of {@link alluxio.conf.Source}.
    */
@@ -40,7 +40,7 @@ public final class Property {
    * @param value property value
    * @param source property source
    */
-  public Property(String name, @Nullable Object value, Source source) {
+  public Property(String name, @Nullable String value, Source source) {
     Preconditions.checkNotNull(name, "name");
     Preconditions.checkNotNull(source, "source");
     mName = name;
@@ -69,7 +69,7 @@ public final class Property {
     ConfigProperty.Builder builder = ConfigProperty.newBuilder();
     builder.setName(mName);
     if (mValue != null) {
-      builder.setValue(String.valueOf(mValue));
+      builder.setValue(mValue);
     }
     builder.setSource(mSource);
     return builder.build();
@@ -85,7 +85,7 @@ public final class Property {
   /**
    * @return the property value
    */
-  public Object getValue() {
+  public String getValue() {
     return mValue;
   }
 

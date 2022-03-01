@@ -19,9 +19,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,12 +68,12 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Object get(PropertyKey key) {
+  public String get(PropertyKey key) {
     return conf(key).get(key);
   }
 
   @Override
-  public Object get(PropertyKey key, ConfigurationValueOptions options) {
+  public String get(PropertyKey key, ConfigurationValueOptions options) {
     return conf(key).get(key, options);
   }
 
@@ -96,11 +95,6 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   @Override
   public Set<PropertyKey> userKeySet() {
     return mPathConf.getPropertyKeys(mPath);
-  }
-
-  @Override
-  public String getString(PropertyKey key) {
-    return conf(key).getString(key);
   }
 
   @Override
@@ -159,7 +153,7 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, Object> getNestedProperties(PropertyKey prefixKey) {
+  public Map<String, String> getNestedProperties(PropertyKey prefixKey) {
     return conf(prefixKey).getNestedProperties(prefixKey);
   }
 
@@ -179,12 +173,12 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, Object> toMap(ConfigurationValueOptions opts) {
-    ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
+  public Map<String, String> toMap(ConfigurationValueOptions opts) {
+    Map<String, String> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
     keySet().forEach(key ->
         map.put(key.getName(), conf(key).getOrDefault(key, null, opts)));
-    return map.build();
+    return map;
   }
 
   @Override

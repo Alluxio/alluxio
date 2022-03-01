@@ -80,7 +80,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      new ConfigurationRule(new HashMap<PropertyKey, String>() {
         {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory(
@@ -89,7 +89,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
           put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("UfsFallbackBlockWriteHandlerTest-WorkerDataFolder")
               .getAbsolutePath());
-          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
+          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
         }
       }, ServerConfiguration.global());
 

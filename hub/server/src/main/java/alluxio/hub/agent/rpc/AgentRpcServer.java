@@ -64,7 +64,7 @@ public class AgentRpcServer implements AutoCloseable {
    */
   public static InetSocketAddress getConfiguredAddress(AlluxioConfiguration conf) {
     return new InetSocketAddress(
-        conf.getString(PropertyKey.HUB_AGENT_RPC_BIND_HOST),
+        conf.get(PropertyKey.HUB_AGENT_RPC_BIND_HOST),
         conf.getInt(PropertyKey.HUB_AGENT_RPC_PORT));
   }
 

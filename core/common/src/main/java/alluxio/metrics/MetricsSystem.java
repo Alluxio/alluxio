@@ -207,7 +207,7 @@ public final class MetricsSystem {
     }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (sourceKey != null && conf.isSet(sourceKey)) {
-      return conf.getString(sourceKey);
+      return conf.get(sourceKey);
     }
     String hostName;
     // Avoid throwing RuntimeException when hostname

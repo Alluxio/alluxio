@@ -90,7 +90,7 @@ public final class AlluxioProxyRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
-  private Map<String, Object> getConfigurationInternal(boolean raw) {
+  private Map<String, String> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
