@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static alluxio.conf.PropertyKey.Builder.dataSizeBuilder;
 import static alluxio.conf.PropertyKey.Builder.doubleBuilder;
 import static alluxio.conf.PropertyKey.Builder.durationBuilder;
 import static alluxio.conf.PropertyKey.Builder.enumBuilder;
@@ -80,6 +81,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class PropertyKey implements Comparable<PropertyKey> {
+  /** Regex string to find "${key}" for variable substitution. */
+  public static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
+  /** Regex to find ${key} for variable substitution. */
+  public static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
+
   private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.class);
 
   // The following two maps must be the first to initialize within this file.
@@ -249,6 +255,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder durationBuilder(String name) {
       return new Builder(name, PropertyType.DURATION);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for data size properties
+     */
+    public static Builder dataSizeBuilder(String name) {
+      return new Builder(name, PropertyType.DATASIZE);
     }
 
     /**
@@ -1036,7 +1050,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
-      new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
+      dataSizeBuilder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .setDescription("Default chunk size for ranged reads from multi-range object input "
               + "streams.")
@@ -1346,7 +1360,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE =
-      new Builder(Name.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE)
+      dataSizeBuilder(Name.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE)
           .setAlias("alluxio.underfs.s3a.streaming.upload.partition.size")
           .setDefaultValue("64MB")
           .setDescription("Maximum allowable size of a single buffer file when using "
@@ -1995,7 +2009,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
+      dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
           .setDefaultValue("10MB")
           .setDescription("The maximum single journal entry size allowed to be flushed. "
               + "This value should be smaller than 30MB. Set to a larger value to allow larger "
@@ -2004,7 +2018,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)
+      dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)
           .setDefaultValue("160MB")
           .setDescription("The maximum size in bytes of journal entries allowed "
               + "in concurrent journal flushing (journal IO to standby masters "
@@ -2045,7 +2059,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
+      dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The stream chunk size used by masters to replicate snapshots.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2076,7 +2090,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
           .setDescription("The maximum size of a message that can be sent to the "
               + "embedded journal server node.")
@@ -2218,7 +2232,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ITERATOR_READAHEAD_SIZE =
-      new Builder(Name.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE)
+      dataSizeBuilder(Name.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE)
           .setDefaultValue("64MB")
           .setDescription("The read-ahead size (in bytes) for metastore iterators.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2250,13 +2264,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
           .setDescription("The maximum size of a message that can be sent to the Alluxio master")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_NETWORK_FLOWCONTROL_WINDOW =
-        new Builder(Name.MASTER_NETWORK_FLOWCONTROL_WINDOW)
+      dataSizeBuilder(Name.MASTER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
           .setDescription(
               "The HTTP2 flow control window used by Alluxio master gRPC connections. Larger "
@@ -2481,7 +2495,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
-      new Builder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
+      dataSizeBuilder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
           .setDefaultValue("10MB")
           .setDescription("If a log file is bigger than this value, it will rotate to next "
               + "file.")
@@ -3373,7 +3387,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES)
+      dataSizeBuilder(Name.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES)
           .setDefaultValue("1GB")
           .setDescription("The amount of space that is reserved from each storage directory "
               + "for internal management tasks.")
@@ -3485,7 +3499,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_RAMDISK_SIZE =
-      new Builder(Name.WORKER_RAMDISK_SIZE)
+      dataSizeBuilder(Name.WORKER_RAMDISK_SIZE)
           .setAlias(Name.WORKER_MEMORY_SIZE)
           .setDefaultSupplier(() -> {
             try {
@@ -3545,7 +3559,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
-      new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
+      dataSizeBuilder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
@@ -3580,7 +3594,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The max inbound message size used by worker gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3612,7 +3626,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_HIGH =
-      new Builder(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH)
+      dataSizeBuilder(Name.WORKER_NETWORK_NETTY_WATERMARK_HIGH)
           .setDefaultValue("32KB")
           .setDescription("Determines how many bytes can be in the write queue before "
               + "switching to non-writable.")
@@ -3620,7 +3634,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_WATERMARK_LOW =
-      new Builder(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW)
+      dataSizeBuilder(Name.WORKER_NETWORK_NETTY_WATERMARK_LOW)
           .setDefaultValue("8KB")
           .setDescription("Once the high watermark limit is reached, the queue must be "
               + "flushed down to the low watermark before switching back to writable.")
@@ -3636,7 +3650,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
-      new Builder(Name.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES)
+      dataSizeBuilder(Name.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES)
           .setDefaultValue("4MB")
           .setDescription("When a client reads from a remote worker, the maximum amount of data"
               + " not received by client allowed before the worker pauses sending more data."
@@ -3647,7 +3661,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
-      new Builder(Name.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES)
           .setDefaultValue("2MB")
           .setDescription("When a client read from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3772,7 +3786,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES =
-          new Builder(Name.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES)
+      dataSizeBuilder(Name.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES)
           .setDefaultValue("256MB")
           .setDescription("This is used by the "
               + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
@@ -3786,7 +3800,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES =
-          new Builder(Name.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES)
+      dataSizeBuilder(Name.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES)
           .setDefaultValue("64MB")
           .setDescription("This is used by the "
               + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
@@ -3851,7 +3865,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
-      new Builder(Name.WORKER_TIERED_STORE_FREE_AHEAD_BYTES)
+      dataSizeBuilder(Name.WORKER_TIERED_STORE_FREE_AHEAD_BYTES)
           .setDefaultValue(0)
           .setDescription("Amount to free ahead when worker storage is full. "
               + "Higher values will help decrease CPU utilization under peak storage. "
@@ -4436,7 +4450,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
-      new Builder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
           .setDescription("The size of the file buffer to read data from remote Alluxio "
               + "worker.")
@@ -4473,7 +4487,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
-      new Builder(Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD)
+      dataSizeBuilder(Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD)
           .setDefaultValue("2MB")
           .setDescription("An upper bound on the client buffer size for positioned read to hint "
               + "at the sequential nature of reads. For reads with a buffer size greater than this "
@@ -4489,7 +4503,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
-      new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
+      dataSizeBuilder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("64MB")
           .setDescription("Default block size for Alluxio files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4529,14 +4543,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
-      new Builder(Name.USER_FILE_BUFFER_BYTES)
+      dataSizeBuilder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
           .setDescription("The size of the file buffer to use for file system reads/writes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_RESERVED_BYTES =
-      new Builder(Name.USER_FILE_RESERVED_BYTES)
+      dataSizeBuilder(Name.USER_FILE_RESERVED_BYTES)
           .setDefaultValue(format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .setDescription("The size to reserve on workers for file system writes."
               + "Using smaller value will improve concurrency for writes smaller than block size.")
@@ -4701,7 +4715,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-      new Builder(Name.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES)
+      dataSizeBuilder(Name.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES)
           .setDefaultValue("0MB")
           .setDescription("The portion of space reserved in a worker when using the "
               + "LocalFirstAvoidEvictionPolicy class as block location policy.")
@@ -4779,7 +4793,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD)
+      dataSizeBuilder(Name.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD)
           .setDefaultValue("125MB")
           .setDescription("The total memory overhead for bloom filters used for tracking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4858,14 +4872,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
-      new Builder(Name.USER_CLIENT_CACHE_SIZE)
+      dataSizeBuilder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
           .setDescription("The maximum size of the client-side cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
-      new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
+      dataSizeBuilder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
           .setDefaultValue("1MB")
           .setDescription("Size of each page in client-side cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4929,14 +4943,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
           .setDescription("When a client reads from a local worker, the maximum data chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
           .setDescription("When a client writes to a local worker, the maximum data chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5056,7 +5070,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_STREAMING_READER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES)
           .setAlias(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
@@ -5083,7 +5097,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_STREAMING_WRITER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES)
           .setAlias(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("1MB")
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
@@ -5144,7 +5158,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5166,7 +5180,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
+      dataSizeBuilder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5207,7 +5221,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
-      new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
+      dataSizeBuilder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
           .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5240,7 +5254,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDescription("The max inbound message size used by user gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5268,7 +5282,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_FLOWCONTROL_WINDOW =
-      new Builder(Name.USER_NETWORK_RPC_FLOWCONTROL_WINDOW)
+      dataSizeBuilder(Name.USER_NETWORK_RPC_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user rpc connections. "
               + "Larger value will allow more data to be buffered but will use more memory.")
@@ -5292,7 +5306,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.USER_NETWORK_RPC_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.USER_NETWORK_RPC_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user rpc connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5324,7 +5338,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW =
-      new Builder(Name.USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW)
+      dataSizeBuilder(Name.USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW)
           .setAlias(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user streaming connections. "
@@ -5351,7 +5365,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.USER_NETWORK_STREAMING_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.USER_NETWORK_STREAMING_MAX_INBOUND_MESSAGE_SIZE)
           .setAlias(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user streaming connections.")
@@ -5585,7 +5599,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
-      new Builder(Name.FUSE_MAXWRITE_BYTES)
+      dataSizeBuilder(Name.FUSE_MAXWRITE_BYTES)
           .setDefaultValue("128KB")
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
@@ -5781,7 +5795,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_MASTER_RESOURCE_MEM =
-      new Builder(Name.INTEGRATION_MASTER_RESOURCE_MEM)
+      dataSizeBuilder(Name.INTEGRATION_MASTER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio master for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5795,7 +5809,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
-      new Builder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
+      dataSizeBuilder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
           .setDefaultValue("1024MB")
           .setDescription("The amount of memory to run an Alluxio worker for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5991,13 +6005,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
-      new Builder(Name.JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+      dataSizeBuilder(Name.JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
           .setDescription("The maximum size of a message that can be sent to the Alluxio master")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW =
-        new Builder(Name.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW)
+      dataSizeBuilder(Name.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
           .setDescription(
               "The HTTP2 flow control window used by Alluxio job-master gRPC connections. Larger "
@@ -7629,9 +7643,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.user\\.network\\.(\\w+)\\.keepalive\\.timeout",
         PropertyType.DURATION),
     USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE("alluxio.user.network.%s.max.inbound.message.size",
-        "alluxio\\.user\\.network\\.(\\w+)\\.max\\.inbound\\.message\\.size"),
+        "alluxio\\.user\\.network\\.(\\w+)\\.max\\.inbound\\.message\\.size",
+        PropertyType.DATASIZE),
     USER_NETWORK_FLOWCONTROL_WINDOW("alluxio.user.network.%s.flowcontrol.window",
-        "alluxio\\.user\\.network\\.(\\w+)\\.flowcontrol\\.window"),
+        "alluxio\\.user\\.network\\.(\\w+)\\.flowcontrol\\.window",
+        PropertyType.DATASIZE),
     USER_NETWORK_NETTY_CHANNEL("alluxio.user.network.%s.netty.channel",
         "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.channel",
         ChannelType.class),
@@ -8219,6 +8235,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           }
           break;
         case DURATION:
+        case DATASIZE:
           if (!value.getClass().equals(Long.class) && !value.getClass().equals(Integer.class)) {
             return false;
           }
@@ -8251,28 +8268,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           value = ((Number) value).doubleValue();
           break;
         case DURATION:
+        case DATASIZE:
           value = ((Number) value).longValue();
           break;
         default:
           break;
       }
     } else if (value instanceof String) {
-      try {
+      String stringValue = (String) value;
+      Matcher matcher = CONF_REGEX.matcher(stringValue);
+      if (!matcher.matches()) {
         switch (type) {
           case ENUM:
             // Keep configuration backwards compatible: ALLUXIO-3402
             // Allow String value and try to use upper case to resolve enum.
-            value = Enum.valueOf(enumType.get(), ((String) value).toUpperCase());
+            value = Enum.valueOf(enumType.get(), stringValue.toUpperCase());
             break;
           case DURATION:
-            value = FormatUtils.parseTimeSize((String) value);
+            value = FormatUtils.parseTimeSize(stringValue);
+            break;
+          case DATASIZE:
+            value = FormatUtils.parseSpaceSize(stringValue);
             break;
           default:
             break;
         }
-      } catch (IllegalArgumentException e) {
-        // Value can also be string due to property key dependencies,
-        // so just ignore here for now.
       }
     }
     return value;
@@ -8298,8 +8318,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           return Enum.valueOf(getEnumType(), stringValue.toUpperCase());
         case DURATION:
           return FormatUtils.parseTimeSize(stringValue);
-        default:
+        case DATASIZE:
+          return FormatUtils.parseSpaceSize(stringValue);
+        case STRING:
           return stringValue;
+        default:
+          throw new IllegalStateException(format("Unknown PropertyType: %s", mType));
       }
     } catch (IllegalArgumentException e) {
       // Value can also be string due to property key dependencies,

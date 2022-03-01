@@ -11,13 +11,14 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.CONF_REGEX;
+import static alluxio.conf.PropertyKey.REGEX_STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -34,7 +35,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 
 /**
@@ -46,10 +46,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public static final AlluxioConfiguration EMPTY_CONFIGURATION
       = new InstancedConfiguration(new AlluxioProperties());
 
-  /** Regex string to find "${key}" for variable substitution. */
-  private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
-  /** Regex to find ${key} for variable substitution. */
-  private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Source of the truth of all property values (default or customized). */
   protected AlluxioProperties mProperties;
 
@@ -293,13 +289,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getBytes(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return FormatUtils.parseSpaceSize(rawValue);
-    } catch (Exception ex) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(rawValue, key));
-    }
+    return (Long) get(key);
   }
 
   @Override

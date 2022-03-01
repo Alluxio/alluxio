@@ -62,9 +62,9 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, 100)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
-          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, 100)
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false)
           .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
               "alluxio.worker.block.reviewer.AcceptingReviewer")
