@@ -65,7 +65,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Long.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           // multiple media
