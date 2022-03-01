@@ -119,11 +119,13 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
     // Create masters.
     String baseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR);
+    String blockStoreBaseDir =
+        Configuration.getString(PropertyKey.MASTER_METASTORE_BLOCK_STORE_DIR);
     mContext = CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
         .setSafeModeManager(mSafeModeManager)
         .setBackupManager(mBackupManager)
-        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
         .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
         .setStartTimeMs(mStartTimeMs)
         .setPort(NetworkAddressUtils
