@@ -127,7 +127,7 @@ public class AlluxioLog4jSocketNodeTest {
   }
 
   @Test
-  public void testPositiveObject() throws ClassNotFoundException {
+  public void testPositiveObject() {
     List<Object> list;
     list = createPositiveObjectList();
     for (Object object : list) {
@@ -140,9 +140,13 @@ public class AlluxioLog4jSocketNodeTest {
       write2BufferAndCloseOutputStream();
       createInputStreamsAndSetAcceptList();
       try {
-        Object numbers1 = mValidatingObjectInputStream.readObject();
-        System.out.println(numbers1.getClass());
-      } catch (IOException exception) {
+        try {
+          Object numbers1 = mValidatingObjectInputStream.readObject();
+          System.out.println(numbers1.getClass());
+        } catch (IOException exception) {
+          System.out.println(exception.getMessage());
+        }
+      } catch (ClassNotFoundException exception) {
         System.out.println(object.getClass() + "should be checked in the white list.");
         System.out.println(exception.getMessage());
       }
