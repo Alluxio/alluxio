@@ -250,9 +250,8 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getMalformedBytesThrowsException() {
+    mThrown.expect(IllegalArgumentException.class);
     mConfiguration.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, "100a");
-    mThrown.expect(RuntimeException.class);
-    mConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
   }
 
   @Test

@@ -181,7 +181,12 @@ public final class FormatUtils {
       index--;
     }
     spaceSize = spaceSize.substring(0, index + 1);
-    double ret = Double.parseDouble(spaceSize);
+    double ret;
+    try {
+      ret = Double.parseDouble(spaceSize);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
+    }
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
