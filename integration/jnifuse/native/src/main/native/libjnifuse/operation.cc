@@ -177,14 +177,12 @@ FlushOperation::FlushOperation(JniFuseFileSystem *fs) {
 }
 
 int FlushOperation::call(const char *path, struct fuse_file_info *fi) {
-  LOGD("into flush: %s", path);
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, fibuf);
-  LOGD("complete flush %s with code %d", path, ret);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(fibuf);
@@ -202,14 +200,12 @@ ReleaseOperation::ReleaseOperation(JniFuseFileSystem *fs) {
 }
 
 int ReleaseOperation::call(const char *path, struct fuse_file_info *fi) {
-  LOGD("into release: %s", path);
   JNIEnv *env = this->fs->getEnv();
   jstring jspath = env->NewStringUTF(path);
   jobject fibuf =
       env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
 
   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, fibuf);
-  LOGD("complete release %s with code %d", path, ret);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(fibuf);
