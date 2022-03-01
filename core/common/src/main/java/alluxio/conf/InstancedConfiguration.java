@@ -11,9 +11,6 @@
 
 package alluxio.conf;
 
-import static alluxio.conf.PropertyKey.PropertyType.DOUBLE;
-import static alluxio.conf.PropertyKey.PropertyType.ENUM;
-import static alluxio.conf.PropertyKey.PropertyType.STRING;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import alluxio.conf.PropertyKey.Template;
@@ -218,20 +215,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
             + "ServerConfiguration.unset to remove a key from the configuration.", key);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
-    if (key.getType() == STRING) {
-      value = String.valueOf(value);
-    } else if (key.getType() == ENUM && value instanceof String) {
-      try {
-        // Keep configuration backwards compatible: ALLUXIO-3402
-        // Allow String value and try to use upper case to resolve enum.
-        value = Enum.valueOf(key.getEnumType(), ((String) value).toUpperCase());
-      } catch (IllegalArgumentException e) {
-        // Value can also be string due to property key dependencies, so just ignore here for now.
-      }
-    }
-    if (key.getType() == DOUBLE) {
-      value = ((Number) value).doubleValue();
-    }
+    value = key.formatValue(value);
     mProperties.put(key, value, source);
   }
 
@@ -320,12 +304,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getMs(PropertyKey key) {
-    String rawValue = getString(key);
-    try {
-      return FormatUtils.parseTimeSize(rawValue);
-    } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(rawValue, key));
-    }
+    return (Long) get(key);
   }
 
   @Override

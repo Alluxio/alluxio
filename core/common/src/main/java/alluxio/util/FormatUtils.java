@@ -223,7 +223,12 @@ public final class FormatUtils {
       time = m.group(1);
       size = m.group(2);
     }
-    double douTime = Double.parseDouble(time);
+    double douTime;
+    try {
+      douTime = Double.parseDouble(time);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
+    }
     long sign = 1;
     if (douTime < 0) {
       sign = -1;
