@@ -20,7 +20,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -356,8 +355,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   public void cleanup() {
     long cleanAge = mUfsConf.isSet(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
         ? mUfsConf.getMs(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE
-        .getDefaultStringValue());
+        : (long) PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE
+        .getDefaultValue();
     Date cleanBefore = new Date(new Date().getTime() - cleanAge);
     mManager.abortMultipartUploads(mBucketName, cleanBefore);
   }
