@@ -65,12 +65,12 @@ public class AlluxioLog4jSocketNodeTest {
     positiveObjectList.add(new LocationInfo("c", "b", "c", "d"));
     positiveObjectList.add(new ThrowableInformation(new Throwable()));
     positiveObjectList.add(true);
-    positiveObjectList.add((Byte) (byte) 0x11);
-    positiveObjectList.add((Double) 0.0);
-    positiveObjectList.add((Float) 1.0F);
+    positiveObjectList.add((byte) 0x11);
+    positiveObjectList.add(0.0);
+    positiveObjectList.add(1.0F);
     positiveObjectList.add(1);
-    positiveObjectList.add((Long) 1L);
-    positiveObjectList.add((Short) (short) 1);
+    positiveObjectList.add(1L);
+    positiveObjectList.add((short) 1);
     positiveObjectList.add("string");
     return positiveObjectList;
   }
@@ -127,8 +127,8 @@ public class AlluxioLog4jSocketNodeTest {
   }
 
   @Test
-  public void testPositiveObject() throws IOException, ClassNotFoundException {
-    List<Object> list = new ArrayList<>();
+  public void testPositiveObject() throws ClassNotFoundException {
+    List<Object> list;
     list = createPositiveObjectList();
     for (Object object : list) {
       createOutputStreams();
@@ -150,8 +150,8 @@ public class AlluxioLog4jSocketNodeTest {
   }
 
   @Test
-  public void testNegativeObject() throws IOException {
-    List<Object> list = new ArrayList<>();
+  public void testNegativeObject() {
+    List<Object> list;
     list = createNegativeObjectList();
     for (Object object : list) {
       System.out.println(object.getClass());
