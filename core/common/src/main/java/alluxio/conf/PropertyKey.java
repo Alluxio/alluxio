@@ -4347,7 +4347,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_READ_RETRY_MAX_DURATION =
       new Builder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
-          .setDefaultValue("2min")
+          .setDescription("This duration controls for how long Alluxio clients should try"
+              + "reading a single block. If a particular block can't be read within "
+              + "this duration, then the I/O will timeout.")
+          .setDefaultValue("5min")
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
