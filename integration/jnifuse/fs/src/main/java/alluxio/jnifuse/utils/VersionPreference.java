@@ -9,20 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.jnifuse;
+package alluxio.jnifuse.utils;
 
-import alluxio.jnifuse.struct.FileStat;
-
-import java.nio.ByteBuffer;
-
-public class FuseFillDir {
-  public static native int fill(long address, long bufaddr, String name, ByteBuffer stbuf, long off);
-
-  public static int apply(long fillerAddr, long bufaddr, String name, FileStat stbuf, long off) {
-    if (stbuf != null) {
-      return fill(fillerAddr, bufaddr, name, stbuf.getBuffer(), off);
-    } else {
-      return fill(fillerAddr, bufaddr, name, null, off);
-    }
-  }
+/**
+ * The libjnifuse version set by the user
+ */
+public enum VersionPreference {
+  NO,
+  VERSION_2,
+  VERSION_3,
 }
