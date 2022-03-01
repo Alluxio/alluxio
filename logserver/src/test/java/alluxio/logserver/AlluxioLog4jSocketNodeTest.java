@@ -143,8 +143,8 @@ public class AlluxioLog4jSocketNodeTest {
         Object numbers1 = mValidatingObjectInputStream.readObject();
         System.out.println(numbers1.getClass());
       } catch (IOException exception) {
-        System.out.println(exception.getMessage());
         System.out.println(object.getClass() + "should be checked in the white list.");
+        System.out.println(exception.getMessage());
       }
     }
   }
