@@ -17,7 +17,6 @@ import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -293,13 +292,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getBytes(PropertyKey key) {
-    String rawValue = getString(key);
-
-    try {
-      return FormatUtils.parseSpaceSize(rawValue);
-    } catch (Exception ex) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(rawValue, key));
-    }
+    return (Long) get(key);
   }
 
   @Override
