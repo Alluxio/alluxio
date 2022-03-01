@@ -49,7 +49,7 @@ public final class MasterBenchParameters extends FileSystemParameters {
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
-  public String mBasePath = "alluxio://localhost:19998/stress-master-base";
+  public String mBasePath = "alluxio:///stress-master-base";
 
   @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription

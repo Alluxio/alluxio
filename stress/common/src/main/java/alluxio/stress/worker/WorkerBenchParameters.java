@@ -28,7 +28,7 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
-  public String mBasePath = "alluxio://localhost:19998/stress-worker-base";
+  public String mBasePath = "alluxio:///stress-worker-base";
 
   @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription
