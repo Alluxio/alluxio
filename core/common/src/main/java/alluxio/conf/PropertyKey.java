@@ -4853,7 +4853,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,
               Name.USER_STREAMING_DATA_TIMEOUT)
-          .setDefaultValue("1h")
+          .setDefaultValue("1m")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "for read requests from Alluxio worker. Keep in mind that some streaming "
               + "operations may take an unexpectedly long time, such as UFS io. In order to handle "
@@ -4864,7 +4864,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_DATA_WRITE_TIMEOUT =
       new Builder(Name.USER_STREAMING_DATA_WRITE_TIMEOUT)
-          .setDefaultValue("1h")
+          .setDefaultValue("1m")
           .setDescription("The maximum time for an Alluxio client to wait for when writing 1 chunk "
               + "for block writes to an Alluxio worker. This value can be tuned to offset "
               + "instability from the UFS.")
