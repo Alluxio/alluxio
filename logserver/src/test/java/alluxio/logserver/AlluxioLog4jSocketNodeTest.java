@@ -41,10 +41,10 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class AlluxioLog4jSocketNodeTest {
+
+  private byte[] mBuffer;
   private ByteArrayOutputStream mByteArrayOutputStream;
   private ObjectOutputStream mObjectOutputStream;
-  private byte[] mBuffer;
-  private ByteArrayInputStream mByteArrayInputStream;
   private ValidatingObjectInputStream mValidatingObjectInputStream;
 
   /**
@@ -64,7 +64,7 @@ public class AlluxioLog4jSocketNodeTest {
             new Throwable()));
     positiveObjectList.add(new LocationInfo("c", "b", "c", "d"));
     positiveObjectList.add(new ThrowableInformation(new Throwable()));
-    positiveObjectList.add(new Boolean(true));
+    positiveObjectList.add(true);
     positiveObjectList.add((Byte) (byte) 0x11);
     positiveObjectList.add((Double) 0.0);
     positiveObjectList.add((Float) 1.0F);
@@ -97,21 +97,33 @@ public class AlluxioLog4jSocketNodeTest {
     return positiveObjectList;
   }
 
-  private void createOutputStreams() throws IOException {
-    mByteArrayOutputStream = new ByteArrayOutputStream();
-    mObjectOutputStream = new ObjectOutputStream(mByteArrayOutputStream);
+  private void createOutputStreams() {
+    try {
+      mByteArrayOutputStream = new ByteArrayOutputStream();
+      mObjectOutputStream = new ObjectOutputStream(mByteArrayOutputStream);
+    } catch (IOException exception) {
+      System.out.println(exception.getMessage());
+    }
   }
 
-  private void write2BufferAndCloseOutputStream() throws IOException {
+  private void write2BufferAndCloseOutputStream() {
     mBuffer = mByteArrayOutputStream.toByteArray();
-    mObjectOutputStream.close();
-    mByteArrayOutputStream.close();
+    try {
+      mObjectOutputStream.close();
+      mByteArrayOutputStream.close();
+    } catch (IOException exception) {
+      System.out.println(exception.getMessage());
+    }
   }
 
-  private void createInputStreamsAndsetAcceptList() throws IOException {
-    mByteArrayInputStream = new ByteArrayInputStream(mBuffer);
-    mValidatingObjectInputStream = new ValidatingObjectInputStream(mByteArrayInputStream);
-    setAcceptList(mValidatingObjectInputStream);
+  private void createInputStreamsAndSetAcceptList() {
+    try {
+      ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(mBuffer);
+      mValidatingObjectInputStream = new ValidatingObjectInputStream(byteArrayInputStream);
+      setAcceptList(mValidatingObjectInputStream);
+    } catch (IOException exception) {
+      System.out.println(exception.getMessage());
+    }
   }
 
   @Test
@@ -120,24 +132,37 @@ public class AlluxioLog4jSocketNodeTest {
     list = createPositiveObjectList();
     for (Object object : list) {
       createOutputStreams();
-      mObjectOutputStream.writeObject(object);
+      try {
+        mObjectOutputStream.writeObject(object);
+      } catch (IOException exception) {
+        System.out.println(exception.getMessage());
+      }
       write2BufferAndCloseOutputStream();
-      createInputStreamsAndsetAcceptList();
-      Object numbers1 = mValidatingObjectInputStream.readObject();
-      System.out.println(numbers1.getClass());
+      createInputStreamsAndSetAcceptList();
+      try {
+        Object numbers1 = mValidatingObjectInputStream.readObject();
+        System.out.println(numbers1.getClass());
+      } catch (IOException exception) {
+        System.out.println(exception.getMessage());
+        System.out.println(object.getClass() + "should be checked in the white list.");
+      }
     }
   }
 
   @Test
-  public void testNegativeObject() throws IOException, ClassNotFoundException {
+  public void testNegativeObject() throws IOException {
     List<Object> list = new ArrayList<>();
     list = createNegativeObjectList();
-    for(Object object : list){
+    for (Object object : list) {
       System.out.println(object.getClass());
       createOutputStreams();
-      mObjectOutputStream.writeObject(object);
-      write2BufferAndCloseOutputStream();
-      createInputStreamsAndsetAcceptList();
+      try {
+        mObjectOutputStream.writeObject(object);
+        write2BufferAndCloseOutputStream();
+        createInputStreamsAndSetAcceptList();
+      } catch (IOException exception) {
+        System.out.println(exception.getMessage());
+      }
       Assert.assertThrows(InvalidClassException.class, () -> {
         Object object1 = mValidatingObjectInputStream.readObject();
       });
