@@ -331,7 +331,7 @@ public abstract class AbstractFuseIntegrationTest {
   /**
    * Creates file by given path and writes content to file.
    *
-   * @param path    the file path
+   * @param path the file path
    * @param toWrite the file content
    * @return the created file instance
    * @throws FileNotFoundException if file not found
