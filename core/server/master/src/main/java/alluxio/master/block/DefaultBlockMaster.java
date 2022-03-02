@@ -379,8 +379,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
-    Iterator<Block> blockStoreIterator = mBlockStore.iterator();
-    Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
+    CloseableIterator<Block> blockStoreIterator = mBlockStore.getCloseableIterator();
+    Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {
         return blockStoreIterator.hasNext();
@@ -404,20 +404,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     };
 
-    CloseableIterator<JournalEntry> closeableIterator =
-        CloseableIterator.create(blockIterator, (whatever) -> {
-          if (blockStoreIterator instanceof CloseableIterator) {
-            final CloseableIterator<Block> c = (CloseableIterator<Block>) blockStoreIterator;
-            c.close();
-          } else {
-            // no op
-          }
-        });
+    CloseableIterator<JournalEntry> journalCloseableIterator =
+        CloseableIterator.create(journalIterator, (whatever) -> blockStoreIterator.close());
 
     return CloseableIterator.concat(
         CloseableIterator.noopCloseable(
             CommonUtils.singleElementIterator(getContainerIdJournalEntry())),
-        closeableIterator);
+        journalCloseableIterator);
   }
 
   /**
@@ -726,10 +719,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
     List<Long> invalidBlocks = new ArrayList<>();
-    for (Iterator<Block> iter = mBlockStore.iterator(); iter.hasNext(); ) {
-      long id = iter.next().getId();
-      if (!validator.apply(id)) {
-        invalidBlocks.add(id);
+    try (CloseableIterator<Block> iter = mBlockStore.getCloseableIterator()) {
+      while (iter.hasNext()) {
+        long id = iter.next().getId();
+        if (!validator.apply(id)) {
+          invalidBlocks.add(id);
+        }
       }
     }
     if (!invalidBlocks.isEmpty()) {
