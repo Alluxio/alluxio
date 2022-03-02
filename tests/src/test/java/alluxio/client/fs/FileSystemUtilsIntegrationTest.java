@@ -152,7 +152,8 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          String original = ServerConfiguration.get(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
+          String original = ServerConfiguration.getString(
+              PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
           ServerConfiguration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.

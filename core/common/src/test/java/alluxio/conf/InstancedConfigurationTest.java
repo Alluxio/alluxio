@@ -86,7 +86,7 @@ public class InstancedConfigurationTest {
     // Avoid interference from system properties. site-properties will not be loaded during tests
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.LOGGER_TYPE.toString(), null).toResource()) {
-      String loggerType = mConfiguration.get(PropertyKey.LOGGER_TYPE);
+      String loggerType = mConfiguration.getString(PropertyKey.LOGGER_TYPE);
       assertEquals("Console", loggerType);
     }
   }
@@ -118,7 +118,7 @@ public class InstancedConfigurationTest {
 
   @Test
   public void setValidation() {
-    assertThrows(IllegalStateException.class,
+    assertThrows(IllegalArgumentException.class,
         () -> mConfiguration.set(PropertyKey.MASTER_KEYTAB_KEY_FILE, "/file/not/exist"));
   }
 
@@ -178,45 +178,20 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getTrueBoolean() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "true");
-    assertTrue(mConfiguration.getBoolean(PropertyKey.WEB_THREADS));
-  }
-
-  @Test
-  public void getTrueBooleanUppercase() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "True");
-    assertTrue(mConfiguration.getBoolean(PropertyKey.WEB_THREADS));
-  }
-
-  @Test
-  public void getTrueBooleanMixcase() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "tRuE");
-    assertTrue(mConfiguration.getBoolean(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.WEB_THREAD_DUMP_TO_LOG, true);
+    assertTrue(mConfiguration.getBoolean(PropertyKey.WEB_THREAD_DUMP_TO_LOG));
   }
 
   @Test
   public void getFalseBoolean() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "false");
-    assertFalse(mConfiguration.getBoolean(PropertyKey.WEB_THREADS));
-  }
-
-  @Test
-  public void getFalseBooleanUppercase() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "False");
-    assertFalse(mConfiguration.getBoolean(PropertyKey.WEB_THREADS));
-  }
-
-  @Test
-  public void getFalseBooleanMixcase() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "fAlSe");
-    assertFalse(mConfiguration.getBoolean(PropertyKey.WEB_THREADS));
+    mConfiguration.set(PropertyKey.WEB_THREAD_DUMP_TO_LOG, false);
+    assertFalse(mConfiguration.getBoolean(PropertyKey.WEB_THREAD_DUMP_TO_LOG));
   }
 
   @Test
   public void getMalformedBooleanThrowsException() {
-    mConfiguration.set(PropertyKey.WEB_THREADS, "x");
-    mThrown.expect(RuntimeException.class);
-    mConfiguration.getBoolean(PropertyKey.WEB_THREADS);
+    mThrown.expect(IllegalArgumentException.class);
+    mConfiguration.set(PropertyKey.WEB_THREAD_DUMP_TO_LOG, 2);
   }
 
   @Test
@@ -510,12 +485,19 @@ public class InstancedConfigurationTest {
   }
 
   @Test
+  public void templatedKeyDependency() {
+    mConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED,
+        "${alluxio.master.worker.register.lease.respect.jvm.space}");
+    assertTrue(mConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED));
+  }
+
+  @Test
   public void variableSubstitution() {
     mConfiguration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"),
         Source.SYSTEM_PROPERTY);
-    String substitution = mConfiguration.get(PropertyKey.LOGS_DIR);
+    String substitution = mConfiguration.getString(PropertyKey.LOGS_DIR);
     assertEquals("value/logs", substitution);
   }
 
@@ -526,7 +508,7 @@ public class InstancedConfigurationTest {
         PropertyKey.MASTER_RPC_PORT, "value2",
         PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.rpc.port}"),
         Source.SYSTEM_PROPERTY);
-    String substitution = mConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String substitution = mConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     assertEquals("value1-value2", substitution);
   }
 
@@ -537,7 +519,7 @@ public class InstancedConfigurationTest {
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
         PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"),
         Source.SYSTEM_PROPERTY);
-    String substitution2 = mConfiguration.get(PropertyKey.SITE_CONF_DIR);
+    String substitution2 = mConfiguration.getString(PropertyKey.SITE_CONF_DIR);
     assertEquals("value/logs/conf", substitution2);
   }
 
@@ -640,7 +622,7 @@ public class InstancedConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mConfiguration = ConfigurationTestUtils.defaults();
-      assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
+      assertEquals(PropertyKey.LOGGER_TYPE.getDefaultStringValue(),
           mConfiguration.get(PropertyKey.LOGGER_TYPE));
     }
   }
@@ -763,7 +745,7 @@ public class InstancedConfigurationTest {
     String nestedValue = String.format("${%s}.test", testKeyName);
     mConfiguration.set(nestedKey, nestedValue);
 
-    Map<String, String> resolvedMap = mConfiguration.toMap();
+    Map<String, Object> resolvedMap = mConfiguration.toMap();
 
     // Test if the value of the created nested property is correct
     assertEquals(mConfiguration.get(PropertyKey.fromString(testKeyName)),
@@ -795,7 +777,7 @@ public class InstancedConfigurationTest {
     String testValue = String.format("${%s}.test", "alluxio.extensions.dir");
     mConfiguration.set(testKey, testValue);
 
-    Map<String, String> rawMap =
+    Map<String, Object> rawMap =
         mConfiguration.toMap(ConfigurationValueOptions.defaults().useRawValue(true));
 
     // Test if the value of the created nested property remains raw
@@ -804,7 +786,7 @@ public class InstancedConfigurationTest {
     // Test if some value in raw map is of ${VALUE} format
     String regexString = "(\\$\\{([^{}]*)\\})";
     Pattern confRegex = Pattern.compile(regexString);
-    assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
+    assertTrue(confRegex.matcher(String.valueOf(rawMap.get("alluxio.logs.dir"))).find());
   }
 
   @Test
@@ -893,13 +875,13 @@ public class InstancedConfigurationTest {
     assertEquals(PropertyKey.DisplayType.CREDENTIALS, testKey.getDisplayType());
 
     mConfiguration.set(testKey, testValue);
-    String displayValue1 = mConfiguration.get(testKey,
+    String displayValue1 = (String) mConfiguration.get(testKey,
         ConfigurationValueOptions.defaults().useDisplayValue(true));
 
     String testValue2 = "abc";
     mConfiguration.set(testKey, testValue2);
 
-    String displayValue2 = mConfiguration.get(testKey,
+    String displayValue2 = (String) mConfiguration.get(testKey,
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     assertEquals(displayValue1, displayValue2);
   }
@@ -965,7 +947,7 @@ public class InstancedConfigurationTest {
   public void removedKeyThrowsException() {
     try {
       mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY),
-          "true");
+          true);
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
@@ -975,7 +957,7 @@ public class InstancedConfigurationTest {
     }
     mConfiguration = ConfigurationTestUtils.defaults();
     try {
-      mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), "true");
+      mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), true);
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
@@ -987,7 +969,7 @@ public class InstancedConfigurationTest {
 
   @Test
   public void testDeprecatedKey() {
-    mConfiguration.set(PropertyKey.TEST_DEPRECATED_KEY, "true");
+    mConfiguration.set(PropertyKey.TEST_DEPRECATED_KEY, true);
     mConfiguration.validate();
     String logString = String.format("%s is deprecated", PropertyKey.TEST_DEPRECATED_KEY);
     assertTrue(mLogger.wasLogged(logString));

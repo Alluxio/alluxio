@@ -168,7 +168,7 @@ public final class ModeTest {
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     ModeUtils.applyDirectoryUMask(Mode.defaults(), mConfiguration
-        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+        .getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**

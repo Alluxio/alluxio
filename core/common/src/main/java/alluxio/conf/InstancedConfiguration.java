@@ -11,6 +11,9 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.PropertyType.STRING;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -19,7 +22,7 @@ import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,20 +130,25 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public String get(PropertyKey key) {
+  public Object get(PropertyKey key) {
     return get(key, ConfigurationValueOptions.defaults());
   }
 
   @Override
-  public String get(PropertyKey key, ConfigurationValueOptions options) {
-    String value = mProperties.get(key);
+  public Object get(PropertyKey key, ConfigurationValueOptions options) {
+    Object value = mProperties.get(key);
     if (value == null) {
       // if value or default value is not set in configuration for the given key
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
+
+    if (!(value instanceof String)) {
+      return value;
+    }
+
     if (!options.shouldUseRawValue()) {
       try {
-        value = lookup(value);
+        value = lookup(key, (String) value);
       } catch (UnresolvablePropertyException e) {
         throw new RuntimeException("Could not resolve key \""
             + key.getName() + "\": " + e.getMessage(), e);
@@ -163,15 +171,17 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   private boolean isResolvable(PropertyKey key) {
-    String val = mProperties.get(key);
+    Object value = mProperties.get(key);
     try {
       // Lookup to resolve any key before simply returning isSet. An exception will be thrown if
       // the key can't be resolved or if a lower level value isn't set.
-      lookup(val);
-      return true;
+      if (value instanceof String) {
+        lookup(key, (String) value);
+      }
     } catch (UnresolvablePropertyException e) {
       return false;
     }
+    return true;
   }
 
   @Override
@@ -202,12 +212,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
-    Preconditions.checkArgument(!value.equals(""),
+    checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
             + "ServerConfiguration.unset to remove a key from the configuration.", key);
-    Preconditions.checkState(key.validateValue(value),
-        "Invalid valid for property key %s: %s", key, value);
-    mProperties.put(key, String.valueOf(value), source);
+    checkArgument(key.validateValue(value),
+        "Invalid value for property key %s: %s", key, value);
+    if (key.getType() == STRING) {
+      value = String.valueOf(value);
+    }
+    mProperties.put(key, value, source);
   }
 
   /**
@@ -242,8 +255,18 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public String getString(PropertyKey key) {
+    // TODO(rongrong) once all property keys are typed, this should simply return (String) get(key)
+    Object value = get(key);
+    if (value == null || value instanceof String) {
+      return (String) value;
+    }
+    return String.valueOf(value);
+  }
+
+  @Override
   public int getInt(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
 
     try {
       return Integer.parseInt(rawValue);
@@ -254,7 +277,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getLong(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
 
     try {
       return Long.parseLong(rawValue);
@@ -265,7 +288,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public double getDouble(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
 
     try {
       return Double.parseDouble(rawValue);
@@ -276,7 +299,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public float getFloat(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
 
     try {
       return Float.parseFloat(rawValue);
@@ -287,25 +310,21 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public boolean getBoolean(PropertyKey key) {
-    String rawValue = get(key);
-    try {
-      return FormatUtils.parseBoolean(rawValue);
-    } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(rawValue, key));
-    }
+    Object rawValue = get(key);
+    return (Boolean) rawValue;
   }
 
   @Override
   public List<String> getList(PropertyKey key, String delimiter) {
-    Preconditions.checkArgument(delimiter != null,
+    checkArgument(delimiter != null,
         "Illegal separator for Alluxio properties as list");
-    String rawValue = get(key);
+    String rawValue = getString(key);
     return ConfigurationUtils.parseAsList(rawValue, delimiter);
   }
 
   @Override
   public <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    String rawValue = get(key).toUpperCase();
+    String rawValue = getString(key).toUpperCase();
     try {
       return Enum.valueOf(enumType, rawValue);
     } catch (IllegalArgumentException e) {
@@ -316,7 +335,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getBytes(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
 
     try {
       return FormatUtils.parseSpaceSize(rawValue);
@@ -327,7 +346,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public long getMs(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
     try {
       return FormatUtils.parseTimeSize(rawValue);
     } catch (Exception e) {
@@ -342,7 +361,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public <T> Class<T> getClass(PropertyKey key) {
-    String rawValue = get(key);
+    String rawValue = getString(key);
 
     try {
       @SuppressWarnings("unchecked")
@@ -355,16 +374,16 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> getNestedProperties(PropertyKey prefixKey) {
-    Map<String, String> ret = Maps.newHashMap();
-    for (Map.Entry<PropertyKey, String> entry: mProperties.entrySet()) {
+  public Map<String, Object> getNestedProperties(PropertyKey prefixKey) {
+    ImmutableMap.Builder<String, Object> ret = ImmutableMap.builder();
+    for (Map.Entry<PropertyKey, Object> entry: mProperties.entrySet()) {
       String key = entry.getKey().getName();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
         ret.put(suffixKey, entry.getValue());
       }
     }
-    return ret;
+    return ret.build();
   }
 
   @Override
@@ -373,8 +392,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public Map<String, String> toMap(ConfigurationValueOptions opts) {
-    Map<String, String> map = new HashMap<>();
+  public Map<String, Object> toMap(ConfigurationValueOptions opts) {
+    Map<String, Object> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
     keySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, opts)));
     return map;
@@ -391,7 +410,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           "%s is not accepted in alluxio-site.properties, "
               + "and must be specified as a JVM property. "
               + "If no JVM property is present, Alluxio will use default value '%s'.",
-          key.getName(), key.getDefaultValue());
+          key.getName(), key.getDefaultStringValue());
 
       if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
@@ -423,8 +442,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param base the String to look for
    * @return resolved String value
    */
-  private String lookup(final String base) throws UnresolvablePropertyException {
-    return lookupRecursively(base, new HashSet<>());
+  private Object lookup(PropertyKey key, final String base) throws UnresolvablePropertyException {
+    return lookupRecursively(key, base, new HashSet<>());
   }
 
   /**
@@ -434,7 +453,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param seen strings already seen during this lookup, used to prevent unbound recursion
    * @return the resolved string
    */
-  private String lookupRecursively(String base, Set<String> seen)
+  private Object lookupRecursively(PropertyKey originalKey, String base, Set<String> seen)
       throws UnresolvablePropertyException {
     // check argument
     if (base == null) {
@@ -442,6 +461,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
 
     String resolved = base;
+    Object resolvedValue = null;
+    PropertyKey key = null;
     // Lets find pattern match to ${key}.
     // TODO(hsaputra): Consider using Apache Commons StrSubstitutor.
     Matcher matcher = CONF_REGEX.matcher(base);
@@ -453,15 +474,28 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       if (!PropertyKey.isValid(match)) {
         throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(match));
       }
-      String value = lookupRecursively(mProperties.get(PropertyKey.fromString(match)), seen);
+      key = PropertyKey.fromString(match);
+      Object value = mProperties.get(key);
+      String stringValue = null;
+      if (value instanceof String) {
+        stringValue = String.valueOf(lookupRecursively(key, (String) value , seen));
+      }
+      else if (value != null) {
+        stringValue = String.valueOf(mProperties.get(key));
+      }
       seen.remove(match);
-      if (value == null) {
+      if (stringValue == null) {
         throw new UnresolvablePropertyException(ExceptionMessage
             .UNDEFINED_CONFIGURATION_KEY.getMessage(match));
       }
-      resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
+      resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(stringValue));
     }
-    return resolved;
+    if (key != null) {
+      resolvedValue = originalKey.parseValue(resolved);
+    } else {
+      resolvedValue = resolved;
+    }
+    return resolvedValue;
   }
 
   /**
@@ -579,8 +613,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     int globalTiers = getInt(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
     Set<String> globalTierAliasSet = new HashSet<>();
     for (int i = 0; i < globalTiers; i++) {
-      globalTierAliasSet
-          .add(get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(i)));
+      globalTierAliasSet.add(
+          getString(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(i)));
     }
     int workerTiers = getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     Preconditions.checkState(workerTiers <= globalTiers,
@@ -589,7 +623,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         globalTiers, PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
     for (int i = 0; i < workerTiers; i++) {
       PropertyKey key = Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(i);
-      String alias = get(key);
+      String alias = getString(key);
       Preconditions.checkState(globalTierAliasSet.contains(alias),
           "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
               + "storage setting: %s",

@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(
-      PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false", ServerConfiguration.global());
+      PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, ServerConfiguration.global());
 
   public MultiProcessCluster mCluster;
 
@@ -96,7 +96,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(
           output.contains(String.format(QuorumInfoCommand.OUTPUT_HEADER_QUORUM_SIZE, 3)));
       String journalAddresses =
-          ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+          ServerConfiguration.getString(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
       for (String address : journalAddresses.split(",")) {
         String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
                 QuorumServerState.AVAILABLE.name(), "0", address).trim();

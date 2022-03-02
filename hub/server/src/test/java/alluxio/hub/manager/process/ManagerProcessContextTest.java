@@ -469,7 +469,8 @@ public class ManagerProcessContextTest extends BaseHubTest {
     resp = mContext.setPrestoConfDir(
             SetPrestoConfDirRequest.newBuilder()
                     .setPayload(SetPrestoConfDirRequest.Payload.newBuilder()
-                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
+                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH
+                                .getDefaultStringValue()))
                     .build());
     assertTrue(resp.getSuccess());
     assertTrue(resp.getIsDefault());
@@ -484,7 +485,8 @@ public class ManagerProcessContextTest extends BaseHubTest {
     resp = mContext.setPrestoConfDir(
             SetPrestoConfDirRequest.newBuilder()
                     .setPayload(SetPrestoConfDirRequest.Payload.newBuilder()
-                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
+                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH
+                                .getDefaultStringValue()))
                     .build());
     assertFalse(resp.getSuccess());
     assertTrue(resp.getIsDefault());
@@ -496,7 +498,8 @@ public class ManagerProcessContextTest extends BaseHubTest {
     resp = mContext.setPrestoConfDir(
             SetPrestoConfDirRequest.newBuilder()
                     .setPayload(SetPrestoConfDirRequest.Payload.newBuilder()
-                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
+                            .setConfDir(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH
+                                .getDefaultStringValue()))
                     .build());
     assertFalse(resp.getSuccess());
   }

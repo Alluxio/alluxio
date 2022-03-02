@@ -66,8 +66,8 @@ public class CachingInodeStoreMockedBackingStoreTest {
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(
-      ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, Long.toString(CACHE_SIZE),
-          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, "5"),
+      ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE,
+          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5),
       ServerConfiguration.global());
 
   @Before

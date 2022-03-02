@@ -77,7 +77,7 @@ public class DefaultBlockWorkerTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
           .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)

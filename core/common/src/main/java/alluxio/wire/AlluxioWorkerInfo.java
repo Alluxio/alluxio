@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioWorkerInfo {
   private Capacity mCapacity;
-  private Map<String, String> mConfiguration;
+  private Map<String, Object> mConfiguration;
   private Map<String, Long> mMetrics;
   private String mRpcAddress;
   private long mStartTimeMs;
@@ -48,7 +48,7 @@ public class AlluxioWorkerInfo {
   /**
    * @return the configuration
    */
-  public Map<String, String> getConfiguration() {
+  public Map<String, Object> getConfiguration() {
     return mConfiguration;
   }
 
@@ -114,7 +114,7 @@ public class AlluxioWorkerInfo {
    * @param configuration the configuration to use
    * @return the Alluxio worker information
    */
-  public AlluxioWorkerInfo setConfiguration(Map<String, String> configuration) {
+  public AlluxioWorkerInfo setConfiguration(Map<String, Object> configuration) {
     mConfiguration = configuration;
     return this;
   }
