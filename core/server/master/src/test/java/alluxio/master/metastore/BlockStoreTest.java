@@ -18,8 +18,8 @@ import static org.junit.Assert.assertTrue;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.rocks.RocksBlockStore;
 import alluxio.proto.meta.Block;
-
 import alluxio.resource.CloseableIterator;
+
 import com.google.common.io.Files;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +27,6 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 @RunWith(Parameterized.class)
