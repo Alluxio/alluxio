@@ -263,7 +263,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         || (mLeaderSelector.getState() == State.PRIMARY && !standbyMetricsSinkEnabled)) {
       LOG.info("Start metric sinks.");
       MetricsSystem.startSinks(
-          ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+          ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
     }
 
     // Same as the metrics sink service

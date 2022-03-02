@@ -48,8 +48,8 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
-    String path = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
-    String alias = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
+    String path = mConf.getString(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
+    String alias = mConf.getString(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals(Constants.MEDIUM_MEM)) {
       msg.append("Top tier storage is not memory, skip validation.");
       return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
@@ -65,7 +65,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
     if (path.isEmpty()) {
       msg.append(String.format("Mount path %s is empty.%n", path));
       advice.append(String.format("Please check your configuration %s=%s.%n",
-              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(), path));
+              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, path));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }

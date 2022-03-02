@@ -103,9 +103,9 @@ public class SummaryCommandTest {
   @Test
   public void summary() throws IOException {
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-        mBlockMasterClient, sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
+        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
     summaryCommand.run();
-    checkIfOutputValid(sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**

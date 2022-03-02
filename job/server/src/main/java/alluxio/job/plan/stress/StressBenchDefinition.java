@@ -99,7 +99,7 @@ public final class StressBenchDefinition
     return result;
   }
 
-  private Map<String, String> getUfsConf(String ufsUri, RunTaskContext runTaskContext)
+  private Map<String, Object> getUfsConf(String ufsUri, RunTaskContext runTaskContext)
       throws Exception {
     Map<String, MountPointInfo> mountTable = runTaskContext.getFileSystem().getMountTable();
     for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {

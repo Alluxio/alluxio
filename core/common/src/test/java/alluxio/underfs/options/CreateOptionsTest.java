@@ -54,7 +54,7 @@ public final class CreateOptionsTest {
     assertFalse(options.isEnsureAtomic());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    String umask = mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String umask = mConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(), umask), options.getMode());
   }
 
@@ -76,7 +76,7 @@ public final class CreateOptionsTest {
     assertFalse(options.isEnsureAtomic());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    String umask = mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String umask = mConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(), umask), options.getMode());
   }
 

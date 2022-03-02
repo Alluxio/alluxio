@@ -53,7 +53,7 @@ public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAd
     // Lock the state-change lock on the master before initiating the backup.
     try (LockResource lr = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
       // Prepare for a backup.
-      Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
+      Path dir = Paths.get(ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
       Files.createDirectories(dir);
       assertEquals(0, Files.list(dir).count());
       // Initiate backup. It should fail.
@@ -83,7 +83,7 @@ public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAd
       mException.expect(AlluxioException.class);
       mLocalAlluxioCluster.getClient().getStatus(new AlluxioURI("/"));
       // Prepare for a backup.
-      Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
+      Path dir = Paths.get(ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
       Files.createDirectories(dir);
       assertEquals(0, Files.list(dir).count());
       // Take the backup. It should be allowed.
