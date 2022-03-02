@@ -21,7 +21,6 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
