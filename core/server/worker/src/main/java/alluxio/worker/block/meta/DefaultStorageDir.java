@@ -127,8 +127,8 @@ public final class DefaultStorageDir implements StorageDir {
       WorkerOutOfSpaceException, InvalidPathException {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
-        ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-    String tmpDir = Paths.get(ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+    String tmpDir = Paths.get(ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
         .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);

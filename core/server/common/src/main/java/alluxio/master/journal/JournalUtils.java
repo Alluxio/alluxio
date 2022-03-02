@@ -54,7 +54,7 @@ public final class JournalUtils {
    * @return the journal location
    */
   public static URI getJournalLocation() {
-    String journalDirectory = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String journalDirectory = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
     }

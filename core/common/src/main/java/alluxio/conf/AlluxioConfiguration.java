@@ -32,7 +32,7 @@ public interface AlluxioConfiguration {
    * @param key the key to get the value for
    * @return the value for the given key
    */
-  String get(PropertyKey key);
+  Object get(PropertyKey key);
 
   /**
    * Gets the value for the given key in the {@link Properties}; if this key is not found, a
@@ -42,15 +42,16 @@ public interface AlluxioConfiguration {
    * @param options options for getting configuration value
    * @return the value for the given key
    */
-  String get(PropertyKey key, ConfigurationValueOptions options);
+  Object get(PropertyKey key, ConfigurationValueOptions options);
 
   /**
    * @param key the key to get the value for
    * @param defaultValue the value to return if no value is set for the specified key
+   * @param <T> the type of default value
    * @return the value
    */
-  default String getOrDefault(PropertyKey key, String defaultValue) {
-    return isSet(key) ? get(key) : defaultValue;
+  default <T> T getOrDefault(PropertyKey key, T defaultValue) {
+    return isSet(key) ? (T) get(key) : defaultValue;
   }
 
   /**
@@ -59,7 +60,7 @@ public interface AlluxioConfiguration {
    * @param options options for getting configuration value
    * @return the value
    */
-  default String getOrDefault(PropertyKey key, String defaultValue,
+  default Object getOrDefault(PropertyKey key, Object defaultValue,
       ConfigurationValueOptions options) {
     return isSet(key) ? get(key, options) : defaultValue;
   }
@@ -88,6 +89,14 @@ public interface AlluxioConfiguration {
    * @return the keys set by user
    */
   Set<PropertyKey> userKeySet();
+
+  /**
+   * Gets the String value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as an {@code String}
+   */
+  String getString(PropertyKey key);
 
   /**
    * Gets the integer representation of the value for the given key.
@@ -189,7 +198,7 @@ public interface AlluxioConfiguration {
    * @param prefixKey the prefix key
    * @return a map from nested properties aggregated by the prefix
    */
-  Map<String, String> getNestedProperties(PropertyKey prefixKey);
+  Map<String, Object> getNestedProperties(PropertyKey prefixKey);
 
   /**
    * Gets a copy of the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
@@ -208,7 +217,7 @@ public interface AlluxioConfiguration {
    * @return a map from all configuration property names to their values; values may potentially be
    *         null
    */
-  default Map<String, String> toMap() {
+  default Map<String, Object> toMap() {
     return toMap(ConfigurationValueOptions.defaults());
   }
 
@@ -217,7 +226,7 @@ public interface AlluxioConfiguration {
    * @return a map from all configuration property names to their values; values may potentially be
    *         null
    */
-  Map<String, String> toMap(ConfigurationValueOptions opts);
+  Map<String, Object> toMap(ConfigurationValueOptions opts);
 
   /**
    * Validates the configuration.
@@ -227,7 +236,7 @@ public interface AlluxioConfiguration {
   void validate();
 
   /**
-   * @return whether or not the configuration has been merged with cluster defaults
+   * @return whether the configuration has been merged with cluster defaults
    */
   boolean clusterDefaultsLoaded();
 

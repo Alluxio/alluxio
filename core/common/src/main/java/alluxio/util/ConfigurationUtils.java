@@ -373,7 +373,7 @@ public final class ConfigurationUtils {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
           .setSource(conf.getSource(key).toString());
       if (conf.isSet(key)) {
-        configProp.setValue(conf.get(key, useRawDisplayValue));
+        configProp.setValue(String.valueOf(conf.get(key, useRawDisplayValue)));
       }
       configs.add(configProp.build());
     }
@@ -415,7 +415,7 @@ public final class ConfigurationUtils {
    * @param key the property key to retrieve
    * @return the value configured for this property key
    */
-  public static String getPropertyValue(PropertyKey key) {
+  public static Object getPropertyValue(PropertyKey key) {
     if (sDefaultProperties == null) {
       return defaults().get(key);
     } else {
@@ -451,7 +451,7 @@ public final class ConfigurationUtils {
       }
 
       // we are not in test mode, load site properties
-      String confPaths = conf.get(PropertyKey.SITE_CONF_DIR);
+      String confPaths = conf.getString(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
       String sitePropertyFile = ConfigurationUtils
           .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
@@ -572,7 +572,7 @@ public final class ConfigurationUtils {
    */
   public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
       AlluxioConfiguration conf, Scope scope) {
-    String clientVersion = conf.get(PropertyKey.VERSION);
+    String clientVersion = conf.getString(PropertyKey.VERSION);
     LOG.debug("Alluxio {} (version {}) is trying to load cluster level configurations",
         scope, clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
@@ -606,7 +606,7 @@ public final class ConfigurationUtils {
    */
   public static PathConfiguration getPathConf(GetConfigurationPResponse response,
       AlluxioConfiguration clusterConf) {
-    String clientVersion = clusterConf.get(PropertyKey.VERSION);
+    String clientVersion = clusterConf.getString(PropertyKey.VERSION);
     LOG.debug("Alluxio client (version {}) is trying to load path level configurations",
         clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
@@ -661,7 +661,7 @@ public final class ConfigurationUtils {
    */
   @Nullable
   private static Set<String> readNodeList(String fileName, AlluxioConfiguration conf) {
-    String confDir = conf.get(PropertyKey.CONF_DIR);
+    String confDir = conf.getString(PropertyKey.CONF_DIR);
     return CommandUtils.readNodeList(confDir, fileName);
   }
 

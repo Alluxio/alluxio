@@ -121,7 +121,7 @@ public class SummaryCommandTest {
   public void ZkHaSummary() throws IOException {
     prepareZKHADependencies();
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-        mBlockMasterClient, sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
+        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
     ArrayList<String> zkHAPattern = new ArrayList<>(Arrays.asList(
         "    Zookeeper Enabled: true",
         "    Zookeeper Addresses: ",
@@ -130,14 +130,14 @@ public class SummaryCommandTest {
         "        [zookeeper_hostname3]:2181",
         "    Raft-based Journal: false"));
     summaryCommand.run();
-    checkIfOutputValid(sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN), zkHAPattern);
+    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), zkHAPattern);
   }
 
   @Test
   public void RaftHaSummary() throws IOException {
     prepareRaftHaDependencies();
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-        mBlockMasterClient, sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
+        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
     ArrayList<String> raftHaPattern = new ArrayList<>(Arrays.asList(
         "    Zookeeper Enabled: false",
         "    Raft-based Journal: true",
@@ -146,7 +146,8 @@ public class SummaryCommandTest {
         "        [raftJournal_hostname2]:19200",
         "        [raftJournal_hostname3]:19200"));
     summaryCommand.run();
-    checkIfOutputValid(sConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN), raftHaPattern);
+
+    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), raftHaPattern);
   }
 
   /**
