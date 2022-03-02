@@ -12,6 +12,7 @@
 package alluxio.logserver;
 
 import static alluxio.logserver.AlluxioLog4jSocketNode.setAcceptList;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
@@ -29,71 +30,54 @@ import org.apache.log4j.pattern.LogEvent;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 import java.util.List;
 
 public class AlluxioLog4jSocketNodeTest {
+  private static final List<Object> ACCEPTED_OBJECTS = ImmutableList.of(
+      // Accepted classes used in LoggingEvent
+      new Hashtable<>(),
+      new LoggingEvent(
+          "fqnOfCategoryClass", Logger.getLogger("a"), Level.DEBUG, "message", new Throwable()),
+      new LocationInfo("c", "b", "c", "d"),
+      new ThrowableInformation(new Throwable()),
+      // Primitives
+      // Only the following classes from java.lang are covered:
+      // Boolean, Byte, Character, Double, Float, Integer, Long, Short, String
+      true,
+      (byte) 0x11,
+      'a',
+      0.0,
+      1.0F,
+      1,
+      1L,
+      (short) 1,
+      "string"
+  );
 
-  /**
-   * Only test the class in java.lang which can be serialized. Boolean, Byte, Character, Double,
-   * Float, Integer, Long, Short, String
-   */
-  private List<Object> createPositiveObjectList() {
-    Logger logger = Logger.getLogger("a");
-    return ImmutableList.of(
-        new Hashtable<>(),
-        new LoggingEvent(
-            "fqnOfCategoryClass",
-            logger,
-            Level.DEBUG,
-            "message",
-            new Throwable()),
-        new LocationInfo("c", "b", "c", "d"),
-        new ThrowableInformation(new Throwable()),
-        true,
-        (byte) 0x11,
-        0.0,
-        1.0F,
-        1,
-        1L,
-        (short) 1,
-        "string"
-    );
-  }
-
-  private List<Object> createNegativeObjectList() {
-    Logger logger = Logger.getLogger("a");
-    return ImmutableList.of(
-        new LogEvent(
-            "category",
-            logger,
-            Level.DEBUG,
-            "message",
-            new Throwable()),
-        new LogLevel("label", 1),
-        new AdapterLogRecord(),
-        new Log4JLogRecord(),
-        new LogTableColumn("label"),
-        Level.DEBUG,
-        UtilLoggingLevel.INFO,
-        new Throwable(),
-        new LogLevelFormatException("message"),
-        new LogTableColumnFormatException("message"),
-        new PropertySetterException("string")
-    );
-  }
+  private static final List<Object> REJECTED_OBJECTS = ImmutableList.of(
+      new LogEvent("category", Logger.getLogger("a"), Level.DEBUG, "message", new Throwable()),
+      new LogLevel("label", 1),
+      new AdapterLogRecord(),
+      new Log4JLogRecord(),
+      new LogTableColumn("label"),
+      Level.DEBUG,
+      UtilLoggingLevel.INFO,
+      new Throwable(),
+      new LogLevelFormatException("message"),
+      new LogTableColumnFormatException("message"),
+      new PropertySetterException("string")
+  );
 
   @Test
-  public void testSerializables() throws IOException {
-    List<Object> serializables = createPositiveObjectList();
-    for (Object object : serializables) {
+  public void testSerializables() throws Exception {
+    for (Object object : ACCEPTED_OBJECTS) {
       // no exception expected
       serializeThenDeserializeObject(object);
     }
@@ -101,17 +85,13 @@ public class AlluxioLog4jSocketNodeTest {
 
   @Test
   public void testNonSerializables() {
-    List<Object> serializables = createNegativeObjectList();
-    for (Object object : serializables) {
+    for (Object object : REJECTED_OBJECTS) {
       // exception expected
-      Assert.assertThrows(IOException.class, () -> {
-        serializeThenDeserializeObject(object);
-      });
+      assertThrows(InvalidClassException.class, () -> serializeThenDeserializeObject(object));
     }
   }
 
-  private void serializeThenDeserializeObject(Object object) throws IOException {
-    ValidatingObjectInputStream validatingObjectInputStream = null;
+  private static Object serializeThenDeserializeObject(Object object) throws Exception {
     byte[] buffer;
     try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
@@ -119,18 +99,11 @@ public class AlluxioLog4jSocketNodeTest {
       buffer = byteArrayOutputStream.toByteArray();
     }
 
-    try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer)) {
-      validatingObjectInputStream = new ValidatingObjectInputStream(byteArrayInputStream);
+    try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
+        ValidatingObjectInputStream validatingObjectInputStream =
+          new ValidatingObjectInputStream(byteArrayInputStream)) {
       setAcceptList(validatingObjectInputStream);
-    } catch (IOException exception) {
-      System.out.println(exception.getMessage());
-    }
-
-    try {
-      Object deserializedObject = validatingObjectInputStream.readObject();
-    } catch (ClassNotFoundException exception) {
-      System.out.println(object.getClass() + "should be checked in the white list.");
-      System.out.println(exception.getMessage());
+      return validatingObjectInputStream.readObject();
     }
   }
 }
