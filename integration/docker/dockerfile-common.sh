@@ -13,7 +13,7 @@
 # Shared chunk of commands used both in Dockerfile and Dockerfile-dev.
 
 #######################################
-# Install libfuse with MAX_IDLE_THREAD able to be configured.
+# Install libfuse2 with MAX_IDLE_THREAD able to be configured.
 # Arguments:
 #   None
 #######################################
