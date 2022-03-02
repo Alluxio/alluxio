@@ -326,7 +326,7 @@ public class AlluxioCatalogTest {
     assertEquals("alluxio://host1:1,host2:2/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
 
-    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "host:1000");
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://zk@host:1000/",

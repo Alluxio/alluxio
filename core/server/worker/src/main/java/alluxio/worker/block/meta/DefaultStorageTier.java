@@ -65,10 +65,10 @@ public final class DefaultStorageTier implements StorageTier {
 
   private void initStorageTier(boolean isMultiTier)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    String tmpDir = ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
+    String tmpDir = ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
-    String[] dirPaths = ServerConfiguration.get(tierDirPathConf).split(",");
+    String[] dirPaths = ServerConfiguration.getString(tierDirPathConf).split(",");
 
     for (int i = 0; i < dirPaths.length; i++) {
       dirPaths[i] = CommonUtils.getWorkerDataDirectory(dirPaths[i], ServerConfiguration.global());
@@ -76,13 +76,13 @@ public final class DefaultStorageTier implements StorageTier {
 
     PropertyKey tierDirCapacityConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
-    String rawDirQuota = ServerConfiguration.get(tierDirCapacityConf);
+    String rawDirQuota = ServerConfiguration.getString(tierDirCapacityConf);
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");
 
     PropertyKey tierDirMediumConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
-    String rawDirMedium = ServerConfiguration.get(tierDirMediumConf);
+    String rawDirMedium = ServerConfiguration.getString(tierDirMediumConf);
     Preconditions.checkState(rawDirMedium.length() > 0,
         "Tier medium type configuration should not be blank");
     String[] dirMedium = rawDirMedium.split(",");

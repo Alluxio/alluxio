@@ -61,7 +61,7 @@ public final class LsCommand implements Command {
   @Override
   public int run(CommandLine cl) {
     for (File extension : ExtensionUtils
-        .listExtensions(ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR))) {
+        .listExtensions(ServerConfiguration.getString(PropertyKey.EXTENSIONS_DIR))) {
       System.out.println(extension.getName());
     }
     return 0;

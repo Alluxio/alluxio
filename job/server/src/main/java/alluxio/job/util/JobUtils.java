@@ -232,7 +232,7 @@ public final class JobUtils {
       AlluxioConfiguration conf) throws IOException {
     // This does not work for remote worker unless we have passive cache on.
     AlluxioProperties prop = context.getClusterConf().copyProperties();
-    prop.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, "true");
+    prop.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, true);
     AlluxioConfiguration config = new InstancedConfiguration(prop);
     FileSystemContext loadContext = FileSystemContext.create(config);
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(loadContext);
