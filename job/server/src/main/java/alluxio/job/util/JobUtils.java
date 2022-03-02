@@ -227,7 +227,6 @@ public final class JobUtils {
 
   private static void loadThroughRead(URIStatus status, FileSystemContext context, long blockId,
       AlluxioConfiguration conf) throws IOException {
-    // This does not work for remote worker unless we have passive cache on.
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
