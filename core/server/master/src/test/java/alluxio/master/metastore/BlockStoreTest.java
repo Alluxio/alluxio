@@ -19,6 +19,7 @@ import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.rocks.RocksBlockStore;
 import alluxio.proto.meta.Block;
 
+import alluxio.resource.CloseableIterator;
 import com.google.common.io.Files;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,14 +64,15 @@ public class BlockStoreTest {
       mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
     }
 
-    Iterator<BlockStore.Block> iter = mBlockStore.iterator();
-    for (int i = 0; i < blockCount; i++) {
-      assertTrue(iter.hasNext());
-      BlockStore.Block block = iter.next();
-      assertEquals(i, block.getId());
-      assertEquals(i, block.getMeta().getLength());
+    try (CloseableIterator<BlockStore.Block> iter = mBlockStore.getCloseableIterator()) {
+      for (int i = 0; i < blockCount; i++) {
+        assertTrue(iter.hasNext());
+        BlockStore.Block block = iter.next();
+        assertEquals(i, block.getId());
+        assertEquals(i, block.getMeta().getLength());
+      }
+      assertFalse(iter.hasNext());
     }
-    assertFalse(iter.hasNext());
     mBlockStore.clear();
   }
 

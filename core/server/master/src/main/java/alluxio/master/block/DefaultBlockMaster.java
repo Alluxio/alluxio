@@ -720,7 +720,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throws UnavailableException {
     List<Long> invalidBlocks = new ArrayList<>();
     try (CloseableIterator<Block> iter = mBlockStore.getCloseableIterator()) {
-      for (; iter.hasNext(); ) {
+      while (iter.hasNext()) {
         long id = iter.next().getId();
         if (!validator.apply(id)) {
           invalidBlocks.add(id);

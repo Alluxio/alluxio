@@ -94,7 +94,7 @@ public interface BlockStore {
    * <pre>{@code
    *   try (CloseableIterator<Block> iter =
    *       mBlockStore.getCloseableIterator()) {
-   *     for (; iter.hasNext(); ) {
+   *     while (iter.hasNext()) {
    *       // take the element and perform operations
    *     }
    *   }
