@@ -86,7 +86,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
-  private String format(String key, String value) {
+  private String format(String key, Object value) {
     return key + "=" + value;
   }
 
