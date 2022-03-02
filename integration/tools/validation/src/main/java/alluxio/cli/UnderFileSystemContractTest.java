@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static alluxio.conf.PropertyKey.PropertyType.STRING;
+
 /**
  * Integration tests for Alluxio under filesystems. It describes the contract of Alluxio
  * with the UFS through the UFS interface.
