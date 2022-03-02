@@ -24,6 +24,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -69,8 +70,17 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
   @Override
   public String getBenchDescription() {
-    // TODO(David) Fill in description
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "# A benchmarking tool to measure the read performance of alluxio worker",
+        "# The test will create a file and test the read performance with the file",
+        "",
+        "Example:",
+        "This would create a 100m file with block size of 16k and then read the file "
+            + "for 30s after 10s warmup",
+        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1"
+            + " --base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
+            + "--warmup 10s --duration 30s\n"
+    ));
   }
 
   @Override
