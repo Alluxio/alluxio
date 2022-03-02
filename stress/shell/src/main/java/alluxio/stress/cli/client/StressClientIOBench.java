@@ -35,6 +35,7 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -91,8 +92,22 @@ public class StressClientIOBench extends AbstractStressBench
 
   @Override
   public String getBenchDescription() {
-    // TODO(David) Fill in description
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool to measure the end-to-end read performance of Alluxio "
+             + "when the client preforms different read operation",
+        "To run the read test, data should be first generated with the \"Write\" operation ",
+        "",
+        "Example:",
+        "# This test will run create a 500MB file with block size 15KB on 1 worker,",
+        "# then test the ReadArray operation for 30s and calculate the throughput after 10s "
+            + "warmup.",
+        "$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write "
+            + "--base alluxio:///stress-client-io-base --file-size 500m --buffer-size 64k "
+            + "--block-size 16k --write-num-workers 1 --cluster --cluster-limit 1",
+        "$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation "
+            + "ReadArray --base alluxio:///stress-client-io-base --file-size 500m --buffer-size "
+            + "64k --block-size 16k --warmup 10s --duration 30s --write-num-workers 1 --cluster "
+            + "--cluster-limit 1\n"));
   }
 
   @Override
