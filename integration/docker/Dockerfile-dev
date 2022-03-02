@@ -39,7 +39,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
+# Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
@@ -49,7 +49,8 @@ RUN \
     yum install -y ca-certificates pkgconfig wget udev git && \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     yum clean all && \
-    ./dockerfile-common.sh install-libfuse
+    ./dockerfile-common.sh install-libfuse2 && \
+    yum install -y fuse3-libs
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
 
