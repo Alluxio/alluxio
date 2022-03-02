@@ -98,7 +98,7 @@ public class StressClientIOBench extends AbstractStressBench
         "To run the read test, data should be first generated with the \"Write\" operation ",
         "",
         "Example:",
-        "# This test will run create a 500m file with block size 15k on 1 worker,",
+        "# This test will run create a 500MB file with block size 15KB on 1 worker,",
         "# then test the ReadArray operation for 30s and calculate the throughput after 10s "
             + "warmup.",
         "$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write "
