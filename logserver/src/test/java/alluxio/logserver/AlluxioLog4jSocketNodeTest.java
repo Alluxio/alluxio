@@ -29,6 +29,7 @@ import org.apache.log4j.pattern.LogEvent;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -39,9 +40,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class AlluxioLog4jSocketNodeTest {
-
-  private byte[] mBuffer;
-  private ValidatingObjectInputStream mValidatingObjectInputStream;
 
   /**
    * Only test the class in java.lang which can be serialized. Boolean, Byte, Character, Double,
@@ -93,7 +91,7 @@ public class AlluxioLog4jSocketNodeTest {
   }
 
   @Test
-  public void testSerializables() {
+  public void testSerializables() throws IOException {
     List<Object> serializables = createPositiveObjectList();
     for (Object object : serializables) {
       // no exception expected
@@ -106,31 +104,30 @@ public class AlluxioLog4jSocketNodeTest {
     List<Object> serializables = createNegativeObjectList();
     for (Object object : serializables) {
       // exception expected
-      serializeThenDeserializeObject(object);
+      Assert.assertThrows(IOException.class, () -> {
+        serializeThenDeserializeObject(object);
+      });
     }
   }
 
-  private void serializeThenDeserializeObject(Object object) {
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+  private void serializeThenDeserializeObject(Object object) throws IOException {
+    ValidatingObjectInputStream validatingObjectInputStream = null;
+    byte[] buffer;
+    try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
       objectOutputStream.writeObject(object);
-      mBuffer = byteArrayOutputStream.toByteArray();
-    } catch (IOException exception) {
-      System.out.println(exception.getMessage());
+      buffer = byteArrayOutputStream.toByteArray();
     }
 
-    try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(mBuffer)) {
-      mValidatingObjectInputStream = new ValidatingObjectInputStream(byteArrayInputStream);
-      setAcceptList(mValidatingObjectInputStream);
+    try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer)) {
+      validatingObjectInputStream = new ValidatingObjectInputStream(byteArrayInputStream);
+      setAcceptList(validatingObjectInputStream);
     } catch (IOException exception) {
       System.out.println(exception.getMessage());
     }
 
     try {
-      Object deserializedObject = mValidatingObjectInputStream.readObject();
-      System.out.println(deserializedObject.getClass());
-    } catch (IOException exception) {
-      System.out.println(exception.getMessage());
+      Object deserializedObject = validatingObjectInputStream.readObject();
     } catch (ClassNotFoundException exception) {
       System.out.println(object.getClass() + "should be checked in the white list.");
       System.out.println(exception.getMessage());
