@@ -71,15 +71,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-        "# A benchmarking tool to measure the read performance of alluxio worker",
-        "# The test will create a file and test the read performance with the file",
+        "A benchmarking tool to measure the read performance of alluxio workers in the cluster",
+        "The test will create one file and repeatedly read the created file to test the "
+            + "performance",
         "",
         "Example:",
-        "This would create a 100m file with block size of 16k and then read the file "
+        "# This would create a 100m file with block size of 16k and then read the file "
             + "for 30s after 10s warmup",
-        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1"
-            + " --base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
-            + "--warmup 10s --duration 30s\n"
+        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1 "
+            + "--base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
+            + "--warmup 10s --duration 30s --cluster\n"
     ));
   }
 

@@ -88,8 +88,8 @@ public final class MasterBenchParameters extends FileSystemParameters {
           + "operation. For example, if fixed-count is set to 1000, and CreateFile is run, each "
           + "task will create files with exactly 1000 paths in the fixed directory. A subsequent "
           + "ListDir task will list that directory, knowing every task/thread will always read a "
-          + "directory with exactly 1000 paths. In task such as OpenFile, operations will perform "
-          + "in cycle among the 1000 files to avoid task end before the desired duration time.")
+          + "directory with exactly 1000 paths. A task such as OpenFile will repeatedly read the "
+          + "1000 files so that the task will not end before the desired duration time.")
   public int mFixedCount = 100;
 
   @DynamicParameter(names = "--conf",
