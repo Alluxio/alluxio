@@ -15,8 +15,8 @@ cat >> /alluxio/conf/alluxio-env.sh << EOF
 ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="s3a://${S3_BUCKET}"
 
 ALLUXIO_JAVA_OPTS+="
-  -Daws.secretKey=${S3_KEY}
-  -Daws.accessKeyId=${S3_ID}
+  -Ds3a.secretKey=${S3_KEY}
+  -Ds3a.accessKeyId=${S3_ID}
 "
 EOF
 

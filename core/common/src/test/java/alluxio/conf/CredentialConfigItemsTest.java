@@ -12,6 +12,8 @@
 package alluxio.conf;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -24,8 +26,8 @@ public class CredentialConfigItemsTest {
   @Test
   public void getCredentials() {
     Set<?> credentialSet = (Set<?>) CredentialPropertyKeys.getCredentials();
-    assertEquals(true, credentialSet.contains("aws.accessKeyId"));
-    assertEquals(false, credentialSet.contains("aws.accessKeyId11"));
+    assertTrue(credentialSet.contains(PropertyKey.Name.S3A_ACCESS_KEY));
+    assertFalse(credentialSet.contains(PropertyKey.Name.S3A_ACCESS_KEY + "11"));
   }
 
   @Test

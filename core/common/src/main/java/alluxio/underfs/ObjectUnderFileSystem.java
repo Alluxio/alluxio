@@ -287,7 +287,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the combined result from all batches.
+     * Gets the combined result from all batches.
      *
      * @return a list of inputs for successful operations
      * @throws IOException if a non-Alluxio error occurs

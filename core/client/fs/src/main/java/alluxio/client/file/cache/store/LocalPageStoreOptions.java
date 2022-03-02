@@ -65,7 +65,7 @@ public class LocalPageStoreOptions extends PageStoreOptions {
         .add("FileBuckets", mFileBuckets)
         .add("OverheadRatio", mOverheadRatio)
         .add("PageSize", mPageSize)
-        .add("RootDir", mRootDir)
+        .add("RootDirs", mRootDirs)
         .add("TimeoutDuration", mTimeoutDuration)
         .add("TimeoutThreads", mTimeoutThreads)
         .toString();

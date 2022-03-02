@@ -291,7 +291,6 @@ public class JournalStateMachine extends BaseStateMachine {
 
   @Override
   public void close() {
-    mSnapshotManager.close();
     mClosed = true;
   }
 
