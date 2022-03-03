@@ -216,6 +216,7 @@ journal:
   # Configuration for journal formatting job
   format:
     runFormat: false # Change to true to format journal
+    frequency: "once" # one of "once" or "always"
 
 
 # You can enable metastore to use ROCKS DB instead of Heap
