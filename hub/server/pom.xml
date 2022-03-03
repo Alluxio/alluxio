@@ -34,6 +34,12 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-common</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.ratis</groupId>
+          <artifactId>ratis-thirdparty-misc</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
