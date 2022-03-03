@@ -245,7 +245,7 @@ spec:
             {{- end }}
             {{- if .Values.secrets -}}
               {{- if .Values.secrets.worker -}}
-{{- include "alluxio.worker.secretVolumeMounts" . }}
+{{- include "alluxio.worker.secretVolumeMounts" . | indent 12 }}
               {{- end -}}
             {{- end -}}
             {{- if .Values.tieredstore -}}
@@ -340,7 +340,7 @@ spec:
             {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.worker }}
-{{- include "alluxio.worker.secretVolumeMounts" . }}
+{{- include "alluxio.worker.secretVolumeMounts" . | indent 12 }}
               {{- end -}}
             {{- end }}
             {{- if .Values.tieredstore }}

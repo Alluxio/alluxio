@@ -88,7 +88,7 @@ spec:
             {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.logserver }}
-            {{- include "alluxio.logserver.secretVolumeMounts" . }}
+{{- include "alluxio.logserver.secretVolumeMounts" . | indent 10 }}
               {{- end }}
             {{- end }}
             {{- if .Values.mounts }}

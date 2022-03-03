@@ -260,7 +260,7 @@ spec:
             {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.master }}
-{{- include "alluxio.master.secretVolumeMounts" . }}
+{{- include "alluxio.master.secretVolumeMounts" . | indent 12 }}
               {{- end }}
             {{- end }}
             {{- if .Values.mounts }}
@@ -349,7 +349,7 @@ spec:
           {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
-{{- include "alluxio.master.secretVolumeMounts" . }}
+{{- include "alluxio.master.secretVolumeMounts" . | indent 12 }}
             {{- end }}
           {{- end }}
           {{- if .Values.mounts }}
