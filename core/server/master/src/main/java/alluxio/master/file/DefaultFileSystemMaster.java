@@ -2010,24 +2010,28 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
 
       if (!failedUris.isEmpty()) {
-        StringBuilder errorReport = new StringBuilder(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths: "));
-        boolean trim = failedUris.size() > 20;
-        for (int i = 0; i < (trim ? 20 : failedUris.size()); i++) {
-          if (i > 0) {
-            errorReport.append(", ");
-          }
-          Pair<String, String> pathAndError = failedUris.get(i);
-          errorReport.append(String.format("%s (%s)",
-              pathAndError.getFirst(), pathAndError.getSecond()));
-        }
-        if (trim) {
-          errorReport.append("...(only 20 errors shown)");
-        }
-        throw new FailedPreconditionException(errorReport.toString());
+        throw new FailedPreconditionException(buildDeleteFailureMessage(failedUris));
       }
     }
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
+  }
+
+  private String buildDeleteFailureMessage(List<Pair<String, String>> failedUris) {
+    StringBuilder errorReport = new StringBuilder(
+        ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths: "));
+    boolean trim = !LOG.isDebugEnabled() && failedUris.size() > 20;
+    for (int i = 0; i < (trim ? 20 : failedUris.size()); i++) {
+      if (i > 0) {
+        errorReport.append(", ");
+      }
+      Pair<String, String> pathAndError = failedUris.get(i);
+      errorReport.append(String.format("%s (%s)",
+          pathAndError.getFirst(), pathAndError.getSecond()));
+    }
+    if (trim) {
+      errorReport.append("...(only 20 errors shown)");
+    }
+    return errorReport.toString();
   }
 
   @Override
