@@ -70,6 +70,7 @@ public abstract class JobAttempt {
     if (mJobId == null) {
       return Status.FAILED;
     }
+
     JobInfo jobInfo;
     try {
       jobInfo = mClient.getJobStatus(mJobId);
