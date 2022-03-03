@@ -23,6 +23,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.PortRegistry;
 import alluxio.master.TestUtils;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.testutils.BaseIntegrationTest;
@@ -33,7 +34,6 @@ import alluxio.worker.block.BlockWorker;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
@@ -47,10 +47,11 @@ import java.util.concurrent.Executors;
 public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   private ExecutorService mExecutor;
 
-  @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(conf(), ServerConfiguration.global());
+  public int mRpcPort;
+  public int mWebPort;
+  public ConfigurationRule mConf;
 
-  private static Map<PropertyKey, String> conf() {
+  private Map<PropertyKey, String> conf() {
     Map<PropertyKey, String> map =
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
@@ -58,6 +59,8 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
         AlluxioTestDirectory.createTemporaryDirectory("tiered_identity_test").getAbsolutePath());
     map.put(PropertyKey.WORKER_RPC_PORT, "0");
     map.put(PropertyKey.WORKER_WEB_PORT, "0");
+    map.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(mRpcPort));
+    map.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebPort));
 
     return map;
   }
@@ -65,11 +68,18 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() {
     mExecutor = Executors.newCachedThreadPool();
+    mRpcPort = PortRegistry.reservePort();
+    mWebPort = PortRegistry.reservePort();
+    mConf = new ConfigurationRule(conf(), ServerConfiguration.global());
+    mConf.before();
   }
 
   @After
   public void after() {
     mExecutor.shutdownNow();
+    mConf.after();
+    PortRegistry.release(mRpcPort);
+    PortRegistry.release(mWebPort);
   }
 
   @Test
