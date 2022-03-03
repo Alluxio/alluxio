@@ -150,6 +150,9 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     } else {
       try {
         exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
+        if (exitCode != 0) { 
+          throw new Exception(String.format("fusermount returns %d", exitCode));
+        }
       } catch (Exception e) {
         if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
