@@ -73,6 +73,31 @@ public class NetworkAddressUtilsTest {
     assertFalse(NetworkAddressUtils.containsLocalIp(clusterAddresses, mConfiguration));
   }
 
+  @Test
+  public void TestisLocalAddress() {
+    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    String localHostName = NetworkAddressUtils.getLocalHostName(resolveTimeout);
+    String localIp = NetworkAddressUtils.getLocalIpAddress(resolveTimeout);
+
+    assertTrue(NetworkAddressUtils.isLocalAddress(localHostName, resolveTimeout));
+    assertTrue(NetworkAddressUtils.isLocalAddress(localIp, resolveTimeout));
+
+    assertFalse(NetworkAddressUtils.isLocalAddress(localHostName + "false", resolveTimeout));
+    assertFalse(NetworkAddressUtils.isLocalAddress(localIp + "false", resolveTimeout));
+  }
+
+  @Test
+  public void TestisNotLocalAddress() {
+    List<InetSocketAddress> clusterAddresses = new ArrayList<>();
+    InetSocketAddress raftNodeAddress1 = new InetSocketAddress("host1", 10);
+    InetSocketAddress raftNodeAddress2 = new InetSocketAddress("host2", 20);
+    InetSocketAddress raftNodeAddress3 = new InetSocketAddress("host3", 30);
+    clusterAddresses.add(raftNodeAddress1);
+    clusterAddresses.add(raftNodeAddress2);
+    clusterAddresses.add(raftNodeAddress3);
+    assertFalse(NetworkAddressUtils.containsLocalIp(clusterAddresses, mConfiguration));
+  }
+
   /**
    * Tests the
    * {@link NetworkAddressUtils#getConnectAddress(ServiceType, alluxio.conf.AlluxioConfiguration)}
