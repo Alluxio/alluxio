@@ -4731,9 +4731,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         new FileSystemMasterAuditContext(auditLogWriter);
     if (auditLogWriter != null) {
       String user = null;
+      String connectionUser = null;
       String ugi = "";
       try {
         user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+        connectionUser = AuthenticatedClientUser.getConnectionUser(ServerConfiguration.global());
       } catch (AccessControlException e) {
         ugi = "N/A";
       }
@@ -4744,6 +4746,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         } catch (IOException e) {
           LOG.debug("Failed to get primary group for user {}.", user);
           ugi = user + ",N/A";
+        }
+        if (connectionUser != null && !connectionUser.equals(user)) {
+          ugi = connectionUser + " (auth=PROXY) via " + ugi;
         }
       }
       AuthType authType =
