@@ -44,10 +44,6 @@ metadata:
     "helm.sh/hook": pre-install
     "helm.sh/hook-delete-policy": before-hook-creation
   {{- end }}
-  ownerReferences:
-  - apiVersion: v1
-    kind: StatefulSet
-    name: {{ $statefulsetName }}
 spec:
   completions: 1
   parallelism: 1
