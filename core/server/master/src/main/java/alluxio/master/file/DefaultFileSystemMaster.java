@@ -1843,6 +1843,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mMountTable.checkUnderWritableMountPoint(path);
+        if (!inodePath.fullPathExists()) {
+          throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
+              .getMessage(path));
+        }
+
         if (context.getOptions().getRecursive()) {
           List<String> failedChildren = new ArrayList<>();
           try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -1864,12 +1870,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             auditContext.setAllowed(false);
             throw e;
           }
-        }
-        mMountTable.checkUnderWritableMountPoint(path);
-
-        if (!inodePath.fullPathExists()) {
-          throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
-              .getMessage(path));
         }
 
         deleteInternal(rpcContext, inodePath, context);
