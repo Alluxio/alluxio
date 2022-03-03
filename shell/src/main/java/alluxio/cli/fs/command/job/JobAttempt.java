@@ -74,6 +74,7 @@ public abstract class JobAttempt {
     JobInfo jobInfo;
     try {
       jobInfo = mClient.getJobStatus(mJobId);
+
     } catch (IOException e) {
       LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
       return Status.FAILED;

@@ -175,6 +175,7 @@ public final class MigrateDefinition
         } catch (Throwable t) {
           try {
             out.cancel();
+            fileSystem.delete(destinationURI);
           } catch (Throwable t2) {
             t.addSuppressed(t2);
           }
