@@ -160,11 +160,32 @@ master:
   count: 1 # For multiMaster mode increase this to >1
 
 journal:
-  type: "UFS"
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
   ufsType: "local"
-  folder: "/journal"
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  volumeType: persistentVolumeClaim
+  ### Unique attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
@@ -180,11 +201,32 @@ master:
   count: 1 # For multiMaster mode increase this to >1
 
 journal:
-  type: "UFS"
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
   ufsType: "local"
-  folder: "/journal"
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: emptyDir # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  volumeType: emptyDir
+  ### Unique attributes to use when the journal is emptyDir
   medium: ""
 ```
 
@@ -205,12 +247,24 @@ $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DI
 
 ```properties
 journal:
-  type: "UFS"
-  ufsType: "non-local"
-  folder: "hdfs://{$hostname}:{$hostport}/journal"
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "hdfs://{$hostname}:{$hostport}/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
+  ufsType: "HDFS"
 
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/alluxio"
   alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 
 secrets:
@@ -226,14 +280,22 @@ secrets:
 master:
   count: 3
 
-journal:
-  type: "EMBEDDED"
-  folder: "/journal"
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: persistentVolumeClaim
+  # [ Required values ]
+  type: "EMBEDDED" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # Attributes to use when the journal is persistentVolumeClaim
+  ### Unique attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
@@ -246,11 +308,22 @@ master:
   count: 3
 
 journal:
-  type: "UFS"
-  ufsType: "local"
-  folder: "/journal"
+  # [ Required values ]
+  type: "EMBEDDED" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: emptyDir # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  volumeType: emptyDir
+  ### Unique attributes to use when the journal is emptyDir
   medium: ""
 ```
 
