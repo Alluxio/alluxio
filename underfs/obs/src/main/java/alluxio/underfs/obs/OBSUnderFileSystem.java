@@ -180,7 +180,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     List<String> results = new ArrayList<>();
     KeyAndVersion[] kv = new KeyAndVersion[keys.size()];
     int i = 0;
-    for(String key : keys) {
+    for (String key : keys) {
       kv[i++] = new KeyAndVersion(key);
     }
     DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName, false, kv);
@@ -398,7 +398,8 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       return super.renameFile(src, dst);
     }
     try {
-      RenameRequest request = new RenameRequest(mBucketName, stripPrefixIfPresent(src), stripPrefixIfPresent(dst));
+      RenameRequest request = new RenameRequest(
+              mBucketName, stripPrefixIfPresent(src), stripPrefixIfPresent(dst));
       RenameResult response = mClient.renameFile(request);
       if (isSuccessResponse(response.getStatusCode())) {
         return true;
