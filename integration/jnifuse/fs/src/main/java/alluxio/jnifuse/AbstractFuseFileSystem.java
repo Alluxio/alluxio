@@ -149,20 +149,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
     } else {
       try {
-        exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
-      } catch (Exception e) {
-        if (e instanceof InterruptedException) {
-          Thread.currentThread().interrupt();
-        }
-        try {
-          exitCode = new ProcessBuilder("umount", mountPath).start().waitFor();
-        } catch (InterruptedException ie) {
-          Thread.currentThread().interrupt();
-          throw new FuseException("Unable to umount FS", e);
-        } catch (IOException ioe) {
-          ioe.addSuppressed(e);
-          throw new FuseException("Unable to umount FS", ioe);
-        }
+        exitCode = new ProcessBuilder("umount", mountPath).start().waitFor();
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new FuseException("Unable to umount FS", ie);
+      } catch (IOException ioe) {
+        throw new FuseException("Unable to umount FS", ioe);
       }
     }
     if (exitCode != 0) {
