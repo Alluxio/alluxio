@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -172,6 +173,9 @@ public class BaseFileSystem implements FileSystem {
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
       try {
+        if (options.getSeekable() && outStreamOptions.getWriteType() == WriteType.THROUGH) {
+          return SeekableAlluxioFileOutStream.create(path, outStreamOptions, mFsContext);
+        }
         return new AlluxioFileOutStream(path, outStreamOptions, mFsContext);
       } catch (Exception e) {
         delete(path);

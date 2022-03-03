@@ -2098,6 +2098,11 @@
                 "id": 10,
                 "name": "persistenceWaitTime",
                 "type": "int64"
+              },
+              {
+                "id": 11,
+                "name": "seekable",
+                "type": "bool"
               }
             ]
           },

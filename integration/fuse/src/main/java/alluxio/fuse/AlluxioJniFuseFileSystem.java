@@ -11,13 +11,17 @@
 
 package alluxio.fuse;
 
+import static alluxio.client.WriteType.THROUGH;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.SeekableAlluxioFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -25,10 +29,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.fuse.AlluxioFuseOpenUtils.OpenAction;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
-import alluxio.fuse.AlluxioFuseOpenUtils.OpenAction;
-import alluxio.cli.FuseShell;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -68,6 +71,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -120,6 +125,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
+  private final Pattern mWriteThroughFilePattern;
 
   // Map for holding the async releasing entries for proper umount
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
@@ -191,6 +197,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Failed to set AlluxioJniFuseFileSystem log to debug level", e);
       }
     }
+    Pattern pattern = null;
+    if (conf.isSet(PropertyKey.FUSE_WRITE_THROUGH_FILE_PATTERN)) {
+      try {
+        pattern =
+            Pattern.compile(conf.get(PropertyKey.FUSE_WRITE_THROUGH_FILE_PATTERN));
+      } catch (Exception e) {
+        LOG.error("Failed to parse property {} (={}). This property will be ignored",
+            PropertyKey.FUSE_WRITE_THROUGH_FILE_PATTERN,
+            conf.get(PropertyKey.FUSE_WRITE_THROUGH_FILE_PATTERN), e);
+      }
+    }
+    mWriteThroughFilePattern = pattern;
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.FUSE_READING_FILE_COUNT.getName()),
         mOpenFileEntries::size);
@@ -216,10 +234,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.ENAMETOOLONG();
     }
     try {
-      FileOutStream os = mFileSystem.createFile(uri,
-          CreateFilePOptions.newBuilder()
-              .setMode(new Mode((short) mode).toProto())
-              .build());
+      CreateFilePOptions.Builder optionBuilder = CreateFilePOptions.newBuilder()
+          .setMode(new Mode((short) mode).toProto());
+      if (mWriteThroughFilePattern != null &&
+          mWriteThroughFilePattern.matcher(path).matches()) {
+        optionBuilder.setSeekable(true).setWriteType(THROUGH.toProto());
+      }
+      FileOutStream os = mFileSystem.createFile(uri, optionBuilder.build());
       long fid = mNextOpenFileId.getAndIncrement();
       mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
       fi.fh.set(fid);
@@ -524,7 +545,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Failed to get status of path {} when writing to it.", path);
         return -ErrorCodes.EIO();
       }
-      if (status != null) {
+      boolean isThroughFile = mWriteThroughFilePattern != null &&
+          mWriteThroughFilePattern.matcher(path).matches();
+      if (status != null /* existing */ && !isThroughFile) {
         // open (O_WRONLY or O_RDWR) needs O_TRUNC open flag
         // or fuse.truncate(size = 0) to delete existing file
         // otherwise cannot overwrite existing file
@@ -542,7 +565,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
       // create file out stream
       try {
-        FileOutStream os = mFileSystem.createFile(uri);
+        FileOutStream os;
+        if (isThroughFile && status != null /* existing */) {
+          os = SeekableAlluxioFileOutStream.open(uri, status, mFileSystem);
+        } else {
+          os = mFileSystem.createFile(uri);
+        }
         ce = new CreateFileEntry(fd, path, os);
         mCreateFileEntries.add(ce);
         mAuthPolicy.setUserGroupIfNeeded(uri);
@@ -554,16 +582,22 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
     FileOutStream os = ce.getOut();
     long bytesWritten = os.getBytesWritten();
-    if (offset != bytesWritten && offset + sz > bytesWritten) {
-      LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
-          + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
-      return -ErrorCodes.EIO();
-    }
-    if (offset + sz <= bytesWritten) {
-      LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
+    if (os instanceof SeekableAlluxioFileOutStream) {
+      try {
+        ((SeekableAlluxioFileOutStream) os).seek(offset);
+      } catch (IOException e) {
+        LOG.error("Failed to seek to offset {} for file {}.", offset, path, e);
+        return -ErrorCodes.EIO();
+      }
+    } else if (offset + sz <= bytesWritten) {
+      LOG.warn("Skip writing to file {} offset={} size={} when {} bytes has written to file",
           path, offset, sz, bytesWritten);
       // To fulfill vim :wq
       return sz;
+    } else if (offset != bytesWritten) {
+      LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
+          + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
+      return -ErrorCodes.EIO();
     }
 
     try {

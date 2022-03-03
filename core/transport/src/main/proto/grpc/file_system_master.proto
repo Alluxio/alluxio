@@ -123,6 +123,7 @@ message CreateFilePOptions {
   optional WritePType writeType = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   optional int64 persistenceWaitTime = 10;
+  optional bool seekable = 11;
 }
 message CreateFilePRequest {
   /** the path of the file */
