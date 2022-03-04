@@ -16,7 +16,7 @@ Alluxio-FUSE是基于[FUSE](http://fuse.sourceforge.net/)这个项目，并且�
 ## 安装要求
 
 * JDK 1.8及以上
-* Linux系统现在支持[libfuse](https://github.com/libfuse/libfuse)的2和3版本
+* Linux系统现在支持[libfuse](https://github.com/libfuse/libfuse)的2或者3版本
   * 要使用libfuse2，安装2.9.3及以上(2.8.3也能够工作，但会提示一些警告)
   * 要使用libfuse3，安装3.2.6及以上(目前系统使用3.2.6版本进行测试)
   * 查看[选择libfuse的版本](#%E9%80%89%E6%8B%A9libfuse%E7%9A%84%E7%89%88%E6%9C%AC)来了解和配置要使用的libfuse的版本
@@ -131,14 +131,14 @@ Alluxio-FUSE是基于标准的alluxio-core-client-fs进行操作的。你也许�
 
 ### 选择libfuse的版本
 
-Alluxio现在支持libfuse2和libfuse3。
+Alluxio现在支持libfuse2或者libfuse3。libfuse2较成熟和稳定，已在生产环境中大规模部署。alluxio目前试验性支持libfuse3。libfuse3更新，libfuse项目组目前的开发重点也放在libfuse3上，而且在未来的开发中alluxio将会更好地利用libfuse3提供的新特性。
 
 如果系统内只安装了一个libfuse版本，alluxio将会使用这个版本。在大多数发行版中，libfuse2和libfuse3可以同时存在。如果两个版本都安装了，为了保持兼容性，alluxio将会默认使用libfuse2版本。
 
-或者，你也可以通过修改`$ALLUXIO_HOME/conf/alluxio-site.properties`中的以下配置来手动指定要使用的libfuse版本。
+要手动修改要使用的libfuse版本，在`$ALLUXIO_HOME/conf/alluxio-site.properties`中增加以下配置：
 
 ```
-alluxio.fuse.jnifuse.libfuse.version=2
+alluxio.fuse.jnifuse.libfuse.version=3
 ```
 
 有效的值为`2`（只使用libfuse2）、`3`（只使用libfuse3）和其他整数值（先尝试加载libfuse2，如果失败了，加载libfuse3）。
