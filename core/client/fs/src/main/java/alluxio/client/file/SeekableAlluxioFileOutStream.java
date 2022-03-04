@@ -16,6 +16,7 @@ import alluxio.Seekable;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -121,6 +122,8 @@ public class SeekableAlluxioFileOutStream extends FileOutStream implements Seeka
   public void write(int b) throws IOException {
     mLocalFile.write(b);
     mPos++;
+    // bytesWritten is perhaps a confusing name in this case,
+    // as we are using it to indicate file len effectively.
     mBytesWritten = Math.max(mPos, mBytesWritten);
   }
 
@@ -133,6 +136,8 @@ public class SeekableAlluxioFileOutStream extends FileOutStream implements Seeka
   public void write(byte b[], int off, int len) throws IOException {
     mLocalFile.write(b, off, len);
     mPos += len;
+    // bytesWritten is perhaps a confusing name in this case,
+    // as we are using it to indicate file len effectively.
     mBytesWritten = Math.max(mPos, mBytesWritten);
   }
 
@@ -176,8 +181,12 @@ public class SeekableAlluxioFileOutStream extends FileOutStream implements Seeka
         mClosed = true;
       }
     } else {
+      ListStatusPOptions options = ListStatusPOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                .setSyncIntervalMs(0).build())
+            .build();
       try {
-        mFileSystem.loadMetadata(mAlluxioPath);
+        mFileSystem.loadMetadata(mAlluxioPath, options);
       } catch (Exception e) {
         throw new IOException("Failed to update " + mAlluxioPath, e);
       } finally {

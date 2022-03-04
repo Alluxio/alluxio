@@ -21,7 +21,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.SeekableAlluxioFileOutStream;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 /**
@@ -82,8 +84,8 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
       os.write((byte) 0);
       os.seek(0);
     }
-    checkFileInAlluxio(mAlluxioPath, 0);
-    checkFileInUnderStorage(mAlluxioPath, 0);
+    checkFileInAlluxio(mAlluxioPath, 1);
+    checkFileInUnderStorage(mAlluxioPath, 1);
   }
 
   @Test
@@ -91,11 +93,11 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
     try (SeekableAlluxioFileOutStream os =
         (SeekableAlluxioFileOutStream) mFileSystem.createFile(mAlluxioPath, mOptions)) {
       os.write((byte) 0);
-      os.write((byte) 0);
+      os.write((byte) 1);
       os.seek(1);
     }
-    checkFileInAlluxio(mAlluxioPath, 1);
-    checkFileInUnderStorage(mAlluxioPath, 1);
+    checkFileInAlluxio(mAlluxioPath, 2);
+    checkFileInUnderStorage(mAlluxioPath, 2);
   }
 
   @Test
@@ -114,7 +116,31 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
   }
 
   @Test
-  public void overwrite() throws Exception {
+  public void writeAndSeek3() throws Exception {
+    try (SeekableAlluxioFileOutStream os =
+             (SeekableAlluxioFileOutStream) mFileSystem.createFile(mAlluxioPath, mOptions)) {
+      os.write(BufferUtils.getIncreasingByteArray(0, 1024));
+      os.seek(0);
+      os.write(BufferUtils.getIncreasingByteArray(0, 1024));
+    }
+    checkFileInAlluxio(mAlluxioPath, 1024);
+    checkFileInUnderStorage(mAlluxioPath, 1024);
+  }
+
+  @Test
+  public void writeAndSeek4() throws Exception {
+    try (SeekableAlluxioFileOutStream os =
+             (SeekableAlluxioFileOutStream) mFileSystem.createFile(mAlluxioPath, mOptions)) {
+      os.write(BufferUtils.getIncreasingByteArray(0, 1000));
+      os.seek(500);
+      os.write(BufferUtils.getIncreasingByteArray(500, 1500));
+    }
+    checkFileInAlluxio(mAlluxioPath, 2000);
+    checkFileInUnderStorage(mAlluxioPath, 2000);
+  }
+
+  @Test
+  public void overwriteAfterClose() throws Exception {
     try (SeekableAlluxioFileOutStream os =
         (SeekableAlluxioFileOutStream) mFileSystem.createFile(mAlluxioPath, mOptions)) {
       os.write((byte) 3);
@@ -139,6 +165,24 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
   }
 
   @Test
+  public void reopenAfterClose() throws Exception {
+    try (SeekableAlluxioFileOutStream os =
+             (SeekableAlluxioFileOutStream) mFileSystem.createFile(mAlluxioPath, mOptions)) {
+      os.write(BufferUtils.getIncreasingByteArray(0, 1000));
+    }
+    checkFileInAlluxio(mAlluxioPath, 1000);
+    checkFileInUnderStorage(mAlluxioPath, 1000);
+    URIStatus status = mFileSystem.getStatus(mAlluxioPath);
+    try (SeekableAlluxioFileOutStream os =
+        SeekableAlluxioFileOutStream.open(mAlluxioPath, status, mFileSystem)) {
+      os.seek(500);
+      os.write(BufferUtils.getIncreasingByteArray(500, 2000));
+    }
+    checkFileInAlluxio(mAlluxioPath, 2500);
+    checkFileInUnderStorage(mAlluxioPath, 2500);
+  }
+
+  @Test
   public void getPosAndBytesWritten() throws Exception {
     try (SeekableAlluxioFileOutStream os =
         (SeekableAlluxioFileOutStream) mFileSystem.createFile(mAlluxioPath, mOptions)) {
@@ -152,7 +196,7 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
       assertEquals(1, os.getBytesWritten());
       os.write((byte) 0);
       assertEquals(1, os.getPos());
-      assertEquals(2, os.getBytesWritten());
+      assertEquals(1, os.getBytesWritten());
       os.seek(1024);
       assertEquals(1024, os.getPos());
       assertEquals(1024, os.getBytesWritten());
