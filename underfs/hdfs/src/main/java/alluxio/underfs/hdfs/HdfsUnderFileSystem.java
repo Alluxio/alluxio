@@ -272,7 +272,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // Set all parameters passed through --option
     for (Map.Entry<String, Object> entry : conf.getMountSpecificConf().entrySet()) {
       hdfsConf.set(entry.getKey(),
-          entry.getValue() == null ? null : String.valueOf(entry.getValue()));
+          entry.getValue() == null ? null : entry.getValue().toString());
     }
     return hdfsConf;
   }

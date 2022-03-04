@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fs;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -75,7 +76,7 @@ public final class GetConfTest {
 
   @Test
   public void getConfByAlias() {
-    PropertyKey testProperty = new PropertyKey.Builder("alluxio.test.property")
+    PropertyKey testProperty = stringBuilder("alluxio.test.property")
         .setAlias(new String[] {"alluxio.test.property.alias"})
         .setDefaultValue("testValue")
         .build();
