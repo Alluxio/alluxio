@@ -58,7 +58,7 @@ public final class HdfsUnderFileSystemTest {
         UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
             .createMountSpecificConf(ImmutableMap.of("hadoop.security.group.mapping",
                 "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
-            PropertyKey.UNDERFS_HDFS_IMPL.getDefaultStringValue()));
+            PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
     mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(
         new AlluxioURI(mTemporaryFolder.getRoot().getAbsolutePath()), conf);
   }

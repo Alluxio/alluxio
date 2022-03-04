@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -406,12 +407,12 @@ public class InstancedConfigurationTest {
   public void getNestedProperties() {
     mConfiguration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
-            PropertyKey.WEB_THREADS.toString()), "val1");
+            PropertyKey.WEB_THREADS.toString()), 2);
     mConfiguration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",
             "alluxio.unknown.property"), "val2");
-    Map<String, String> expected = new HashMap<>();
-    expected.put(PropertyKey.WEB_THREADS.toString(), "val1");
+    Map<String, Object> expected = new HashMap<>();
+    expected.put(PropertyKey.WEB_THREADS.toString(), 2);
     expected.put("alluxio.unknown.property", "val2");
     assertThat(mConfiguration.getNestedProperties(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION.format("foo")),
@@ -872,7 +873,7 @@ public class InstancedConfigurationTest {
     mConfiguration.merge(ImmutableMap.of(fakeKeyName, "value"), Source.siteProperty("ignored"));
     assertFalse(PropertyKey.fromString(fakeKeyName).isBuiltIn());
     // simulate the case the same key is built again inside the extension
-    PropertyKey fakeExtensionKey = new PropertyKey.Builder(fakeKeyName).build();
+    PropertyKey fakeExtensionKey = stringBuilder(fakeKeyName).build();
     assertEquals("value", mConfiguration.get(fakeExtensionKey));
     assertTrue(PropertyKey.fromString(fakeKeyName).isBuiltIn());
   }

@@ -17,6 +17,7 @@ import static alluxio.conf.PropertyKey.Builder.doubleBuilder;
 import static alluxio.conf.PropertyKey.Builder.durationBuilder;
 import static alluxio.conf.PropertyKey.Builder.enumBuilder;
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
@@ -238,6 +239,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder doubleBuilder(String name) {
       return new Builder(name, PropertyType.DOUBLE);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for string properties
+     */
+    public static Builder stringBuilder(String name) {
+      return new Builder(name, PropertyType.STRING);
     }
 
     /**
@@ -490,7 +499,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   public static final PropertyKey CONF_DIR =
-      new Builder(Name.CONF_DIR)
+      stringBuilder(Name.CONF_DIR)
           .setDefaultValue(format("${%s}/conf", Name.HOME))
           .setDescription("The directory of Alluxio configuration files."
               + " This property is only for internal use."
@@ -525,14 +534,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey EXTENSIONS_DIR =
-      new Builder(Name.EXTENSIONS_DIR)
+      stringBuilder(Name.EXTENSIONS_DIR)
           .setDefaultValue(format("${%s}/extensions", Name.HOME))
           .setDescription("The directory containing Alluxio extensions.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey HOME =
-      new Builder(Name.HOME)
+      stringBuilder(Name.HOME)
           .setDefaultValue("/opt/alluxio")
           .setDescription("Alluxio installation directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -559,7 +568,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey LOGGER_TYPE =
-      new Builder(Name.LOGGER_TYPE)
+      stringBuilder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
           .setDescription("This controls which logger the process uses. "
               + "This is only set by test code.")
@@ -569,7 +578,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGS_DIR =
-      new Builder(Name.LOGS_DIR)
+      stringBuilder(Name.LOGS_DIR)
           .setDefaultValue(format("${%s}/logs", Name.WORK_DIR))
           .setDescription("The path to store logs files of Alluxio servers."
               + " This property is only for internal use."
@@ -581,7 +590,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey USER_LOGS_DIR =
-      new Builder(Name.USER_LOGS_DIR)
+      stringBuilder(Name.USER_LOGS_DIR)
           .setDefaultValue(format("${%s}/user", Name.LOGS_DIR))
           .setDescription("The path to store logs of Alluxio command lines."
               + " This property is only for internal use."
@@ -591,7 +600,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
-      new Builder(Name.METRICS_CONF_FILE)
+      stringBuilder(Name.METRICS_CONF_FILE)
           .setDefaultValue(format("${%s}/metrics.properties", Name.CONF_DIR))
           .setDescription("The file path of the metrics system configuration file. By default "
               + "it is `metrics.properties` in the `conf` directory.")
@@ -663,7 +672,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SITE_CONF_DIR =
-      new Builder(Name.SITE_CONF_DIR)
+      stringBuilder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
               () -> format("${%s}/,%s/.alluxio/,/etc/alluxio/",
                   Name.CONF_DIR, System.getProperty("user.home")),
@@ -692,7 +701,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey TMP_DIRS =
-      new Builder(Name.TMP_DIRS)
+      stringBuilder(Name.TMP_DIRS)
           .setDefaultValue("/tmp")
           .setDescription("The path(s) to store Alluxio temporary files, use commas as delimiters. "
               + "If multiple paths are specified, one will be selected at random per temporary "
@@ -701,7 +710,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey VERSION =
-      new Builder(Name.VERSION)
+      stringBuilder(Name.VERSION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setDefaultValue(ProjectConstants.VERSION)
           .setDescription("Version of Alluxio. User should never modify this property.")
@@ -717,7 +726,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WEB_RESOURCES =
-      new Builder(Name.WEB_RESOURCES)
+      stringBuilder(Name.WEB_RESOURCES)
           .setDefaultValue(format("${%s}/webui/", Name.HOME))
           .setDescription("Path to the web UI resources. User should never modify this property.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -765,7 +774,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WORK_DIR =
-      new Builder(Name.WORK_DIR)
+      stringBuilder(Name.WORK_DIR)
           .setDefaultValue(format("${%s}", Name.HOME))
           .setDescription("The directory to use for Alluxio's working directory. By default, "
               + "the journal, logs, and under file storage data (if using local filesystem) "
@@ -774,7 +783,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey ZOOKEEPER_ADDRESS =
-      new Builder(Name.ZOOKEEPER_ADDRESS)
+      stringBuilder(Name.ZOOKEEPER_ADDRESS)
           .setDescription("Address of ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -788,7 +797,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
-      new Builder(Name.ZOOKEEPER_ELECTION_PATH)
+      stringBuilder(Name.ZOOKEEPER_ELECTION_PATH)
           .setDefaultValue("/alluxio/election")
           .setDescription("Election directory in ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -809,7 +818,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_PATH =
-      new Builder(Name.ZOOKEEPER_LEADER_PATH)
+      stringBuilder(Name.ZOOKEEPER_LEADER_PATH)
           .setDefaultValue("/alluxio/leader")
           .setDescription("Leader directory in ZooKeeper.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -888,14 +897,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_DEFAULT_MODE =
-      new Builder(Name.UNDERFS_GCS_DEFAULT_MODE)
+      stringBuilder(Name.UNDERFS_GCS_DEFAULT_MODE)
           .setDefaultValue("0700")
           .setDescription("Mode (in octal notation) for GCS objects if mode cannot be discovered.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_DIRECTORY_SUFFIX =
-      new Builder(Name.UNDERFS_GCS_DIRECTORY_SUFFIX)
+      stringBuilder(Name.UNDERFS_GCS_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
           .setDescription("Directories are represented in GCS as zero-byte objects named with "
               + "the specified suffix.")
@@ -903,7 +912,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
-      new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
+      stringBuilder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
           .setDescription(format("Optionally, specify a preset gcs owner id "
               + "to Alluxio username static mapping in the format \"id1=user1;id2=user2\". "
               + "The Google Cloud Storage IDs can be found at the console address "
@@ -967,7 +976,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
-      new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
+      stringBuilder(Name.UNDERFS_HDFS_CONFIGURATION)
           .setDefaultValue(format(
               "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
           .setDescription("Location of the HDFS configuration file to overwrite "
@@ -977,14 +986,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_IMPL =
-      new Builder(Name.UNDERFS_HDFS_IMPL)
+      stringBuilder(Name.UNDERFS_HDFS_IMPL)
           .setDefaultValue("org.apache.hadoop.hdfs.DistributedFileSystem")
           .setDescription("The implementation class of the HDFS as the under storage system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
-      new Builder(Name.UNDERFS_HDFS_PREFIXES)
+      stringBuilder(Name.UNDERFS_HDFS_PREFIXES)
           .setDefaultValue("hdfs://,glusterfs:///")
           .setDescription("Optionally, specify which prefixes should run through the HDFS "
               + "implementation of UnderFileSystem. The delimiter is any whitespace "
@@ -1013,7 +1022,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
-      new Builder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
+      stringBuilder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
           .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
           .setDescription("Date format of last modified for a http response header.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1027,14 +1036,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_WEB_PARENT_NAMES =
-      new Builder(Name.UNDERFS_WEB_PARENT_NAMES)
+      stringBuilder(Name.UNDERFS_WEB_PARENT_NAMES)
           .setDefaultValue("Parent Directory,..,../")
           .setDescription("The text of the http link for the parent directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_WEB_TITLES =
-      new Builder(Name.UNDERFS_WEB_TITLES)
+      stringBuilder(Name.UNDERFS_WEB_TITLES)
           .setDefaultValue("Index of,Directory listing for")
           .setDescription("The title of the content for a http url.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1164,7 +1173,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT =
-      new Builder(Name.UNDERFS_S3_ENDPOINT)
+      stringBuilder(Name.UNDERFS_S3_ENDPOINT)
           .setDescription("Optionally, to reduce data latency or visit resources which are "
               + "separated in different AWS regions, specify a regional endpoint to make aws "
               + "requests. An endpoint is a URL that is the entry point for a web service. "
@@ -1174,14 +1183,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT_REGION =
-      new Builder(Name.UNDERFS_S3_ENDPOINT_REGION)
+      stringBuilder(Name.UNDERFS_S3_ENDPOINT_REGION)
           .setDescription("Optionally, set the S3 endpoint region. If not provided, "
               + "inducted from the endpoint uri or set to null")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
-      new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
+      stringBuilder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
           .setDescription("Optionally, specify a preset s3 canonical id to Alluxio username "
               + "static mapping, in the format \"id1=user1;id2=user2\". The AWS S3 canonical "
               + "ID can be found at the console address "
@@ -1192,7 +1201,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_HOST =
-      new Builder(Name.UNDERFS_S3_PROXY_HOST)
+      stringBuilder(Name.UNDERFS_S3_PROXY_HOST)
           .setDescription("Optionally, specify a proxy host for communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
@@ -1204,7 +1213,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_REGION =
-      new Builder(Name.UNDERFS_S3_REGION)
+      stringBuilder(Name.UNDERFS_S3_REGION)
           .setDescription("Optionally, set the S3 bucket region. If not provided, "
               + "will enable the global bucket access with extra requests")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1235,7 +1244,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_DEFAULT_MODE =
-      new Builder(Name.UNDERFS_S3_DEFAULT_MODE)
+      stringBuilder(Name.UNDERFS_S3_DEFAULT_MODE)
           .setAlias("alluxio.underfs.s3a.default.mode")
           .setDefaultValue("0700")
           .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
@@ -1243,7 +1252,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_DIRECTORY_SUFFIX =
-      new Builder(Name.UNDERFS_S3_DIRECTORY_SUFFIX)
+      stringBuilder(Name.UNDERFS_S3_DIRECTORY_SUFFIX)
           .setAlias("alluxio.underfs.s3a.directory.suffix")
           .setDefaultValue("/")
           .setDescription("Directories are represented in S3 as zero-byte objects named with "
@@ -1326,7 +1335,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_S3_SIGNER_ALGORITHM =
-      new Builder(Name.UNDERFS_S3_SIGNER_ALGORITHM)
+      stringBuilder(Name.UNDERFS_S3_SIGNER_ALGORITHM)
           .setAlias("alluxio.underfs.s3a.signer.algorithm")
           .setDescription("The signature algorithm which should be used to sign requests to "
               + "the s3 service. This is optional, and if not set, the client will "
@@ -1386,73 +1395,73 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_ID =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_ID)
+      stringBuilder(Name.UNDERFS_CEPHFS_AUTH_ID)
           .setDefaultValue("admin")
           .setDescription("Ceph client id for authentication.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_CONF_FILE =
-      new Builder(Name.UNDERFS_CEPHFS_CONF_FILE)
+      stringBuilder(Name.UNDERFS_CEPHFS_CONF_FILE)
           .setDefaultValue("/etc/ceph/ceph.conf")
           .setDescription("Path to Ceph configuration file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_CONF_OPTS =
-      new Builder(Name.UNDERFS_CEPHFS_CONF_OPTS)
+      stringBuilder(Name.UNDERFS_CEPHFS_CONF_OPTS)
           .setDescription("Extra configuration options for CephFS client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEY =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEY)
+      stringBuilder(Name.UNDERFS_CEPHFS_AUTH_KEY)
           .setDescription("CephX authentication key, base64 encoded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
+      stringBuilder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
           .setDescription("Path to CephX authentication key file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYRING =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
+      stringBuilder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
           .setDefaultValue("/etc/ceph/ceph.client.admin.keyring")
           .setDescription("Path to CephX authentication keyring file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MON_HOST =
-      new Builder(Name.UNDERFS_CEPHFS_MON_HOST)
+      stringBuilder(Name.UNDERFS_CEPHFS_MON_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("List of hosts or addresses to search for a Ceph monitor.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MDS_NAMESPACE =
-      new Builder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
+      stringBuilder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
           .setDescription("CephFS filesystem to mount.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MOUNT_UID =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_UID)
+      stringBuilder(Name.UNDERFS_CEPHFS_MOUNT_UID)
           .setDefaultValue("0")
           .setDescription("The user ID of CephFS mount.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MOUNT_GID =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_GID)
+      stringBuilder(Name.UNDERFS_CEPHFS_MOUNT_GID)
           .setDefaultValue("0")
           .setDescription("The group ID of CephFS mount.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MOUNT_POINT =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_POINT)
+      stringBuilder(Name.UNDERFS_CEPHFS_MOUNT_POINT)
           .setDefaultValue("/")
           .setDescription("Directory to mount on the CephFS filesystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1469,83 +1478,83 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // UFS access control related properties
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
-  public static final PropertyKey ABFS_CLIENT_ENDPOINT = new Builder(Name.ABFS_CLIENT_ENDPOINT)
+  public static final PropertyKey ABFS_CLIENT_ENDPOINT = stringBuilder(Name.ABFS_CLIENT_ENDPOINT)
       .setDescription("The oauth endpoint for ABFS.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
-  public static final PropertyKey ABFS_CLIENT_ID = new Builder(Name.ABFS_CLIENT_ID)
+  public static final PropertyKey ABFS_CLIENT_ID = stringBuilder(Name.ABFS_CLIENT_ID)
       .setDescription("The client id for ABFS.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
-  public static final PropertyKey ABFS_CLIENT_SECRET = new Builder(Name.ABFS_CLIENT_SECRET)
+  public static final PropertyKey ABFS_CLIENT_SECRET = stringBuilder(Name.ABFS_CLIENT_SECRET)
       .setDescription("The client secret for ABFS.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
+  public static final PropertyKey GCS_ACCESS_KEY = stringBuilder(Name.GCS_ACCESS_KEY)
       .setDescription(format("The access key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
+  public static final PropertyKey GCS_SECRET_KEY = stringBuilder(Name.GCS_SECRET_KEY)
       .setDescription(format("The secret key of GCS bucket. This property key "
           + "is only valid when %s=1", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey GCS_CREDENTIAL_PATH = new Builder(Name.GCS_CREDENTIAL_PATH)
+  public static final PropertyKey GCS_CREDENTIAL_PATH = stringBuilder(Name.GCS_CREDENTIAL_PATH)
       .setDescription(format("The json file path of Google application credentials. "
           + "This property key is only valid when %s=2", Name.UNDERFS_GCS_VERSION))
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
-  public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
+  public static final PropertyKey OSS_ACCESS_KEY = stringBuilder(Name.OSS_ACCESS_KEY)
       .setDescription("The access key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey OSS_ENDPOINT_KEY = new Builder(Name.OSS_ENDPOINT_KEY)
+  public static final PropertyKey OSS_ENDPOINT_KEY = stringBuilder(Name.OSS_ENDPOINT_KEY)
       .setDescription("The endpoint key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
-  public static final PropertyKey OSS_SECRET_KEY = new Builder(Name.OSS_SECRET_KEY)
+  public static final PropertyKey OSS_SECRET_KEY = stringBuilder(Name.OSS_SECRET_KEY)
       .setDescription("The secret key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY)
+  public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
       .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY)
+  public static final PropertyKey S3A_SECRET_KEY = stringBuilder(Name.S3A_SECRET_KEY)
       .setAlias(Name.AWS_SECRET_KEY)
       .setDescription("The secret key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey SWIFT_AUTH_METHOD_KEY = new Builder(Name.SWIFT_AUTH_METHOD_KEY)
+  public static final PropertyKey SWIFT_AUTH_METHOD_KEY = stringBuilder(Name.SWIFT_AUTH_METHOD_KEY)
       .setDescription("Choice of authentication method: "
           + "[tempauth (default), swiftauth, keystone, keystonev3].")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
-  public static final PropertyKey SWIFT_AUTH_URL_KEY = new Builder(Name.SWIFT_AUTH_URL_KEY)
+  public static final PropertyKey SWIFT_AUTH_URL_KEY = stringBuilder(Name.SWIFT_AUTH_URL_KEY)
       .setDescription("Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
-  public static final PropertyKey SWIFT_PASSWORD_KEY = new Builder(Name.SWIFT_PASSWORD_KEY)
+  public static final PropertyKey SWIFT_PASSWORD_KEY = stringBuilder(Name.SWIFT_PASSWORD_KEY)
       .setDescription("The password used for user:tenant authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDisplayType(DisplayType.CREDENTIALS)
@@ -1555,29 +1564,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           + "true or false (default).")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
-  public static final PropertyKey SWIFT_TENANT_KEY = new Builder(Name.SWIFT_TENANT_KEY)
+  public static final PropertyKey SWIFT_TENANT_KEY = stringBuilder(Name.SWIFT_TENANT_KEY)
       .setDescription("Swift user for authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey SWIFT_USER_KEY = new Builder(Name.SWIFT_USER_KEY)
+  public static final PropertyKey SWIFT_USER_KEY = stringBuilder(Name.SWIFT_USER_KEY)
       .setDescription("Swift tenant for authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey SWIFT_REGION_KEY = new Builder(Name.SWIFT_REGION_KEY)
+  public static final PropertyKey SWIFT_REGION_KEY = stringBuilder(Name.SWIFT_REGION_KEY)
       .setDescription("Service region when using Keystone authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
   public static final PropertyKey COS_ACCESS_KEY =
-      new Builder(Name.COS_ACCESS_KEY)
+      stringBuilder(Name.COS_ACCESS_KEY)
           .setDescription("The access key of COS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey COS_APP_ID =
-      new Builder(Name.COS_APP_ID)
+      stringBuilder(Name.COS_APP_ID)
           .setDescription("The app id of COS bucket.")
           .setScope(Scope.SERVER)
           .build();
@@ -1600,13 +1609,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey COS_REGION =
-      new Builder(Name.COS_REGION)
+      stringBuilder(Name.COS_REGION)
           .setDescription("The region name of COS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey COS_SECRET_KEY =
-      new Builder(Name.COS_SECRET_KEY)
+      stringBuilder(Name.COS_SECRET_KEY)
           .setDescription("The secret key of COS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
@@ -1614,60 +1623,60 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
-      new Builder(Name.MASTER_JOURNAL_UFS_OPTION)
+      stringBuilder(Name.MASTER_JOURNAL_UFS_OPTION)
           .setDescription("The configuration to use for the journal operations.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey KODO_ACCESS_KEY =
-      new Builder(Name.KODO_ACCESS_KEY)
+      stringBuilder(Name.KODO_ACCESS_KEY)
           .setDescription("The access key of Kodo bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey KODO_SECRET_KEY =
-      new Builder(Name.KODO_SECRET_KEY)
+      stringBuilder(Name.KODO_SECRET_KEY)
           .setDescription("The secret key of Kodo bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey KODO_DOWNLOAD_HOST =
-      new Builder(Name.KODO_DOWNLOAD_HOST)
+      stringBuilder(Name.KODO_DOWNLOAD_HOST)
           .setDescription("The download domain of Kodo bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey KODO_ENDPOINT =
-      new Builder(Name.KODO_ENDPOINT)
+      stringBuilder(Name.KODO_ENDPOINT)
           .setDescription("The endpoint of Kodo bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey OBS_ACCESS_KEY =
-      new Builder(Name.OBS_ACCESS_KEY)
+      stringBuilder(Name.OBS_ACCESS_KEY)
           .setDescription("The access key of OBS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey OBS_ENDPOINT =
-      new Builder(Name.OBS_ENDPOINT)
+      stringBuilder(Name.OBS_ENDPOINT)
           .setDefaultValue("obs.myhwclouds.com")
           .setDescription("The endpoint of OBS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey OBS_SECRET_KEY =
-      new Builder(Name.OBS_SECRET_KEY)
+      stringBuilder(Name.OBS_SECRET_KEY)
           .setDescription("The secret key of OBS bucket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .setDisplayType(DisplayType.CREDENTIALS)
           .build();
   public static final PropertyKey OBS_BUCKET_TYPE =
-      new Builder(Name.OBS_BUCKET_TYPE)
+      stringBuilder(Name.OBS_BUCKET_TYPE)
           .setDefaultValue("obs")
           .setDescription("The type of bucket (obs/pfs).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1677,7 +1686,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Mount table related properties
   //
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_ALLUXIO =
-      new Builder(Template.MASTER_MOUNT_TABLE_ALLUXIO, "root")
+      new Builder(PropertyType.STRING, Template.MASTER_MOUNT_TABLE_ALLUXIO, "root")
           .setDefaultValue("/")
           .setDescription("Alluxio root mount point.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1704,7 +1713,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
-      new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
+      new Builder(PropertyType.STRING, Template.MASTER_MOUNT_TABLE_UFS, "root")
           .setAlias("alluxio.underfs.address")
           .setDescription("The storage address of the UFS at the Alluxio root mount point.")
           .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
@@ -1739,7 +1748,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_DIRECTORY =
-      new Builder(Name.MASTER_BACKUP_DIRECTORY)
+      stringBuilder(Name.MASTER_BACKUP_DIRECTORY)
           .setDefaultValue("/alluxio_backups")
           .setDescription("Default directory for writing master metadata backups. This path is "
               + "an absolute path of the root UFS. For example, if the root ufs "
@@ -1858,7 +1867,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_TIME =
-      new Builder(Name.MASTER_DAILY_BACKUP_TIME)
+      stringBuilder(Name.MASTER_DAILY_BACKUP_TIME)
           .setDefaultValue("05:00")
           .setDescription("Default UTC time for writing daily master metadata backups. "
               + "The accepted time format is hour:minute which is based on a 24-hour clock "
@@ -1944,7 +1953,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BIND_HOST =
-      new Builder(Name.MASTER_BIND_HOST)
+      stringBuilder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that Alluxio master binds to.")
           .setScope(Scope.MASTER)
@@ -1958,7 +1967,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
+      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
           .setDescription(format(
               "Used to bind embedded journal servers to a proxied host."
                   + "Proxy hostname will still make use of %s for bind port.",
@@ -1967,7 +1976,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // as default.
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
               + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. When "
               + "left unset, Alluxio uses ${%s}:${%s} by default", Name.MASTER_HOSTNAME,
@@ -2098,11 +2107,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_ADDRESSES =
-      new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
-          "A list of comma-separated host:port RPC addresses where the client should look for "
-              + "masters when using multiple masters without Zookeeper. This property is not "
-              + "used when Zookeeper is enabled, since Zookeeper already stores the master "
-              + "addresses.")
+      new Builder(Name.MASTER_RPC_ADDRESSES)
+          .setDescription("A list of comma-separated host:port RPC addresses where the client "
+              + "should look for masters when using multiple masters without Zookeeper. This "
+              + "property is not used when Zookeeper is enabled, since Zookeeper already stores "
+              + "the master addresses.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
@@ -2135,7 +2144,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
-      new Builder(Name.MASTER_FORMAT_FILE_PREFIX)
+      stringBuilder(Name.MASTER_FORMAT_FILE_PREFIX)
           .setAlias("alluxio.master.format.file_prefix")
           .setDefaultValue("_format_")
           .setDescription("The file prefix of the file generated in the journal directory "
@@ -2164,7 +2173,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_DIR =
-      new Builder(Name.MASTER_METASTORE_DIR)
+      stringBuilder(Name.MASTER_METASTORE_DIR)
           .setDefaultValue(format("${%s}/metastore", Name.WORK_DIR))
           .setDescription("The metastore work directory. Only some metastores need disk.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2349,7 +2358,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
-      new Builder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+      stringBuilder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
           .setDefaultValue("1KB,1MB,10MB,100MB,1GB,10GB")
           .setDescription("Master metrics file size buckets")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2357,7 +2366,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey MASTER_HOSTNAME =
-      new Builder(Name.MASTER_HOSTNAME)
+      stringBuilder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
           .setScope(Scope.ALL)
           .build();
@@ -2446,7 +2455,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
-      new Builder(Name.MASTER_JOURNAL_FOLDER)
+      stringBuilder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(format("${%s}/journal", Name.WORK_DIR))
           .setDescription("The path to store master journal logs. When using the UFS journal this "
               + "could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded "
@@ -2455,7 +2464,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_INIT_FROM_BACKUP =
-      new Builder(Name.MASTER_JOURNAL_INIT_FROM_BACKUP)
+      stringBuilder(Name.MASTER_JOURNAL_INIT_FROM_BACKUP)
           .setDescription("A uri for a backup to initialize the journal from. When the"
               + " master becomes primary, if it sees that its journal is freshly formatted, it will"
               + " restore its state from the backup. When running multiple masters, this property"
@@ -2571,7 +2580,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
-      new Builder(Name.MASTER_KEYTAB_KEY_FILE)
+      stringBuilder(Name.MASTER_KEYTAB_KEY_FILE)
           .setDescription("Kerberos keytab file for Alluxio master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2649,7 +2658,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "level for files")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
+  public static final PropertyKey MASTER_PRINCIPAL = stringBuilder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.MASTER)
@@ -2692,21 +2701,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
+      stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The name of the highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
+      stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
           .setDefaultValue(Constants.MEDIUM_SSD)
           .setDescription("The name of the second highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
+      stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
           .setDefaultValue(Constants.MEDIUM_HDD)
           .setDescription("The name of the third highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2887,13 +2896,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
-      new Builder(Name.MASTER_WEB_BIND_HOST)
+      stringBuilder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio master web UI binds to.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WEB_HOSTNAME =
-      new Builder(Name.MASTER_WEB_HOSTNAME)
+      stringBuilder(Name.MASTER_WEB_HOSTNAME)
           .setDescription("The hostname of Alluxio Master web UI.")
           .setScope(Scope.ALL)
           .build();
@@ -2915,7 +2924,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WHITELIST =
-      new Builder(Name.MASTER_WHITELIST)
+      stringBuilder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
           .setDescription("A comma-separated list of prefixes of the paths which are "
               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
@@ -3143,7 +3152,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Secondary master related properties
   //
   public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
-      new Builder(Name.SECONDARY_MASTER_METASTORE_DIR)
+      stringBuilder(Name.SECONDARY_MASTER_METASTORE_DIR)
           .setDefaultValue(format("${%s}/secondary-metastore", Name.WORK_DIR))
           .setDescription(
               "The secondary master metastore work directory. Only some metastores need disk.")
@@ -3193,7 +3202,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_BIND_HOST =
-      new Builder(Name.WORKER_BIND_HOST)
+      stringBuilder(Name.WORKER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio's worker node binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3218,13 +3227,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
-      new Builder(Name.WORKER_CONTAINER_HOSTNAME)
+      stringBuilder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_FOLDER =
-      new Builder(Name.WORKER_DATA_FOLDER)
+      stringBuilder(Name.WORKER_DATA_FOLDER)
           .setDefaultValue("/alluxioworker/")
           .setDescription("A relative path within each storage directory used as the data "
               + "folder for Alluxio worker to put data for tiered store.")
@@ -3232,7 +3241,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_FOLDER_PERMISSIONS =
-      new Builder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
+      stringBuilder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
           .setDefaultValue("rwxrwxrwx")
           .setDescription("The permission set for the worker data folder. If short circuit is used "
               + "this folder should be accessible by all users (rwxrwxrwx).")
@@ -3240,7 +3249,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
-      new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
+      stringBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
           .setDescription("The path to the domain socket. Short-circuit reads make use of a "
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
@@ -3262,7 +3271,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
-      new Builder(Name.WORKER_DATA_TMP_FOLDER)
+      stringBuilder(Name.WORKER_DATA_TMP_FOLDER)
           .setDefaultValue(".tmp_blocks")
           .setDescription("A relative path in alluxio.worker.data.folder used to store the "
               + "temporary data for uncommitted files.")
@@ -3328,7 +3337,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_ALLUXIO_PATH =
-      new Builder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
+      stringBuilder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
           .setDescription(format("The Alluxio path to mount to the given "
                   + "Fuse mount point configured by %s in this worker.",
@@ -3337,7 +3346,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_OPTIONS =
-      new Builder(Name.WORKER_FUSE_MOUNT_OPTIONS)
+      stringBuilder(Name.WORKER_FUSE_MOUNT_OPTIONS)
           .setDescription("The platform specific Fuse mount options "
               + "to mount the given Fuse mount point. "
               + "If multiple mount options are provided, separate them with comma.")
@@ -3345,7 +3354,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
-      new Builder(Name.WORKER_FUSE_MOUNT_POINT)
+      stringBuilder(Name.WORKER_FUSE_MOUNT_POINT)
           .setDefaultValue("/mnt/alluxio-fuse")
           .setDescription("The absolute local filesystem path that this worker will "
               + "mount Alluxio path to.")
@@ -3470,11 +3479,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
+  public static final PropertyKey WORKER_HOSTNAME = stringBuilder(Name.WORKER_HOSTNAME)
       .setDescription("The hostname of Alluxio worker.")
       .setScope(Scope.WORKER)
       .build();
-  public static final PropertyKey WORKER_KEYTAB_FILE = new Builder(Name.WORKER_KEYTAB_FILE)
+  public static final PropertyKey WORKER_KEYTAB_FILE = stringBuilder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
@@ -3750,7 +3759,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_PRINCIPAL = new Builder(Name.WORKER_PRINCIPAL)
+  public static final PropertyKey WORKER_PRINCIPAL = stringBuilder(Name.WORKER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
@@ -3875,7 +3884,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
           .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The alias of the top storage tier on this worker. It must "
               + "match one of the global storage tiers from the master configuration. We "
@@ -3886,7 +3895,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
               "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
           .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,"
@@ -3896,7 +3905,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
           .setDefaultValue(
               format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
           .setDescription(format(
@@ -3937,13 +3946,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // TODO(binfan): Use alluxio.worker.tieredstore.level1.dirs.mediumtype instead"
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 1)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 1)
           .setDescription("The alias of the second storage tier on this worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
           .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache2,"
               + "/mnt/ssd/alluxio/cache3,/mnt/hdd/alluxio/cache1) of storage directories "
               + "for the second storage tier.")
@@ -3951,7 +3960,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
           .setDefaultValue(
               format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
           .setDescription(format(
@@ -3988,13 +3997,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   //TODO(binfan): Use alluxio.worker.tieredstore.level2.dirs.mediumtype instead"
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_ALIAS =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 2)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 2)
           .setDescription("The alias of the third storage tier on this worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
           .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache4,"
               + "/mnt/hdd/alluxio/cache2,/mnt/hdd/alluxio/cache3) of storage directories "
               + "for the third storage tier.")
@@ -4002,7 +4011,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIUMTYPE =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
+      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
           .setDefaultValue(
               format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
           .setDescription(format(
@@ -4045,14 +4054,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_WEB_BIND_HOST =
-      new Builder(Name.WORKER_WEB_BIND_HOST)
+      stringBuilder(Name.WORKER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio worker's web server binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_WEB_HOSTNAME =
-      new Builder(Name.WORKER_WEB_HOSTNAME)
+      stringBuilder(Name.WORKER_WEB_HOSTNAME)
           .setDescription("The hostname Alluxio worker's web UI binds to.")
           .setScope(Scope.WORKER)
           .build();
@@ -4098,7 +4107,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_WHITELIST =
-      new Builder(Name.WORKER_WHITELIST)
+      stringBuilder(Name.WORKER_WHITELIST)
           .setDefaultValue("/")
           .setDescription("A comma-separated list of prefixes of the paths which are "
                + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
@@ -4216,7 +4225,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_S3_DELETE_TYPE =
-      new Builder(Name.PROXY_S3_DELETE_TYPE)
+      stringBuilder(Name.PROXY_S3_DELETE_TYPE)
           .setDefaultValue(Constants.S3_DELETE_IN_ALLUXIO_AND_UFS)
           .setDescription(format(
               "Delete type when deleting buckets and objects through S3 API. Valid options are "
@@ -4227,7 +4236,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
-      new Builder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
+      stringBuilder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
           .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
           .setDescription("Suffix for the directory which holds parts during a multipart upload.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -4285,14 +4294,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_WEB_BIND_HOST =
-      new Builder(Name.PROXY_WEB_BIND_HOST)
+      stringBuilder(Name.PROXY_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that the Alluxio proxy's web server runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
   public static final PropertyKey PROXY_WEB_HOSTNAME =
-      new Builder(Name.PROXY_WEB_HOSTNAME)
+      stringBuilder(Name.PROXY_WEB_HOSTNAME)
           .setDescription("The hostname Alluxio proxy's web UI binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
@@ -4316,20 +4325,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
-      new Builder(Name.LOCALITY_SCRIPT)
+      stringBuilder(Name.LOCALITY_SCRIPT)
           .setDefaultValue(Constants.ALLUXIO_LOCALITY_SCRIPT)
           .setDescription("A script to determine tiered identity for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey LOCALITY_TIER_NODE =
-      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
+      new Builder(PropertyType.STRING, Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
           .setDescription("Value to use for determining node locality")
           .setScope(Scope.ALL)
           .build();
   // This property defined so that it is included in the documentation.
   public static final PropertyKey LOCALITY_TIER_RACK =
-      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
+      new Builder(PropertyType.STRING, Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
           .setDescription("Value to use for determining rack locality")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
@@ -4348,7 +4357,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGSERVER_LOGS_DIR =
-      new Builder(Name.LOGSERVER_LOGS_DIR)
+      stringBuilder(Name.LOGSERVER_LOGS_DIR)
           .setDefaultValue(format("${%s}/logs", Name.WORK_DIR))
           .setDescription("Default location for remote log files.")
           .setIgnoredSiteProperty(true)
@@ -4357,7 +4366,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // Used in alluxio-config.sh and conf/log4j.properties
   public static final PropertyKey LOGSERVER_HOSTNAME =
-      new Builder(Name.LOGSERVER_HOSTNAME)
+      stringBuilder(Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
           .setIgnoredSiteProperty(true)
           .setScope(Scope.SERVER)
@@ -4498,7 +4507,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_TARGET_MEDIA =
-      new Builder(Name.USER_FILE_TARGET_MEDIA)
+      stringBuilder(Name.USER_FILE_TARGET_MEDIA)
           .setDescription("Preferred media type while storing file's blocks.")
           .setScope(Scope.CLIENT)
           .build();
@@ -4536,7 +4545,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
-      new Builder(Name.USER_DATE_FORMAT_PATTERN)
+      stringBuilder(Name.USER_DATE_FORMAT_PATTERN)
           .setDefaultValue("MM-dd-yyyy HH:mm:ss:SSS")
           .setDescription("Display formatted date in cli command and web UI by given date "
               + "format pattern.")
@@ -4707,7 +4716,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
+      stringBuilder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
@@ -4806,7 +4815,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The number of bloom filters used for tracking. Each tracks a segment of window")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
-      new Builder(Name.USER_CLIENT_CACHE_DIR)
+      stringBuilder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
           .setDescription("The directory where client-side cache is stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4898,7 +4907,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
+  public static final PropertyKey USER_HOSTNAME = stringBuilder(Name.USER_HOSTNAME)
       .setDescription("The hostname to use for an Alluxio client.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
       .setScope(Scope.CLIENT)
@@ -5014,7 +5023,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_APP_ID =
-      new Builder(Name.USER_APP_ID)
+      stringBuilder(Name.USER_APP_ID)
           .setScope(Scope.CLIENT)
           .setDescription("The custom id to use for labeling this client's info, such as metrics. "
               + "If unset, a random long will be used. This value is displayed in the client logs "
@@ -5146,7 +5155,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
-      new Builder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
+      stringBuilder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
           .setDescription("When a client reads from a remote worker, the maximum number of "
               + "messages to buffer by the client. A message can be either a command response, "
               + "a data chunk, or a gRPC stream event such as complete or error.")
@@ -5168,7 +5177,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
-      new Builder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
+      stringBuilder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDescription("When a client writes to a remote worker, the maximum number of messages "
               + "to buffer by the client. A message can be either a command response, a data "
               + "chunk, or a gRPC stream event such as complete or error.")
@@ -5447,7 +5456,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
-      new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
+      stringBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription(format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
@@ -5530,14 +5539,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
-      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
+      stringBuilder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
           .setDescription("The fuse user name for custom auth policy. Only valid if the "
               + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
-      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+      stringBuilder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
           .setDescription("The fuse group name for custom auth policy. Only valid if the "
               + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -5559,7 +5568,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_FS_NAME =
-      new Builder(Name.FUSE_FS_NAME)
+      stringBuilder(Name.FUSE_FS_NAME)
           .setDefaultValue("alluxio-fuse")
           .setDescription("The FUSE file system name.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -5650,13 +5659,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_WEB_BIND_HOST =
-      new Builder(Name.FUSE_WEB_BIND_HOST)
+      stringBuilder(Name.FUSE_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio FUSE web UI binds to.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_WEB_HOSTNAME =
-      new Builder(Name.FUSE_WEB_HOSTNAME)
+      stringBuilder(Name.FUSE_WEB_HOSTNAME)
           .setDescription("The hostname of Alluxio FUSE web UI.")
           .setScope(Scope.ALL)
           .build();
@@ -5698,7 +5707,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
-      new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
+      stringBuilder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
           .setDefaultValue("supergroup")
           .setDescription("The super group of Alluxio file system. All users in this group "
               + "have super permission.")
@@ -5706,7 +5715,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_UMASK =
-      new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK)
+      stringBuilder(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK)
           .setDefaultValue("022")
           .setDescription("The umask of creating file and directory. The initial creation "
               + "permission is 777, and the difference between directory and file is 111. So "
@@ -5735,18 +5744,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
-      new Builder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME).setDescription(format(
-          "When %s is set to SIMPLE or CUSTOM, user application uses this property to indicate "
-              + "the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, "
-              + "or set to %s, impersonation will not be used. A special value of '%s' can be "
-              + "specified to impersonate the hadoop client user.", SECURITY_AUTHENTICATION_TYPE,
-          Constants.IMPERSONATION_NONE, Constants.IMPERSONATION_HDFS_USER))
+      stringBuilder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME)
+          .setDescription(format("When %s is set to SIMPLE or CUSTOM, user application uses this "
+              + "property to indicate the IMPERSONATED user requesting Alluxio service. If it is "
+              + "not set explicitly, or set to %s, impersonation will not be used. A special "
+              + "value of '%s' can be specified to impersonate the hadoop client user.",
+              SECURITY_AUTHENTICATION_TYPE,
+              Constants.IMPERSONATION_NONE, Constants.IMPERSONATION_HDFS_USER))
           .setDefaultValue(Constants.IMPERSONATION_HDFS_USER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
-      new Builder(Name.SECURITY_LOGIN_USERNAME)
+      stringBuilder(Name.SECURITY_LOGIN_USERNAME)
           .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
               + "CUSTOM, user application uses this property to indicate the user requesting "
               + "Alluxio service. If it is not set explicitly, the OS login user will be used.")
@@ -5825,7 +5835,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Assumes that HDFS is the UFS and version is 3.3
   // TODO(ns) Fix default value to handle other UFS types
   public static final PropertyKey UNDERFS_VERSION =
-      new Builder(Name.UNDERFS_VERSION)
+      stringBuilder(Name.UNDERFS_VERSION)
           .setDefaultValue("3.3.0")
           .setIsHidden(true)
           .build();
@@ -5879,13 +5889,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
-      new Builder(Name.JOB_MASTER_BIND_HOST)
+      stringBuilder(Name.JOB_MASTER_BIND_HOST)
           .setDescription("The host that the Alluxio job master will bind to.")
           .setDefaultValue("0.0.0.0")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_HOSTNAME =
-      new Builder(Name.JOB_MASTER_HOSTNAME)
+      stringBuilder(Name.JOB_MASTER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job master.")
           .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
           .setScope(Scope.ALL)
@@ -5903,13 +5913,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_WEB_BIND_HOST =
-      new Builder(Name.JOB_MASTER_WEB_BIND_HOST)
+      stringBuilder(Name.JOB_MASTER_WEB_BIND_HOST)
           .setDescription("The host that the job master web server binds to.")
           .setDefaultValue("0.0.0.0")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_WEB_HOSTNAME =
-      new Builder(Name.JOB_MASTER_WEB_HOSTNAME)
+      stringBuilder(Name.JOB_MASTER_WEB_HOSTNAME)
           .setDescription("The hostname of the job master web server.")
           .setDefaultValue("${alluxio.job.master.hostname}")
           .setScope(Scope.MASTER)
@@ -5928,7 +5938,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
-      new Builder(Name.JOB_WORKER_BIND_HOST)
+      stringBuilder(Name.JOB_WORKER_BIND_HOST)
           .setDescription("The host that the Alluxio job worker will bind to.")
           .setDefaultValue("0.0.0.0")
           .setScope(Scope.WORKER)
@@ -5940,7 +5950,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_HOSTNAME =
-      new Builder(Name.JOB_WORKER_HOSTNAME)
+      stringBuilder(Name.JOB_WORKER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job worker.")
           .setDefaultValue(format("${%s}", Name.WORKER_HOSTNAME))
           .setScope(Scope.WORKER)
@@ -5967,7 +5977,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
-      new Builder(Name.JOB_WORKER_WEB_BIND_HOST)
+      stringBuilder(Name.JOB_WORKER_WEB_BIND_HOST)
           .setDescription("The host the job worker web server binds to.")
           .setDefaultValue("0.0.0.0")
           .setScope(Scope.WORKER)
@@ -6047,10 +6057,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
-      new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH)
+      stringBuilder(Name.ZOOKEEPER_JOB_ELECTION_PATH)
           .setDefaultValue("/alluxio/job_election").build();
   public static final PropertyKey ZOOKEEPER_JOB_LEADER_PATH =
-      new Builder(Name.ZOOKEEPER_JOB_LEADER_PATH)
+      stringBuilder(Name.ZOOKEEPER_JOB_LEADER_PATH)
           .setDefaultValue("/alluxio/job_leader").build();
 
   //
@@ -6114,7 +6124,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey TABLE_CATALOG_PATH =
-      new Builder(Name.TABLE_CATALOG_PATH)
+      stringBuilder(Name.TABLE_CATALOG_PATH)
           .setDefaultValue("/catalog")
           .setDescription("The Alluxio file path for the table catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -6165,11 +6175,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to the Hub Manager.")
           .build();
   public static final PropertyKey HUB_AGENT_RPC_HOSTNAME =
-          new Builder(Name.HUB_AGENT_RPC_HOSTNAME)
+          stringBuilder(Name.HUB_AGENT_RPC_HOSTNAME)
                   .setDescription("The hostname (or IP address) used to connect to the hub agent")
                   .build();
   public static final PropertyKey HUB_AGENT_RPC_BIND_HOST =
-          new Builder(Name.HUB_AGENT_RPC_BIND_HOST)
+          stringBuilder(Name.HUB_AGENT_RPC_BIND_HOST)
                   .setDefaultValue("0.0.0.0")
                   .setDescription("The host that the hub agent's RPC server should bind to")
                   .build();
@@ -6179,24 +6189,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The port that the hub agent's RPC port should bind to")
                   .build();
   public static final PropertyKey HUB_AUTHENTICATION_API_KEY =
-          new Builder(Name.HUB_AUTHENTICATION_API_KEY)
+          stringBuilder(Name.HUB_AUTHENTICATION_API_KEY)
                   .setDescription("The API key of Hub manager.")
                   .setDisplayType(DisplayType.CREDENTIALS)
                   .build();
   public static final PropertyKey HUB_AUTHENTICATION_SECRET_KEY =
-          new Builder(Name.HUB_AUTHENTICATION_SECRET_KEY)
+          stringBuilder(Name.HUB_AUTHENTICATION_SECRET_KEY)
                   .setDescription("The secret key of Hub Manager.")
                   .setDisplayType(DisplayType.CREDENTIALS)
                   .build();
   public static final PropertyKey HUB_CLUSTER_ID =
-          new Builder(Name.HUB_CLUSTER_ID)
+          stringBuilder(Name.HUB_CLUSTER_ID)
                   .setDescription("A user-defined id for the Hub cluster. Must be unique from "
                           + "other Hub clusters connecting to the same Hosted Hub tenant. must be"
                           + " a 4-character string containing only lowercase letters (a-z)"
                           + "and digits (0-9).")
                   .build();
   public static final PropertyKey HUB_CLUSTER_LABEL =
-          new Builder(Name.HUB_CLUSTER_LABEL)
+          stringBuilder(Name.HUB_CLUSTER_LABEL)
                   .setDefaultValue("Alluxio Hub")
                   .setDescription("A user-defined label for the Hub cluster.")
                   .build();
@@ -6219,7 +6229,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The minimum number of threads used when scheduling tasks.")
                   .build();
   public static final PropertyKey HUB_MANAGER_PRESTO_CONF_PATH =
-          new Builder(Name.HUB_MANAGER_PRESTO_CONF_PATH)
+          stringBuilder(Name.HUB_MANAGER_PRESTO_CONF_PATH)
                   .setDefaultValue("/etc/presto/conf/")
                   .setDescription("The path to the presto configuration directory")
                   .build();
@@ -6230,13 +6240,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " of time, the manager will need to be restarted to register again.")
           .build();
   public static final PropertyKey HUB_MANAGER_RPC_HOSTNAME =
-          new Builder(Name.HUB_MANAGER_RPC_HOSTNAME)
+          stringBuilder(Name.HUB_MANAGER_RPC_HOSTNAME)
                   .setDescription("The hostname (or IP address) that agents should use to connect "
                            + "to the hub manager")
                   .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
                   .build();
   public static final PropertyKey HUB_MANAGER_RPC_BIND_HOST =
-          new Builder(Name.HUB_MANAGER_RPC_BIND_HOST)
+          stringBuilder(Name.HUB_MANAGER_RPC_BIND_HOST)
                   .setDefaultValue("0.0.0.0")
                   .setDescription("The host that the hub manager's RPC server should bind to")
                   .build();
@@ -6246,13 +6256,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("The port that the hub manager's RPC server should bind to")
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_HOSTNAME =
-          new Builder(Name.HUB_HOSTED_RPC_HOSTNAME)
+          stringBuilder(Name.HUB_HOSTED_RPC_HOSTNAME)
                   .setDescription("The hostname (or IP address) that managers should use to "
                           + "connect to the hosted hub")
                   .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_BIND_HOST =
-          new Builder(Name.HUB_HOSTED_RPC_BIND_HOST)
+          stringBuilder(Name.HUB_HOSTED_RPC_BIND_HOST)
                   .setDefaultValue("0.0.0.0")
                   .setDescription("The host that the hosted hub's RPC server should bind to")
                   .setIsHidden(true)
@@ -7561,11 +7571,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @ThreadSafe
   public enum Template {
-    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)", PropertyType.STRING),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
-        "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups"),
+        "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups",
+        PropertyType.STRING),
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
-        "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.users"),
+        "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.users",
+        PropertyType.STRING),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
@@ -7582,7 +7594,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         String.format("alluxio\\.master\\.zookeeper\\.address\\.%s\\.%s",
             NAMESERVICE_PATTERN_STRING, ZOOKEEPER_NODE_ID_PATTERN_STRING)),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
-        "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
+        "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio",
+        PropertyType.STRING),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
@@ -7595,37 +7608,44 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.shared",
         PropertyType.BOOLEAN),
     MASTER_MOUNT_TABLE_UFS("alluxio.master.mount.table.%s.ufs",
-        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs"),
+        "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.ufs",
+        PropertyType.STRING),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
-        "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
+        "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias",
+        PropertyType.STRING),
     UNDERFS_ABFS_ACCOUNT_KEY(
         "fs.azure.account.key.%s.dfs.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.window\\.net",
-        PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.dfs.core.windows.net")
+        PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.dfs.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
-        PropertyCreators.fromBuilder(new Builder("fs.azure.account.key.%s.blob.core.windows.net")
+        PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.blob.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_CLIENT_ID(
         "fs.adl.account.%s.oauth2.client.id",
-        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.client\\.id"),
+        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.client\\.id",
+        PropertyType.STRING),
     UNDERFS_AZURE_CLIENT_SECRET(
         "fs.adl.account.%s.oauth2.credential",
         "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.credential",
-        PropertyCreators.fromBuilder(new Builder("fs.adl.account.%s.oauth2.credential")
+        PropertyCreators.fromBuilder(stringBuilder("fs.adl.account.%s.oauth2.credential")
                 .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_REFRESH_URL(
         "fs.adl.account.%s.oauth2.refresh.url",
-        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.refresh\\.url"),
+        "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.refresh\\.url",
+        PropertyType.STRING),
     // TODO(binfan): use alluxio.worker.tieredstore.levelX.mediatype instead
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias",
+        PropertyType.STRING),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path"),
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path",
+        PropertyType.STRING),
     WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE("alluxio.worker.tieredstore.level%d.dirs.mediumtype",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.mediumtype"),
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.mediumtype",
+        PropertyType.STRING),
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(
@@ -7698,7 +7718,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // puts property creators in a nested class to avoid NPE in enum static initialization
     private static class PropertyCreators {
       private static final BiFunction<String, PropertyKey, PropertyKey> DEFAULT_PROPERTY_CREATOR =
-          fromBuilder(new Builder(""));
+          fromBuilder(stringBuilder(""));
       private static final BiFunction<String, PropertyKey, PropertyKey>
           NESTED_UFS_PROPERTY_CREATOR =
           createNestedPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
@@ -7713,7 +7733,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       private static BiFunction<String, PropertyKey, PropertyKey> createNestedPropertyCreator(
           Scope scope, ConsistencyCheckLevel consistencyCheckLevel) {
         return (name, baseProperty) -> {
-          Builder builder = new Builder(name)
+          PropertyType type = baseProperty == null ? PropertyType.STRING : baseProperty.mType;
+          Builder builder = new Builder(name, type)
               .setScope(scope)
               .setConsistencyCheckLevel(consistencyCheckLevel);
           if (baseProperty != null) {
@@ -8042,7 +8063,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static PropertyKey getOrBuildCustom(String name) {
     return DEFAULT_KEYS_MAP.computeIfAbsent(name,
         (key) -> {
-          final Builder propertyKeyBuilder = new Builder(key).setIsBuiltIn(false);
+          final Builder propertyKeyBuilder = stringBuilder(key).setIsBuiltIn(false);
           for (String customCredentialName : CUSTOM_CREDENTIAL_NAME_SUBSTR) {
             if (name.contains(customCredentialName)) {
               propertyKeyBuilder.setDisplayType(DisplayType.CREDENTIALS);

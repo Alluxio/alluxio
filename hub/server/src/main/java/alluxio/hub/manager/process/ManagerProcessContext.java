@@ -1188,7 +1188,7 @@ public class ManagerProcessContext implements AutoCloseable {
     String path = getUpdatedProps(configurationSetFor(AlluxioNodeType.MASTER))
             .getString(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH);
     return GetPrestoConfDirResponse.Payload.newBuilder().setConfDir(path).setIsDefault(
-            path.equals(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultStringValue())).build();
+            path.equals(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue())).build();
   }
 
   /**
@@ -1603,12 +1603,12 @@ public class ManagerProcessContext implements AutoCloseable {
             .allMatch(AgentSetPrestoConfResponse::getSuccess))) {
       return builder.setSuccess(true).setConfDir(confDir)
               .setIsDefault(confDir.equals(
-                      PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultStringValue())).build();
+                      PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue())).build();
     } else {
       String oldConfDir = getUpdatedProps(configurationSetFor(AlluxioNodeType.MASTER))
               .getString(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH);
       return builder.setSuccess(false).setConfDir(oldConfDir).setIsDefault(
-              oldConfDir.equals(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultStringValue()))
+              oldConfDir.equals(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
               .build();
     }
   }

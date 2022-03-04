@@ -45,8 +45,8 @@ public interface AuthenticationProvider {
         case SIMPLE:
           return new SimpleAuthenticationProvider();
         case CUSTOM:
-          String customProviderName =
-              conf.getString(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
+          Class<?> customProviderName =
+              conf.getClass(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
           return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType);

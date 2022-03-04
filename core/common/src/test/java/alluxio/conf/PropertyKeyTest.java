@@ -329,7 +329,7 @@ public final class PropertyKeyTest {
         .setDefaultValue(true)
         .setValueValidationFunction(booleanValidationFunction)
         .build();
-    assertThrows(IllegalStateException.class, () -> new Builder("test_boolean_property")
+    assertThrows(IllegalStateException.class, () -> intBuilder("test_boolean_property")
         .setDefaultValue(100)
         .setValueValidationFunction(booleanValidationFunction)
         .build());
