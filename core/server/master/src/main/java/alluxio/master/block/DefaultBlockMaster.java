@@ -108,6 +108,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -424,28 +425,36 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
+      AtomicInteger removedSessions = new AtomicInteger(0);
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
-        final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
-        if (lastUpdate < mTimeout) {
+        final long clockTime = mClock.millis();
+        final long lastActivityTime = context.getLastActivityTimeMs();
+        final long staleTime = clockTime - lastActivityTime;
+        if (staleTime < mTimeout) {
           return false;
         }
         String msg = String.format(
-            "Worker register stream hanging for more than %sms for worker %d!"
+            "ClockTime: %d, LastActivityTime: %d. Worker %d register stream hanging for %sms!"
                 + " Tune up %s if this is undesired.",
-            mTimeout, context.mWorker.getId(),
-            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
+            clockTime, lastActivityTime, context.mWorker.getId(), staleTime,
+            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
         Exception e = new TimeoutException(msg);
         try {
           context.closeWithError(e);
         } catch (Throwable t) {
+          t.addSuppressed(e);
           LOG.error("Failed to close an open register stream for worker {}. "
-              + "The stream has been open for {}ms.", context.getWorkerId(), lastUpdate, t);
+              + "The stream has been open for {}ms.", context.getWorkerId(), staleTime, t);
           // Do not remove the entry so this will be retried
           return false;
         }
+        removedSessions.getAndDecrement();
         return true;
       });
+      if (removedSessions.get() > 0) {
+        LOG.info("Removed {} stale worker registration streams", removedSessions.get());
+      }
     }
 
     @Override
@@ -1235,6 +1244,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
 
     return workerCommand;
+  }
+
+  @Override
+  public Clock getClock() {
+    return mClock;
   }
 
   private void processWorkerMetrics(String hostname, List<Metric> metrics) {
