@@ -37,8 +37,7 @@ public class ListAllMyBucketsResult {
   public ListAllMyBucketsResult(List<URIStatus> names) {
     mBuckets =
         names.stream().map((uriStatus) -> new Bucket(uriStatus.getName(),
-            LocalDateTime.ofEpochSecond(
-                uriStatus.getCreationTimeMs() / 1000L, 0, ZoneOffset.UTC).toString()))
+            S3RestUtils.toS3Date(uriStatus.getCreationTimeMs())))
             .collect(Collectors.toList());
   }
 
