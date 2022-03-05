@@ -22,18 +22,23 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.beust.jcommander.internal.Sets;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
@@ -314,7 +319,30 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
+    if (mFailedFiles.size()>0){
+      StringBuilder output = new StringBuilder();
+      output.append("Here's recent failed files: \n");
+      String dumpPath = "test.txt";
 
+
+      Iterator<String> iterator=mFailedFiles.iterator();
+      for (int i = 0; i < Math.min(20, mFailedFiles.size()); i++) {
+        String failure = iterator.next();
+        output.append(failure);
+        output.append(",\n");
+      }
+      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dumpPath))) {
+        for (String failure:
+            mFailedFiles) {
+          writer.write(String.format("%s%n", failure));
+        }
+
+      }
+
+
+      output.append(String.format("Check out %s for full list of failed files", dumpPath));
+      System.out.print(output.toString());
+    }
     return 0;
   }
 
@@ -341,5 +369,36 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   @Override
   public void close() throws IOException {
     mClient.close();
+  }
+
+  public static void main(String[] args) throws IOException {
+    Set<String> mFailedFiles = Sets.newHashSet();
+    mFailedFiles.add("/test/s");
+    mFailedFiles.add("/test/a");
+    mFailedFiles.add("/test/c");
+    if (mFailedFiles.size()>0){
+      StringBuilder output = new StringBuilder();
+      output.append("Here's recent failed files: \n");
+      String dumpPath = "test.txt";
+
+
+        Iterator<String> iterator=mFailedFiles.iterator();
+        for (int i = 0; i < Math.min(20, mFailedFiles.size()); i++) {
+          String failure = iterator.next();
+          output.append(failure);
+          output.append(",\n");
+        }
+      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dumpPath))) {
+        for (String failure:
+        mFailedFiles) {
+          writer.write(String.format("%s%n", failure));
+        }
+
+      }
+
+
+      output.append(String.format("Check out %s for full list of failed files", dumpPath));
+      System.out.print(output.toString());
+    }
   }
 }
