@@ -44,9 +44,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -261,8 +263,21 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public Set<String> getFailedFiles() {
+      if (getFailedTasks().isEmpty()) {
+        return Collections.singleton(mJobConfig.getSource());
+      }
+      return Collections.EMPTY_SET;
     }
 
     @Override
@@ -299,8 +314,23 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public Set<String> getFailedFiles() {
+      List<JobInfo> tasks = getFailedTasks();
+      Set<String> files = new HashSet<>();
+      for (JobInfo task : tasks) {
+        files.add(task.getDescription());
+      }
+      return files;
     }
 
     @Override

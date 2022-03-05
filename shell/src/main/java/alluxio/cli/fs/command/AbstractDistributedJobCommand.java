@@ -22,6 +22,7 @@ import alluxio.worker.job.JobMasterClientContext;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -37,13 +38,14 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
   protected final JobMasterClient mClient;
   private int mFailedCount;
   private int mCompletedCount;
+  protected Set<String> mFailedFiles;
 
   protected AbstractDistributedJobCommand(FileSystemContext fsContext) {
     super(fsContext);
     mSubmittedJobAttempts = Lists.newArrayList();
     final ClientContext clientContext = mFsContext.getClientContext();
-    mClient = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(clientContext).build());
+    mClient =
+        JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());
     mActiveJobs = DEFAULT_ACTIVE_JOBS;
     mFailedCount = 0;
     mCompletedCount = 0;
@@ -69,11 +71,14 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
             return true;
           case CANCELED:
           case COMPLETED:
-            mCompletedCount++;
+            mCompletedCount += jobAttempt.getSize();
             removed.set(true);
             return false;
           case FAILED:
-            mFailedCount++;
+            Set<String> failedFiles = jobAttempt.getFailedFiles();
+            mCompletedCount += (jobAttempt.getSize() - failedFiles.size());
+            mFailedCount += failedFiles.size();
+            mFailedFiles.addAll(failedFiles);
             removed.set(true);
             return false;
           default:
@@ -89,6 +94,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
 
   /**
    * Gets the number of failed jobs.
+   * 
    * @return number of failed jobs
    */
   public int getFailedCount() {
@@ -97,6 +103,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
 
   /**
    * Gets the number of completed jobs.
+   * 
    * @return the number of completed job
    */
   public int getCompletedCount() {

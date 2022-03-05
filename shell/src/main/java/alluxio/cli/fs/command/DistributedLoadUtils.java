@@ -31,11 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +50,7 @@ public final class DistributedLoadUtils {
 
   /**
    * Distributed loads a file or directory in Alluxio space, makes it resident in memory.
+   * 
    * @param command The command to execute loading
    * @param pool The pool for batched jobs
    * @param batchSize size for batched jobs
@@ -68,7 +71,7 @@ public final class DistributedLoadUtils {
         excludedLocalityIds, directCache, printOut);
     // add all the jobs left in the pool
     if (pool.size() > 0) {
-      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
+      addJob(command, pool, batchSize, replication, workerSet, excludedWorkerSet, localityIds,
           excludedLocalityIds, directCache, printOut);
       pool.clear();
     }
@@ -115,7 +118,7 @@ public final class DistributedLoadUtils {
         }
         pool.add(uriStatus);
         if (pool.size() == batchSize) {
-          addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
+          addJob(command, pool, batchSize, replication, workerSet, excludedWorkerSet, localityIds,
               excludedLocalityIds, directCache, printOut);
           pool.clear();
         }
@@ -128,31 +131,33 @@ public final class DistributedLoadUtils {
   }
 
   private static void addJob(AbstractDistributedJobCommand command, List<URIStatus> statuses,
-      int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+      int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
       Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
     if (command.mSubmittedJobAttempts.size() >= command.mActiveJobs) {
       // Wait one job to complete.
       command.waitJob();
     }
-    command.mSubmittedJobAttempts.add(newJob(command, statuses, replication, workerSet,
+    command.mSubmittedJobAttempts.add(newJob(command, statuses, batchSize, replication, workerSet,
         excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut));
   }
 
   /**
    * Creates a new job to load a file in Alluxio space, makes it resident in memory.
+   * 
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+   * @param batchSize
    * @param replication The replication of file to load into Alluxio memory
    * @param directCache
    * @param printOut whether print out progress in console
    */
   private static JobAttempt newJob(AbstractDistributedJobCommand command, List<URIStatus> filePath,
-      int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+      int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
       Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
-    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication, workerSet,
-        excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut);
+    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, batchSize, replication,
+        workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut);
     jobAttempt.run();
     return jobAttempt;
   }
@@ -166,8 +171,21 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public Set<String> getFailedFiles() {
+      if (getFailedTasks().isEmpty()) {
+        return Collections.singleton(mJobConfig.getFilePath());
+      }
+      return Collections.EMPTY_SET;
     }
 
     @Override
@@ -198,8 +216,21 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public Set<String> getFailedFiles() {
+      if (getFailedTasks().isEmpty()) {
+        return Collections.singleton(mJobConfig.getFilePath());
+      }
+      return Collections.EMPTY_SET;
     }
 
     @Override
@@ -223,12 +254,27 @@ public final class DistributedLoadUtils {
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
           .collect(Collectors.joining(","));
       mFilesPathString = String.format("[%s]", StringUtils.abbreviate(pathString, 80));
-      System.out.printf("files: %s" + " loading", mFilesPathString);
+      System.out.printf("files: %s" + " loading%n", mFilesPathString);
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public Set<String> getFailedFiles() {
+      List<JobInfo> tasks = getFailedTasks();
+      Set<String> files = new HashSet<>();
+      for (JobInfo task : tasks) {
+        files.add(task.getDescription());
+      }
+      return files;
     }
 
     @Override
@@ -260,8 +306,23 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public Set<String> getFailedFiles() {
+      List<JobInfo> tasks = getFailedTasks();
+      Set<String> files = new HashSet<>();
+      for (JobInfo task : tasks) {
+        files.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+      }
+      return files;
     }
 
     @Override
@@ -280,8 +341,10 @@ public final class DistributedLoadUtils {
   public static class LoadJobAttemptFactory {
     /**
      * Loads a file or directory in Alluxio space, makes it resident in memory.
+     * 
      * @param command The command to execute loading
      * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+     * @param batchSize
      * @param replication Number of block replicas of each loaded file
      * @param workerSet A set of worker hosts to load data
      * @param excludedWorkerSet A set of worker hosts can not to load data
@@ -292,12 +355,11 @@ public final class DistributedLoadUtils {
      * @return specific load job attempt
      **/
     public static JobAttempt create(AbstractDistributedJobCommand command, List<URIStatus> filePath,
-        int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+        int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
         Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
         boolean printOut) {
-      int poolSize = filePath.size();
       JobAttempt jobAttempt;
-      if (poolSize == 1) {
+      if (batchSize <= 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
             workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
         if (printOut) {

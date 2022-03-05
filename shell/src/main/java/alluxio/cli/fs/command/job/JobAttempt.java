@@ -21,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for handling submission for a job.
@@ -32,6 +35,7 @@ public abstract class JobAttempt {
   protected final RetryPolicy mRetryPolicy;
 
   private Long mJobId;
+  private List<JobInfo> mFailedTasks;
 
   protected JobAttempt(JobMasterClient client, RetryPolicy retryPolicy) {
     mClient = client;
@@ -87,10 +91,20 @@ public abstract class JobAttempt {
         break;
       }
     }
-
+    List<JobInfo> children;
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
+//        List<JobInfo> children;
+        try {
+           children = mClient.getJobStatusDetailed(mJobId).getChildren();
+        } catch (IOException e) {
+          LOG.warn("Failed to get detailed children status for job (jobId={})", mJobId, e);
+          return jobInfo.getStatus();
+        }
         logFailedAttempt(jobInfo);
+
+        mFailedTasks = children.stream().filter(child -> child.getStatus() == Status.FAILED)
+            .collect(Collectors.toList());
       } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
         logCompleted();
       }
@@ -98,9 +112,14 @@ public abstract class JobAttempt {
     }
     return Status.RUNNING;
   }
+  public abstract JobConfig getJobConfig();
 
-  protected abstract JobConfig getJobConfig();
+  public abstract int getSize();
 
+  public List<JobInfo> getFailedTasks() {
+    return mFailedTasks;
+  }
+  public abstract Set<String> getFailedFiles();
   protected abstract void logFailedAttempt(JobInfo jobInfo);
 
   protected abstract void logFailed();

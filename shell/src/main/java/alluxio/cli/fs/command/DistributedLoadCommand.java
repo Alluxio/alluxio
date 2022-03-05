@@ -28,8 +28,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -309,8 +311,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         }
       }
     }
+
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
+
     return 0;
   }
 
