@@ -316,30 +316,23 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         }
       }
     }
-
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
-    if (mFailedFiles.size()>0){
+    if (mFailedFiles.size() > 0) {
       StringBuilder output = new StringBuilder();
       output.append("Here's recent failed files: \n");
-      String dumpPath = "test.txt";
-
-
-      Iterator<String> iterator=mFailedFiles.iterator();
+      String dumpPath = "/logs/user/distributedLoad_failures.txt";
+      Iterator<String> iterator = mFailedFiles.iterator();
       for (int i = 0; i < Math.min(20, mFailedFiles.size()); i++) {
         String failure = iterator.next();
         output.append(failure);
         output.append(",\n");
       }
       try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dumpPath))) {
-        for (String failure:
-            mFailedFiles) {
+        for (String failure : mFailedFiles) {
           writer.write(String.format("%s%n", failure));
         }
-
       }
-
-
       output.append(String.format("Check out %s for full list of failed files", dumpPath));
       System.out.print(output.toString());
     }
@@ -369,36 +362,5 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   @Override
   public void close() throws IOException {
     mClient.close();
-  }
-
-  public static void main(String[] args) throws IOException {
-    Set<String> mFailedFiles = Sets.newHashSet();
-    mFailedFiles.add("/test/s");
-    mFailedFiles.add("/test/a");
-    mFailedFiles.add("/test/c");
-    if (mFailedFiles.size()>0){
-      StringBuilder output = new StringBuilder();
-      output.append("Here's recent failed files: \n");
-      String dumpPath = "test.txt";
-
-
-        Iterator<String> iterator=mFailedFiles.iterator();
-        for (int i = 0; i < Math.min(20, mFailedFiles.size()); i++) {
-          String failure = iterator.next();
-          output.append(failure);
-          output.append(",\n");
-        }
-      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dumpPath))) {
-        for (String failure:
-        mFailedFiles) {
-          writer.write(String.format("%s%n", failure));
-        }
-
-      }
-
-
-      output.append(String.format("Check out %s for full list of failed files", dumpPath));
-      System.out.print(output.toString());
-    }
   }
 }
