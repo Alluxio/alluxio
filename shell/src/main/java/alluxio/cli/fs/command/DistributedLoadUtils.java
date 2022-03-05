@@ -71,7 +71,7 @@ public final class DistributedLoadUtils {
         excludedLocalityIds, directCache, printOut);
     // add all the jobs left in the pool
     if (pool.size() > 0) {
-      addJob(command, pool, batchSize, replication, workerSet, excludedWorkerSet, localityIds,
+      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
           excludedLocalityIds, directCache, printOut);
       pool.clear();
     }
@@ -118,7 +118,7 @@ public final class DistributedLoadUtils {
         }
         pool.add(uriStatus);
         if (pool.size() == batchSize) {
-          addJob(command, pool, batchSize, replication, workerSet, excludedWorkerSet, localityIds,
+          addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
               excludedLocalityIds, directCache, printOut);
           pool.clear();
         }
@@ -131,14 +131,14 @@ public final class DistributedLoadUtils {
   }
 
   private static void addJob(AbstractDistributedJobCommand command, List<URIStatus> statuses,
-      int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+      int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
       Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
     if (command.mSubmittedJobAttempts.size() >= command.mActiveJobs) {
       // Wait one job to complete.
       command.waitJob();
     }
-    command.mSubmittedJobAttempts.add(newJob(command, statuses, batchSize, replication, workerSet,
+    command.mSubmittedJobAttempts.add(newJob(command, statuses, replication, workerSet,
         excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut));
   }
 
@@ -147,16 +147,15 @@ public final class DistributedLoadUtils {
    * 
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-   * @param batchSize
    * @param replication The replication of file to load into Alluxio memory
    * @param directCache
    * @param printOut whether print out progress in console
    */
   private static JobAttempt newJob(AbstractDistributedJobCommand command, List<URIStatus> filePath,
-      int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+      int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
       Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
-    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, batchSize, replication,
+    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication,
         workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut);
     jobAttempt.run();
     return jobAttempt;
@@ -344,7 +343,6 @@ public final class DistributedLoadUtils {
      * 
      * @param command The command to execute loading
      * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-     * @param batchSize
      * @param replication Number of block replicas of each loaded file
      * @param workerSet A set of worker hosts to load data
      * @param excludedWorkerSet A set of worker hosts can not to load data
@@ -355,11 +353,11 @@ public final class DistributedLoadUtils {
      * @return specific load job attempt
      **/
     public static JobAttempt create(AbstractDistributedJobCommand command, List<URIStatus> filePath,
-        int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
+        int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
         Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
         boolean printOut) {
       JobAttempt jobAttempt;
-      if (batchSize <= 1) {
+      if (filePath.size() == 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
             workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
         if (printOut) {
