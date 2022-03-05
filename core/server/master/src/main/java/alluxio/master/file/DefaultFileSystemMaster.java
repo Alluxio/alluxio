@@ -1843,6 +1843,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mMountTable.checkUnderWritableMountPoint(path);
+        if (!inodePath.fullPathExists()) {
+          throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
+              .getMessage(path));
+        }
+
         if (context.getOptions().getRecursive()) {
           List<String> failedChildren = new ArrayList<>();
           try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
@@ -1864,12 +1870,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             auditContext.setAllowed(false);
             throw e;
           }
-        }
-        mMountTable.checkUnderWritableMountPoint(path);
-
-        if (!inodePath.fullPathExists()) {
-          throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
-              .getMessage(path));
         }
 
         deleteInternal(rpcContext, inodePath, context);
@@ -2010,14 +2010,28 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
 
       if (!failedUris.isEmpty()) {
-        Collection<String> messages = failedUris.stream()
-            .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
-            .collect(Collectors.toList());
-        throw new FailedPreconditionException(
-            ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
+        throw new FailedPreconditionException(buildDeleteFailureMessage(failedUris));
       }
     }
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
+  }
+
+  private String buildDeleteFailureMessage(List<Pair<String, String>> failedUris) {
+    StringBuilder errorReport = new StringBuilder(
+        ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths: "));
+    boolean trim = !LOG.isDebugEnabled() && failedUris.size() > 20;
+    for (int i = 0; i < (trim ? 20 : failedUris.size()); i++) {
+      if (i > 0) {
+        errorReport.append(", ");
+      }
+      Pair<String, String> pathAndError = failedUris.get(i);
+      errorReport.append(String.format("%s (%s)",
+          pathAndError.getFirst(), pathAndError.getSecond()));
+    }
+    if (trim) {
+      errorReport.append("...(only 20 errors shown)");
+    }
+    return errorReport.toString();
   }
 
   @Override
