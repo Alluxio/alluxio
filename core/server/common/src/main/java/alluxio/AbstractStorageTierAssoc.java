@@ -11,16 +11,16 @@
 
 package alluxio;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableBiMap;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -93,6 +93,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
   }
 
   @Override
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public int getOrdinal(String alias) {
     return mAliasToOrdinal.get(alias);
   }

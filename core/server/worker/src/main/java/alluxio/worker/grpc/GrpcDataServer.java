@@ -12,14 +12,18 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.ServiceType;
+import alluxio.executor.ExecutorServiceBuilder;
+import alluxio.master.AlluxioExecutorService;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.network.NettyUtils;
@@ -40,7 +44,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -58,6 +61,8 @@ public final class GrpcDataServer implements DataServer {
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
   private final long mKeepAliveTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
+  private final long mPermitKeepAliveTimeMs =
+      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS);
   private final long mFlowControlWindow =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mMaxInboundMessageSize =
@@ -70,6 +75,8 @@ public final class GrpcDataServer implements DataServer {
   private GrpcServer mServer;
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
+
+  private AlluxioExecutorService mRPCExecutor = null;
 
   private final FileSystemContext mFsContext =
       FileSystemContext.create(ServerConfiguration.global());
@@ -103,6 +110,7 @@ public final class GrpcDataServer implements DataServer {
           .flowControlWindow((int) mFlowControlWindow)
           .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
           .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
+          .permitKeepAlive(mPermitKeepAliveTimeMs, TimeUnit.MILLISECONDS)
           .maxInboundMessageSize((int) mMaxInboundMessageSize)
           .build()
           .start();
@@ -117,9 +125,16 @@ public final class GrpcDataServer implements DataServer {
 
   private GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
-    GrpcServerBuilder builder =
-        GrpcServerBuilder.forAddress(GrpcServerAddress.create(hostName, bindAddress),
-            ServerConfiguration.global(), ServerUserState.global());
+    // Create an executor for Worker RPC server.
+    mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
+            ExecutorServiceBuilder.RpcExecutorHost.WORKER);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_QUEUE_LENGTH.getName(),
+            mRPCExecutor::getRpcQueueLength);
+    // Create underlying gRPC server.
+    GrpcServerBuilder builder = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create(hostName, bindAddress),
+            ServerConfiguration.global(), ServerUserState.global())
+        .executor(mRPCExecutor);
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
@@ -169,6 +184,16 @@ public final class GrpcDataServer implements DataServer {
           .awaitUninterruptibly(mTimeoutMs);
       if (!completed) {
         LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
+      }
+    }
+    if (mRPCExecutor != null) {
+      mRPCExecutor.shutdownNow();
+      try {
+        mRPCExecutor.awaitTermination(
+            ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
+            TimeUnit.MILLISECONDS);
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
       }
     }
   }

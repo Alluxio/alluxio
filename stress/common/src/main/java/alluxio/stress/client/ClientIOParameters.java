@@ -49,7 +49,7 @@ public final class ClientIOParameters extends FileSystemParameters {
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
-  public String mBasePath = "alluxio://localhost:19998/stress-client-io-base";
+  public String mBasePath = "alluxio:///stress-client-io-base";
 
   @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription
@@ -106,6 +106,7 @@ public final class ClientIOParameters extends FileSystemParameters {
 
   /**
    * @return ClientIOOperation of this bench
+   *
    * Converts from String to ClientIOOperation instance.
    */
   public static class ClientIOOperationConverter implements IStringConverter<ClientIOOperation> {

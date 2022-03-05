@@ -11,10 +11,10 @@
 
 package alluxio.web;
 
-import alluxio.client.file.FileSystem;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 

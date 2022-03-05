@@ -115,7 +115,8 @@ public final class RpcUtils {
     String debugDesc = logger.isDebugEnabled() ? String.format(description,
         processObjects(logger, args)) : null;
     try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
-        Metrics.TOTAL_RPCS, MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
+        MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T res = callable.call();
@@ -143,7 +144,9 @@ public final class RpcUtils {
         }
       }
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
-    } catch (RuntimeException e) {
+    } catch (RuntimeException | LinkageError e) {
+      // Linkage error can happen when ufs libraries are improperly included or classloaded,
+      // right now those simply fail silently.
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
@@ -170,7 +173,8 @@ public final class RpcUtils {
       String methodName, boolean sendResponse, boolean completeResponse,
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc = logger.isDebugEnabled() ? String.format(description,
+        processObjects(logger, args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
@@ -253,11 +257,5 @@ public final class RpcUtils {
      * @param throwable the exception
      */
     void exceptionCaught(Throwable throwable);
-  }
-
-  private static final class Metrics {
-    /** RPC throughput. */
-    private static final Timer TOTAL_RPCS =
-        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName());
   }
 }

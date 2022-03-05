@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.cli.ValidationUtils.State;
 import alluxio.cli.hms.CreateHmsClientValidationTask;
 import alluxio.cli.hms.DatabaseValidationTask;
-import alluxio.cli.hms.UriCheckTask;
 import alluxio.cli.hms.TableValidationTask;
+import alluxio.cli.hms.UriCheckTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

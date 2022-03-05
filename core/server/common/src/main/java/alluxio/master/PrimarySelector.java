@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.interfaces.Scoped;
 
 import java.io.IOException;
@@ -30,8 +30,8 @@ public interface PrimarySelector {
   enum State {
     /** The current process is primary. */
     PRIMARY,
-    /** The current process is secondary. */
-    SECONDARY,
+    /** The current process is standby. */
+    STANDBY,
   }
 
   /**

@@ -80,7 +80,7 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
       // 3. The command is wrong.
       // We choose to tolerate the error state due since we cannot correct state 1 or 2.
       if (cr.getExitCode() != 0) {
-        LOG.warn("Command %s failed with exit code %d", cmdName, cr.getExitCode());
+        LOG.warn("Command {} failed with exit code {}", cmdName, cr.getExitCode());
       }
     }
 

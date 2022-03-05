@@ -620,7 +620,7 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
-    String rootDir = mPageStoreOptions.getRootDir();
+    String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
@@ -636,7 +636,7 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
-    String rootDir = mPageStoreOptions.getRootDir();
+    String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
@@ -651,7 +651,7 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
-    String rootDir = mPageStoreOptions.getRootDir();
+    String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
     try {
@@ -671,7 +671,7 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
-    String rootDir = mPageStoreOptions.getRootDir();
+    String rootDir = mPageStoreOptions.getRootDirs().get(0).toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
     rootParent.setWritable(false);

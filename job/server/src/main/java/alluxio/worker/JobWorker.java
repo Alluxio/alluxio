@@ -12,12 +12,12 @@
 package alluxio.worker;
 
 import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.Server;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.Server;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

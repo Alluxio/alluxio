@@ -32,7 +32,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -87,7 +86,7 @@ public final class EnvironmentUtils {
   public static String getEC2ProductCode() {
     try {
       List<String> productCodes = EC2MetadataUtils.getProductCodes();
-      if (productCodes.size() < 1) {
+      if (productCodes == null || productCodes.size() < 1) {
         return "";
       }
       return productCodes.get(0);

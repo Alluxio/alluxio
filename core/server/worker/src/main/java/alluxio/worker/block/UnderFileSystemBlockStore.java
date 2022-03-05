@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -245,6 +244,18 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
             mLocalBlockStore, mUfsManager, mUfsInstreamCache, user);
     blockInfo.setBlockReader(reader);
     return reader;
+  }
+
+  /**
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @return true if mNoCache is set
+   */
+  public boolean isNoCache(long sessionId, long blockId) {
+    Key key = new Key(sessionId, blockId);
+    BlockInfo blockInfo = mBlocks.get(key);
+    UnderFileSystemBlockMeta mMeta = blockInfo.getMeta();
+    return mMeta.isNoCache();
   }
 
   /**

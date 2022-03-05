@@ -119,6 +119,9 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     /** Errors when deleting pages. */
     private static final Counter DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_ERRORS.getName());

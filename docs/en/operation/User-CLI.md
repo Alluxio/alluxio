@@ -416,7 +416,7 @@ $ ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
 $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
-  -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key> \
+  -Ds3a.accessKeyId=<access_key> -Ds3a.secretKey=<secret_key> \
   -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
@@ -821,7 +821,8 @@ Options:
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
-
+* `--overwrite`: Whether to overwrite the destination. Default is true.
+* `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ```
@@ -840,6 +841,7 @@ Options:
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
+* `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
 * `--host-file <host-file>`: Specifies a file contains worker hosts to load target data, each line has a worker host.
 * `--hosts`: Specifies a list of worker hosts separated by comma to load target data.
 * `--excluded-host-file <host-file>`: Specifies a file contains worker hosts which shouldn't load target data, each line has a worker host.
@@ -849,6 +851,7 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality-file <locality-file>`: Specifies a file contains worker locality which shouldn't load target data, each line has a worker locality.
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
+* `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
@@ -1155,8 +1158,8 @@ For example, `mount` can be used to make data in another storage system availabl
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId> \
-  --option aws.secretKey=<secretKey> \
+  --option s3a.accessKeyId=<accessKeyId> \
+  --option s3a.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
 ```
 
@@ -1495,20 +1498,20 @@ option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{s3a://bucket1}.aws.accessKeyId=abc \
-  -o udb-hive.mount.option.{s3a://bucket2}.aws.accessKeyId=123
+  -o udb-hive.mount.option.{s3a://bucket1}.s3a.accessKeyId=abc \
+  -o udb-hive.mount.option.{s3a://bucket2}.s3a.accessKeyId=123
 ```
 
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
-When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
-and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+When paths are mounted for `s3a://bucket1`, the mount option `s3a.accessKeyId=abc` will be used,
+and when paths are mounted for `s3a://bucket2`, the mount option `s3a.accessKeyId=123` will be used.
 
 Or using regex expression if the options are same the two buckets.
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
+  -o udb-hive.mount.option.{regex:s3a://bucket.*}.s3a.accessKeyId=abc
 ```
 
 Besides mount options, there are some additional properties with the `-o` options:

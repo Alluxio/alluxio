@@ -19,6 +19,8 @@ import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.master.journal.JournalType;
@@ -28,11 +30,10 @@ import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
-import alluxio.grpc.GrpcChannel;
-import alluxio.grpc.GrpcChannelBuilder;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -107,6 +108,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     mCluster.notifySuccess();
   }
 
+  @Ignore // cannot guarantee `assertNotEquals(leaderIdx, leaderIdx2);`
   @Test
   public void zkConnectionPolicy_Standard() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_CONNECTION_POLICY_STANDARD)
@@ -164,6 +166,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
 
     return primaryIndex.get();
   }
+
   /*
    * This method uses a client with an explicit master address to ensure that the master has shut
    * down its rpc service.

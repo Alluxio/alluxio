@@ -13,14 +13,12 @@ package alluxio.security.authorization;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.grpc.Bits;
 import alluxio.grpc.PMode;
 
 import com.google.common.base.Preconditions;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 

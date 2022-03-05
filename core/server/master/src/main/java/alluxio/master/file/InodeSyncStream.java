@@ -94,7 +94,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 /**
@@ -114,10 +113,10 @@ import javax.annotation.Nullable;
  * while performing a sync for a large tree. Additionally, by using a prefetch mechanism we can
  * concurrently process other inodes while waiting for UFS RPCs to complete.
  *
- * With regards to locking, this class expects to be able to take a write lock on any inode, and
+ * With regard to locking, this class expects to be able to take a write lock on any inode, and
  * then subsequently downgrades or unlocks after the sync is finished. Even though we use
  * {@link java.util.concurrent.locks.ReentrantReadWriteLock}, because we concurrently process
- * inodes on separate threads, we cannot utilize the reetrnant behavior. The implications of
+ * inodes on separate threads, we cannot utilize the reentrant behavior. The implications of
  * that mean the caller of this class must not hold a write while calling {@link #sync()}.
  *
  * A user of this class is expected to create a new instance for each path that they would like
@@ -212,7 +211,7 @@ public class InodeSyncStream {
    * {@link LockPattern#READ}.
    *
    * It is an error to initiate sync without a WRITE_EDGE lock when loadOnly is {@code false}.
-   * If loadOnly is set to {@code true}, then the the root path may have a read lock.
+   * If loadOnly is set to {@code true}, then the root path may have a read lock.
    *
    * @param rootPath The root path to begin syncing
    * @param fsMaster the {@link FileSystemMaster} calling this method
@@ -292,7 +291,7 @@ public class InodeSyncStream {
   }
 
   /**
-   * Sync the metadata according the the root path the stream was created with.
+   * Sync the metadata according the root path the stream was created with.
    *
    * @return SyncStatus object
    */
@@ -315,16 +314,7 @@ public class InodeSyncStream {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
       }
-      try {
-        if (mPermissionCheckOperation != null) {
-          mPermissionCheckOperation.accept(path, mFsMaster.getPermissionChecker());
-        }
-      } catch (AccessControlException e) {
-        if (mAuditContext != null) {
-          mAuditContext.setAllowed(false);
-        }
-        throw e;
-      }
+
       syncInodeMetadata(path);
       syncPathCount++;
       if (mDescendantType == DescendantType.ONE) {
@@ -735,6 +725,7 @@ public class InodeSyncStream {
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
+    int failedSync = 0;
     try {
       if (context.getUfsStatus() == null) {
         // uri does not exist in ufs
@@ -788,8 +779,15 @@ public class InodeSyncStream {
               loadMetadata(descendant, loadMetadataContext);
             } catch (FileNotFoundException e) {
               LOG.debug("Failed to loadMetadata because file is not in ufs:"
-                      + " inodePath={}, options={}.",
+                  + " inodePath={}, options={}.",
                   childURI, loadMetadataContext, e);
+            } catch (BlockInfoException | FileAlreadyCompletedException
+                | FileDoesNotExistException | InvalidFileSizeException
+                | IOException e) {
+              LOG.debug("Failed to loadMetadata because the ufs file or directory"
+                  + " is {}, options={}.",
+                  childStatus, loadMetadataContext, e);
+              failedSync++;
             }
           }
           mInodeTree.setDirectChildrenLoaded(mRpcContext, inodePath.getInode().asDirectory());
@@ -799,6 +797,10 @@ public class InodeSyncStream {
       LOG.debug("Failed to loadMetadata: inodePath={}, context={}.", inodePath.getUri(), context,
           e);
       throw new IOException(e);
+    }
+    if (failedSync > 0) {
+      throw new IOException(String.format("Failed to load metadata of %s files or directories "
+          + "under %s", failedSync, path));
     }
   }
 
@@ -841,7 +843,7 @@ public class InodeSyncStream {
       }
     }
     for (Pair<Integer, MutableInodeFile> pair : fileEntryMap.values()) {
-      // Replace the old entry place holder with the new entry,
+      // Replace the old entry placeholder with the new entry,
       // to create the file in the same place in the journal
       newEntries.set(pair.getFirst(),
           pair.getSecond().toJournalEntry());
@@ -925,6 +927,7 @@ public class InodeSyncStream {
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
          MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
+             writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
       RpcContext wrapRpcContext = new RpcContext(

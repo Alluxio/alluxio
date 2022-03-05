@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
@@ -29,22 +30,19 @@ import java.util.stream.Collectors;
 /**
  * The summary for the worker stress tests.
  */
-public final class WorkerBenchSummary implements Summary {
+public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTaskResult> {
   private WorkerBenchParameters mParameters;
 
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
-  private List<String> mNodes;
-  private Map<String, List<String>> mErrors;
 
   /**
    * Creates an instance.
    */
   public WorkerBenchSummary() {
     // Default constructor required for json deserialization
-    mNodes = new ArrayList<>();
-    mErrors = new HashMap<>();
+    mNodeResults = new HashMap<>();
   }
 
   /**
@@ -52,16 +50,15 @@ public final class WorkerBenchSummary implements Summary {
    *
    * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
-   * @param errors the list of errors
    */
-  public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults, List<String> nodes,
-      Map<String, List<String>> errors) {
+  public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults,
+      Map<String, WorkerBenchTaskResult> nodes) {
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();
     mParameters = mergedTaskResults.getParameters();
-    mNodes = nodes;
-    mErrors = errors;
+    mNodeResults = nodes;
+    mThroughput = getIOMBps();
   }
 
   /**
@@ -107,34 +104,6 @@ public final class WorkerBenchSummary implements Summary {
   }
 
   /**
-   * @return the list of nodes
-   */
-  public List<String> getNodes() {
-    return mNodes;
-  }
-
-  /**
-   * @param nodes the list of nodes
-   */
-  public void setNodes(List<String> nodes) {
-    mNodes = nodes;
-  }
-
-  /**
-   * @return the errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
-  }
-
-  /**
    * @return the end time (in ms)
    */
   public long getEndTimeMs() {
@@ -160,16 +129,6 @@ public final class WorkerBenchSummary implements Summary {
    */
   public void setIOBytes(long IOBytes) {
     mIOBytes = IOBytes;
-  }
-
-  private List<String> collectErrors() {
-    List<String> errors = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
-      // add all the errors for this node, with the node appended to prefix
-      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
-          .collect(Collectors.toList()));
-    }
-    return errors;
   }
 
   @Override
@@ -221,7 +180,7 @@ public final class WorkerBenchSummary implements Summary {
           if (value == null) {
             value = new HashMap<>();
           }
-          int totalThreads = summary.getNodes().size() * summary.getParameters().mThreads;
+          int totalThreads = summary.getNodeResults().size() * summary.getParameters().mThreads;
           value.put(totalThreads, summary.getIOMBps());
           return value;
         });
@@ -231,7 +190,7 @@ public final class WorkerBenchSummary implements Summary {
           if (value == null) {
             value = new ArrayList<>();
           }
-          value.addAll(summary.collectErrors());
+          value.addAll(summary.collectErrorsFromAllNodes());
           return value;
         });
       }

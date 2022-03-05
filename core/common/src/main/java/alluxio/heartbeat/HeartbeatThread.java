@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -125,5 +124,14 @@ public final class HeartbeatThread implements Runnable {
     } finally {
       mExecutor.close();
     }
+  }
+
+  /**
+   * Updates the heartbeat interval.
+   *
+   * @param intervalMs the heartbeat interval in ms
+   */
+  public void updateIntervalMs(long intervalMs) {
+    mTimer.setIntervalMs(intervalMs);
   }
 }

@@ -120,7 +120,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
     } catch (Exception e) {
       LOG.warn("Failed to close {} backup-worker connections. Error: {}", closeFutures.size(), e);
     }
-    // Reset existing stand-by connections.
+    // Reset existing standby connections.
     mBackupWorkerConnections.clear();
     mBackupWorkerHostNames.clear();
     // Cancel ongoing local backup task.

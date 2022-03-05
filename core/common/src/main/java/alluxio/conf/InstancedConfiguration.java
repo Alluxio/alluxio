@@ -34,7 +34,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -192,7 +191,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param value the value for the key
    */
   public void set(PropertyKey key, Object value) {
-    set(key, String.valueOf(value), Source.RUNTIME);
+    set(key, value, Source.RUNTIME);
   }
 
   /**
@@ -203,11 +202,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
-    Preconditions.checkArgument(key != null && value != null && !value.equals(""),
-        String.format("The key value pair (%s, %s) cannot be null", key, value));
     Preconditions.checkArgument(!value.equals(""),
-        String.format("The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key));
+        "The key \"%s\" cannot be have an empty string as a value. Use "
+            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+    Preconditions.checkState(key.validateValue(value),
+        "Invalid valid for property key %s: %s", key, value);
     mProperties.put(key, String.valueOf(value), source);
   }
 
@@ -289,12 +288,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public boolean getBoolean(PropertyKey key) {
     String rawValue = get(key);
-
-    if (rawValue.equalsIgnoreCase("true")) {
-      return true;
-    } else if (rawValue.equalsIgnoreCase("false")) {
-      return false;
-    } else {
+    try {
+      return FormatUtils.parseBoolean(rawValue);
+    } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(rawValue, key));
     }
   }

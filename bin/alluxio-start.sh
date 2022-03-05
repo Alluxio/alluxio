@@ -25,6 +25,8 @@ Where ACTION is one of:
   master                    \tStart the local master on this node.
   secondary_master          \tStart the local secondary master on this node.
   masters                   \tStart masters on master nodes.
+  hub_agent                 \tStart the local hub_agent.
+  hub_manager               \tStart the hub manager.
   proxy                     \tStart the proxy on this node.
   proxies                   \tStart proxies on master and worker nodes.
   safe                      \tScript will run continuously and start the master if it's not running.
@@ -245,6 +247,18 @@ start_masters() {
   ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "-a" "master" $1
 }
 
+start_hub_agent() {
+    echo "Starting hub agent @ $(hostname -f)."
+    (ALLUXIO_HUB_AGENT_LOGS_DIR="${ALLUXIO_HUB_AGENT_LOGS_DIR}" \
+    nohup ${BIN}/launch-process hub_agent > ${ALLUXIO_LOGS_DIR}/hub_agent.out 2>&1) &
+}
+
+start_hub_manager() {
+    echo "Starting hub manager @ $(hostname -f)."
+    (ALLUXIO_HUB_MANAGER_LOGS_DIR="${ALLUXIO_HUB_MANAGER_LOGS_DIR}" \
+    nohup ${BIN}/launch-process hub_manager > ${ALLUXIO_LOGS_DIR}/hub_manager.out 2>&1) &
+}
+
 start_proxy() {
   echo "Starting proxy @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (nohup ${BIN}/launch-process proxy > ${ALLUXIO_LOGS_DIR}/proxy.out 2>&1) &
@@ -316,8 +330,7 @@ start_worker() {
   fi
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_WORKER_JAVA_OPTS} \
-     nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
+  (nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
 
 start_workers() {
@@ -329,10 +342,6 @@ start_workers() {
 }
 
 restart_worker() {
-  if [[ -z ${ALLUXIO_WORKER_JAVA_OPTS} ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
   RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
@@ -507,7 +516,7 @@ main() {
 
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
-      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver)
+      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver | hub_manager | hub_agent)
         stop ${ACTION}
         sleep 1
         ;;
@@ -586,6 +595,12 @@ main() {
       ;;
     masters)
       start_masters
+      ;;
+    hub_agent)
+      start_hub_agent
+      ;;
+    hub_manager)
+      start_hub_manager
       ;;
     proxy)
       start_proxy

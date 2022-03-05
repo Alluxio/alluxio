@@ -16,6 +16,7 @@ ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
 MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
+ALLUXIO_PATH="${FUSE_ALLUXIO_PATH:-/}"
 ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
 ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
 ALLUXIO_UID="${ALLUXIO_UID:-0}"
@@ -53,18 +54,34 @@ function printUsage {
   echo -e " proxy                        \t Start Alluxio proxy"
   echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
   echo -e " logserver                    \t Start Alluxio log server"
+  echo -e " hub-manager                  \t Start Alluxio Hub manager"
+  echo -e " hub-agent                    \t Start Alluxio Hub agent"
+  echo -e " csiserver                    \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
 }
 
 function writeConf {
   local IFS=$'\n' # split by line instead of space
-  for keyvaluepair in $(env); do
-    # split around the first "="
-    key=$(echo ${keyvaluepair} | cut -d= -f1)
-    value=$(echo ${keyvaluepair} | cut -d= -f2-)
-    if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
-      echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
-    fi
-  done
+  if [ ! -f "conf/alluxio-env.sh" ]; then
+    for keyvaluepair in $(env); do
+      # split around the first "="
+      key=$(echo ${keyvaluepair} | cut -d= -f1)
+      value=$(echo ${keyvaluepair} | cut -d= -f2-)
+      if [[ -n "${ALLUXIO_ENV_MAP[${key}]}" ]]; then
+        echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
+      fi
+    done
+  fi
+  LOG4J_FILE_TEMPLATE="/tmp/log4j.properties"
+  LOG4J_FILE="conf/log4j.properties"
+  if [ -f "$LOG4J_FILE_TEMPLATE" ] && [ ! -f "$LOG4J_FILE" ]; then
+    cp $LOG4J_FILE_TEMPLATE $LOG4J_FILE
+  fi
+  if [[ ! -z "${ALLUXIO_LOG4J_PROPERTIES}" ]]; then
+    echo "${ALLUXIO_LOG4J_PROPERTIES}" > $LOG4J_FILE
+  fi
+  if [[ ! -z "${ALLUXIO_SITE_PROPERTIES}" ]]; then
+    echo "${ALLUXIO_SITE_PROPERTIES}" > conf/alluxio-site.properties
+  fi
 }
 
 function formatMasterIfSpecified {
@@ -101,7 +118,11 @@ function mountAlluxioRootFSWithFuseOption {
   ! mkdir -p ${MOUNT_POINT}
   ! umount ${MOUNT_POINT}
   #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
-  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} /
+  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} ${ALLUXIO_PATH}
+}
+
+function startCsiServer {
+  exec /usr/local/bin/alluxio-csi "${@:1}"
 }
 
 # Sends a signal to each of the running background processes
@@ -255,6 +276,15 @@ function main {
       ;;
     logserver)
       processes+=("logserver")
+      ;;
+    hub-manager)
+      processes+=("hub_manager")
+      ;;
+    hub-agent)
+      processes+=("hub_agent")
+      ;;
+    csiserver)
+      startCsiServer "${@:2}"
       ;;
     *)
       printUsage

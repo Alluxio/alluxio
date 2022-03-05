@@ -11,9 +11,9 @@
 
 package alluxio.master;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.ElapsedTimeClock;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

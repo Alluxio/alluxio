@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -565,7 +564,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setCreationTimeMs(entry.getCreationTimeMs());
     }
     if (entry.hasGroup() && !entry.getGroup().isEmpty()) {
-      setGroup(entry.getGroup());
+      setGroup(entry.getGroup().intern());
     }
     if (entry.hasLastModificationTimeMs()) {
       setLastModificationTimeMs(entry.getLastModificationTimeMs(),
@@ -585,7 +584,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setName(entry.getName());
     }
     if (entry.hasOwner() && !entry.getOwner().isEmpty()) {
-      setOwner(entry.getOwner());
+      setOwner(entry.getOwner().intern());
     }
     if (entry.hasParentId()) {
       setParentId(entry.getParentId());

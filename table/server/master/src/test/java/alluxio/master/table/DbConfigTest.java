@@ -16,12 +16,11 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.table.common.udb.UdbBypassSpec;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
 

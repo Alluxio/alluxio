@@ -20,7 +20,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
-import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -74,6 +72,13 @@ public class LocalCacheFileInStream extends FileInStream {
      * @return input stream opened
      */
     FileInStream open(URIStatus uriStatus) throws IOException, AlluxioException;
+  }
+
+  /**
+   * Registers metrics.
+   */
+  public static void registerMetrics() {
+    Metrics.registerGauges();
   }
 
   /**
@@ -155,7 +160,7 @@ public class LocalCacheFileInStream extends FileInStream {
       if (bytesRead > 0) {
         totalBytesRead += bytesRead;
         currentPosition += bytesRead;
-        Metrics.BYTES_READ_CACHE.mark(bytesRead);
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
         if (cacheContext != null) {
           cacheContext
               .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
@@ -173,7 +178,9 @@ public class LocalCacheFileInStream extends FileInStream {
           System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
           totalBytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
-          Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
+          // cache misses
+          MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+              .mark(bytesLeftInPage);
           if (cacheContext != null) {
             cacheContext.incrementCounter(
                 MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
@@ -318,7 +325,8 @@ public class LocalCacheFileInStream extends FileInStream {
       }
       totalBytesRead += bytesRead;
     }
-    Metrics.BYTES_READ_EXTERNAL.mark(totalBytesRead);
+    // Bytes read from external, may be larger than requests due to reading complete pages
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new IOException("Failed to read complete page from external storage. Bytes read: "
           + totalBytesRead + " Page size: " + pageSize);
@@ -327,23 +335,19 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   private static final class Metrics {
-    /** Cache hits. */
-    private static final Meter BYTES_READ_CACHE =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
-    /** Bytes read from external, may be larger than requests due to reading complete pages. */
-    private static final Meter BYTES_READ_EXTERNAL =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
-    /** Cache misses. */
-    private static final Meter BYTES_REQUESTED_EXTERNAL =
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
 
     private static void registerGauges() {
       // Cache hit rate = Cache hits / (Cache hits + Cache misses).
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_HIT_RATE.getName()),
           () -> {
-            long cacheHits = BYTES_READ_CACHE.getCount();
-            long cacheMisses = BYTES_REQUESTED_EXTERNAL.getCount();
+            long cacheHits = MetricsSystem.meter(
+                MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount();
+            long cacheMisses = MetricsSystem.meter(
+                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount();
             long total = cacheHits + cacheMisses;
             if (total > 0) {
               return cacheHits / (1.0 * total);

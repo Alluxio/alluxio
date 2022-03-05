@@ -41,7 +41,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -164,13 +163,13 @@ public class ActiveSyncer implements HeartbeatExecutor {
     }
     try {
       if (syncInfo.isForceSync()) {
-        LOG.debug("force full sync {}", ufsUri.toString());
+        LOG.debug("force full sync {}", ufsUri);
         RetryUtils.retry("Full Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri, null, mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(
             ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       } else {
-        LOG.debug("incremental sync {}", ufsUri.toString());
+        LOG.debug("incremental sync {}", ufsUri);
         RetryUtils.retry("Incremental Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri,
               syncInfo.getChangedFiles(ufsUri).stream()

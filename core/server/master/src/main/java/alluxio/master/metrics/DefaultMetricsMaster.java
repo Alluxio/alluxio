@@ -25,10 +25,10 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
-import alluxio.metrics.MetricInfo;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -171,9 +171,9 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+    mMetricsStore.initMetricKeys();
+    mMetricsStore.clear();
     if (isLeader) {
-      mMetricsStore.initMetricKeys();
-      mMetricsStore.clear();
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
           ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),

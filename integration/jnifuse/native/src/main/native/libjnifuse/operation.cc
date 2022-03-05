@@ -382,7 +382,7 @@ int RenameOperation::call(const char *oldPath, const char *newPath) {
   jstring jspath = env->NewStringUTF(oldPath);
   jstring jspathNew = env->NewStringUTF(newPath);
 
-   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jspathNew);
@@ -428,11 +428,33 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
   jstring jsname = env->NewStringUTF(name);
   jobject buffer = env->NewDirectByteBuffer((void *)value, size);
 
-  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, buffer, size, flags);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jsname, buffer, size, flags);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jsname);
   env->DeleteLocalRef(buffer);
+
+  return ret;
+}
+
+StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "statfsCallback", signature);
+}
+
+int StatfsOperation::call(const char *path, struct statvfs *stbuf) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jspath = env->NewStringUTF(path);
+  jobject statvfs = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct statvfs));
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, statvfs);
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(statvfs);
 
   return ret;
 }

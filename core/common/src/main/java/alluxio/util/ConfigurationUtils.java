@@ -58,11 +58,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -390,7 +389,7 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Returns an instance of {@link AlluxioConfiguration} with the defaults and values from
+   * Returns an instance of {@link AlluxioProperties} with the defaults and values from
    * alluxio-site properties.
    *
    * @return the set of Alluxio properties loaded from the site-properties file
@@ -406,6 +405,24 @@ public final class ConfigurationUtils {
       }
     }
     return sDefaultProperties.copy();
+  }
+
+  /**
+   * Gets the value of a property. DO NOT USE unless working in a static context. This does not
+   * load cluster defaults or give source information. Use with prudence. If you're not sure if
+   * you should use this method, then you probably shouldn't.
+   *
+   * @param key the property key to retrieve
+   * @return the value configured for this property key
+   */
+  public static String getPropertyValue(PropertyKey key) {
+    if (sDefaultProperties == null) {
+      return defaults().get(key);
+    } else {
+      synchronized (DEFAULT_PROPERTIES_LOCK) {
+        return sDefaultProperties.get(key);
+      }
+    }
   }
 
   /**

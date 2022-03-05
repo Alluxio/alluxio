@@ -11,10 +11,11 @@
 
 package alluxio;
 
+import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.UfsInfo;
-import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.grpc.UpdateMountPRequest;
 
 import org.junit.Assert;
@@ -26,13 +27,13 @@ public class RpcSensitiveConfigMaskTest {
     {
       MountPOptions.Builder mpb = MountPOptions.newBuilder();
       mpb.putProperties("key1", "value1");
-      mpb.putProperties("aws.accessKeyId", "mycredential");
+      mpb.putProperties(PropertyKey.Name.S3A_ACCESS_KEY, "mycredential");
       String result = String.format("{%s}",
           RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, mpb.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
-      Assert.assertEquals(true, result.contains("aws.accessKeyId"));
+      Assert.assertEquals(true, result.contains(PropertyKey.Name.S3A_ACCESS_KEY));
       Assert.assertEquals(false, result.contains("mycredential"));
     }
 
@@ -40,13 +41,13 @@ public class RpcSensitiveConfigMaskTest {
       MountPRequest.Builder obj = MountPRequest.newBuilder();
       MountPOptions.Builder mpb = obj.getOptionsBuilder();
       mpb.putProperties("key1", "value1");
-      mpb.putProperties("aws.accessKeyId", "mycredential");
+      mpb.putProperties(PropertyKey.Name.S3A_ACCESS_KEY, "mycredential");
       String result = String.format("{%s}",
           RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
-      Assert.assertEquals(true, result.contains("aws.accessKeyId"));
+      Assert.assertEquals(true, result.contains(PropertyKey.Name.S3A_ACCESS_KEY));
       Assert.assertEquals(false, result.contains("mycredential"));
     }
 
@@ -54,13 +55,13 @@ public class RpcSensitiveConfigMaskTest {
       UfsInfo.Builder obj = UfsInfo.newBuilder();
       MountPOptions.Builder mpb = obj.getPropertiesBuilder();
       mpb.putProperties("key1", "value1");
-      mpb.putProperties("aws.accessKeyId", "mycredential");
+      mpb.putProperties(PropertyKey.Name.S3A_ACCESS_KEY, "mycredential");
       String result = String.format("{%s}",
           RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
-      Assert.assertEquals(true, result.contains("aws.accessKeyId"));
+      Assert.assertEquals(true, result.contains(PropertyKey.Name.S3A_ACCESS_KEY));
       Assert.assertEquals(false, result.contains("mycredential"));
     }
 
@@ -68,13 +69,13 @@ public class RpcSensitiveConfigMaskTest {
       GetUfsInfoPResponse.Builder obj = GetUfsInfoPResponse.newBuilder();
       MountPOptions.Builder mpb = obj.getUfsInfoBuilder().getPropertiesBuilder();
       mpb.putProperties("key1", "value1");
-      mpb.putProperties("aws.accessKeyId", "mycredential");
+      mpb.putProperties(PropertyKey.Name.S3A_ACCESS_KEY, "mycredential");
       String result = String.format("{%s}",
           RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
-      Assert.assertEquals(true, result.contains("aws.accessKeyId"));
+      Assert.assertEquals(true, result.contains(PropertyKey.Name.S3A_ACCESS_KEY));
       Assert.assertEquals(false, result.contains("mycredential"));
     }
 
@@ -82,13 +83,13 @@ public class RpcSensitiveConfigMaskTest {
       UpdateMountPRequest.Builder obj = UpdateMountPRequest.newBuilder();
       MountPOptions.Builder mpb = obj.getOptionsBuilder();
       mpb.putProperties("key1", "value1");
-      mpb.putProperties("aws.accessKeyId", "mycredential");
+      mpb.putProperties(PropertyKey.Name.S3A_ACCESS_KEY, "mycredential");
       String result = String.format("{%s}",
           RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
-      Assert.assertEquals(true, result.contains("aws.accessKeyId"));
+      Assert.assertEquals(true, result.contains(PropertyKey.Name.S3A_ACCESS_KEY));
       Assert.assertEquals(false, result.contains("mycredential"));
     }
 

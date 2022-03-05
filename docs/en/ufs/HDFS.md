@@ -115,6 +115,8 @@ to verify the files and directories created by Alluxio exist. For this test, you
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 [http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
+(The default port of HDFS web UI is 9870 in the version over 3.0.0. See [this tutorial](https://hadoop.apache.org/docs/r3.2.0/hadoop-project-dist/hadoop-common/ClusterSetup.html) for more details.)
+
 Stop Alluxio by running:
 
 ```console
@@ -178,7 +180,7 @@ set, add a group to this property where your Alluxio running user is a member of
 group.
 
 The user set above is only the identity that starts Alluxio master and worker
-processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client
+processes. Once Alluxio servers are started, it is **unnecessary** to run your Alluxio client
 applications using this user.
 
 ### Connect to Secure HDFS
@@ -196,7 +198,7 @@ alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
 
 If connecting to secure HDFS, run `kinit` on all Alluxio nodes.
-Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`
+Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`.
 A known limitation is that the Kerberos TGT may expire after
 the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
 may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
@@ -237,7 +239,7 @@ For example, the following commands mount two HDFS deployments—one is HDFS 2.2
 ```console
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.2 \
-  /mnt/hdfs12 hdfs://namenode1:8020/
+  /mnt/hdfs22 hdfs://namenode1:8020/
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.7 \
   /mnt/hdfs27 hdfs://namenode2:8020/
@@ -257,7 +259,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
 
 Alluxio supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
-- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3
+- Apache Hadoop: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.0, 3.1, 3.2, 3.3
 
 Note: Apache Hadoop 1.0 and 1.2 are still supported, but not included in the default download.
 To build this module yourself, build the shaded hadoop client and then the UFS module. 

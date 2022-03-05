@@ -79,6 +79,7 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   public JournalSystem getJournalSystem() {
     return mJournalSystem;
   }
+
   /**
    * @return the master process start time in milliseconds
    */

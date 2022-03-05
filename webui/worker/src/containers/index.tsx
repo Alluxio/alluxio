@@ -15,3 +15,5 @@ export { default as Overview } from './pages/Overview/Overview';
 export { default as WorkerLogs } from './pages/WorkerLogs/WorkerLogs';
 export { default as Metrics } from './pages/Metrics/Metrics';
 export { default as BlockInfo } from './pages/BlockInfo/BlockInfo';
+export { default as Stacks } from './pages/WorkerStacks/WorkerStacks';
+export { default as WorkerConfiguration } from './pages/WorkerConfiguration/WorkerConfiguration';

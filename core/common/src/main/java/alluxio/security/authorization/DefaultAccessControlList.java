@@ -36,6 +36,7 @@ public class DefaultAccessControlList extends AccessControlList {
    * When it is not empty, it has at least entries for OWNING_USER, OWNING_GROUP and OTHER.
    */
   private boolean mEmpty;
+
   /**
    * Constructor to build a default ACL that is empty.
    */

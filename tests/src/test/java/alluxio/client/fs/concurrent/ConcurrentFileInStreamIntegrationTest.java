@@ -12,11 +12,11 @@
 package alluxio.client.fs.concurrent;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.test.util.ConcurrencyUtils;
@@ -25,8 +25,8 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -37,20 +37,20 @@ import java.util.List;
  */
 public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
-  private static int sNumReadThreads =
-      ServerConfiguration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
 
-  @ClassRule
-  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
-  private static FileSystem sFileSystem = null;
-  private static CreateFilePOptions sWriteAlluxio;
+  @Rule
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource.Builder()
+          // Increase this timeout as in this test, there can be thousands of threads connecting to
+          // a worker. This may lead to failures when the worker is slow or lack of resource,
+          .setProperty(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT, "20s")
+          .build();
 
-  @BeforeClass
-  public static final void beforeClass() throws Exception {
-    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
-        .setRecursive(true).build();
+  private FileSystem mFileSystem;
+
+  @Before
+  public void before() throws Exception {
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
   /**
@@ -58,12 +58,16 @@ public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegration
    */
   @Test
   public void FileInStreamConcurrency() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
+    int numReadThreads =
+        ServerConfiguration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
+    AlluxioURI uniqPath = new AlluxioURI(PathUtils.uniqPath());
+    FileSystemTestUtils.createByteFile(mFileSystem, uniqPath.getPath(), BLOCK_SIZE * 2,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).setRecursive(true)
+            .build());
 
-    List<Thread> threads = new ArrayList<>();
-    for (int i = 0; i < sNumReadThreads; i++) {
-      threads.add(new Thread(new FileRead(new AlluxioURI(uniqPath))));
+    List<Runnable> threads = new ArrayList<>();
+    for (int i = 0; i < numReadThreads; i++) {
+      threads.add(new FileRead(uniqPath));
     }
 
     ConcurrencyUtils.assertConcurrent(threads, 100);
@@ -78,7 +82,7 @@ public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegration
 
     @Override
     public void run() {
-      try (FileInStream stream = sFileSystem.openFile(mUri)) {
+      try (FileInStream stream = mFileSystem.openFile(mUri)) {
         stream.read();
       } catch (Exception e) {
         Throwables.propagate(e);

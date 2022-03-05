@@ -16,7 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.MoreObjects;
-
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.lang.annotation.ElementType;

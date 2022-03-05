@@ -67,7 +67,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
@@ -262,7 +261,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.warn("delete failed: {}", e.toString());
+      LOG.debug("delete failed: {}", e.toString());
       return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -273,6 +272,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   public long getDefaultBlockSize() {
     return mFileSystem.getConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  }
+
+  @Override
+  public String getCanonicalServiceName() {
+    return null;
   }
 
   @Nullable
@@ -415,7 +419,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    */
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    LOG.debug("setMode({},{})", path, permission.toString());
+    LOG.debug("setMode({},{})", path, permission);
     AlluxioURI uri = getAlluxioPath(path);
     SetAttributePOptions options = SetAttributePOptions.newBuilder()
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(false).build();

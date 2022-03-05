@@ -21,7 +21,7 @@ RUN cd /alluxio-csi && \
 # For production use, we use alpine as base image to minimize alluxio image size.
 FROM alpine:3.10.2 AS final
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.8.0-SNAPSHOT/alluxio-2.8.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -38,7 +38,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
+# Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
@@ -49,8 +49,9 @@ RUN \
   apk add --no-cache ca-certificates wget bash && \
   apk add --no-cache --virtual .build-deps \
   build-base pkgconfig eudev git gcc make cmake gettext-dev libtool autoconf automake && \
-  ./dockerfile-common.sh install-libfuse && \
+  ./dockerfile-common.sh install-libfuse2 && \
   rm -rf libfuse && \
+  apk add fuse3=3.2.6-r1 && \
   apk del --no-cache .build-deps
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -85,6 +86,8 @@ RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} $
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 COPY --from=dev /usr/local/bin/alluxio-csi /usr/local/bin/
+# W/ Hub on K8s, conf dir is a volumeMount and is overwritten
+RUN cp /opt/alluxio/conf/log4j.properties /tmp/log4j.properties
 
 RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
 

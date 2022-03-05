@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -63,9 +62,9 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
 
     while (!Thread.interrupted()) {
       if (mServingThread == null) {
-        // We are in secondary mode. Nothing to do until we become the primary.
+        // We are in standby mode. Nothing to do until we become the primary.
         mLeaderSelector.waitForState(State.PRIMARY);
-        LOG.info("Transitioning from secondary to primary");
+        LOG.info("Transitioning from standby to primary");
         mJournalSystem.gainPrimacy();
         stopMaster();
         LOG.info("Secondary stopped");
@@ -75,9 +74,9 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
         mServingThread.start();
         LOG.info("Primary started");
       } else {
-        // We are in primary mode. Nothing to do until we become the secondary.
-        mLeaderSelector.waitForState(State.SECONDARY);
-        LOG.info("Transitioning from primary to secondary");
+        // We are in primary mode. Nothing to do until we become the standby.
+        mLeaderSelector.waitForState(State.STANDBY);
+        LOG.info("Transitioning from primary to standby");
         stopServing();
         mServingThread.join();
         mServingThread = null;
@@ -85,7 +84,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
         mJournalSystem.losePrimacy();
         LOG.info("Primary stopped");
         startMaster(false);
-        LOG.info("Secondary started");
+        LOG.info("Standby started");
       }
     }
   }
@@ -99,9 +98,9 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
+  public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
+      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isGrpcServing()),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {

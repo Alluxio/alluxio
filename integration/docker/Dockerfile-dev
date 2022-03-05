@@ -22,7 +22,7 @@ RUN cd /alluxio-csi && \
 FROM centos:7 AS final
 
 # Note that downloads for *-SNAPSHOT tarballs are not available
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.8.0-SNAPSHOT/alluxio-2.8.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -39,17 +39,18 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
+# Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
 
 RUN \
     yum update -y && yum upgrade -y && \
-    yum install -y kernel-devel ca-certificates pkgconfig wget udev git && \
+    yum install -y ca-certificates pkgconfig wget udev git && \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     yum clean all && \
-    ./dockerfile-common.sh install-libfuse
+    ./dockerfile-common.sh install-libfuse2 && \
+    yum install -y fuse3-libs
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
 

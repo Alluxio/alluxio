@@ -11,11 +11,11 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.client.block.BlockMasterClient;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.job.JobMasterClient;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.metrics.MetricsMasterClient;
 

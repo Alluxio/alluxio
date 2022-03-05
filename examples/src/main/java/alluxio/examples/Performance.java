@@ -13,12 +13,12 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.CommonUtils;

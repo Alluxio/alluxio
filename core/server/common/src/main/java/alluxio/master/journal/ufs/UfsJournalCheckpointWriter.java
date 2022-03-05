@@ -20,16 +20,15 @@ import org.slf4j.LoggerFactory;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.net.URI;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Stream for writing checkpoints to the UFS. The secondary masters use this to periodically create
+ * Stream for writing checkpoints to the UFS. The standby masters use this to periodically create
  * new checkpoints.
  *
  * It first writes the checkpoint to a temporary location. After it is done with writing the
  * temporary checkpoint, it commits the checkpoint by renaming the temporary checkpoint to the final
- * location. If the same checkpoint has already been created by another secondary master, the
+ * location. If the same checkpoint has already been created by another standby master, the
  * checkpoint is aborted.
  */
 @NotThreadSafe

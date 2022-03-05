@@ -24,12 +24,15 @@ import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.TransferLeaderMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -39,6 +42,7 @@ import alluxio.util.WaitForOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import org.apache.commons.io.FileUtils;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.client.RaftClientConfigKeys;
@@ -70,7 +74,6 @@ import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,7 +104,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -138,7 +141,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <h3> Avoid incorrectly applying entries</h3>
  * <p>
  * Entries can never be double-applied to a primary's state because as long as it is the primary, it
- * will ignore all entries, and once it becomes secondary, it will completely reset its state and
+ * will ignore all entries, and once it becomes standby, it will completely reset its state and
  * rejoin the cluster.
  *
  * <h1>Snapshot control</h1>
@@ -165,6 +168,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
+  private static final String WAITING_FOR_ELECTION = "WAITING_FOR_ELECTION";
 
   /// Lifecycle: constant from when the journal system is constructed.
 
@@ -210,7 +214,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private RaftJournalWriter mRaftJournalWriter;
   /**
    * Reference to the journal writer shared by all journals. When RPCs create journal contexts, they
-   * will use the writer within this reference. The writer is null when the journal is in secondary
+   * will use the writer within this reference. The writer is null when the journal is in standby
    * mode.
    */
   private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
@@ -225,6 +229,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
+  private Map<String, TransferLeaderMessage> mErrorMessages;
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -240,6 +245,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
+    mErrorMessages = new ConcurrentHashMap<>();
   }
 
   private void maybeMigrateOldJournal() {
@@ -299,7 +305,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this);
+    mStateMachine = new JournalStateMachine(mJournals, this,
+        mConf.getMaxConcurrencyPoolSize());
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
@@ -400,6 +407,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setProperties(properties)
         .setParameters(parameters)
         .build();
+    super.registerMetrics();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.CLUSTER_LEADER_INDEX.getName(),
+        () -> getLeaderIndex());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_ROLE_ID.getName(),
+        () -> getRoleId());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.CLUSTER_LEADER_ID.getName(),
+        () -> getLeaderId());
   }
 
   /**
@@ -421,13 +438,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
+    long timeoutMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+    long retryBaseMs =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
-        TimeDuration.valueOf(15, TimeUnit.SECONDS));
+        TimeDuration.valueOf(timeoutMs, TimeUnit.MILLISECONDS));
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
-        .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
-        .setMaxAttempts(10)
+        .setBaseSleepTime(TimeDuration.valueOf(retryBaseMs, TimeUnit.MILLISECONDS))
         .setMaxSleepTime(
             TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
         .build();
@@ -450,8 +470,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void gainPrimacy() {
+    LOG.info("Gaining primacy.");
     mSnapshotAllowed.set(false);
-    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global());
 
     Runnable closeClient = () -> {
@@ -479,10 +500,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    LOG.info("Gained primacy.");
   }
 
   @Override
   public synchronized void losePrimacy() {
+    LOG.info("Losing primacy.");
     if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
       // Avoid duplicate shut down Ratis server
       return;
@@ -523,7 +546,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           mConf.getClusterAddresses()), e);
     }
 
-    LOG.info("Raft server successfully restarted");
+    LOG.info("Raft server successfully restarted and lost primacy");
   }
 
   @Override
@@ -577,8 +600,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
-    //             snapshots from secondary master
-    try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+    //             snapshots from standby master
+    try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
@@ -611,7 +634,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    *
    * The caller is responsible for detecting and responding to leadership changes.
    */
-  private void catchUp(JournalStateMachine stateMachine, LocalFirstRaftClient client)
+  private void catchUp(JournalStateMachine stateMachine, RaftJournalAppender client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     long waitBeforeRetry = ServerConfiguration.global()
@@ -702,9 +725,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
       // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
-      CommonUtils.sleepMs(mConf.getMaxElectionTimeoutMs());
-      if (stateMachine.getLastAppliedSequenceNumber() != lastAppliedSN
-          || stateMachine.getLastPrimaryStartSequenceNumber() != gainPrimacySN) {
+      try {
+        CommonUtils.waitFor("check primacySN " + gainPrimacySN + " and lastAppliedSN "
+            + lastAppliedSN + " to be applied to leader", () ->
+            stateMachine.getLastAppliedSequenceNumber() == lastAppliedSN
+                && stateMachine.getLastPrimaryStartSequenceNumber() == gainPrimacySN,
+            WaitForOptions.defaults()
+                .setInterval(Constants.SECOND_MS)
+                .setTimeoutMs((int) mConf.getMaxElectionTimeoutMs()));
+      } catch (TimeoutException e) {
         // Someone has committed a journal entry since we started trying to catch up.
         // Restart the catchup process.
         continue;
@@ -871,9 +900,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private GroupInfoReply getGroupInfo() throws IOException {
-    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mRawClientId, mPeerId, RAFT_GROUP_ID,
-        nextCallId());
-    return mServer.getGroupInfo(groupInfoRequest);
+    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mRawClientId, getLocalPeerId(),
+        RAFT_GROUP_ID, nextCallId());
+    return getRaftServer().getGroupInfo(groupInfoRequest);
   }
 
   /**
@@ -934,69 +963,81 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * Transfers the leadership of the quorum to another server.
    *
    * @param newLeaderNetAddress the address of the server
-   * @throws IOException if error occurred while performing the operation
+   * @return the guid of transfer leader command
    */
-  public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+  public synchronized String transferLeadership(NetAddress newLeaderNetAddress) {
     final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
+    String transferId = UUID.randomUUID().toString();
     if (!allowed) {
-      throw new IOException("transfer is not allowed at the moment because the master is "
-              + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the "
-              + "leadership"));
+      String msg = "transfer is not allowed at the moment because the master is "
+          + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the ")
+          + "leadership";
+      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder().setMsg(msg).build());
+      return transferId;
     }
-    InetSocketAddress serverAddress = InetSocketAddress
-            .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
-    List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
-    // The NetUtil function is used by Ratis to convert InetSocketAddress to string
-    String strAddr = NetUtils.address2String(serverAddress);
-    // if you cannot find the address in the quorum, throw exception.
-    if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
-      mTransferLeaderAllowed.set(true);
-      throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
-              strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
-    }
+    try {
+      InetSocketAddress serverAddress = InetSocketAddress
+          .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
+      List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
+      // The NetUtil function is used by Ratis to convert InetSocketAddress to string
+      String strAddr = NetUtils.address2String(serverAddress);
+      // if you cannot find the address in the quorum, throw exception.
+      if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+        throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
+                strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
+      }
+      if (strAddr.equals(mRaftGroup.getPeer(mPeerId).getAddress())) {
+        throw new IOException(String.format("%s is already the leader", strAddr));
+      }
 
-    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-    /* update priorities to enable transfer */
-    List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
-    for (RaftPeer peer : oldPeers) {
-      peersWithNewPriorities.add(
-              RaftPeer.newBuilder(peer)
-              .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
-              .build()
-      );
-    }
-    try (RaftClient client = createClient()) {
-      String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
-                      .collect(Collectors.joining(", ")) + "]";
-      LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
-      RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      processReply(reply, "failed to set master priorities before initiating election");
-      /* transfer leadership */
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
-              serverAddress, newLeaderPeerId);
-      // fire and forget: need to immediately return as the master will shut down its RPC servers
-      // once the TransferLeadershipRequest is initiated.
-      final int SLEEP_TIME_MS = 3_000;
-      final int TRANSFER_LEADER_WAIT_MS = 30_000;
-      new Thread(() -> {
-        try {
-          Thread.sleep(SLEEP_TIME_MS);
-          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
-                  TRANSFER_LEADER_WAIT_MS);
-          processReply(reply1, "election failed");
-        } catch (Throwable t) {
-          LOG.error("caught an error when executing transfer: {}", t.getMessage());
-          // we only allow transfers again if the transfer is unsuccessful: a success means it
-          // will soon lose primacy
-          mTransferLeaderAllowed.set(true);
-          /* checking the transfer happens in {@link QuorumElectCommand} */
-        }
-      }).start();
-      LOG.info("Transferring leadership initiated");
+      RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+      /* update priorities to enable transfer */
+      List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
+      for (RaftPeer peer : oldPeers) {
+        peersWithNewPriorities.add(
+            RaftPeer.newBuilder(peer)
+                .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
+                .build()
+        );
+      }
+      try (RaftClient client = createClient()) {
+        String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
+            .collect(Collectors.joining(", ")) + "]";
+        LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
+        RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
+        processReply(reply, "failed to set master priorities before initiating election");
+        /* transfer leadership */
+        LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+            serverAddress, newLeaderPeerId);
+        // fire and forget: need to immediately return as the master will shut down its RPC servers
+        // once the TransferLeadershipRequest is initiated.
+        final int SLEEP_TIME_MS = 3_000;
+        final int TRANSFER_LEADER_WAIT_MS = 30_000;
+        new Thread(() -> {
+          try {
+            Thread.sleep(SLEEP_TIME_MS);
+            RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
+                TRANSFER_LEADER_WAIT_MS);
+            processReply(reply1, "election failed");
+          } catch (Throwable t) {
+            LOG.error("caught an error when executing transfer: {}", t.getMessage());
+            // we only allow transfers again if the transfer is unsuccessful: a success means it
+            // will soon lose primacy
+            mTransferLeaderAllowed.set(true);
+            mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+                .setMsg(t.getMessage()).build());
+            /* checking the transfer happens in {@link QuorumElectCommand} */
+          }
+        }).start();
+        LOG.info("Transferring leadership initiated");
+      }
     } catch (Throwable t) {
       mTransferLeaderAllowed.set(true);
-      throw new IOException(t);
+      LOG.warn(t.getMessage());
+      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+              .setMsg(t.getMessage()).build());
     }
+    return transferId;
   }
 
   /**
@@ -1010,6 +1051,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               : new IOException(String.format("reply <%s> failed", reply));
       LOG.error("{}. Error: {}", msgToUser, ioe);
       throw new IOException(msgToUser);
+    }
+  }
+
+  /**
+   * Gets exception message throwing when transfer leader.
+   * @param transferId the guid of transferLeader command
+   * @return the exception
+   */
+  public synchronized TransferLeaderMessage getTransferLeaderMessage(String transferId) {
+    if (mErrorMessages.get(transferId) != null) {
+      return mErrorMessages.get(transferId);
+    } else {
+      return TransferLeaderMessage.newBuilder().setMsg("").build();
     }
   }
 
@@ -1089,7 +1143,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public void notifyLeadershipStateChanged(boolean isLeader) {
     mPrimarySelector.notifyStateChanged(
-        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.SECONDARY);
+        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.STANDBY);
   }
 
   @VisibleForTesting
@@ -1106,5 +1160,80 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.info("Raft group updated: old {}, new {}", mRaftGroup, newGroup);
       mRaftGroup = newGroup;
     }
+  }
+
+  @Nullable
+  private RaftProtos.RoleInfoProto getRaftRoleInfo() {
+    GroupInfoReply groupInfo = null;
+    try {
+      groupInfo = getGroupInfo();
+    } catch (IOException e) {
+      LOG.error("Error while getting RAFT group info", e);
+    }
+    if (groupInfo == null || groupInfo.getException() != null) {
+      return null;
+    }
+    return groupInfo.getRoleInfoProto();
+  }
+
+  /**
+   * Get the role index. {@link RaftProtos.RaftPeerRole}.
+   *
+   * @return the role enum
+   */
+  public int getRoleId() {
+    RaftProtos.RoleInfoProto roleInfo = getRaftRoleInfo();
+    if (roleInfo != null) {
+      return roleInfo.getRoleValue();
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * Get the leader id. {@link RaftProtos.RaftPeerRole}.
+   *
+   * @return the leader id
+   */
+  public String getLeaderId() {
+    RaftProtos.RoleInfoProto roleInfo = getRaftRoleInfo();
+    if (roleInfo == null) {
+      return WAITING_FOR_ELECTION;
+    }
+    if (roleInfo.getRole() == RaftProtos.RaftPeerRole.LEADER) {
+      return getLocalPeerId().toString();
+    }
+    RaftProtos.FollowerInfoProto followerInfo = roleInfo.getFollowerInfo();
+    if (followerInfo == null) {
+      return WAITING_FOR_ELECTION;
+    }
+    if (followerInfo.getLeaderInfo().getId() == null
+        || followerInfo.getLeaderInfo().getId().getId() == null) {
+      return WAITING_FOR_ELECTION;
+    }
+    return followerInfo.getLeaderInfo().getId().getId().toStringUtf8();
+  }
+
+  /**
+   * Gets leader index. The return integer means the leader index of embedded journal addresses
+   * -1 means leader not found.
+   *
+   * @return the leader index
+   */
+  protected int getLeaderIndex() {
+    // -1 means leader not found
+    String leaderId = getLeaderId();
+    if (WAITING_FOR_ELECTION.equals(leaderId)) {
+      return -1;
+    }
+    String leaderAddress = leaderId.replace('_', ':');
+    int index = 0;
+    for (InetSocketAddress address : mConf.getClusterAddresses()) {
+      if (address.toString().equals(leaderAddress)) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
   }
 }

@@ -30,7 +30,6 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -93,18 +92,23 @@ public final class BlockWorkerDataWriter implements DataWriter {
 
   @Override
   public void writeChunk(final ByteBuf buf) throws IOException {
-    if (mReservedBytes < pos() + buf.readableBytes()) {
-      try {
-        long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes() - mReservedBytes);
-        // Allocate enough space in the existing temporary block for the write.
-        mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
-      } catch (Exception e) {
-        throw new IOException(e);
+    try {
+      if (mReservedBytes < pos() + buf.readableBytes()) {
+        try {
+          long bytesToReserve = Math.max(mBufferSize, pos() + buf.readableBytes()
+              - mReservedBytes);
+          // Allocate enough space in the existing temporary block for the write.
+          mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
+        } catch (Exception e) {
+          throw new IOException(e);
+        }
       }
+      long append = mBlockWriter.append(buf);
+      MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT.getName()).inc(append);
+      MetricsSystem.meter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT.getName()).mark(append);
+    } finally {
+      buf.release();
     }
-    long append = mBlockWriter.append(buf);
-    MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT.getName()).inc(append);
-    MetricsSystem.meter(MetricKey.WORKER_BYTES_WRITTEN_DIRECT_THROUGHPUT.getName()).mark(append);
   }
 
   @Override

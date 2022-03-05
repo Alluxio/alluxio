@@ -18,7 +18,6 @@ import org.apache.avro.generic.GenericData.Record;
 
 import java.io.IOException;
 import java.util.Objects;
-
 import javax.validation.constraints.NotNull;
 
 /**

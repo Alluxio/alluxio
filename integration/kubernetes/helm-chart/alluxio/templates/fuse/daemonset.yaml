@@ -79,6 +79,9 @@ spec:
                 values:
                 - alluxio-worker
             topologyKey: kubernetes.io/hostname
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: alluxio-fuse
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -106,6 +109,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: FUSE_ALLUXIO_PATH
+            value: {{ .Values.fuse.alluxioPath }}
           {{- range $key, $value := .Values.fuse.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"

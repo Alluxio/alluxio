@@ -42,7 +42,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -145,7 +144,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
-      cacheBlock(blockId, dataSource, local, status, openUfsBlockOptions);
+      cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
   }
 
@@ -164,19 +163,25 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
-  private void cacheBlock(long blockId, WorkerNetAddress dataSource, boolean local,
-      URIStatus status, Protocol.OpenUfsBlockOptions options) {
+  private void cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
+      Protocol.OpenUfsBlockOptions options) {
     BlockInfo info = status.getBlockInfo(blockId);
     long blockLength = info.getLength();
+    String host = dataSource.getHost();
+    // issues#11172: If the worker is in a container, use the container hostname
+    // to establish the connection.
+    if (!dataSource.getContainerHost().equals("")) {
+      host = dataSource.getContainerHost();
+    }
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-        .setOpenUfsBlockOptions(options).setSourceHost(dataSource.getHost())
+        .setOpenUfsBlockOptions(options).setSourceHost(host)
         .setSourcePort(dataSource.getDataPort()).build();
     try (CloseableResource<BlockWorkerClient> blockWorker =
         mFsContext.acquireBlockWorkerClient(dataSource)) {
       blockWorker.get().cache(request);
     } catch (Exception e) {
       System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
-          status.getPath(), e.toString());
+          status.getPath(), e);
     }
   }
 }

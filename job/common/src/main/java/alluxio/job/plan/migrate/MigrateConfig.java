@@ -19,8 +19,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration for the migrate job. A migration can either be a copy or a move.
@@ -29,7 +29,7 @@ import java.util.Collection;
 @ThreadSafe
 public class MigrateConfig implements PlanConfig {
   private static final long serialVersionUID = 8014674802258120190L;
-  private static final String NAME = "Migrate";
+  public static final String NAME = "Migrate";
 
   private final String mSource;
   private final String mDestination;

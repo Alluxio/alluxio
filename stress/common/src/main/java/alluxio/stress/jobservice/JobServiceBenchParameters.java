@@ -11,7 +11,7 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.stress.Parameters;
+import alluxio.stress.common.GeneralParameters;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
@@ -20,27 +20,47 @@ import com.beust.jcommander.Parameter;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class JobServiceBenchParameters extends Parameters {
-
+public final class JobServiceBenchParameters extends GeneralParameters {
   @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [DistributedLoad]",
+      description = "the operation to perform.",
       converter = OperationConverter.class,
       required = true)
   public JobServiceBenchOperation mOperation;
 
-  @Parameter(names = {"--num-dirs"}, description = "the number of directories")
-  public int mNumDirs = 256;
+  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
+  public int mThreads = 256;
 
   @Parameter(names = {"--files-per-dir"}, description = "the number of files in each directory.")
   public int mNumFilesPerDir = 1000;
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
-  public String mBasePath = "alluxio://localhost:19998/stress-job-service-base";
+  public String mBasePath = "alluxio:///stress-job-service-base";
 
   @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public String mFileSize = "1k";
+
+  @Parameter(names = {"--target-throughput"},
+      description = "the target throughput to issue operations. (ops / s)")
+  public int mTargetThroughput = 1000;
+
+  @Parameter(names = {"--duration"},
+      description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
+  public String mDuration = "30s";
+
+  @Parameter(names = {"--warmup"},
+      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
+          + "10000ms, etc.)")
+  public String mWarmup = "30s";
+
+  @Parameter(names = {"--batch-size"}, description = "The batch size of operations")
+  public int mBatchSize = 1;
+
+  @Override
+  public Enum<?> operation() {
+    return mOperation;
+  }
 
   /**
    * Converts from String to Operation instance.

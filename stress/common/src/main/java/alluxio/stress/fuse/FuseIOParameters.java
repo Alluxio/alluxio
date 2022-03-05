@@ -23,7 +23,7 @@ import com.beust.jcommander.Parameter;
 public final class FuseIOParameters extends Parameters {
   @Parameter(names = {"--operation"},
       description = "The operation to perform. Options are [LocalRead, RemoteRead, ClusterRead, "
-          + "Write, ListFile], where \"Write\" and \"ListFile\" are for testing read performance, "
+          + "Write, ListFile], where \"ListFile\" are for testing read performance, "
           + "not individual tests.",
       converter = FuseIOOperationConverter.class,
       required = true)

@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MetricsDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsDocGenerator.class);
   private static final String[] CATEGORIES =
-      new String[]{"cluster", "master", "worker", "client", "fuse"};
+      new String[]{"cluster", "master", "worker", "client", "fuse", "server"};
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   private static final String CSV_SUFFIX = "csv";

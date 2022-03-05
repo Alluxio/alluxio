@@ -23,6 +23,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -30,7 +31,6 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -45,12 +45,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -62,6 +60,7 @@ public class RocksInodeStore implements InodeStore {
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
   private static final String EDGES_COLUMN = "edges";
+  private static final String ROCKS_STORE_NAME = "InodeStore";
 
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
@@ -69,6 +68,7 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
+  private final ColumnFamilyOptions mColumnFamilyOpts;
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
@@ -86,20 +86,14 @@ public class RocksInodeStore implements InodeStore {
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
-    ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
+    mColumnFamilyOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), cfOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), cfOpts));
-    DBOptions dbOpts = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
-    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
+        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mColumnFamilyOpts),
+        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mColumnFamilyOpts));
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
   }
 
@@ -247,10 +241,13 @@ public class RocksInodeStore implements InodeStore {
   }
 
   /**
+   * The name is intentional, in order to distinguish from the {@code Iterable} interface.
+   *
    * @return an iterator over stored inodes
    */
-  public Iterator<InodeView> iterator() {
-    return RocksUtils.createIterator(db().newIterator(mInodesColumn.get(), mIteratorOption),
+  public CloseableIterator<InodeView> getCloseableIterator() {
+    return RocksUtils.createCloseableIterator(
+        db().newIterator(mInodesColumn.get(), mIteratorOption),
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
   }
 
@@ -332,7 +329,10 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void close() {
+    LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
+    mColumnFamilyOpts.close();
+    LOG.info("RocksInodeStore closed");
   }
 
   private RocksDB db() {
@@ -345,8 +345,8 @@ public class RocksInodeStore implements InodeStore {
    */
   public String toStringEntries() {
     StringBuilder sb = new StringBuilder();
-    try (RocksIterator inodeIter =
-        db().newIterator(mInodesColumn.get(), new ReadOptions().setTotalOrderSeek(true))) {
+    try (ReadOptions readOptions = new ReadOptions().setTotalOrderSeek(true);
+        RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
       inodeIter.seekToFirst();
       while (inodeIter.isValid()) {
         MutableInode<?> inode;

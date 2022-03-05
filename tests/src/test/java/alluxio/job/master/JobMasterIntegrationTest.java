@@ -19,12 +19,12 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
-import alluxio.job.plan.PlanDefinitionRegistryRule;
 import alluxio.job.SleepJobConfig;
+import alluxio.job.plan.PlanDefinitionRegistryRule;
 import alluxio.job.plan.SleepPlanDefinition;
 import alluxio.job.util.JobTestUtils;
-import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.Status;
 import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -50,8 +50,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Integration tests for the job master.
  */
 public final class JobMasterIntegrationTest extends BaseIntegrationTest {
-  private static final long WORKER_TIMEOUT_MS = 500;
-  private static final long LOST_WORKER_INTERVAL_MS = 500;
+  private static final long WORKER_TIMEOUT_MS = 2000;
+  private static final long LOST_WORKER_INTERVAL_MS = 2000;
   private JobMaster mJobMaster;
   private JobWorkerProcess mJobWorker;
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;

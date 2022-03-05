@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
@@ -28,6 +27,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -35,7 +37,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -110,13 +111,13 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    ConcurrentHashSet<UfsStatus> set = new ConcurrentHashSet<>();
+    Set<UfsStatus> set = new HashSet<>(children.size());
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
       set.add(child);
     });
-    return mChildren.put(path, set);
+    return mChildren.put(path, Collections.unmodifiableSet(set));
   }
 
   /**

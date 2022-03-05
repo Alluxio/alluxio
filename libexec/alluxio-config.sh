@@ -27,7 +27,7 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=2.7.0-SNAPSHOT
+VERSION=2.8.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -65,6 +65,21 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.conf.dir* ]]; then
+  echo "Warning: setting alluxio.conf.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_CONF_DIR instead"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.logs.dir* ]]; then
+  echo "Warning: setting alluxio.logs.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_LOGS_DIR instead"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.user.logs.dir* ]]; then
+  echo "Warning: setting alluxio.user.logs.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_USER_LOGS_DIR instead"
 fi
 
 ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
@@ -110,6 +125,7 @@ fi
 
 # Job master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_JOB_MASTER_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_JOB_MASTER_LOGGER:-JOB_MASTER_LOGGER}"
+ALLUXIO_JOB_MASTER_JAVA_OPTS_DEFAULT+=" -Dalluxio.job.master.audit.logger.type=${ALLUXIO_JOB_MASTER_AUDIT_LOGGER:-JOB_MASTER_AUDIT_LOGGER}"
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
     ALLUXIO_JOB_MASTER_JAVA_OPTS_DEFAULT+=" -Dalluxio.remote.logger.type=REMOTE_JOB_MASTER_LOGGER"
 fi
@@ -136,6 +152,14 @@ if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; t
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT+=" -Dalluxio.remote.logger.type=REMOTE_SECONDARY_MASTER_LOGGER"
 fi
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS="${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}"
+
+# Alluxio Hub specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
+ALLUXIO_HUB_AGENT_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_HUB_AGENT_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_AGENT_LOGGER:-HUB_AGENT_LOGGER}"
+ALLUXIO_HUB_MANAGER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_HUB_MANAGER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_MANAGER_LOGGER:-HUB_MANAGER_LOGGER}"
+ALLUXIO_HUB_HOSTED_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_HUB_HOSTED_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_HOSTED_LOGGER:-HUB_HOSTED_LOGGER}"
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"

@@ -23,9 +23,9 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
+import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObjectSummary;
@@ -39,8 +39,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -212,8 +212,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (OSSObjectSummary obj : objects) {
+        Date lastModifiedDate = obj.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
         ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
-            obj.getLastModified().getTime());
+            lastModifiedTime);
       }
       return ret;
     }
@@ -244,8 +246,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
+      Date lastModifiedDate = meta.getLastModified();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+          lastModifiedTime);
     } catch (ServiceException e) {
       return null;
     }

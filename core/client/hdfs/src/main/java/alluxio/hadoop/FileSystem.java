@@ -33,7 +33,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -43,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * native API defined in {@link alluxio.client.file.FileSystem}, which this API is built on top of.
  */
 @NotThreadSafe
-public final class FileSystem extends AbstractFileSystem {
+public class FileSystem extends AbstractFileSystem {
   /**
    * Constructs a new {@link FileSystem}.
    */

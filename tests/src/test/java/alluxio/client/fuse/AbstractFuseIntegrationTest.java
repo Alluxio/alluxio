@@ -76,18 +76,21 @@ public abstract class AbstractFuseIntegrationTest {
   /**
    * Mounts the Fuse application if needed.
    *
-   * @param fileSystem the filesystem to create the Fuse application
-   * @param mountPoint the Fuse mount point
+   * @param fileSystem  the filesystem to create the Fuse application
+   * @param mountPoint  the Fuse mount point
    * @param alluxioRoot the Fuse mounted alluxio root
    */
   public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
 
   /**
-   * Umounts the given fuse mount point.
-   *
-   * @param mountPoint the Fuse mount point
+   * Run before cluster stops.
    */
-  public abstract void umountFuse(String mountPoint) throws Exception;
+  public abstract void beforeStop() throws Exception;
+
+  /**
+   * Run after cluster stops.
+   */
+  public abstract void afterStop() throws Exception;
 
   @BeforeClass
   public static void beforeClass() {
@@ -116,7 +119,15 @@ public abstract class AbstractFuseIntegrationTest {
 
   @After
   public void after() throws Exception {
+    beforeStop();
     stop();
+    afterStop();
+  }
+
+  protected void umountFromShellIfMounted() throws IOException {
+    if (fuseMounted()) {
+      ShellUtils.execCommand("umount", mMountPoint);
+    }
   }
 
   private void stop() throws Exception {
@@ -126,14 +137,7 @@ public abstract class AbstractFuseIntegrationTest {
       IntegrationTestUtils.releaseMasterPorts();
     }
     if (fuseMounted()) {
-      try {
-        umountFuse(mMountPoint);
-      } catch (Exception e) {
-        // The Fuse application may be unmounted by the cluster stop
-      }
-      if (fuseMounted()) {
-        ShellUtils.execCommand("umount", mMountPoint);
-      }
+      ShellUtils.execCommand("umount", mMountPoint);
     }
   }
 

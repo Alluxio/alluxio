@@ -12,11 +12,11 @@
 package alluxio.master.file;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,7 +32,7 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
    */
   public DefaultBlockDeletionContext(BlockDeletionListener... listeners) {
     mListeners = Arrays.asList(listeners);
-    mBlocks = new ConcurrentLinkedQueue();
+    mBlocks = new ConcurrentLinkedQueue<>();
   }
 
   @Override
@@ -47,12 +47,13 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
 
   @Override
   public void close() throws IOException {
+    // Prevent accidental modification from the listeners
+    Collection<Long> viewOnlyBlocks = Collections.unmodifiableCollection(mBlocks);
     // Make sure every listener gets called, even if some throw exceptions.
     Throwable thrown = null;
-    List<Long> blocksCopy = ImmutableList.copyOf(mBlocks);
     for (BlockDeletionListener listener : mListeners) {
       try {
-        listener.process(blocksCopy);
+        listener.process(viewOnlyBlocks);
       } catch (Throwable t) {
         if (thrown != null) {
           thrown.addSuppressed(t);

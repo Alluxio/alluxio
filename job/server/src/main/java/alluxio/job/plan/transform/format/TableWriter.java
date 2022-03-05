@@ -15,9 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.parquet.ParquetWriter;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  * A writer for writing rows to a table.

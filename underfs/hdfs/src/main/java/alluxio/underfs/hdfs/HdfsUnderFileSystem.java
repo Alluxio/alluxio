@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.UfsConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
@@ -70,7 +70,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -97,6 +96,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /** Name of the class for the HDFS EC Codec Registry. **/
   private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
       "org.apache.hadoop.io.erasurecode.CodecRegistry";
+
+  private static final String JAVAX_WS_RS_CORE_MEDIA_TYPE =
+      "javax.ws.rs.core.MediaType";
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
@@ -163,8 +165,17 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
         } catch (ClassNotFoundException e) {
           LOG.warn("Cannot initialize HDFS EC CodecRegistry. "
-              + "HDFS EC will not be supported: {}", e.toString());
+              + "HDFS EC will not be supported:", e);
         }
+      }
+
+      try {
+        // If this class is not loaded here, it will be later loaded by the system classloader
+        // from alluxio server jar, but will be called by a class loaded with extension
+        // classloader.
+        Class.forName(JAVAX_WS_RS_CORE_MEDIA_TYPE);
+      } catch (ClassNotFoundException e) {
+        LOG.warn("Cannot initialize javax.ws.rs.MediaType.", e);
       }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
@@ -292,7 +303,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         OutputStream outputStream = new HdfsUnderFileOutputStream(
             FileSystem.create(hdfs, new Path(path),
-            new FsPermission(options.getMode().toShort())));
+              new FsPermission(options.getMode().toShort())));
         if (options.getAcl() != null) {
           setAclEntries(path, options.getAcl().getEntries());
         }

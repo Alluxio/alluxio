@@ -46,6 +46,9 @@ spec:
       {{- end }}
     {{- end }}
     spec:
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: alluxio-fuse-client
           image: alpine:latest

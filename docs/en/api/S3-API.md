@@ -23,6 +23,13 @@ Alluxio proxy, introducing an extra hop. For optimal performance, it is recommen
 server and an Alluxio worker on each compute node. It is also recommended to put all the proxy
 servers behind a load balancer.
 
+As described in the Aws s3 document [Aws PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html):  
+> _Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written._  
+> _Amazon S3 does not provide object locking; if you need this, make sure to build it into your application layer or use versioning instead._  
+
+Alluxio s3 will overwrite the existing key and the temporary directory for multipart upload. 
+
+
 ## Features support
 The following table describes the support status for current Amazon S3 functional features:
 
@@ -36,6 +43,14 @@ The following table describes the support status for current Amazon S3 functiona
 {% endfor %}
 </table>
 
+### Limitation
+In Alluxio, we use `/` as a reserved separator. Therefore, any S3 directory with an object named `/` (eg: `s3://example-bucket//`) will conflict and behave incorrectly.
+
+### Bucket
+Bucket must be a directory directly under a mount point.   
+If it is under a non-root mount point, the bucket separator must be used as the separator in the bucket name.   
+For example, mount:point:bucket represents Alluxio directory /mount/point/bucket.  
+
 ## Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, and Ruby.
 In this documentation, we use curl REST calls and python S3 client as usage examples.
@@ -48,11 +63,13 @@ The Alluxio proxy is listening at port 39999 by default.
 
 #### Authorization
 
-By default, the user that is used to do any FileSystem operations is the user that was used to launch
-the proxy process. This can be changed by providing the Authorization Header.
+By default, the user that is used to do any FileSystem operations is the user that was used to
+launch the proxy process. This can be changed by providing the Authorization Header. The header
+format is [defined by the AWS S3 Rest API reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 
 ```console
-$ curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/20211101/us-east-1/s3/aws4_request SignedHeaders=host;range;x-amz-date Signature=<sig>" \
+    -X PUT http://localhost:39999/api/v1/s3/testbucket0
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:02:26 GMT
 Content-Length: 0
@@ -148,6 +165,7 @@ Server: Jetty(9.4.43.v20210629)
 ```
 
 #### Listing a bucket with multiple objects
+
 You can upload more files and use the `max-keys` and `marker` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html). For example:
 
 ```console
@@ -213,7 +231,25 @@ $ ./bin/alluxio fs ls -R /testbucket
 -rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:24:33:029 100% /testbucket/testobject
 ```
 
-#### Delete objects
+#### Copy an Object
+
+```console
+$ curl -i -X PUT -H "x-amz-copy-source: /testbucket/key1" http://localhost:39999/api/v1/s3/testbucket/key2
+
+HTTP/1.1 200 OK
+Date: Wed, 02 Nov 2021 07:25:21 GMT
+Content-Type: application/xml
+Content-Length: 142
+Server: Jetty(9.4.43.v20210629)
+
+<CopyObjectResult>
+    <LastModified>2009-10-28T22:32:00</LastModified>
+    <ETag>"9b2cf535f27731c974343645a3985328"</ETag>
+<CopyObjectResult>
+```
+
+
+#### Delete Single Objects
 
 ```console
 $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
@@ -239,6 +275,37 @@ $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:32:08 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
+```
+
+#### Delete Multiple Objects
+
+```console
+$ cat body.xml
+<Delete xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+   <Object>
+      <Key>sample1.txt</Key>
+   </Object>
+   <Object>
+      <Key>sample2.txt</Key>
+   </Object>
+   <Quiet>boolean</Quiet>
+</Delete>
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket?delete
+
+HTTP/1.1 200 Ok
+Date: Tue, 18 Jun 2019 21:32:08 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Deleted>
+    <Key>sample1.txt</Key>
+  </Deleted>
+  <Error>
+  <Key>sample2.txt</Key>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied</Message>
+  </Error>
+</DeleteResult>
 ```
 
 #### Initiate a multipart upload

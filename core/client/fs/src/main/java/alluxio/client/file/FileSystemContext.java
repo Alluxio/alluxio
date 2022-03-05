@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -31,6 +32,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
@@ -44,6 +46,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 
+import com.codahale.metrics.CachedGauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -58,8 +61,8 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -91,6 +94,8 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
+  private static final String TOTAL_RPC_CLIENTS_METRICS_NAME
+      = MetricsSystem.getMetricName(MetricKey.CLIENT_TOTAL_RPC_CLIENTS.getName());
 
   /**
    * Unique ID for each FileSystemContext.
@@ -245,7 +250,7 @@ public class FileSystemContext implements Closeable {
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
-        mId, mBlockWorker == null);
+        mId, mBlockWorker != null);
   }
 
   /**
@@ -273,6 +278,17 @@ public class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
+
+    MetricsSystem.registerGaugeIfAbsent(TOTAL_RPC_CLIENTS_METRICS_NAME,
+       new CachedGauge<Integer>(1, TimeUnit.MINUTES) {
+          @Override
+          protected Integer loadValue() {
+            int totalClients = mFileSystemMasterClientPool.size() + mBlockMasterClientPool.size();
+            totalClients += mBlockWorkerClientPoolMap.values()
+                .stream().mapToInt(DynamicResourcePool::size).sum();
+            return totalClients;
+          }
+        });
   }
 
   /**
@@ -297,6 +313,7 @@ public class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
+      MetricsSystem.removeMetrics(TOTAL_RPC_CLIENTS_METRICS_NAME);
       LOG.debug("Closing fs master client pool with current size: {} for id: {}",
           mFileSystemMasterClientPool.size(), mId);
       mFileSystemMasterClientPool.close();
@@ -385,6 +402,7 @@ public class FileSystemContext implements Closeable {
       LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
+      ReconfigurableRegistry.update();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
@@ -503,7 +521,7 @@ public class FileSystemContext implements Closeable {
     try {
       return new CloseableResource<T>(pool.acquire()) {
         @Override
-        public void close() {
+        public void closeResource() {
           pool.release(get());
         }
       };
@@ -547,7 +565,7 @@ public class FileSystemContext implements Closeable {
         .acquire()) {
       // Save the reference to the original pool map.
       @Override
-      public void close() {
+      public void closeResource() {
         releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
       }
     };
@@ -629,7 +647,7 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers eligible for reads and writes
    */
   public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
+    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
       mWorkerInfoList = getAllWorkers();
     }
     return mWorkerInfoList;

@@ -39,9 +39,12 @@ To set up Docker after provisioning the instance, which will be referred as the 
 
 ```console
 $ sudo yum install -y docker
-$ sudo service docker start
+# Create docker group
+$ sudo groupadd docker
 # Add the current user to the docker group
 $ sudo usermod -a -G docker $(id -u -n)
+# Start docker service
+$ sudo service docker start
 # Log out and log back in again to pick up the group changes
 $ exit
 ```

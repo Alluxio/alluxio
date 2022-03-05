@@ -30,6 +30,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
@@ -38,12 +39,12 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
-import javax.security.sasl.SaslException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
+import javax.security.sasl.SaslException;
 
 /**
  * An exception thrown by Alluxio. {@link #getStatusCode()} can be used to determine the represented
@@ -242,7 +243,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);
     } catch (ConnectionFailedException | FailedToCheckpointException
-        | UfsBlockAccessTokenUnavailableException e) {
+        | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       return new UnavailableException(e);
     } catch (DependencyDoesNotExistException | DirectoryNotEmptyException
         | InvalidWorkerStateException e) {

@@ -19,7 +19,6 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

@@ -22,7 +22,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

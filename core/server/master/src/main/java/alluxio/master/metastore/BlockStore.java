@@ -11,21 +11,20 @@
 
 package alluxio.master.metastore;
 
-import alluxio.master.metastore.BlockStore.Block;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.resource.CloseableIterator;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The block store keeps track of block sizes and block locations.
  */
 @ThreadSafe
-public interface BlockStore extends Iterable<Block> {
+public interface BlockStore {
   /**
    * @param id a block id
    * @return the block's metadata, or empty if the block does not exist
@@ -89,21 +88,52 @@ public interface BlockStore extends Iterable<Block> {
   long size();
 
   /**
+   * Gets a {@link CloseableIterator} over the blocks.
+   * The iterator must be closed properly.
+   * One option is to follow the below idiom:
+   * <pre>{@code
+   *   try (CloseableIterator<Block> iter =
+   *       mBlockStore.getCloseableIterator()) {
+   *     while (iter.hasNext()) {
+   *       // take the element and perform operations
+   *     }
+   *   }
+   * }</pre>
+   *
+   * If the iterator must be passed to other methods,
+   * it must be closed at the end of operation or on exceptions.
+   * Otherwise there can be a leak!
+   *
+   * @return a {@link CloseableIterator} over the blocks
+   * */
+  CloseableIterator<Block> getCloseableIterator();
+
+  /**
    * Block metadata.
    */
   class Block {
     private final long mId;
     private final BlockMeta mMeta;
 
+    /**
+     * @param id the block id
+     * @param meta the block meta
+     */
     public Block(long id, BlockMeta meta) {
       mId = id;
       mMeta = meta;
     }
 
+    /**
+     * @return id
+     */
     public long getId() {
       return mId;
     }
 
+    /**
+     * @return block meta
+     */
     public BlockMeta getMeta() {
       return mMeta;
     }

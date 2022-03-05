@@ -20,7 +20,6 @@ import alluxio.grpc.QuorumServerInfo;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.testutils.BaseIntegrationTest;
-
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -55,7 +54,7 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
 
   protected void waitForQuorumPropertySize(Predicate<? super QuorumServerInfo> pred, int size)
       throws InterruptedException, TimeoutException {
-    final int TIMEOUT_1MIN = 60 * 1000; // in ms
+    final int TIMEOUT_1MIN30SEC = 90 * 1000; // in ms
     CommonUtils.waitFor("quorum property", () -> {
       try {
         return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
@@ -63,6 +62,6 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
       } catch (AlluxioStatusException e) {
         return false;
       }
-    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN));
+    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN30SEC));
   }
 }

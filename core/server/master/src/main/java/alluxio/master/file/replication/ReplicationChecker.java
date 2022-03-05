@@ -32,6 +32,8 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -51,7 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -117,6 +118,21 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mMaxActiveJobs = Math.max(1,
         (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
+        mActiveJobToInodeID::size);
+  }
+
+  private boolean shouldRun() {
+    // In unit tests there may not be workers, but we still want the ReplicationChecker to execute
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      return true;
+    }
+    if (mSafeModeManager.isInSafeMode() || mBlockMaster.getWorkerCount() == 0) {
+      LOG.debug("Skip the ReplicationChecker in safe mode and when there are no workers");
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -132,8 +148,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() throws InterruptedException {
-    // skips replication in safe mode when not all workers are registered
-    if (mSafeModeManager.isInSafeMode()) {
+    if (!shouldRun()) {
       return;
     }
     final Set<Long> activeJobIds = new HashSet<>();

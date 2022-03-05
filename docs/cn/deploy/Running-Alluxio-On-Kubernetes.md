@@ -127,8 +127,8 @@ To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point)
 ```properties
 properties:
   alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
-  alluxio.master.mount.table.root.option.aws.accessKeyId: "<accessKey>"
-  alluxio.master.mount.table.root.option.aws.secretKey: "<secretKey>"
+  alluxio.master.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
+  alluxio.master.mount.table.root.option.s3a.secretKey: "<secretKey>"
 ```
 
 {% endcollapsible %}

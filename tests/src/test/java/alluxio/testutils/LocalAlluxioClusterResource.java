@@ -36,7 +36,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -86,6 +85,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** Weather to include the secondary master. */
   private final boolean mIncludeSecondary;
 
+  /** Weather to include the proxy. */
+  private final boolean mIncludeProxy;
+
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
@@ -109,9 +111,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, boolean includeSecondary,
-      int numWorkers, Map<PropertyKey, String> configuration) {
+      boolean includeProxy, int numWorkers, Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
     mIncludeSecondary = includeSecondary;
+    mIncludeProxy = includeProxy;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetCountersAndGauges();
@@ -146,7 +149,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary, mIncludeProxy);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
@@ -235,6 +238,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public static class Builder {
     private boolean mStartCluster;
     private boolean mIncludeSecondary;
+    private boolean mIncludeProxy;
     private int mNumWorkers;
     private Map<PropertyKey, String> mConfiguration;
 
@@ -244,6 +248,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     public Builder() {
       mStartCluster = true;
       mIncludeSecondary = false;
+      mIncludeProxy = false;
       mNumWorkers = 1;
       mConfiguration = new HashMap<>();
     }
@@ -261,6 +266,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public Builder setIncludeSecondary(boolean includeSecondary) {
       mIncludeSecondary = includeSecondary;
+      return this;
+    }
+
+    /**
+     * @param includeProxy whether to include the proxy
+     */
+    public Builder setIncludeProxy(boolean includeProxy) {
+      mIncludeProxy = includeProxy;
       return this;
     }
 
@@ -285,8 +298,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mIncludeSecondary, mNumWorkers,
-          mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster, mIncludeSecondary, mIncludeProxy,
+          mNumWorkers, mConfiguration);
     }
   }
 

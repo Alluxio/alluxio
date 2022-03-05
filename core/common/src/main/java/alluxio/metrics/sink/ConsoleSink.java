@@ -18,7 +18,6 @@ import com.codahale.metrics.MetricRegistry;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

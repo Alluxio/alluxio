@@ -27,7 +27,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -177,8 +176,11 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean isSet(PropertyKey key) {
-    if (isSetByUser(key)) {
-      return true;
+    if (mUserProps.containsKey(key)) {
+      Optional<String> val = mUserProps.get(key);
+      if (val.isPresent()) {
+        return true;
+      }
     }
     // In case key is not the reference to the original key
     return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
@@ -192,7 +194,8 @@ public class AlluxioProperties {
   public boolean isSetByUser(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
-      return val.isPresent();
+      // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
+      return val.isPresent() && (getSource(key).compareTo(Source.CLUSTER_DEFAULT) > 0);
     }
     return false;
   }

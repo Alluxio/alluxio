@@ -21,9 +21,12 @@ Cluster.BytesWrittenRemote,COUNTER
 Cluster.BytesWrittenRemoteThroughput,GAUGE
 Cluster.BytesWrittenUfsAll,COUNTER
 Cluster.BytesWrittenUfsThroughput,GAUGE
+Cluster.CacheHitRate,GAUGE
 Cluster.CapacityFree,GAUGE
 Cluster.CapacityTotal,GAUGE
 Cluster.CapacityUsed,GAUGE
+Cluster.LeaderId,GAUGE
+Cluster.LeaderIndex,GAUGE
 Cluster.LostWorkers,GAUGE
 Cluster.RootUfsCapacityFree,GAUGE
 Cluster.RootUfsCapacityTotal,GAUGE

@@ -31,6 +31,8 @@ public class S3ErrorCode {
     public static final String NO_SUCH_KEY = "NoSuchKey";
     public static final String NO_SUCH_UPLOAD = "NoSuchUpload";
     public static final String PRECONDITION_FAILED = "PreconditionFailed";
+    public static final String INVALID_CONTINUATION_TOKEN = "InvalidContinuationToken";
+    public static final String UPLOAD_ALREADY_EXISTS = "UploadAlreadyExists";
 
     private Name() {
     } // prevents instantiation
@@ -77,6 +79,14 @@ public class S3ErrorCode {
       Name.PRECONDITION_FAILED,
       "At least one of the preconditions did not hold",
       Response.Status.PRECONDITION_FAILED);
+  public static final S3ErrorCode INVALID_CONTINUATION_TOKEN = new S3ErrorCode(
+      Name.INVALID_CONTINUATION_TOKEN,
+      "The continuation token provided is incorrect",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode UPLOAD_ALREADY_EXISTS = new S3ErrorCode(
+      Name.UPLOAD_ALREADY_EXISTS,
+      "The specified multipart upload already exits",
+      Response.Status.CONFLICT);
 
   //
   // Customized error codes.

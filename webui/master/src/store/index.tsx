@@ -22,9 +22,9 @@ import { ILogsState } from '@alluxio/common-ui/src/store/logs/types';
 import { browseReducer, initialBrowseState } from './browse/reducer';
 import { browseSaga } from './browse/sagas';
 import { IBrowseState } from './browse/types';
-import { configReducer, initialConfigState } from './config/reducer';
-import { configSaga } from './config/sagas';
-import { IConfigState } from './config/types';
+import { configReducer, initialConfigState } from '@alluxio/common-ui/src/store/config/reducer';
+import { configSaga } from '@alluxio/common-ui/src/store/config/sagas';
+import { IConfigState } from '@alluxio/common-ui/src/store/config/types';
 import { dataReducer, initialDataState } from './data/reducer';
 import { dataSaga } from './data/sagas';
 import { IDataState } from './data/types';
@@ -43,6 +43,9 @@ import { IWorkersState } from './workers/types';
 import { IMountTableState } from './mounttable/types';
 import { initialMountTableState, mountTableReducer } from './mounttable/reducer';
 import { mountTableSaga } from './mounttable/sagas';
+import { stackSaga } from '@alluxio/common-ui/src/store/stacks/sagas';
+import { IStacksState } from '@alluxio/common-ui/src/store/stacks/types';
+import { initialStacksState, stacksReducer } from '@alluxio/common-ui/src/store/stacks/reducer';
 
 export interface IApplicationState {
   browse: IBrowseState;
@@ -55,6 +58,7 @@ export interface IApplicationState {
   refresh: IRefreshState;
   router?: RouterState;
   workers: IWorkersState;
+  stacks: IStacksState;
   mountTable: IMountTableState;
 }
 
@@ -69,6 +73,7 @@ export const rootReducer = (history: History): Reducer<IApplicationState> =>
     overview: overviewReducer,
     refresh: refreshReducer,
     router: connectRouter(history),
+    stacks: stacksReducer,
     workers: workersReducer,
     mountTable: mountTableReducer,
   });
@@ -82,6 +87,7 @@ export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
     fork(logsSaga),
     fork(metricsSaga),
     fork(overviewSaga),
+    fork(stackSaga),
     fork(workersSaga),
     fork(mountTableSaga),
   ]);
@@ -96,6 +102,7 @@ export const initialState: IApplicationState = {
   metrics: initialMetricsState,
   overview: initialOverviewState,
   refresh: initialRefreshState,
+  stacks: initialStacksState,
   workers: initialWorkersState,
   mountTable: initialMountTableState,
 };

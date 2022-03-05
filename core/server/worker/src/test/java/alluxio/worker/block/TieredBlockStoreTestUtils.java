@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;

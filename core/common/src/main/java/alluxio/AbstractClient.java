@@ -32,6 +32,7 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -45,7 +46,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -377,7 +377,8 @@ public abstract class AbstractClient implements Client {
       logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
       if (duration >= mRpcThreshold) {
         logger.warn("{}({}) returned {} in {} ms (>={} ms)",
-            rpcName, String.format(description, args), ret, duration, mRpcThreshold);
+            rpcName, String.format(description, args),
+            CommonUtils.summarizeCollection(ret), duration, mRpcThreshold);
       }
       return ret;
     } catch (Exception e) {
@@ -414,7 +415,7 @@ public abstract class AbstractClient implements Client {
           throw se;
         }
       }
-      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      LOG.debug("Rpc failed ({}): ", retryPolicy.getAttemptCount(), ex);
       onRetry.get();
       disconnect();
     }

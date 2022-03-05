@@ -11,11 +11,12 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.metrics.MetricKey;
@@ -31,8 +32,8 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -152,6 +153,13 @@ public final class LocalFileDataReader implements DataReader {
       } catch (Exception e) {
         mBlockWorker.close();
         throw e;
+      }
+
+      if (!Files.exists(Paths.get(mPath))) {
+        mStream.close();
+        mBlockWorker.close();
+        throw new NotFoundException(String.format(
+            "LocalFileDataReader can not find the path:%s", mPath));
       }
     }
 

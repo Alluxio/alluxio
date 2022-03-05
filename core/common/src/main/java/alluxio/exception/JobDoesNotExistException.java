@@ -67,6 +67,6 @@ public class JobDoesNotExistException extends AlluxioException {
    * @param jobId the job id which does not exit
    */
   public JobDoesNotExistException(long jobId) {
-    this(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+    this(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(String.valueOf(jobId)));
   }
 }

@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,7 +76,7 @@ public class DailyMetadataBackupTest {
     mUfsClient = Mockito.mock(UfsManager.UfsClient.class);
     when(mUfsClient.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(mUfs) {
       @Override
-      public void close() {
+      public void closeResource() {
         // Noop
       }
     });

@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import org.junit.After;

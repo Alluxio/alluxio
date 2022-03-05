@@ -30,7 +30,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -153,7 +152,7 @@ public final class LocalAlluxioMaster {
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mMasterProcess.isServing();
+    return mMasterProcess.isGrpcServing();
   }
 
   /**

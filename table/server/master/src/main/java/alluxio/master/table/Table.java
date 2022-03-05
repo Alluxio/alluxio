@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -98,19 +97,19 @@ public class Table {
           newPartition = new Partition(udbPartition);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Existing table {}.{} adding UDB partition: {}",
-                database.getName(), mName, udbPartition.toString());
+                database.getName(), mName, udbPartition);
           }
         } else if (!newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
           // existing partition is updated
           newPartition = newPartition.createNext(udbPartition);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Existing table {}.{} updating UDB partition {}",
-                database.getName(), mName, udbPartition.toString());
+                database.getName(), mName, udbPartition);
           }
         } else {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Existing table {}.{} keeping partition spec: {}",
-                database.getName(), mName, udbPartition.toString());
+                database.getName(), mName, udbPartition);
           }
         }
         partitions.add(newPartition);
@@ -126,7 +125,7 @@ public class Table {
       if (LOG.isDebugEnabled()) {
         udbTable.getPartitions().stream().forEach(udbPartition ->
             LOG.debug("New table {}.{} adding UDB partition: {}.",
-                database.getName(), mName, udbPartition.toString()));
+                database.getName(), mName, udbPartition));
       }
     }
     mPartitionScheme =

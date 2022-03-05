@@ -23,7 +23,7 @@ import com.obs.services.model.ObjectMetadata;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -59,7 +59,7 @@ public class OBSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
-    Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenThrow(ObsException.class);
 
     boolean result = mOBSUnderFileSystem.deleteDirectory(PATH,
@@ -72,7 +72,7 @@ public class OBSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
-    Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenThrow(ObsException.class);
 
     boolean result = mOBSUnderFileSystem.deleteDirectory(PATH,
@@ -86,7 +86,7 @@ public class OBSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException {
-    Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenThrow(ObsException.class);
 
     boolean result = mOBSUnderFileSystem.renameFile(SRC, DST);
@@ -140,5 +140,27 @@ public class OBSUnderFileSystemTest {
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
     Assert.assertTrue(mOBSUnderFileSystem.isDirectory("dir1"));
     Assert.assertFalse(mOBSUnderFileSystem.isDirectory("obs_file1"));
+  }
+
+  @Test
+  public void nullObjectMetaTest() throws Exception {
+    ObjectMetadata fileMeta = new ObjectMetadata();
+    fileMeta.setContentLength(10L);
+    ObjectMetadata dirMeta = new ObjectMetadata();
+    dirMeta.setContentLength(0L);
+    /**
+     * /xx/file1/ ( File1 actually exists, which is a file) , there is / after file1 name.
+     * When OBS, the path object meta is null.
+     * When PFS, the path object meta is not null. The object meta is same as /xx/file1
+     */
+    Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "pfs_file1"))
+        .thenReturn(fileMeta);
+    Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "dir1"))
+        .thenReturn(dirMeta);
+
+    mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "obs",
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+    Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1"));
+    Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
   }
 }

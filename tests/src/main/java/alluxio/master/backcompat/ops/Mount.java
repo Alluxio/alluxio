@@ -11,8 +11,8 @@
 
 package alluxio.master.backcompat.ops;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystem;
 import alluxio.master.backcompat.FsTestOp;
 

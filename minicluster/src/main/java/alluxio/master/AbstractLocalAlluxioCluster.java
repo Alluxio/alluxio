@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -109,7 +108,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the proxy.
    */
-  private void startProxy() throws Exception {
+  protected void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
     Runnable runProxy = () -> {
       try {

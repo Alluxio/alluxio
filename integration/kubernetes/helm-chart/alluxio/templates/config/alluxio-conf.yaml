@@ -22,6 +22,10 @@
 {{- /*         ALLUXIO_JAVA_OPTS             */}}
 {{- /* ===================================== */}}
 {{- $alluxioJavaOpts := list }}
+{{- if .Values.hub.enabled }}
+  {{- $alluxioJavaOpts = print "-Dalluxio.hub.agent.rpc.hostname=${ALLUXIO_HUB_AGENT_RPC_HOSTNAME}" | append $alluxioJavaOpts }}
+  {{- $alluxioJavaOpts = printf "-Dalluxio.hub.cluster.id=%v" .Values.hub.clusterId | append $alluxioJavaOpts }}
+{{- end }}
 {{- /* Specify master hostname if single master */}}
 {{- if $isSingleMaster }}
   {{- $alluxioJavaOpts = printf "-Dalluxio.master.hostname=%v-%v" $fullName $defaultMasterName | append $alluxioJavaOpts }}
@@ -83,10 +87,10 @@
 {{- /* Worker Fuse configurations */}}
 {{- if eq .Values.worker.fuseEnabled true}}
   {{- $workerJavaOpts = print "-Dalluxio.worker.fuse.enabled=true" | append $workerJavaOpts }}
-  {{- $workerJavaOpts = print "-Dalluxio.worker.fuse.mount.alluxio.path=/" | append $workerJavaOpts }}
+  {{- $workerJavaOpts = printf "-Dalluxio.worker.fuse.mount.alluxio.path=%v" .Values.fuse.alluxioPath | append $workerJavaOpts }}
   {{- $workerJavaOpts = printf "-Dalluxio.worker.fuse.mount.point=%v" .Values.fuse.mountPath | append $workerJavaOpts }}
   {{- if .Values.fuse.mountOptions }}
-  {{- $workerJavaOpts = printf "-Dalluxiuo.worker.fuse.mount.options=%v" .Values.fuse.mountOptions | append $workerJavaOpts }}
+  {{- $workerJavaOpts = printf "-Dalluxio.worker.fuse.mount.options=%v" .Values.fuse.mountOptions | append $workerJavaOpts }}
   {{- end }}
   {{- $workerJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $workerJavaOpts }}
   {{- if .Values.fuse.jvmOptions }}
@@ -178,9 +182,6 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-delete-policy": before-hook-creation
   name: {{ $fullName }}-config
   labels:
     name: {{ $fullName }}-config

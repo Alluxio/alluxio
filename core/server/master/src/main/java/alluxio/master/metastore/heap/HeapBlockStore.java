@@ -19,6 +19,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.collect.ImmutableSet;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -76,9 +76,9 @@ public class HeapBlockStore implements BlockStore {
   }
 
   @Override
-  public Iterator<Block> iterator() {
+  public CloseableIterator<Block> getCloseableIterator() {
     Iterator<Entry<Long, BlockMeta>> it = mBlocks.entrySet().iterator();
-    return new Iterator<Block>() {
+    return CloseableIterator.noopCloseable(new Iterator<Block>() {
       @Override
       public boolean hasNext() {
         return it.hasNext();
@@ -89,7 +89,7 @@ public class HeapBlockStore implements BlockStore {
         Entry<Long, BlockMeta> entry = it.next();
         return new Block(entry.getKey(), entry.getValue());
       }
-    };
+    });
   }
 
   @Override

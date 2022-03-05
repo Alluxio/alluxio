@@ -25,7 +25,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Map;
-
 import javax.ws.rs.HttpMethod;
 
 /**

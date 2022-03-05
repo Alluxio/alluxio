@@ -12,7 +12,6 @@
 package alluxio.master.job.plan;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -28,7 +27,6 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +42,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The {@link PlanTracker} is used to create, remove, and provide access to the set of currently
@@ -105,8 +103,8 @@ public class PlanTracker {
     Preconditions.checkArgument(retentionMs >= 0);
     mRetentionMs = retentionMs;
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
-    mCoordinators = new ConcurrentHashMap<>(0,
-        0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
+    mCoordinators = new ConcurrentHashMap<>(0, 0.95f,
+        Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
     mFailed = Collections.synchronizedSortedSet(new TreeSet<>((left, right) -> {
       long diffTime = right.getLastStatusChangeMs() - left.getLastStatusChangeMs();
       if (diffTime != 0) {

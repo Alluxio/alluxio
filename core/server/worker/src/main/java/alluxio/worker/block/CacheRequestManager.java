@@ -47,7 +47,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -134,8 +133,11 @@ public class CacheRequestManager {
           e.toString());
       mActiveCacheRequests.remove(blockId);
       if (!async) {
-        throw new CancelledException(
-            "Fail to finish cache request synchronously as the thread pool is at capacity.", e);
+        throw new CancelledException(String.format(
+            "Fail to finish cache request synchronously as the thread pool is at capacity."
+                + " To increase the capacity, set the parameter '%s' and '%s' higher. ",
+            PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX,
+            PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX), e);
       }
     }
     if (future != null && !async) {

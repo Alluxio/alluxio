@@ -33,7 +33,6 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -407,8 +406,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     } else {
       // Backward compatibility.
       AccessControlList acl = new AccessControlList();
-      acl.setOwningUser(entry.getOwner());
-      acl.setOwningGroup(entry.getGroup());
+      acl.setOwningUser(entry.getOwner().intern());
+      acl.setOwningGroup(entry.getGroup().intern());
       short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
       acl.setMode(mode);
       ret.mAcl = acl;
@@ -450,8 +449,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setParentId(parentId)
         .setLastModificationTimeMs(context.getOperationTimeMs(), true)
         .setLastAccessTimeMs(context.getOperationTimeMs(), true)
-        .setOwner(context.getOwner())
-        .setGroup(context.getGroup())
+        .setOwner(context.getOwner().intern())
+        .setGroup(context.getGroup().intern())
         .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         .setPersistenceState(context.isPersisted() ? PersistenceState.PERSISTED
