@@ -797,9 +797,22 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
         }
         return false;
       }
+      int clock = mClockTable.readTag(from.mBucketIndex, from.mSlotIndex);
+      int fromSegIndex = mLocks.getSegmentIndex(from.mBucketIndex);
+      int toSegIndex = mLocks.getSegmentIndex(to.mBucketIndex);
+      if (from.mBucketIndex
+              % mLocks.getNumBucketsPerSegment() < mSegmentedAgingPointers[fromSegIndex]
+              && to.mBucketIndex
+              % mLocks.getNumBucketsPerSegment() >= mSegmentedAgingPointers[toSegIndex]) {
+        clock = Math.min(mMaxAge, clock + 1);
+      } else if (from.mBucketIndex
+              % mLocks.getNumBucketsPerSegment() >= mSegmentedAgingPointers[fromSegIndex]
+              && to.mBucketIndex
+              % mLocks.getNumBucketsPerSegment() < mSegmentedAgingPointers[toSegIndex]) {
+        clock = Math.max(0, clock - 1);
+      }
       mTable.writeTag(to.mBucketIndex, to.mSlotIndex, fromTag);
-      mClockTable.writeTag(to.mBucketIndex, to.mSlotIndex,
-          mClockTable.readTag(from.mBucketIndex, from.mSlotIndex));
+      mClockTable.writeTag(to.mBucketIndex, to.mSlotIndex, clock);
       mScopeTable.writeTag(to.mBucketIndex, to.mSlotIndex,
           mScopeTable.readTag(from.mBucketIndex, from.mSlotIndex));
       mSizeTable.writeTag(to.mBucketIndex, to.mSlotIndex,
