@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +49,6 @@ public final class DistributedLoadUtils {
 
   /**
    * Distributed loads a file or directory in Alluxio space, makes it resident in memory.
-   * 
    * @param command The command to execute loading
    * @param pool The pool for batched jobs
    * @param batchSize size for batched jobs
@@ -144,11 +142,10 @@ public final class DistributedLoadUtils {
 
   /**
    * Creates a new job to load a file in Alluxio space, makes it resident in memory.
-   * 
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
-   * @param directCache
+   * @param directCache use direct cache or passive cache
    * @param printOut whether print out progress in console
    */
   private static JobAttempt newJob(AbstractDistributedJobCommand command, List<URIStatus> filePath,
@@ -340,7 +337,6 @@ public final class DistributedLoadUtils {
   public static class LoadJobAttemptFactory {
     /**
      * Loads a file or directory in Alluxio space, makes it resident in memory.
-     * 
      * @param command The command to execute loading
      * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
      * @param replication Number of block replicas of each loaded file
