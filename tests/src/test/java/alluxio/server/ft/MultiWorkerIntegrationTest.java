@@ -183,7 +183,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
     FindFirstBlockLocationPolicy.sWorkerAddress = address;
-    String previousPolicy = ServerConfiguration.getString(
+    Class<?> previousPolicy = ServerConfiguration.getClass(
         PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
     // This only works because the client instance hasn't been created yet.
     ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
