@@ -14,6 +14,7 @@ package alluxio.conf;
 import static alluxio.conf.PropertyKey.CONF_REGEX;
 import static alluxio.conf.PropertyKey.REGEX_STRING;
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
@@ -304,15 +305,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public <T> Class<T> getClass(PropertyKey key) {
-    String rawValue = getString(key);
-
+    Object value = get(key);
+    if (value instanceof Class) {
+      return (Class<T>) value;
+    }
     try {
-      @SuppressWarnings("unchecked")
-      Class<T> clazz = (Class<T>) Class.forName(rawValue);
-      return clazz;
-    } catch (Exception e) {
-      LOG.error("requested class could not be loaded: {}", rawValue, e);
-      throw new RuntimeException(e);
+      return (Class<T>) Class.forName((String) value);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalStateException(
+          format("Requested class %s can not be loaded", value));
     }
   }
 

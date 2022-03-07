@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static alluxio.conf.PropertyKey.Builder.classBuilder;
 import static alluxio.conf.PropertyKey.Builder.dataSizeBuilder;
 import static alluxio.conf.PropertyKey.Builder.doubleBuilder;
 import static alluxio.conf.PropertyKey.Builder.durationBuilder;
@@ -175,7 +176,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     /**
      * The Property's value is an enum for a predefined enum class.
      */
-    ENUM(Enum.class);
+    ENUM(Enum.class),
+    /**
+     * The Property's value is of class type, stored as a Class.
+     */
+    CLASS(String.class);
 
     private final Class<?> mJavaType;
 
@@ -272,6 +277,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder dataSizeBuilder(String name) {
       return new Builder(name, PropertyType.DATASIZE);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for class properties
+     */
+    public static Builder classBuilder(String name) {
+      return new Builder(name, PropertyType.CLASS);
     }
 
     /**
@@ -3191,7 +3204,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Worker related properties
   //
   public static final PropertyKey WORKER_ALLOCATOR_CLASS =
-      new Builder(Name.WORKER_ALLOCATOR_CLASS)
+      classBuilder(Name.WORKER_ALLOCATOR_CLASS)
           .setDefaultValue("alluxio.worker.block.allocator.MaxFreeAllocator")
           .setDescription("The strategy that a worker uses to allocate space among storage "
               + "directories in certain storage layer. Valid options include: "
@@ -3291,7 +3304,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated(message = "Use WORKER_BLOCK_ANNOTATOR_CLASS instead.")
   public static final PropertyKey WORKER_EVICTOR_CLASS =
-      new Builder(Name.WORKER_EVICTOR_CLASS)
+      classBuilder(Name.WORKER_EVICTOR_CLASS)
           .setDescription("The strategy that a worker uses to evict block files when a "
               + "storage layer runs out of space. Valid options include "
               + "`alluxio.worker.block.evictor.LRFUEvictor`, "
@@ -3302,7 +3315,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_BLOCK_ANNOTATOR_CLASS =
-      new Builder(Name.WORKER_BLOCK_ANNOTATOR_CLASS)
+      classBuilder(Name.WORKER_BLOCK_ANNOTATOR_CLASS)
           .setDefaultValue("alluxio.worker.block.annotator.LRUAnnotator")
           .setDescription("The strategy that a worker uses to annotate blocks "
               + "in order to have an ordered view of them during internal"
@@ -3821,7 +3834,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REVIEWER_CLASS =
-      new Builder(Name.WORKER_REVIEWER_CLASS)
+      classBuilder(Name.WORKER_REVIEWER_CLASS)
           .setDefaultValue("alluxio.worker.block.reviewer.ProbabilisticBufferReviewer")
           .setDescription("(Experimental) The API is subject to change in the future."
               + "The strategy that a worker uses to review space allocation "
@@ -4567,7 +4580,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY)
+      classBuilder(Name.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks using copyFromLocal command.")
@@ -4716,7 +4729,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
-      stringBuilder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
+      classBuilder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
@@ -4760,7 +4773,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
-      new Builder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
+      classBuilder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
           .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
           .setDescription("The strategy that client uses to evict local cached pages when running "
               + "out of space. Currently valid options include "
@@ -5456,7 +5469,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
-      stringBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
+      classBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription(format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
@@ -5529,7 +5542,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // FUSE integration related properties
   //
   public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
-      new Builder(Name.FUSE_AUTH_POLICY_CLASS)
+      classBuilder(Name.FUSE_AUTH_POLICY_CLASS)
           .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
           .setDescription("The fuse auth policy class. "
               + " Valid options include: "
@@ -5680,7 +5693,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Security related properties
   //
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
-      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS)
+      classBuilder(Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS)
           .setDescription("The class to provide customized authentication implementation, "
               + "when alluxio.security.authentication.type is set to CUSTOM. It must "
               + "implement the interface "
@@ -5733,7 +5746,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
-      new Builder(Name.SECURITY_GROUP_MAPPING_CLASS)
+      classBuilder(Name.SECURITY_GROUP_MAPPING_CLASS)
           .setDefaultValue("alluxio.security.group.provider.ShellBasedUnixGroupsMapping")
           .setDescription("The class to provide user-to-groups mapping service. Master could "
               + "get the various group memberships of a given user.  It must implement the "
@@ -5776,7 +5789,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Network TLS support
   //
   public static final PropertyKey NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
-      new Builder(Name.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME)
+      classBuilder(Name.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME)
           .setDescription(
               "Full name of the class that will be instantiated for providing SSL contexts.")
           .setDefaultValue("alluxio.util.network.tls.DefaultSslContextProvider")
@@ -8237,7 +8250,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static boolean validateValue(
       Object value, PropertyType type, Optional<Class<? extends Enum>> enumType,
       Function<Object, Boolean> valueValidationFunction) {
-    if (!(value instanceof String)) {
+    if (value instanceof String) {
+      if (!type.getJavaType().equals(String.class)) {
+        String stringValue = (String) value;
+        Matcher matcher = CONF_REGEX.matcher(stringValue);
+        if (!matcher.matches()) {
+          return false;
+        }
+      }
+    } else {
       switch (type) {
         case BOOLEAN:
         case INTEGER:
@@ -8258,6 +8279,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         case DURATION:
         case DATASIZE:
           if (!value.getClass().equals(Long.class) && !value.getClass().equals(Integer.class)) {
+            return false;
+          }
+          break;
+        case CLASS:
+          if (!(value instanceof Class)) {
             return false;
           }
           break;
@@ -8342,6 +8368,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         case DATASIZE:
           return FormatUtils.parseSpaceSize(stringValue);
         case STRING:
+        case CLASS:
           return stringValue;
         default:
           throw new IllegalStateException(format("Unknown PropertyType: %s", mType));
