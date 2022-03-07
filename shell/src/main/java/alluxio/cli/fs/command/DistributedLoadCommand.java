@@ -47,6 +47,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
+  private static final int DEFAULT_FAILURE_LIMIT = 1;
+  private static final String DEFAULT_FAILURE_FILE_PATH = "logs/user/distributedLoad_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -319,19 +321,19 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     if (failures.size() > 0) {
       StringBuilder output = new StringBuilder();
       output.append("Here's recent failed files: \n");
-      String dumpPath = "logs/user/distributedLoad_failures.csv";
       Iterator<String> iterator = failures.iterator();
-      for (int i = 0; i < Math.min(20, failures.size()); i++) {
+      for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
         String failure = iterator.next();
         output.append(failure);
         output.append(",\n");
       }
-      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dumpPath))) {
+      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DEFAULT_FAILURE_FILE_PATH))) {
         for (String failure : failures) {
           writer.write(String.format("%s%n", failure));
         }
       }
-      output.append(String.format("Check out %s for full list of failed files", dumpPath));
+      output.append(
+          String.format("Check out %s for full list of failed files", DEFAULT_FAILURE_FILE_PATH));
       System.out.print(output);
     }
     return 0;
