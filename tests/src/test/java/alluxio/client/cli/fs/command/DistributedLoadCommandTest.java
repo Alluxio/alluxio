@@ -254,7 +254,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   public void loadDirWithCorrectCount() throws IOException, AlluxioException {
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
     FileSystem fs = sResource.get().getClient();
-    int fileSize = 99;
+    int fileSize = 66;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
