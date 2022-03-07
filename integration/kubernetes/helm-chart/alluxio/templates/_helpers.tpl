@@ -357,3 +357,30 @@ imagePullSecrets:
   - name: {{ $name }}
 {{- end -}}
 {{- end -}}
+
+
+{{/*
+Flag indicating whether or not the Alluxio Master journal format requires a k8s Job.
+Since this function returns a templated output, the boolean output is returned as
+the strings "true" and "false".
+*/}}
+{{- define "alluxio.master.needsJournalFormatJob" -}}
+{{ and .Values.journal.format.runFormat (ne .Values.journal.volumeType "emptyDir") }}
+{{- end -}}
+
+{{/*
+String suffix of the Alluxio Master journal format Job name.
+*/}}
+{{- define "alluxio.master.journalFormatJobNameSuffix" -}}
+{{- $chart := include "alluxio.chart" . -}}
+{{- printf "journal-format-job-%s-%s" $chart .Release.Name }}
+{{- end -}}
+
+{{/*
+String name of the Alluxio Master Statefulset. Its Pods will use
+this name as the prefix, with "-[0-9]+" as the suffix.
+*/}}
+{{- define "alluxio.master.statefulsetName" -}}
+{{- $fullName := include "alluxio.fullname" . -}}
+{{- printf "%s-master" $fullName }}
+{{- end -}}

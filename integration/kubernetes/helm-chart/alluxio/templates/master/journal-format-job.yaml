@@ -1,0 +1,86 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
+{{- $needsJournalFormatJob := (eq "true" (include "alluxio.master.needsJournalFormatJob" .)) }}
+{{- $journalFormatJobNameSuffix := include "alluxio.master.journalFormatJobNameSuffix" . }}
+{{- $statefulsetName := include "alluxio.master.statefulsetName" . }}
+
+{{/* The following variables are defined because the "." scope is overridden in a range loop */}}
+{{- $release := .Release }}
+{{- $values  := .Values }}
+
+{{- if $needsJournalFormatJob }}
+{{- $count := int (ternary .Values.master.count 1 (eq .Values.journal.type "EMBEDDED")) }}
+{{ range $i, $e := until $count }}
+{{- $journalFormatJobName := printf "%s-%d-%s" $statefulsetName $i $journalFormatJobNameSuffix }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $journalFormatJobName }}
+  labels:
+    name: {{ $journalFormatJobName }}
+    app: {{ $name }}
+    chart: {{ $chart }}
+    release: {{ $release.Name }}
+    heritage: {{ $release.Service }}
+    role: alluxio-master
+  annotations:
+  {{- if (eq $values.journal.format.frequency "always") }}
+    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback
+    "helm.sh/hook-delete-policy": before-hook-creation
+  {{- else }}
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
+  {{- end }}
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 2
+  activeDeadlineSeconds: 30
+  # do NOT specify a 'ttlSecondsAfterFinished' because we need
+  # the job to persist in order for the master initContainers
+  # to determine that the journal has been formatted
+  template:
+    spec:
+      securityContext:
+        runAsUser: {{ $values.user }}
+        runAsGroup: {{ $values.group }}
+        fsGroup: {{ $values.fsGroup }}
+      containers:
+      - name: journal-format
+        image: {{ $values.image }}:{{ $values.imageTag }}
+        imagePullPolicy: {{ $values.imagePullPolicy }}
+        command: ["alluxio","formatJournal"]
+        env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            value: {{ $statefulsetName }}-{{ $i }}
+        envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
+        volumeMounts:
+          {{- if (eq $values.journal.volumeType "persistentVolumeClaim") }}
+          - name: alluxio-journal
+            mountPath: {{ $values.journal.folder }}
+          {{- end }}
+      restartPolicy: Never
+      volumes:
+      {{- if (eq $values.journal.volumeType "persistentVolumeClaim") }}
+      - name: alluxio-journal
+        persistentVolumeClaim:
+          # claimName is determined by the volumeClaimTemplates in the StatefulSet
+          claimName: alluxio-journal-{{ $statefulsetName }}-{{ $i }}
+      {{- end }}
+{{- end }}
+{{- end }}

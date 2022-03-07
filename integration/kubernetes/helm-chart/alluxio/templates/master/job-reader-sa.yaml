@@ -1,0 +1,64 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
+{{- $namespace := .Release.Namespace }}
+{{- $needsJournalFormatJob := (eq "true" (include "alluxio.master.needsJournalFormatJob" .)) }}
+{{- $needsNewSA := not (or .Values.master.serviceAccount .Values.serviceAccount) }}
+
+{{- if $needsJournalFormatJob }}
+{{- if $needsNewSA }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: job-reader-sa
+  namespace: {{ $namespace }}
+# explicitly mount K8s API credentials (this is the default behaviour)
+automountServiceAccountToken: true
+---
+{{- end }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: job-reader-role
+  namespace: {{ $namespace }}
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: job-reader-role-binding
+  namespace: {{ $namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: job-reader-role
+subjects:
+- kind: ServiceAccount
+  {{- if $needsNewSA }}
+  name: job-reader-sa
+  {{- else if .Values.master.serviceAccount }}
+  name: {{ .Values.master.serviceAccount }}
+  {{- else }}
+  name: .Values.serviceAccount
+  {{- end }}
+  namespace: {{ $namespace }}
+{{- end }}

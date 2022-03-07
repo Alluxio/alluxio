@@ -241,3 +241,7 @@
 0.6.36
 
 - Fix volumeMounts indentations in master statefulset
+
+0.6.37
+
+- Define Jobs and initContainers to wait for journal formatting

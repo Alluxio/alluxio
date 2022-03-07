@@ -22,13 +22,16 @@
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
+{{- $needsJournalFormatJob := (eq "true" (include "alluxio.master.needsJournalFormatJob" .)) }}
+{{- $journalFormatJobNameSuffix := include "alluxio.master.journalFormatJobNameSuffix" . }}
+{{- $statefulsetName := include "alluxio.master.statefulsetName" . }}
 
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ $fullName }}-master
+  name: {{ $statefulsetName }}
   labels:
-    name: {{ $fullName }}-master
+    name: {{ $statefulsetName }}
     app: {{ $name }}
     chart: {{ $chart }}
     release: {{ .Release.Name }}
@@ -39,14 +42,14 @@ spec:
     matchLabels:
       app: {{ $name }}
       role: alluxio-master
-      name: {{ $fullName }}-master
-  serviceName: {{ $fullName }}-master
+      name: {{ $statefulsetName }}
+  serviceName: {{ $statefulsetName }}
   podManagementPolicy: Parallel
   replicas: {{ $masterCount }}
   template:
     metadata:
       labels:
-        name: {{ $fullName }}-master
+        name: {{ $statefulsetName }}
         app: {{ $name }}
         chart: {{ $chart }}
         release: {{ .Release.Name }}
@@ -91,20 +94,26 @@ spec:
       serviceAccountName: {{ .Values.master.serviceAccount }}
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
+    {{- else if $needsJournalFormatJob }}
+      serviceAccountName: job-reader-sa
     {{- end }}
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
       initContainers:
-      {{- if .Values.journal.format.runFormat}}
-      - name: journal-format
-        image: {{ .Values.image }}:{{ .Values.imageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy }}
-        command: ["alluxio","formatJournal"]
-        volumeMounts:
-          - name: alluxio-journal
-            mountPath: /journal
-      {{- end}}
+      {{- if $needsJournalFormatJob }}
+      - name: wait-for-journal-format
+        image: groundnuty/k8s-wait-for:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          # POD_NAME is the StatefulSet name with the indexed suffix
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        # manually override entrypoint command in order to evaluate POD_NAME
+        command: ['sh', '-c', 'wait_for.sh "job" "${POD_NAME}-{{ $journalFormatJobNameSuffix }}"']
+      {{- end }}
       {{ if .Values.hub.enabled -}}
       shareProcessNamespace: true
       {{- end }}
