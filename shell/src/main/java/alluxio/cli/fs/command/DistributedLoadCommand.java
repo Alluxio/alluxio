@@ -318,18 +318,19 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
-    if (mFailedFiles.size() > 0) {
+    Set<String> failures = getFailedFiles();
+    if (failures.size() >= 0) {
       StringBuilder output = new StringBuilder();
       output.append("Here's recent failed files: \n");
-      String dumpPath = "/logs/user/distributedLoad_failures.txt";
-      Iterator<String> iterator = mFailedFiles.iterator();
-      for (int i = 0; i < Math.min(20, mFailedFiles.size()); i++) {
+      String dumpPath = "logs/user/distributedLoad_failures.txt";
+      Iterator<String> iterator = failures.iterator();
+      for (int i = 0; i < Math.min(20, failures.size()); i++) {
         String failure = iterator.next();
         output.append(failure);
         output.append(",\n");
       }
       try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(dumpPath))) {
-        for (String failure : mFailedFiles) {
+        for (String failure : failures) {
           writer.write(String.format("%s%n", failure));
         }
       }

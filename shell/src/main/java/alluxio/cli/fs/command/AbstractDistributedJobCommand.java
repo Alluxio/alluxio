@@ -41,7 +41,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
   protected final JobMasterClient mClient;
   private int mFailedCount;
   private int mCompletedCount;
-  protected Set<String> mFailedFiles;
+  private Set<String> mFailedFiles;
 
   protected AbstractDistributedJobCommand(FileSystemContext fsContext) {
     super(fsContext);
@@ -110,5 +110,13 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
    */
   public int getCompletedCount() {
     return mCompletedCount;
+  }
+
+  /**
+   * Gets failed files.
+   * @return failed files
+   */
+  public Set<String> getFailedFiles() {
+    return mFailedFiles;
   }
 }
