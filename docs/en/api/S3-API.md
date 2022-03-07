@@ -96,7 +96,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 Authenticating as a user is necessary to have buckets returned by this operation.
 
 ```console
-$ curl -i -H "Authorization: AWS testuser:" -X GET http://localhost:39999/api/v1/s3
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/" -X GET http://localhost:39999/api/v1/s3
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:06:43 GMT
 Content-Type: application/xml
