@@ -273,11 +273,10 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    public Set<String> getFailedFiles() {
-      if (getFailedTasks().isEmpty()) {
-        return Collections.singleton(mJobConfig.getSource());
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getSource());
       }
-      return Collections.EMPTY_SET;
     }
 
     @Override
@@ -324,13 +323,12 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    public Set<String> getFailedFiles() {
-      List<JobInfo> tasks = getFailedTasks();
-      Set<String> files = new HashSet<>();
-      for (JobInfo task : tasks) {
-        files.add(task.getDescription());
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "Source=", ","));
+        }
       }
-      return files;
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,11 +36,13 @@ public abstract class JobAttempt {
   protected final RetryPolicy mRetryPolicy;
 
   private Long mJobId;
-  private List<JobInfo> mFailedTasks;
+  protected Set<JobInfo> mFailedTasks;
+  protected Set<String> mFailedFiles;
 
   protected JobAttempt(JobMasterClient client, RetryPolicy retryPolicy) {
     mClient = client;
     mRetryPolicy = retryPolicy;
+    mFailedFiles = new HashSet<>();
   }
 
   /**
@@ -94,9 +97,8 @@ public abstract class JobAttempt {
     List<JobInfo> children;
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
-//        List<JobInfo> children;
         try {
-           children = mClient.getJobStatusDetailed(mJobId).getChildren();
+          children = mClient.getJobStatusDetailed(mJobId).getChildren();
         } catch (IOException e) {
           LOG.warn("Failed to get detailed children status for job (jobId={})", mJobId, e);
           return jobInfo.getStatus();
@@ -104,7 +106,8 @@ public abstract class JobAttempt {
         logFailedAttempt(jobInfo);
 
         mFailedTasks = children.stream().filter(child -> child.getStatus() == Status.FAILED)
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
+        setFailedFiles();
       } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
         logCompleted();
       }
@@ -112,14 +115,29 @@ public abstract class JobAttempt {
     }
     return Status.RUNNING;
   }
+
+  /**
+   * Get job config.
+   * @return job config
+   */
   public abstract JobConfig getJobConfig();
 
+  /**
+   * Get how many files contained in job attempt.
+   * @return number of files
+   */
   public abstract int getSize();
 
-  public List<JobInfo> getFailedTasks() {
-    return mFailedTasks;
+  /**
+   * Get failed files if there's any. Only call this function after confirm job status is FAILED!
+   * @return failed fail set
+   */
+  public Set<String> getFailedFiles() {
+    return mFailedFiles;
   }
-  public abstract Set<String> getFailedFiles();
+
+  protected abstract void setFailedFiles();
+
   protected abstract void logFailedAttempt(JobInfo jobInfo);
 
   protected abstract void logFailed();

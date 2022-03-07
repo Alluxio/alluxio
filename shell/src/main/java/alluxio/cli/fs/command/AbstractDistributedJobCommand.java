@@ -19,8 +19,11 @@ import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.collect.Lists;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,6 +52,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     mActiveJobs = DEFAULT_ACTIVE_JOBS;
     mFailedCount = 0;
     mCompletedCount = 0;
+    mFailedFiles = new HashSet<>();
   }
 
   protected void drain() {

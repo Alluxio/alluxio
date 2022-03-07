@@ -177,11 +177,10 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    public Set<String> getFailedFiles() {
-      if (getFailedTasks().isEmpty()) {
-        return Collections.singleton(mJobConfig.getFilePath());
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getFilePath());
       }
-      return Collections.EMPTY_SET;
     }
 
     @Override
@@ -222,11 +221,10 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    public Set<String> getFailedFiles() {
-      if (getFailedTasks().isEmpty()) {
-        return Collections.singleton(mJobConfig.getFilePath());
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getFilePath());
       }
-      return Collections.EMPTY_SET;
     }
 
     @Override
@@ -264,13 +262,12 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    public Set<String> getFailedFiles() {
-      List<JobInfo> tasks = getFailedTasks();
-      Set<String> files = new HashSet<>();
-      for (JobInfo task : tasks) {
-        files.add(task.getDescription());
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
       }
-      return files;
     }
 
     @Override
@@ -312,13 +309,12 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    public Set<String> getFailedFiles() {
-      List<JobInfo> tasks = getFailedTasks();
-      Set<String> files = new HashSet<>();
-      for (JobInfo task : tasks) {
-        files.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
       }
-      return files;
     }
 
     @Override
