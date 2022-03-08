@@ -14,7 +14,7 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * General {@link AlluxioException} used throughout the system. It must be able serialize itself to
+ * General {@link AlluxioException} used throughout the system. It must be able to serialize itself to
  * the RPC framework and convert back without losing any necessary information.
  */
 @ThreadSafe
