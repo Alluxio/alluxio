@@ -168,8 +168,8 @@ public final class MigrateDefinition
     boolean retry;
     do {
       retry = false;
-      try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+      try (FileOutStream out = fileSystem.createFile(destinationURI, createOptions);
+          FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions)) {
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         } catch (Throwable t) {
