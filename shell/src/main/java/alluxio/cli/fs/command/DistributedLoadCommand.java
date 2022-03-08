@@ -48,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
   private static final int DEFAULT_FAILURE_LIMIT = 1;
-  private static final String DEFAULT_FAILURE_FILE_PATH_Pattern = "logs/user/%s_failures.csv";
+  private static final String DEFAULT_FAILURE_FILE_PATH = "logs/user/%s_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -317,8 +317,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
-    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH_Pattern, args[0]);
     Set<String> failures = getFailedFiles();
+    String path = String.join("_", StringUtils.split(args[0], "/"));
+    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
     if (failures.size() > 0) {
       StringBuilder output = new StringBuilder();
       output.append("Here are recent failed files: \n");
