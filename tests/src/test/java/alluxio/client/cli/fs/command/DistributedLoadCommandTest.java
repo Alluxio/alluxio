@@ -250,6 +250,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
       Assert.assertEquals(100, status.getInMemoryPercentage());
     }
   }
+
   @Test
   public void loadDirWithCorrectCount() throws IOException, AlluxioException {
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
@@ -267,6 +268,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     }
     fsShell.run("distributedLoad", "/testCount", "--batch-size", "3");
     String[] output = mOutput.toString().split("\n");
-    Assert.assertEquals(String.format("Completed count is %s,Failed count is 0.",fileSize), output[output.length-1]);
+    Assert.assertEquals(String.format("Completed count is %s,Failed count is 0.", fileSize),
+        output[output.length - 1]);
   }
 }
