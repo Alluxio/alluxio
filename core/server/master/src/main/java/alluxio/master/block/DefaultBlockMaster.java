@@ -1455,13 +1455,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-          // This is not locking because the field is atomic
-          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
-          if (lastUpdate > masterWorkerTimeoutMs) {
-            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
+        // This is not locking because the field is atomic
+        final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
+        if (lastUpdate > masterWorkerTimeoutMs) {
+          try (LockResource r = worker.lockWorkerMeta(
+              EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!",
+                worker.getId(), worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
           }
         }
