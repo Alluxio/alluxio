@@ -1842,33 +1842,29 @@ public class DefaultFileSystemMaster extends CoreMaster
               LockPattern.WRITE_EDGE);
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE_EXECUTE, inodePath);
         mMountTable.checkUnderWritableMountPoint(path);
         if (!inodePath.fullPathExists()) {
           throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
               .getMessage(path));
         }
 
+        List<String> failedChildren = new ArrayList<>();
         if (context.getOptions().getRecursive()) {
-          List<String> failedChildren = new ArrayList<>();
-          try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
-            for (LockedInodePath childPath : descendants) {
-              try {
-                mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
-                if (mMountTable.isMountPoint(childPath.getUri())) {
-                  mMountTable.checkUnderWritableMountPoint(childPath.getUri());
-                }
-              } catch (AccessControlException e) {
-                failedChildren.add(e.getMessage());
+          List<MountInfo> childrenMountPoints = mMountTable.findChildrenMountPoints(path, true);
+          if (!childrenMountPoints.isEmpty()) {
+            // TODO(jiacheng): a better string?
+            LOG.debug("Deleting {} which contains mount points {}", path, childrenMountPoints);
+            for (MountInfo mount : childrenMountPoints) {
+              if (mount.getOptions().getReadOnly()) {
+                failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY, mount.getAlluxioUri(), mount).getMessage());
               }
             }
-            if (failedChildren.size() > 0) {
-              throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
-                  .getMessage(path, StringUtils.join(failedChildren, ",")));
-            }
-          } catch (AccessControlException e) {
+          }
+          if (failedChildren.size() > 0) {
             auditContext.setAllowed(false);
-            throw e;
+            throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
+                .getMessage(path, StringUtils.join(failedChildren, ",")));
           }
         }
 
