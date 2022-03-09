@@ -26,7 +26,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
-
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.WorkerNetAddress;
@@ -35,6 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class LogLevelTest {
+
   // Configure the web port to use special numbers to make sure the config is taking effect
   private static final int MASTER_WEB_PORT = 45699;
   private static final int WORKER_WEB_PORT = 50099;
@@ -102,7 +103,8 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    try (MockedStatic<MasterInquireClient.Factory> mockFactory = mockStatic(MasterInquireClient.Factory.class)) {
+    try (MockedStatic<MasterInquireClient.Factory> mockFactory =
+        mockStatic(MasterInquireClient.Factory.class)) {
       MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
       when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(
           new InetSocketAddress("masters-1", mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
@@ -128,7 +130,8 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    try (MockedStatic<MasterInquireClient.Factory> mockFactory = mockStatic(MasterInquireClient.Factory.class)) {
+    try (MockedStatic<MasterInquireClient.Factory> mockFactory =
+        mockStatic(MasterInquireClient.Factory.class)) {
       MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
       when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(new InetSocketAddress("masters-1",
           mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
@@ -153,7 +156,8 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    try (MockedStatic<JobMasterClient.Factory> mockFactory = mockStatic(JobMasterClient.Factory.class)) {
+    try (MockedStatic<JobMasterClient.Factory> mockFactory =
+        mockStatic(JobMasterClient.Factory.class)) {
       JobMasterClient mockJobClient = mock(JobMasterClient.class);
       when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
           mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
@@ -175,7 +179,8 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    try (MockedStatic<JobMasterClient.Factory> mockFactory = mockStatic(JobMasterClient.Factory.class)) {
+    try (MockedStatic<JobMasterClient.Factory> mockFactory =
+        mockStatic(JobMasterClient.Factory.class)) {
       JobMasterClient mockJobClient = mock(JobMasterClient.class);
       when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
           mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
@@ -228,7 +233,8 @@ public class LogLevelTest {
     List<JobWorkerHealth> jobWorkers = new ArrayList<>();
     jobWorkers.add(new JobWorkerHealth(0, new ArrayList<>(), 10, 0, 0, "workers-1"));
     jobWorkers.add(new JobWorkerHealth(1, new ArrayList<>(), 10, 0, 0, "workers-2"));
-    try (MockedStatic<JobMasterClient.Factory> mockFactory = mockStatic(JobMasterClient.Factory.class)) {
+    try (MockedStatic<JobMasterClient.Factory> mockFactory =
+        mockStatic(JobMasterClient.Factory.class)) {
       JobMasterClient mockJobClient = mock(JobMasterClient.class);
       when(mockJobClient.getAllWorkerHealth()).thenReturn(jobWorkers);
       mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
