@@ -119,7 +119,11 @@ public class MultipleBloomShadowCacheManager implements ShadowCacheManager {
   @Override
   public void updateWorkingSetSize() {
     updateAvgPageSize();
-    mShadowCachePages = (int) mWorkingSetBloomFilter.approximateElementCount();
+    try {
+      mShadowCachePages = (int) mWorkingSetBloomFilter.approximateElementCount();
+    } catch (ArithmeticException e) {
+      // TODO(iluoeli): compute a maximum number of element counts
+    }
     mShadowCacheBytes = (long) (mShadowCachePages * mAvgPageSize);
   }
 
