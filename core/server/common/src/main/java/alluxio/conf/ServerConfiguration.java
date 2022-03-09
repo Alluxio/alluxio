@@ -236,11 +236,10 @@ public final class ServerConfiguration {
    * Gets the value for the given key as a list.
    *
    * @param key the key to get the value for
-   * @param delimiter the delimiter to split the values
    * @return the list of values for the given key
    */
-  public static List<String> getList(PropertyKey key, String delimiter) {
-    return sConf.getList(key, delimiter);
+  public static List<String> getList(PropertyKey key) {
+    return sConf.getList(key);
   }
 
   /**

@@ -173,7 +173,7 @@ public class InstancedConfigurationTest {
     mConfiguration.set(PropertyKey.LOCALITY_ORDER, "a,b,c");
     assertEquals(
         Lists.newArrayList("a", "b", "c"),
-        mConfiguration.getList(PropertyKey.LOCALITY_ORDER, ","));
+        mConfiguration.getList(PropertyKey.LOCALITY_ORDER));
   }
 
   private enum TestEnum {
@@ -497,9 +497,9 @@ public class InstancedConfigurationTest {
     mConfiguration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
-        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"),
+        PropertyKey.CONF_DIR, "${alluxio.logs.dir}/conf"),
         Source.SYSTEM_PROPERTY);
-    String substitution2 = mConfiguration.getString(PropertyKey.SITE_CONF_DIR);
+    String substitution2 = mConfiguration.getString(PropertyKey.CONF_DIR);
     assertEquals("value/logs/conf", substitution2);
   }
 
@@ -602,7 +602,7 @@ public class InstancedConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mConfiguration = ConfigurationTestUtils.defaults();
-      assertEquals(PropertyKey.LOGGER_TYPE.getDefaultStringValue(),
+      assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           mConfiguration.get(PropertyKey.LOGGER_TYPE));
     }
   }

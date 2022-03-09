@@ -87,7 +87,7 @@ public class AlluxioPropertiesTest {
   @Test
   public void remove() {
     mProperties.remove(mKeyWithValue);
-    assertEquals(mKeyWithValue.getDefaultStringValue(), mProperties.get(mKeyWithValue));
+    assertEquals(mKeyWithValue.getDefaultValue(), mProperties.get(mKeyWithValue));
     assertEquals(Source.DEFAULT, mProperties.getSource(mKeyWithValue));
   }
 

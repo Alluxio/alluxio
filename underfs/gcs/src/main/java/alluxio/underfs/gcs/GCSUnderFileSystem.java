@@ -190,7 +190,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new GCSOutputStream(mBucketName, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

@@ -72,7 +72,7 @@ public final class FeatureUtils {
    */
   public static boolean isPersistenceBlacklistEmpty() {
     return !ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        || ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",").isEmpty();
+        || ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
   }
 
   /**

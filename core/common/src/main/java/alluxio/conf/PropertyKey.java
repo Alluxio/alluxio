@@ -18,6 +18,7 @@ import static alluxio.conf.PropertyKey.Builder.doubleBuilder;
 import static alluxio.conf.PropertyKey.Builder.durationBuilder;
 import static alluxio.conf.PropertyKey.Builder.enumBuilder;
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
+import static alluxio.conf.PropertyKey.Builder.listBuilder;
 import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -50,12 +51,14 @@ import alluxio.util.io.PathUtils;
 import alluxio.worker.block.management.BackoffStrategy;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
@@ -66,6 +69,7 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -172,7 +176,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * The Property's value represents a data size, stored as a Long in bytes.
      */
     DATASIZE(Long.class),
-
+    /**
+     * The Property's value is of list type, stored as a delimiter separated string.
+     */
+    LIST(String.class),
     /**
      * The Property's value is an enum for a predefined enum class.
      */
@@ -221,6 +228,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private Function<Object, Boolean> mValueValidationFunction;
     private final PropertyType mType;
     private final Optional<Class<? extends Enum>> mEnumType;
+    private final Optional<String> mDelimiter;
 
     /**
      * @param name name of the property
@@ -260,7 +268,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return a Builder for enum properties
      */
     public static Builder enumBuilder(String name, Class<? extends Enum> enumType) {
-      return new Builder(name, enumType);
+      return new Builder(name, PropertyType.ENUM, Optional.of(enumType), Optional.empty());
     }
 
     /**
@@ -289,25 +297,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * @param name name of the property
+     * @return a Builder for list properties
      */
-    public Builder(String name) {
-      this(name, PropertyType.STRING);
+    public static Builder listBuilder(String name) {
+      return new Builder(name, PropertyType.LIST, Optional.empty(), Optional.of(","));
     }
 
-    /**
-     * @param name name of the property
-     * @param type type of the property
-     */
     private Builder(String name, PropertyType type) {
+      this(name, type, Optional.empty(), Optional.empty());
+    }
+
+    private Builder(
+        String name,
+        PropertyType type,
+        Optional<Class<? extends Enum>> enumType,
+        Optional<String> delimiter) {
       mName = name;
       mType = type;
-      mEnumType = Optional.empty();
-    }
-
-    private Builder(String name, Class<? extends Enum> enumType) {
-      mName = name;
-      mType = PropertyType.ENUM;
-      mEnumType = Optional.of(enumType);
+      mEnumType = enumType;
+      mDelimiter = delimiter;
     }
 
     /**
@@ -325,6 +333,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder(PropertyType type, PropertyKey.Template template, Object... params) {
       this(format(template.mFormat, params), type);
+    }
+
+    /**
+     * @param type type of the property
+     * @param delimiter delimiter for value, if list value is given as a string
+     * @param template template for the property name
+     * @param params parameters of the template
+     */
+    public Builder(PropertyType type, Optional<String> delimiter,
+        PropertyKey.Template template, Object... params) {
+      this(format(template.mFormat, params), type, Optional.empty(), delimiter);
     }
 
     /**
@@ -375,7 +394,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setDefaultValue(Object defaultValue) {
       checkArgument(validateValue(defaultValue, mType, mEnumType, mValueValidationFunction));
-      mDefaultValue = formatValue(defaultValue, mType, mEnumType);
+      mDefaultValue = formatValue(defaultValue, mType, mEnumType, mDelimiter);
       return this;
     }
 
@@ -482,10 +501,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       if (defaultSupplier == null) {
         if (mDefaultValue == null) {
           defaultSupplier = new DefaultSupplier(() -> null, "null");
-        }
-        else if (mType == PropertyType.STRING) {
-          String defaultString = String.valueOf(mDefaultValue);
-          defaultSupplier = new DefaultSupplier(() -> defaultString, defaultString);
         } else {
           defaultSupplier = new DefaultSupplier(() -> mDefaultValue, String.valueOf(mDefaultValue));
         }
@@ -496,8 +511,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "Invalid value for property key %s: %s", mName, defaultSupplier.get());
       }
 
-      return new PropertyKey(mName, mDescription, mType, mEnumType, defaultSupplier, mAlias,
-          mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
+      return new PropertyKey(mName, mDescription, mType, mEnumType, mDelimiter, defaultSupplier,
+          mAlias, mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
           mIsBuiltIn, mIsDynamic, mValueValidationFunction);
     }
 
@@ -685,7 +700,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SITE_CONF_DIR =
-      stringBuilder(Name.SITE_CONF_DIR)
+      listBuilder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
               () -> format("${%s}/,%s/.alluxio/,/etc/alluxio/",
                   Name.CONF_DIR, System.getProperty("user.home")),
@@ -714,7 +729,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey TMP_DIRS =
-      stringBuilder(Name.TMP_DIRS)
+      listBuilder(Name.TMP_DIRS)
           .setDefaultValue("/tmp")
           .setDescription("The path(s) to store Alluxio temporary files, use commas as delimiters. "
               + "If multiple paths are specified, one will be selected at random per temporary "
@@ -1006,7 +1021,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
-      stringBuilder(Name.UNDERFS_HDFS_PREFIXES)
+      listBuilder(Name.UNDERFS_HDFS_PREFIXES)
           .setDefaultValue("hdfs://,glusterfs:///")
           .setDescription("Optionally, specify which prefixes should run through the HDFS "
               + "implementation of UnderFileSystem. The delimiter is any whitespace "
@@ -1049,14 +1064,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_WEB_PARENT_NAMES =
-      stringBuilder(Name.UNDERFS_WEB_PARENT_NAMES)
+      listBuilder(Name.UNDERFS_WEB_PARENT_NAMES)
           .setDefaultValue("Parent Directory,..,../")
           .setDescription("The text of the http link for the parent directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_WEB_TITLES =
-      stringBuilder(Name.UNDERFS_WEB_TITLES)
+      listBuilder(Name.UNDERFS_WEB_TITLES)
           .setDefaultValue("Index of,Directory listing for")
           .setDescription("The title of the content for a http url.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1989,7 +2004,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // as default.
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
-      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+      listBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
               + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. When "
               + "left unset, Alluxio uses ${%s}:${%s} by default", Name.MASTER_HOSTNAME,
@@ -2120,7 +2135,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_ADDRESSES =
-      new Builder(Name.MASTER_RPC_ADDRESSES)
+      listBuilder(Name.MASTER_RPC_ADDRESSES)
           .setDescription("A list of comma-separated host:port RPC addresses where the client "
               + "should look for masters when using multiple masters without Zookeeper. This "
               + "property is not used when Zookeeper is enabled, since Zookeeper already stores "
@@ -2371,7 +2386,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
-      stringBuilder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+      listBuilder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
           .setDefaultValue("1KB,1MB,10MB,100MB,1GB,10GB")
           .setDescription("Master metrics file size buckets")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2655,7 +2670,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
-      new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
+      listBuilder(Name.MASTER_PERSISTENCE_BLACKLIST)
           .setDescription("Patterns to blacklist persist, comma separated, string match, no regex."
             + " This affects any async persist call (including ASYNC_THROUGH writes and CLI "
             + "persist) but does not affect CACHE_THROUGH writes. Users may want to specify "
@@ -2742,7 +2757,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
+      listBuilder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
           .setDefaultValue("MEM,SSD,HDD")
           .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2937,7 +2952,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WHITELIST =
-      stringBuilder(Name.MASTER_WHITELIST)
+      listBuilder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
           .setDescription("A comma-separated list of prefixes of the paths which are "
               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
@@ -3359,7 +3374,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_FUSE_MOUNT_OPTIONS =
-      stringBuilder(Name.WORKER_FUSE_MOUNT_OPTIONS)
+      listBuilder(Name.WORKER_FUSE_MOUNT_OPTIONS)
           .setDescription("The platform specific Fuse mount options "
               + "to mount the given Fuse mount point. "
               + "If multiple mount options are provided, separate them with comma.")
@@ -3908,7 +3923,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
               "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
           .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,"
@@ -3918,7 +3934,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
           .setDefaultValue(
               format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
           .setDescription(format(
@@ -3929,7 +3946,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
           .setDefaultValue(format("${%s}", Name.WORKER_RAMDISK_SIZE))
           .setDescription(format(
               "A comma-separated list of capacities (e.g., \"500MB,500MB,5GB\") for each storage "
@@ -3965,7 +3983,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
           .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache2,"
               + "/mnt/ssd/alluxio/cache3,/mnt/hdd/alluxio/cache1) of storage directories "
               + "for the second storage tier.")
@@ -3973,7 +3992,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
           .setDefaultValue(
               format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
           .setDescription(format(
@@ -3984,7 +4004,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
           .setDescription(format(
               "A comma-separated list of capacities (e.g., \"5GB,5GB,50GB\") for each storage "
                   + "directory on the second storage tier specified by %s.",
@@ -4016,7 +4037,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
           .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache4,"
               + "/mnt/hdd/alluxio/cache2,/mnt/hdd/alluxio/cache3) of storage directories "
               + "for the third storage tier.")
@@ -4024,7 +4046,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIUMTYPE =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
           .setDefaultValue(
               format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
           .setDescription(format(
@@ -4035,7 +4058,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 2)
+      new Builder(PropertyType.LIST, Optional.of(","),
+          Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 2)
           .setDescription(format(
               "A comma-separated list of capacities (e.g., \"5GB,50GB,50GB\") for each storage "
                   + "directory on the third storage tier specified by %s.",
@@ -4120,7 +4144,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_WHITELIST =
-      stringBuilder(Name.WORKER_WHITELIST)
+      listBuilder(Name.WORKER_WHITELIST)
           .setDefaultValue("/")
           .setDescription("A comma-separated list of prefixes of the paths which are "
                + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
@@ -4331,8 +4355,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Locality related properties
   //
   public static final PropertyKey LOCALITY_ORDER =
-      new Builder(Name.LOCALITY_ORDER)
-          .setDefaultValue(format("%s,%s", Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
+      listBuilder(Name.LOCALITY_ORDER)
+          .setDefaultValue(ImmutableList.of(Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
           .setDescription("Ordering of locality tiers")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -6002,7 +6026,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
-      new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
+      listBuilder(Name.JOB_MASTER_RPC_ADDRESSES)
           .setDescription(format("A list of comma-separated host:port RPC addresses where "
                   + "the client should look for job masters when using multiple job masters "
                   + "without Zookeeper. This property is not used "
@@ -6014,7 +6038,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
-      new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+      listBuilder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all job "
               + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. "
               + "Defaults to the journal addresses set for the Alluxio masters (%s), but with the "
@@ -7655,12 +7679,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyType.STRING),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path",
-        PropertyType.STRING),
+        PropertyType.LIST, Optional.of(",")),
     WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE("alluxio.worker.tieredstore.level%d.dirs.mediumtype",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.mediumtype",
-        PropertyType.STRING),
+        PropertyType.LIST, Optional.of(",")),
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota",
+        PropertyType.LIST, Optional.of(",")),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.high.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.high\\.ratio",
@@ -7764,6 +7789,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final Pattern mPattern;
     private final PropertyType mType;
     private final Optional<Class<? extends Enum>> mEnumType;
+    private final Optional<String> mDelimiter;
     private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
         PropertyCreators.DEFAULT_PROPERTY_CREATOR;
 
@@ -7779,9 +7805,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param type type of this property
      */
     Template(String format, String re, PropertyType type) {
+      this(format, re, type, Optional.empty());
+    }
+
+    Template(String format, String re, PropertyType type, Optional<String> delimiter) {
       mFormat = format;
       mPattern = Pattern.compile(re);
       mType = type;
+      mDelimiter = delimiter;
       mEnumType = Optional.empty();
     }
 
@@ -7797,6 +7828,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mPattern = Pattern.compile(re);
       mType = PropertyType.ENUM;
       mEnumType = Optional.of(enumType);
+      mDelimiter = Optional.empty();
     }
 
     /**
@@ -7828,7 +7860,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return corresponding property
      */
     public PropertyKey format(Object... params) {
-      return new PropertyKey(String.format(mFormat, params), mType, mEnumType);
+      return new PropertyKey(String.format(mFormat, params), mType, mEnumType, mDelimiter);
     }
 
     /**
@@ -7958,6 +7990,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Property's enum class type, if property type is ENUM. */
   private final Optional<Class<? extends Enum>> mEnumType;
 
+  /** Property's list delimiter, if property type is LIST. */
+  private final Optional<String> mDelimiter;
+
   /** Supplies the Property Key default value. */
   private final DefaultSupplier mDefaultSupplier;
 
@@ -8003,8 +8038,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param isBuiltIn whether this is an Alluxio built-in property
    */
   private PropertyKey(String name, String description, PropertyType type,
-      Optional<Class<? extends Enum>> enumType, DefaultSupplier defaultSupplier, String[] aliases,
-      boolean ignoredSiteProperty, boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel,
+      Optional<Class<? extends Enum>> enumType, Optional<String> delimiter,
+      DefaultSupplier defaultSupplier, String[] aliases, boolean ignoredSiteProperty,
+      boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel,
       Scope scope, DisplayType displayType, boolean isBuiltIn, boolean dynamic,
       Function<Object, Boolean> valueValidationFunction) {
     mName = Preconditions.checkNotNull(name, "name");
@@ -8012,6 +8048,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mType = type;
     mEnumType = enumType;
+    mDelimiter = delimiter;
     mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;
@@ -8027,9 +8064,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @param name String of this property
    */
-  private PropertyKey(String name, PropertyType type, Optional<Class<? extends Enum>> enumType) {
-    this(name, null, type, enumType, new DefaultSupplier(() -> null, "null"), null, false,
-        false, ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true, null);
+  private PropertyKey(String name, PropertyType type,
+      Optional<Class<? extends Enum>> enumType, Optional<String> delimiter) {
+    this(name, null, type, enumType, delimiter, new DefaultSupplier(() -> null, "null"),
+        null, false, false, ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true,
+        true, null);
   }
 
   /**
@@ -8167,13 +8206,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * TODO(rongrong) this api should be removed.
-   * @return the default string value of a property key or null if value not set
+   * @return list delimiter of a list property or throws when property is not of list type
    */
-  @Nullable
-  public String getDefaultStringValue() {
-    Object defaultValue = mDefaultSupplier.get();
-    return defaultValue == null ? null : defaultValue.toString();
+  public String getDelimiter() {
+    checkState(mType == PropertyType.LIST && mDelimiter.isPresent(),
+        format("PropertyKey %s is not of list type", mName));
+    return mDelimiter.get();
   }
 
   /**
@@ -8251,7 +8289,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       Object value, PropertyType type, Optional<Class<? extends Enum>> enumType,
       Function<Object, Boolean> valueValidationFunction) {
     if (value instanceof String) {
-      if (!type.getJavaType().equals(String.class)) {
+      if (!type.getJavaType().equals(String.class) && type != PropertyType.ENUM
+          && type != PropertyType.DURATION && type != PropertyType.DATASIZE) {
         String stringValue = (String) value;
         Matcher matcher = CONF_REGEX.matcher(stringValue);
         if (!matcher.matches()) {
@@ -8287,6 +8326,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             return false;
           }
           break;
+        case LIST:
+          if (!(value instanceof List)) {
+            return false;
+          }
+          break;
         default:
           break;
       }
@@ -8304,11 +8348,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return property value in the expected type
    */
   public Object formatValue(Object value) {
-    return formatValue(value, mType, mEnumType);
+    return formatValue(value, mType, mEnumType, mDelimiter);
   }
 
   private static Object formatValue(Object value, PropertyType type,
-      Optional<Class<? extends Enum>> enumType) {
+      Optional<Class<? extends Enum>> enumType, Optional<String> delimiter) {
     if (value instanceof Number) {
       switch (type) {
         case DOUBLE:
@@ -8341,6 +8385,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             break;
         }
       }
+    } else if (value instanceof List) {
+      checkArgument(type == PropertyType.LIST);
+      value = Joiner.on(delimiter.get()).join((List) value);
     }
     return value;
   }
@@ -8369,6 +8416,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           return FormatUtils.parseSpaceSize(stringValue);
         case STRING:
         case CLASS:
+        case LIST:
           return stringValue;
         default:
           throw new IllegalStateException(format("Unknown PropertyType: %s", mType));

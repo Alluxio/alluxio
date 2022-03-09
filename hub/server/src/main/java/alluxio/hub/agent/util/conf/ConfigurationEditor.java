@@ -16,11 +16,14 @@ import alluxio.hub.proto.AlluxioConfigurationSet;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -48,7 +51,7 @@ public class ConfigurationEditor {
   private Path mEnvSh;
   private final Path mLogProps;
 
-  private final String[] mConfDirs;
+  private final List<String> mConfDirs;
 
   /**
    * Creates a new editor. It will search the paths supplied (delimited by ",") for the Alluxio
@@ -56,8 +59,8 @@ public class ConfigurationEditor {
    *
    * @param siteConfDirs a comma-delimited list of paths to search for Alluxio configuration files
    */
-  public ConfigurationEditor(String siteConfDirs) {
-    mConfDirs = siteConfDirs.split(",");
+  public ConfigurationEditor(List<String> siteConfDirs) {
+    mConfDirs = ImmutableList.copyOf(siteConfDirs);
     String res = ConfigurationUtils.searchPropertiesFile(SITE_PROPERTIES, mConfDirs);
     mSiteProps = res == null ? null : Paths.get(res);
     mEnvSh = searchConfFile(ENV_FILE, mConfDirs);
@@ -95,7 +98,7 @@ public class ConfigurationEditor {
    * @return the path to the alluxio-env.sh, or {@code null} if not found
    */
   @Nullable
-  static Path searchConfFile(String fileName, String[] siteConfDirs) {
+  static Path searchConfFile(String fileName, List<String> siteConfDirs) {
     for (String path : siteConfDirs) {
       Path p = Paths.get(path).resolve(fileName);
       if (Files.exists(p)) {
@@ -137,16 +140,16 @@ public class ConfigurationEditor {
    */
   public void writeConf(AlluxioConfigurationSet conf) throws IOException {
     if (conf.hasSiteProperties()) {
-      if (mSiteProps == null && mConfDirs.length > 1) {
-        mSiteProps = Paths.get(PathUtils.concatPath(mConfDirs[0], SITE_PROPERTIES));
+      if (mSiteProps == null && mConfDirs.size() > 1) {
+        mSiteProps = Paths.get(PathUtils.concatPath(mConfDirs.get(0), SITE_PROPERTIES));
       }
       if (mSiteProps != null) {
         Files.write(mSiteProps, conf.getSiteProperties().getBytes());
       }
     }
     if (conf.hasAlluxioEnv()) {
-      if (mEnvSh == null && mConfDirs.length > 1) {
-        mEnvSh = Paths.get(PathUtils.concatPath(mConfDirs[0], ENV_FILE));
+      if (mEnvSh == null && mConfDirs.size() > 1) {
+        mEnvSh = Paths.get(PathUtils.concatPath(mConfDirs.get(0), ENV_FILE));
       }
       if (mEnvSh != null) {
         Files.write(mEnvSh, conf.getAlluxioEnv().getBytes());

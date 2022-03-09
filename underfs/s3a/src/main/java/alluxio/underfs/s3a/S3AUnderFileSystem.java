@@ -408,11 +408,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     if (mStreamingUploadEnabled) {
       return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor,
           mUfsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE),
-          mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
+          mUfsConf.getList(PropertyKey.TMP_DIRS),
           mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
     }
     return new S3AOutputStream(mBucketName, key, mManager,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
+        mUfsConf.getList(PropertyKey.TMP_DIRS),
         mUfsConf
             .getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }

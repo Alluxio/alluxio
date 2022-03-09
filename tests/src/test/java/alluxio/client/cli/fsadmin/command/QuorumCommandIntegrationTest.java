@@ -42,6 +42,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -95,9 +96,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
           String.format(QuorumInfoCommand.OUTPUT_HEADER_DOMAIN, JournalDomain.MASTER.name())));
       Assert.assertTrue(
           output.contains(String.format(QuorumInfoCommand.OUTPUT_HEADER_QUORUM_SIZE, 3)));
-      String journalAddresses =
-          ServerConfiguration.getString(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
-      for (String address : journalAddresses.split(",")) {
+      List<String> journalAddresses =
+          ServerConfiguration.getList(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+      for (String address : journalAddresses) {
         String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
                 QuorumServerState.AVAILABLE.name(), "0", address).trim();
         Assert.assertTrue(output.contains(format));

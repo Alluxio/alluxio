@@ -314,7 +314,7 @@ public class AgentProcessContext implements AutoCloseable {
    * @throws IOException if there are any failures reading the configuration
    */
   public AlluxioConfigurationSet getConf() throws IOException {
-    return new ConfigurationEditor(mConf.getString(PropertyKey.SITE_CONF_DIR)).readConf();
+    return new ConfigurationEditor(mConf.getList(PropertyKey.SITE_CONF_DIR)).readConf();
   }
 
   /**
@@ -326,7 +326,7 @@ public class AgentProcessContext implements AutoCloseable {
    * @throws IOException if there are any failures writing to disk
    */
   public void writeConf(AlluxioConfigurationSet conf) throws IOException {
-    new ConfigurationEditor(mConf.getString(PropertyKey.SITE_CONF_DIR)).writeConf(conf);
+    new ConfigurationEditor(mConf.getList(PropertyKey.SITE_CONF_DIR)).writeConf(conf);
   }
 
   private boolean validatePrestoConf(String confPath) {
@@ -383,7 +383,7 @@ public class AgentProcessContext implements AutoCloseable {
       if (Files.notExists(path)) {
         Files.createFile(path);
       }
-      new ConfigurationEditor(mConf.getString(PropertyKey.SITE_CONF_DIR)).writeConf(conf);
+      new ConfigurationEditor(mConf.getList(PropertyKey.SITE_CONF_DIR)).writeConf(conf);
     } catch (IOException e) {
       return false;
     }
