@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 
 public class LogLevelTest {
-
   // Configure the web port to use special numbers to make sure the config is taking effect
   private static final int MASTER_WEB_PORT = 45699;
   private static final int WORKER_WEB_PORT = 50099;
