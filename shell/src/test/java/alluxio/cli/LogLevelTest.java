@@ -212,6 +212,7 @@ public class LogLevelTest {
       when(mockFsContext.getCachedWorkers()).thenReturn(workers);
       mockFactory.when(() -> FileSystemContext.create(any(ClientContext.class)))
           .thenReturn(mockFsContext);
+
       List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
       assertEquals(2, targets.size());
       assertEquals(new LogLevel.TargetInfo("workers-1", WORKER_WEB_PORT, "worker"),
