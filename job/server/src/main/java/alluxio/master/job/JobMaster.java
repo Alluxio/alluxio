@@ -31,6 +31,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
@@ -50,6 +51,7 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
+import alluxio.master.job.tracker.CmdJobTracker;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -157,6 +159,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   /** Log writer for user access audit log. */
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
+  /** Distributed command job tracker. */
+  private CmdJobTracker mCmdJobTracker;
+
   /**
    * Creates a new instance of {@link JobMaster}.
    *
@@ -181,6 +186,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();
+
+    mCmdJobTracker = new CmdJobTracker(
+//            ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+//            ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
+//            ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+            fsContext, this, mPlanTracker);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOB_COUNT.getName(),
@@ -297,6 +308,33 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     } finally {
       forkedCtx.detach(prevCtx);
     }
+  }
+
+  /**
+   * Submit a job with the given configuration.
+   *
+   * @param cmdConfig the CMD configuration
+   * @return the job control id tracking the progress
+   * @throws JobDoesNotExistException   when the job doesn't exist
+   * @throws ResourceExhaustedException if the job master is too busy to run the job
+   */
+  public synchronized long submit(CmdConfig cmdConfig)
+      throws JobDoesNotExistException, IOException {
+    long jobControlId = getNewJobId();
+    // This RPC service implementation triggers another RPC.
+    // Run the implementation under forked context to avoid interference.
+    // Then restore the current context at the end.
+    Context forkedCtx = Context.current().fork();
+    Context prevCtx = forkedCtx.attach();
+    try (JobMasterAuditContext auditContext =
+         createAuditContext("run")) {
+      auditContext.setJobId(jobControlId);
+      mCmdJobTracker.run(cmdConfig, jobControlId);
+    } finally {
+      forkedCtx.detach(prevCtx);
+    }
+
+    return jobControlId;
   }
 
   /**

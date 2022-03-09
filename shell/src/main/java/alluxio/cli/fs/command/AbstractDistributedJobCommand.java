@@ -15,13 +15,19 @@ import alluxio.ClientContext;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.job.CmdConfig;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
 
+<<<<<<< HEAD
 import java.util.HashSet;
+||||||| parent of 838655807b (Create prototypes and async submission for distCp)
+=======
+import java.io.IOException;
+>>>>>>> 838655807b (Create prototypes and async submission for distCp)
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,6 +63,16 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     while (!mSubmittedJobAttempts.isEmpty()) {
       waitJob();
     }
+  }
+
+  protected Long submit(CmdConfig cmdConfig) {
+    Long jobControlId = null;
+    try {
+      jobControlId = mClient.submit(cmdConfig);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return jobControlId;
   }
 
   /**

@@ -28,6 +28,9 @@ import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.ListAllPResponse;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
+import alluxio.grpc.SubmitRequest;
+import alluxio.grpc.SubmitResponse;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobWorkerHealth;
@@ -138,5 +141,20 @@ public class JobMasterClientServiceHandler
 
       return builder.build();
     }, "getAllWorkerHealth", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void submit(SubmitRequest request, StreamObserver<SubmitResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SubmitResponse>) () -> {
+      try {
+        byte[] cmdConfigBytes = request.getCmdConfig().toByteArray();
+        return SubmitResponse.newBuilder()
+            .setJobControlId(mJobMaster.submit((CmdConfig) SerializationUtils
+                .deserialize(cmdConfigBytes)))
+            .build();
+      } catch (ClassNotFoundException e) {
+        throw new InvalidArgumentException(e);
+      }
+    }, "Submit", "request=%s", responseObserver, request);
   }
 }

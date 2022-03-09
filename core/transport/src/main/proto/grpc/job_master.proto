@@ -48,6 +48,49 @@ message JobInfo {
   optional string unused1 = 5; // formerly result
 }
 
+enum JobSource {
+  UNSUPPORTED = 0;
+  CLI = 1;
+  POLICY = 2;
+  SYSTEM = 3;
+}
+
+enum OperationType {
+  DIST_LOAD = 1;
+  DIST_CP = 2;
+  PERSIST = 3;
+}
+
+message JobProgress {
+  optional int64 jobId = 1;
+  optional int64 fileCount = 2;
+  optional int64 fileSize = 3;
+  optional int64 lastUpdateMs = 4;
+  optional string description = 5;
+  optional string errorMsg = 6;
+  optional string errorType = 7;
+  optional Status status = 8;
+}
+
+message CmdProgress {
+  optional int64 jobControlId = 1;
+  repeated JobProgress jobProgress = 2;
+}
+
+message CmdSummary {
+  optional int64 jobControlId = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional int64 creationTime = 4;
+  optional int64 lastUpdated = 5;
+  optional Status status = 6;
+  optional string errorMessage = 7;
+  optional string errorType = 8;
+  repeated CmdProgress cmdProgress = 9;
+  repeated int64 childJobIds = 10;
+  repeated string filePaths = 11;
+}
+
 message StatusSummary {
   optional Status status = 1;
   optional int64 count = 2;
@@ -158,6 +201,15 @@ message GetAllWorkerHealthPResponse {
   repeated JobWorkerHealth workerHealths = 1;
 }
 
+message SubmitOptions {}
+message SubmitRequest {
+  optional bytes cmdConfig = 1;
+  optional SubmitOptions options = 2;
+}
+message SubmitResponse {
+  optional int64 jobControlId = 1;
+}
+
 /**
  * This interface contains job master service endpoints for job service clients.
  */
@@ -197,6 +249,11 @@ service JobMasterClientService {
    * Lists all worker health.
    */
   rpc GetAllWorkerHealth(GetAllWorkerHealthPRequest) returns (GetAllWorkerHealthPResponse);
+
+  /**
+   * Submit a CMD job, return a jobControlId.
+   */
+  rpc Submit(SubmitRequest) returns (SubmitResponse);
 }
 
 message JobHeartbeatPOptions {}

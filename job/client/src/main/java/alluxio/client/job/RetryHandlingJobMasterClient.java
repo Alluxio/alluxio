@@ -23,6 +23,8 @@ import alluxio.grpc.ListAllPOptions;
 import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.SubmitRequest;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.ProtoUtils;
 import alluxio.job.util.SerializationUtils;
@@ -138,6 +140,14 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
     return retryRPC(
         () -> mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build()).getJobId(),
         RPC_LOG, "Run", "jobConfig=%s", jobConfig);
+  }
+
+  @Override
+  public long submit(CmdConfig cmdConfig) throws IOException {
+    final ByteString cmdConfigStr = ByteString.copyFrom(SerializationUtils.serialize(cmdConfig));
+    return retryRPC(
+        () -> mClient.submit(SubmitRequest.newBuilder().setCmdConfig(cmdConfigStr).build())
+            .getJobControlId(), RPC_LOG, "Submit", "cmdConfig=%s", cmdConfig);
   }
 
   @Override
