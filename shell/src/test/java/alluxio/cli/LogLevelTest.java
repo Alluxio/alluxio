@@ -139,6 +139,7 @@ public class LogLevelTest {
           .thenReturn(() -> new MultiMasterAuthority(masterAddresses));
       mockFactory.when(() -> MasterInquireClient.Factory.create(any(), any()))
           .thenReturn(mockInquireClient);
+
       List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
       assertEquals(1, targets.size());
       assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
