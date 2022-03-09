@@ -14,6 +14,7 @@ package alluxio.conf;
 import static alluxio.conf.PropertyKey.CONF_REGEX;
 import static alluxio.conf.PropertyKey.REGEX_STRING;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey.Template;
@@ -249,12 +250,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public String getString(PropertyKey key) {
-    // TODO(rongrong) once all property keys are typed, this should simply return (String) get(key)
-    Object value = get(key);
-    if (value == null || value instanceof String) {
-      return (String) value;
-    }
-    return String.valueOf(value);
+    return (String) get(key);
   }
 
   @Override
@@ -275,11 +271,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public List<String> getList(PropertyKey key, String delimiter) {
-    checkArgument(delimiter != null,
-        "Illegal separator for Alluxio properties as list");
-    String rawValue = getString(key);
-    return ConfigurationUtils.parseAsList(rawValue, delimiter);
+  public List<String> getList(PropertyKey key) {
+    String value = (String) get(key);
+    return ConfigurationUtils.parseAsList(value, key.getDelimiter());
   }
 
   @Override
@@ -349,12 +343,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       return;
     }
     for (PropertyKey key : keySet()) {
-      Preconditions.checkState(
+      checkState(
           getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),
           "%s is not accepted in alluxio-site.properties, "
               + "and must be specified as a JVM property. "
               + "If no JVM property is present, Alluxio will use default value '%s'.",
-          key.getName(), key.getDefaultStringValue());
+          key.getName(), key.getDefaultValue());
 
       if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
@@ -452,9 +446,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
           + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
+      checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
           String.format(message, PropertyKey.WORKER_RPC_PORT));
-      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
+      checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
           String.format(message, PropertyKey.WORKER_WEB_PORT));
     }
   }
@@ -488,7 +482,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkHeartbeatTimeout(PropertyKey intervalKey, PropertyKey timeoutKey) {
     long interval = getMs(intervalKey);
     long timeout = getMs(timeoutKey);
-    Preconditions.checkState(interval < timeout,
+    checkState(interval < timeout,
         "heartbeat interval (%s=%s) must be less than heartbeat timeout (%s=%s)", intervalKey,
         interval, timeoutKey, timeout);
   }
@@ -503,7 +497,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       return;
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-    Preconditions.checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
+    checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
         PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
         PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
@@ -514,7 +508,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @throws IllegalStateException if invalid Zookeeper configuration is encountered
    */
   private void checkZkConfiguration() {
-    Preconditions.checkState(
+    checkState(
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
         PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
@@ -528,7 +522,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkTieredLocality() {
     // Check that any custom tiers set by alluxio.locality.{custom_tier}=value are also defined in
     // the tier ordering defined by alluxio.locality.order.
-    Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER, ","));
+    Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER));
     Set<PropertyKey> predefinedKeys = new HashSet<>(PropertyKey.defaultKeys());
     for (PropertyKey key : mProperties.keySet()) {
       if (predefinedKeys.contains(key)) {
@@ -561,14 +555,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           getString(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(i)));
     }
     int workerTiers = getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
-    Preconditions.checkState(workerTiers <= globalTiers,
+    checkState(workerTiers <= globalTiers,
         "%s tiers on worker (configured by %s), larger than global %s tiers (configured by %s) ",
         workerTiers, PropertyKey.WORKER_TIERED_STORE_LEVELS,
         globalTiers, PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
     for (int i = 0; i < workerTiers; i++) {
       PropertyKey key = Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(i);
       String alias = getString(key);
-      Preconditions.checkState(globalTierAliasSet.contains(alias),
+      checkState(globalTierAliasSet.contains(alias),
           "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
               + "storage setting: %s",
           alias, i, key, String.join(", ", globalTierAliasSet));

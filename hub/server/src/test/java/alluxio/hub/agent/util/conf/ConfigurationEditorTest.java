@@ -16,22 +16,19 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.hub.proto.AlluxioConfigurationSet;
-import alluxio.util.ConfigurationUtils;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.MockedStatic;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class ConfigurationEditorTest {
-
-  MockedStatic<ConfigurationUtils> mConfUtilMock;
-
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
@@ -53,14 +50,14 @@ public class ConfigurationEditorTest {
 
   @Test
   public void testBasic() {
-    String paths = String.format("%s,%s,%s", mTempFolder.getRoot().getAbsolutePath(),
+    List<String> paths = ImmutableList.of(mTempFolder.getRoot().getAbsolutePath(),
         "/nonexistent", "/tmp");
     ConfigurationEditor editor = new ConfigurationEditor(paths);
     assertEquals(mSiteProps, editor.getSiteProperties());
     assertEquals(mEnvSh, editor.getEnvSh());
     assertEquals(mLog4j, editor.getLogProps());
 
-    paths = String.format("%s", mTempFolder.getRoot().getAbsolutePath());
+    paths = ImmutableList.of(mTempFolder.getRoot().getAbsolutePath());
     editor = new ConfigurationEditor(paths);
     assertEquals(mSiteProps, editor.getSiteProperties());
     assertEquals(mEnvSh, editor.getEnvSh());
@@ -69,7 +66,7 @@ public class ConfigurationEditorTest {
 
   @Test
   public void testMissingSiteProp() throws IOException {
-    String paths = String.format("%s", mTempFolder.getRoot().getAbsolutePath());
+    List<String> paths = ImmutableList.of(mTempFolder.getRoot().getAbsolutePath());
     Files.delete(mSiteProps);
     ConfigurationEditor editor = new ConfigurationEditor(paths);
     assertNull(editor.getSiteProperties());
@@ -77,7 +74,7 @@ public class ConfigurationEditorTest {
 
   @Test
   public void testMissingEnvSh() throws IOException {
-    String paths = String.format("%s", mTempFolder.getRoot().getAbsolutePath());
+    List<String> paths = ImmutableList.of(mTempFolder.getRoot().getAbsolutePath());
     Files.delete(mEnvSh);
     ConfigurationEditor editor = new ConfigurationEditor(paths);
     assertNull(editor.getEnvSh());
@@ -85,7 +82,7 @@ public class ConfigurationEditorTest {
 
   @Test
   public void testMissingBoth() throws IOException {
-    String paths = String.format("%s", mTempFolder.getRoot().getAbsolutePath());
+    List<String> paths = ImmutableList.of(mTempFolder.getRoot().getAbsolutePath());
     Files.delete(mEnvSh);
     Files.delete(mSiteProps);
     ConfigurationEditor editor = new ConfigurationEditor(paths);
@@ -100,7 +97,8 @@ public class ConfigurationEditorTest {
     Files.write(mSiteProps, siteProps.getBytes());
     Files.write(mEnvSh, envSh.getBytes());
     Files.write(mLog4j, log4j.getBytes());
-    ConfigurationEditor editor = new ConfigurationEditor(mConfDir.toAbsolutePath().toString());
+    ConfigurationEditor editor = new ConfigurationEditor(
+        ImmutableList.of(mConfDir.toAbsolutePath().toString()));
     AlluxioConfigurationSet s = editor.readConf();
     assertTrue(s.getSiteProperties().contains(siteProps));
     assertTrue(s.getAlluxioEnv().contains(envSh));
@@ -117,7 +115,8 @@ public class ConfigurationEditorTest {
         .setAlluxioEnv(envSh)
         .setLog4JProperties(log4j)
         .build();
-    ConfigurationEditor editor = new ConfigurationEditor(mConfDir.toAbsolutePath().toString());
+    ConfigurationEditor editor = new ConfigurationEditor(
+        ImmutableList.of(mConfDir.toAbsolutePath().toString()));
     editor.writeConf(s);
     assertEquals(s, editor.readConf());
   }

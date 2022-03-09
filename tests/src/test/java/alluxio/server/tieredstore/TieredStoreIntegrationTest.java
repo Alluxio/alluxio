@@ -31,6 +31,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.allocator.GreedyAllocator;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -257,11 +258,11 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB")
         .setProperty(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName())
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, String.join(",",
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, ImmutableList.of(
             mTempFolder.newFolder("dir1").getAbsolutePath(),
             mTempFolder.newFolder("dir2").getAbsolutePath()))
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
-            String.join(",", "2MB", String.valueOf(2 * fileLen)));
+            ImmutableList.of("2MB", String.valueOf(2 * fileLen)));
     mLocalAlluxioClusterResource.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     AlluxioURI uri1 = new AlluxioURI("/file1");

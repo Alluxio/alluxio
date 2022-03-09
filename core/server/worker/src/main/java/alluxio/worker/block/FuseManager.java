@@ -20,6 +20,7 @@ import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
 import alluxio.fuse.FuseUmountable;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,14 +73,11 @@ public class FuseManager implements Closeable {
     // TODO(lu) check if the given fuse mount point exists
     // create the folder if it does not exist
     try {
-      String[] fuseOptsSeparated = new String[0];
+      List<String> fuseOpts = ImmutableList.of();
       if (conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS)) {
-        String fuseOptsString = conf.getString(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
-        if (!fuseOptsString.isEmpty()) {
-          fuseOptsSeparated = fuseOptsString.split(FUSE_OPTION_SEPARATOR);
-        }
+        fuseOpts = conf.getList(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
       }
-      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(fuseOptsSeparated, conf);
+      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(fuseOpts, conf);
       FuseMountOptions options = new FuseMountOptions(fuseMount, alluxioPath,
           conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation

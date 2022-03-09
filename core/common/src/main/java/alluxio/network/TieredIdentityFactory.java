@@ -76,7 +76,7 @@ public final class TieredIdentityFactory {
     TieredIdentity scriptIdentity = fromScript(conf);
 
     List<LocalityTier> tiers = new ArrayList<>();
-    List<String> orderedTierNames = conf.getList(PropertyKey.LOCALITY_ORDER, ",");
+    List<String> orderedTierNames = conf.getList(PropertyKey.LOCALITY_ORDER);
     for (int i = 0; i < orderedTierNames.size(); i++) {
       String tierName = orderedTierNames.get(i);
       String value = null;
@@ -139,7 +139,7 @@ public final class TieredIdentityFactory {
    */
   public static TieredIdentity fromString(String identityString, AlluxioConfiguration conf)
       throws IOException {
-    Set<String> allTiers = Sets.newHashSet(conf.getList(PropertyKey.LOCALITY_ORDER, ","));
+    Set<String> allTiers = Sets.newHashSet(conf.getList(PropertyKey.LOCALITY_ORDER));
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
@@ -162,7 +162,7 @@ public final class TieredIdentityFactory {
       tiers.put(key, parts[1].trim());
     }
     List<LocalityTier> tieredIdentity = new ArrayList<>();
-    for (String localityTier : conf.getList(PropertyKey.LOCALITY_ORDER, ",")) {
+    for (String localityTier : conf.getList(PropertyKey.LOCALITY_ORDER)) {
       String value = tiers.getOrDefault(localityTier, null);
       tieredIdentity.add(new LocalityTier(localityTier, value));
     }

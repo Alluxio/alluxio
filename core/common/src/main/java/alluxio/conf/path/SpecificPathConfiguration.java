@@ -119,8 +119,8 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public List<String> getList(PropertyKey key, String delimiter) {
-    return conf(key).getList(key, delimiter);
+  public List<String> getList(PropertyKey key) {
+    return conf(key).getList(key);
   }
 
   @Override

@@ -149,7 +149,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new COSOutputStream(mBucketNameInternal, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

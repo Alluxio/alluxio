@@ -193,7 +193,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
-    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST, ","));
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
   }

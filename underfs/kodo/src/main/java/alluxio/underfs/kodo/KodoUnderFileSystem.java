@@ -129,7 +129,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

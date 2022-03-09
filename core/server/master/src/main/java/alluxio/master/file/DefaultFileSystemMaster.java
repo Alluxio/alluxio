@@ -455,9 +455,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         mDirectoryIdGenerator, mMountTable, mInodeLockManager);
 
     // TODO(gene): Handle default config value for whitelist.
-    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST));
     mPersistBlacklist = ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
+        ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
         : Collections.emptyList();
 
     mStateLockCallTracker = new CallTracker() {

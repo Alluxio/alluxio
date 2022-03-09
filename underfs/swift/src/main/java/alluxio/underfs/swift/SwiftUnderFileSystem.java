@@ -244,7 +244,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createObject(String key) throws IOException {
     if (mSimulationMode) {
       return new SwiftMockOutputStream(mAccount, mContainerName, key,
-          mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+          mUfsConf.getList(PropertyKey.TMP_DIRS));
     }
 
     return SwiftDirectClient.put(mAccess,

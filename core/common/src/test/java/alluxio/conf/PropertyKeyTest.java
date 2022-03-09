@@ -289,9 +289,11 @@ public final class PropertyKeyTest {
   @Test
   public void testEmptyKeyDefaults() {
     for (PropertyKey key : PropertyKey.defaultKeys()) {
-      assertNotEquals(String.format(
-          "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
-          key.getDefaultStringValue(), "");
+      if (key.getType().getJavaType() == String.class) {
+        assertNotEquals(String.format(
+            "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
+            "", key.getDefaultValue());
+      }
     }
   }
 

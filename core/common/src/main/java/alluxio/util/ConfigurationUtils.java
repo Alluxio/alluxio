@@ -107,7 +107,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) {
     PropertyKey property = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
     if (conf.isSet(property)) {
-      return parseInetSocketAddresses(conf.getList(property, ","));
+      return parseInetSocketAddresses(conf.getList(property));
     }
     // Fall back on master_hostname:master_raft_port
     return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RAFT, conf));
@@ -121,7 +121,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) {
     PropertyKey jobMasterProperty = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
     if (conf.isSet(jobMasterProperty)) {
-      return parseInetSocketAddresses(conf.getList(jobMasterProperty, ","));
+      return parseInetSocketAddresses(conf.getList(jobMasterProperty));
     }
     // Fall back on using the master embedded journal addresses, with the job master port.
     PropertyKey masterProperty = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
@@ -142,7 +142,7 @@ public final class ConfigurationUtils {
   public static List<InetSocketAddress> getMasterRpcAddresses(AlluxioConfiguration conf) {
     // First check whether rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
-      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES));
     }
 
     // Fall back on server-side journal configuration.
@@ -160,7 +160,7 @@ public final class ConfigurationUtils {
     // First check whether job rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
-          conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
+          conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES));
     }
 
     int jobRpcPort =
@@ -168,7 +168,7 @@ public final class ConfigurationUtils {
     // Fall back on explicitly configured regular master rpc addresses.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
       List<InetSocketAddress> addrs =
-          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES));
       return overridePort(addrs, jobRpcPort);
     }
 
@@ -256,7 +256,7 @@ public final class ConfigurationUtils {
    */
   @Nullable
   public static String searchPropertiesFile(String propertiesFile,
-      String[] confPathList) {
+      List<String> confPathList) {
     if (propertiesFile == null || confPathList == null) {
       return null;
     }
@@ -451,8 +451,7 @@ public final class ConfigurationUtils {
       }
 
       // we are not in test mode, load site properties
-      String confPaths = conf.getString(PropertyKey.SITE_CONF_DIR);
-      String[] confPathList = confPaths.split(",");
+      List<String> confPathList = conf.getList(PropertyKey.SITE_CONF_DIR);
       String sitePropertyFile = ConfigurationUtils
           .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       Properties siteProps = null;
