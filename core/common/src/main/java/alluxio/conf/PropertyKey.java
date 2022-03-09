@@ -5426,7 +5426,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS =
+  public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS =
       new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS)
           .setDescription(
               "The class to provide a custom security authentication sasl server handler.")
