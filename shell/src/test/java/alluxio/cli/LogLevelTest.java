@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
@@ -25,7 +26,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
-import alluxio.master.MasterInquireClient.Factory;
+
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.WorkerNetAddress;
@@ -34,9 +35,6 @@ import org.apache.commons.cli.CommandLine;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
-import org.mockito.MockedStatic.Verification;
-import org.mockito.Mockito;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -105,19 +103,20 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    MockedStatic theMock = Mockito.mockStatic(MasterInquireClient.Factory.class);
-    MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
-    when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(
-        new InetSocketAddress("masters-1", mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
-    when(mockInquireClient.getConnectDetails())
-        .thenReturn(() -> new ZookeeperAuthority(masterAddress));
-    theMock.when((Verification) Factory.create(any(), any())).thenReturn(mockInquireClient);
+    try (MockedStatic<MasterInquireClient.Factory> mockFactory = mockStatic(MasterInquireClient.Factory.class)) {
+      MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
+      when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(
+          new InetSocketAddress("masters-1", mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
+      when(mockInquireClient.getConnectDetails())
+          .thenReturn(() -> new ZookeeperAuthority(masterAddress));
+      mockFactory.when(() -> MasterInquireClient.Factory.create(any(), any()))
+          .thenReturn(mockInquireClient);
 
-    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(1, targets.size());
-    assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
-        targets.get(0));
-    theMock.close();
+      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+      assertEquals(1, targets.size());
+      assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
+          targets.get(0));
+    }
   }
 
   @Test
@@ -130,19 +129,19 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    MockedStatic theMock = Mockito.mockStatic(MasterInquireClient.Factory.class);
-    MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
-    when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(new InetSocketAddress("masters-1",
-        mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
-    when(mockInquireClient.getConnectDetails())
-        .thenReturn(() -> new MultiMasterAuthority(masterAddresses));
-    theMock.when((Verification) Factory.create(any(), any())).thenReturn(mockInquireClient);
-
-    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(1, targets.size());
-    assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
-        targets.get(0));
-    theMock.close();
+    try (MockedStatic<MasterInquireClient.Factory> mockFactory = mockStatic(MasterInquireClient.Factory.class)) {
+      MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
+      when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(new InetSocketAddress("masters-1",
+          mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
+      when(mockInquireClient.getConnectDetails())
+          .thenReturn(() -> new MultiMasterAuthority(masterAddresses));
+      mockFactory.when(() -> MasterInquireClient.Factory.create(any(), any()))
+          .thenReturn(mockInquireClient);
+      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+      assertEquals(1, targets.size());
+      assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
+          targets.get(0));
+    }
   }
 
   @Test
@@ -155,17 +154,17 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    MockedStatic theMock = Mockito.mockStatic(JobMasterClient.Factory.class);
-    JobMasterClient mockJobClient = mock(JobMasterClient.class);
-    when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
-        mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
-    theMock.when((Verification) JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
+    try (MockedStatic<JobMasterClient.Factory> mockFactory = mockStatic(JobMasterClient.Factory.class)) {
+      JobMasterClient mockJobClient = mock(JobMasterClient.class);
+      when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
+          mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
+      mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
 
-    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(1, targets.size());
-    assertEquals(new LogLevel.TargetInfo("masters-2", JOB_MASTER_WEB_PORT, "job_master"),
-        targets.get(0));
-    theMock.close();
+      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+      assertEquals(1, targets.size());
+      assertEquals(new LogLevel.TargetInfo("masters-2", JOB_MASTER_WEB_PORT, "job_master"),
+          targets.get(0));
+    }
   }
 
   @Test
@@ -177,17 +176,17 @@ public class LogLevelTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    MockedStatic theMock = Mockito.mockStatic(JobMasterClient.Factory.class);
-    JobMasterClient mockJobClient = mock(JobMasterClient.class);
-    when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
-        mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
-    theMock.when((Verification) JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
+    try (MockedStatic<JobMasterClient.Factory> mockFactory = mockStatic(JobMasterClient.Factory.class)) {
+      JobMasterClient mockJobClient = mock(JobMasterClient.class);
+      when(mockJobClient.getAddress()).thenReturn(new InetSocketAddress("masters-2",
+          mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
+      mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
 
-    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(1, targets.size());
-    assertEquals(new LogLevel.TargetInfo("masters-2", JOB_MASTER_WEB_PORT, "job_master"),
-        targets.get(0));
-    theMock.close();
+      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+      assertEquals(1, targets.size());
+      assertEquals(new LogLevel.TargetInfo("masters-2", JOB_MASTER_WEB_PORT, "job_master"),
+          targets.get(0));
+    }
   }
 
   @Test
@@ -204,19 +203,18 @@ public class LogLevelTest {
         .setHost("workers-1").setWebPort(WORKER_WEB_PORT), 0, 0));
     workers.add(new BlockWorkerInfo(new WorkerNetAddress()
         .setHost("workers-2").setWebPort(WORKER_WEB_PORT), 0, 0));
-    MockedStatic theMock = Mockito.mockStatic(FileSystemContext.class);
-    FileSystemContext mockFsContext = mock(FileSystemContext.class);
-    when(mockFsContext.getCachedWorkers()).thenReturn(workers);
-    theMock.when((Verification) FileSystemContext.create(any(ClientContext.class)))
-        .thenReturn(mockFsContext);
-
-    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(2, targets.size());
-    assertEquals(new LogLevel.TargetInfo("workers-1", WORKER_WEB_PORT, "worker"),
-        targets.get(0));
-    assertEquals(new LogLevel.TargetInfo("workers-2", WORKER_WEB_PORT, "worker"),
-        targets.get(1));
-    theMock.close();
+    try (MockedStatic<FileSystemContext> mockFactory = mockStatic(FileSystemContext.class)) {
+      FileSystemContext mockFsContext = mock(FileSystemContext.class);
+      when(mockFsContext.getCachedWorkers()).thenReturn(workers);
+      mockFactory.when(() -> FileSystemContext.create(any(ClientContext.class)))
+          .thenReturn(mockFsContext);
+      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+      assertEquals(2, targets.size());
+      assertEquals(new LogLevel.TargetInfo("workers-1", WORKER_WEB_PORT, "worker"),
+          targets.get(0));
+      assertEquals(new LogLevel.TargetInfo("workers-2", WORKER_WEB_PORT, "worker"),
+          targets.get(1));
+    }
   }
 
   @Test
@@ -231,18 +229,18 @@ public class LogLevelTest {
     List<JobWorkerHealth> jobWorkers = new ArrayList<>();
     jobWorkers.add(new JobWorkerHealth(0, new ArrayList<>(), 10, 0, 0, "workers-1"));
     jobWorkers.add(new JobWorkerHealth(1, new ArrayList<>(), 10, 0, 0, "workers-2"));
-    MockedStatic theMock = Mockito.mockStatic(JobMasterClient.Factory.class);
-    JobMasterClient mockJobClient = mock(JobMasterClient.class);
-    when(mockJobClient.getAllWorkerHealth()).thenReturn(jobWorkers);
-    theMock.when((Verification) JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
+    try (MockedStatic<JobMasterClient.Factory> mockFactory = mockStatic(JobMasterClient.Factory.class)) {
+      JobMasterClient mockJobClient = mock(JobMasterClient.class);
+      when(mockJobClient.getAllWorkerHealth()).thenReturn(jobWorkers);
+      mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
 
-    List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-    assertEquals(2, targets.size());
-    assertEquals(new LogLevel.TargetInfo("workers-1", JOB_WORKER_WEB_PORT, "job_worker"),
-        targets.get(0));
-    assertEquals(new LogLevel.TargetInfo("workers-2", JOB_WORKER_WEB_PORT, "job_worker"),
-        targets.get(1));
-    theMock.close();
+      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
+      assertEquals(2, targets.size());
+      assertEquals(new LogLevel.TargetInfo("workers-1", JOB_WORKER_WEB_PORT, "job_worker"),
+          targets.get(0));
+      assertEquals(new LogLevel.TargetInfo("workers-2", JOB_WORKER_WEB_PORT, "job_worker"),
+          targets.get(1));
+    }
   }
 
   @Test
