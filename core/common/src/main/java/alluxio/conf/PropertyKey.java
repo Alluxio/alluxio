@@ -1450,7 +1450,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
-      new Builder(Template.MASTER_JOURNAL_UFS_OPTION)
+      new Builder(Name.MASTER_JOURNAL_UFS_OPTION)
           .setDescription("The configuration to use for the journal operations.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -6500,6 +6500,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
+    private static final String MASTER_JOURNAL_UFS_OPTION = "alluxio.master.journal.ufs.option";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
@@ -7407,8 +7408,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups"),
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.users"),
-    MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
-        "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),

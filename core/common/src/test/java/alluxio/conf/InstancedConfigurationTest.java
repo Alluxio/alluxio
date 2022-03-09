@@ -947,12 +947,12 @@ public class InstancedConfigurationTest {
 
   @Test
   public void initConfWithExtenstionProperty() throws Exception {
-    try (Closeable p = new SystemPropertyRule("alluxio.master.journal.ufs.option.fs.obs.endpoint",
+    try (Closeable p = new SystemPropertyRule("alluxio.master.journal.ufs.option.a.b.c",
         "foo").toResource()) {
       resetConf();
       assertEquals("foo",
           mConfiguration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
-              .format("fs.obs.endpoint")));
+              .format("a.b.c")));
     }
   }
 
