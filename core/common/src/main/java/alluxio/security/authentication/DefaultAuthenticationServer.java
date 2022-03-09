@@ -131,11 +131,11 @@ public class DefaultAuthenticationServer
         return new SaslServerHandlerPlain(mHostName, mConfiguration, mImpersonationAuthenticator);
       case CUSTOM:
         if (!mConfiguration.isSetByUser(
-            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS)) {
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS)) {
           return new SaslServerHandlerPlain(mHostName, mConfiguration, mImpersonationAuthenticator);
         }
         Class clazz = mConfiguration.getClass(
-            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS);
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS);
         try {
           return (SaslServerHandler) clazz.getConstructor(
                   new Class[] {String.class, AlluxioConfiguration.class,
@@ -143,7 +143,7 @@ public class DefaultAuthenticationServer
               .newInstance(mHostName, mConfiguration, mImpersonationAuthenticator);
         } catch (ReflectiveOperationException e) {
           throw new IllegalStateException(
-              PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS.getName()
+              PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS.getName()
                   + " configured to invalid class "
                   + clazz + ". Cannot create SaslServerHandler.", e);
         }

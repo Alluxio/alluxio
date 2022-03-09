@@ -5420,14 +5420,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS =
-      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS)
+      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS)
           .setDescription(
               "The class to provide a custom security authentication sasl client handler.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS =
-      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS)
+      new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS)
           .setDescription(
               "The class to provide a custom security authentication sasl server handler.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -7127,10 +7127,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
         "alluxio.security.authentication.custom.provider.class";
-    public static final String SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS =
-        "alluxio.security.authentication.custom.sasl.client.handler.class";
-    public static final String SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_HANDLER_CLASS =
-        "alluxio.security.authentication.custom.sasl.server.handler.class";
+    public static final String SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS =
+        "alluxio.security.authentication.custom.sasl.client.class";
+    public static final String SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS =
+        "alluxio.security.authentication.custom.sasl.server.class";
     public static final String SECURITY_AUTHENTICATION_TYPE =
         "alluxio.security.authentication.type";
     public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =

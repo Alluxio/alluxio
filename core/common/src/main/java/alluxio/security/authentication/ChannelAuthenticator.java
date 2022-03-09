@@ -168,19 +168,19 @@ public class ChannelAuthenticator {
             mConfiguration);
       case CUSTOM:
         if (!mConfiguration.isSetByUser(
-            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS)) {
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS)) {
           return new alluxio.security.authentication.plain.SaslClientHandlerPlain(mParentSubject,
               mConfiguration);
         }
         Class clazz = mConfiguration.getClass(
-            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS);
+            PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS);
         try {
           return (SaslClientHandler) clazz.getConstructor(
                   new Class[] {Subject.class, AlluxioConfiguration.class})
               .newInstance(mParentSubject, mConfiguration);
         } catch (ReflectiveOperationException e) {
           throw new IllegalStateException(
-              PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_HANDLER_CLASS.getName()
+              PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS.getName()
                   + " configured to invalid class "
                   + clazz + ". Cannot create SaslClientHandler.", e);
         }
