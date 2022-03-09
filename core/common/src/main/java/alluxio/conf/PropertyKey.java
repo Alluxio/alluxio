@@ -5422,14 +5422,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS =
       new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_CLIENT_CLASS)
           .setDescription(
-              "The class to provide a custom security authentication sasl client handler.")
+              "The class to provide a custom security authentication sasl client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS =
       new Builder(Name.SECURITY_AUTHENTICATION_CUSTOM_SASL_SERVER_CLASS)
           .setDescription(
-              "The class to provide a custom security authentication sasl server handler.")
+              "The class to provide a custom security authentication sasl server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
