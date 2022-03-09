@@ -6,7 +6,7 @@
 - Requires access to Alluxio master and workers at `<hostname>:<webport>/metrics/prometheus` endpoint
 - Requires environment variables to be set in `./metricbeat/env`
 - Run `./metricbeat/metricbeat-start.sh /path/to/metricbeat`
-
+  - Use `-d` flag to connect to Elasticsearch without ssl certificate verification (for development environments)
 
 ## Logstash
 - [Logstash OSS 7.12.1](https://www.elastic.co/downloads/past-releases/logstash-oss-7-12-1) must be used
@@ -14,6 +14,7 @@
 - Uses port `5044`
 - Requires environment variables to be set in `./logstash/env`
 - Run `./logstash/logstash-start.sh /path/to/logstash`
+  - Use `-d` flag to connect to Elasticsearch without ssl certificate verification (for development environments)
 
 ## Filebeat
 - [Filebeat OSS 7.12.1](https://www.elastic.co/downloads/past-releases/filebeat-oss-7-12-1) must be used

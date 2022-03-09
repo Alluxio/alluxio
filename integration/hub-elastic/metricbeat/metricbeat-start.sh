@@ -10,10 +10,10 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# This script assumes the following: 
+# This script assumes the following:
 # - Metricbeat OSS 7.12.1 is being used
 # - Clean installation
-# - Downloads available here: https://www.elastic.co/downloads/past-releases/metricbeat-oss-7-12-1 
+# - Downloads available here: https://www.elastic.co/downloads/past-releases/metricbeat-oss-7-12-1
 
 set -eu
 # Debugging
@@ -29,27 +29,41 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd "${SCRIPTPATH}/../../.." > /dev/null 2>&1
 
 HELP=$(cat <<EOF
-Usage: metricbeat-start.sh [-s] /path/to/metricbeat
+Usage: metricbeat-start.sh [-d] /path/to/metricbeat
 
+    -d                     Set to disable verifying Elasticsearch ssl certificate. This is primarily used in
+                           development/testing environments to connect to locally launched Elasticsearch clusters.
     /path/to/metricbeat    Path to metricbeat directory
 
 EOF
 )
-  
-if [[ "$#" -ne 1 ]]; then
+
+if [[ "$#" -eq 0 ]]; then
   echo "Arguments /path/to/metricbeat' must be provided."
   echo "${HELP}"
   exit 1
 fi
 
+USE_DEV="false"
+while getopts "d" o; do
+  case "${o}" in
+    d)
+      USE_DEV="true"
+      shift
+      ;;
+    *)
+      ;;
+  esac
+done
+
 METRICBEAT_DIR="${1}"
 
-if [[ ! -d ${METRICBEAT_DIR} ]]; then 
+if [[ ! -d ${METRICBEAT_DIR} ]]; then
   echo "Directory ${METRICBEAT_DIR} DOES NOT exists."
   exit 1
 fi
 
-if [[ ! -f ${SCRIPTPATH}/env ]]; then 
+if [[ ! -f ${SCRIPTPATH}/env ]]; then
   echo "env DOES NOT exists."
   exit 1
 fi
@@ -78,6 +92,9 @@ ALL_HOSTNAMES="[${MASTERS},${WORKERS}]"
 
 # copy metricbeat configuration files to metricbeat installation directory
 cp -f ${SCRIPTPATH}/metricbeat.yml ${METRICBEAT_DIR}/metricbeat.yml
+if [[ "${USE_DEV}" == "true" ]]; then
+  sed -i '' -e "s/# ssl.verification_mode/ssl.verification_mode/" ${METRICBEAT_DIR}/metricbeat.yml
+fi
 # delete default modules.d
 rm -rf ${METRICBEAT_DIR}/modules.d
 # copy and enable prometheus module
