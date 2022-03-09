@@ -241,3 +241,7 @@
 0.6.36
 
 - Fix volumeMounts indentations in master statefulset
+
+0.6.37
+
+- Fix jobMaster.env indentations in master statefulset
