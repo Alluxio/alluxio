@@ -2815,7 +2815,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT)
           .setDefaultValue("100ms")
           .setDescription("The timeout for a metadata fetch operation from the UFSes. "
-              + "Adjust this timeout according to the expected UFS worse-case response time.")
+              + "Adjust this timeout according to the expected UFS worst-case response time.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
