@@ -49,7 +49,21 @@ public class BackupCommand extends AbstractFsAdminCommand {
           .required(false)
           .hasArg(false)
           .desc("whether to allow leader to take the backup when"
+<<<<<<< HEAD
               + " HA cluster has no stand-by master.")
+||||||| parent of cf83cc15bd (Support bypassing backup delegation via shell switch)
+              + " HA cluster has no standby master.")
+=======
+              + " backup delegation is enabled and HA cluster has no standby master.")
+          .build();
+  private static final Option BYPASS_DELEGATION_OPTION =
+      Option.builder()
+          .longOpt("bypass-delegation")
+          .required(false)
+          .hasArg(false)
+          .desc("when specified, the leading master will by-pass backup delegation,"
+              + " if it was enabled by configuration.")
+>>>>>>> cf83cc15bd (Support bypassing backup delegation via shell switch)
           .build();
   /**
    * @param context fsadmin command context
@@ -82,7 +96,8 @@ public class BackupCommand extends AbstractFsAdminCommand {
         BackupPOptions.newBuilder()
             .setRunAsync(true)
             .setLocalFileSystem(cl.hasOption(LOCAL_OPTION.getLongOpt()))
-            .setAllowLeader(cl.hasOption(ALLOW_LEADER_OPTION.getLongOpt())));
+            .setAllowLeader(cl.hasOption(ALLOW_LEADER_OPTION.getLongOpt()))
+            .setBypassDelegation(cl.hasOption(BYPASS_DELEGATION_OPTION.getLongOpt())));
     // Take backup in async mode.
     BackupStatus status = mMetaClient.backup(opts.build());
     UUID backupId = status.getBackupId();

@@ -119,6 +119,7 @@ message BackupPOptions {
     optional bool localFileSystem = 1;
     optional bool runAsync = 2;
     optional bool allowLeader = 3;
+    optional bool bypassDelegation = 4;
 }
 message BackupPStatus {
     optional string backupId = 1;
