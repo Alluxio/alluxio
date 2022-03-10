@@ -446,16 +446,8 @@ StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
   this->methodID = env->GetMethodID(this->clazz, "statfsCallback", signature);
 }
 
-<<<<<<< HEAD
-int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
-  JNIEnv *env = AttachCurrentThreadIfNeeded();
-||||||| e2f992430a
-int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
-  JNIEnv *env = this->fs->getEnv();
-=======
 int StatfsOperation::call(const char *path, struct statvfs *stbuf) {
-  JNIEnv *env = this->fs->getEnv();
->>>>>>> upstream/master
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(path);
   jobject statvfs = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct statvfs));
 

@@ -237,13 +237,7 @@ int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
 
 int readdir_wrapper(const char *path, void *buf, fuse_fill_dir_t filler,
                     off_t offset, struct fuse_file_info *fi) {
-<<<<<<< HEAD
 
-||||||| e2f992430a
-  LOGD("readdir: %s", path);
-
-=======
->>>>>>> upstream/master
   int ret = jnifuse::JniFuseFileSystem::getInstance()->readdirOper->call(
       path, buf, filler, offset, fi);
 
