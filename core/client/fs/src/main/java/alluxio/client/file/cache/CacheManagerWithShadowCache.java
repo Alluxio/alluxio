@@ -23,12 +23,6 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicIntegerArray;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * A wrapper class of CacheManager with shadow cache.
