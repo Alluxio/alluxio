@@ -20,8 +20,7 @@ import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
-import java.io.File;
-import java.io.FileWriter;
+
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,6 +28,9 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileWriter;
 
 /**
  * Tests for cross-mount {@link alluxio.cli.fs.command.DistributedCpCommand}.
@@ -44,18 +46,16 @@ public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
               .setOpenMs(SLEEP_MS)));
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
+
   @Before
   public void before() throws Exception {
     String localUfsPath = mTempFolder.getRoot().getAbsolutePath();
-
     sFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + localUfsPath));
-
     new File(localUfsPath + "/dir/").mkdirs();
     FileWriter fileWriter = new FileWriter(localUfsPath + "/dir/file");
     fileWriter.write("test");
     fileWriter.close();
   }
-
 
   @Test
   public void testDistributedCpCancelStats() throws Exception {
