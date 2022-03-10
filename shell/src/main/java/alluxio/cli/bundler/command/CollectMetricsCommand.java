@@ -89,7 +89,7 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       } catch (Exception e) {
         // Do not break the loop since the HTTP failure can be due to many reasons
         // Return the error message instead
-        LOG.error("Failed to get Alluxio metrics from URL %s. Exception is %s", url, e);
+        LOG.error("Failed to get Alluxio metrics from URL {}. Exception: ", url, e);
         metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
       }
       outputBuffer.write(metricsResponse);

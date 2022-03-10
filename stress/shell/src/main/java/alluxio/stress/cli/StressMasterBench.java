@@ -98,7 +98,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
         "# this would continuously run `ListDir` opeartion for 30s and record the throughput after "
             + "5s warmup.",
         "$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir \\",
-        "--warmup 5s --duration 30s",
+        "--warmup 5s --duration 30s --cluster",
         ""
     ));
   }

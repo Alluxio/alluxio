@@ -20,7 +20,7 @@ import alluxio.resource.LockResource;
 import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,9 +37,10 @@ public class WorkerRegisterContext implements Closeable {
    * Locks on the worker's metadata sections. The locks will be held throughout the
    * stream and will be unlocked at the end.
    */
-  private LockResource mWorkerLock;
-  private AtomicBoolean mOpen;
-  private StreamObserver<RegisterWorkerPRequest> mWorkerRequestObserver;
+  private final LockResource mWorkerLock;
+  private final AtomicBoolean mOpen;
+  private final StreamObserver<RegisterWorkerPRequest> mWorkerRequestObserver;
+  private final Clock mClock;
 
   /**
    * Keeps track of the last activity time on this stream.
@@ -50,7 +51,8 @@ public class WorkerRegisterContext implements Closeable {
 
   private WorkerRegisterContext(
       MasterWorkerInfo info,
-      StreamObserver<RegisterWorkerPRequest> workerRequestObserver) {
+      StreamObserver<RegisterWorkerPRequest> workerRequestObserver,
+      Clock clock) {
     mWorker = info;
     mWorkerRequestObserver = workerRequestObserver;
     mWorkerLock = info.lockWorkerMeta(EnumSet.of(
@@ -58,6 +60,8 @@ public class WorkerRegisterContext implements Closeable {
         WorkerMetaLockSection.USAGE,
         WorkerMetaLockSection.BLOCKS), false);
     mOpen = new AtomicBoolean(true);
+    mClock = clock;
+    mLastActivityTimeMs = mClock.millis();
   }
 
   /**
@@ -81,7 +85,7 @@ public class WorkerRegisterContext implements Closeable {
   }
 
   void updateTs() {
-    mLastActivityTimeMs = Instant.now().toEpochMilli();
+    mLastActivityTimeMs = mClock.millis();
   }
 
   long getLastActivityTimeMs() {
@@ -115,6 +119,6 @@ public class WorkerRegisterContext implements Closeable {
       BlockMaster blockMaster, long workerId,
       StreamObserver<RegisterWorkerPRequest> workerRequestObserver) throws NotFoundException {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
-    return new WorkerRegisterContext(info, workerRequestObserver);
+    return new WorkerRegisterContext(info, workerRequestObserver, blockMaster.getClock());
   }
 }

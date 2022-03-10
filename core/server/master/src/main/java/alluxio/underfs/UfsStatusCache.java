@@ -12,6 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
@@ -57,6 +59,7 @@ public class UfsStatusCache {
   private final UfsAbsentPathCache mAbsentCache;
   private final long mCacheValidTime;
   private final ExecutorService mPrefetchExecutor;
+  private final long mUfsFetchTimeout;
 
   /**
    * Create a new instance of {@link UfsStatusCache}.
@@ -75,6 +78,9 @@ public class UfsStatusCache {
     mAbsentCache = absentPathCache;
     mCacheValidTime = cacheValidTime;
     mPrefetchExecutor = prefetchExecutor;
+    mUfsFetchTimeout =
+        ServerConfiguration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
+    LOG.info("UFS fetch timeout set to {}ms", mUfsFetchTimeout);
   }
 
   /**
@@ -222,7 +228,7 @@ public class UfsStatusCache {
     if (prefetchJob != null) {
       while (true) {
         try {
-          return prefetchJob.get(100, TimeUnit.MILLISECONDS);
+          return prefetchJob.get(mUfsFetchTimeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
           if (rpcContext != null) {
             rpcContext.throwIfCancelled();

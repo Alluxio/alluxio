@@ -215,11 +215,12 @@ message SpeedTestParameter {
 message ElasticsearchInfo {
   optional ElasticsearchEnvironmentVariables env_variables = 1;
   optional ElasticsearchDashboards dashboards = 2;
+  optional string host = 3;
 }
 
 message ElasticsearchEnvironmentVariables {
-  optional string hub_es_cluster_endpoint = 1;
-  optional string hub_es_cluster_port = 2;
+  optional string hub_es_endpoint = 1;
+  optional string hub_es_port = 2;
   optional string hub_es_username = 3;
   optional string hub_es_password = 4;
   optional string hub_cluster_id = 5;

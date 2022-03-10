@@ -643,7 +643,8 @@ public class InodeSyncStream {
           syncChildren && mRootScheme.getPath().equals(inodePath.getUri());
     }
 
-    Map<String, Inode> inodeChildren = new HashMap<>();
+    int childCount = inode.isDirectory() ? (int) inode.asDirectory().getChildCount() : 0;
+    Map<String, Inode> inodeChildren = new HashMap<>(childCount);
     if (syncChildren) {
       // maps children name to inode
       mInodeStore.getChildren(inode.asDirectory())

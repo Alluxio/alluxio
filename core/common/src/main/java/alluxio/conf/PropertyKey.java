@@ -1359,12 +1359,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY)
+      .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY)
+      .setAlias(Name.AWS_SECRET_KEY)
       .setDescription("The secret key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
@@ -1896,6 +1898,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The stream chunk size used by masters to replicate snapshots.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Time after which calls made through the Raft client timeout.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL)
+          .setDefaultValue("100ms")
+          .setDescription("Base interval for retrying Raft client calls. The retry policy is "
+              + "ExponentialBackoffRetry")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2808,6 +2825,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "metadata sync operations.")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
               + "operations")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
+      new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT)
+          .setDefaultValue("100ms")
+          .setDescription("The timeout for a metadata fetch operation from the UFSes. "
+              + "Adjust this timeout according to the expected UFS worst-case response time.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -4332,7 +4357,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_READ_RETRY_MAX_DURATION =
       new Builder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
-          .setDefaultValue("2min")
+          .setDescription("This duration controls for how long Alluxio clients should try"
+              + "reading a single block. If a particular block can't be read within "
+              + "this duration, then the I/O will timeout.")
+          .setDefaultValue("5min")
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
@@ -4838,7 +4867,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,
               Name.USER_STREAMING_DATA_TIMEOUT)
-          .setDefaultValue("1h")
+          .setDefaultValue("3m")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "for read requests from Alluxio worker. Keep in mind that some streaming "
               + "operations may take an unexpectedly long time, such as UFS io. In order to handle "
@@ -4849,7 +4878,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_DATA_WRITE_TIMEOUT =
       new Builder(Name.USER_STREAMING_DATA_WRITE_TIMEOUT)
-          .setDefaultValue("1h")
+          .setDefaultValue("3m")
           .setDescription("The maximum time for an Alluxio client to wait for when writing 1 chunk "
               + "for block writes to an Alluxio worker. This value can be tuned to offset "
               + "instability from the UFS.")
@@ -5369,6 +5398,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "If disabled, JNR-Fuse will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
+      new Builder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
+          .setDefaultValue(0)
+          .setDescription("The version of libfuse used by libjnifuse. "
+              + "Set 2 to force use libfuse2, 3 to libfuse3, and "
+              + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey FUSE_PERMISSION_CHECK_ENABLED =
       new Builder(Name.FUSE_PERMISSION_CHECK_ENABLED)
@@ -6333,8 +6370,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
     public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
-    public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
-    public static final String S3A_SECRET_KEY = "aws.secretKey";
+    public static final String S3A_ACCESS_KEY = "s3a.accessKeyId";
+    public static final String S3A_SECRET_KEY = "s3a.secretKey";
+    public static final String AWS_ACCESS_KEY = "aws.accessKeyId";
+    public static final String AWS_SECRET_KEY = "aws.secretKey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
     public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
@@ -6488,6 +6527,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
+        "alluxio.master.embedded.journal.raft.client.request.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
+        "alluxio.master.embedded.journal.raft.client.request.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
         "alluxio.master.embedded.journal.transport.request.timeout.ms";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
@@ -6501,6 +6544,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
+    public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
+        "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
@@ -7176,6 +7221,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
+    public static final String FUSE_JNIFUSE_LIBFUSE_VERSION =
+        "alluxio.fuse.jnifuse.libfuse.version";
 
     //
     // Security related properties
