@@ -173,7 +173,7 @@ pid mount_point alluxio_path
 
 ### Select which libfuse version to use
 
-Alluxio now supports both libfuse2 and libfuse3. libfuse2 is more stable and more tested in production. libfuse3 support is now experimental. However, libfuse3 is newer and actively developed, and alluxio is working on utilizing the new features provided by libfuse3.
+Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production. Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
 
 If only one version of libfuse is installed, that version is used. In most distros, libfuse2 and libfuse3 can coexist. If both versions are installed, **libfuse2** will be used by default (for backward compatibility). 
 

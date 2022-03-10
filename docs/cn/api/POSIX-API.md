@@ -131,7 +131,7 @@ Alluxio-FUSE是基于标准的alluxio-core-client-fs进行操作的。你也许�
 
 ### 选择libfuse的版本
 
-Alluxio现在支持libfuse2或者libfuse3。libfuse2较成熟和稳定，已在生产环境中大规模部署。alluxio目前试验性支持libfuse3。libfuse3更新，libfuse项目组目前的开发重点也放在libfuse3上，而且在未来的开发中alluxio将会更好地利用libfuse3提供的新特性。
+Alluxio现在支持libfuse2或者libfuse3。Alluxio的libfuse2的支持较成熟和稳定，已在生产环境中大规模部署。alluxio目前试验性支持libfuse3。Alluxio未来的开发也将专注于libfuse3，更好地利用libfuse3提供的新特性。
 
 如果系统内只安装了一个libfuse版本，alluxio将会使用这个版本。在大多数发行版中，libfuse2和libfuse3可以同时存在。如果两个版本都安装了，为了保持兼容性，alluxio将会默认使用libfuse2版本。
 
