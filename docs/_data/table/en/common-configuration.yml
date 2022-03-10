@@ -432,9 +432,9 @@ alluxio.zookeeper.leader.path:
   'Leader directory in ZooKeeper.'
 alluxio.zookeeper.session.timeout:
   'Session timeout to use when connecting to Zookeeper'
-aws.accessKeyId:
+s3a.accessKeyId:
   'The access key of S3 bucket.'
-aws.secretKey:
+s3a.secretKey:
   'The secret key of S3 bucket.'
 fs.azure.account.oauth2.client.endpoint:
   'The oauth endpoint for ABFS.'

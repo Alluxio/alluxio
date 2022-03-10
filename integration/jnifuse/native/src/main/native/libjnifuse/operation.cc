@@ -382,7 +382,7 @@ int RenameOperation::call(const char *oldPath, const char *newPath) {
   jstring jspath = env->NewStringUTF(oldPath);
   jstring jspathNew = env->NewStringUTF(newPath);
 
-   int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jspathNew);
@@ -446,8 +446,16 @@ StatfsOperation::StatfsOperation(JniFuseFileSystem *fs) {
   this->methodID = env->GetMethodID(this->clazz, "statfsCallback", signature);
 }
 
+<<<<<<< HEAD
 int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
   JNIEnv *env = AttachCurrentThreadIfNeeded();
+||||||| e2f992430a
+int StatfsOperation::call(const char* path, struct statvfs* stbuf) {
+  JNIEnv *env = this->fs->getEnv();
+=======
+int StatfsOperation::call(const char *path, struct statvfs *stbuf) {
+  JNIEnv *env = this->fs->getEnv();
+>>>>>>> upstream/master
   jstring jspath = env->NewStringUTF(path);
   jobject statvfs = env->NewDirectByteBuffer((void *)stbuf, sizeof(struct statvfs));
 

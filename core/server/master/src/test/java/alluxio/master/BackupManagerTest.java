@@ -120,7 +120,7 @@ public class BackupManagerTest {
     CloseableIterator<BlockStore.Block> testBlockIter =
         CloseableIterator.create(blocks.iterator(), (whatever) -> blockIteratorClosed.set(true));
     RocksBlockStore mockBlockStore = mock(RocksBlockStore.class);
-    when(mockBlockStore.iterator()).thenReturn(testBlockIter);
+    when(mockBlockStore.getCloseableIterator()).thenReturn(testBlockIter);
 
     // Prepare the BlockMaster for the backup operation
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(

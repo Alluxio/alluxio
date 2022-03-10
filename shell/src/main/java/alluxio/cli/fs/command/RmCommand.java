@@ -107,7 +107,7 @@ public final class RmCommand extends AbstractFileSystemCommand {
     if (!isAlluxioOnly) {
       System.out.println(path + " has been removed");
     } else {
-      System.out.println(path + " has been removed from Alluxio space");
+      System.out.println(path + " has been removed only from Alluxio space");
     }
   }
 

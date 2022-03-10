@@ -21,6 +21,10 @@
   description: Additional Java VM options for Alluxio master configuration.
 - name: ALLUXIO_WORKER_JAVA_OPTS
   description: Additional Java VM options for Alluxio worker configuration.
+- name: ALLUXIO_JOB_MASTER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio job master configuration.
+- name: ALLUXIO_JOB_WORKER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio job worker configuration.
 - name: ALLUXIO_USER_JAVA_OPTS
   description: Additional Java VM options for Alluxio shell command configuration.
 - name: ALLUXIO_CLASSPATH

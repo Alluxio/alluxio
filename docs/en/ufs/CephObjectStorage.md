@@ -41,8 +41,8 @@ Modify `conf/alluxio-site.properties` to include:
 
 ```properties
 alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
-alluxio.master.mount.table.root.option.aws.accessKeyId=<access-key>
-alluxio.master.mount.table.root.option.aws.secretKey=<secret-key>
+alluxio.master.mount.table.root.option.s3a.accessKeyId=<access-key>
+alluxio.master.mount.table.root.option.s3a.secretKey=<secret-key>
 alluxio.master.mount.table.root.option.alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
 alluxio.master.mount.table.root.option.alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.master.mount.table.root.option.alluxio.underfs.s3.inherit.acl=<inherit-acl>
@@ -75,8 +75,8 @@ to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/op
 Issue the following command to use the S3 interface:
 ```console
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> \
-  --option aws.secretKey=<CEPH_SECRET_ACCESS_KEY> \
+  --option s3a.accessKeyId=<CEPH_ACCESS_KEY_ID> \
+  --option s3a.secretKey=<CEPH_SECRET_ACCESS_KEY> \
   --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> \
   --option alluxio.underfs.s3.disable.dns.buckets=true \
   --option alluxio.underfs.s3.inherit.acl=false \

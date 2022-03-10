@@ -12,7 +12,6 @@
 package alluxio.stress.master;
 
 import alluxio.stress.Parameters;
-import alluxio.stress.common.FileSystemParameters;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
@@ -25,9 +24,7 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class MasterBenchParameters extends FileSystemParameters {
-  /** The stop count value that is invalid. */
-  public static final int STOP_COUNT_INVALID = -1;
+public final class MasterBenchParameters extends MasterBenchBaseParameters {
 
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
@@ -36,20 +33,9 @@ public final class MasterBenchParameters extends FileSystemParameters {
       required = true)
   public Operation mOperation;
 
-  @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
-  public int mClients = 1;
-
-  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
-  public int mThreads = 256;
-
   @Parameter(names = {"--target-throughput"},
       description = "the target throughput to issue operations. (ops / s)")
   public int mTargetThroughput = 1000;
-
-  @Parameter(names = {"--base"},
-      description = "The base directory path URI to perform operations in")
-  @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
-  public String mBasePath = "alluxio://localhost:19998/stress-master-base";
 
   @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription
@@ -59,26 +45,9 @@ public final class MasterBenchParameters extends FileSystemParameters {
   @Parameters.KeylessDescription
   public String mTag = "";
 
-  @Parameter(names = {"--create-file-size"},
-      description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
-  public String mCreateFileSize = "0";
-
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";
-
-  @Parameter(names = {"--warmup"},
-      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
-          + "10000ms, etc.)")
-  public String mWarmup = "30s";
-
-  @Parameter(names = {"--stop-count"},
-      description = "The benchmark will stop after this number of paths. If -1, it is not used and "
-          + "the benchmark will stop after the duration. If this is used, duration will be "
-          + "ignored. This is typically used for creating files in preparation for another "
-          + "benchmark, since the results may not be reliable with a non-duration-based "
-          + "termination condition.")
-  public int mStopCount = STOP_COUNT_INVALID;
 
   @Parameter(names = {"--fixed-count"},
       description = "The number of paths in the fixed portion. Must be greater than 0. The first "
@@ -88,7 +57,8 @@ public final class MasterBenchParameters extends FileSystemParameters {
           + "operation. For example, if fixed-count is set to 1000, and CreateFile is run, each "
           + "task will create files with exactly 1000 paths in the fixed directory. A subsequent "
           + "ListDir task will list that directory, knowing every task/thread will always read a "
-          + "directory with exactly 1000 paths.")
+          + "directory with exactly 1000 paths. A task such as OpenFile will repeatedly read the "
+          + "1000 files so that the task will not end before the desired duration time.")
   public int mFixedCount = 100;
 
   @DynamicParameter(names = "--conf",

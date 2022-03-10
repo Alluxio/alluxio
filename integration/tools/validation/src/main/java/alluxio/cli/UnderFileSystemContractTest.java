@@ -321,7 +321,7 @@ public final class UnderFileSystemContractTest {
         + "fulfill the minimum S3 compatibility requirements in order to "
         + "work well with Alluxio through Alluxio's integration with S3. \n"
         + "Command line example: 'bin/alluxio runUfsTests --path s3://testPath "
-        + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
+        + "-Ds3a.accessKeyId=<accessKeyId> -Ds3a.secretKeyId=<secretKeyId>"
         + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
         + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";
   }

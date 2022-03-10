@@ -5021,6 +5021,11 @@
                 "id": 3,
                 "name": "allowLeader",
                 "type": "bool"
+              },
+              {
+                "id": 4,
+                "name": "bypassDelegation",
+                "type": "bool"
               }
             ]
           },
