@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.FileWriter;
 
 /**
- * Tests for cross-mount {@link alluxio.cli.fs.command.DistributedCpCommand}.
+ * Tests for cancel functionality of {@link alluxio.cli.fs.command.DistributedCpCommand}.
  */
 public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 30;
