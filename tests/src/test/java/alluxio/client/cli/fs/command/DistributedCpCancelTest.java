@@ -36,7 +36,6 @@ import org.junit.rules.TemporaryFolder;
 public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 30;
   private static final int TEST_TIMEOUT = 20;
-  private String mLocalUfsPath;
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -47,12 +46,12 @@ public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
   public TemporaryFolder mTempFolder = new TemporaryFolder();
   @Before
   public void before() throws Exception {
-    mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
+    String localUfsPath = mTempFolder.getRoot().getAbsolutePath();
 
-    sFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
+    sFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + localUfsPath));
 
-    new File(mLocalUfsPath + "/dir/").mkdirs();
-    FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/dir/file");
+    new File(localUfsPath + "/dir/").mkdirs();
+    FileWriter fileWriter = new FileWriter(localUfsPath + "/dir/file");
     fileWriter.write("test");
     fileWriter.close();
   }
