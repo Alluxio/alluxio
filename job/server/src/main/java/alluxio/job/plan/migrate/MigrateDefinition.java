@@ -175,6 +175,7 @@ public final class MigrateDefinition
         } catch (Throwable t) {
           try {
             out.cancel();
+            // this is to avoid mysterious interruption behavior on filesystem.delete
             Thread.interrupted();
             fileSystem.delete(destinationURI);
           } catch (Throwable t2) {
