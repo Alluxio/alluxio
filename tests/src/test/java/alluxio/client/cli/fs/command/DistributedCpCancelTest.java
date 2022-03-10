@@ -34,7 +34,7 @@ import org.junit.rules.TemporaryFolder;
  * Tests for cross-mount {@link alluxio.cli.fs.command.DistributedCpCommand}.
  */
 public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
-  private static final long SLEEP_MS = Constants.SECOND_MS * 7;
+  private static final long SLEEP_MS = Constants.SECOND_MS * 30;
   private static final int TEST_TIMEOUT = 20;
   private String mLocalUfsPath;
 
