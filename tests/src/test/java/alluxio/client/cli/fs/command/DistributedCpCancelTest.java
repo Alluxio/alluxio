@@ -35,7 +35,7 @@ import org.junit.rules.TemporaryFolder;
  */
 public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 7;
-  private static final int TEST_TIMEOUT = 10;
+  private static final int TEST_TIMEOUT = 20;
   private String mLocalUfsPath;
 
   @ClassRule
