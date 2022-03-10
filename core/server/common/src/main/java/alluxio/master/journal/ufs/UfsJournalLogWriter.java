@@ -30,7 +30,6 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -395,12 +394,18 @@ final class UfsJournalLogWriter implements JournalWriter {
 
   @Override
   public synchronized void close() throws IOException {
-    Closer closer = Closer.create();
-    if (mJournalOutputStream != null) {
-      closer.register(mJournalOutputStream);
+    if (mClosed) {
+      return;
     }
-    closer.register(mGarbageCollector);
-    closer.close();
+    mGarbageCollector.close();
+    if (mJournalOutputStream != null) {
+      try {
+        mJournalOutputStream.close();
+      } catch (Throwable error) {
+        LOG.warn(String.format("Failed to close underlying UFS journal stream for: %s", mJournal),
+            error);
+      }
+    }
     mClosed = true;
   }
 
