@@ -82,12 +82,15 @@ jint InitGlobalJniVariables(JavaVM* jvm) {
 
 // Return a |JNIEnv*| usable on this thread. Attaches to JVM if necessary.
 JNIEnv* AttachCurrentThreadIfNeeded() {
-    JNIEnv* jni = GetEnv();
+    JNIEnv* jni = (JNIEnv*) pthread_getspecific(g_jni_ptr);
     if (jni) {
       return jni;
     }
-    JNIFUSE_CHECK(!pthread_getspecific(g_jni_ptr),
-        "This thread has a JNIEnv* but not attached?");
+    JNIEnv* jni = GetEnv();
+    if (jni) {
+      JNIFUSE_CHECK_CODE(pthread_setspecific(g_jni_ptr, jni), "Failed to associate JNI env to thread");
+      return jni;
+    }
     JNIEnv* env = nullptr;
     JNIFUSE_CHECK_CODE(g_jvm->AttachCurrentThreadAsDaemon((void **)&env, nullptr),
         "Failed to attach thread");
