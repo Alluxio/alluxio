@@ -797,6 +797,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
         }
         return false;
       }
+      // in concurrent scenarios,
+      // an item may be aged twice.
+      // Because that item move past the pointer,
+      // we fix this by following code.
       int clock = mClockTable.readTag(from.mBucketIndex, from.mSlotIndex);
       int fromSegIndex = mLocks.getSegmentIndex(from.mBucketIndex);
       int toSegIndex = mLocks.getSegmentIndex(to.mBucketIndex);

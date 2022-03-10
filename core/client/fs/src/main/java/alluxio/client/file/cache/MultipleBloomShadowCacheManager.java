@@ -62,7 +62,7 @@ public class MultipleBloomShadowCacheManager implements ShadowCacheManager {
         conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD) / (mNumBloomFilter + 1);
     // assume 3% Guava default false positive ratio
     mBloomFilterExpectedInsertions =
-        (long) ((-perBloomFilterMemoryOverhead * Math.log(2) * Math.log(2)) / Math.log(0.03));
+        (long) ((-perBloomFilterMemoryOverhead * 8 * Math.log(2) * Math.log(2)) / Math.log(0.03));
     mObjEachBloomFilter = new AtomicIntegerArray(new int[mNumBloomFilter]);
     mByteEachBloomFilter = new AtomicLongArray(new long[mNumBloomFilter]);
     mSegmentBloomFilters =
@@ -122,6 +122,14 @@ public class MultipleBloomShadowCacheManager implements ShadowCacheManager {
     try {
       mShadowCachePages = (int) mWorkingSetBloomFilter.approximateElementCount();
     } catch (ArithmeticException e) {
+      // suppose that m is the length of bloom filter(BF),
+      // zeros is the number of bits that set to zero in BF,
+      // k is the number of hash function,
+      // the cardinality estimation result of BF is given by a formula:
+      // n = -m/k ln(zeros/m),
+      // when the BF is full, zeros will be 0.
+      // in this case 0/m will be executed, and throw a exception.
+      // so, we need to return a max number of element counts
       // TODO(iluoeli): compute a maximum number of element counts
     }
     mShadowCacheBytes = (long) (mShadowCachePages * mAvgPageSize);
