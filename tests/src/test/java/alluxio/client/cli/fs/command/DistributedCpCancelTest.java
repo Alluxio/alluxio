@@ -63,7 +63,7 @@ public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
 
     long jobId = sJobMaster.run(new MigrateConfig(
         "/mnt/dir/file", "/testFileDest", "THROUGH", false));
-    // wait for execution until blocked by FileInStream in = fileSystem.openFile() in migration job
+    // wait for execution until blocked by IOUtils.copyLarge() in migration job
     Thread.sleep(Constants.SECOND_MS * 3);
     sJobShell.run("cancel", Long.toString(jobId));
     JobTestUtils
