@@ -393,7 +393,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   @Override
-  public synchronized void close() throws IOException {
+  public synchronized void close() {
     if (mClosed) {
       return;
     }
