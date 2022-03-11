@@ -381,7 +381,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         properties, false);
 
     // if left enabled, the System.exit() called by Ratis can deadlock with the AlluxioMaster
-    // process shutdown hook
+    // process shutdown hook. Description:
+    // * The AlluxioMaster starts the RaftJournalSystem using RaftJournalSystem.startInternal().
+    //   It now holds a synchronized lock on RaftJournalSystem.
+    // * startInternal calls mServer.start() and fails for any reason, calling System.exit(int) -->
+    //   Runtime.getRuntime().exit(int) in Ratis.
+    // * Runtime.getRuntime().exit(int) calls the shutdown hooks, including the {@link ProcessUtils)
+    //   --> process.stop() --> RaftJournalSystem.stopInternal(), which cannot proceed because of
+    //   the synchronized lock on RaftJournalSystem.
+    // This line disables the System.exit(int) call in Ratis internally in favor of an
+    // Exception being thrown. This prevents the deadlock.
     org.apache.ratis.util.ExitUtils.disableSystemExit();
 
     /*
