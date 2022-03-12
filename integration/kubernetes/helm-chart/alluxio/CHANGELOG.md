@@ -245,3 +245,7 @@
 0.6.37
 
 - Fix jobMaster.env indentations in master statefulset
+
+0.6.38
+
+- Fix MOUNT_POINT env in fuse daemonset
