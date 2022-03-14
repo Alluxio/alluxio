@@ -556,6 +556,17 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * @param targetAddress the target address, hostname or IP
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local host is
+   *        reachable
+   * @return  true if the target address is the local address, false otherwise
+   */
+  public static boolean isLocalAddress(String targetAddress, int timeoutMs) {
+    return getLocalHostName(timeoutMs).equals(targetAddress)
+        || getLocalIpAddress(timeoutMs).equals(targetAddress);
+  }
+
+  /**
    * Tests if the address is externally resolvable. Address must not be wildcard, link local,
    * loopback address, non-IPv4, or other unreachable addresses.
    *
