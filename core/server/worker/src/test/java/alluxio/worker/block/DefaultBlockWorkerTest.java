@@ -400,7 +400,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandACK_REGISTER()
+  public void handlePreRegisterCommandAckRegister()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
@@ -415,7 +415,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandREGISTER_PERSIST_CLUSTERID()
+  public void handlePreRegisterCommandRegisterPersistClusterId()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
@@ -430,7 +430,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandREGISTER_CLEAN_BLOCKS()
+  public void handlePreRegisterCommandRegisterCleanBlocks()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
@@ -444,7 +444,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandREJECT_REGISTER() throws IOException {
+  public void handlePreRegisterCommandRejectRegister() throws IOException {
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.REJECT_REGISTER).build();
     assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(response));

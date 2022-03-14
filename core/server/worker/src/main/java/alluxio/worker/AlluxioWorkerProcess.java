@@ -247,10 +247,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
+    BlockWorker blockWorker = mRegistry.get(BlockWorker.class);
     LOG.info("Alluxio worker started. clusterId={}, workerId={}, bindHost={}, "
             + "connectHost={}, rpcPort={}, webPort={}",
-        mRegistry.get(BlockWorker.class).getClusterId().get(),
-        mRegistry.get(BlockWorker.class).getWorkerId(),
+        blockWorker.getClusterId().get(), blockWorker.getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, ServerConfiguration.global()),
