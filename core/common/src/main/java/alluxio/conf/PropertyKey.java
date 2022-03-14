@@ -2786,6 +2786,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_WORKER_DELETE_TIMEOUT_MS =
+      new Builder(Name.MASTER_WORKER_DELETE_TIMEOUT_MS)
+          .setAlias("alluxio.master.worker.delete.timeout.ms")
+          .setDefaultValue(Long.MAX_VALUE)
+          .setDescription("If the lost worker has no heartbeat for more than this time, "
+              + "it will be completely deleted from the master. In default,"
+              + " the lost worker will never be deleted.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
       new Builder(Name.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL)
           .setDefaultValue(6)
@@ -6660,6 +6670,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
         "alluxio.master.worker.register.stream.response.timeout";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
+    public static final String MASTER_WORKER_DELETE_TIMEOUT_MS =
+        "alluxio.master.worker.delete.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
     public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period";

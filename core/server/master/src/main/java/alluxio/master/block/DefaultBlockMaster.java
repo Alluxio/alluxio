@@ -1432,6 +1432,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     @Override
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerDeleteTimeoutMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_DELETE_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
@@ -1441,6 +1443,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
+          }
+          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
+                    + "it will be delete from the master", worker.getId(),
+                worker.getWorkerAddress(), lastUpdate);
+            deleteLostWorker(worker);
           }
         }
       }
@@ -1477,6 +1485,19 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
+    WorkerNetAddress workerAddress = worker.getWorkerAddress();
+    for (Consumer<Address> function : mWorkerLostListeners) {
+      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+    }
+    // We only remove the blocks from master locations but do not
+    // mark these blocks to-remove from the worker.
+    // So if the worker comes back again the blocks are kept.
+    processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+  }
+
+
+  private void deleteLostWorker(MasterWorkerInfo worker) {
+    mLostWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
