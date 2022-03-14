@@ -80,7 +80,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testDBFileCreate() throws IOException {
+  public void dbFileCreate() throws IOException {
     Path tmpPath = Files.createTempDirectory("tmp-" + UUID.randomUUID());
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, tmpPath.toString());
     // If the DB file does not exist, it will be created
@@ -90,7 +90,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testSetClusterIdAndGetClusterId() throws IOException {
+  public void setClusterIdAndGetClusterId() throws IOException {
     createDefault();
     String clusterId = java.util.UUID.randomUUID().toString();
     mBlockWorkerDB.setClusterId(clusterId);
@@ -98,7 +98,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testReSetClusterId() throws IOException {
+  public void reSetClusterId() throws IOException {
     createDefault();
 
     String clusterId1 = java.util.UUID.randomUUID().toString();
@@ -109,7 +109,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testClusterIdHasBeenPersisted() throws IOException {
+  public void clusterIdHasBeenPersisted() throws IOException {
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
         mTestFolder.getRoot().getAbsolutePath());
     BlockWorkerDB blockWorkerDB1 = new DefaultBlockWorkerDB();
@@ -121,7 +121,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testReset() throws IOException {
+  public void resetDB() throws IOException {
     createDefault();
     String clusterId = java.util.UUID.randomUUID().toString();
     mBlockWorkerDB.setClusterId(clusterId);
@@ -131,7 +131,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testResetEmptyDB() throws IOException {
+  public void resetEmptyDB() throws IOException {
     mBlockWorkerDB =
         new DefaultBlockWorkerDB(
             PathUtils.concatPath(mTestFolder.getRoot().getAbsolutePath(), mNotExistPath));
@@ -140,7 +140,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testFactoryCreate() throws IOException {
+  public void factoryCreate() throws IOException {
     BlockWorkerDB blockWorkerDB = BlockWorkerDB.Factory.create(ServerConfiguration.global());
     String clusterId = java.util.UUID.randomUUID().toString();
     blockWorkerDB.setClusterId(clusterId);
@@ -148,7 +148,7 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testFactoryCreateFromNoExistPath() throws IOException {
+  public void factoryCreateFromNoExistPath() throws IOException {
     String noExistPath = PathUtils.concatPath(
         mTestFolder.getRoot().getAbsolutePath(), "a", "b", "c");
     ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, noExistPath);

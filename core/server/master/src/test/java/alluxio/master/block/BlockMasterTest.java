@@ -261,7 +261,7 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void TestNewWorkerRegisterWithMaster() throws IOException {
+  public void newWorkerRegisterWithMaster() throws IOException {
     // New worker's ClusterId is IdUtils.EMPTY_CLUSTER_ID
 
     // New and clean(the Tier is clean without any Blocks) worker registration
@@ -289,7 +289,7 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void TestReStartedWorkerRegisterWithMaster() throws IOException {
+  public void restartedWorkerRegisterWithMaster() throws IOException {
     // Worker ( clusterId has been persisted) restarts normally
     // The restarted worker will report the same id as the current cluster
     GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
@@ -304,7 +304,7 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void TestOtherClusterWorkerRegisterWithMaster() throws IOException {
+  public void otherClusterWorkerRegisterWithMaster() throws IOException {
     // Worker registration of another cluster
     // Workers belonging to another cluster will report an clusterId that is
     // different with the current cluster
