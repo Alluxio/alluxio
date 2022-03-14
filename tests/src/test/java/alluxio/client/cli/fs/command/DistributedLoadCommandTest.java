@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -257,11 +258,14 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
+    String localUfsPath = mTempFolder.getRoot().getAbsolutePath();
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
           10);
 
       AlluxioURI uri = new AlluxioURI("/testCount/testBatchFile" + i);
+
+
       uris.add(uri);
       URIStatus status = fs.getStatus(uri);
       Assert.assertNotEquals(100, status.getInMemoryPercentage());
@@ -270,5 +274,24 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     String[] output = mOutput.toString().split("\n");
     Assert.assertEquals(String.format("Completed count is %s,Failed count is 0.", fileSize),
         output[output.length - 1]);
+  }
+
+  @Test
+  public void loadDirWithFailure() throws IOException, AlluxioException {
+    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystem fs = sResource.get().getClient();
+
+    FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile", WritePType.THROUGH, 10);
+
+    AlluxioURI uri = new AlluxioURI("/testCount/testBatchFile");
+    URIStatus fileInfo = fs.getStatus(uri);
+    String path = fileInfo.getFileInfo().getUfsPath();
+    boolean result = new File(path).delete();
+    Assert.assertTrue(result);
+
+    fsShell.run("distributedLoad", "/testCount");
+    String[] output = mOutput.toString().split("\n");
+    Assert.assertTrue(
+        mOutput.toString().contains("Completed count is 0,Failed count is 1."));
   }
 }
