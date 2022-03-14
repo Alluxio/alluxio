@@ -146,7 +146,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     File localPath = new File(mParameters.mLocalPath);
 
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
-      for (int i = 0; i < mParameters.mNumDirs; i++) {
+      int startIndex = mParameters.mDirStartIndex;
+      for (int i = startIndex; i < startIndex + mParameters.mNumDirs; i++) {
         Files.createDirectories(Paths.get(String.format(
             TEST_DIR_STRING_FORMAT, mParameters.mLocalPath, mBaseParameters.mId, i)));
       }
@@ -417,7 +418,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
 
     private void writeOrLocalRead() throws Exception {
-      for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
+      int startIndex = mParameters.mDirStartIndex;
+      for (int testDirId = startIndex + mThreadId; testDirId < startIndex + mParameters.mNumDirs;
           testDirId += mParameters.mThreads) {
         for (int testFileId = 0; testFileId < mParameters.mNumFilesPerDir; testFileId++) {
           String filePath = String.format(TEST_FILE_STRING_FORMAT,

@@ -62,6 +62,11 @@ public final class FuseIOParameters extends Parameters {
           + "10000ms, etc.)")
   public String mWarmup = "15s";
 
+  @Parameter(names = {"--dir-start-index"},
+      description = "The first index of the generated dirs. Used for generating "
+          + "test files in multiple batches.")
+  public int mDirStartIndex = 0;
+
   /**
    * Converts from String to FuseIOOperation instance.
    *
