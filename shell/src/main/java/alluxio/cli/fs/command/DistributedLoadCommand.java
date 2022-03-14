@@ -326,8 +326,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     return 0;
   }
 
-  private void processFailures(String arg, Set<String> failures) throws IOException {
-    ;
+  private void processFailures(String arg, Set<String> failures) {
     String path = String.join("_", StringUtils.split(arg, "/"));
     String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
     StringBuilder output = new StringBuilder();
