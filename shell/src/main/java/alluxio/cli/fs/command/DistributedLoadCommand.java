@@ -25,14 +25,15 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,7 +50,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   private static final int DEFAULT_REPLICATION = 1;
   private static final int DEFAULT_FAILURE_LIMIT = 20;
   private static final String DEFAULT_FAILURE_FILE_PATH =
-      "logs/user/distributedLoad_%s_failures.csv";
+      "./logs/user/distributedLoad_%s_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -326,6 +327,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   }
 
   private void processFailures(String arg, Set<String> failures) throws IOException {
+    ;
     String path = String.join("_", StringUtils.split(arg, "/"));
     String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
     StringBuilder output = new StringBuilder();
@@ -336,13 +338,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       output.append(failure);
       output.append(",\n");
     }
-    try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(failurePath))) {
-      for (String failure : failures) {
-        writer.write(String.format("%s%n", failure));
-      }
-    }
     output.append(String.format("Check out %s for full list of failed files.", failurePath));
     System.out.print(output);
+    try (FileOutputStream writer = FileUtils.openOutputStream(new File(failurePath))) {
+      for (String failure : failures) {
+        writer.write(String.format("%s%n", failure).getBytes(StandardCharsets.UTF_8));
+      }
+    } catch (Exception e) {
+      System.out.println("Exception writing failure files:");
+      System.out.println(e.getMessage());
+    }
   }
 
   private void readItemsFromOptionString(Set<String> localityIds, String argOption) {
