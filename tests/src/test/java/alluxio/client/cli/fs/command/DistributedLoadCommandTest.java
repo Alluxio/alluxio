@@ -290,8 +290,10 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertTrue(result);
 
     fsShell.run("distributedLoad", "/testCount");
-    String[] output = mOutput.toString().split("\n");
-    Assert.assertTrue(
-        mOutput.toString().contains("Completed count is 0,Failed count is 1."));
+
+    Assert.assertTrue(mOutput.toString().contains("Completed count is 0,Failed count is 1.\n"
+        + "Here are recent failed files: \n" + "/testCount/testBatchFile,\n"
+        + "Check out ./logs/user/distributedLoad_testCount_failures.csv for full list of failed files."));
+
   }
 }
