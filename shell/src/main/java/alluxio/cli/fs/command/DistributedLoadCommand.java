@@ -320,25 +320,29 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         getCompletedCount(), getFailedCount()));
     Set<String> failures = getFailedFiles();
     if (failures.size() > 0) {
-      String path = String.join("_", StringUtils.split(args[0], "/"));
-      String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
-      StringBuilder output = new StringBuilder();
-      output.append("Here are recent failed files: \n");
-      Iterator<String> iterator = failures.iterator();
-      for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
-        String failure = iterator.next();
-        output.append(failure);
-        output.append(",\n");
-      }
-      try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(failurePath))) {
-        for (String failure : failures) {
-          writer.write(String.format("%s%n", failure));
-        }
-      }
-      output.append(String.format("Check out %s for full list of failed files.", failurePath));
-      System.out.print(output);
+      processFailures(args[0], failures);
     }
     return 0;
+  }
+
+  private void processFailures(String arg, Set<String> failures) throws IOException {
+    String path = String.join("_", StringUtils.split(arg, "/"));
+    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
+    StringBuilder output = new StringBuilder();
+    output.append("Here are recent failed files: \n");
+    Iterator<String> iterator = failures.iterator();
+    for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
+      String failure = iterator.next();
+      output.append(failure);
+      output.append(",\n");
+    }
+    try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(failurePath))) {
+      for (String failure : failures) {
+        writer.write(String.format("%s%n", failure));
+      }
+    }
+    output.append(String.format("Check out %s for full list of failed files.", failurePath));
+    System.out.print(output);
   }
 
   private void readItemsFromOptionString(Set<String> localityIds, String argOption) {
