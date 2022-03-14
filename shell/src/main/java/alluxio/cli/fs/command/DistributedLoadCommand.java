@@ -319,9 +319,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
     Set<String> failures = getFailedFiles();
-    String path = String.join("_", StringUtils.split(args[0], "/"));
-    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
     if (failures.size() > 0) {
+      String path = String.join("_", StringUtils.split(args[0], "/"));
+      String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
       StringBuilder output = new StringBuilder();
       output.append("Here are recent failed files: \n");
       Iterator<String> iterator = failures.iterator();
