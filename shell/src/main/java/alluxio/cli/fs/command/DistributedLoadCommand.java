@@ -47,7 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
-  private static final int DEFAULT_FAILURE_LIMIT = 1;
+  private static final int DEFAULT_FAILURE_LIMIT = 20;
   private static final String DEFAULT_FAILURE_FILE_PATH =
       "logs/user/distributedLoad_%s_failures.csv";
   private static final Option REPLICATION_OPTION =
