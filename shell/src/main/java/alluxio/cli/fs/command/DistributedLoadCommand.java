@@ -335,7 +335,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           writer.write(String.format("%s%n", failure));
         }
       }
-      output.append(String.format("Check out %s for full list of failed files", failurePath));
+      output.append(String.format("Check out %s for full list of failed files.", failurePath));
       System.out.print(output);
     }
     return 0;
