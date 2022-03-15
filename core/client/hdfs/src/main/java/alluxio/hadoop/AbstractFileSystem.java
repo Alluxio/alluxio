@@ -338,8 +338,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       if (!mFileSystem.exists(uri) || mFileSystem.getStatus(uri).isFolder()) {
         return false;
       }
-      mFileSystem.setAttribute(uri, (SetAttributePOptions) SetAttributePOptions.newBuilder()
-          .setReplicationMin(replication).build());
+      LOG.debug("Skipping set replicationMin attribute for {}", path);
       return true;
     } catch (AlluxioException e) {
       throw new IOException(e);
