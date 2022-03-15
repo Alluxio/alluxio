@@ -169,12 +169,15 @@ public final class MigrateDefinition
     do {
       retry = false;
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+          FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         } catch (Throwable t) {
           try {
-            out.cancel();
+            if (Thread.interrupted()) {
+              out.cancel();
+              fileSystem.delete(destinationURI);
+            }
           } catch (Throwable t2) {
             t.addSuppressed(t2);
           }
