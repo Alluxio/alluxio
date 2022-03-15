@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -256,15 +255,10 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
-    List<AlluxioURI> uris = new ArrayList<>(fileSize);
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
           10);
-
       AlluxioURI uri = new AlluxioURI("/testCount/testBatchFile" + i);
-
-
-      uris.add(uri);
       URIStatus status = fs.getStatus(uri);
       Assert.assertNotEquals(100, status.getInMemoryPercentage());
     }
@@ -275,34 +269,24 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   }
 
   @Test
-  public void loadDirWithFailure() throws IOException, AlluxioException, InterruptedException {
+  public void loadDirWithFailure() throws IOException, AlluxioException {
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
     FileSystem fs = sResource.get().getClient();
-
     int fileSize = 20;
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testFailure/testBatchFile" + i, WritePType.THROUGH,
           10);
-
-
-      if (i% 2 == 0) {
+      if (i % 2 == 0) {
         AlluxioURI uri = new AlluxioURI("/testFailure/testBatchFile" + i);
         URIStatus fileInfo = fs.getStatus(uri);
         String path = fileInfo.getFileInfo().getUfsPath();
         boolean result = new File(path).delete();
         Assert.assertTrue(result);
       }
-
     }
     fsShell.run("distributedLoad", "/testFailure");
-Thread.sleep(5000);
-    fsShell.run("ls", "/testFailure");
-
-    Assert.assertEquals(mOutput,"");
     Assert.assertTrue(mOutput.toString().contains("Completed count is 10,Failed count is 10.\n"));
-    Assert.assertTrue(mOutput.toString().contains("Check out ./logs/user/distributedLoad_testFailure_failures.csv for full list of failed files."));
-
-
-
+    Assert.assertTrue(mOutput.toString().contains(
+        "Check out ./logs/user/distributedLoad_testFailure_failures.csv for full list of failed files."));
   }
 }
