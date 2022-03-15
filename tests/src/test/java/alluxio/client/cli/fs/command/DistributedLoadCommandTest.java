@@ -57,7 +57,6 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
           .build();
@@ -258,7 +257,6 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
-    String localUfsPath = mTempFolder.getRoot().getAbsolutePath();
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
           10);
@@ -277,23 +275,34 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   }
 
   @Test
-  public void loadDirWithFailure() throws IOException, AlluxioException {
+  public void loadDirWithFailure() throws IOException, AlluxioException, InterruptedException {
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
     FileSystem fs = sResource.get().getClient();
 
-    FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile", WritePType.THROUGH, 10);
+    int fileSize = 20;
+    for (int i = 0; i < fileSize; i++) {
+      FileSystemTestUtils.createByteFile(fs, "/testFailure/testBatchFile" + i, WritePType.THROUGH,
+          10);
 
-    AlluxioURI uri = new AlluxioURI("/testCount/testBatchFile");
-    URIStatus fileInfo = fs.getStatus(uri);
-    String path = fileInfo.getFileInfo().getUfsPath();
-    boolean result = new File(path).delete();
-    Assert.assertTrue(result);
 
-    fsShell.run("distributedLoad", "/testCount");
+      if (i% 2 == 0) {
+        AlluxioURI uri = new AlluxioURI("/testFailure/testBatchFile" + i);
+        URIStatus fileInfo = fs.getStatus(uri);
+        String path = fileInfo.getFileInfo().getUfsPath();
+        boolean result = new File(path).delete();
+        Assert.assertTrue(result);
+      }
 
-    Assert.assertTrue(mOutput.toString().contains("Completed count is 0,Failed count is 1.\n"
-        + "Here are recent failed files: \n" + "/testCount/testBatchFile,\n"
-        + "Check out ./logs/user/distributedLoad_testCount_failures.csv for full list of failed files."));
+    }
+    fsShell.run("distributedLoad", "/testFailure");
+Thread.sleep(5000);
+    fsShell.run("ls", "/testFailure");
+
+    Assert.assertEquals(mOutput,"");
+    Assert.assertTrue(mOutput.toString().contains("Completed count is 10,Failed count is 10.\n"));
+    Assert.assertTrue(mOutput.toString().contains("Check out ./logs/user/distributedLoad_testFailure_failures.csv for full list of failed files."));
+
+
 
   }
 }
