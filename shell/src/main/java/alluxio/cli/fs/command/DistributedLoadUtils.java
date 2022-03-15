@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -152,8 +153,20 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getFilePath());
+      }
     }
 
     @Override
@@ -184,8 +197,20 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getFilePath());
+      }
     }
 
     @Override
@@ -209,12 +234,26 @@ public final class DistributedLoadUtils {
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
           .collect(Collectors.joining(","));
       mFilesPathString = String.format("[%s]", StringUtils.abbreviate(pathString, 80));
-      System.out.printf("files: %s" + " loading", mFilesPathString);
+      System.out.printf("files: %s" + " loading%n", mFilesPathString);
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
+      }
     }
 
     @Override
@@ -246,8 +285,22 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
+      }
     }
 
     @Override
@@ -280,9 +333,8 @@ public final class DistributedLoadUtils {
         List<URIStatus> filePath, int replication, Set<String> workerSet,
         Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
         boolean printOut) {
-      int poolSize = filePath.size();
       JobAttempt jobAttempt;
-      if (poolSize == 1) {
+      if (filePath.size() == 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
             workerSet, excludedWorkerSet, localityIds, excludedLocalityIds);
         if (printOut) {
@@ -300,7 +352,7 @@ public final class DistributedLoadUtils {
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }
-        BatchedJobConfig config = new BatchedJobConfig("Load", configs);
+        BatchedJobConfig config = new BatchedJobConfig(LoadConfig.NAME, configs);
         if (printOut) {
           jobAttempt = new BatchedLoadJobAttempt(command.mClient, config, new CountingRetry(3));
         } else {
