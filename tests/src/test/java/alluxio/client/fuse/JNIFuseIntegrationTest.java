@@ -11,6 +11,10 @@
 
 package alluxio.client.fuse;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
+
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -24,7 +28,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.Closeable;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -38,6 +44,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {
     ServerConfiguration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
+    ServerConfiguration.set(PropertyKey.FUSE_WRITE_THROUGH_FILE_PATTERN, ".*\\.through");
   }
 
   @Override
@@ -273,6 +280,32 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
       readAndValidateTestFile(testFile, info, FILE_LEN);
+    }
+  }
+
+  @Test
+  public void readWriteOpen() throws Exception {
+    String testFile = "/test.through";
+    String fuseFsFile = mMountPoint + testFile;
+    String content = "Alluxio Test File Content";
+    String newContent = "Alluxio New Test File Content";
+    try (FileOutputStream stream = new FileOutputStream(fuseFsFile)) {
+      stream.write(content.getBytes());
+    }
+    assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
+    try (RandomAccessFile file = new RandomAccessFile(fuseFsFile, "rw")) {
+      byte[] data = new byte[content.getBytes().length];
+      file.seek(0);
+      file.read(data);
+      assertArrayEquals(content.getBytes(), data);
+      // rewrite data
+      file.seek(0);
+      file.write(newContent.getBytes());
+      // check data written
+      byte[] data2 = new byte[newContent.getBytes().length];
+      file.seek(0);
+      file.read(data2);
+      assertArrayEquals(newContent.getBytes(), data2);
     }
   }
 
