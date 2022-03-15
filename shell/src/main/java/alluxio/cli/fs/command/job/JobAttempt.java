@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,7 +79,7 @@ public abstract class JobAttempt {
 
     JobInfo jobInfo;
     try {
-      jobInfo = mClient.getJobStatus(mJobId);
+      jobInfo = mClient.getJobStatusDetailed(mJobId);
     } catch (IOException e) {
       LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
       return Status.FAILED;
@@ -88,25 +87,18 @@ public abstract class JobAttempt {
 
     // This make an assumption that this job tree only goes 1 level deep
     boolean finished = true;
+
     for (JobInfo child : jobInfo.getChildren()) {
       if (!child.getStatus().isFinished()) {
         finished = false;
         break;
       }
     }
-    List<JobInfo> children;
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
-        try {
-          children = mClient.getJobStatusDetailed(mJobId).getChildren();
-        } catch (IOException e) {
-          LOG.warn("Failed to get detailed children status for job (jobId={})", mJobId, e);
-          return jobInfo.getStatus();
-        }
         logFailedAttempt(jobInfo);
-
-        mFailedTasks = children.stream().filter(child -> child.getStatus() == Status.FAILED)
-            .collect(Collectors.toSet());
+        mFailedTasks = jobInfo.getChildren().stream()
+            .filter(child -> child.getStatus() == Status.FAILED).collect(Collectors.toSet());
         setFailedFiles();
       } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
         logCompleted();
