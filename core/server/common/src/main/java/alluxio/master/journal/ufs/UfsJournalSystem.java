@@ -116,12 +116,8 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     }
 
     // Wait for all journals to transition to standby
-    try {
-      for (UfsJournal journal : mJournals.values()) {
-        journal.awaitLosePrimacy();
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to downgrade journal to standby", e);
+    for (UfsJournal journal : mJournals.values()) {
+      journal.awaitLosePrimacy();
     }
   }
 

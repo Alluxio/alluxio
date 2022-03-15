@@ -24,7 +24,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -170,7 +169,7 @@ public final class MigrateDefinition
     do {
       retry = false;
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-          FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         } catch (Throwable t) {
@@ -195,8 +194,7 @@ public final class MigrateDefinition
           }
           throw t;
         }
-      }
-      catch (FileAlreadyExistsException e) {
+      } catch (FileAlreadyExistsException e) {
         if (overwrite) {
           fileSystem.delete(destinationURI);
           retry = true;
