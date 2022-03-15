@@ -93,13 +93,13 @@ ALL_HOSTNAMES="[${MASTERS},${WORKERS}]"
 # copy metricbeat configuration files to metricbeat installation directory
 cp -f ${SCRIPTPATH}/metricbeat.yml ${METRICBEAT_DIR}/metricbeat.yml
 if [[ "${USE_DEV}" == "true" ]]; then
-  sed -i '' -e "s/# ssl.verification_mode/ssl.verification_mode/" ${METRICBEAT_DIR}/metricbeat.yml
+  perl -pi -e "s/# ssl.verification_mode/ssl.verification_mode/" ${METRICBEAT_DIR}/metricbeat.yml
 fi
 # delete default modules.d
 rm -rf ${METRICBEAT_DIR}/modules.d
 # copy and enable prometheus module
 cp -rf ${SCRIPTPATH}/modules.d ${METRICBEAT_DIR}
-sed -i '' -e "s/<HOSTS_LIST>/${ALL_HOSTNAMES}/" ${METRICBEAT_DIR}/modules.d/prometheus.yml
+perl -pi -e "s/<HOSTS_LIST>/${ALL_HOSTNAMES}/" ${METRICBEAT_DIR}/modules.d/prometheus.yml
 
 cd ${METRICBEAT_DIR}
 

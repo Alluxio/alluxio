@@ -10,10 +10,10 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# This script assumes the following: 
+# This script assumes the following:
 # - Filebeat OSS 7.12.1 is being used
 # - Clean installation
-# - Downloads available here: https://www.elastic.co/downloads/past-releases/filebeat-oss-7-12-1 
+# - Downloads available here: https://www.elastic.co/downloads/past-releases/filebeat-oss-7-12-1
 
 set -eu
 # Debugging
@@ -35,7 +35,7 @@ Usage: filebeat-start.sh [-s] /path/to/filebeat
 
 EOF
 )
-  
+
 if [[ "$#" -ne 1 ]]; then
   echo "Arguments /path/to/filebeat' must be provided."
   echo "${HELP}"
@@ -44,15 +44,15 @@ fi
 
 FILEBEAT_DIR="${1}"
 
-if [[ ! -d ${FILEBEAT_DIR} ]]; then 
+if [[ ! -d ${FILEBEAT_DIR} ]]; then
   echo "Directory ${FILEBEAT_DIR} DOES NOT exists."
   exit 1
 fi
 
 # copy filebeat configuration files to filebeat installation directory
 cp -f ${SCRIPTPATH}/filebeat.yml ${FILEBEAT_DIR}/filebeat.yml
-sed -i '' -e "s#<PATH/TO/ALLUXIO/LOGS>#$(get_conf 'alluxio.logs.dir')#" ${FILEBEAT_DIR}/filebeat.yml
-sed -i '' -e "s/<LOGSTASH_HOST>/$(get_conf 'alluxio.hub.manager.rpc.hostname')/" ${FILEBEAT_DIR}/filebeat.yml
+perl -pi -e "s#<PATH/TO/ALLUXIO/LOGS>#$(get_conf 'alluxio.logs.dir')#" ${FILEBEAT_DIR}/filebeat.yml
+perl -pi -e "s/<LOGSTASH_HOST>/$(get_conf 'alluxio.hub.manager.rpc.hostname')/" ${FILEBEAT_DIR}/filebeat.yml
 
 cd ${FILEBEAT_DIR}
 
