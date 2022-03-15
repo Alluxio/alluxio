@@ -174,10 +174,10 @@ public final class MigrateDefinition
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         } catch (Throwable t) {
           try {
-            out.cancel();
-            // this is to avoid mysterious interruption behavior on filesystem.delete
-            Thread.interrupted();
-            fileSystem.delete(destinationURI);
+            if (Thread.interrupted()) {
+              out.cancel();
+              fileSystem.delete(destinationURI);
+            }
           } catch (Throwable t2) {
             t.addSuppressed(t2);
           }
