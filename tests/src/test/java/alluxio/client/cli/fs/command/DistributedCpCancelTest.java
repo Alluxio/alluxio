@@ -66,7 +66,7 @@ public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
     Thread.sleep(Constants.SECOND_MS * 3);
     sJobShell.run("cancel", Long.toString(jobId));
     JobTestUtils
-        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED), TEST_TIMEOUT);
+        .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.CANCELED));
     Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/testFileDest")));
   }
 }
