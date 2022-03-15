@@ -25,16 +25,20 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -44,6 +48,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
+  private static final int DEFAULT_FAILURE_LIMIT = 20;
+  private static final String DEFAULT_FAILURE_FILE_PATH =
+      "./logs/user/distributedLoad_%s_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -301,7 +308,34 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
     System.out.println(String.format("Completed count is %d,Failed count is %d.",
         getCompletedCount(), getFailedCount()));
+    Set<String> failures = getFailedFiles();
+    if (failures.size() > 0) {
+      processFailures(args[0], failures);
+    }
     return 0;
+  }
+
+  private void processFailures(String arg, Set<String> failures) {
+    String path = String.join("_", StringUtils.split(arg, "/"));
+    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
+    StringBuilder output = new StringBuilder();
+    output.append("Here are recent failed files: \n");
+    Iterator<String> iterator = failures.iterator();
+    for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
+      String failure = iterator.next();
+      output.append(failure);
+      output.append(",\n");
+    }
+    output.append(String.format("Check out %s for full list of failed files.", failurePath));
+    System.out.print(output);
+    try (FileOutputStream writer = FileUtils.openOutputStream(new File(failurePath))) {
+      for (String failure : failures) {
+        writer.write(String.format("%s%n", failure).getBytes(StandardCharsets.UTF_8));
+      }
+    } catch (Exception e) {
+      System.out.println("Exception writing failure files:");
+      System.out.println(e.getMessage());
+    }
   }
 
   private void readItemsFromOptionString(Set<String> localityIds, String argOption) {
