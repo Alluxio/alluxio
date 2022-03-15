@@ -240,7 +240,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
         Map<String, String> map = oMapper.convertValue(config, Map.class);
         configs.add(map);
       }
-      BatchedJobConfig config = new BatchedJobConfig(MigrateConfig.NAME, configs);
+      BatchedJobConfig config = new BatchedJobConfig("Migrate", configs);
       jobAttempt = new BatchedCopyJobAttempt(mClient, config, new CountingRetry(3));
     }
     return jobAttempt;

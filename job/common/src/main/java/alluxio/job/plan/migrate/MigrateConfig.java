@@ -29,7 +29,7 @@ import java.util.Collection;
 @ThreadSafe
 public class MigrateConfig implements PlanConfig {
   private static final long serialVersionUID = 8014674802258120190L;
-  public static final String NAME = "Migrate";
+  private static final String NAME = "Migrate";
 
   private final String mSource;
   private final String mDestination;
