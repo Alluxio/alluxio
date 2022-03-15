@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -36,14 +35,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 /**
