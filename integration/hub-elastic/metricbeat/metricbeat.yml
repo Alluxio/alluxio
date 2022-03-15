@@ -40,6 +40,7 @@ output.elasticsearch:
   username: "${HUB_ES_USERNAME:?HUB_ES_USERNAME env var is not set}"
   password: "${HUB_ES_PASSWORD:?HUB_ES_PASSWORD env var is not set}"
   index: "metricbeat-%{[agent.version]}-${HUB_CLUSTER_ID}"
+  # ssl.verification_mode: none # Does not verify server's certificate. Do not use in a production environment
 
 # ================================= Processors =================================
 

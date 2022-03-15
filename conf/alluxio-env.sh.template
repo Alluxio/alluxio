@@ -119,6 +119,10 @@
 # E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60008"
 # ALLUXIO_HUB_AGENT_ATTACH_OPTS
 
+# Configuring remote debugging for Alluxio fuse process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60009"
+# ALLUXIO_FUSE_ATTACH_OPTS
+
 # Configuring remote debugging for Alluxio shell. (Default: "")
 # E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
 # ALLUXIO_USER_ATTACH_OPTS

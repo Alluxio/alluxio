@@ -344,7 +344,7 @@ public class CollectInfo extends AbstractShell {
           return cr;
         } catch (IOException e) {
           // An unexpected error occurred that caused this IOException
-          LOG.error("Execution failed on {}", e);
+          LOG.error("Execution failed", e);
           return new CommandReturn(1, e.toString());
         }
       }, mExecutor);

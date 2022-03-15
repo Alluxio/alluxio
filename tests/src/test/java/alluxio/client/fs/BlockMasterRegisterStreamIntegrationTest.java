@@ -857,7 +857,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     sendStreamToMaster(requestChunks,
         RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
 
-    assertEquals(0, errorQueue.size());
+    assertEquals(errorQueue.toString(), 0, errorQueue.size());
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
     assertEquals(expectedBlockCount, worker.getBlockCount());
     assertEquals(0, worker.getToRemoveBlockCount());

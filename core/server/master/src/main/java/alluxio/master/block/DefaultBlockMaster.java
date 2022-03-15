@@ -108,6 +108,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -303,6 +304,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LOST_BLOCK_COUNT.getName(),
         this::getLostBlocksCount);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_TO_REMOVE_BLOCK_COUNT.getName(),
+        this::getToRemoveBlockCount, 30, TimeUnit.SECONDS);
   }
 
   /**
@@ -379,8 +382,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
-    Iterator<Block> blockStoreIterator = mBlockStore.iterator();
-    Iterator<JournalEntry> blockIterator = new Iterator<JournalEntry>() {
+    CloseableIterator<Block> blockStoreIterator = mBlockStore.getCloseableIterator();
+    Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override
       public boolean hasNext() {
         return blockStoreIterator.hasNext();
@@ -404,20 +407,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     };
 
-    CloseableIterator<JournalEntry> closeableIterator =
-        CloseableIterator.create(blockIterator, (whatever) -> {
-          if (blockStoreIterator instanceof CloseableIterator) {
-            final CloseableIterator<Block> c = (CloseableIterator<Block>) blockStoreIterator;
-            c.close();
-          } else {
-            // no op
-          }
-        });
+    CloseableIterator<JournalEntry> journalCloseableIterator =
+        CloseableIterator.create(journalIterator, (whatever) -> blockStoreIterator.close());
 
     return CloseableIterator.concat(
         CloseableIterator.noopCloseable(
             CommonUtils.singleElementIterator(getContainerIdJournalEntry())),
-        closeableIterator);
+        journalCloseableIterator);
   }
 
   /**
@@ -431,28 +427,36 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
+      AtomicInteger removedSessions = new AtomicInteger(0);
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
-        final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
-        if (lastUpdate < mTimeout) {
+        final long clockTime = mClock.millis();
+        final long lastActivityTime = context.getLastActivityTimeMs();
+        final long staleTime = clockTime - lastActivityTime;
+        if (staleTime < mTimeout) {
           return false;
         }
         String msg = String.format(
-            "Worker register stream hanging for more than %sms for worker %d!"
+            "ClockTime: %d, LastActivityTime: %d. Worker %d register stream hanging for %sms!"
                 + " Tune up %s if this is undesired.",
-            mTimeout, context.mWorker.getId(),
-            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
+            clockTime, lastActivityTime, context.mWorker.getId(), staleTime,
+            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
         Exception e = new TimeoutException(msg);
         try {
           context.closeWithError(e);
         } catch (Throwable t) {
+          t.addSuppressed(e);
           LOG.error("Failed to close an open register stream for worker {}. "
-              + "The stream has been open for {}ms.", context.getWorkerId(), lastUpdate, t);
+              + "The stream has been open for {}ms.", context.getWorkerId(), staleTime, t);
           // Do not remove the entry so this will be retried
           return false;
         }
+        removedSessions.getAndDecrement();
         return true;
       });
+      if (removedSessions.get() > 0) {
+        LOG.info("Removed {} stale worker registration streams", removedSessions.get());
+      }
     }
 
     @Override
@@ -726,10 +730,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
       throws UnavailableException {
     List<Long> invalidBlocks = new ArrayList<>();
-    for (Iterator<Block> iter = mBlockStore.iterator(); iter.hasNext(); ) {
-      long id = iter.next().getId();
-      if (!validator.apply(id)) {
-        invalidBlocks.add(id);
+    try (CloseableIterator<Block> iter = mBlockStore.getCloseableIterator()) {
+      while (iter.hasNext()) {
+        long id = iter.next().getId();
+        if (!validator.apply(id)) {
+          invalidBlocks.add(id);
+        }
       }
     }
     if (!invalidBlocks.isEmpty()) {
@@ -1242,6 +1248,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerCommand;
   }
 
+  @Override
+  public Clock getClock() {
+    return mClock;
+  }
+
   private void processWorkerMetrics(String hostname, List<Metric> metrics) {
     if (metrics.isEmpty()) {
       return;
@@ -1362,6 +1373,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public int getLostBlocksCount() {
     return mLostBlocks.size();
+  }
+
+  private long getToRemoveBlockCount() {
+    long ret = 0;
+    for (MasterWorkerInfo worker : mWorkers) {
+      try (LockResource r = worker.lockWorkerMeta(
+          EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
+        ret += worker.getToRemoveBlockCount();
+      }
+    }
+    return ret;
   }
 
   /**

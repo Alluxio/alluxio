@@ -51,8 +51,8 @@ alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3.inherit.acl=false
-aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
-aws.secretKey=<MINIO_SECRET_KEY_ID>
+s3a.accessKeyId=<MINIO_ACCESS_KEY_ID>
+s3a.secretKey=<MINIO_SECRET_KEY_ID>
 ```
 
 For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your MinIO service,
@@ -133,8 +133,8 @@ ion refused)) from the under file system
 
 If an exception including a message about forbidden access is encountered, it's possible that the
 Alluxio master has been configured with incorrect credentials.
-Check the [`aws.accessKeyId`]({{ '/en/reference/Properties-List.html' | relativize_url}}#aws.accessKeyId)
-and [`aws.secretKey`]({{ '/en/reference/Properties-List.html' | relativize_url}}#aws.secretKey).
+Check the [`s3a.accessKeyId`]({{ '/en/reference/Properties-List.html' | relativize_url}}#s3a.accessKeyId)
+and [`s3a.secretKey`]({{ '/en/reference/Properties-List.html' | relativize_url}}#s3a.secretKey).
 If this error is appearing, double check that both properties are set correctly.
 
 ```

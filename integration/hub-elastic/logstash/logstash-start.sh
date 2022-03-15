@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# This script assumes the following: 
+# This script assumes the following:
 # - Logstash OSS 7.12.1 is being used
 # - Clean installation
 # - Downloads available here: https://www.elastic.co/downloads/past-releases/logstash-oss-7-12-1
@@ -29,27 +29,41 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd "${SCRIPTPATH}/../../.." > /dev/null 2>&1
 
 HELP=$(cat <<EOF
-Usage: logstash-start.sh [-s] /path/to/logstash
+Usage: logstash-start.sh [-d] /path/to/logstash
 
+    -d                   Set to disable verifying Elasticsearch ssl certificate. This is primarily used in
+                         development/testing environments to connect to locally launched Elasticsearch clusters.
     /path/to/logstash    Path to logstash directory
 
 EOF
 )
-  
-if [[ "$#" -ne 1 ]]; then
+
+if [[ "$#" -eq 0 ]]; then
   echo "Arguments /path/to/logstash' must be provided."
   echo "${HELP}"
   exit 1
 fi
 
+USE_DEV="false"
+while getopts "d" o; do
+  case "${o}" in
+    d)
+      USE_DEV="true"
+      shift
+      ;;
+    *)
+      ;;
+  esac
+done
+
 LOGSTASH_DIR="${1}"
 
-if [[ ! -d ${LOGSTASH_DIR} ]]; then 
+if [[ ! -d ${LOGSTASH_DIR} ]]; then
   echo "Directory ${LOGSTASH_DIR} DOES NOT exists."
   exit 1
 fi
 
-if [[ ! -f ${SCRIPTPATH}/env ]]; then 
+if [[ ! -f ${SCRIPTPATH}/env ]]; then
   echo "env DOES NOT exists."
   exit 1
 fi
@@ -68,6 +82,9 @@ set +a
 
 # copy logstash configuration file to logstash installation directory
 cp -f ${SCRIPTPATH}/logstash.conf ${LOGSTASH_DIR}/logstash.conf
+if [[ "${USE_DEV}" == "true" ]]; then
+  sed -i '' -e "s/# ssl_certificate_verification/ssl_certificate_verification/" ${LOGSTASH_DIR}/logstash.conf
+fi
 
 cd ${LOGSTASH_DIR}
 

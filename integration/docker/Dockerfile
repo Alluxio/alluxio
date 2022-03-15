@@ -38,7 +38,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
+# Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
@@ -49,8 +49,9 @@ RUN \
   apk add --no-cache ca-certificates wget bash && \
   apk add --no-cache --virtual .build-deps \
   build-base pkgconfig eudev git gcc make cmake gettext-dev libtool autoconf automake && \
-  ./dockerfile-common.sh install-libfuse && \
+  ./dockerfile-common.sh install-libfuse2 && \
   rm -rf libfuse && \
+  apk add fuse3=3.2.6-r1 && \
   apk del --no-cache .build-deps
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"

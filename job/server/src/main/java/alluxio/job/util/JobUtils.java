@@ -27,9 +27,6 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -230,12 +227,7 @@ public final class JobUtils {
 
   private static void loadThroughRead(URIStatus status, FileSystemContext context, long blockId,
       AlluxioConfiguration conf) throws IOException {
-    // This does not work for remote worker unless we have passive cache on.
-    AlluxioProperties prop = context.getClusterConf().copyProperties();
-    prop.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, "true");
-    AlluxioConfiguration config = new InstancedConfiguration(prop);
-    FileSystemContext loadContext = FileSystemContext.create(config);
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(loadContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
