@@ -45,6 +45,9 @@ public class DefaultMetaStore implements MetaStore {
    */
   public DefaultMetaStore(AlluxioConfiguration conf) {
     this(CacheEvictor.create(conf));
+    //metrics for the num of pages stored in the cache
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
+        mPageMap::size);
   }
 
   /**
@@ -65,7 +68,6 @@ public class DefaultMetaStore implements MetaStore {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    Metrics.PAGES.inc(mPageMap.size() - Metrics.PAGES.getCount());
     mEvictor.updateOnPut(pageId);
   }
 
@@ -86,7 +88,6 @@ public class DefaultMetaStore implements MetaStore {
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    Metrics.PAGES.dec(Metrics.PAGES.getCount() - mPageMap.size());
     mEvictor.updateOnDelete(pageId);
     return pageInfo;
   }
@@ -103,7 +104,6 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   public void reset() {
-    Metrics.PAGES.dec(Metrics.PAGES.getCount());
     mBytes.set(0);
     Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
     mPageMap.clear();
@@ -137,8 +137,5 @@ public class DefaultMetaStore implements MetaStore {
     /** Bytes used in the cache. */
     private static final Counter SPACE_USED =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_SPACE_USED_COUNT.getName());
-    /** Pages stored in the cache. */
-    private static final Counter PAGES =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
 }
