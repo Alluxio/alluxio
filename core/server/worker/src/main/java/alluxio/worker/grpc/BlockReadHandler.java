@@ -12,6 +12,7 @@
 package alluxio.worker.grpc;
 
 import alluxio.Constants;
+import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
@@ -138,7 +139,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
-    LOG.debug("Received read request {}.", request);
+    LOG.debug("Received read request {}.",
+        RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(LOG, request));
     try (LockResource lr = new LockResource(mLock)) {
       if (request.hasOffsetReceived()) {
         mContext.setPosReceived(request.getOffsetReceived());

@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -314,9 +315,11 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] res = new ObjectStatus[objects.size()];
       for (DirectoryOrObject object : objects) {
         if (object.isObject()) {
+          Date lastModifiedDate = object.getAsObject().getLastModifiedAsDate();
+          Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
           res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getEtag(),
               object.getAsObject().getContentLength(),
-              object.getAsObject().getLastModifiedAsDate().getTime());
+              lastModifiedTime);
         } else {
           res[i++] = new ObjectStatus(object.getName());
         }
@@ -346,8 +349,10 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     Container container = mAccount.getContainer(mContainerName);
     StoredObject meta = container.getObject(key);
     if (meta != null && meta.exists()) {
+      Date lastModifiedDate = meta.getLastModifiedAsDate();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, meta.getEtag(), meta.getContentLength(),
-          meta.getLastModifiedAsDate().getTime());
+          lastModifiedTime);
     }
     return null;
   }

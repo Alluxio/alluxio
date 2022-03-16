@@ -109,6 +109,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: FUSE_ALLUXIO_PATH
+            value: {{ .Values.fuse.alluxioPath }}
           {{- range $key, $value := .Values.fuse.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"

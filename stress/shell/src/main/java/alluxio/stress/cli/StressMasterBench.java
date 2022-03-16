@@ -134,10 +134,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       if (mParameters.mOperation == Operation.CREATE_FILE
           || mParameters.mOperation == Operation.CREATE_DIR) {
+        LOG.info("Cleaning base path: {}", basePath);
         long start = CommonUtils.getCurrentMs();
         deletePaths(prepareFs, basePath);
         long end = CommonUtils.getCurrentMs();
-        LOG.info("Cleanup delete took: {} s", (end - start) / 1000.0);
+        LOG.info("Cleanup took: {} s", (end - start) / 1000.0);
         prepareFs.mkdirs(basePath);
       } else {
         // these are read operations. the directory must exist
@@ -280,8 +281,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     for (int i = 0; i < mParameters.mThreads; i++) {
       callables.add(getBenchThread(context, i));
     }
+    LOG.info("Starting {} bench threads", callables.size());
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
+    LOG.info("Bench threads finished");
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
@@ -306,6 +309,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     private final long mStartMs;
     private final long mEndMs;
     private final AtomicLong mCounter;
+    private final Path mBasePath;
+    private final Path mFixedBasePath;
 
     /** The results. Access must be synchronized for thread safety. */
     private MasterBenchTaskResult mResult;
@@ -315,6 +320,15 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mStartMs = startMs;
       mEndMs = endMs;
       mCounter = new AtomicLong();
+      if (mParameters.mOperation == Operation.CREATE_DIR) {
+        mBasePath =
+            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
+      } else {
+        mBasePath =
+            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
+      }
+      mFixedBasePath = new Path(mBasePath, "fixed");
+      LOG.info("BenchContext: basePath: {}, fixedBasePath: {}", mBasePath, mFixedBasePath);
     }
 
     public RateLimiter getRateLimiter() {
@@ -333,6 +347,14 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       return mCounter;
     }
 
+    public Path getBasePath() {
+      return mBasePath;
+    }
+
+    public Path getFixedBasePath() {
+      return mFixedBasePath;
+    }
+
     public synchronized void mergeThreadResult(MasterBenchTaskResult threadResult) {
       if (mResult == null) {
         mResult = threadResult;
@@ -341,6 +363,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       try {
         mResult.merge(threadResult);
       } catch (Exception e) {
+        LOG.warn("Exception during result merge", e);
         mResult.addErrorMessage(e.getMessage());
       }
     }
@@ -387,14 +410,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mContext = context;
       mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);
-      if (mParameters.mOperation == Operation.CREATE_DIR) {
-        mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
-      } else {
-        mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
-      }
-      mFixedBasePath = new Path(mBasePath, "fixed");
+      mBasePath = mContext.getBasePath();
+      mFixedBasePath = mContext.getFixedBasePath();
     }
 
     @Override
@@ -402,6 +419,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       try {
         runInternal();
       } catch (Exception e) {
+        LOG.warn("Exception during bench thread runInternal", e);
         mResult.addErrorMessage(e.getMessage());
       }
 

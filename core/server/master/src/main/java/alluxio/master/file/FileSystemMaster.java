@@ -113,6 +113,14 @@ public interface FileSystemMaster extends Master {
       UnavailableException, IOException;
 
   /**
+   * Returns the mount id according to the ufs path.
+   *
+   * @param ufsPath the ufs path
+   * @return the corresponding mount id
+   */
+  long getMountIdFromUfsPath(AlluxioURI ufsPath);
+
+  /**
    * Returns the persistence state for a file id.
    *
    * @param fileId the file id

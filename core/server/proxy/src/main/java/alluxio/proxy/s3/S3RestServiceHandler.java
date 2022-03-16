@@ -98,6 +98,7 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
+  private MultipartUploadCleaner mCleaner;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -109,6 +110,7 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
+    mCleaner = new MultipartUploadCleaner(mFileSystem);
   }
 
   /**
@@ -239,9 +241,9 @@ public final class S3RestServiceHandler {
       final FileSystem fs = getFileSystem(authorization);
       List<URIStatus> children;
       try {
-        if (prefix.length() == 0
-            && delimiterParam != null
-            && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
+        // only list the direct children if delimiter is not null
+        if (delimiterParam != null) {
+          path = parsePath(path, prefix, delimiterParam);
           children = fs.listStatus(new AlluxioURI(path));
         } else {
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
@@ -573,12 +575,20 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI multipartTemporaryDir =
           new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
+
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true).setWriteType(getS3WriteType()).build();
       try {
+        if (fs.exists(multipartTemporaryDir)) {
+          if (mCleaner.apply(bucket, object)) {
+            throw new S3Exception(multipartTemporaryDir.getPath(),
+                S3ErrorCode.UPLOAD_ALREADY_EXISTS);
+          }
+        }
         fs.createDirectory(multipartTemporaryDir, options);
         // Use the file ID of multipartTemporaryDir as the upload ID.
         long uploadId = fs.getStatus(multipartTemporaryDir).getFileId();
+        mCleaner.apply(bucket, object, uploadId);
         return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
       } catch (Exception e) {
         throw toObjectS3Exception(e, objectPath);
@@ -620,7 +630,7 @@ public final class S3RestServiceHandler {
 
         fs.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
-
+        mCleaner.cancelAbort(bucket, object, uploadId);
         String entityTag = Hex.encodeHexString(md5.digest());
         return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
       } catch (Exception e) {
@@ -866,6 +876,35 @@ public final class S3RestServiceHandler {
   private String parsePath(String bucketPath) throws S3Exception {
     String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
     return normalizedBucket;
+  }
+
+  private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
+    // Alluxio only support use / as delimiter
+    if (!delimiter.equals(AlluxioURI.SEPARATOR)) {
+      throw new S3Exception("Alluxio S3 API only support / as delimiter.",
+          S3ErrorCode.PRECONDITION_FAILED);
+    }
+    char delim = AlluxioURI.SEPARATOR.charAt(0);
+    String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+    String normalizedPrefix = normalizeS3Prefix(prefix, delim);
+
+    if (!normalizedPrefix.isEmpty() && !normalizedPrefix.startsWith(AlluxioURI.SEPARATOR)) {
+      normalizedPrefix = AlluxioURI.SEPARATOR + normalizedPrefix;
+    }
+    return normalizedBucket + normalizedPrefix;
+  }
+
+  /**
+   * Normalize the prefix from S3 request.
+   **/
+  private String normalizeS3Prefix(String prefix, char delimiter) {
+    if (prefix != null) {
+      int pos = prefix.lastIndexOf(delimiter);
+      if (pos >= 0) {
+        return prefix.substring(0, pos + 1);
+      }
+    }
+    return "";
   }
 
   private void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath) throws S3Exception {

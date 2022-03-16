@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * A benchmarking tool for the RegisterWorker RPC.
+ * A benchmarking tool for the RegisterWorkerStream RPC.
  */
 public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StreamRegisterWorkerBench.class);
