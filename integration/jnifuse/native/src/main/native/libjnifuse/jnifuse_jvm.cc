@@ -86,7 +86,7 @@ JNIEnv* AttachCurrentThreadIfNeeded() {
     if (jni) {
       return jni;
     }
-    JNIEnv* jni = GetEnv();
+    jni = GetEnv();
     if (jni) {
       JNIFUSE_CHECK_CODE(pthread_setspecific(g_jni_ptr, jni), "Failed to associate JNI env to thread");
       return jni;
