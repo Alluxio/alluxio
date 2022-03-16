@@ -14,9 +14,12 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
@@ -29,8 +32,11 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.util.Collections;
 
@@ -55,6 +61,19 @@ public class DistributedCommandsStatsTest extends JobShellTest {
                 .setListStatusWithOptionsMs(SLEEP_MS)
                 .setExistsMs(SLEEP_MS)
                 .setMkdirsMs(SLEEP_MS)));
+
+  @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
+
+  private String mLocalUfsPath;
+  private FileSystem mFileSystem;
+
+  @Before
+  public void before() throws Exception {
+    mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
+  }
 
   @Test
   public void testCompleteStats() throws Exception {
