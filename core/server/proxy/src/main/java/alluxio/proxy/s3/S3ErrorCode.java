@@ -33,6 +33,12 @@ public class S3ErrorCode {
     public static final String PRECONDITION_FAILED = "PreconditionFailed";
     public static final String INVALID_CONTINUATION_TOKEN = "InvalidContinuationToken";
     public static final String UPLOAD_ALREADY_EXISTS = "UploadAlreadyExists";
+    public static final String AUTHORIZATION_HEADER_MALFORMED = "AuthorizationHeaderMalformed";
+    public static final String AUTHINFO_CREATION_ERROR = "AuthInfoCreationError";
+    public static final String ACCESS_DENIED_ERROR = "AccessDenied";
+    public static final String INVALID_IDENTIFIER = "InvalidIdentifier";
+    public static final String NOT_FOUND_CUSTOMIZED_SECRET_MANAGER
+            = "NotProvidCustomSecretManager";
 
     private Name() {
     } // prevents instantiation
@@ -87,6 +93,26 @@ public class S3ErrorCode {
       Name.UPLOAD_ALREADY_EXISTS,
       "The specified multipart upload already exits",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode AUTHORIZATION_HEADER_MALFORMED = new S3ErrorCode(
+          Name.AUTHORIZATION_HEADER_MALFORMED,
+          "The authorization header provided is invalid.",
+          Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode AUTHINFO_CREATION_ERROR = new S3ErrorCode(
+          Name.AUTHINFO_CREATION_ERROR,
+          "Error creating s3 auth info",
+          Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode ACCESS_DENIED_ERROR = new S3ErrorCode(
+          Name.ACCESS_DENIED_ERROR,
+          "User doesn't have the right to access this resource",
+          Response.Status.FORBIDDEN);
+  public static final S3ErrorCode INVALID_IDENTIFIER = new S3ErrorCode(
+          Name.INVALID_IDENTIFIER,
+          "Invalid S3 identifier",
+          Response.Status.FORBIDDEN);
+  public static final S3ErrorCode NOT_FOUND_CUSTOMIZED_SECRET_MANAGER = new S3ErrorCode(
+          Name.NOT_FOUND_CUSTOMIZED_SECRET_MANAGER,
+          "Not found implementation for S3SecretManager",
+          Response.Status.INTERNAL_SERVER_ERROR);
 
   //
   // Customized error codes.

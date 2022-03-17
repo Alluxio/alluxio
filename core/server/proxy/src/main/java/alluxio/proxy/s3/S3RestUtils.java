@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -287,6 +288,16 @@ public final class S3RestUtils {
    */
   public static WritePType getS3WriteType() {
     return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+  }
+
+  /**
+   * Checks if authentication is enabled.
+   *
+   * @param conf Alluxio configuration
+   * @return true if authentication is enabled, false otherwise
+   */
+  public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
   }
 
   /**
