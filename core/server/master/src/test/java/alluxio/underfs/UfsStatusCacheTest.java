@@ -276,7 +276,7 @@ public class UfsStatusCacheTest {
     when(statChild.getName()).thenReturn("123");
 
     mCache.addStatus(path, stat);
-    mCache.addChildren(path, Collections.singleton(statChild));
+    mCache.addChildren(path, new UfsStatus[]{statChild});
     assertEquals(stat, mCache.getStatus(path));
     assertEquals(statChild, mCache.getStatus(pathChild));
     assertEquals(Collections.singleton(statChild), mCache.getChildren(path));
