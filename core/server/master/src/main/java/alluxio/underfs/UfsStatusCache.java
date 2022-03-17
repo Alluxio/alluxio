@@ -27,11 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -116,14 +112,15 @@ public class UfsStatusCache {
    * @return the previous set of children if the mapping existed, null otherwise
    */
   @Nullable
-  public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    Set<UfsStatus> set = new HashSet<>(children.size());
-    children.forEach(child -> {
+  public Collection<UfsStatus> addChildren(AlluxioURI path, UfsStatus[] children) {
+    List<UfsStatus> list = new ArrayList<>(children.length);
+    for (int i = 0; i < children.length; i++) {
+      UfsStatus child = children[i];
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
-      set.add(child);
-    });
-    return mChildren.put(path, Collections.unmodifiableSet(set));
+      list.add(child);
+    }
+    return mChildren.put(path, Collections.unmodifiableList(list));
   }
 
   /**
@@ -308,7 +305,7 @@ public class UfsStatusCache {
         return null;
       }
       children = Arrays.asList(statuses);
-      addChildren(path, children);
+      addChildren(path, statuses);
     } catch (IllegalArgumentException | IOException e) {
       LOG.debug("Failed to add status to cache {}", path, e);
     }
