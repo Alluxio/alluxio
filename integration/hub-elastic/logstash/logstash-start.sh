@@ -83,7 +83,7 @@ set +a
 # copy logstash configuration file to logstash installation directory
 cp -f ${SCRIPTPATH}/logstash.conf ${LOGSTASH_DIR}/logstash.conf
 if [[ "${USE_DEV}" == "true" ]]; then
-  sed -i '' -e "s/# ssl_certificate_verification/ssl_certificate_verification/" ${LOGSTASH_DIR}/logstash.conf
+  perl -pi -e "s/# ssl_certificate_verification/ssl_certificate_verification/" ${LOGSTASH_DIR}/logstash.conf
 fi
 
 cd ${LOGSTASH_DIR}
