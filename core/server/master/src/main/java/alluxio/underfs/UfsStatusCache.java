@@ -113,13 +113,10 @@ public class UfsStatusCache {
    */
   @Nullable
   public UfsStatus[] addChildren(AlluxioURI path, UfsStatus[] children) {
-//    List<UfsStatus> list = new ArrayList<>(children.length);
-//    UfsStatus[] arr = new UfsStatus[children.length];
     for (int i = 0; i < children.length; i++) {
       UfsStatus child = children[i];
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
-//      list.add(child);
     }
     return mChildren.put(path, children);
   }
@@ -220,7 +217,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public UfsStatus[] fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
-                                                     MountTable mountTable, boolean useFallback)
+       MountTable mountTable, boolean useFallback)
       throws InterruptedException, InvalidPathException {
     Future<UfsStatus[]> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
@@ -305,7 +302,6 @@ public class UfsStatusCache {
         mAbsentCache.addSinglePath(path);
         return null;
       }
-//      children = Arrays.asList(statuses);
       children = statuses;
       addChildren(path, statuses);
     } catch (IllegalArgumentException | IOException e) {
