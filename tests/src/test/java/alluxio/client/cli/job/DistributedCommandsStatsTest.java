@@ -19,7 +19,6 @@ import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
@@ -71,8 +70,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
   @Before
   public void before() throws Exception {
     mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
-    mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
+    sFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
   }
 
   @Test
