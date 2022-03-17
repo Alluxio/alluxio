@@ -135,7 +135,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +159,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -248,8 +248,10 @@ public class ManagerProcessContext implements AutoCloseable {
       }
     }
     String hubClusterId = mConf.get(PropertyKey.HUB_CLUSTER_ID);
-    if (hubClusterId.length() != 4 || !StringUtils.isAlphanumeric(hubClusterId)) {
-      throw new RuntimeException(String.format("%s (%s) must be a 4-character alphanumeric string",
+    if (!checkClusterId(hubClusterId)) {
+      throw new RuntimeException(
+              String.format("%s (%s) is an invalid cluster id - must be a 4-character string"
+                      + " containing only lowercase letters (a-z) and numbers (0-9).",
               PropertyKey.HUB_CLUSTER_ID.getName(), hubClusterId));
     }
     mHubMetadata = HubMetadata.newBuilder()
@@ -281,6 +283,12 @@ public class ManagerProcessContext implements AutoCloseable {
       LOG.error("Failed to connect to Hosted Hub", e);
     }
     LOG.info("Initialized manager context");
+  }
+
+  @VisibleForTesting
+  protected static boolean checkClusterId(String clusterId) {
+    Pattern p = Pattern.compile("^[a-z0-9]{4}$");
+    return p.matcher(clusterId).find();
   }
 
   private void connectToHub(alluxio.hub.proto.AlluxioCluster cluster) throws Exception {
@@ -390,7 +398,7 @@ public class ManagerProcessContext implements AutoCloseable {
         mHostedAsyncSub =
                 HostedManagerServiceGrpc.newStub(channel);
       } catch (AlluxioStatusException e) {
-        LOG.error("Error connecting to hosted hub {}", e);
+        LOG.error("Error connecting to hosted hub: ", e);
       }
     }
     return mHostedAsyncSub;
@@ -406,33 +414,33 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<PingManagerRequest, PingManagerResponse>() {
-      @Override
-      public PingManagerResponse exec(PingManagerRequest req) {
-        Preconditions.checkArgument(req.hasHubMetadata());
-        Preconditions.checkArgument(req.getHubMetadata().hasClusterId());
-        // set response's HubMetadata to request's HubMetadata for the Hosted Hub to
-        // properly process response
-        return PingManagerResponse.newBuilder()
-                .setHubMetadata(req.getHubMetadata())
-                .setPayload(PingManagerResponse.Payload.newBuilder()
-                        .setSuccess(req.getHubMetadata().getClusterId().equals(mHubMetadata
-                                .getClusterId())))
-                .build();
-      }
+          @Override
+          public PingManagerResponse exec(PingManagerRequest req) {
+            Preconditions.checkArgument(req.hasHubMetadata());
+            Preconditions.checkArgument(req.getHubMetadata().hasClusterId());
+            // set response's HubMetadata to request's HubMetadata for the Hosted Hub to
+            // properly process response
+            return PingManagerResponse.newBuilder()
+                    .setHubMetadata(req.getHubMetadata())
+                    .setPayload(PingManagerResponse.Payload.newBuilder()
+                            .setSuccess(req.getHubMetadata().getClusterId().equals(mHubMetadata
+                                    .getClusterId())))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startPingManagerListener();
-        // on ping stream connections - send heartbeat to Hub in-case Hub
-        // needs to check if cluster id changed
-        alluxioClusterHeartbeat(mAlluxioCluster.toProto());
-      }
+          @Override
+          public void restart() {
+            startPingManagerListener();
+            // on ping stream connections - send heartbeat to Hub in-case Hub
+            // needs to check if cluster id changed
+            alluxioClusterHeartbeat(mAlluxioCluster.toProto());
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<PingManagerResponse> responseObserver =
             asyncStub.pingManager(requestObserver);
     requestObserver.start(responseObserver,
@@ -448,25 +456,25 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<ProcessStatusChangeRequest, ProcessStatusChangeResponse>() {
-      @Override
-      public ProcessStatusChangeResponse exec(ProcessStatusChangeRequest req) {
-        return ProcessStatusChangeResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(ProcessStatusChangeResponse.Payload.newBuilder()
-                        .addAllProcessStatusChangeResponse(processStatusChange(req)))
-                .build();
-      }
+          @Override
+          public ProcessStatusChangeResponse exec(ProcessStatusChangeRequest req) {
+            return ProcessStatusChangeResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(ProcessStatusChangeResponse.Payload.newBuilder()
+                            .addAllProcessStatusChangeResponse(processStatusChange(req)))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startProcessStatusChangeListener();
-      }
+          @Override
+          public void restart() {
+            startProcessStatusChangeListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<ProcessStatusChangeResponse> responseObserver =
             asyncStub.processStatusChange(requestObserver);
     requestObserver.start(responseObserver,
@@ -482,26 +490,26 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<GetConfigurationSetRequest, GetConfigurationSetResponse>() {
-      @Override
-      public GetConfigurationSetResponse exec(GetConfigurationSetRequest req) {
-        AlluxioConfigurationSet confSet = configurationSetFor(req.getPayload().getNodeType());
-        return GetConfigurationSetResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(GetConfigurationSetResponse.Payload.newBuilder().setConfSet(confSet)
-                        .build())
-                .build();
-      }
+          @Override
+          public GetConfigurationSetResponse exec(GetConfigurationSetRequest req) {
+            AlluxioConfigurationSet confSet = configurationSetFor(req.getPayload().getNodeType());
+            return GetConfigurationSetResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(GetConfigurationSetResponse.Payload.newBuilder().setConfSet(confSet)
+                            .build())
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startGetConfigurationSetListener();
-      }
+          @Override
+          public void restart() {
+            startGetConfigurationSetListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<GetConfigurationSetResponse> responseObserver =
             asyncStub.getConfigurationSet(requestObserver);
     requestObserver.start(responseObserver,
@@ -518,26 +526,26 @@ public class ManagerProcessContext implements AutoCloseable {
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<WriteConfigurationSetRequest,
                     WriteConfigurationSetResponse>() {
-      @Override
-      public WriteConfigurationSetResponse exec(WriteConfigurationSetRequest req) {
-        Preconditions.checkArgument(req.hasPayload());
-        Preconditions.checkArgument(req.getPayload().hasConfSet());
-        Preconditions.checkArgument(req.getPayload().getNodeTypeCount() > 0);
-        req.getPayload().getNodeTypeList().forEach(
-            nodeType -> updateConfigurationFor(nodeType, req.getPayload().getConfSet()));
-        return WriteConfigurationSetResponse.newBuilder().setHubMetadata(mHubMetadata).build();
-      }
+          @Override
+          public WriteConfigurationSetResponse exec(WriteConfigurationSetRequest req) {
+            Preconditions.checkArgument(req.hasPayload());
+            Preconditions.checkArgument(req.getPayload().hasConfSet());
+            Preconditions.checkArgument(req.getPayload().getNodeTypeCount() > 0);
+            req.getPayload().getNodeTypeList().forEach(
+                nodeType -> updateConfigurationFor(nodeType, req.getPayload().getConfSet()));
+            return WriteConfigurationSetResponse.newBuilder().setHubMetadata(mHubMetadata).build();
+          }
 
-      @Override
-      public void restart() {
-        startWriteConfigurationSetListener();
-      }
+          @Override
+          public void restart() {
+            startWriteConfigurationSetListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<WriteConfigurationSetResponse> responseObserver =
             asyncStub.writeConfigurationSet(requestObserver);
     requestObserver.start(responseObserver,
@@ -552,24 +560,25 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<UploadFileRequest, UploadFileResponse>() {
-      @Override
-      public UploadFileResponse exec(UploadFileRequest req) {
-        boolean success = uploadFile(req.getPayload().getFileList());
-        return UploadFileResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(UploadFileResponse.Payload.newBuilder().setSuccess(success)).build();
-      }
+          @Override
+          public UploadFileResponse exec(UploadFileRequest req) {
+            boolean success = uploadFile(req.getPayload().getFileList());
+            return UploadFileResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(UploadFileResponse.Payload.newBuilder().setSuccess(success))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startUploadFileListener();
-      }
+          @Override
+          public void restart() {
+            startUploadFileListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<UploadFileResponse> responseObserver = asyncStub.uploadFile(requestObserver);
     requestObserver.start(responseObserver,
             UploadFileResponse.newBuilder().setHubMetadata(mHubMetadata).build());
@@ -583,23 +592,24 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<ListFileRequest, ListFileResponse>() {
-      @Override
-      public ListFileResponse exec(ListFileRequest req) {
-        return ListFileResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(ListFileResponse.Payload.newBuilder().addAllFile(listFiles())).build();
-      }
+          @Override
+          public ListFileResponse exec(ListFileRequest req) {
+            return ListFileResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(ListFileResponse.Payload.newBuilder().addAllFile(listFiles()))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startListFileListener();
-      }
+          @Override
+          public void restart() {
+            startListFileListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<ListFileResponse> responseObserver = asyncStub.listFile(requestObserver);
     requestObserver.start(responseObserver,
             ListFileResponse.newBuilder().setHubMetadata(mHubMetadata).build());
@@ -613,24 +623,25 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<RemoveFileRequest, RemoveFileResponse>() {
-      @Override
-      public RemoveFileResponse exec(RemoveFileRequest req) {
-        boolean success = removeFile(req.getPayload().getFileList());
-        return RemoveFileResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(RemoveFileResponse.Payload.newBuilder().setSuccess(success)).build();
-      }
+          @Override
+          public RemoveFileResponse exec(RemoveFileRequest req) {
+            boolean success = removeFile(req.getPayload().getFileList());
+            return RemoveFileResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(RemoveFileResponse.Payload.newBuilder().setSuccess(success))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startRemoveFileListener();
-      }
+          @Override
+          public void restart() {
+            startRemoveFileListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<RemoveFileResponse> responseObserver = asyncStub.removeFile(requestObserver);
     requestObserver.start(responseObserver,
             RemoveFileResponse.newBuilder().setHubMetadata(mHubMetadata).build());
@@ -644,24 +655,24 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<DetectPrestoRequest, DetectPrestoResponse>() {
-      @Override
-      public DetectPrestoResponse exec(DetectPrestoRequest req) {
-        return DetectPrestoResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(detectPresto(req))
-                .build();
-      }
+          @Override
+          public DetectPrestoResponse exec(DetectPrestoRequest req) {
+            return DetectPrestoResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(detectPresto(req))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startDetectPrestoListener();
-      }
+          @Override
+          public void restart() {
+            startDetectPrestoListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<DetectPrestoResponse> responseObserver = asyncStub.detectPresto(requestObserver);
     requestObserver.start(responseObserver,
             DetectPrestoResponse.newBuilder().setHubMetadata(mHubMetadata).build());
@@ -675,28 +686,28 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<ListCatalogRequest, ListCatalogResponse>() {
-      @Override
-      public ListCatalogResponse exec(ListCatalogRequest req) {
-        PrestoCatalogListingResult result = listCatalogs(getUpdatedProps(
-            configurationSetFor(AlluxioNodeType.MASTER))
-            .get(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH));
-        return ListCatalogResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(ListCatalogResponse.Payload.newBuilder().addAllCatalog(result
-                        .getCatalogList()))
-                .build();
-      }
+          @Override
+          public ListCatalogResponse exec(ListCatalogRequest req) {
+            PrestoCatalogListingResult result = listCatalogs(getUpdatedProps(
+                configurationSetFor(AlluxioNodeType.MASTER))
+                .get(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH));
+            return ListCatalogResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(ListCatalogResponse.Payload.newBuilder().addAllCatalog(result
+                            .getCatalogList()))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startListCatalogListener();
-      }
+          @Override
+          public void restart() {
+            startListCatalogListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<ListCatalogResponse> responseObserver = asyncStub.listCatalog(requestObserver);
     requestObserver.start(responseObserver,
             ListCatalogResponse.newBuilder().setHubMetadata(mHubMetadata).build());
@@ -711,26 +722,26 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<SetPrestoConfDirRequest, SetPrestoConfDirResponse>() {
-      @Override
-      public SetPrestoConfDirResponse exec(SetPrestoConfDirRequest req) {
-        Preconditions.checkArgument(req.hasPayload());
-        Preconditions.checkArgument(req.getPayload().hasConfDir());
-        return SetPrestoConfDirResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(setPrestoConfDir(req))
-                .build();
-      }
+          @Override
+          public SetPrestoConfDirResponse exec(SetPrestoConfDirRequest req) {
+            Preconditions.checkArgument(req.hasPayload());
+            Preconditions.checkArgument(req.getPayload().hasConfDir());
+            return SetPrestoConfDirResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(setPrestoConfDir(req))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startSetPrestoConfDirListener();
-      }
+          @Override
+          public void restart() {
+            startSetPrestoConfDirListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<SetPrestoConfDirResponse> responseObserver = asyncStub
             .setPrestoConfDir(requestObserver);
     requestObserver.start(responseObserver,
@@ -746,24 +757,24 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<GetPrestoConfDirRequest, GetPrestoConfDirResponse>() {
-      @Override
-      public GetPrestoConfDirResponse exec(GetPrestoConfDirRequest req) {
-        return GetPrestoConfDirResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(getPrestoConf())
-                .build();
-      }
+          @Override
+          public GetPrestoConfDirResponse exec(GetPrestoConfDirRequest req) {
+            return GetPrestoConfDirResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(getPrestoConf())
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startGetPrestoConfDirListener();
-      }
+          @Override
+          public void restart() {
+            startGetPrestoConfDirListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<GetPrestoConfDirResponse> responseObserver = asyncStub
             .getPrestoConfDir(requestObserver);
     requestObserver.start(responseObserver,
@@ -779,25 +790,25 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<ListMountPointRequest, ListMountPointResponse>() {
-      @Override
-      public ListMountPointResponse exec(ListMountPointRequest req) {
-        ListMountPointResponse.Payload p = getMountPointList();
-        return ListMountPointResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(p)
-                .build();
-      }
+          @Override
+          public ListMountPointResponse exec(ListMountPointRequest req) {
+            ListMountPointResponse.Payload p = getMountPointList();
+            return ListMountPointResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(p)
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startListMountPointsListener();
-      }
+          @Override
+          public void restart() {
+            startListMountPointsListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<ListMountPointResponse> responseObserver = asyncStub
             .listMountPoint(requestObserver);
     requestObserver.start(responseObserver,
@@ -813,24 +824,24 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<ApplyMountPointRequest, ApplyMountPointResponse>() {
-      @Override
-      public ApplyMountPointResponse exec(ApplyMountPointRequest req) {
-        return ApplyMountPointResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(applyMount(req))
-                .build();
-      }
+          @Override
+          public ApplyMountPointResponse exec(ApplyMountPointRequest req) {
+            return ApplyMountPointResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(applyMount(req))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startApplyMountPointListener();
-      }
+          @Override
+          public void restart() {
+            startApplyMountPointListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<ApplyMountPointResponse> responseObserver = asyncStub
             .applyMountPoint(requestObserver);
     requestObserver.start(responseObserver,
@@ -846,24 +857,24 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<DeleteMountPointRequest, DeleteMountPointResponse>() {
-      @Override
-      public DeleteMountPointResponse exec(DeleteMountPointRequest req) {
-        return DeleteMountPointResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(deleteMount(req.getPayload().getMountPoint()))
-                .build();
-      }
+          @Override
+          public DeleteMountPointResponse exec(DeleteMountPointRequest req) {
+            return DeleteMountPointResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(deleteMount(req.getPayload().getMountPoint()))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startDeleteMountPointListener();
-      }
+          @Override
+          public void restart() {
+            startDeleteMountPointListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<DeleteMountPointResponse> responseObserver = asyncStub
             .deleteMountPoint(requestObserver);
     requestObserver.start(responseObserver,
@@ -878,24 +889,24 @@ public class ManagerProcessContext implements AutoCloseable {
     HostedManagerServiceGrpc.HostedManagerServiceStub asyncStub = getHostedAsyncStub();
     RequestStreamObserver requestObserver =
             new RequestStreamObserver<SpeedTestRequest, SpeedTestResponse>() {
-      @Override
-      public SpeedTestResponse exec(SpeedTestRequest req) {
-        return SpeedTestResponse.newBuilder()
-                .setHubMetadata(mHubMetadata)
-                .setPayload(speedTest(req))
-                .build();
-      }
+          @Override
+          public SpeedTestResponse exec(SpeedTestRequest req) {
+            return SpeedTestResponse.newBuilder()
+                    .setHubMetadata(mHubMetadata)
+                    .setPayload(speedTest(req))
+                    .build();
+          }
 
-      @Override
-      public void restart() {
-        startSpeedTestListener();
-      }
+          @Override
+          public void restart() {
+            startSpeedTestListener();
+          }
 
-      @Override
-      public void handleError(String message, Throwable t) {
-        handleStatusRuntimeException(message, t);
-      }
-    };
+          @Override
+          public void handleError(String message, Throwable t) {
+            handleStatusRuntimeException(message, t);
+          }
+        };
     StreamObserver<SpeedTestResponse> responseObserver = asyncStub.speedTest(requestObserver);
     requestObserver.start(responseObserver,
             SpeedTestResponse.newBuilder().setHubMetadata(mHubMetadata).build());

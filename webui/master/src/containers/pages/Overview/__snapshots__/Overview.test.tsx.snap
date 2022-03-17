@@ -74,6 +74,22 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
             className=""
           />
         </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            Role
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
+            LeaderId
+          </th>
+          <td />
+        </tr>
       </tbody>
     </Table>
   </div>

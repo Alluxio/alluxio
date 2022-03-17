@@ -1,5 +1,3 @@
-alluxio.conf.dir:
-  包含Alluxio配置文件的目录。
 alluxio.debug:
   设置为true后即可启用debug模式，会记录更多日志，且在Web UI中会显示更多信息。
 alluxio.extensions.dir:
@@ -32,8 +30,6 @@ alluxio.locality.script:
   用于确定本地性检查的身份的脚本。
 alluxio.logger.type:
   logger类型。
-alluxio.logs.dir:
-  存放日志文件的路径。
 alluxio.logserver.hostname:
   Alluxio logserver主机名。注意:必须将此属性指定为JVM属性;它在alluxio-site.properties不被接受。
 alluxio.logserver.logs.dir:
@@ -136,6 +132,8 @@ alluxio.web.resources:
   web应用资源路径。
 alluxio.web.threads:
   web服务器的线程数目。
+alluxio.web.threaddump.log.enabled:
+  当访问 threaddump api 时是否也将线程信息打印到日志
 alluxio.work.dir:
   Alluxio的工作目录。默认情况下，journal、logs以及底层文件系统的数据（如果使用本地文件系统）都会写在该目录下。
 alluxio.zookeeper.address:

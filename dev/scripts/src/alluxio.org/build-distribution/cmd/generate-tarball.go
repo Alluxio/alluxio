@@ -119,7 +119,7 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	// Ensure that the "-T" parameter passed from "-mvn_args" can take effect,
 	// because only the first -T parameter in "mvn" command will take effect.
 	// If the -T parameter is not given in "-mvn_args", this configuration will take effect.
-	args = append(args, "-T", "1");
+	args = append(args, "-T", "1")
 	return args
 }
 
@@ -312,7 +312,7 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-
+	run("adding integration/hub-elastic files", "cp", "-r", filepath.Join(srcPath, "integration/hub-elastic"), filepath.Join(dstPath, "integration/hub-elastic"))
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
 	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))

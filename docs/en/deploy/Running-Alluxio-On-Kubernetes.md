@@ -146,8 +146,8 @@ namespace specify all required properties as a key-value pair under `properties`
 ```properties
 properties:
   alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
-  alluxio.master.mount.table.root.option.aws.accessKeyId: "<accessKey>"
-  alluxio.master.mount.table.root.option.aws.secretKey: "<secretKey>"
+  alluxio.master.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
+  alluxio.master.mount.table.root.option.s3a.secretKey: "<secretKey>"
 ```
   {% endcollapsible %}
 
@@ -793,7 +793,7 @@ matching PersistentVolumes. See "(Optional) Provision a Persistent Volume" in
 
 Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0 -- /bin/bash
 ```
 
 From the master Pod, execute the following:
@@ -1232,7 +1232,7 @@ capture the updated environment variables and send logs to the remote log server
 You can go into the log server pod and verify the logs exist.
 
 ```console
-$ kubectl exec -it <logserver-pod-name> bash
+$ kubectl exec -it <logserver-pod-name> -- bash
 # In the logserver pod
 bash-4.4$ pwd
 /opt/alluxio
@@ -1792,7 +1792,7 @@ follows:
 
 Access the Alluxio CLI from the master Pod.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0 -- /bin/bash
 ```
 
 From the master Pod, execute the following:

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * DistributedCmdMetrics has definitions for distributed command metrics and help methods.
@@ -72,87 +73,23 @@ public class DistributedCmdMetrics {
   private static final Counter ASYNC_PERSIST_FILE_SIZE =
           MetricsSystem.counter(MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName());
 
-/**
- * Increment by counts of operations.
- * @param jobType the job type
- * @param count the count of a stats counter
- */
-  public static void incrementOperationCount(String jobType, long count) {
-    switch (jobType) {
-      case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_SUCCESS.inc(count);
-        break;
-      case MigrateConfig.NAME:
-        MIGRATE_JOB_SUCCESS.inc(count);
-        break;
-      case PersistConfig.NAME:
-        ASYNC_PERSIST_SUCCESS.inc(count);
-        break;
-      default:
-        LOG.warn("JobType does not belong to Load, Migrate and Persist");
-        break;
-    }
-  }
-
-/**
- * Increment by counts of files.
- * @param jobType the job type
- * @param count the count of a stats counter
- */
-  public static void incrementFileCount(String jobType, long count) {
-    switch (jobType) {
-      case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_FILE_COUNT.inc(count);
-        break;
-      case MigrateConfig.NAME:
-        MIGRATE_JOB_FILE_COUNT.inc(count);
-        break;
-      case PersistConfig.NAME:
-        ASYNC_PERSIST_FILE_COUNT.inc(count);
-        break;
-      default:
-        LOG.warn("JobType does not belong to Load, Migrate and Persist");
-        break;
-    }
-  }
-
-/**
- * Increment by a fileSize.
- * @param jobType the job type
- * @param fileSize the file size to be added
- */
-  public static void incrementFileSize(String jobType, long fileSize) {
-    switch (jobType) {
-      case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_FILE_SIZE.inc(fileSize);
-        JOB_DISTRIBUTED_LOAD_RATE.mark(fileSize);
-        break;
-      case MigrateConfig.NAME:
-        MIGRATE_JOB_FILE_SIZE.inc(fileSize);
-        break;
-      case PersistConfig.NAME:
-        ASYNC_PERSIST_FILE_SIZE.inc(fileSize);
-        break;
-      default:
-        LOG.warn("JobType does not belong to Load, Migrate and Persist");
-        break;
-    }
-  }
+  private static final long DEFAULT_INCREMENT_VALUE = 1;
 
 /**
  * Increment failed job count.
  * @param jobType job type
+ * @param count count to increment
  */
-  public static void incrementForFailStatus(String jobType) {
+  public static void incrementForFailStatus(String jobType, long count) {
     switch (jobType) {
       case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_FAIL.inc();
+        JOB_DISTRIBUTED_LOAD_FAIL.inc(count);
         break;
       case MigrateConfig.NAME:
-        MIGRATE_JOB_FAIL.inc();
+        MIGRATE_JOB_FAIL.inc(count);
         break;
       case PersistConfig.NAME:
-        ASYNC_PERSIST_FAIL.inc();
+        ASYNC_PERSIST_FAIL.inc(count);
         break;
       default:
         LOG.warn("JobType does not belong to Load, Migrate and Persist");
@@ -163,22 +100,37 @@ public class DistributedCmdMetrics {
 /**
  * Increment cancelled job count.
  * @param jobType job type
+ * @param count count to increment
  */
-  public static void incrementForCancelStatus(String jobType) {
+  public static void incrementForCancelStatus(String jobType, long count) {
     switch (jobType) {
       case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_CANCEL.inc();
+        JOB_DISTRIBUTED_LOAD_CANCEL.inc(count);
         break;
       case MigrateConfig.NAME:
-        MIGRATE_JOB_CANCEL.inc();
+        MIGRATE_JOB_CANCEL.inc(count);
         break;
       case PersistConfig.NAME:
-        ASYNC_PERSIST_CANCEL.inc();
+        ASYNC_PERSIST_CANCEL.inc(count);
         break;
       default:
         LOG.warn("JobType does not belong to Load, Migrate and Persist");
         break;
     }
+  }
+
+  // get file size for a given filePath, return 0 if exceeding retries.
+  private static long getFileSize(String filePath, FileSystem fileSystem, RetryPolicy retryPolicy) {
+    while (retryPolicy.attempt()) {
+      try {
+        long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
+        return fileSize;
+      } catch (IOException | AlluxioException | RuntimeException e) {
+        LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
+                filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
+      }
+    }
+    return 0;
   }
 
   /**
@@ -189,35 +141,33 @@ public class DistributedCmdMetrics {
    */
   public static void incrementForCompleteStatusWithRetry(
           JobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
-    String jobType = config.getName();
-    String filePath = getFilePathForNonBatchConfig(config);
-    incrementOperationCount(jobType, 1);
-    incrementFileCount(jobType, 1);
-
-    while (retryPolicy.attempt()) {
-      try {
-        long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
-        incrementFileSize(jobType, fileSize);
-        break;
-      } catch (IOException | AlluxioException | RuntimeException e) {
-        LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
-                filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
-      }
-    }
-  }
-
-  // Get file path based on each non-batch job config
-  private static String getFilePathForNonBatchConfig(JobConfig config) {
-    String path = null;
+    String filePath;
+    long fileSize;
     if (config instanceof LoadConfig) {
-      path = ((LoadConfig) config).getFilePath();
-    } else if (config instanceof MigrateConfig) {
-      path = ((MigrateConfig) config).getSource();
-    } else if (config instanceof PersistConfig) {
-      path = ((PersistConfig) config).getFilePath();
-    }
+      filePath = ((LoadConfig) config).getFilePath();
+      JOB_DISTRIBUTED_LOAD_SUCCESS.inc(DEFAULT_INCREMENT_VALUE);
+      JOB_DISTRIBUTED_LOAD_FILE_COUNT.inc(DEFAULT_INCREMENT_VALUE);
 
-    return path;
+      fileSize = getFileSize(filePath, fileSystem, retryPolicy);
+      JOB_DISTRIBUTED_LOAD_FILE_SIZE.inc(fileSize);
+      JOB_DISTRIBUTED_LOAD_RATE.mark(fileSize);
+    } else if (config instanceof MigrateConfig) {
+      filePath = ((MigrateConfig) config).getSource();
+      MIGRATE_JOB_SUCCESS.inc(DEFAULT_INCREMENT_VALUE);
+      MIGRATE_JOB_FILE_COUNT.inc(DEFAULT_INCREMENT_VALUE);
+
+      fileSize = getFileSize(filePath, fileSystem, retryPolicy);
+      MIGRATE_JOB_FILE_SIZE.inc(fileSize);
+    } else if (config instanceof PersistConfig) {
+      filePath = ((PersistConfig) config).getFilePath();
+      ASYNC_PERSIST_SUCCESS.inc(DEFAULT_INCREMENT_VALUE);
+      ASYNC_PERSIST_FILE_COUNT.inc(DEFAULT_INCREMENT_VALUE);
+
+      fileSize = getFileSize(filePath, fileSystem, retryPolicy);
+      ASYNC_PERSIST_FILE_SIZE.inc(fileSize);
+    } else {
+      LOG.warn("JobType does not belong to Load, Migrate and Persist");
+    }
   }
 
 /**
@@ -229,40 +179,47 @@ public class DistributedCmdMetrics {
   public static void batchIncrementForCompleteStatusWithRetry(
           BatchedJobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
     String jobType = config.getJobType();
-    long count = config.getJobConfigs().size();
+    long count = config.getJobConfigs().size(); //count of files
 
-    incrementOperationCount(jobType, count);
-    incrementFileCount(jobType, count);
+    switch (jobType) {
+      case LoadConfig.NAME:
+        JOB_DISTRIBUTED_LOAD_SUCCESS.inc(count);
+        JOB_DISTRIBUTED_LOAD_FILE_COUNT.inc(count);
 
-    // filePath is defined for MigrateConfig, LoadConfig and PersistConfig currently.
-    // The "filePath" is the key to the json map inside config to get the actual file path.
-    String pathMapKey = null;
-    if (jobType.equals(MigrateConfig.NAME)) {
-      pathMapKey = "source";
-    } else if (jobType.equals(LoadConfig.NAME) || jobType.equals(PersistConfig.NAME)) {
-      pathMapKey = "filePath";
-    }
-
-    String finalPathMapKey = pathMapKey;
-    config.getJobConfigs().forEach(jobConfig -> {
-          while (retryPolicy.attempt()) {
-            try {
-              long fileSize = fileSystem.getStatus(
-                      new AlluxioURI(jobConfig.get(finalPathMapKey))).getLength();
-              incrementFileSize(jobType, fileSize);
-              break;
-            } catch (IOException | AlluxioException e) {
-              LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
-                    finalPathMapKey, retryPolicy.getAttemptCount(),
-                      Arrays.toString(e.getStackTrace()));
-            } catch (RuntimeException e) {
-              LOG.warn("Null key is found for config map with key = {}, more info is {}",
-                      finalPathMapKey, Arrays.toString(e.getStackTrace()));
-              break;
-            }
-          }
+        for (Map<String, String> jobConfig : config.getJobConfigs()) {
+          //Look up actual filePath for LoadConfig from the map, key is given "filePath"
+          String filePath = jobConfig.get("filePath");
+          long fileSize = getFileSize(filePath, fileSystem, retryPolicy);
+          JOB_DISTRIBUTED_LOAD_FILE_SIZE.inc(fileSize);
+          JOB_DISTRIBUTED_LOAD_RATE.mark(fileSize);
         }
-    );
+        return;
+      case MigrateConfig.NAME:
+        MIGRATE_JOB_SUCCESS.inc(count);
+        MIGRATE_JOB_FILE_COUNT.inc(count);
+
+        for (Map<String, String> jobConfig : config.getJobConfigs()) {
+          //Look up actual filePath for MigrateConfig from the map, key is given "source"
+          String filePath = jobConfig.get("source");
+          long fileSize = getFileSize(filePath, fileSystem, retryPolicy);
+          MIGRATE_JOB_FILE_SIZE.inc(fileSize);
+        }
+        return;
+      case PersistConfig.NAME:
+        ASYNC_PERSIST_SUCCESS.inc(count);
+        ASYNC_PERSIST_FILE_COUNT.inc(count);
+
+        for (Map<String, String> jobConfig : config.getJobConfigs()) {
+          //Look up actual filePath for PersistConfig from the map, key is given "filePath"
+          String filePath = jobConfig.get("filePath");
+          long fileSize = getFileSize(filePath, fileSystem, retryPolicy);
+          ASYNC_PERSIST_FILE_SIZE.inc(fileSize);
+        }
+        return;
+      default:
+        LOG.warn("JobType does not belong to Load, Migrate and Persist");
+        return;
+    }
   }
 
 /**
@@ -271,10 +228,8 @@ public class DistributedCmdMetrics {
  */
   public static void batchIncrementForFailStatus(BatchedJobConfig config) {
     String jobType = config.getJobType();
-    config.getJobConfigs().forEach(jobConfig -> {
-          incrementForFailStatus(jobType);
-        }
-    );
+    long count = config.getJobConfigs().size();
+    incrementForFailStatus(jobType, count);
   }
 
 /**
@@ -283,10 +238,8 @@ public class DistributedCmdMetrics {
  */
   public static void batchIncrementForCancelStatus(BatchedJobConfig config) {
     String jobType = config.getJobType();
-    config.getJobConfigs().forEach(jobConfig -> {
-          incrementForCancelStatus(jobType);
-        }
-    );
+    long count = config.getJobConfigs().size();
+    incrementForCancelStatus(jobType, count);
   }
 
   /**
@@ -312,7 +265,7 @@ public class DistributedCmdMetrics {
     if (config instanceof BatchedJobConfig) {
       batchIncrementForCancelStatus((BatchedJobConfig) config);
     } else {
-      incrementForCancelStatus(config.getName());
+      incrementForCancelStatus(config.getName(), DEFAULT_INCREMENT_VALUE);
     }
   }
 
@@ -324,7 +277,7 @@ public class DistributedCmdMetrics {
     if (config instanceof BatchedJobConfig) {
       batchIncrementForFailStatus((BatchedJobConfig) config);
     } else {
-      incrementForFailStatus(config.getName());
+      incrementForFailStatus(config.getName(), DEFAULT_INCREMENT_VALUE);
     }
   }
 }

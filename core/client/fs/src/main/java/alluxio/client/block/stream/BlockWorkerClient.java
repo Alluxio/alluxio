@@ -59,7 +59,7 @@ public interface BlockWorkerClient extends Closeable {
         return new DefaultBlockWorkerClient(userState, address, alluxioConf);
       } catch (Exception e) {
         throw new IOException(
-            String.format("Failed to connect to remote block worker: %s", address), e);
+            String.format("Failed to connect to block worker (%s)", address), e);
       }
     }
   }

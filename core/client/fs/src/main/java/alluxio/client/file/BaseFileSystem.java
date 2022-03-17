@@ -45,7 +45,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -198,17 +197,11 @@ public class BaseFileSystem implements FileSystem {
   public boolean exists(AlluxioURI path, final ExistsPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
-    try {
-      return rpc(client -> {
-        ExistsPOptions mergedOptions = FileSystemOptions.existsDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        // TODO(calvin): Make this more efficient
-        client.getStatus(path, GrpcUtils.toGetStatusOptions(mergedOptions));
-        return true;
-      });
-    } catch (FileDoesNotExistException | InvalidPathException e) {
-      return false;
-    }
+    return rpc(client -> {
+      ExistsPOptions mergedOptions = FileSystemOptions.existsDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.exists(path, mergedOptions);
+    });
   }
 
   @Override
@@ -277,7 +270,7 @@ public class BaseFileSystem implements FileSystem {
       return client.getStatus(path, mergedOptions);
     });
     if (!status.isCompleted()) {
-      LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.", path);
+      LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", path);
     }
     return status;
   }

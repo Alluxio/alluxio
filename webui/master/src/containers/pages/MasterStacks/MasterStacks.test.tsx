@@ -9,36 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import { createBrowserHistory, History, LocationState } from 'history';
 import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
 import sinon from 'sinon';
 
-import { AllProps } from '@alluxio/common-ui/src/components';
-import { initialState } from '../../../store';
+import MasterStacks from './MasterStacks';
+import { AllStacksProps } from '@alluxio/common-ui/src/components/Stacks/Stacks';
 import { routePaths } from '../../../constants';
-import MasterLogs from './MasterLogs';
+import { initialState } from '../../../store';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
 configure({ adapter: new Adapter() });
 
-describe('MasterLogs', () => {
+describe('Master Stacks', () => {
   let history: History<LocationState>;
-  let props: AllProps;
+  let props: AllStacksProps;
 
   beforeAll(() => {
     history = createBrowserHistory({ keyLength: 0 });
-    history.push(routePaths.logs);
+    history.push(routePaths.stacks);
     props = {
       location: { search: '' },
       history: history,
       fetchRequest: sinon.spy(() => {}),
-      data: initialState.logs.data,
+      stackData: initialState.stacks.data,
       refresh: initialState.refresh.data,
-      textAreaHeight: 0,
       request: {},
-      updateRequestParameter: sinon.spy(() => {}),
       queryStringSuffix: '',
       errors: createAlertErrors(false),
       loading: false,
@@ -49,12 +47,11 @@ describe('MasterLogs', () => {
   afterEach(() => {
     sinon.restore();
   });
-
   describe('Shallow component', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<MasterLogs {...props} />);
+      shallowWrapper = shallow(<MasterStacks {...props} />);
     });
 
     it('Renders without crashing', () => {

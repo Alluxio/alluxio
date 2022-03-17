@@ -48,12 +48,24 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    * @param result  the task result to merge
    */
   public void merge(JobServiceBenchTaskResult result) throws Exception {
+    // When merging results within a node, we need to merge all the error information.
+    mErrors.addAll(result.mErrors);
+    aggregateByWorker(result);
+  }
+
+  /**
+   * Merges (updates) a task result with this result except the error information.
+   *
+   * @param result the task result to merge
+   */
+  public void aggregateByWorker(JobServiceBenchTaskResult result) throws Exception {
+    // When merging result from different workers, we don't need to merge the error information
+    // since we will keep all the result information in a map.
     mStatistics.merge(result.mStatistics);
     mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
     mEndMs = Math.max(mEndMs, result.mEndMs);
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
-    mErrors.addAll(result.mErrors);
     for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :
         result.mStatisticsPerMethod.entrySet()) {
       final String key = entry.getKey();
@@ -215,8 +227,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     @Override
     public JobServiceBenchSummary aggregate(Iterable<JobServiceBenchTaskResult> results)
         throws Exception {
-      List<String> nodes = new ArrayList<>();
-      Map<String, List<String>> errors = new HashMap<>();
+      Map<String, JobServiceBenchTaskResult> nodes = new HashMap<>();
       JobServiceBenchTaskResult mergingTaskResult = null;
 
       for (TaskResult taskResult : results) {
@@ -226,20 +237,16 @@ public final class JobServiceBenchTaskResult implements TaskResult {
                   .getName());
         }
         JobServiceBenchTaskResult result = (JobServiceBenchTaskResult) taskResult;
-        nodes.add(result.getBaseParameters().mId);
-        if (!result.getErrors().isEmpty()) {
-          List<String> errorList = new ArrayList<>(result.getErrors());
-          errors.put(result.getBaseParameters().mId, errorList);
-        }
+        nodes.put(result.getBaseParameters().mId, result);
 
         if (mergingTaskResult == null) {
           mergingTaskResult = result;
           continue;
         }
-        mergingTaskResult.merge(result);
+        mergingTaskResult.aggregateByWorker(result);
       }
 
-      return new JobServiceBenchSummary(mergingTaskResult, nodes, errors);
+      return new JobServiceBenchSummary(mergingTaskResult, nodes);
     }
   }
 }

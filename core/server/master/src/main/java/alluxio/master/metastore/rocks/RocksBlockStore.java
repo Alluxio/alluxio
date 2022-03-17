@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -214,10 +214,9 @@ public class RocksBlockStore implements BlockStore {
   }
 
   @Override
-  public Iterator<Block> iterator() {
-    // TODO(jiacheng): close the iterator when we iterate the BlockStore for backup
+  public CloseableIterator<Block> getCloseableIterator() {
     RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
-    return RocksUtils.createIterator(iterator,
+    return RocksUtils.createCloseableIterator(iterator,
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
   }
 

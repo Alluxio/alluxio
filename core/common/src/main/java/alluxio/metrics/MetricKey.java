@@ -352,6 +352,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Count of lost unique blocks")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_TO_REMOVE_BLOCK_COUNT =
+      new Builder("Master.ToRemoveBlockCount")
+          .setDescription("Count of block replicas to be removed from the workers. "
+              + "If 1 block is to be removed from 2 workers, 2 will be counted here.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_LOST_FILE_COUNT =
       new Builder("Master.LostFileCount")
           .setDescription("Count of lost files. This number is cached and may not be in sync with "
@@ -638,6 +644,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Represents the latest journal index that was recorded by this master "
               + "in the most recent local snapshot or from a snapshot downloaded from another "
               + "master in the cluster. Only valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROLE_ID =
+      new Builder("Master.RoleId")
+          .setDescription("Display master role id")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
@@ -1001,7 +1012,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of lost workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey CLUSTER_LEADER_INDEX =
+      new Builder("Cluster.LeaderIndex")
+          .setDescription("Index of current leader")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_LEADER_ID =
+      new Builder("Cluster.LeaderId")
+          .setDescription("Display current leader id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   // Server metrics shared by Master, Worker and other Alluxio servers
   public static final MetricKey TOTAL_EXTRA_TIME =
       new Builder("Server.JvmPauseMonitorTotalExtraTime")

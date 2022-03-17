@@ -52,12 +52,15 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
         role: alluxio-master
-    {{- if or .Values.master.podAnnotations .Values.metrics.enabled }}
+    {{- if or .Values.master.podAnnotations .Values.metrics.enabled .Values.hub.enabled }}
       annotations:
       {{- with .Values.master.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hub.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
@@ -107,7 +110,7 @@ spec:
       {{- end }}
       containers:
         {{ if .Values.hub.enabled -}}
-        - name: alluxio-hub
+        - name: alluxio-hub-agent
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           securityContext:
@@ -116,16 +119,16 @@ spec:
           {{- if .Values.hub.resources }}
 {{ include "alluxio.hub.resources" . | indent 10 }}
           {{- end }}
-        command: [ "tini", "--", "/entrypoint.sh" ]
+          command: [ "tini", "--", "/entrypoint.sh" ]
           {{- if .Values.hub.agent.args }}
-        args:
+          args:
 {{ toYaml .Values.hub.agent.args | trim | indent 12 }}
           {{- end }}
-        env:
+          env:
           {{- range $key, $value := .Values.hub.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
-            {{- end }}
+          {{- end }}
           - name: ALLUXIO_HUB_AGENT_RPC_HOSTNAME
             valueFrom:
               fieldRef:
@@ -134,17 +137,41 @@ spec:
             value: "{{ .Values.user }}"
           - name: ALLUXIO_HUB_NO_START
             value: "true"
-        envFrom:
+          envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-        ports:
-            - containerPort: { { .Values.hub.agent.ports.rpc } }
-              name: agent-rpc
-        volumeMounts:
+          ports:
+          - containerPort: {{ .Values.hub.agent.ports.rpc }}
+            name: agent-rpc
+          volumeMounts:
           - name: conf-volume
-            mountPath: /opt/alluxio/conf
+            mountPath: {{ .Values.hub.volumes.conf.path }}
             readOnly: false
-          {{- end }}
+          - name: logs-volume
+            mountPath: {{ .Values.hub.volumes.logs.path }}
+            readOnly: false
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat-oss:7.12.1
+          args: [
+            "-c", "/usr/share/filebeat/filebeat.yml",
+            "-e",
+          ]
+          env:
+            - name: ALLUXIO_LOGS_PATH
+              value: {{ .Values.hub.volumes.logs.path }}
+            - name: LOGSTASH_PORT
+              value: {{ .Values.hub.ports.logstash | quote }}
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: filebeat-config
+              mountPath: /usr/share/filebeat/filebeat.yml
+              readOnly: false
+              subPath: filebeat.yml
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
+              readOnly: false
+        {{- end }}
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -213,7 +240,10 @@ spec:
           volumeMounts:
             {{- if .Values.hub.enabled }}
             - name: conf-volume
-              mountPath: /opt/alluxio/conf
+              mountPath: {{ .Values.hub.volumes.conf.path }}
+              readOnly: false
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
               readOnly: false
             {{- end }}
             {{- if .Values.metrics.enabled }}
@@ -264,8 +294,8 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- range $key, $value := .Values.jobMaster.env }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:
@@ -306,13 +336,16 @@ spec:
           {{- end }}
           volumeMounts:
           {{- if .Values.hub.enabled }}
-          - name: conf-volume
-            mountPath: /opt/alluxio/conf
-            readOnly: false
+            - name: conf-volume
+              mountPath: {{ .Values.hub.volumes.conf.path }}
+              readOnly: false
+            - name: logs-volume
+              mountPath: {{ .Values.hub.volumes.logs.path }}
+              readOnly: false
           {{- end }}
           {{- if .Values.metrics.enabled }}
-          - name: {{ $fullName }}-metrics-volume
-            mountPath: /config/metrics
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
           {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
@@ -321,8 +354,8 @@ spec:
           {{- end }}
           {{- if .Values.mounts }}
             {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
+          - name: "{{ .name }}"
+            mountPath: "{{ .path }}"
             {{- end }}
           {{- end }}
       restartPolicy: Always
@@ -330,6 +363,12 @@ spec:
         {{- if .Values.hub.enabled }}
         - name: conf-volume
           emptyDir: {}
+        - name: logs-volume
+          emptyDir: {}
+        - name: filebeat-config
+          configMap:
+            defaultMode: 0600
+            name: hub-filebeat-config
         {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume

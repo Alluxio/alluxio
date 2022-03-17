@@ -152,7 +152,7 @@ public final class LocalAlluxioMaster {
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mMasterProcess.isServing();
+    return mMasterProcess.isGrpcServing();
   }
 
   /**

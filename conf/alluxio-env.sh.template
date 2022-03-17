@@ -22,6 +22,9 @@
 # (https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html),
 # and is respected by both external jobs and Alluxio servers (or shell).
 
+# This file also allows you to configure Alluxio remote debugging as outlined here:
+# https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html#alluxio-remote-debug
+
 # JVM is required to run Alluxio.
 # If its path is not set in Shell, please specify either of following environment variables
 # JAVA_HOME
@@ -53,13 +56,28 @@
 # E.g. "-Dalluxio.worker.rpc.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker.
 # ALLUXIO_WORKER_JAVA_OPTS
 
-# Config properties set for Alluxio worker daemon. (Default: "")
+# Config properties set for Alluxio job worker daemon. (Default: "")
 # E.g. " -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=18080:./config.yaml "
 # ALLUXIO_JOB_WORKER_JAVA_OPTS
 
 # Config properties set for Alluxio proxy daemon. (Default: "")
 # E.g. "-Xms2048M -Xmx2048M" to limit the heap size of proxy.
 # ALLUXIO_PROXY_JAVA_OPTS
+
+# Config properties set for Alluxio log server daemon. (Default: "")
+# E.g. "-Xms2048M -Xmx2048M" to limit the heap size of log server.
+# ALLUXIO_LOGSERVER_JAVA_OPTS
+
+# Config properties set for Alluxio Hub Manager daemon. (Default: "")
+# E.g. "-Dalluxio.hub.hosted.rpc.hostname=<hub_url> to connect to Hosted Hub.
+#       -Dalluxio.hub.authentication.apiKey=<apiKey> to authenticate with Hosted Hub.
+#       -Dalluxio.hub.authentication.secretKey=<secretKey> to authenticate with Hosted Hub.
+#       -Dalluxio.hub.cluster.id=abcd" to uniquely identify the associated Alluxio cluster.
+# ALLUXIO_HUB_MANAGER_JAVA_OPTS
+
+# Config properties set for Alluxio Hub Agent daemon. (Default: "")
+# E.g. "-Dalluxio.hub.manager.rpc.hostname=<hub_manager_host>" to connect to Hub Manager.
+# ALLUXIO_HUB_AGENT_JAVA_OPTS
 
 # Config properties set for Alluxio shell. (Default: "")
 # E.g. "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"
@@ -68,3 +86,43 @@
 # Additional classpath entries for Alluxio processes. (Default: "")
 # E.g. "/path/to/library1/:/path/to/library2/"
 # ALLUXIO_CLASSPATH
+
+# Configuring remote debugging for Alluxio master process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
+# ALLUXIO_MASTER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio job master process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
+# ALLUXIO_JOB_MASTER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio worker process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60003"
+# ALLUXIO_WORKER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio job worker process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60004"
+# ALLUXIO_JOB_WORKER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio proxy process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60005"
+# ALLUXIO_PROXY_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio log server process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60006"
+# ALLUXIO_LOGSERVER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio Hub Manager. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60007"
+# ALLUXIO_HUB_MANAGER_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio Hub Agent. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60008"
+# ALLUXIO_HUB_AGENT_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio fuse process. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60009"
+# ALLUXIO_FUSE_ATTACH_OPTS
+
+# Configuring remote debugging for Alluxio shell. (Default: "")
+# E.g. "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
+# ALLUXIO_USER_ATTACH_OPTS

@@ -40,7 +40,8 @@ import java.nio.file.Paths;
 @LocalAlluxioClusterResource.ServerConfig(confParams = {
     PropertyKey.Name.MASTER_BACKUP_DIRECTORY, "${alluxio.work.dir}/backups",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION, "3s",
-    PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT, "3s"})
+    PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT, "3s",
+    PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, "TIMEOUT"})
 public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void timeoutWhenStateLockAcquired() throws Exception {

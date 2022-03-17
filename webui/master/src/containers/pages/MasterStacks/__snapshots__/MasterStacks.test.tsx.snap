@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MasterLogs Shallow component Matches snapshot 1`] = `
+exports[`Master Stacks Shallow component Matches snapshot 1`] = `
 <ContextConsumer>
   <Component />
 </ContextConsumer>

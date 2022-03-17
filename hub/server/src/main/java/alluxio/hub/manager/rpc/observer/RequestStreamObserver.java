@@ -33,9 +33,9 @@ public abstract class RequestStreamObserver<ReqT, ResT> implements StreamObserve
    */
   @Override
   public void onNext(ReqT request) {
-    LOG.debug("Processing {} request: {}", request.getClass().toString(), request);
+    LOG.debug("Processing {} request: {}", request.getClass(), request);
     ResT resp = exec(request);
-    LOG.debug("Sending {} response: {}", resp.getClass().toString(), resp);
+    LOG.debug("Sending {} response: {}", resp.getClass(), resp);
     mResponseStreamObserver.onNext(resp);
   }
 

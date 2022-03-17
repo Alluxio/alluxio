@@ -35,6 +35,7 @@ class RemovexattrOperation;
 class RenameOperation;
 class RmdirOperation;
 class SetxattrOperation;
+class StatfsOperation;
 class TruncateOperation;
 class UnlinkOperation;
 class UtimensOperation;
@@ -49,13 +50,10 @@ class JniFuseFileSystem {
  public:
   static JniFuseFileSystem *getInstance();
   static void init(JNIEnv *env, jobject obj);
-  JNIEnv *getEnv();
-  JavaVM *getJVM();
   jobject getFSObj();
 
  private:
   static JniFuseFileSystem *instance;
-  JavaVM *jvm;
   jobject fs;
 
  public:
@@ -75,6 +73,7 @@ class JniFuseFileSystem {
   RenameOperation *renameOper;
   RmdirOperation *rmdirOper;
   SetxattrOperation *setxattrOper;
+  StatfsOperation *statfsOper;
   SymlinkOperation *symlinkOper;
   TruncateOperation *truncateOper;
   UnlinkOperation *unlinkOper;

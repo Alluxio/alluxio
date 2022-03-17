@@ -307,7 +307,7 @@ public class UfsJournal implements Journal {
    *
    * This must be called after {@link #signalLosePrimacy()} to finish the transition from primary.
    */
-  public synchronized void awaitLosePrimacy() throws IOException {
+  public synchronized void awaitLosePrimacy() {
     Preconditions.checkState(mState.get() == State.STANDBY,
         "Should already be set to STANDBY state. unexpected state: " + mState.get());
     Preconditions.checkState(mWriter != null, "writer thread must not be null in primary mode");
@@ -628,7 +628,7 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public synchronized void close() throws IOException {
+  public synchronized void close() {
     if (mAsyncWriter != null) {
       mAsyncWriter.close();
       mAsyncWriter = null;
