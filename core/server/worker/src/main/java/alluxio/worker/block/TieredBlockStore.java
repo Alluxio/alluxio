@@ -215,7 +215,7 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      BlockWriter writer = new StoreBlockWriter(tempBlockMeta, TIMEOUT_DURATION, TIMEOUT_THREADS);
+      BlockWriter writer = new StoreBlockWriter(tempBlockMeta);
       if (TIMEOUT_DURATION > 0) {
         return new TimeBoundBlockWriter(writer, TIMEOUT_DURATION, TIMEOUT_THREADS);
       }
