@@ -172,6 +172,12 @@ func buildModules(srcPath, name, moduleFlag, version string, modules map[string]
 	}
 }
 
+func buildCSI(srcPath string) {
+	chdir(filepath.Join(srcPath, "integration/docker/csi"))
+	run(fmt.Sprintf("compiling csi"), "go", "build")
+	chdir(srcPath)
+}
+
 func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
@@ -201,6 +207,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/csi/go.mod",
 		"integration/docker/csi/go.sum",
 		"integration/docker/csi/main.go",
+		"integration/docker/csi/csi",
 		"integration/docker/Dockerfile",
 		"integration/docker/Dockerfile-dev",
 		"integration/docker/dockerfile-common.sh",
@@ -272,6 +279,8 @@ func generateTarball(skipUI, skipHelm bool) error {
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
+
+	buildCSI(srcPath)
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	if skipUI {
