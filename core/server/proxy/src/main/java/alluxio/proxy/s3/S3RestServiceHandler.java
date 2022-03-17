@@ -388,6 +388,7 @@ public final class S3RestServiceHandler {
    * @param partNumber the identification of the part of the object in multipart upload,
    *                   otherwise null
    * @param uploadId the upload ID of the multipart upload, otherwise null
+   * @param tagging query string to indicate if this is for PutObjectTagging or not
    * @param is the request body
    * @return the response object
    */
@@ -404,6 +405,7 @@ public final class S3RestServiceHandler {
                                            @PathParam("object") final String object,
                                            @QueryParam("partNumber") final Integer partNumber,
                                            @QueryParam("uploadId") final Long uploadId,
+                                           @QueryParam("tagging") final String tagging,
                                            final InputStream is) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
@@ -427,6 +429,7 @@ public final class S3RestServiceHandler {
 
       if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
         // Need to create a folder
+        // TODO(czhu): verify if this is the proper behaviour
         try {
           fs.createDirectory(new AlluxioURI(objectPath), dirOptions);
         } catch (FileAlreadyExistsException e) {
@@ -446,6 +449,29 @@ public final class S3RestServiceHandler {
         objectPath = tmpDir + AlluxioURI.SEPARATOR + partNumber;
       }
       AlluxioURI objectURI = new AlluxioURI(objectPath);
+
+      LOG.info("tagging={}", tagging);
+      if (tagging != null) {
+        // Parse the XML body and validate the tags
+        PutObjectTaggingRequest request = null;
+        try {
+          request = new XmlMapper().readerFor(PutObjectTaggingRequest.class)
+              .readValue(is);
+          LOG.info("PutObjectTagging request={}", request);
+        } catch (IOException e) {
+          // TODO(czhu): return MalformedXMLError
+        } // TODO(czhu): catch InvalidTagError
+
+        LOG.info("PutObjectTagging request={}", request);
+        // Attempt to write tags to object Inode
+        try {
+          // TODO(czhu): call client FileSystem to write Inode metadata
+        } catch (Exception e) {
+          // TODO(czhu): return InternalError for any other uncaught exceptions
+        } // TODO(czhu): return OperationAbortedError if cannot retrieve Inode write lock w/ retries
+
+        return Response.ok().build();
+      }
 
       // remove exist object
       deleteExistObject(fs, objectURI);
@@ -502,7 +528,7 @@ public final class S3RestServiceHandler {
         try (FileInStream in = fs.openFile(
             new AlluxioURI(!copySource.startsWith(AlluxioURI.SEPARATOR)
                 ? AlluxioURI.SEPARATOR + copySource : copySource));
-            FileOutStream out = fs.createFile(objectURI)) {
+             FileOutStream out = fs.createFile(objectURI)) {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
             IOUtils.copyLarge(in, digestOut, new byte[8 * Constants.MB]);
