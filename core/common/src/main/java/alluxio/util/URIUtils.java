@@ -307,15 +307,16 @@ public final class URIUtils {
    */
   private static int normalizedHash(int hash, String s) {
     int nextHash = 0;
+    int codePointCount = 2;
     for (int index = 0; index < s.length(); index++) {
       char ch = s.charAt(index);
       nextHash = 31 * nextHash + ch;
       if (ch == '%') {
         // hash next 2 characters
-        index++;
-        nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
-        index++;
-        nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
+        for (int codePoint = 0;
+            codePoint < codePointCount && index < s.length(); index++, codePoint++) {
+          nextHash = 31 * nextHash + URIUtils.toLower(s.charAt(index));
+        }
       }
     }
     // similar to Arrays.hashCode
