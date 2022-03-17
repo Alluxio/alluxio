@@ -80,7 +80,6 @@ public class UfsStatusCache {
     mPrefetchExecutor = prefetchExecutor;
     mUfsFetchTimeout =
         ServerConfiguration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
-    LOG.info("UFS fetch timeout set to {}ms", mUfsFetchTimeout);
   }
 
   /**
