@@ -164,18 +164,22 @@ public final class MigrateDefinition
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-    AlluxioURI destinationURI = new AlluxioURI(destination);
+    AlluxioURI destinationUri = new AlluxioURI(destination);
     String tmpPath =
-        PathUtils.temporaryFileName(System.currentTimeMillis(), destinationURI.toString());
+        PathUtils.temporaryFileName(System.currentTimeMillis(), destinationUri.toString());
     AlluxioURI tmpUri = new AlluxioURI(tmpPath);
     boolean retry;
-    boolean cleanUpRename = false;
+    boolean processOverwrite = false;
     do {
       retry = false;
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+           FileOutStream out = fileSystem.createFile(destinationUri, createOptions)) {
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
+          if (processOverwrite) {
+            fileSystem.delete(tmpUri);
+            fileSystem.rename(destinationUri, tmpUri);
+          }
         } catch (Throwable t) {
           // Since we only catch CancelledException here if we get interrupted, so we want to keep
           // the following clean up process not interrupted. If we have other exception, the flag
@@ -183,23 +187,19 @@ public final class MigrateDefinition
           Thread.interrupted();
           try {
             out.cancel();
-            fileSystem.delete(destinationURI);
+            fileSystem.delete(destinationUri);
           } catch (Throwable t2) {
             t.addSuppressed(t2);
           }
           throw t;
         }
-        if (cleanUpRename) {
-          fileSystem.delete(tmpUri);
-          fileSystem.rename(destinationURI, tmpUri);
-        }
       } catch (FileAlreadyExistsException e) {
         if (overwrite) {
-          AlluxioURI reservedURI = destinationURI;
-          destinationURI = tmpUri;
-          tmpUri = reservedURI;
+          AlluxioURI switchUri = destinationUri;
+          destinationUri = tmpUri;
+          tmpUri = switchUri;
           retry = true;
-          cleanUpRename = true;
+          processOverwrite = true;
         } else {
           throw e;
         }
