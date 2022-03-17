@@ -652,7 +652,7 @@ public class InodeSyncStream {
 
       // Fetch and populate children into the cache
       mStatusCache.prefetchChildren(inodePath.getUri(), mMountTable);
-      Collection<UfsStatus> listStatus = mStatusCache
+      UfsStatus[] listStatus = mStatusCache
           .fetchChildrenIfAbsent(mRpcContext, inodePath.getUri(), mMountTable);
       // Iterate over UFS listings and process UFS children.
       if (listStatus != null) {
@@ -749,7 +749,7 @@ public class InodeSyncStream {
         // now load all children if required
         LoadDescendantPType type = context.getOptions().getLoadDescendantType();
         if (type != LoadDescendantPType.NONE) {
-          Collection<UfsStatus> children = mStatusCache.fetchChildrenIfAbsent(mRpcContext,
+          UfsStatus[] children = mStatusCache.fetchChildrenIfAbsent(mRpcContext,
               inodePath.getUri(), mMountTable);
           if (children == null) {
             LOG.debug("fetching children for {} returned null", inodePath.getUri());
