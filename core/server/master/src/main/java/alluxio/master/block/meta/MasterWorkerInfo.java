@@ -11,6 +11,9 @@
 
 package alluxio.master.block.meta;
 
+import static alluxio.Constants.LIVE_WORKER_STATE;
+import static alluxio.Constants.LOST_WORKER_STATE;
+
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
@@ -114,8 +117,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
-  private static final String LIVE_WORKER_STATE = "In Service";
-  private static final String LOST_WORKER_STATE = "Out of Service";
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;

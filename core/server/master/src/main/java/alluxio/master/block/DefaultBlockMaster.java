@@ -244,6 +244,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Listeners to call when workers are lost. */
   private final List<Consumer<Address>> mWorkerLostListeners = new ArrayList<>();
 
+  /** Listeners to call when workers are delete. */
+  private final List<Consumer<Address>> mWorkerDeleteListeners = new ArrayList<>();
+
   /** Listeners to call when a new worker registers. */
   private final List<BiConsumer<Address, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new ArrayList<>();
@@ -1261,21 +1264,33 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds, boolean sendCommand) {
+    workerLostBlocks(workerInfo, removedBlockIds);
     for (long removedBlockId : removedBlockIds) {
-      try (LockResource r = lockBlock(removedBlockId)) {
-        Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);
+      // Remove the block even if its metadata has been deleted already.
+      if (sendCommand) {
+        workerInfo.scheduleRemoveFromWorker(removedBlockId);
+      } else {
+        workerInfo.removeBlockFromWorkerMeta(removedBlockId);
+      }
+    }
+  }
+
+  /**
+   * Updates block metadata and block locations in the BlockMaster when block lost.
+   * @param workerInfo The worker metadata object
+   * @param lostBlockIds The lost Blocks
+   */
+  private void workerLostBlocks(MasterWorkerInfo workerInfo,
+      Collection<Long> lostBlockIds) {
+    for (long lostBlockId : lostBlockIds) {
+      try (LockResource r = lockBlock(lostBlockId)) {
+        Optional<BlockMeta> block = mBlockStore.getBlock(lostBlockId);
         if (block.isPresent()) {
-          LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
-          mBlockStore.removeLocation(removedBlockId, workerInfo.getId());
-          if (mBlockStore.getLocations(removedBlockId).size() == 0) {
-            mLostBlocks.add(removedBlockId);
+          LOG.debug("Block {} is removed on worker {}.", lostBlockId, workerInfo.getId());
+          mBlockStore.removeLocation(lostBlockId, workerInfo.getId());
+          if (mBlockStore.getLocations(lostBlockId).size() == 0) {
+            mLostBlocks.add(lostBlockId);
           }
-        }
-        // Remove the block even if its metadata has been deleted already.
-        if (sendCommand) {
-          workerInfo.scheduleRemoveFromWorker(removedBlockId);
-        } else {
-          workerInfo.removeBlockFromWorkerMeta(removedBlockId);
         }
       }
     }
@@ -1448,7 +1463,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
                     + "it will be delete from the master", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
-            deleteLostWorker(worker);
+            deleteWorker(worker);
           }
         }
       }
@@ -1495,17 +1510,28 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
   }
 
+  @Override
+  public void deleteWorker(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
-  private void deleteLostWorker(MasterWorkerInfo worker) {
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+    deleteWorker(worker);
+  }
+
+  private void deleteWorker(MasterWorkerInfo worker) {
+    mWorkers.remove(worker);
     mLostWorkers.remove(worker);
+    mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
-    for (Consumer<Address> function : mWorkerLostListeners) {
+    for (Consumer<Address> function : mWorkerDeleteListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
     }
-    // We only remove the blocks from master locations but do not
-    // mark these blocks to-remove from the worker.
-    // So if the worker comes back again the blocks are kept.
-    processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+    workerLostBlocks(worker, worker.getBlocks());
   }
 
   LockResource lockBlock(long blockId) {
@@ -1557,6 +1583,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void registerWorkerLostListener(Consumer<Address> function) {
     mWorkerLostListeners.add(function);
+  }
+
+  @Override
+  public void registerWorkerDeleteListener(Consumer<Address> function) {
+    mWorkerDeleteListeners.add(function);
   }
 
   @Override

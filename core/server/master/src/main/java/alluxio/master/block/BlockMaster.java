@@ -238,6 +238,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws NotFoundException;
 
   /**
+   * Delete the given worker from the master.
+   * @param workerId the worker id of the worker registering
+   */
+  void deleteWorker(long workerId) throws NotFoundException;
+
+  /**
    * Updates metadata when a worker periodically heartbeats with the master.
    *
    * @param workerId the worker id
@@ -295,6 +301,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerWorkerLostListener(Consumer<Address> function);
+
+  /**
+   * Registers callback functions to use when detecting lost workers.
+   *
+   * @param function the function to register
+   */
+  void registerWorkerDeleteListener(Consumer<Address> function);
 
   /**
    * Registers callback functions to use when workers register with configuration.

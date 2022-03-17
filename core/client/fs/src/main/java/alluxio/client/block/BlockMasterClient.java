@@ -97,4 +97,10 @@ public interface BlockMasterClient extends Client {
    * @return amount of used space in bytes
    */
   long getUsedBytes() throws IOException;
+
+  /**
+   * Delete the given worker from the master.
+   * @param workerId the block id to get the BlockInfo for
+   */
+  void deleteWorker(final Long workerId) throws IOException;
 }

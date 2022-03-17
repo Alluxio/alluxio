@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
+import alluxio.grpc.DeleteWorkerPRequest;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockMasterInfoPOptions;
 import alluxio.grpc.GetCapacityBytesPOptions;
@@ -158,5 +159,16 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes(),
         RPC_LOG, "GetUsedBytes", "");
+  }
+
+  /**
+   * Delete the given worker from the master.
+   * @param workerId the worker ids
+   */
+  @Override
+  public void deleteWorker(final Long workerId) throws IOException {
+    retryRPC(
+        () -> mClient.deleteWorker(DeleteWorkerPRequest.newBuilder().setWorkerId(workerId).build()),
+        RPC_LOG, "getUsedBytes", "");
   }
 }
