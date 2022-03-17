@@ -284,7 +284,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     for (int i = 0; i < mParameters.mThreads; i++) {
       callables.add(getBenchThread(context, i));
     }
-    LOG.info("Starting {} bench threads", callables.size());
+    LOG.info("Starting {} bench threads with timeout set to {}ms", callables.size(), FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout));
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
     LOG.info("Bench threads finished");

@@ -70,6 +70,7 @@ import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,6 +185,7 @@ public class InodeSyncStream {
   private final boolean mIsGetFileInfo;
 
   /** Whether to only read+create metadata from the UFS, or to update metadata as well. */
+  // TODO(jiacheng): What is the difference?
   private final boolean mLoadOnly;
 
   /** Queue used to keep track of paths that still need to be synced. */
@@ -201,6 +203,8 @@ public class InodeSyncStream {
   /** The maximum number of concurrent paths that can be syncing at any moment. */
   private final int mConcurrencyLevel =
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
+  // TODO(jiacheng): rename this timeout to apply to sync too
+  private final long mUfsFetchTimeout = ServerConfiguration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
@@ -268,11 +272,12 @@ public class InodeSyncStream {
           ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
       validCacheTime = System.currentTimeMillis() - syncInterval;
     }
+    // TODO(jiacheng): could this cache be shared?
     mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor,
         fsMaster.getAbsentPathCache(), validCacheTime);
 
     // TODO(jiacheng): maintain a global counter of active sync streams
-    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT.inc();
+    DefaultFileSystemMaster.Metrics.ACTIVE_INODE_SYNC_STREAM_COUNT.inc();
   }
 
   /**
@@ -312,6 +317,8 @@ public class InodeSyncStream {
     int syncPathCount = 0;
     int failedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
+    // forceSync is only used from FileSystemMaster.loadMetadataIfNotExists()
+    // So this means if not forceSync, we know the path exists and can rely on the TS for whether a sync is needed
     if (!mRootScheme.shouldSync() && !mForceSync) {
       return SyncStatus.NOT_NEEDED;
     }
@@ -326,6 +333,7 @@ public class InodeSyncStream {
       if (mDescendantType == DescendantType.ONE) {
         // If descendantType is ONE, then we shouldn't process any more paths except for those
         // currently in the queue
+        // TODO(jiacheng): If ONE, the stopNum=0 and after processing this root node, will it just quit because syncPathCount > stopNum?
         stopNum = mPendingPaths.size();
       }
 
@@ -343,6 +351,8 @@ public class InodeSyncStream {
       failedSyncPathCount++;
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
+      // TODO(jiacheng): still remove?
+      //  remove the root scheme path?
       mStatusCache.remove(mRootScheme.getPath());
     }
 
@@ -362,6 +372,8 @@ public class InodeSyncStream {
       while (true) {
         Future<Boolean> job = mSyncPathJobs.peek();
         if (job == null || !job.isDone()) {
+          // break out the loop, submit more jobs and wait for one job to finish
+          // then we come back to the job and process its results
           break;
         }
         // remove the job because we know it is done.
@@ -370,7 +382,6 @@ public class InodeSyncStream {
           //  the execution will end in an undefined state.
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
-        // TODO(jiacheng): update the active job count
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.dec();
         try {
           // we synced the path successfully
@@ -383,7 +394,7 @@ public class InodeSyncStream {
         } catch (InterruptedException | ExecutionException e) {
           failedSyncPathCount++;
           LogUtils.warnWithException(
-              LOG, "metadata sync failed while polling for finished paths; {}",
+              LOG, "metadata sync failed while polling for finished paths: {}",
               toString(), e);
           if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
@@ -399,6 +410,8 @@ public class InodeSyncStream {
 
       // We can submit up to ( max_concurrency - <jobs queue size>) jobs back into the queue
       int submissions = mConcurrencyLevel - mSyncPathJobs.size();
+      Preconditions.checkState(submissions >= 0, "%s sync jobs running but the configured concurrency level is %s",
+          mConcurrencyLevel - submissions, mConcurrencyLevel);
       for (int i = 0; i < submissions; i++) {
         AlluxioURI path = mPendingPaths.poll();
         if (path == null) {
@@ -416,8 +429,10 @@ public class InodeSyncStream {
         continue;
       }
       try {
+        // TODO(jiacheng): maybe add a timeout in case the UFS is gone
         oldestJob.get(); // block until the oldest job finished.
       } catch (InterruptedException | ExecutionException e) {
+        // TODO(jiacheng): update metrics here?
         LogUtils.warnWithException(
                 LOG, "Exception while waiting for oldest metadata sync job to finish: {}",
                 toString(), e);
@@ -429,17 +444,23 @@ public class InodeSyncStream {
     if (LOG.isDebugEnabled()) {
       Instant end = Instant.now();
       Duration elapsedTime = Duration.between(start, end);
-      LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
-          syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
-              elapsedTime.toMillis(), mRootScheme);
-      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL.inc(syncPathCount);
-      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAILED_JOBS_TOTAL.inc(failedSyncPathCount);
+      if (stopNum != -1 && (syncPathCount + failedSyncPathCount) > stopNum) {
+        LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}. stopNum {} reached",
+                syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
+                elapsedTime.toMillis(), mRootScheme, stopNum);
+      } else {
+        LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}. stopNum={} not reached, probably cancelled by exceptions?",
+                syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
+                elapsedTime.toMillis(), mRootScheme, stopNum);
+      }
     }
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL.inc(syncPathCount);
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAILED_JOBS_TOTAL.inc(failedSyncPathCount);
+
     boolean success = syncPathCount > 0;
     DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL.inc(mPendingPaths.size());
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_REPORT_FAILURE)) {
       // There should not be any failed or outstanding jobs
-      // TODO(jiacheng): Can i observe the mPendingPaths?
       success = (failedSyncPathCount == 0) && mSyncPathJobs.isEmpty() && mPendingPaths.isEmpty();
     }
     if (success) {
@@ -447,13 +468,13 @@ public class InodeSyncStream {
       // TODO(gpang): Do we need special handling for failures and thread interrupts?
       mUfsSyncPathCache.notifySyncedPath(mRootScheme.getPath().getPath(), mDescendantType);
     }
-    // TODO(jiacheng): capture the cancelled count
+    // 1. stopNum is reached
+    // 2. Interrupted or cancelled
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
+    LOG.info("Cancelling fetch on {} pending paths and {} active jobs: {}", mPendingPaths.size(), mSyncPathJobs.size(), mPendingPaths);
 
-    // TODO(jiacheng): There's no explicit end of this instance so the best way to update
-    //  the counter is probably here
-    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT.dec();
+    DefaultFileSystemMaster.Metrics.ACTIVE_INODE_SYNC_STREAM_COUNT.dec();
 
     if (success) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESSFUL_TOTAL.inc();
@@ -522,7 +543,7 @@ public class InodeSyncStream {
     final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
     while (true) {
       try {
-        Object j = future.get(1, TimeUnit.SECONDS);
+        Object j = future.get(mUfsFetchTimeout, TimeUnit.MILLISECONDS);
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL.inc();
         return j;
       } catch (TimeoutException e) {
@@ -600,6 +621,7 @@ public class InodeSyncStream {
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else if (cachedStatus == null) {
           // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
+          LOG.info("Fetch fingerprint for path {}", ufsUri);
           ufsFingerprint = (String) getFromUfs(() -> ufs.getFingerprint(ufsUri.toString()));
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else {
@@ -620,6 +642,7 @@ public class InodeSyncStream {
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
 
+        // TODO(jiacheng): understand when this is used
         if (syncPlan.toUpdateMetaData()) {
           // UpdateMetadata is used when a file or a directory only had metadata change.
           // It works by calling SetAttributeInternal on the inodePath.
@@ -683,7 +706,10 @@ public class InodeSyncStream {
           .forEach(child -> inodeChildren.put(child.getName(), child));
 
       // Fetch and populate children into the cache
+      // TODO(jiacheng): why are the children not loaded?
       mStatusCache.prefetchChildren(inodePath.getUri(), mMountTable);
+      // If there's a prefetch job already, this will keep pulling from the job instead of trying again
+      // Only if the job does not succeed, will it fall back to a UFS access
       Collection<UfsStatus> listStatus = mStatusCache
           .fetchChildrenIfAbsent(mRpcContext, inodePath.getUri(), mMountTable);
       // Iterate over UFS listings and process UFS children.
@@ -706,6 +732,9 @@ public class InodeSyncStream {
 
     // load metadata if necessary.
     if (loadMetadata && !skipLoad) {
+      // skipLoad == false means we are working on an existing path
+      // now we need to reload it from the UFS
+      // TODO(jiacheng): But haven't we just loaded from UFS? Why load again?
       loadMetadataForPath(inodePath);
     }
 
@@ -764,6 +793,7 @@ public class InodeSyncStream {
     MountTable.Resolution resolution = mMountTable.resolve(path);
     int failedSync = 0;
     try {
+      // TODO(jiacheng): when is this null?
       if (context.getUfsStatus() == null) {
         // uri does not exist in ufs
         Inode inode = inodePath.getInode();
@@ -777,10 +807,18 @@ public class InodeSyncStream {
         return;
       }
 
+      // If the metadata do not exist, these methods will go to the UFS and fetch them
+      // No recursive sync will be incurred
       if (context.getUfsStatus().isFile()) {
-        loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster);
+        // TODO(jiacheng): We have the status here already, why loadFileMetadataInternalIfNotExists?
+        loadFileMetadataInternalIfNotExists(mRpcContext, inodePath, resolution, context, mFsMaster);
       } else {
-        loadDirectoryMetadata(mRpcContext, inodePath, context, mMountTable, mFsMaster);
+        // If we reach here already, the UfsStatus from context cannot be null!
+        // Because context.getUfsStatus().isFile() would throw NPE otherwise.
+
+        // This only loads the directory itself
+        // If the children need to be loaded, they will be loaded in the calls below, not in this call
+        loadDirectoryMetadataIfNotExists(mRpcContext, inodePath, context, mMountTable, mFsMaster);
 
         // now load all children if required
         LoadDescendantPType type = context.getOptions().getLoadDescendantType();
@@ -791,12 +829,15 @@ public class InodeSyncStream {
             LOG.debug("fetching children for {} returned null", inodePath.getUri());
             return;
           }
+          // TODO(jiacheng): can the list enumeration be improved on mem consumption?
           for (UfsStatus childStatus : children) {
+            // TODO(jiacheng): do not sync temp files, is this intended?
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
             }
             AlluxioURI childURI = new AlluxioURI(PathUtils.concatPath(inodePath.getUri(),
                 childStatus.getName()));
+            // TODO(jiacheng): if LoadDescendantPType.ONE, this is the ONE level we are traversing already so no need?
             if (mInodeTree.inodePathExists(childURI) && (childStatus.isFile()
                 || context.getOptions().getLoadDescendantType() != LoadDescendantPType.ALL)) {
               // stop traversing if this is an existing file, or an existing directory without
@@ -813,11 +854,21 @@ public class InodeSyncStream {
             try (LockedInodePath descendant = inodePath
                 .lockDescendant(inodePath.getUri().joinUnsafe(childStatus.getName()),
                     LockPattern.READ)) {
+              // TODO(jiacheng): recursive here! Reason on the cost of this recursion
+              //  UfsStatus
+              //  AlluxioURI
+              //  journal entries for create the file
+              //  journal entries for create the dir
+              //  if dir, mStatusCache.fetchChildrenIfAbsent
+              //  Are the children prefetched?
+
+
               loadMetadata(descendant, loadMetadataContext);
             } catch (FileNotFoundException e) {
               LOG.debug("Failed to loadMetadata because file is not in ufs:"
                   + " inodePath={}, options={}.",
                   childURI, loadMetadataContext, e);
+              // TODO(jiacheng): failedSync++
             } catch (BlockInfoException | FileAlreadyCompletedException
                 | FileDoesNotExistException | InvalidFileSizeException
                 | IOException e) {
@@ -899,9 +950,9 @@ public class InodeSyncStream {
    * @param resolution the UFS resolution of path
    * @param context the load metadata context
    */
-  static void loadFileMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      MountTable.Resolution resolution, LoadMetadataContext context,
-      DefaultFileSystemMaster fsMaster)
+  static void loadFileMetadataInternalIfNotExists(RpcContext rpcContext, LockedInodePath inodePath,
+                                                  MountTable.Resolution resolution, LoadMetadataContext context,
+                                                  DefaultFileSystemMaster fsMaster)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
@@ -914,15 +965,20 @@ public class InodeSyncStream {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
+      // This really should not be null because we checked before entering this call
+      // If this log is not seen, remove this if check
       if (context.getUfsStatus() == null) {
+        LOG.warn("Path {} has no UfsStatus before entering loadFileMetadataInternalIfNotExists. Fetch it now.", ufsUri);
         context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
+      // TODO(jiacheng): This should actually be the alluxio block size
       long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
       ufsBlockSizeByte = blockSize != UfsFileStatus.UNKNOWN_BLOCK_SIZE
           ? blockSize : ufs.getBlockSizeByte(ufsUri.toString());
 
       if (fsMaster.isAclEnabled()) {
+        // TODO(jiacheng): This is another UFS access, can't it be merged into the previous one?
         Pair<AccessControlList, DefaultAccessControlList> aclPair
             = ufs.getAclPair(ufsUri.toString());
         if (aclPair != null) {
@@ -989,6 +1045,7 @@ public class InodeSyncStream {
   /**
    * Loads metadata for the directory identified by the given path from UFS into Alluxio. This does
    * not actually require looking at the UFS path.
+   * TODO(jiacheng): the statement above is no longer true
    * It is a no-op if the directory exists.
    *
    * This method doesn't require any specific type of locking on inodePath. If the path needs to be
@@ -998,8 +1055,8 @@ public class InodeSyncStream {
    * @param inodePath the path for which metadata should be loaded
    * @param context the load metadata context
    */
-  static void loadDirectoryMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
+  static void loadDirectoryMetadataIfNotExists(RpcContext rpcContext, LockedInodePath inodePath,
+                                               LoadMetadataContext context, MountTable mountTable, DefaultFileSystemMaster fsMaster)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     if (inodePath.fullPathExists()) {
       return;
@@ -1020,9 +1077,13 @@ public class InodeSyncStream {
     DefaultAccessControlList defaultAcl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      // TODO(jiacheng): can this be refactored to remove this check?
       if (context.getUfsStatus() == null) {
+        // The only option should be from FSM.mountInternal
+        LOG.warn("Path {} has no UfsStatus before entering loadDirectoryMetadataIfNotExists. Fetch it now.", ufsUri);
         context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
       }
+      // TODO(jiacheng): merge this ufs access?
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());
       if (aclPair != null) {

@@ -15,10 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.master.file.InodeSyncStream;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import com.google.common.base.MoreObjects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -30,6 +33,8 @@ public final class LockingScheme {
   private final AlluxioURI mPath;
   private final LockPattern mDesiredLockPattern;
   private final boolean mShouldSync;
+
+  private static final Logger LOG = LoggerFactory.getLogger(LockingScheme.class);
 
   /**
    * Constructs a {@link LockingScheme}.
@@ -64,6 +69,11 @@ public final class LockingScheme {
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
         ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+    // TODO(jiacheng): the sync condition:
+    //  1. sync interval == 0
+    //  2. parent does not exist
+    //  3. not found in the cache
+    //  4. from InodeSyncStream.mForcedSync, from loadMetadataIfNotExist
     mShouldSync = pathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
   }
 

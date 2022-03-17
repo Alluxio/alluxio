@@ -15,7 +15,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
-import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -638,8 +637,8 @@ public final class MetricKey implements Comparable<MetricKey> {
                   .setIsClusterAggregated(false)
                   .build();
 
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_COUNT =
-          new Builder("Master.InodeSyncStreamCount")
+  public static final MetricKey MASTER_ACTIVE_INODE_SYNC_STREAM_COUNT =
+          new Builder("Master.ActiveInodeSyncStreamCount")
                   .setDescription("The number of active InodeSyncStream instances")
                   .setMetricType(MetricType.COUNTER)
                   .setIsClusterAggregated(false)

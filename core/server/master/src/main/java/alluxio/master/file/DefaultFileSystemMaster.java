@@ -794,6 +794,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return getFileIdInternal(path, true);
   }
 
+  // TODO(jiacheng): No one is calling checkPerm=false
   private long getFileIdInternal(AlluxioURI path, boolean checkPermission)
       throws AccessControlException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext()) {
@@ -814,12 +815,15 @@ public class DefaultFileSystemMaster extends CoreMaster
           LoadMetadataPOptions.newBuilder().setCreateAncestors(true));
       boolean run = true;
       boolean loadMetadata = false;
+      // TODO(jiacheng): would just not having this loop help improve performance?
       while (run) {
         run = false;
         if (loadMetadata) {
+          // This can cause a metadata sync
           loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
         }
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.READ)) {
+          // TODO(jiacheng): 2nd perm check after the sync
           if (checkPermission) {
             mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
           }
@@ -1671,6 +1675,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("createFile", path, null, null)) {
 
+      // TODO(jiacheng): For single file creations, we should just directly check instead of
+      //  going through the submit-check and all the algorithms
+      //  Also the default sync interval is -1, then how does the check happen?
       syncMetadata(rpcContext,
           path,
           context.getOptions().getCommonOptions(),
@@ -2870,6 +2877,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * Loads metadata for the path if it is (non-existing || load direct children is set).
+   * TODO(jiacheng): Separate these two callers so that when we call this method, it is sure that the
+   *  path does not exist.
    *
    * See {@link #shouldLoadMetadataIfNotExists(LockedInodePath, LoadMetadataContext)}.
    *
@@ -2878,6 +2887,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param context the {@link LoadMetadataContext}
    * @param isGetFileInfo whether this is loading for a {@link #getFileInfo} call
    */
+  // getFileId
+  // getFileInfo
+  // listStatus
+  // exists
+  // TODO(jiacheng): difference syncMetadata vs loadMetadataIfNotExist?
+  //  They should really be merged
+  // Every time this is called, we create a InodeSyncStream
+  // InodeSyncStream don't recursively create itself, but within the class there may be recursive method calls
   private void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
       LoadMetadataContext context, boolean isGetFileInfo)
       throws InvalidPathException, AccessControlException {
@@ -2888,6 +2905,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadAlways = context.getOptions().hasLoadType()
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
+    // TODO(jiacheng): This is the only place we use forcedSync, why not rely on shouldSync?
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
         this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {
@@ -3045,7 +3063,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
-      InodeSyncStream.loadDirectoryMetadata(rpcContext,
+      InodeSyncStream.loadDirectoryMetadataIfNotExists(rpcContext,
           inodePath,
           LoadMetadataContext.mergeFrom(
               LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
@@ -4642,8 +4660,8 @@ public class DefaultFileSystemMaster extends CoreMaster
             = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_EVICTED_FILES.getName());
     public static final Counter REPLICATION_CHECKER_MIGRATED_FILES
             = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_MIGRATED_FILES.getName());
-    public static final Counter INODE_SYNC_STREAM_COUNT
-            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_COUNT.getName());
+    public static final Counter ACTIVE_INODE_SYNC_STREAM_COUNT
+            = MetricsSystem.counter(MetricKey.MASTER_ACTIVE_INODE_SYNC_STREAM_COUNT.getName());
     public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_TOTAL
             = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.getName());
     public static final Counter INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL
