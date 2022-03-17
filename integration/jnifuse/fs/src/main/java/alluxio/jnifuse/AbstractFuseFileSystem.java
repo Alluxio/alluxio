@@ -318,6 +318,16 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public int utimensCallback(String path, long aSec, long aNsec, long mSec, long mNsec) {
+    try {
+      return utimens(path, aSec, aNsec, mSec, mNsec);
+    } catch (Exception e) {
+      LOG.error("Failed to utimens {}, aSec {}, aNsec {}, mSec {}, mNsec {}: ",
+          path, aSec, aNsec, mSec, mNsec, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
   public int writeCallback(String path, ByteBuffer buf, long size, long offset, ByteBuffer fi) {
     try {
       return write(path, buf, size, offset, FuseFileInfo.of(fi));
