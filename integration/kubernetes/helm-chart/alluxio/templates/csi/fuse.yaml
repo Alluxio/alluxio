@@ -1,0 +1,82 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{ if .Values.csi.enabled -}}
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ $fullName }}-fuse
+  labels:
+    name: {{ $fullName }}-fuse
+    app: {{ $name }}
+    role: alluxio-fuse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ $fullName }}-fuse
+      app: {{ $name }}
+      role: alluxio-fuse
+  template:
+    metadata:
+      labels:
+        name: {{ $fullName }}-fuse
+        app: {{ $name }}
+        role: alluxio-fuse
+    spec:
+      hostNetwork: {{ .Values.fuse.hostNetwork }}
+      hostPID: {{ .Values.fuse.hostID }}
+      dnsPolicy: {{ .Values.fuse.dnsPolicy }}
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: alluxio-fuse
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.fuse.resources}}
+          resources:
+            {{- if .Values.fuse.resources.limits }}
+            limits:
+              cpu: {{ .Values.fuse.resources.limits.cpu }}
+              memory: {{ .Values.fuse.resources.limits.memory }}
+            {{- end }}
+            {{- if .Values.fuse.resources.requests}}
+              cpu: {{ .Values.fuse.resources.requests.cpu }}
+              memory: {{ .Values.fuse.resources.requests.memory }}
+            {{- end }}
+          {{- end }}
+          {{- range $key, $value := .Values.fuse.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+          {{- end }}
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+          envFrom:
+          - configMapRef:
+            name: {{ $fullName }}-config
+          volumeMounts:
+            - name: pods-mount-dir
+              mountPath: /var/lib/kubelet/pods
+              mountPropagation: "Bidirectional"
+      volumes:
+        - name: pods-mount-dir
+          hostPath:
+            path: /var/lib/kubelet/pods
+            type: Directory
