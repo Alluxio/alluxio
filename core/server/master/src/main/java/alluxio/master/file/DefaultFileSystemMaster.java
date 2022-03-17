@@ -402,6 +402,8 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private CallTracker mStateLockCallTracker;
 
+
+  // TODO(jiacheng): add metrics on other fields like finished task count?
   final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -502,6 +504,18 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
+
+    // The getActiveCount() returns the number of threads that are working in the pool,
+    // which is a fixed number as we configure
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
+            () -> mSyncPrefetchExecutor.getQueue().size());
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
+            () -> mSyncMetadataExecutor.getQueue().size());
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getMetricName(MetricKey.MASTER_ACTIVESYNC_EXECUTOR_QUEUE_SIZE.getName()),
+            () -> mActiveSyncMetadataExecutor.getQueue().size());
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -780,6 +794,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return getFileIdInternal(path, true);
   }
 
+  // TODO(jiacheng): No one is calling checkPerm=false
   private long getFileIdInternal(AlluxioURI path, boolean checkPermission)
       throws AccessControlException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext()) {
@@ -800,12 +815,15 @@ public class DefaultFileSystemMaster extends CoreMaster
           LoadMetadataPOptions.newBuilder().setCreateAncestors(true));
       boolean run = true;
       boolean loadMetadata = false;
+      // TODO(jiacheng): would just not having this loop help improve performance?
       while (run) {
         run = false;
         if (loadMetadata) {
+          // This can cause a metadata sync
           loadMetadataIfNotExist(rpcContext, path, lmCtx, false);
         }
         try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.READ)) {
+          // TODO(jiacheng): 2nd perm check after the sync
           if (checkPermission) {
             mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
           }
@@ -1657,6 +1675,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("createFile", path, null, null)) {
 
+      // TODO(jiacheng): For single file creations, we should just directly check instead of
+      //  going through the submit-check and all the algorithms
+      //  Also the default sync interval is -1, then how does the check happen?
       syncMetadata(rpcContext,
           path,
           context.getOptions().getCommonOptions(),
@@ -2856,6 +2877,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * Loads metadata for the path if it is (non-existing || load direct children is set).
+   * TODO(jiacheng): Separate these two callers so that when we call this method, it is sure that the
+   *  path does not exist.
    *
    * See {@link #shouldLoadMetadataIfNotExists(LockedInodePath, LoadMetadataContext)}.
    *
@@ -2864,6 +2887,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param context the {@link LoadMetadataContext}
    * @param isGetFileInfo whether this is loading for a {@link #getFileInfo} call
    */
+  // getFileId
+  // getFileInfo
+  // listStatus
+  // exists
+  // TODO(jiacheng): difference syncMetadata vs loadMetadataIfNotExist?
+  //  They should really be merged
+  // Every time this is called, we create a InodeSyncStream
+  // InodeSyncStream don't recursively create itself, but within the class there may be recursive method calls
   private void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
       LoadMetadataContext context, boolean isGetFileInfo)
       throws InvalidPathException, AccessControlException {
@@ -2874,6 +2905,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadAlways = context.getOptions().hasLoadType()
         && (context.getOptions().getLoadType().equals(LoadMetadataPType.ALWAYS));
     // load metadata only and force sync
+    // TODO(jiacheng): This is the only place we use forcedSync, why not rely on shouldSync?
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
         this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {
@@ -3031,7 +3063,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
-      InodeSyncStream.loadDirectoryMetadata(rpcContext,
+      InodeSyncStream.loadDirectoryMetadataIfNotExists(rpcContext,
           inodePath,
           LoadMetadataContext.mergeFrom(
               LoadMetadataPOptions.newBuilder().setCreateAncestors(false)),
@@ -4622,6 +4654,56 @@ public class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
+    public static final Counter REPLICATION_CHECKER_REPLICATED_FILES
+            = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_REPLICATED_FILES.getName());
+    public static final Counter REPLICATION_CHECKER_EVICTED_FILES
+            = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_EVICTED_FILES.getName());
+    public static final Counter REPLICATION_CHECKER_MIGRATED_FILES
+            = MetricsSystem.counter(MetricKey.MASTER_REPLICATION_CHECKER_MIGRATED_FILES.getName());
+    public static final Counter ACTIVE_INODE_SYNC_STREAM_COUNT
+            = MetricsSystem.counter(MetricKey.MASTER_ACTIVE_INODE_SYNC_STREAM_COUNT.getName());
+    public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.getName());
+
+    public static final Counter ACTIVESYNC_FULL_SYNC
+            = MetricsSystem.counter(MetricKey.MASTER_ACTIVESYNC_FULL_SYNC.getName());
+    public static final Counter ACTIVESYNC_INCREMENTAL_SYNC
+            = MetricsSystem.counter(MetricKey.MASTER_ACTIVESYNC_INCREMENTAL_SYNC.getName());
+
+    public static final Counter INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_SUCCESSFUL_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_SUCCESSFUL_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_FAILED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_FAILED_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_FAILED_JOBS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_FAILED_JOBS_TOTAL.getName());
+    public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL.getName());
+
+    public static final Counter UFS_STATUS_CACHE_SIZE_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_SIZE_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL.getName());
+    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL
+            = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.getName());
+
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
 

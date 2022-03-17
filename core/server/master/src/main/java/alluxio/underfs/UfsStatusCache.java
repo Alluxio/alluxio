@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsAbsentPathCache;
@@ -22,6 +23,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.util.LogUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.yarn.webapp.hamlet2.Hamlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +82,8 @@ public class UfsStatusCache {
     mPrefetchExecutor = prefetchExecutor;
     mUfsFetchTimeout =
         ServerConfiguration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
-    LOG.info("UFS fetch timeout set to {}ms", mUfsFetchTimeout);
+    // TODO(jiacheng): Remove this
+//    LOG.info("UFS fetch timeout set to {}ms", mUfsFetchTimeout);
   }
 
   /**
@@ -103,6 +106,7 @@ public class UfsStatusCache {
               path.getName(), status.getName()));
     }
     mAbsentCache.processExisting(path);
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.inc();
     return mStatuses.put(path, status);
   }
 
@@ -117,12 +121,14 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
+    // TODO(jiacheng): Can we avoid Set here and only use list?
     Set<UfsStatus> set = new HashSet<>(children.size());
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
       set.add(child);
     });
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
     return mChildren.put(path, Collections.unmodifiableSet(set));
   }
 
@@ -138,6 +144,9 @@ public class UfsStatusCache {
   public UfsStatus remove(AlluxioURI path) {
     Preconditions.checkNotNull(path, "can't remove null status cache path");
     UfsStatus removed = mStatuses.remove(path);
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
+    int childrenCnt = mChildren.contains(path) ? mChildren.get(path).size() : 0;
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(childrenCnt);
     mChildren.remove(path); // ok if there aren't any children
     return removed;
   }
@@ -186,9 +195,11 @@ public class UfsStatusCache {
       UnderFileSystem ufs = ufsResource.get();
       UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
       if (ufsStatus == null) {
+        LOG.info("Ufs fetched null status for path {}", ufsUri);
         mAbsentCache.addSinglePath(path);
         return null;
       }
+      LOG.info("Ufs fetched status for path {}", ufsUri);
       ufsStatus.setName(path.getName());
       addStatus(path, ufsStatus);
       return ufsStatus;
@@ -226,13 +237,30 @@ public class UfsStatusCache {
       throws InterruptedException, InvalidPathException {
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
+      int retries = 0;
       while (true) {
         try {
-          return prefetchJob.get(mUfsFetchTimeout, TimeUnit.MILLISECONDS);
+          Collection<UfsStatus> statuses = prefetchJob.get(mUfsFetchTimeout, TimeUnit.MILLISECONDS);
+          if (statuses == null) {
+            LOG.info("Prefetch children returned null for path {}", path);
+          } else {
+            DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.inc(statuses.size());
+          }
+          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.inc();
+          // The statuses are actually put into mChildren in the prefetch job
+          // Although this is super not obvious
+          return statuses;
         } catch (TimeoutException e) {
+          retries++;
+          // TODO(jiacheng): This just keeps retrying, should have a max bound?
           if (rpcContext != null) {
+            // If the RPC context is cancelled (this RPC is cancelled),
+            // The sync will be cancelled
+            // A RuntimeException will be thrown instead of InterruptedException
+            // TODO(jiacheng): is this good?
             rpcContext.throwIfCancelled();
           }
+          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL.inc();
         } catch (InterruptedException | ExecutionException e) {
           LogUtils.warnWithException(LOG,
               "Failed to get result for prefetch job on alluxio path {}", path, e);
@@ -240,10 +268,16 @@ public class UfsStatusCache {
             Thread.currentThread().interrupt();
             throw (InterruptedException) e;
           }
+          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL.inc();
           break;
         } finally {
+          // We are fetching this job just once
+          // If it fails, it fails
           mActivePrefetchJobs.remove(path);
         }
+      }
+      if (retries > 0) {
+        LOG.info("Fetched path {} after {} retries", path, retries);
       }
     }
     Collection<UfsStatus> children = getChildren(path);
@@ -251,6 +285,7 @@ public class UfsStatusCache {
       return children;
     }
 
+    // We always fallback unless it is in a unit test
     if (useFallback) {
       return getChildrenIfAbsent(path, mountTable);
     }
@@ -293,6 +328,7 @@ public class UfsStatusCache {
       throws InvalidPathException {
     Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
+      LOG.info("Found {} children for path {} in the cache", children.size(), path);
       return children;
     }
     if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
@@ -302,15 +338,25 @@ public class UfsStatusCache {
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      if (path.toString().equals("/s3")) {
+        LOG.info("Checking path /s3");
+      }
       UfsStatus[] statuses = ufs.listStatus(ufsUri.toString());
       if (statuses == null) {
         mAbsentCache.addSinglePath(path);
+        LOG.info("UFS ls returned null status for path {}", path);
         return null;
       }
       children = Arrays.asList(statuses);
       addChildren(path, children);
     } catch (IllegalArgumentException | IOException e) {
-      LOG.debug("Failed to add status to cache {}", path, e);
+      LOG.warn("Failed to add status to cache {}", path, e);
+    }
+    if (children != null) {
+      LOG.info("Fetched {} children from UFS for path {}", children.size(), path);
+    } else {
+      // TODO(jiacheng): This actually should not happen
+      LOG.info("Fetched {} children from UFS for path {}", null, path);
     }
     return children;
   }
@@ -340,6 +386,10 @@ public class UfsStatusCache {
    * @return the future corresponding to the fetch task
    */
   @Nullable
+  // TODO(jiacheng): when are the children prefetched?
+  //  1. if syncExistingInodeMetadata determines the children should be loaded
+  //  2. syncExistingInodeMetadata recursively loading children of children
+
   public Future<Collection<UfsStatus>> prefetchChildren(AlluxioURI path, MountTable mountTable) {
     if (mPrefetchExecutor == null) {
       return null;
@@ -347,9 +397,11 @@ public class UfsStatusCache {
     try {
       Future<Collection<UfsStatus>> job =
           mPrefetchExecutor.submit(() -> getChildrenIfAbsent(path, mountTable));
+      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL.inc();
       Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, job);
       if (prev != null) {
         prev.cancel(true);
+        DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.inc();
       }
       return job;
     } catch (RejectedExecutionException e) {
@@ -365,6 +417,7 @@ public class UfsStatusCache {
     for (Future<?> f : mActivePrefetchJobs.values()) {
       f.cancel(false);
     }
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.inc(mActivePrefetchJobs.size());
     mActivePrefetchJobs.clear();
   }
 }

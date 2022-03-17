@@ -976,6 +976,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @Nullable
   protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
+    if (path.equals("s3a://alluxio-jliu/")) {
+      LOG.info("Stop here and check");
+    }
     ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));

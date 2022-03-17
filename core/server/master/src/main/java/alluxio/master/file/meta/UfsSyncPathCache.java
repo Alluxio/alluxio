@@ -12,12 +12,15 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.util.io.PathUtils;
 
+import alluxio.util.logging.SamplingLogger;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
@@ -32,6 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class UfsSyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
+  private static final SamplingLogger SAMPLING_LOG =
+          new SamplingLogger(LOG, 30 * Constants.SECOND_MS);
 
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
@@ -81,10 +86,12 @@ public final class UfsSyncPathCache {
    */
   public boolean shouldSyncPath(String path, long intervalMs, boolean isGetFileInfo) {
     if (intervalMs < 0) {
+      LOG.info("Path {} sync interval < 0, sync skipped", path);
       // Never sync.
       return false;
     }
     if (intervalMs == 0) {
+      LOG.info("Path {} sync interval == 0, sync needed", path);
       // Always sync.
       return true;
     }
@@ -92,6 +99,7 @@ public final class UfsSyncPathCache {
     // check the last sync information for the path itself.
     SyncTime lastSync = mCache.getIfPresent(path);
     if (!shouldSyncInternal(lastSync, intervalMs, false)) {
+      LOG.info("Path {} deemed no need to sync because the cache is still valid: lastSync:{}, interval:{}", path, lastSync, intervalMs);
       // Sync is not necessary for this path.
       return false;
     }
@@ -107,16 +115,18 @@ public final class UfsSyncPathCache {
         lastSync = mCache.getIfPresent(currPath);
         if (!shouldSyncInternal(lastSync, intervalMs, parentLevel > 1 || !isGetFileInfo)) {
           // Sync is not necessary because an ancestor was already recursively synced
+          LOG.info("Path {} deemed no need to sync because parent {} has been sync-ed", path, currPath);
           return false;
         }
       } catch (InvalidPathException e) {
         // this is not expected, but the sync should be triggered just in case.
-        LOG.debug("Failed to get parent of ({}), for checking sync for ({})", currPath, path);
+        LOG.info("Failed to get parent of ({}), for checking sync for ({}). Trigger sync just in case.", currPath, path);
         return true;
       }
     }
 
     // trigger a sync, because a sync on the path (or an ancestor) was performed recently
+    LOG.info("Trigger sync on {}", path);
     return true;
   }
 
@@ -171,6 +181,13 @@ public final class UfsSyncPathCache {
 
     long getLastRecursiveSyncMs() {
       return mLastRecursiveSyncMs;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("mLastSyncMs", mLastSyncMs)
+          .add("mLastRecursiveSyncMs", mLastRecursiveSyncMs).toString();
     }
   }
 }
