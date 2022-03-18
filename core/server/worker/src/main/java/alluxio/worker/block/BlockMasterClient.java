@@ -158,7 +158,7 @@ public class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(() -> {
       // For compatibility, reuse the RPC of getWorkerID.
       GetWorkerIdPResponse response = mClient.getWorkerId(request);
-      // For compatibility,  If preRegister information is included,
+      // For compatibility,  If Register information is included,
       // the Master will set hasExtendedRegisterInfo
       if (response.hasClusterId()) {
         return response;

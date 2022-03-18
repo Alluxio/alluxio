@@ -229,7 +229,7 @@ message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
-  /** for preRegister information **/
+  /** for Register information **/
   optional GetWorkerIdPOptions options = 2;
   optional string clusterId = 3;
   optional int32 blocksNum = 4;

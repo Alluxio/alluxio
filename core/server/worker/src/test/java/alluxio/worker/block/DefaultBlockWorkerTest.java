@@ -400,7 +400,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandAckRegister()
+  public void handleRegisterCommandAckRegister()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
@@ -408,14 +408,14 @@ public class DefaultBlockWorkerTest {
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
-    mBlockWorker.handlePreRegisterInfo(response);
+    mBlockWorker.handleRegisterInfo(response);
     assertEquals(IdUtils.EMPTY_CLUSTER_ID,
         mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
   }
 
   @Test
-  public void handlePreRegisterCommandRegisterPersistClusterId()
+  public void handleRegisterCommandRegisterPersistClusterId()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
@@ -423,20 +423,20 @@ public class DefaultBlockWorkerTest {
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // the new cluster ID will be persisted
-    mBlockWorker.handlePreRegisterInfo(response);
+    mBlockWorker.handleRegisterInfo(response);
     assertEquals(newClusterId,
         mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
   @Test
-  public void handlePreRegisterCommandRegisterCleanBlocks()
+  public void handleRegisterCommandRegisterCleanBlocks()
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setRegisterCommandType(RegisterCommandType.REGISTER_CLEAN_BLOCKS)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
-    mBlockWorker.handlePreRegisterInfo(response);
+    mBlockWorker.handleRegisterInfo(response);
     verify(mBlockWorker, times(1)).reset();
     assertEquals(newClusterId,
         mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
@@ -444,10 +444,10 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void handlePreRegisterCommandRejectRegister() throws IOException {
+  public void handleRegisterCommandRejectRegister() throws IOException {
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
         .setRegisterCommandType(RegisterCommandType.REJECT_REGISTER).build();
-    assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(response));
+    assertThrows(RuntimeException.class, () -> mBlockWorker.handleRegisterInfo(response));
   }
 
   @Test

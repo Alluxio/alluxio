@@ -1011,7 +1011,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       String workerClusterId, int blocksNum) throws IOException {
     // todo The return type may be the Alluxio class(such as WorkerMetaInfo)
     //  instead of the GRPC class ?
-    LOG.info("worker {} PreRegister, workerClusterId {}, blocksNum {}",
+    LOG.info("worker {} Register, workerClusterId {}, blocksNum {}",
         workerNetAddress.getHost(), workerClusterId, blocksNum);
 
     String curClusterId = getClusterId();
@@ -1024,7 +1024,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .setWorkerId(workerId)
         .build();
 
-    LOG.info("worker {} ,PreRegister result: PreRegisterCommand {}, workerId {},"
+    LOG.info("worker {} ,Register result: RegisterCommand {}, workerId {},"
             + " current clusterId {}",
         workerNetAddress.getHost(), response.getRegisterCommandType(),
         response.getWorkerId(), response.getClusterId());

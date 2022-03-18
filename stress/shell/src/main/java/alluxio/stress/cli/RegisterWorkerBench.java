@@ -113,7 +113,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
 
     // Prepare worker IDs
     int numWorkers = mParameters.mConcurrency;
-    mWorkerPool = RpcBenchPreparationUtils.preparePerRegisterWorkerIds(client, numWorkers);
+    mWorkerPool = RpcBenchPreparationUtils.prepareRegisterWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers,
         "Expecting %s workers but registered %s",
         numWorkers, mWorkerPool.size());

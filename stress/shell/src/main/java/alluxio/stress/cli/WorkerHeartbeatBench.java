@@ -185,7 +185,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     // Prepare simulated workers
     int numWorkers = mParameters.mConcurrency;
     LOG.info("Register {} simulated workers for the test", numWorkers);
-    mWorkerPool = RpcBenchPreparationUtils.preparePerRegisterWorkerIds(client, numWorkers);
+    mWorkerPool = RpcBenchPreparationUtils.prepareRegisterWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers,
         "Expecting %s workers but registered %s",
         numWorkers, mWorkerPool.size());

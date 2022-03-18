@@ -131,10 +131,10 @@ public class RpcBenchPreparationUtils {
   /**
    * Reserves a list of worker IDs from the master.
    */
-  static Deque<GetWorkerIdPResponse> preparePerRegisterWorkerIds(BlockMasterClient client,
+  static Deque<GetWorkerIdPResponse> prepareRegisterWorkerIds(BlockMasterClient client,
       int numWorkers)
       throws IOException {
-    Deque<GetWorkerIdPResponse> preRegisterWorkerPool = new ArrayDeque<>();
+    Deque<GetWorkerIdPResponse> workerPool = new ArrayDeque<>();
     int freePort = 40000;
     for (int i = 0; i < numWorkers; i++) {
       LOG.info("Preparing worker {}", i);
@@ -151,9 +151,9 @@ public class RpcBenchPreparationUtils {
       GetWorkerIdPResponse response =
           client.getId(address, IdUtils.EMPTY_CLUSTER_ID, 0);
       LOG.info("Created worker ID {} on {}", response.getWorkerId(), address);
-      preRegisterWorkerPool.offer(response);
+      workerPool.offer(response);
     }
-    return preRegisterWorkerPool;
+    return workerPool;
   }
 
   static void registerWorkers(BlockMasterClient client, Deque<Long> workerIds) throws IOException {

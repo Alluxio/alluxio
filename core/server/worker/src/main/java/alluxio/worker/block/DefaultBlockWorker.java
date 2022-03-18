@@ -274,12 +274,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   /**
-   * Handles a master preRegister command.
+   * Handles a master Register command.
    *
    * @param response the command to execute
    * @throws RuntimeException RuntimeException if fails
    */
-  public void handlePreRegisterInfo(GetWorkerIdPResponse response)
+  public void handleRegisterInfo(GetWorkerIdPResponse response)
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     switch (response.getRegisterCommandType()) {
       case ACK_REGISTER:
@@ -295,7 +295,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       case REJECT_REGISTER:
         throw new RuntimeException("Master reject to register");
       default:
-        throw new RuntimeException("PreRegister Un-recognized command from master " + response);
+        throw new RuntimeException("Register Un-recognized command from master " + response);
     }
     mClusterId.set(response.getClusterId());
     mWorkerId.set(response.getWorkerId());
@@ -309,16 +309,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     int blocksNum = getStoreMetaFull().getNumberOfBlocks();
 
     try {
-      RetryUtils.retry("worker preRegisterWithMaster ",
+      RetryUtils.retry("worker RegisterWithMaster ",
           () -> {
             response.set(
                 blockMasterClient.getId(address, mClusterId.get(), blocksNum));
           }, RetryUtils.defaultWorkerMasterClientRetry(
               ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-      handlePreRegisterInfo(response.get());
+      handleRegisterInfo(response.get());
     } catch (Exception e) {
-      LOG.error("Failed to preRegister from block master: ", e);
-      throw new RuntimeException("Failed to preRegister from block master: {}", e);
+      LOG.error("Failed to Register from block master: ", e);
+      throw new RuntimeException("Failed to Register from block master: {}", e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
