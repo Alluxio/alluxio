@@ -14,7 +14,6 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
