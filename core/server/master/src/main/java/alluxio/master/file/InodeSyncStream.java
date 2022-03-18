@@ -448,7 +448,7 @@ public class InodeSyncStream {
         LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}. stopNum {} reached",
                 syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
                 elapsedTime.toMillis(), mRootScheme, stopNum);
-      } else {
+      } else if (stopNum != -1) {
         LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}. stopNum={} not reached, probably cancelled by exceptions?",
                 syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
                 elapsedTime.toMillis(), mRootScheme, stopNum);
@@ -533,8 +533,10 @@ public class InodeSyncStream {
     if (!inodePath.fullPathExists()) {
       loadMetadataForPath(inodePath);
       // skip the load metadata step in the sync if it has been just loaded
+      // This will just force skip the loadMetadataForPath() call within syncExistingInodeMetadata
       syncExistingInodeMetadata(inodePath, true);
     } else {
+      // If the inode metadata is somehow outdated, loadMetadataForPath will be called
       syncExistingInodeMetadata(inodePath, false);
     }
   }
@@ -802,7 +804,7 @@ public class InodeSyncStream {
               "load metadata cannot be called on a file if no ufs "
                   + "status is present in the context. %s", inodePath.getUri()));
         }
-
+        // TODO(jiacheng): why?
         mInodeTree.setDirectChildrenLoaded(mRpcContext, inode.asDirectory());
         return;
       }
@@ -811,6 +813,7 @@ public class InodeSyncStream {
       // No recursive sync will be incurred
       if (context.getUfsStatus().isFile()) {
         // TODO(jiacheng): We have the status here already, why loadFileMetadataInternalIfNotExists?
+        // TODO(jiacheng): better name?
         loadFileMetadataInternalIfNotExists(mRpcContext, inodePath, resolution, context, mFsMaster);
       } else {
         // If we reach here already, the UfsStatus from context cannot be null!
@@ -829,7 +832,6 @@ public class InodeSyncStream {
             LOG.debug("fetching children for {} returned null", inodePath.getUri());
             return;
           }
-          // TODO(jiacheng): can the list enumeration be improved on mem consumption?
           for (UfsStatus childStatus : children) {
             // TODO(jiacheng): do not sync temp files, is this intended?
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
@@ -854,15 +856,6 @@ public class InodeSyncStream {
             try (LockedInodePath descendant = inodePath
                 .lockDescendant(inodePath.getUri().joinUnsafe(childStatus.getName()),
                     LockPattern.READ)) {
-              // TODO(jiacheng): recursive here! Reason on the cost of this recursion
-              //  UfsStatus
-              //  AlluxioURI
-              //  journal entries for create the file
-              //  journal entries for create the dir
-              //  if dir, mStatusCache.fetchChildrenIfAbsent
-              //  Are the children prefetched?
-
-
               loadMetadata(descendant, loadMetadataContext);
             } catch (FileNotFoundException e) {
               LOG.debug("Failed to loadMetadata because file is not in ufs:"

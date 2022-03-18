@@ -356,6 +356,7 @@ public final class MountTable implements DelegatingJournaled {
    * @return the {@link Resolution} representing the UFS path
    * @throws InvalidPathException if an invalid path is encountered
    */
+  // TODO(jiacheng): This method is so frequently called, and each small consumption can become huge
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
@@ -370,8 +371,10 @@ public final class MountTable implements DelegatingJournaled {
         AlluxioURI resolvedUri;
         try {
           ufsClient = mUfsManager.get(info.getMountId());
+          // TODO(jiacheng): Seriously, why do we need to acquire a resource to resolve string?
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             UnderFileSystem ufs = ufsResource.get();
+            // This just creates a new AlluxioURI, although the call looks terribly like a UFS access
             resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
           }
         } catch (NotFoundException | UnavailableException e) {
