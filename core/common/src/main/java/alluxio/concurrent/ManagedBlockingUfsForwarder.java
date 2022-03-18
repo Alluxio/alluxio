@@ -488,11 +488,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return mUfs.resolveUri(ufsBaseUri, alluxioPath);
-  }
-
-  @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     new ManagedBlockingUfsMethod<Void>() {
       @Override

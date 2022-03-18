@@ -366,14 +366,10 @@ public final class MountTable implements DelegatingJournaled {
       if (mountPoint != null) {
         MountInfo info = mState.getMountTable().get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
+        AlluxioURI resolvedUri = PathUtils.resolveUri(ufsUri, path.substring(mountPoint.length()));
         UfsManager.UfsClient ufsClient;
-        AlluxioURI resolvedUri;
         try {
           ufsClient = mUfsManager.get(info.getMountId());
-          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-            UnderFileSystem ufs = ufsResource.get();
-            resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-          }
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",

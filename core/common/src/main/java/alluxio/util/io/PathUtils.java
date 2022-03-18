@@ -14,6 +14,7 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
@@ -376,6 +377,22 @@ public final class PathUtils {
    */
   public static String normalizePath(String path, String separator) {
     return path.endsWith(separator) ? path : path + separator;
+  }
+
+  /**
+   * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base
+   * UFS URI, and the Alluxio path from the base.
+   *
+   * The default implementation simply concatenates the path to the base URI. This should be
+   * overridden if a subclass needs alternate functionality.
+   *
+   * @param ufsBaseUri the base {@link AlluxioURI} in the ufs
+   * @param alluxioPath the path in Alluxio from the given base
+   * @return the UFS {@link AlluxioURI} representing the Alluxio path
+   */
+  public static AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
+    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
+      false);
   }
 
   private PathUtils() {} // prevent instantiation

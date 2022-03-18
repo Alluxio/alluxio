@@ -190,11 +190,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     return mkdirs(path, MkdirsOptions.defaults(mUfsConf));
   }
 
-  @Override
-  public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
-        false);
-  }
+//  @Override
+//  public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
+//    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
+//        false);
+//  }
 
   @Override
   public boolean supportsActiveSync() {

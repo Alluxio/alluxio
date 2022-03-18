@@ -666,19 +666,6 @@ public interface UnderFileSystem extends Closeable {
   boolean renameRenamableFile(String src, String dst) throws IOException;
 
   /**
-   * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base
-   * UFS URI, and the Alluxio path from the base.
-   *
-   * The default implementation simply concatenates the path to the base URI. This should be
-   * overridden if a subclass needs alternate functionality.
-   *
-   * @param ufsBaseUri the base {@link AlluxioURI} in the ufs
-   * @param alluxioPath the path in Alluxio from the given base
-   * @return the UFS {@link AlluxioURI} representing the Alluxio path
-   */
-  AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
-
-  /**
    * Sets the access control list of a file or directory in under file system.
    * if the ufs does not support acls, this is a noop.
    * This will overwrite the ACL and defaultACL in the UFS.

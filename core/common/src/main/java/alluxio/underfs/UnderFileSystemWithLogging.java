@@ -995,11 +995,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return mUnderFileSystem.resolveUri(ufsBaseUri, alluxioPath);
-  }
-
-  @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     call(new UfsCallable<Void>() {
       @Override
