@@ -94,8 +94,8 @@ public class TieredBlockStore implements BlockStore {
       ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private static final long TIMEOUT_DURATION =
       ServerConfiguration.getMs(PropertyKey.WORKER_CACHE_IO_TIMEOUT_DURATION);
-  private static final int TIMEOUT_THREADS =
-      ServerConfiguration.getInt(PropertyKey.WORKER_CACHE_IO_TIMEOUT_THREADS);
+  private static final int TIMEOUT_THREADS_MAX =
+      ServerConfiguration.getInt(PropertyKey.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -217,7 +217,7 @@ public class TieredBlockStore implements BlockStore {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       BlockWriter writer = new StoreBlockWriter(tempBlockMeta);
       if (TIMEOUT_DURATION > 0) {
-        return new TimeBoundBlockWriter(writer, TIMEOUT_DURATION, TIMEOUT_THREADS);
+        return new TimeBoundBlockWriter(writer, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
       }
       return writer;
     }
@@ -232,7 +232,7 @@ public class TieredBlockStore implements BlockStore {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
       BlockReader reader = new StoreBlockReader(sessionId, blockMeta);
       if (TIMEOUT_DURATION > 0) {
-        return new TimeBoundBlockReader(reader, TIMEOUT_DURATION, TIMEOUT_THREADS);
+        return new TimeBoundBlockReader(reader, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
       }
       return reader;
     }
