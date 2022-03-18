@@ -366,7 +366,7 @@ public final class MountTable implements DelegatingJournaled {
       if (mountPoint != null) {
         MountInfo info = mState.getMountTable().get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        AlluxioURI resolvedUri = PathUtils.resolveUri(ufsUri, path.substring(mountPoint.length()));
+        AlluxioURI resolvedUri = PathUtils.resolveUfsUri(ufsUri, path.substring(mountPoint.length()));
         UfsManager.UfsClient ufsClient;
         try {
           ufsClient = mUfsManager.get(info.getMountId());

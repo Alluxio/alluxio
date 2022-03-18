@@ -380,17 +380,13 @@ public final class PathUtils {
   }
 
   /**
-   * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base
-   * UFS URI, and the Alluxio path from the base.
-   *
-   * The default implementation simply concatenates the path to the base URI. This should be
-   * overridden if a subclass needs alternate functionality.
+   * Concatenates the in-Alluxio path to the base UFS URI to generate the in-UFS URI for the file.
    *
    * @param ufsBaseUri the base {@link AlluxioURI} in the ufs
    * @param alluxioPath the path in Alluxio from the given base
    * @return the UFS {@link AlluxioURI} representing the Alluxio path
    */
-  public static AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
+  public static AlluxioURI resolveUfsUri(AlluxioURI ufsBaseUri, String alluxioPath) {
     return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
       false);
   }
