@@ -23,7 +23,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetWorkerIdPResponse;
-import alluxio.grpc.PreRegisterCommandType;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -266,25 +266,25 @@ public class BlockMasterTest {
 
     // New and clean(the Tier is clean without any Blocks) worker registration
     // New Worker will be report a IdUtils.EMPTY_CLUSTER_ID
-    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
-        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, 0);
-    assertPreRegisterInfo(exceptInfo1, PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID,
+    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 0);
+    assertPreRegisterInfo(exceptInfo1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will force clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.workerPreRegister(
-        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, 1);
-    assertPreRegisterInfo(exceptInfo2, PreRegisterCommandType.REGISTER_CLEAN_BLOCKS,
+    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 1);
+    assertPreRegisterInfo(exceptInfo2, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will not force clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.workerPreRegister(
-        IdUtils.EMPTY_CLUSTER_ID, NET_ADDRESS_1, 1);
-    assertPreRegisterInfo(exceptInfo3, PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID,
+    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 1);
+    assertPreRegisterInfo(exceptInfo3, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 
@@ -292,14 +292,14 @@ public class BlockMasterTest {
   public void restartedWorkerRegisterWithMaster() throws IOException {
     // Worker ( clusterId has been persisted) restarts normally
     // The restarted worker will report the same id as the current cluster
-    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
-        mCurrentClusterId, NET_ADDRESS_1, 1);
-    assertPreRegisterInfo(exceptInfo1, PreRegisterCommandType.ACK_REGISTER,
+    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, mCurrentClusterId, 1);
+    assertPreRegisterInfo(exceptInfo1, RegisterCommandType.ACK_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
-    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.workerPreRegister(
-        mCurrentClusterId, NET_ADDRESS_1, 0);
-    assertPreRegisterInfo(exceptInfo2, PreRegisterCommandType.ACK_REGISTER,
+    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, mCurrentClusterId, 0);
+    assertPreRegisterInfo(exceptInfo2, RegisterCommandType.ACK_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 
@@ -310,27 +310,27 @@ public class BlockMasterTest {
     // different with the current cluster
     String otherClusterId = UUID.randomUUID().toString();
 
-    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.workerPreRegister(
-        otherClusterId, NET_ADDRESS_1, 0);
-    assertPreRegisterInfo(exceptInfo1, PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID,
+    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, otherClusterId, 0);
+    assertPreRegisterInfo(exceptInfo1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.workerPreRegister(
-        otherClusterId, NET_ADDRESS_1, 1);
-    assertPreRegisterInfo(exceptInfo2, PreRegisterCommandType.REJECT_REGISTER,
+    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, otherClusterId, 1);
+    assertPreRegisterInfo(exceptInfo2, RegisterCommandType.REJECT_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.workerPreRegister(
-        otherClusterId, NET_ADDRESS_1, 1);
-    assertPreRegisterInfo(exceptInfo3, PreRegisterCommandType.REGISTER_CLEAN_BLOCKS,
+    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.getWorkerId(
+        NET_ADDRESS_1, otherClusterId, 1);
+    assertPreRegisterInfo(exceptInfo3, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 
   private void assertPreRegisterInfo(GetWorkerIdPResponse actual,
-      PreRegisterCommandType expectedCmd, String expectedCLusterId, long expectedWorkerId) {
-    assertEquals(actual.getPreRegisterCommandType(), expectedCmd);
+      RegisterCommandType expectedCmd, String expectedCLusterId, long expectedWorkerId) {
+    assertEquals(actual.getRegisterCommandType(), expectedCmd);
     assertEquals(actual.getClusterId(), expectedCLusterId);
     assertEquals(actual.getWorkerId(), expectedWorkerId);
   }
@@ -463,7 +463,7 @@ public class BlockMasterTest {
     Command heartBeat = mBlockMaster.workerHeartbeat(0, otherClusterId,
         null, null, null, null, null, mMetrics);
     assertEquals(Command.newBuilder()
-        .setCommandType(CommandType.PreRegisterAndRegister).build(), heartBeat);
+        .setCommandType(CommandType.Register).build(), heartBeat);
   }
 
   @Test

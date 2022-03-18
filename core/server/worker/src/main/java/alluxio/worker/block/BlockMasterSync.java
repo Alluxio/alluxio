@@ -21,6 +21,7 @@ import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
+import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -253,11 +254,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests re-registration
       case Register:
-        mWorkerId.set(mMasterClient.getId(mWorkerAddress));
-        registerWithMaster();
-        break;
-      case PreRegisterAndRegister:
-        mBlockWorker.preRegisterWithMaster(mWorkerAddress);
+        int blocksNum = mBlockWorker.getStoreMetaFull().getNumberOfBlocks();
+        GetWorkerIdPResponse response = mMasterClient.getId(mWorkerAddress, mClusterId.get(),
+            blocksNum);
+        mWorkerId.set(response.getWorkerId());
+        mClusterId.set(response.getClusterId());
         registerWithMaster();
         break;
       // Unknown request

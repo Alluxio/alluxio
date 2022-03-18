@@ -32,7 +32,7 @@ import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
-import alluxio.grpc.PreRegisterCommandType;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
@@ -138,17 +138,40 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Returns a worker id for a workers net address.
-   *
-   * @param address the net address to get a worker id for
-   * @return a worker id
+   * Registers with the Alluxio master. This should be called before the
+   * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
+   * can register with the current cluster.
+   * If it passes check ClusterId and workerId be returned
+   * @param address the worker WorkerNetAddress
+   * @param clusterId the cluster id of the worker
+   * @param blocksNum The number of blocks in the worker
+   * @return GetWorkerIdPResponse
    */
-  public long getId(final WorkerNetAddress address) throws IOException {
+  public GetWorkerIdPResponse getId(final WorkerNetAddress address, String clusterId, int blocksNum)
+      throws AlluxioStatusException {
+
+    // For compatibility, reuse the RPC of getWorkerID.
+    GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
+        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
+        .setBlocksNum(blocksNum).build();
+
     return retryRPC(() -> {
-      GetWorkerIdPRequest request =
-          GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
-      return mClient.getWorkerId(request).getWorkerId();
-    }, LOG, "GetId", "address=%s", address);
+      // For compatibility, reuse the RPC of getWorkerID.
+      GetWorkerIdPResponse response = mClient.getWorkerId(request);
+      // For compatibility,  If preRegister information is included,
+      // the Master will set hasExtendedRegisterInfo
+      if (response.hasClusterId()) {
+        return response;
+      } else {
+        // just set WorkerId
+        return GetWorkerIdPResponse.newBuilder()
+            .setWorkerId(response.getWorkerId())
+            .setClusterId(IdUtils.EMPTY_CLUSTER_ID)
+            .setRegisterCommandType(RegisterCommandType.ACK_REGISTER)
+            .build();
+      }
+    }, LOG, "getWorkerId", "clusterId=%s, blocksNum=%d",
+    clusterId, blocksNum);
   }
 
   /**
@@ -272,44 +295,6 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     LOG.info("Worker {} acquired lease after {} attempts: {}",
         workerId, retry.getAttemptCount(), response);
-  }
-
-  /**
-   * Registers with the Alluxio master. This should be called before the
-   * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
-   * can register with the current cluster.
-   * If it passes check ClusterId and workerId be returned
-   * @param clusterId the cluster id of the worker
-   * @param address the worker WorkerNetAddress
-   * @param blocksNum The number of blocks in the worker
-   * @return an optional command for the worker to execute
-   */
-  public GetWorkerIdPResponse preRegisterWithMaster(String clusterId,
-      final WorkerNetAddress address, int blocksNum)
-      throws AlluxioStatusException {
-
-    // For compatibility, reuse the RPC of getWorkerID.
-    GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
-        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address))
-        .setBlocksNum(blocksNum).build();
-
-    return retryRPC(() -> {
-      // For compatibility, reuse the RPC of getWorkerID.
-      GetWorkerIdPResponse response = mClient.getWorkerId(request);
-      // For compatibility,  If preRegister information is included,
-      // the Master will set hasExtendedRegisterInfo
-      if (response.hasClusterId()) {
-        return response;
-      } else {
-        // just set WorkerId
-        return GetWorkerIdPResponse.newBuilder()
-            .setWorkerId(response.getWorkerId())
-            .setClusterId(IdUtils.EMPTY_CLUSTER_ID)
-            .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
-            .build();
-      }
-    }, LOG, "getWorkerId", "clusterId=%s, blocksNum=%d",
-        clusterId, blocksNum);
   }
 
   /**

@@ -23,7 +23,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
@@ -53,16 +52,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the Cluster id
    */
   AtomicReference<String> getClusterId();
-
-  /**
-   * Registers with the Alluxio master. This should be called before the
-   *
-   * {@link BlockMasterSync#registerWithMaster}, The method used to check whether the worker
-   * @param address the worker address
-  preRegister with the Alluxio master. This should be called before the
-   * continuous heartbeat thread begins.
-   */
-  void preRegisterWithMaster(WorkerNetAddress address);
 
   /**
    * Aborts the temporary block created by the session.

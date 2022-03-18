@@ -236,7 +236,7 @@ message GetWorkerIdPRequest {
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
-  optional PreRegisterCommandType preRegisterCommandType = 2;
+  optional RegisterCommandType RegisterCommandType = 2;
   optional string clusterId = 3;
 }
 
@@ -253,7 +253,7 @@ message GetRegisterLeasePResponse {
   optional GetRegisterLeasePOptions options = 4;
 }
 
-enum PreRegisterCommandType {
+enum RegisterCommandType {
   UNKNOWN = 0;
   ACK_REGISTER = 1;
   REGISTER_PERSIST_CLUSTERID = 2;

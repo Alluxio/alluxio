@@ -297,9 +297,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       BlockMaster blockMaster1 =
           cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
       // Register worker 1
-      GetWorkerIdPResponse workerId1Response = blockMaster1.workerPreRegister(
-          IdUtils.EMPTY_CLUSTER_ID,
-          new alluxio.wire.WorkerNetAddress().setHost("host1"), 0);
+      GetWorkerIdPResponse workerId1Response = blockMaster1.getWorkerId(
+          new alluxio.wire.WorkerNetAddress().setHost("host1"),
+          IdUtils.EMPTY_CLUSTER_ID, 0);
       long workerId1a = workerId1Response.getWorkerId();
       String clusterId1a = workerId1Response.getClusterId();
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
@@ -307,9 +307,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           RegisterWorkerPOptions.getDefaultInstance());
 
       // Register worker 2
-      GetWorkerIdPResponse workerId2Response = blockMaster1.workerPreRegister(
-          IdUtils.EMPTY_CLUSTER_ID,
-          new alluxio.wire.WorkerNetAddress().setHost("host1"), 0);
+      GetWorkerIdPResponse workerId2Response = blockMaster1.getWorkerId(
+          new alluxio.wire.WorkerNetAddress().setHost("host1"),
+          IdUtils.EMPTY_CLUSTER_ID, 0);
       long workerId2a = workerId2Response.getWorkerId();
       String clusterId2a = workerId2Response.getClusterId();
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,

@@ -100,7 +100,7 @@
             ]
           },
           {
-            "name": "PreRegisterCommandType",
+            "name": "RegisterCommandType",
             "enum_fields": [
               {
                 "name": "UNKNOWN"
@@ -623,8 +623,8 @@
               },
               {
                 "id": 2,
-                "name": "preRegisterCommandType",
-                "type": "PreRegisterCommandType"
+                "name": "RegisterCommandType",
+                "type": "RegisterCommandType"
               },
               {
                 "id": 3,
@@ -1390,10 +1390,6 @@
               {
                 "name": "Persist",
                 "integer": 5
-              },
-              {
-                "name": "PreRegisterAndRegister",
-                "integer": 6
               }
             ]
           },

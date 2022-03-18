@@ -149,7 +149,7 @@ public class RpcBenchPreparationUtils {
               .setRpcPort(freePort++)
               .setWebPort(freePort++);
       GetWorkerIdPResponse response =
-          client.preRegisterWithMaster(IdUtils.EMPTY_CLUSTER_ID, address, 0);
+          client.getId(address, IdUtils.EMPTY_CLUSTER_ID, 0);
       LOG.info("Created worker ID {} on {}", response.getWorkerId(), address);
       preRegisterWorkerPool.offer(response);
     }

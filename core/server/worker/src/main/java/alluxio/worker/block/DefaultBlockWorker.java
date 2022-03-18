@@ -36,7 +36,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.PreRegisterCommandType;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -281,7 +281,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   public void handlePreRegisterInfo(GetWorkerIdPResponse response)
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
-    switch (response.getPreRegisterCommandType()) {
+    switch (response.getRegisterCommandType()) {
       case ACK_REGISTER:
         break;
       case REGISTER_PERSIST_CLUSTERID:
@@ -301,19 +301,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWorkerId.set(response.getWorkerId());
   }
 
-  @Override
-  public void preRegisterWithMaster(WorkerNetAddress address) {
+  private void getIdWithMaster(WorkerNetAddress address) {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     final AtomicReference<GetWorkerIdPResponse> response =
         new AtomicReference<>(GetWorkerIdPResponse.newBuilder()
-            .setPreRegisterCommandType(PreRegisterCommandType.UNKNOWN).build());
+            .setRegisterCommandType(RegisterCommandType.UNKNOWN).build());
     int blocksNum = getStoreMetaFull().getNumberOfBlocks();
 
     try {
       RetryUtils.retry("worker preRegisterWithMaster ",
           () -> {
             response.set(
-                blockMasterClient.preRegisterWithMaster(mClusterId.get(), address, blocksNum));
+                blockMasterClient.getId(address, mClusterId.get(), blocksNum));
           }, RetryUtils.defaultWorkerMasterClientRetry(
               ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
       handlePreRegisterInfo(response.get());
@@ -337,7 +336,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mAddress = address;
     mClusterId.set(getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
 
-    preRegisterWithMaster(mAddress);
+    getIdWithMaster(mAddress);
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mClusterId, "mWorkerId");

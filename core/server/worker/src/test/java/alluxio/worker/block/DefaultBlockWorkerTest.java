@@ -36,7 +36,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GetWorkerIdPResponse;
-import alluxio.grpc.PreRegisterCommandType;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -404,7 +404,7 @@ public class DefaultBlockWorkerTest {
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.ACK_REGISTER)
+        .setRegisterCommandType(RegisterCommandType.ACK_REGISTER)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
@@ -419,7 +419,7 @@ public class DefaultBlockWorkerTest {
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID)
+        .setRegisterCommandType(RegisterCommandType.REGISTER_PERSIST_CLUSTERID)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
 
     // the new cluster ID will be persisted
@@ -434,7 +434,7 @@ public class DefaultBlockWorkerTest {
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     String newClusterId = UUID.randomUUID().toString();
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.REGISTER_CLEAN_BLOCKS)
+        .setRegisterCommandType(RegisterCommandType.REGISTER_CLEAN_BLOCKS)
         .setClusterId(newClusterId).setWorkerId(mWorkerId1).build();
     mBlockWorker.handlePreRegisterInfo(response);
     verify(mBlockWorker, times(1)).reset();
@@ -446,7 +446,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void handlePreRegisterCommandRejectRegister() throws IOException {
     GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
-        .setPreRegisterCommandType(PreRegisterCommandType.REJECT_REGISTER).build();
+        .setRegisterCommandType(RegisterCommandType.REJECT_REGISTER).build();
     assertThrows(RuntimeException.class, () -> mBlockWorker.handlePreRegisterInfo(response));
   }
 

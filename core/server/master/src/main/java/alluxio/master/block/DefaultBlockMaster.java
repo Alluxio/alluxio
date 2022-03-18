@@ -36,7 +36,7 @@ import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.PreRegisterCommandType;
+import alluxio.grpc.RegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
@@ -1007,6 +1007,31 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public GetWorkerIdPResponse getWorkerId(WorkerNetAddress workerNetAddress,
+      String workerClusterId, int blocksNum) throws IOException {
+    // todo The return type may be the Alluxio class(such as WorkerMetaInfo)
+    //  instead of the GRPC class ?
+    LOG.info("worker {} PreRegister, workerClusterId {}, blocksNum {}",
+        workerNetAddress.getHost(), workerClusterId, blocksNum);
+
+    String curClusterId = getClusterId();
+    RegisterCommandType commandType =
+        checkWorker(curClusterId, workerClusterId, blocksNum);
+    long workerId = getWorkerId(workerNetAddress);
+    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
+        .setRegisterCommandType(commandType)
+        .setClusterId(curClusterId)
+        .setWorkerId(workerId)
+        .build();
+
+    LOG.info("worker {} ,PreRegister result: PreRegisterCommand {}, workerId {},"
+            + " current clusterId {}",
+        workerNetAddress.getHost(), response.getRegisterCommandType(),
+        response.getWorkerId(), response.getClusterId());
+    return response;
+  }
+
+  @Override
   public Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request) {
     return mRegisterLeaseManager.tryAcquireLease(request);
   }
@@ -1041,47 +1066,24 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mClusterId.set(clusterId);
   }
 
-  @Override
-  public GetWorkerIdPResponse workerPreRegister(String workerClusterId,
-      WorkerNetAddress workerNetAddress, int blocksNum) throws IOException {
-    LOG.info("worker {} PreRegister, workerClusterId {}, blocksNum {}",
-        workerNetAddress.getHost(), workerClusterId, blocksNum);
-
-    String curClusterId = getClusterId();
-    PreRegisterCommandType commandType =
-        checkWorker(curClusterId, workerClusterId, blocksNum);
-    long workerId = getWorkerId(workerNetAddress);
-    GetWorkerIdPResponse response = GetWorkerIdPResponse.newBuilder()
-        .setPreRegisterCommandType(commandType)
-        .setClusterId(curClusterId)
-        .setWorkerId(workerId)
-        .build();
-
-    LOG.info("worker {} ,PreRegister result: PreRegisterCommand {}, workerId {},"
-            + " current clusterId {}",
-        workerNetAddress.getHost(), response.getPreRegisterCommandType(),
-        response.getWorkerId(), response.getClusterId());
-    return response;
-  }
-
   /**
    * Check whether the Worker is a member of the current cluster and.
    * whether it may contain dirty data
    * @param curClusterId current cluster ID
    * @param workerClusterId worker report cluster ID
    * @param blocksNum The number of blocks in the worker
-   * @return instance of PreRegisterCommandType
+   * @return instance of RegisterCommandType
    */
-  private PreRegisterCommandType checkWorker(String curClusterId, String workerClusterId,
+  private RegisterCommandType checkWorker(String curClusterId, String workerClusterId,
       int blocksNum) {
     if (workerClusterId.equals(IdUtils.EMPTY_CLUSTER_ID)) {
       // A new Worker registers to the Master
       if (blocksNum == 0) {
         // The most common case: a new and clean Worker registers to the Master
-        return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
+        return RegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       } else {
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
-          return PreRegisterCommandType.REGISTER_CLEAN_BLOCKS;
+          return RegisterCommandType.REGISTER_CLEAN_BLOCKS;
         } else {
           // Possible cases:
           // - A Worker that does not correctly persist the clusterId registers to the Master,
@@ -1101,26 +1103,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           //
           //   The case 4 is is a situation that should be considered.
           //   In order to be compatible with the upgrade, the “PERSIST_CLUSTERID” will be return
-          return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
+          return RegisterCommandType.REGISTER_PERSIST_CLUSTERID;
         }
       }
     }
 
     if (workerClusterId.equals(curClusterId)) {
       // A Worker of the current cluster registers to the Master
-      return PreRegisterCommandType.ACK_REGISTER;
+      return RegisterCommandType.ACK_REGISTER;
     } else {
       // A Worker of the another cluster registers to the Master
       if (blocksNum == 0) {
         // Even if the worker belongs to another cluster,
         // because it does not have any Block, it will not mess with the data of the current cluster
         //, so  “PERSIST_CLUSTERID” will be return
-        return PreRegisterCommandType.REGISTER_PERSIST_CLUSTERID;
+        return RegisterCommandType.REGISTER_PERSIST_CLUSTERID;
       }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_CLEAN_DIRTY_WORKER)) {
-        return PreRegisterCommandType.REGISTER_CLEAN_BLOCKS;
+        return RegisterCommandType.REGISTER_CLEAN_BLOCKS;
       } else {
-        return PreRegisterCommandType.REJECT_REGISTER;
+        return RegisterCommandType.REJECT_REGISTER;
       }
     }
   }
@@ -1307,7 +1309,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
     if (!clusterId.equals(getClusterId())) {
-      return Command.newBuilder().setCommandType(CommandType.PreRegisterAndRegister).build();
+      return Command.newBuilder().setCommandType(CommandType.Register).build();
     }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {

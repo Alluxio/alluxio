@@ -195,6 +195,17 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getWorkerId(WorkerNetAddress workerNetAddress);
 
   /**
+   * Returns a GetWorkerIdPResponse for the given worker, creating one if the worker is new.
+   *
+   * @param workerNetAddress the worker {@link WorkerNetAddress}
+   * @param workerClusterId the worker {@link WorkerNetAddress}
+   * @param blocksNum the worker {@link WorkerNetAddress}
+   * @return the worker id for this worker
+   */
+  GetWorkerIdPResponse getWorkerId(WorkerNetAddress workerNetAddress,
+      String workerClusterId, int blocksNum) throws IOException;
+
+  /**
    * Return a cluster id.
    *
    * @return the cluster id for this worker
@@ -206,19 +217,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param clusterId the clusterId
    */
   void setClusterId(String clusterId);
-
-  /**
-   * worker pre registers with the master.
-   * Check whether the worker can be registered to the current cluster.
-   * return the registration command ,current cluster clusterId and worker id for the given worker.
-   *
-   * @param workerClusterId the cluster id of the worker registering
-   * @param workerNetAddress the worker {@link WorkerNetAddress}
-   * @param blocksNum The number of blocks in the worker
-   * @return the GetWorkerIdPResponse for this worker
-   */
-  GetWorkerIdPResponse workerPreRegister(String workerClusterId, WorkerNetAddress workerNetAddress,
-      int blocksNum) throws IOException;
 
   /**
    * Try to acquire a {@link RegisterLease} for the worker.

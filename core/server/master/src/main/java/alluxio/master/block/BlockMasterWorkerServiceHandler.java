@@ -131,24 +131,21 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
+    String clusterId;
+    int blocksNum;
     if (request.hasClusterId()) {
-      // For compatibility, reuse the RPC of getWorkerID
-      // Determine whether it is preRegistration by the extendedRegisterInfo flag
-      String clusterId = request.getClusterId();
-      int blocksNum = request.getBlocksNum();
-      RpcUtils.call(LOG,
-          (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-            // By the Flag, Let the Worker know that preRegister information is included
-            return mBlockMaster.workerPreRegister(
-                clusterId, GrpcUtils.fromProto(request.getWorkerNetAddress()), blocksNum);
-          }, "preRegisterWorker", "request=%s", responseObserver, request);
+      clusterId = request.getClusterId();
+      blocksNum = request.getBlocksNum();
     } else {
-      RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-        return GetWorkerIdPResponse.newBuilder().setWorkerId(mBlockMaster.getWorkerId(
-                GrpcUtils.fromProto(request.getWorkerNetAddress())))
-            .build();
-      }, "getWorkerId", "request=%s", responseObserver, request);
+      // Older versions of workers may not contain clusterId
+      // So for compatibility, generate the necessary parameters
+      clusterId = mBlockMaster.getClusterId();
+      blocksNum = 0;
     }
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+      return mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress()),
+          clusterId, blocksNum);
+    }, "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override
