@@ -47,14 +47,14 @@ public class TimeBoundBlockWriter extends BlockWriter {
    *
    * @param blockWriter the block writer
    * @param timeoutMs timeout in milliseconds
-   * @param timeoutThreads threads to execute read operations and timeout
+   * @param maxTimeoutThreads maximum threads to execute read operations and timeout
    */
-  public TimeBoundBlockWriter(BlockWriter blockWriter, long timeoutMs, int timeoutThreads)
+  public TimeBoundBlockWriter(BlockWriter blockWriter, long timeoutMs, int maxTimeoutThreads)
       throws IOException {
     mBlockWriter = blockWriter;
     mTimeoutMs = timeoutMs;
-    mExecutorService = new ThreadPoolExecutor(timeoutThreads,
-        timeoutThreads, 0L, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+    mExecutorService = new ThreadPoolExecutor(Math.min(4, maxTimeoutThreads),
+        maxTimeoutThreads, 0L, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     mTimeLimter = SimpleTimeLimiter.create(mExecutorService);
   }
 
@@ -94,7 +94,7 @@ public class TimeBoundBlockWriter extends BlockWriter {
       return mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new IOException(e);
+      throw new RuntimeException("Thread interrupted while writing block with timeout.", e);
     } catch (TimeoutException e) {
       Metrics.WRITE_TIMEOUT.inc();
       throw new IOException(e);

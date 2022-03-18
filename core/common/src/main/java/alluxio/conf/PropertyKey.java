@@ -3064,11 +3064,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_THREADS =
-      new Builder(Name.WORKER_CACHE_IO_TIMEOUT_THREADS)
-          .setDefaultValue("32")
+  public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_THREADS_MAX =
+      new Builder(Name.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX)
+          .setDefaultValue("1024")
           .setDescription("The number of threads to handle cache I/O operation timeout, "
-              + "when " + Name.WORKER_CACHE_IO_TIMEOUT_DURATION + " is positive.")
+              + "when " + Name.WORKER_CACHE_IO_TIMEOUT_DURATION + " is positive. "
+              + "Suggest setting this value to the maximum of "
+              + Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX
+              + " and " + Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -6738,8 +6741,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.heartbeat.timeout";
     public static final String WORKER_CACHE_IO_TIMEOUT_DURATION =
         "alluxio.worker.cache.io.timeout.duration";
-    public static final String WORKER_CACHE_IO_TIMEOUT_THREADS =
-        "alluxio.worker.cache.io.timeout.threads";
+    public static final String WORKER_CACHE_IO_TIMEOUT_THREADS_MAX =
+        "alluxio.worker.cache.io.timeout.threads.max";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";

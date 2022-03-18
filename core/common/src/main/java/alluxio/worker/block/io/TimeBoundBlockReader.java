@@ -46,14 +46,14 @@ public class TimeBoundBlockReader extends BlockReader {
    *
    * @param blockReader the block reader
    * @param timeoutMs timeout in milliseconds
-   * @param timeoutThreads threads to execute operation and timeout
+   * @param maxTimeoutThreads maximum threads to execute operation and timeout
    */
-  public TimeBoundBlockReader(BlockReader blockReader, long timeoutMs, int timeoutThreads)
+  public TimeBoundBlockReader(BlockReader blockReader, long timeoutMs, int maxTimeoutThreads)
       throws IOException {
     mBlockReader = blockReader;
     mTimeoutMs = timeoutMs;
-    mExecutorService = new ThreadPoolExecutor(timeoutThreads,
-        timeoutThreads, 0L, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+    mExecutorService = new ThreadPoolExecutor(Math.min(4, maxTimeoutThreads),
+        maxTimeoutThreads, 0L, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     mTimeLimter = SimpleTimeLimiter.create(mExecutorService);
   }
 
@@ -98,7 +98,7 @@ public class TimeBoundBlockReader extends BlockReader {
       return mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new IOException(e);
+      throw new RuntimeException("Thread interrupted while reading block with timeout.", e);
     } catch (TimeoutException e) {
       Metrics.READ_TIMEOUT.inc();
       throw new IOException(e);
