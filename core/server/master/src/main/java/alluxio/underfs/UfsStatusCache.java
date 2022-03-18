@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -265,7 +264,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public UfsStatus[] fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
-                                                     MountTable mountTable)
+       MountTable mountTable)
       throws InterruptedException, InvalidPathException {
     return fetchChildrenIfAbsent(rpcContext, path, mountTable, true);
   }
