@@ -101,6 +101,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+  private static final String CLUSTER_ID_KEY = "clusterId";
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
@@ -153,7 +154,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
-  private final BlockWorkerDB mBlockWorkerDB;
+  private final WorkerMetaStore mWorkerMetaStore;
 
   /**
    * Constructs a default block worker.
@@ -199,7 +200,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
-    mBlockWorkerDB = BlockWorkerDB.Factory.create(ServerConfiguration.global());
+    mWorkerMetaStore = WorkerMetaStore.Factory.create(ServerConfiguration.global());
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST, ","));
 
     Metrics.registerGauges(this);
@@ -226,9 +227,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @VisibleForTesting
-  AtomicReference<String> getOrDefaultClusterIdFromDB(String defaultValue) {
-    String clusterId = mBlockWorkerDB.getClusterId();
-    clusterId = clusterId.isEmpty() ? defaultValue : clusterId;
+  AtomicReference<String> getOrDefaultClusterIdFromMetaStore(String defaultValue) {
+    String clusterId = mWorkerMetaStore.get(CLUSTER_ID_KEY);
+    clusterId = clusterId == null ? defaultValue : clusterId;
     return new AtomicReference<>(clusterId);
   }
 
@@ -239,7 +240,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @VisibleForTesting
   void setClusterId(String clusterId) throws IOException {
-    mBlockWorkerDB.setClusterId(clusterId);
+    mWorkerMetaStore.set(CLUSTER_ID_KEY, clusterId);
   }
 
   private void SetClusterIdAllowFails(String clusterId) {
@@ -270,7 +271,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     cleanBlocks();
     clearMetrics();
     mHeartbeatReporter.ClearReport();
-    mBlockWorkerDB.reset();
+    mWorkerMetaStore.reset();
   }
 
   /**
@@ -334,7 +335,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
-    mClusterId.set(getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+    mClusterId.set(getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
 
     getIdWithMaster(mAddress);
 

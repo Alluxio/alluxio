@@ -395,7 +395,7 @@ public class DefaultBlockWorkerTest {
   void setPersistenceConf() {
     // write permission is required,
     // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
-    ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH,
+    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH,
         mTestFolder.getRoot().getAbsolutePath());
   }
 
@@ -410,7 +410,7 @@ public class DefaultBlockWorkerTest {
     // Only workerId will be set, ClusterId will not be Set, So it will get EMPTY_CLUSTER_ID
     mBlockWorker.handleRegisterInfo(response);
     assertEquals(IdUtils.EMPTY_CLUSTER_ID,
-        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(1L, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -425,7 +425,7 @@ public class DefaultBlockWorkerTest {
     // the new cluster ID will be persisted
     mBlockWorker.handleRegisterInfo(response);
     assertEquals(newClusterId,
-        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -439,7 +439,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.handleRegisterInfo(response);
     verify(mBlockWorker, times(1)).reset();
     assertEquals(newClusterId,
-        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
     assertEquals(mWorkerId1, (long) mBlockWorker.getWorkerId().get());
   }
 
@@ -453,7 +453,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void GetClusterIdFromEmpty() {
     assertEquals(IdUtils.EMPTY_CLUSTER_ID,
-        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test
@@ -461,7 +461,7 @@ public class DefaultBlockWorkerTest {
     String mClusterID = java.util.UUID.randomUUID().toString();
     mBlockWorker.setClusterId(mClusterID);
     assertEquals(mClusterID,
-        mBlockWorker.getOrDefaultClusterIdFromDB(IdUtils.EMPTY_CLUSTER_ID).get());
+        mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
   }
 
   @Test

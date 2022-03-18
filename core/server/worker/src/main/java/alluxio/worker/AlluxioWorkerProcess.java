@@ -319,7 +319,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         LOG.warn("BlockWorker clsuter ID: {} "
                 + "This may be caused by the worker process not be able to persist the clusterid"
                 + " to the file {}", IdUtils.EMPTY_CLUSTER_ID,
-            ServerConfiguration.get(PropertyKey.WORKER_CLUSTERID_PATH));
+            ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH));
       }
       return true;
     } catch (InterruptedException e) {

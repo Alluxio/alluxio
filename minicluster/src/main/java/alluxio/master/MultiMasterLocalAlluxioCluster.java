@@ -101,7 +101,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
     Path temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());
-    ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, temTestPath);
+    ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH, temTestPath);
   }
 
   @Override

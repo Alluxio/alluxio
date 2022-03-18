@@ -31,22 +31,22 @@ import java.util.UUID;
  * Persistent info for worker.
  */
 @NotThreadSafe
-public interface BlockWorkerDB {
+public interface WorkerMetaStore {
   /**
-   * Return the clusterId saved in the persistent storage, if the cluster ID not found
-   * return an empty String.
-   *
-   * @return a cluster id
+   * @param key the key whose associated value is to be returned
+   * @return Returns the value to which the specified key is mapped,
+   * or null if this map contains no mapping for the key.
    */
-  String getClusterId();
+  String get(String key);
 
   /**
-   * Set the cluster id to the persistent storage.
+   * Associates the specified value with the specified key in this map.
    *
-   * @param clusterId the cluster id to persist
-   * @throws IOException I/O error if persist clusterId fails
+   * @param key key with which the specified value is to be associated
+   * @param value value to be associated with the specified key
+   * @throws IOException I/O error if persist fails
    */
-  void setClusterId(String clusterId) throws IOException;
+  void set(String key, String value) throws IOException;
 
   /**
    * Resets persistent storage, clear all information.
@@ -62,45 +62,45 @@ public interface BlockWorkerDB {
     private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerFactory.class);
 
     /**
-     * Creates an instance of {@link BlockWorkerDB}.
+     * Creates an instance of {@link WorkerMetaStore}.
      * @param conf : the configuration to use
-     * @return an instance of BlockWorkerDB
+     * @return an instance of WorkerMetaStore
      * @throws RuntimeException RuntimeException if fails
      */
-    public static BlockWorkerDB create(AlluxioConfiguration conf) {
+    public static WorkerMetaStore create(AlluxioConfiguration conf) {
       // Compatibility test, the test env does not have ${ALLUXIO_HOME} dir write permissions
       if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)
-          && !ServerConfiguration.isSetByUser(PropertyKey.WORKER_CLUSTERID_PATH)) {
+          && !ServerConfiguration.isSetByUser(PropertyKey.WORKER_METASTORE_PATH)) {
         Path temTestPath;
         try {
           temTestPath = Files.createTempDirectory("test-" + UUID.randomUUID());
         } catch (IOException e) {
           throw new RuntimeException(
-                  "DefaultBlockWorkerDB create test temporary clusterId file failed", e);
+                  "WorkerMetaStore create test temporary a file failed", e);
         }
-        ServerConfiguration.set(PropertyKey.WORKER_CLUSTERID_PATH, temTestPath.toString());
+        ServerConfiguration.set(PropertyKey.WORKER_METASTORE_PATH, temTestPath.toString());
       }
 
       String defaultPath = PathUtils.concatPath(
-          conf.get(PropertyKey.WORKER_CLUSTERID_PATH), CLUSTERID_FILE);
+          conf.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE);
       try {
         // Try to create a DB file in the location specified by the configuration
-        return new DefaultBlockWorkerDB(defaultPath);
+        return new DefaultWorkerMetaStore(defaultPath);
       } catch (IOException e) {
-        LOG.warn("DefaultBlockWorkerDB create failed");
+        LOG.warn("WorkerMetaStore create failed");
         if (conf.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
-          throw new RuntimeException("DefaultBlockWorkerDB create clusterId file "
+          throw new RuntimeException("WorkerMetaStore create a file "
               + defaultPath + " failed", e);
         } else {
           try {
-            // Allows not to persist clusterId,
+            // Allows not to persist,
             // so use a temporary directory to ensure that the program can run normally
-            LOG.info("Try to create a DB file in the system temporary directory");
+            LOG.info("Try to create a file in the system temporary directory");
             Path tmpPath = Files.createTempDirectory("tmp-" + UUID.randomUUID());
-            return new DefaultBlockWorkerDB(PathUtils.concatPath(tmpPath, CLUSTERID_FILE));
+            return new DefaultWorkerMetaStore(PathUtils.concatPath(tmpPath, CLUSTERID_FILE));
           } catch (IOException ioException) {
             throw new RuntimeException(
-                "DefaultBlockWorkerDB create temporary clusterId file failed", e);
+                "WorkerMetaStore create temporary a file failed", e);
           }
         }
       }

@@ -3931,8 +3931,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_CLUSTERID_PATH =
-      new Builder(Name.WORKER_CLUSTERID_PATH)
+  public static final PropertyKey WORKER_METASTORE_PATH =
+      new Builder(Name.WORKER_METASTORE_PATH)
           .setDefaultValue(String.format("${%s}/worker_meta", Name.HOME))
           .setDescription("The path used to save the info such as "
               + "the cluster ID which the worker belongs.")
@@ -6896,8 +6896,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
-    public static final String WORKER_CLUSTERID_PATH =
-        "alluxio.worker.clusterid.path";
+    public static final String WORKER_METASTORE_PATH =
+        "alluxio.worker.metastore.path";
     public static final String WORKER_MUST_PRESIST_CLUSTERID =
         "alluxio.worker.must.presist.clusterid";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";

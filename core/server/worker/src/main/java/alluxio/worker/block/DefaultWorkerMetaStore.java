@@ -15,7 +15,6 @@ import static alluxio.Constants.CLUSTERID_FILE;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.metrics.MetricsConfig;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -38,35 +37,22 @@ import java.util.Properties;
  * persistence worker info to a file.
  */
 @NotThreadSafe
-public class DefaultBlockWorkerDB implements BlockWorkerDB {
-  private static final String CLUSTER_ID_KEY = "clusterId";
-  private static final Logger LOG = LoggerFactory.getLogger(MetricsConfig.class);
+public class DefaultWorkerMetaStore implements WorkerMetaStore {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerMetaStore.class);
   /*Use Properties to persistence info */
   final Properties mProperties;
   /*Properties file path */
   final String mFile;
-  boolean mIsInit;
 
-  DefaultBlockWorkerDB(String path) throws IOException {
+  DefaultWorkerMetaStore(String path) throws IOException {
     mProperties = new Properties();
     mFile = path;
-    mIsInit = false;
-    initFile(); // If the DB file does not exist, it will be created
+    initFile(); // If the file does not exist, it will be created
   }
 
-  DefaultBlockWorkerDB() throws IOException {
+  DefaultWorkerMetaStore() throws IOException {
     this(PathUtils.concatPath(
-        ServerConfiguration.get(PropertyKey.WORKER_CLUSTERID_PATH), CLUSTERID_FILE));
-  }
-
-  @Override
-  public String getClusterId() {
-    return get(CLUSTER_ID_KEY);
-  }
-
-  @Override
-  public void setClusterId(String clusterId) throws IOException {
-    set(CLUSTER_ID_KEY, clusterId);
+        ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE));
   }
 
   @Override
@@ -92,10 +78,11 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
    * @param key the property key
    * @return the value in this property list with the specified key value
    */
-  private String get(String key) {
+  @Override
+  public String get(String key) {
     Preconditions.checkNotNull(key, "get");
 
-    String value = "";
+    String value = null;
     if (Files.exists(Paths.get(mFile))) {
       try (InputStream is = new FileInputStream(mFile)) {
         mProperties.load(is);
@@ -104,7 +91,7 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
         LOG.error("Failed to read file.", e);
       }
     }
-    return (value == null) ? "" : value;
+    return value;
   }
 
   /**
@@ -114,7 +101,8 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
    * @param value the value corresponding to key
    * @throws IOException I/O error if create or write file failed
    */
-  private void set(String key, String value) throws IOException {
+  @Override
+  public void set(String key, String value) throws IOException {
     Preconditions.checkNotNull(key, "set");
     Preconditions.checkNotNull(value, "set");
 
@@ -128,10 +116,6 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
   }
 
   private void initFile() throws IOException {
-    if (mIsInit) {
-      return;
-    }
-
     if (!Files.exists(Paths.get(mFile))) {
       try {
         FileUtils.createFile(mFile);
@@ -140,6 +124,5 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
         throw new IOException("Failed to create file", e);
       }
     }
-    mIsInit = true;
   }
 }
