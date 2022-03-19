@@ -226,8 +226,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
+    final int flags = fi.flags.get();
+    OpenAction openAction = AlluxioFuseOpenUtils.getOpenAction(flags);
     return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
-        "Fuse.Create", "path=%s,mode=%o", path, mode);
+        "Fuse.Create", "path=%s,mode=%o,flags=0x%x(%s)", path, mode, flags, openAction.name());
   }
 
   private int createInternal(String path, long mode, FuseFileInfo fi) {
@@ -480,21 +482,32 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     final long fd = fi.fh.get();
-    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi, fd),
-        "Fuse.Read", "path=%s,fd=%d,size=%d,offset=%d",
-        path, fd, size, offset);
-  }
-
-  private int readInternal(
-      String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi, long fd) {
+//    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi, fd),
+//        "Fuse.Read", "path=%s,fd=%d,size=%d,offset=%d",
+//        path, fd, size, offset);
+//  }
+//
+//  private int readInternal(
+//      String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi, long fd) {
     MetricsSystem.counter(MetricKey.FUSE_BYTES_TO_READ.getName()).inc(size);
     final int sz = (int) size;
     int nread = 0;
     int rd = 0;
     final int flags = fi.flags.get();
 
+    SeekableAlluxioFileOutStream stream = null;
     if (mReadWriteOpenFileEntries.get(fd) != null) {
-      SeekableAlluxioFileOutStream stream = mReadWriteOpenFileEntries.get(fd);
+      stream = mReadWriteOpenFileEntries.get(fd);
+    } else {
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+      if (ce != null) {
+        FileOutStream out = ce.getOut();
+        if (out instanceof SeekableAlluxioFileOutStream) {
+          stream = (SeekableAlluxioFileOutStream) out;
+        }
+      }
+    }
+    if (stream != null) {
       try {
         synchronized (stream) {
           stream.seek(offset);
@@ -510,10 +523,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (is == null) {
         if (AlluxioFuseOpenUtils.getOpenAction(flags) == OpenAction.READ_WRITE) {
           LOG.error(String.format("Alluxio only supports read-only or write-only. "
-              + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
+              + "Path %s (fd %d) is opened with flag 0x%x for reading and writing concurrently. "
               + "Cannot find stream for reading may because "
               + "open with O_RDWR is treated as write-only. ",
-              path, flags));
+              path, fd, flags));
         } else {
           LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
         }
@@ -548,13 +561,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
     final long fd = fi.fh.get();
-    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi, fd),
-        "Fuse.Write", "path=%s,fd=%d,size=%d,offset=%d",
-        path, fd, size, offset);
-  }
-
-  private int writeInternal(
-      String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi, long fd) {
+//    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi, fd),
+//        "Fuse.Write", "path=%s,fd=%d,size=%d,offset=%d",
+//        path, fd, size, offset);
+//  }
+//
+//  private int writeInternal(
+//      String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi, long fd) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Failed to write {}: Cannot write more than {}", path, Integer.MAX_VALUE);
       return ErrorCodes.EIO();
