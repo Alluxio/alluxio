@@ -249,3 +249,7 @@
 0.6.38
 
 - Fix MOUNT_POINT env in fuse daemonset
+
+0.6.39
+
+- Fix csi controller rbac rule not specifying namespace.
