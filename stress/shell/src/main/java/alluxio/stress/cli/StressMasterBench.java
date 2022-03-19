@@ -72,7 +72,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   private FileSystem[] mCachedFs;
 
   /** In case the Alluxio Native API is used,  use the following instead. */
-  private alluxio.client.file.FileSystem[] mCachedNativeFs;
+  protected alluxio.client.file.FileSystem[] mCachedNativeFs;
 
   /**
    * Creates instance.
