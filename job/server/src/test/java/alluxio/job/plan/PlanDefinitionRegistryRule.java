@@ -11,12 +11,12 @@
 
 package alluxio.job.plan;
 
+import alluxio.AlluxioMockUtil;
 import alluxio.job.JobConfig;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.powermock.reflect.Whitebox;
 
 import java.util.Map;
 
@@ -43,7 +43,7 @@ public final class PlanDefinitionRegistryRule implements TestRule {
       public void evaluate() throws Throwable {
         @SuppressWarnings("unchecked")
         Map<Class<?>, PlanDefinition<?, ?, ?>> registry =
-            Whitebox.getInternalState(PlanDefinitionRegistry.INSTANCE, Map.class);
+            AlluxioMockUtil.getInternalState(PlanDefinitionRegistry.INSTANCE, "mDefinitions");
         registry.put(mConfig, mDefinition);
         try {
           statement.evaluate();
