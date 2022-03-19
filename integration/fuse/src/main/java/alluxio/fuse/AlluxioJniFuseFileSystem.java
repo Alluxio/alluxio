@@ -1034,6 +1034,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (size == status.getLength()) {
         return 0;
       }
+      if (ce.getOut() instanceof SeekableAlluxioFileOutStream) {
+        SeekableAlluxioFileOutStream stream = (SeekableAlluxioFileOutStream) ce.getOut();
+        try {
+          stream.setLength(size);
+          return 0;
+        } catch (IOException e) {
+          LOG.error("Failed to truncate {} to non-zero size {}", path, size, e);
+          return -ErrorCodes.EIO();
+        }
+      }
       LOG.error("Cannot truncate file {} to non-zero size {}", path, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
