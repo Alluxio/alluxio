@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -126,10 +127,14 @@ public final class MetaMasterClientServiceHandler
             }
             break;
           case RAFT_ADDRESSES:
-            if (ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
-              masterInfo.addAllRaftAddress(
-                  Arrays.asList(ServerConfiguration.get(
-                      PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES).split(",")));
+            if (mMetaMaster.getMasterContext().getJournalSystem() instanceof RaftJournalSystem) {
+              List<String> raftAddresses =
+                  ((RaftJournalSystem) mMetaMaster.getMasterContext().getJournalSystem())
+                      .getQuorumServerInfoList().stream().map(info -> String.format("%s:%d",
+                          info.getServerAddress().getHost(),
+                          info.getServerAddress().getRpcPort()))
+                      .collect(Collectors.toList());
+              masterInfo.addAllRaftAddress(raftAddresses);
             }
             break;
           case RAFT_JOURNAL:

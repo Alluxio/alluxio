@@ -16,6 +16,7 @@ import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.hamcrest.CoreMatchers;
@@ -25,7 +26,13 @@ import org.junit.Test;
 /**
  * Tests for report command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    confParams = {
+        PropertyKey.Name.MASTER_JOURNAL_TYPE, "EMBEDDED",
+        PropertyKey.Name.MASTER_EMBEDDED_JOURNAL_PORT, ReportCommandIntegrationTest.JOURNAL_PORT})
 public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest {
+  static final String JOURNAL_PORT = "0";
+
   @Test
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();
@@ -64,6 +71,10 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
         "Version: " + ProjectConstants.VERSION));
     Assert.assertThat(output, CoreMatchers.containsString(
         "Zookeeper Enabled: false"));
+    Assert.assertThat(output, CoreMatchers.containsString("Raft-based Journal: true"));
+    Assert.assertThat(output, CoreMatchers.containsString("Raft Journal Addresses:"));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        mLocalAlluxioCluster.getHostname() + ":" + JOURNAL_PORT));
 
     // Check if block master values are available
     Assert.assertThat(output, CoreMatchers.containsString("Live Workers: 1"));
