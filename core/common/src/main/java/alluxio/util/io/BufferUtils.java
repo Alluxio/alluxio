@@ -39,7 +39,7 @@ public final class BufferUtils {
   private static final int TRANSFER_BUFFER_SIZE = 4 * Constants.MB;
   private static volatile Method sCleanerCleanMethod;
   private static volatile Method sByteBufferCleanerMethod;
-  private static Class sUnsafeClass;
+  private static volatile Class sUnsafeClass;
 
   /**
    * Converts a byte to an integer.
