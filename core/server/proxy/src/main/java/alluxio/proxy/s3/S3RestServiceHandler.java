@@ -29,8 +29,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.proxy.s3.signature.AWSSignatureProcessor;
-import alluxio.proxy.s3.signature.AWSV4AuthValidator;
-import alluxio.proxy.s3.signature.S3SecretManager;
 import alluxio.proxy.s3.signature.SignatureProcessor;
 import alluxio.security.User;
 import alluxio.proxy.s3.signature.S3Auth;
@@ -94,7 +92,6 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
-  private S3SecretManager mSecretManager;
   private SignatureProcessor mSignatureProcessor;
 
   @Context
@@ -122,7 +119,6 @@ public final class S3RestServiceHandler {
   public String getUser(String authorization) throws S3Exception {
     if (S3RestUtils.isAuthenticationEnabled(mSConf)) {
       mSignatureProcessor = new AWSSignatureProcessor(mRequestContext);
-      mSecretManager =  S3SecretManager.Factory.create(mSConf);
       return getUserFromSignature();
     } else {
       return getUserFromAuthorization(authorization);
@@ -151,9 +147,16 @@ public final class S3RestServiceHandler {
    * @throws S3Exception
    */
   public boolean validateAuth(S3Auth s3Auth) throws S3Exception {
-    String secret = mSecretManager.getS3UserSecretString(s3Auth.getAccessID());
-    return AWSV4AuthValidator.validateRequest(s3Auth.getStringTosSign(),
-            s3Auth.getSignature(), secret);
+
+    //At present, there is no clear secret acquisition strategy.
+    //After determining the method for getting secret, the
+    //following method can be called for authentication:
+    //  return AWSV4AuthValidator.validateRequest(
+    //            s3Auth.getStringTosSign(),
+    //            s3Auth.getSignature(),
+    //            secret);
+
+    return true;
   }
 
   /**
