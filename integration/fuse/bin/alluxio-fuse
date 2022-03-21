@@ -40,7 +40,7 @@ mount_fuse() {
     full_mount_option="big_writes"
   fi
 
-  if [[ ${NO_DAEMON} -eq "1" ]]; then
+  if [[ ${NO_DAEMON} = true ]]; then
     ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
   fi
 
@@ -49,7 +49,7 @@ mount_fuse() {
     -o ${full_mount_option} \
     -m ${mount_point} \
     -r ${alluxio_root}"
-  if [[ ${STACK_FS} -eq "1" ]]; then
+  if [[ ${STACK_FS} = true ]]; then
     stackfs_mount_option=`echo "${full_mount_option}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g'`
 
     cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
@@ -63,7 +63,7 @@ mount_fuse() {
     echo "Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\" with options=\"${full_mount_option}\""
   fi
 
-  if [[ ${NO_DAEMON} -eq "1" ]]; then
+  if [[ ${NO_DAEMON} = true ]]; then
     exec ${cmd}
   else
     (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
@@ -87,29 +87,48 @@ umount_fuse() {
   if [[ -z ${fuse_pid} ]]; then
     echo "${mount_point} not mounted" >&2
     return 1
-  else
-    kill ${fuse_pid}
-    local maxWait=120
-    local cnt=${maxWait}
-    while kill -0 ${fuse_pid} > /dev/null 2>&1; do
-      if [[ ${cnt} -gt 1 ]]; then
-        # still not dead, wait
-        cnt=$(expr ${cnt} - 1)
-        sleep 1
-      elif [[ "${SOFT_KILL_OPT}" = true ]] ; then
-        # waited long enough, giving up umount
-        echo "Failed to umount fuse process ["${fuse_pid}"] after waiting for "${maxWait}" seconds. Fuse device is busy and soft kill option -s is specified." >&2
-        return 1
-      else
-        # waited long enough, forcibly kill the process
-        echo "Fuse process [${fuse_pid}] did not complete after "${maxWait}" seconds, forcibly killing it." >&2
-        kill -9 ${fuse_pid} 2> /dev/null
-        break;
-      fi
-    done
-    echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
-    return 0
   fi
+  if [[ "${FORCE_KILL_OPT}" = true ]] ; then
+    kill -9 ${fuse_pid} 2> /dev/null
+    echo "Forcibly killed fuse process ${fuse_pid}"
+    umount -f ${mount_point} 2> /dev/null
+    if [[ $? -ne 0 ]]; then
+      fusermount -u -z ${mount_point} 2> /dev/null
+    fi
+    if [[ $? -ne 0 ]]; then
+      echo "Failed to umount ${mount_point}"
+      return 1
+    else
+      echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
+      return 0
+    fi
+  fi
+
+  kill ${fuse_pid}
+  echo "Terminating fuse process ${fuse_pid}"
+  if [[ -z "${wait_time}" ]]; then
+    wait_time=120
+  fi  
+  local cnt=${wait_time}
+  while kill -0 ${fuse_pid} > /dev/null 2>&1; do
+    if [[ ${cnt} -gt 1 ]]; then
+      # still not dead, wait
+      printf '.'
+      cnt=$(expr ${cnt} - 2)
+      sleep 2
+    else
+      printf '\n'
+      echo "Failed to kill fuse process [${fuse_pid}] after "${wait_time}" seconds. " >&2
+      echo "Fuse process may still in the exiting process if \"alluxio.fuse.umount.timeout\" is bigger than ${wait_time} seconds. " >&2
+      echo "Fuse process may not be able to exit when the fuse device is busy (have ongoing reading/writing operations). " >&2
+      echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for more details. " >&2
+      echo "Run \"alluxio-fuse umount -f <mount_point>\" if needed to forcibly kill the alluxio fuse process and fuse mount point. " >&2
+      return 1
+    fi
+  done
+  printf '\n'
+  echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
+  return 0
 }
 
 fuse_stat() {
@@ -157,9 +176,10 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
 -s \tstackFS. This launches StackFS process for testing purpose"
 
 UMOUNT_USAGE="
-Usage:\n\talluxio-fuse umount [-s] <mount_point>\n\tuse mount stat to show mount points
+Usage:\n\talluxio-fuse umount [-f] [-w <umount wait timeout>] <mount_point>\n\tuse mount stat to show mount points
 
--s \tif '-s' specified, fuse process won't be forcibly killed if fuse device is busy."
+-f \tif '-f' specified, fuse process will be forcibly killed even if fuse device is busy
+-w \tumount wait timeout in seconds. Timeout to wait for fuse process to exit when '-f' is not set. Default is 120"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
@@ -181,10 +201,10 @@ case $1 in
           mount_option=${OPTARG}
           ;;
         n)
-          NO_DAEMON="1"
+          NO_DAEMON=true
           ;;
         s)
-          STACK_FS="1"
+          STACK_FS=true
           ;;
         *)
           echo -e "${MOUNT_USAGE}" >&2
@@ -210,10 +230,13 @@ case $1 in
     ;;
   umount|unmount)
     shift
-      while getopts "s" option; do
+      while getopts "w:f" option; do
         case "${option}" in
-          s)
-            SOFT_KILL_OPT=true
+          w)
+            wait_time=${OPTARG}
+            ;;
+          f)
+            FORCE_KILL_OPT=true
             ;;
           *)
           echo -e "${UMOUNT_USAGE}" >&2
