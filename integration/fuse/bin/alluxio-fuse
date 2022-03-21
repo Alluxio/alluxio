@@ -81,27 +81,19 @@ mount_fuse() {
   fi
 }
 
-umount_fuse() {
+kill_and_umount_fuse() {
   local mount_point=${1%/}
   local fuse_pid=$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')
   if [[ -z ${fuse_pid} ]]; then
+    umount_fuse
     echo "${mount_point} not mounted" >&2
     return 1
   fi
   if [[ "${FORCE_KILL_OPT}" = true ]] ; then
     kill -9 ${fuse_pid} 2> /dev/null
     echo "Forcibly killed fuse process ${fuse_pid}"
-    umount -f ${mount_point} 2> /dev/null
-    if [[ $? -ne 0 ]]; then
-      fusermount -u -z ${mount_point} 2> /dev/null
-    fi
-    if [[ $? -ne 0 ]]; then
-      echo "Failed to umount ${mount_point}"
-      return 1
-    else
-      echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
-      return 0
-    fi
+    umount_fuse
+    return $?
   fi
 
   kill ${fuse_pid}
@@ -129,6 +121,28 @@ umount_fuse() {
   printf '\n'
   echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
   return 0
+}
+
+umount_fuse() {
+  # TODO(lu) check if fuse is mounted before umounting
+  umount ${mount_point} 2> /dev/null
+  success_msg="Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})"
+  if [[ $? -eq 0 ]]; then
+    echo "${success_msg}"
+    return 0
+  fi
+  fusermount -u -z ${mount_point} 2> /dev/null
+  if [[ $? -eq 0 ]]; then
+    echo "${success_msg}"
+    return 0
+  fi
+  umount -f ${mount_point} 2> /dev/null
+  if [[ $? -eq 0 ]]; then
+    echo "${success_msg}"
+    return 0
+  fi
+  echo "Failed to umount fuse mount point ${mount_point}"
+  return 1
 }
 
 fuse_stat() {
@@ -246,7 +260,7 @@ case $1 in
       done
     shift $((${OPTIND} - 1))
     if [[ $# -eq 1 ]]; then
-      umount_fuse $1
+      kill_and_umount_fuse $1
       exit $?
     fi
     echo -e "${UMOUNT_USAGE}" >&2
