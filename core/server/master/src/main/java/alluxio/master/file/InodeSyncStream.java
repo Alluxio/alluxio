@@ -564,15 +564,16 @@ public class InodeSyncStream {
         if (fileNotFound) {
           ufsFpParsed = Fingerprint.INVALID_FINGERPRINT;
         } else if (cachedStatus == null) {
-          ufsFpParsed = ufs.getParsedFingerprint(ufsUri.toString());
+          ufsFpParsed =
+              (Fingerprint) getFromUfs(() -> ufs.getParsedFingerprint(ufsUri.toString()));
         } else {
           // When the status is cached
           if (!mFsMaster.isAclEnabled()) {
             ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
           } else {
             Pair<AccessControlList, DefaultAccessControlList> aclPair =
-                    (Pair<AccessControlList, DefaultAccessControlList>)
-                            getFromUfs(() -> ufs.getAclPair(ufsUri.toString()));
+                (Pair<AccessControlList, DefaultAccessControlList>)
+                    getFromUfs(() -> ufs.getAclPair(ufsUri.toString()));
             if (aclPair == null || aclPair.getFirst() == null
                 || !aclPair.getFirst().hasExtended()) {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
@@ -606,7 +607,7 @@ public class InodeSyncStream {
               builder.setGroup(group);
             }
             SetAttributeContext ctx = SetAttributeContext.mergeFrom(builder)
-                    .setUfsFingerprint(ufsFpParsed.serialize());
+                .setUfsFingerprint(ufsFpParsed.serialize());
             mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs, ctx);
           }
         }

@@ -137,7 +137,7 @@ public final class Fingerprint {
       return null;
     }
     if (Constants.INVALID_UFS_FINGERPRINT.equals(input)) {
-      return new Fingerprint(Collections.emptyMap());
+      return INVALID_FINGERPRINT;
     }
     Map<String, String> kv = Splitter.on(TAGDELIMTER).trimResults().omitEmptyStrings()
             .withKeyValueSeparator(KVDELIMTER).split(input);
