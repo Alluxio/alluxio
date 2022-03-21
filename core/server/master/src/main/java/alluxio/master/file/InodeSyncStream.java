@@ -12,7 +12,6 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -574,7 +573,8 @@ public class InodeSyncStream {
             Pair<AccessControlList, DefaultAccessControlList> aclPair =
                     (Pair<AccessControlList, DefaultAccessControlList>)
                             getFromUfs(() -> ufs.getAclPair(ufsUri.toString()));
-            if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
+            if (aclPair == null || aclPair.getFirst() == null
+                || !aclPair.getFirst().hasExtended()) {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
             } else {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus,
