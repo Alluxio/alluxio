@@ -76,9 +76,9 @@ public class DistributedCommandsStatsTest extends JobShellTest {
   @Test
   public void testCompleteStats() throws Exception {
     final int length = 10;
-    FileSystemTestUtils.createByteFile(sFileSystem, "/mnt/test", WritePType.THROUGH, length);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/test", WritePType.THROUGH, length);
 
-    long jobId = sJobMaster.run(new LoadConfig("/mnt/test", 1, Collections.EMPTY_SET,
+    long jobId = sJobMaster.run(new LoadConfig("/test", 1, Collections.EMPTY_SET,
             Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, false));
 
     JobTestUtils
@@ -90,7 +90,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     assertEquals(String.format("ID: %s", jobId), output[0]);
     assertEquals(String.format("Name: Load"), output[1]);
     assertTrue(output[2].contains("Description: LoadConfig"));
-    assertTrue(output[2].contains("/mnt/test"));
+    assertTrue(output[2].contains("/test"));
     assertEquals("Status: COMPLETED", output[3]);
     assertEquals("Task 0", output[4]);
     assertTrue(output[5].contains("\tWorker: "));
