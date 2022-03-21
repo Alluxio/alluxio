@@ -595,7 +595,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
 
         @Override
         public String methodName() {
-          return "GetFingerprint";
+          return "GetParsedFingerprint";
         }
 
         @Override

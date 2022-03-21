@@ -1529,7 +1529,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+          ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
@@ -2369,7 +2369,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufsStatus == null) {
-            ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+            ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
           } else {
             ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
           }
@@ -3787,7 +3787,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               context.setUfsFingerprint(fp.serialize());
             } else {
               // Need to retrieve the fingerprint from ufs.
-              context.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+              context.setUfsFingerprint(ufs.getParsedFingerprint(ufsUri).serialize());
             }
           }
         }
@@ -4218,7 +4218,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
                 }
               }
-              builder.setUfsFingerprint(ufs.getFingerprint(ufsPath));
+              builder.setUfsFingerprint(ufs.getParsedFingerprint(ufsPath).serialize());
             }
 
             mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
