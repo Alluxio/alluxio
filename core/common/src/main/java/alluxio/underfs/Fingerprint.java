@@ -38,6 +38,8 @@ public final class Fingerprint {
   /** These tags are all the content tags in the fingerprints. */
   private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
 
+  public static final Fingerprint INVALID_FINGERPRINT = new Fingerprint(Collections.emptyMap());
+
   private static final char KVDELIMTER = '|';
   private static final char TAGDELIMTER = ' ';
 
