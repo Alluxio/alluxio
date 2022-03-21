@@ -560,18 +560,11 @@ public class InodeSyncStream {
       AlluxioURI ufsUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
-//        String ufsFingerprint;
         Fingerprint ufsFpParsed;
-
-        // TODO(jiacheng): work on this
         // When the status is not cached and it was not due to file not found, we retry
         if (fileNotFound) {
-//          ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
           ufsFpParsed = Fingerprint.INVALID_FINGERPRINT;
         } else if (cachedStatus == null) {
-          // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
-//          ufsFingerprint = (String) getFromUfs(() -> ufs.getFingerprint(ufsUri.toString()));
-//          ufsFpParsed = Fingerprint.parse(ufsFingerprint);
           ufsFpParsed = ufs.getParsedFingerprint(ufsUri.toString());
         } else {
           // When the status is cached
@@ -588,7 +581,6 @@ public class InodeSyncStream {
                       aclPair.getFirst());
             }
           }
-//          ufsFingerprint = ufsFpParsed.serialize();
         }
         boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri(), true);
 
@@ -613,8 +605,6 @@ public class InodeSyncStream {
               // Only set group if not empty
               builder.setGroup(group);
             }
-//            SetAttributeContext ctx = SetAttributeContext.mergeFrom(builder)
-//                .setUfsFingerprint(ufsFingerprint);
             SetAttributeContext ctx = SetAttributeContext.mergeFrom(builder)
                     .setUfsFingerprint(ufsFpParsed.serialize());
             mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs, ctx);
