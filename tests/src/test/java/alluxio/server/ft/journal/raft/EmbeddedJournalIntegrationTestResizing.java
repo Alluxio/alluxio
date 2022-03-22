@@ -26,7 +26,6 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -139,7 +138,6 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     mCluster.notifySuccess();
   }
 
-  @Ignore
   @Test
   public void replaceAll() throws Exception {
     final int NUM_MASTERS = 5;
