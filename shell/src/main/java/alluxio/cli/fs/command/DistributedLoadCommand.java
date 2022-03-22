@@ -324,7 +324,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
-        for (String filename; (filename = reader.readLine()) != null; ) {
+        for (String filename; (filename = reader.readLine()) != null;) {
           AlluxioURI path = new AlluxioURI(filename);
 
           DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication,
@@ -332,8 +332,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         }
       }
     }
-    System.out.println(String.format("Completed count is %d,Failed count is %d.", getCompletedCount(),
-        getFailedCount()));
+    System.out.println(String.format("Completed count is %d,Failed count is %d.",
+        getCompletedCount(), getFailedCount()));
     Set<String> failures = getFailedFiles();
     if (failures.size() > 0) {
       processFailures(args[0], failures);
