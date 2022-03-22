@@ -1887,6 +1887,11 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param deleteContext the method optitions
    */
   @VisibleForTesting
+  // TODO(jiacheng): currently called by:
+  //  1. delete()
+  //  2. unmount()
+  //  3. metadata sync
+  //  Need to make sure they all align
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
       DeleteContext deleteContext) throws FileDoesNotExistException, IOException,
       DirectoryNotEmptyException, InvalidPathException {
@@ -1917,13 +1922,41 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     // Inodes for which deletion will be attempted
     List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
-
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
+    // Inodes that are not safe for recursive deletes
+    Set<Long> unsafeInodes = new HashSet<>();
+    // Alluxio URIs (and the reason for failure) which could not be deleted
+    List<Pair<String, String>> failedUris = new ArrayList<>();
 
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
+      // This walks the tree in a DFS flavor, first all the children in a subtree,
+      // then the sibling trees one by one.
+      // Therefore we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
-        inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
+        try {
+          // If this inode's parent already failed the permission check, skip this child
+          // Because we first see the parent then all its children
+          if (unsafeInodes.contains(childPath.getAncestorInode().getId())) {
+            System.out.format("Skip %s because its parent already failed the permission check%n", childPath);
+            // We still need to add this child to the unsafe set because we are going to
+            // walk over this child's children.
+            unsafeInodes.add(childPath.getInode().getId());
+            continue;
+          }
+
+          mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+          inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
+        } catch (AccessControlException e) {
+          System.out.format("Path %s failed the perm check: %s%n", childPath, e.getMessage());
+          // If we do not have permission to delete the inode, then
+          Inode inodeToDelete = inodePath.getInode();
+          unsafeInodes.add(inodeToDelete.getId());
+          // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
+          unsafeInodes.add(inodeToDelete.getParentId());
+          // All this node's children will be skipped in the failure message
+          failedUris.add(new Pair<>(inodePath.toString(), e.getMessage()));
+        }
       }
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
@@ -1934,10 +1967,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       // Inodes to delete from tree after attempting to delete from UFS
       List<Pair<AlluxioURI, LockedInodePath>> revisedInodesToDelete = new ArrayList<>();
-      // Inodes that are not safe for recursive deletes
-      Set<Long> unsafeInodes = new HashSet<>();
-      // Alluxio URIs (and the reason for failure) which could not be deleted
-      List<Pair<String, String>> failedUris = new ArrayList<>();
 
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
