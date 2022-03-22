@@ -1809,6 +1809,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
+  // TODO(jiacheng): Add new unit tests for the new behavior?
   public void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
@@ -1842,7 +1843,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               LockPattern.WRITE_EDGE);
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE_EXECUTE, inodePath);
+        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
         mMountTable.checkUnderWritableMountPoint(path);
         if (!inodePath.fullPathExists()) {
           throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
@@ -1938,24 +1939,22 @@ public class DefaultFileSystemMaster extends CoreMaster
           // If this inode's parent already failed the permission check, skip this child
           // Because we first see the parent then all its children
           if (unsafeInodes.contains(childPath.getAncestorInode().getId())) {
-            System.out.format("Skip %s because its parent already failed the permission check%n", childPath);
             // We still need to add this child to the unsafe set because we are going to
             // walk over this child's children.
             unsafeInodes.add(childPath.getInode().getId());
             continue;
           }
 
-          mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+          mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
           inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
         } catch (AccessControlException e) {
-          System.out.format("Path %s failed the perm check: %s%n", childPath, e.getMessage());
           // If we do not have permission to delete the inode, then
-          Inode inodeToDelete = inodePath.getInode();
+          Inode inodeToDelete = childPath.getInode();
           unsafeInodes.add(inodeToDelete.getId());
           // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
           unsafeInodes.add(inodeToDelete.getParentId());
           // All this node's children will be skipped in the failure message
-          failedUris.add(new Pair<>(inodePath.toString(), e.getMessage()));
+          failedUris.add(new Pair<>(childPath.toString(), e.getMessage()));
         }
       }
       // Prepare to delete persisted inodes
