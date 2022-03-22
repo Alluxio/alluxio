@@ -14,7 +14,6 @@ package alluxio.job.plan.migrate;
 import static junit.framework.TestCase.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +29,6 @@ import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -176,8 +174,6 @@ public final class MigrateDefinitionRunTaskTest {
           }
           throw new FileAlreadyExistsException("already exists");
         });
-
-
     try {
       runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, false);
       fail();
@@ -200,7 +196,7 @@ public final class MigrateDefinitionRunTaskTest {
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, true);
     verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DESTINATION)));
-    verify(mMockFileSystem).rename(any(AlluxioURI.class),eq(new AlluxioURI(TEST_DESTINATION)));
+    verify(mMockFileSystem).rename(any(AlluxioURI.class), eq(new AlluxioURI(TEST_DESTINATION)));
   }
 
   /**
