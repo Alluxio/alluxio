@@ -22,12 +22,15 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -36,6 +39,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * MaxFile StressBench class.
  */
 public class MaxFileBench extends StressMasterBench {
+  private static final Logger LOG = LoggerFactory.getLogger(MaxFileBench.class);
+
   static AtomicBoolean sFinish = new AtomicBoolean(false);
   private final MasterBenchTaskResult mTotalResults = new MasterBenchTaskResult();
 
@@ -43,9 +48,11 @@ public class MaxFileBench extends StressMasterBench {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    // TODO: integrate --operation --client-type into args automatically
+    // TODO(jenoudet): run MaxThroughput beforehand
+
+    // TODO(jenoudet): integrate --operation --client-type into args automatically
     // bin/alluxio runClass alluxio.stress.cli.MaxFileBench --operation CreateDir \
-    // --write-type MUST_CACHE --client-type AlluxioNative --threads 3 --in-process
+    // --write-type MUST_CACHE --client-type AlluxioNative --threads 8 --in-process
     mainInternal(args, new MaxFileBench());
   }
 
@@ -53,6 +60,8 @@ public class MaxFileBench extends StressMasterBench {
   public String getBenchDescription() {
     return "MaxFile stress bench";
   }
+
+  // TODO(jenoudet): override JCommander description for MaxFile
 
   @Override
   public MasterBenchTaskResult runLocal() throws Exception {
@@ -63,12 +72,12 @@ public class MaxFileBench extends StressMasterBench {
     for (int i = 0; i < mParameters.mThreads; i++) {
       callables.add(new AlluxioNativeMaxFileThread(i, mCachedNativeFs[i % mCachedNativeFs.length]));
     }
-    System.out.printf("Starting %d bench threads\n", callables.size());
+    LOG.info("Starting {} bench threads", callables.size());
     long startMs = CommonUtils.getCurrentMs();
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
     mTotalResults.setDurationMs(CommonUtils.getCurrentMs() - startMs);
-    System.out.println("Bench threads finished");
+    LOG.info("Bench threads finished");
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
@@ -82,6 +91,7 @@ public class MaxFileBench extends StressMasterBench {
     private final int mInitWaitTimeMs = 100;
     private final int mMaxWaitTimeMs = 15_000;
     private int mWaitTimeMs = mInitWaitTimeMs;
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
     private final FileSystem mFs;
@@ -106,26 +116,29 @@ public class MaxFileBench extends StressMasterBench {
         }
         long increment = localCounter.getAndIncrement();
         if (increment % 100_000 == 0) {
-          System.out.printf("[%d] Created %d files\n", mId, increment);
+          LOG.info("[{}] Created {} files\n", mId, increment);
         }
         try {
-          applyOperation(increment);
+          mExecutor.submit(() -> {
+            try {
+              applyOperation(increment);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }).get(2_000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
           if (mWaitTimeMs > mMaxWaitTimeMs) {
-            System.out.printf("[%d] Waiting timeout, ending: %s\n", mId, e);
+            LOG.info("[{}] Waiting timeout, ending: {}", mId, e);
             sFinish.set(true);
             break;
           } else {
-            System.out.printf("[%d] Failed, sleeping for %d: %s\n", mId, mWaitTimeMs, e);
+            LOG.info("[{}] Failed, sleeping for {}: {}", mId, mWaitTimeMs, e);
             Thread.sleep(mWaitTimeMs);
             mWaitTimeMs *= 2;
             continue;
           }
         }
         mResult.incrementNumSuccess(1);
-//        if (mResult.getStatistics().mNumSuccess % 50_000 == 0) {
-//          break;
-//        }
         mWaitTimeMs = mInitWaitTimeMs;
       }
 
@@ -134,7 +147,7 @@ public class MaxFileBench extends StressMasterBench {
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
 
-      System.out.printf("[%d] numSuccesses = %d\n", mId, mResult.getStatistics().mNumSuccess);
+      LOG.info("[{}] numSuccesses = {}", mId, mResult.getStatistics().mNumSuccess);
 
       // merging total results
       synchronized (mTotalResults) {
