@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -261,8 +262,20 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getSource());
+      }
     }
 
     @Override
@@ -299,8 +312,22 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "Source=", ","));
+        }
+      }
     }
 
     @Override

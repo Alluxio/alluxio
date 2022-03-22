@@ -50,7 +50,7 @@ public final class DefaultTempBlockMeta implements TempBlockMeta {
     final int subDirMax = ServerConfiguration.getInt(PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
 
     return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
-        String.format("%d-%d", sessionId, blockId));
+        String.format("%x-%d", sessionId, blockId));
   }
 
   /**

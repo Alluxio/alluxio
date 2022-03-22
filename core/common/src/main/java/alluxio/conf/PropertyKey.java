@@ -1655,14 +1655,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
-      new Builder(Name.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION)
-          .setDefaultValue("15min")
-          .setDescription("Exclusive locking of the state-lock will timeout after "
-              + "this duration is spent on forced phase.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
       new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL)
           .setDefaultValue("30sec")
@@ -1671,9 +1663,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
+      new Builder(Name.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION)
+          .setDefaultValue("15min")
+          .setDescription("Exclusive locking of the state-lock will timeout after "
+              + "this duration is spent on forced phase.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_BACKUP_SUSPEND_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_SUSPEND_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("3min")
           .setDescription("Timeout for when suspend request is not followed by a backup request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
@@ -1707,7 +1707,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE)
-          .setDefaultValue("TIMEOUT")
+          .setDefaultValue("FORCED")
           .setDescription("Grace mode helps taking the state-lock exclusively for backup "
               + "with minimum disruption to existing RPCs. This low-impact locking phase "
               + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
@@ -1721,7 +1721,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
       new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION)
-          .setDefaultValue("1m")
+          .setDefaultValue("0s")
           .setDescription("The duration that controls how long the state-lock is "
               + "tried within a single grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1729,7 +1729,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION =
       new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_SLEEP_DURATION)
-          .setDefaultValue("0")
+          .setDefaultValue("0s")
           .setDescription("The duration that controls how long the lock waiter "
               + "sleeps within a single grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1737,14 +1737,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
       new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT)
-          .setDefaultValue("1m")
+          .setDefaultValue("0s")
           .setDescription("The max duration for a grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE)
-          .setDefaultValue("FORCED")
+          .setDefaultValue("TIMEOUT")
           .setDescription("Grace mode helps taking the state-lock exclusively for backup "
               + "with minimum disruption to existing RPCs. This low-impact locking phase "
               + "is called grace-cycle. Two modes are supported: TIMEOUT/FORCED."
@@ -1758,7 +1758,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TRY_DURATION)
-          .setDefaultValue("30s")
+          .setDefaultValue("2m")
           .setDescription("The duration that controls how long the state-lock is "
               + "tried within a single grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1766,7 +1766,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_SLEEP_DURATION)
-          .setDefaultValue("10m")
+          .setDefaultValue("5m")
           .setDescription("The duration that controls how long the lock waiter "
               + "sleeps within a single grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1774,7 +1774,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT =
       new Builder(Name.MASTER_DAILY_BACKUP_STATE_LOCK_TIMEOUT)
-          .setDefaultValue("12h")
+          .setDefaultValue("1h")
           .setDescription("The max duration for a grace-cycle.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -5407,20 +5407,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey FUSE_PERMISSION_CHECK_ENABLED =
-      new Builder(Name.FUSE_PERMISSION_CHECK_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether to add -o default_permissions fuse mount option by default. "
-              + "When this option is enabled, kernel will perform its own permission check "
-              + "instead of deferring all permission checking to Alluxio. "
-              + "Alluxio Fuse does all the permission check "
-              + "with user that launches the Fuse application instead of "
-              + "the user running the Fuse operations. Please do not set this value to false "
-              + "unless permission check is not important in your workloads.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .setIsHidden(true)
-          .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
       new Builder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
           .setDefaultValue(false)
@@ -7202,8 +7188,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
-    public static final String FUSE_PERMISSION_CHECK_ENABLED
-        = "alluxio.fuse.permission.check.enabled";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";

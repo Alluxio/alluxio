@@ -173,8 +173,13 @@ public final class MigrateDefinition
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         } catch (Throwable t) {
+          // Since we only catch CancelledException here if we get interrupted, so we want to keep
+          // the following clean up process not interrupted. If we have other exception, the flag
+          // doesn't matter here.
+          Thread.interrupted();
           try {
             out.cancel();
+            fileSystem.delete(destinationURI);
           } catch (Throwable t2) {
             t.addSuppressed(t2);
           }
