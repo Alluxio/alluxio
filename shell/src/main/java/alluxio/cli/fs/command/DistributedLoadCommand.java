@@ -209,7 +209,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .required(false)
           .hasArg(false)
           .desc("Use passive-cache or direct cache request,"
-              + " turn on if you want to use the old passive cache implementation")
+              + " turn on if you want to use the old passive cache implementation. "
+              + "Passive-cache is default when there's no option set or both options are set.")
+          .build();
+  private static final Option DIRECT_CACHE_OPTION =
+      Option.builder()
+          .longOpt("direct-cache")
+          .required(false)
+          .hasArg(false)
+          .desc("Use passive-cache or direct cache request,"
+              + " turn on if you want to use the new direct cache implementation")
           .build();
 
   /**
@@ -233,6 +242,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         .addOption(HOSTS_OPTION)
         .addOption(HOST_FILE_OPTION)
         .addOption(PASSIVE_CACHE_OPTION)
+        .addOption(DIRECT_CACHE_OPTION)
         .addOption(BATCH_SIZE_OPTION);
   }
 
@@ -251,6 +261,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         + "[--excluded-locality <locality1>,<locality2>,...,<localityN>] "
         + "[--excluded-locality-file <localityFilePath>] "
         + "[--passive-cache] "
+        + "[--direct-cache] "
         + "<path>";
   }
 
@@ -269,7 +280,11 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
-    boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt());
+    boolean directCache = false;
+    if (!cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt())
+        & cl.hasOption(DIRECT_CACHE_OPTION.getLongOpt())) {
+      directCache = true;
+    }
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
@@ -309,7 +324,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
-        for (String filename; (filename = reader.readLine()) != null;) {
+        for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
 
           DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication,
@@ -317,8 +332,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         }
       }
     }
-    System.out.println(String.format("Completed count is %d,Failed count is %d.",
-        getCompletedCount(), getFailedCount()));
+    System.out.println(String.format("Completed count is %d,Failed count is %d.", getCompletedCount(),
+        getFailedCount()));
     Set<String> failures = getFailedFiles();
     if (failures.size() > 0) {
       processFailures(args[0], failures);
