@@ -280,11 +280,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
-    boolean directCache = false;
-    if (!cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt())
-        & cl.hasOption(DIRECT_CACHE_OPTION.getLongOpt())) {
-      directCache = true;
-    }
+    boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt()) && cl.hasOption(
+        DIRECT_CACHE_OPTION.getLongOpt());
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
