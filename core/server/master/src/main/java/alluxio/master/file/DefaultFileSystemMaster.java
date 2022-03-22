@@ -1869,7 +1869,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
         }
 
-        deleteInternal(rpcContext, inodePath, context);
+        deleteInternal(rpcContext, inodePath, context, false);
         auditContext.setSucceeded(true);
         cacheOperation(context);
       }
@@ -1883,18 +1883,20 @@ public class DefaultFileSystemMaster extends CoreMaster
    * be deleted after the inode deletion journal entry has been written. We cannot delete blocks
    * earlier because the inode deletion may fail, leaving us with inode containing deleted blocks.
    *
+   * This method is used at:
+   * (1) delete()
+   * (2) unmount()
+   * (3) metadata sync (when a file/dir has been removed in UFS)
+   * Permission check should be skipped in (2) and (3).
+   *
    * @param rpcContext the rpc context
    * @param inodePath the file {@link LockedInodePath}
    * @param deleteContext the method optitions
+   * @param bypassPermCheck whether the permission check has been done before entering this call
    */
   @VisibleForTesting
-  // TODO(jiacheng): currently called by:
-  //  1. delete()
-  //  2. unmount()
-  //  3. metadata sync
-  //  Need to make sure they all align
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      DeleteContext deleteContext) throws FileDoesNotExistException, IOException,
+      DeleteContext deleteContext, boolean bypassPermCheck) throws FileDoesNotExistException, IOException,
       DirectoryNotEmptyException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
@@ -1935,26 +1937,29 @@ public class DefaultFileSystemMaster extends CoreMaster
       // then the sibling trees one by one.
       // Therefore we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
-        try {
-          // If this inode's parent already failed the permission check, skip this child
-          // Because we first see the parent then all its children
-          if (unsafeInodes.contains(childPath.getAncestorInode().getId())) {
-            // We still need to add this child to the unsafe set because we are going to
-            // walk over this child's children.
-            unsafeInodes.add(childPath.getInode().getId());
-            continue;
-          }
-
-          mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
+        if (bypassPermCheck) {
           inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
-        } catch (AccessControlException e) {
-          // If we do not have permission to delete the inode, then
-          Inode inodeToDelete = childPath.getInode();
-          unsafeInodes.add(inodeToDelete.getId());
-          // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
-          unsafeInodes.add(inodeToDelete.getParentId());
-          // All this node's children will be skipped in the failure message
-          failedUris.add(new Pair<>(childPath.toString(), e.getMessage()));
+        } else {
+          try {
+            // If this inode's parent already failed the permission check, skip this child
+            // Because we first see the parent then all its children
+            if (unsafeInodes.contains(childPath.getAncestorInode().getId())) {
+              // We still need to add this child to the unsafe set because we are going to
+              // walk over this child's children.
+              unsafeInodes.add(childPath.getInode().getId());
+              continue;
+            }
+            mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
+            inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
+          } catch (AccessControlException e) {
+            // If we do not have permission to delete the inode, then
+            Inode inodeToDelete = childPath.getInode();
+            unsafeInodes.add(inodeToDelete.getId());
+            // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
+            unsafeInodes.add(inodeToDelete.getParentId());
+            // All this node's children will be skipped in the failure message
+            failedUris.add(new Pair<>(childPath.toString(), e.getMessage()));
+          }
         }
       }
       // Prepare to delete persisted inodes
@@ -3165,7 +3170,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       deleteInternal(rpcContext, inodePath, DeleteContext
-          .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
+          .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)), true);
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "

@@ -621,7 +621,7 @@ public class InodeSyncStream {
                 .setRecursive(true)
                 .setAlluxioOnly(true)
                 .setUnchecked(true));
-            mFsMaster.deleteInternal(mRpcContext, inodePath, syncDeleteContext);
+            mFsMaster.deleteInternal(mRpcContext, inodePath, syncDeleteContext, true);
           } catch (DirectoryNotEmptyException | IOException e) {
             // Should not happen, since it is an unchecked delete.
             LOG.error("Unexpected error for unchecked delete.", e);
