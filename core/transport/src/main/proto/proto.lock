@@ -3003,6 +3003,16 @@
                 "type": "string",
                 "is_repeated": true
               }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 11,
+                  "name": "xattr",
+                  "type": "bytes"
+                }
+              }
             ]
           },
           {

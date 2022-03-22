@@ -23,7 +23,7 @@ import java.util.List;
  * See https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html
  */
 @JacksonXmlRootElement(localName = "Tagging")
-public class PutObjectTaggingRequest {
+public class MetadataTaggingBody {
 
   @JacksonXmlProperty(localName = "TagSet")
   private TagSet mTagSet;
@@ -31,16 +31,16 @@ public class PutObjectTaggingRequest {
   /**
    * Default constructor for jackson.
    */
-  public PutObjectTaggingRequest() {
+  public MetadataTaggingBody() {
     mTagSet = new TagSet();
   }
 
   /**
-   * Create a new {@link PutObjectTaggingRequest}.
+   * Create a new {@link MetadataTaggingBody}.
    *
    * @param tagSet the user metadata tags
    */
-  public PutObjectTaggingRequest(TagSet tagSet) {
+  public MetadataTaggingBody(TagSet tagSet) {
     mTagSet = tagSet;
   }
 
@@ -159,6 +159,11 @@ public class PutObjectTaggingRequest {
     @JacksonXmlProperty(localName = "Value")
     public void setValue(String value) {
       mValue = value;
+    }
+
+    @Override
+    public String toString() {
+      return mKey + " = " + mValue;
     }
   }
 }

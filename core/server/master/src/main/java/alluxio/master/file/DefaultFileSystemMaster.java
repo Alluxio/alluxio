@@ -3750,6 +3750,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         entry.setLastModificationTimeMs(opTimeMs);
       }
     }
+    if (protoOptions.getXattrCount() > 0) {
+      LOG.info("Updating Inode={} with xAttr={}",
+          inodePath.getInode(), protoOptions.getXattrMap());
+      entry.putAllXAttr(protoOptions.getXattrMap());
+    }
     if (protoOptions.hasPersisted()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
       Preconditions.checkArgument(inode.asFile().isCompleted(),
