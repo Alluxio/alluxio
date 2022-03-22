@@ -159,22 +159,29 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     assertTrue(fs.exists(testDir));
 
     List<MasterNetAddress> originalMasters = new ArrayList<>(mCluster.getMasterAddresses());
+    int i = 0;
     for (MasterNetAddress masterNetAddress : originalMasters) {
-      // remove a master from the Alluxio cluster (could be the leader)
-      int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
-      mCluster.stopAndRemoveMaster(masterIdx);
-      waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
-      // remove said master from the Ratis quorum
-      NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
-      mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
-      waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
-      // start a new master to replace the lost master
-      mCluster.startNewMasters(1, false);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS);
-      // verify that the cluster is still operational
-      fs = mCluster.getFileSystemClient();
-      assertTrue(fs.exists(testDir));
+      try {
+        // remove a master from the Alluxio cluster (could be the leader)
+        int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
+        mCluster.stopAndRemoveMaster(masterIdx);
+        waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE,
+            1);
+        // remove said master from the Ratis quorum
+        NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
+        mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
+        waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
+        waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
+        // start a new master to replace the lost master
+        mCluster.startNewMasters(1, false);
+        waitForQuorumPropertySize(info -> true, NUM_MASTERS);
+        // verify that the cluster is still operational
+        fs = mCluster.getFileSystemClient();
+        assertTrue(fs.exists(testDir));
+        i++;
+      } catch (Exception e) {
+        System.out.println(e);
+      }
     }
     Set<NetAddress> og = originalMasters.stream().map(this::masterEBJAddr2NetAddr)
         .collect(Collectors.toSet());
