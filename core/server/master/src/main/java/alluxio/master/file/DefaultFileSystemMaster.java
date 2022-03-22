@@ -1234,6 +1234,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       Iterator<? extends Inode> childrenIterator;
       // Check if we should process all children, or just the partial listing
+      // The partial listing iterator is sorted.
       if (context.getOptions().getPartialListing()) {
         // If we have already processed the first entry in the partial path
         // then we just process from the start of the children
@@ -1244,8 +1245,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         childrenIterator = mInodeStore.getChildrenFrom(inode.getId(), listFrom,
                 ReadOption.defaults());
       } else {
-        childrenIterator = mInodeStore.getChildrenIterator(inode.getId(), ReadOption.defaults());
-        // childrenIterator = mInodeStore.getChildren(inode.asDirectory()).iterator();
+        // Perform a full listing of all children unsorted.
+        childrenIterator = mInodeStore.getChildren(inode.asDirectory()).iterator();
       }
       // This is to generate a parsed child path components to be passed to lockChildPath
       String [] childComponentsHint = null;
