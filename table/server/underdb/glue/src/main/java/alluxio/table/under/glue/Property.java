@@ -215,16 +215,12 @@ public class Property extends UdbProperty {
           .setDescription("Enable Glue partition column statistics.")
           .build();
 
-  /**
-   * @return the name of alluxio.table.under.glue.Property
-   */
+  @Override
   public String getName() {
     return mName;
   }
 
-  /**
-   * @return the description of a property
-   */
+  @Override
   public String getDescription() {
     return mDescription;
   }

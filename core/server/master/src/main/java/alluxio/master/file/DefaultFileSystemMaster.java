@@ -3474,14 +3474,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  /**
-   * Actively sync metadata, based on a list of changed files.
-   *
-   * @param path the path to sync
-   * @param changedFiles collection of files that are changed under the path to sync, if this is
-   *        null, force sync the entire directory
-   * @param executorService executor to execute the parallel incremental sync
-   */
+  @Override
   public void activeSyncMetadata(AlluxioURI path, Collection<AlluxioURI> changedFiles,
       ExecutorService executorService) throws IOException {
     if (changedFiles == null) {

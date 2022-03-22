@@ -71,9 +71,7 @@ public class RpcTaskResult implements TaskResult {
     mParameters = source.mParameters;
   }
 
-  /**
-   * @return the {@link BaseParameters}
-   */
+  @Override
   @Nullable
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
@@ -108,9 +106,7 @@ public class RpcTaskResult implements TaskResult {
     mErrors.add(errorMsg);
   }
 
-  /**
-   * @return all the error messages
-   */
+  @Override
   public List<String> getErrors() {
     return mErrors;
   }

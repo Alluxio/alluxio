@@ -110,6 +110,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     mEntriesToFlush = new ArrayDeque<>();
   }
 
+  @Override
   public synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     checkIsWritable();
     try {
@@ -356,6 +357,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
+  @Override
   public synchronized void flush() throws IOException, JournalClosedException {
     checkIsWritable();
     maybeRecoverFromUfsFailures();

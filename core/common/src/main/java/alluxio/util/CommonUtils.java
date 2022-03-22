@@ -792,6 +792,7 @@ public final class CommonUtils {
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
       boolean mInitialized;
+      @Override
       public T get() {
         return mDelegate.get();
       }

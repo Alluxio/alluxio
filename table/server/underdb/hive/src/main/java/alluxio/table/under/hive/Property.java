@@ -142,16 +142,12 @@ public final class Property extends UdbProperty {
           .setDescription("Whether to mount partitions diff location prefix partitions")
           .build();
 
-  /**
-   * @return the name of alluxio.table.under.hive.Property
-   */
+  @Override
   public String getName() {
     return mName;
   }
 
-  /**
-   * @return the description of a property
-   */
+  @Override
   public String getDescription() {
     return mDescription;
   }

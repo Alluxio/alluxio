@@ -389,11 +389,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     }
   }
 
-  /**
-   * Get the activity sync info.
-   *
-   * @return SyncInfo object which encapsulates the necessary information about changes
-   */
+  @Override
   public SyncInfo getActivitySyncInfo() {
     // The overview of this method is
     // 1. setup a source of event

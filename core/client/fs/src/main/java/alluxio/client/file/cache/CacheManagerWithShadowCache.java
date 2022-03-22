@@ -265,6 +265,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
      * @param from source
      * @param into destination
      */
+    @Override
     public void funnel(@Nonnull PageId from, PrimitiveSink into) {
       into.putUnencodedChars(from.getFileId()).putLong(from.getPageIndex());
     }

@@ -62,12 +62,7 @@ public class CreateHmsClientValidationTask extends
     return ent.getFirst();
   }
 
-  /**
-   * @return the result of the validation. {@link Pair#getFirst()} will be null if the connection
-   * to the metastore was successful, otherwise if there is a failure {@link Pair#getSecond()}
-   * will be null
-   * @throws InterruptedException if the task is interrupted
-   */
+  @Override
   protected Pair<ValidationTaskResult, IMetaStoreClient> getValidationWithResult()
       throws InterruptedException {
     if (mInputTask == null) {
