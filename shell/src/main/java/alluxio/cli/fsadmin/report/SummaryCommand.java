@@ -81,7 +81,8 @@ public class SummaryCommand {
         .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
+            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES,
+            MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
     print("Master Address: " + masterInfo.getLeaderMasterAddress());
@@ -104,6 +105,18 @@ public class SummaryCommand {
         print(zkAddress);
       }
       mIndentationLevel--;
+    }
+
+    if (masterInfo.getRaftJournal()) {
+      print("Raft-based Journal: true");
+      print("Raft Journal Addresses: ");
+      mIndentationLevel++;
+      for (String raftAddress : masterInfo.getRaftAddressList()) {
+        print(raftAddress);
+      }
+      mIndentationLevel--;
+    } else {
+      print("Raft-based Journal: false");
     }
   }
 
