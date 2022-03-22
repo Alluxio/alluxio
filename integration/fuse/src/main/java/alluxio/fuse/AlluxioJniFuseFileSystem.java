@@ -67,8 +67,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -101,6 +104,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
   private final Map<Long, SeekableAlluxioFileOutStream> mReadWriteOpenFileEntries =
       new ConcurrentHashMap<>();
+  private final Map<String, Semaphore> mPathLocks = new ConcurrentHashMap<>();
   private final FuseShell mFuseShell;
   private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
       ID_INDEX =
@@ -207,7 +211,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     URIStatus status = null;
     if (mWriteThroughFilePattern != null) {
       try {
-         status = mFileSystem.getStatus(new AlluxioURI(opts.getAlluxioRoot()));
+        status = mFileSystem.getStatus(new AlluxioURI(opts.getAlluxioRoot()));
       } catch (Exception e) {
         // ignore
       }
@@ -241,8 +245,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     try {
       FileOutStream os;
-      if (mWriteThroughFilePattern != null &&
-          mWriteThroughFilePattern.matcher(path).matches()) {
+      if (mWriteThroughFilePattern != null
+          && mWriteThroughFilePattern.matcher(path).matches()) {
+        mPathLocks.putIfAbsent(path, new Semaphore(1));
+        mPathLocks.get(path).acquire();
         os = SeekableAlluxioFileOutStream.create(
             uri, Paths.get(mUfsRootPath, path).toAbsolutePath().toString(), mFileSystem);
       } else {
@@ -400,10 +406,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EOPNOTSUPP();
     }
 
-    if (mWriteThroughFilePattern != null &&
-        mWriteThroughFilePattern.matcher(path).matches() &&
-        openAction == OpenAction.READ_WRITE) {
+    if (mWriteThroughFilePattern != null
+        && mWriteThroughFilePattern.matcher(path).matches()
+        && openAction == OpenAction.READ_WRITE) {
       try {
+        mPathLocks.putIfAbsent(path, new Semaphore(1));
+        mPathLocks.get(path).acquire();
         SeekableAlluxioFileOutStream stream = SeekableAlluxioFileOutStream.open(
             uri, Paths.get(mUfsRootPath, path).toAbsolutePath().toString(), mFileSystem);
         long fd = mNextOpenFileId.getAndIncrement();
@@ -721,6 +729,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int releaseInternal(String path, long fd) {
+    Semaphore semaphore = mPathLocks.get(path);
     try {
       SeekableAlluxioFileOutStream stream = mReadWriteOpenFileEntries.get(fd);
       if (stream != null) {
@@ -761,6 +770,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     } catch (Throwable e) {
       LOG.error("Failed to release {}", path, e);
       return -ErrorCodes.EIO();
+    } finally {
+      if (semaphore != null) {
+        semaphore.release();
+      }
     }
     return 0;
   }

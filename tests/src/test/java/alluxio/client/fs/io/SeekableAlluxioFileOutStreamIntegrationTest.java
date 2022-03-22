@@ -42,6 +42,7 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
     mUfsPath = PathUtils.concatUfsPath(mUfsRootPath, mAlluxioPath.getPath());
     try (SeekableAlluxioFileOutStream os = SeekableAlluxioFileOutStream.create(
         mAlluxioPath, mUfsPath, mFileSystem)) {
+      // test create empty file
     }
     checkFileInAlluxio(mAlluxioPath, 0);
     checkFileInUnderStorage(mAlluxioPath, 0);
