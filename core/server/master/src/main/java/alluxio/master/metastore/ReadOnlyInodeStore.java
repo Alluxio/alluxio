@@ -47,15 +47,6 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
-   * Returns an iterable for the ids of the children of the given directory.
-   *
-   * @param inodeId an inode id to list child ids for
-   * @param option the options
-   * @return the child ids iterable
-   */
-  Iterable<Long> getChildIds(Long inodeId, ReadOption option);
-
-  /**
    * Returns a stream of the inodes sorted by filename of the children of the given directory
    * that come after and including fromName.
    * @param parentId the inode id of the parent directory
@@ -63,8 +54,8 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param option the read options
    * @return an iterator of the children starting from fromName
    */
-  default CloseableIterator<? extends Inode> getChildrenFrom(final long parentId, final String fromName,
-                                                             final ReadOption option) {
+  default CloseableIterator<? extends Inode> getChildrenFrom(
+      final long parentId, final String fromName, final ReadOption option) {
     Iterable<? extends Inode> children = getChildren(parentId, option);
     return CloseableIterator.noopCloseable(StreamSupport.stream(children.spliterator(), false)
         .filter((inode) -> inode.getName().compareTo(fromName) >= 0)
@@ -79,9 +70,19 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param option the read options
    * @return an iterator of the children starting from fromName
    */
-  default CloseableIterator<? extends Inode> getChildrenIterator(final long parentId, final ReadOption option) {
+  default CloseableIterator<? extends Inode> getChildrenIterator(
+      final long parentId, final ReadOption option) {
     return getChildrenFrom(parentId, "", option);
   }
+
+  /**
+   * Returns an iterable for the ids of the children of the given directory.
+   *
+   * @param inodeId an inode id to list child ids for
+   * @param option the options
+   * @return the child ids iterable
+   */
+  Iterable<Long> getChildIds(Long inodeId, ReadOption option);
 
   /**
    * @param inodeId an inode id to list child ids for

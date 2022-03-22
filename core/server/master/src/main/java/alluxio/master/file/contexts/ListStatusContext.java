@@ -24,9 +24,9 @@ public class ListStatusContext
     extends OperationContext<ListStatusPOptions.Builder, ListStatusContext> {
 
   /**
-   * The number of items listed so far
+   *  The number of items listed so far.
    */
-  private int listedCount;
+  private int mListedCount;
 
   /**
    * Creates context with given option data.
@@ -67,26 +67,19 @@ public class ListStatusContext
   }
 
   /**
-   *
-   * @return the number of items listed so far
-   */
-  public int getListedCount() {
-    return listedCount;
-  }
-
-  /**
-   * called each time an item is listed
+   *  * Called each time an item is listed.
    */
   public void listedItem() {
-    listedCount++;
+    mListedCount++;
   }
 
   /**
    *
-   * @return true if this is a partial listing and at least the batch size elements have been listed, false otherwise
+   * @return true if this is a partial listing and at least the batch size elements have
+   * been listed, false otherwise
    */
   public boolean donePartialListing() {
-    return getOptions().getPartialListing() && getOptions().getBatchSize() <= listedCount;
+    return getOptions().getPartialListing() && getOptions().getBatchSize() <= mListedCount;
   }
 
   @Override

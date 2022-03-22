@@ -87,7 +87,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-
 /**
  * Unit tests for {@link InodeTree}.
  */
@@ -119,16 +118,15 @@ public final class InodeTreeTest {
     String dir =
             AlluxioTestDirectory.createTemporaryDirectory("inode-tree-test").getAbsolutePath();
     return Arrays.asList(
-            () -> new CachingInodeStore(new RocksInodeStore(dir), new InodeLockManager()),
-            () -> new CachingInodeStore(new HeapInodeStore(), new InodeLockManager()),
-            () -> new HeapInodeStore(),
-            () -> new RocksInodeStore(dir));
+        () -> new CachingInodeStore(new RocksInodeStore(dir), new InodeLockManager()),
+        () -> new CachingInodeStore(new HeapInodeStore(), new InodeLockManager()),
+        HeapInodeStore::new,
+        () -> new RocksInodeStore(dir));
   }
 
   public InodeTreeTest(Supplier<InodeStore> supplier) {
     mInodeStore = supplier.get();
   }
-
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -592,8 +590,8 @@ public final class InodeTreeTest {
           childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
         }
         assertEquals(remain, childInodes.length);
-        ArrayList<AlluxioURI> remainFiles = files.stream().skip(fileCount - remain).
-            collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<AlluxioURI> remainFiles = files.stream().skip(fileCount - remain)
+            .collect(Collectors.toCollection(ArrayList::new));
         for (Inode inode : childInodes) {
           AlluxioURI path = mTree.getPath(inode.getId());
           assertTrue(remainFiles.contains(path));
@@ -612,7 +610,8 @@ public final class InodeTreeTest {
   }
 
   <T> Stream<T> iteratorToStream(Iterator<T> iter) {
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter, Spliterator.ORDERED), false);
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+        iter, Spliterator.ORDERED), false);
   }
 
   @Test
@@ -651,7 +650,7 @@ public final class InodeTreeTest {
       for (int j = 0; j < fileCount; j++) {
         // fileCount plus 1 for remaining nested directory (except on the bottom depth)
         int remain = fileCount - j;
-        boolean notAtBottom = i < nestDepth -1;
+        boolean notAtBottom = i < nestDepth - 1;
         if (notAtBottom) {
           remain++;
         }
@@ -660,14 +659,15 @@ public final class InodeTreeTest {
           long parentId = inodePath.getInode().getParentId();
           Inode childInode = inodePath.getInode();
           Inode[] childInodes;
-          try(CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenFrom(parentId, childInode.getName(),
-                  ReadOption.defaults())) {
+          try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenFrom(parentId,
+              childInode.getName(), ReadOption.defaults())) {
             childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
           }
           for (int k = 0; k < remain; k++) {
             if (notAtBottom && k == remain - 1) {
               // the last entry should be the remaining directory
-              assertEquals(new AlluxioURI(String.format("%s/nxt", parent)), mTree.getPath(childInodes[k].getId()));
+              assertEquals(new AlluxioURI(String.format("%s/nxt", parent)),
+                  mTree.getPath(childInodes[k].getId()));
             } else {
               assertEquals(new AlluxioURI(String.format("%s/%d", parent, k + j)),
                   mTree.getPath(childInodes[k].getId()));
@@ -692,7 +692,7 @@ public final class InodeTreeTest {
     assertEquals(NESTED_URI, mTree.getPath(id));
 
     // test path not exists
-    assertThrows(FileDoesNotExistException.class, () -> mTree.getPath(id+1));
+    assertThrows(FileDoesNotExistException.class, () -> mTree.getPath(id + 1));
   }
 
   @Test
@@ -702,14 +702,15 @@ public final class InodeTreeTest {
     ArrayList<String> pathIds;
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
     try (LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.READ)) {
-      pathIds = inodePath.getInodeList().stream().map(Inode::getName).collect(Collectors.toCollection(ArrayList::new));
+      pathIds = inodePath.getInodeList().stream().map(Inode::getName).collect(
+          Collectors.toCollection(ArrayList::new));
       assertEquals(pathIds, mTree.getPathInodeNames(inodePath.getInode()));
       id = inodePath.getInode().getId();
     }
     assertEquals(pathIds, mTree.getPathInodeNames(id));
 
     // test path not exists
-    assertThrows(FileDoesNotExistException.class, () -> mTree.getPathInodeNames(id+1));
+    assertThrows(FileDoesNotExistException.class, () -> mTree.getPathInodeNames(id + 1));
   }
 
   @Test

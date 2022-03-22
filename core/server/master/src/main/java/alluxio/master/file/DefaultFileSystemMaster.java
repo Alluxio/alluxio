@@ -1016,8 +1016,9 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
-      if (!skipSyncOnPartialListing && !syncMetadata(rpcContext, path, context.getOptions().getCommonOptions(), descendantType,
-          auditContext, LockedInodePath::getInodeOrNull,
+      if (!skipSyncOnPartialListing && !syncMetadata(rpcContext, path,
+          context.getOptions().getCommonOptions(),
+          descendantType, auditContext, LockedInodePath::getInodeOrNull,
           (inodePath, permChecker) -> permChecker.checkPermission(Mode.Bits.READ, inodePath),
           false).equals(NOT_NEEDED)) {
         // If synced, do not load metadata.
@@ -1098,7 +1099,8 @@ public class DefaultFileSystemMaster extends CoreMaster
             if (shouldLoadMetadataIfNotExists(inodePath, loadMetadataContext)) {
               if (skipSyncOnPartialListing) {
                 // The path was removed during the listing, so just throw an exception
-                throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST_PARTIAL_LISTING
+                throw new FileDoesNotExistException(
+                    ExceptionMessage.PATH_DOES_NOT_EXIST_PARTIAL_LISTING
                         .getMessage(inodePath.getUri()));
               }
               loadMetadata = true;
@@ -1136,6 +1138,14 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
+  @Override
+  public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
+    final List<FileInfo> fileInfos = new ArrayList<>();
+    listStatus(path, context, (item) -> fileInfos.add(item));
+    return fileInfos;
+  }
+
   /**
    * If this is a partial listing, this will compute whether the path given by pathNames
    * exits in rootPath.
@@ -1143,7 +1153,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param context the context of the operation
    * @param pathNames the full path from where the partial listing is expected to start
    * @param rootPath the locked root path of the listing
-   * @return the nested components in root path from where to start the partial listing.
+   * @return the nested components in root path from where to start the partial listing
    * @throws FileDoesNotExistException if the path in pathNames does not exist in rootPath
    */
   private Iterator<String> getPartialListingPaths(ListStatusContext context,
@@ -1156,25 +1166,17 @@ public class DefaultFileSystemMaster extends CoreMaster
     // See if the inode from where to start the listing is within the root listing path.
     List<InodeView> rootInodes = rootPath.getInodeViewList();
     if (rootInodes.size() > pathNames.size()) {
-      throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_IN_PARTIAL_LISTING.
-              getMessage(rootPath.getUri()));
+      throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_IN_PARTIAL_LISTING
+          .getMessage(rootPath.getUri()));
     }
     for (int i = 0; i < rootInodes.size(); i++) {
       if (!rootInodes.get(i).getName().equals(pathNames.get(i))) {
-        throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING.
-                getMessage(rootPath.getUri()));
+        throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
+            .getMessage(rootPath.getUri()));
       }
     }
     // compute where to start from in each depth
     return pathNames.stream().skip(rootInodes.size()).iterator();
-  }
-
-  @Override
-  public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
-    final List<FileInfo> fileInfos = new ArrayList<>();
-    listStatus(path, context, (item) -> fileInfos.add(item));
-    return fileInfos;
   }
 
   /**
@@ -1190,7 +1192,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    *        should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
-   * @param partialPath using during partial listings, indicating where to start listing at each depth
+   * @param partialPath using during partial listings, indicating where to start listing
+   *                    at each depth
    */
   private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
       LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
@@ -1198,7 +1201,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
 
-    // the full partial path is the end of the previous partial listing, so we continue from the parent
+    // the full partial path is the end of the previous partial listing,
+    // so we continue from the parent
     if (partialPath != null && !partialPath.hasNext()) {
       return;
     }
@@ -1216,7 +1220,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             // if we are on our initial partial path and we do not have access,
             // then we are done processing the partial path
             // so consume the remaining elements
-            partialPath.forEachRemaining((nxt) -> {});
+            partialPath.forEachRemaining((nxt) -> { });
           }
           return;
         } else {

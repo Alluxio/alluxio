@@ -72,7 +72,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -649,18 +648,19 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
-   * Run the apply function on each inode in the path to inode and collect the results in the items list.
+   * Run the apply function on each inode in the path to inode and collect the results in
+   * the items list.
    * The function should not keep a reference to the inodes since they will not be locked when the
    * function returns. This method should not be called while holding locks on any inodes.
    * The operation is not guaranteed to be atomic.
    *
-   * @param inode the inode to calculate the path for.
-   * @param items where the results will be kept.
-   * @param apply the function to run on each inode.
-   * @param <T> the type of result to be collected in the items list.
+   * @param inode the inode to calculate the path for
+   * @param items where the results will be kept
+   * @param apply the function to run on each inode
+   * @param <T> the type of result to be collected in the items list
    * @throws FileDoesNotExistException if the path to the inode doesn't exist
    */
-  private<T> void processPathForInode(InodeView inode, List<T> items, Function<InodeView, T> apply)
+  private <T> void processPathForInode(InodeView inode, List<T> items, Function<InodeView, T> apply)
           throws FileDoesNotExistException {
     long id;
     long parentId;
@@ -688,7 +688,7 @@ public class InodeTree implements DelegatingJournaled {
    * The operation is not guaranteed to be atomic.
    *
    * @return the list of path components
-   * @param inode the inode view to calculate the path for.
+   * @param inode the inode view to calculate the path for
    * @throws FileDoesNotExistException if the path to the inode doesn't exist
    */
   public ArrayList<String> getPathInodeNames(InodeView inode) throws FileDoesNotExistException {
@@ -739,7 +739,6 @@ public class InodeTree implements DelegatingJournaled {
     computePathForInode(inode, builder);
     return new AlluxioURI(builder.toString());
   }
-
 
   /**
    * @return the root inode

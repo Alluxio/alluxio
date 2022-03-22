@@ -69,15 +69,6 @@ public class LockedInodePath implements Closeable {
 
   /** Uri for the path represented. */
   protected final AlluxioURI mUri;
-
-  /**
-   *
-   * @return the components of the path.
-   */
-  public final String[] getPathComponents() {
-    return mPathComponents;
-  }
-
   /** The components of mUri. */
   protected final String[] mPathComponents;
   /** Lock list locking some portion of the path according to mLockPattern. */
@@ -375,10 +366,10 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChildByName(String childName, LockPattern lockPattern,
                                          String[] childComponentsHint) throws InvalidPathException {
-      LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(childName), this,
-              childComponentsHint, lockPattern, mUseTryLock);
-      path.traverseOrClose();
-      return path;
+    LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(childName), this,
+        childComponentsHint, lockPattern, mUseTryLock);
+    path.traverseOrClose();
+    return path;
   }
 
   private static String[] addComponent(String[] components, String component) {
