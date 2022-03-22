@@ -15,14 +15,17 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.Closeable;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 /**
  * Read-only access to the inode store.
@@ -51,6 +54,34 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @return the child ids iterable
    */
   Iterable<Long> getChildIds(Long inodeId, ReadOption option);
+
+  /**
+   * Returns a stream of the inodes sorted by filename of the children of the given directory
+   * that come after and including fromName.
+   * @param parentId the inode id of the parent directory
+   * @param fromName the inode from which to start listing
+   * @param option the read options
+   * @return an iterator of the children starting from fromName
+   */
+  default CloseableIterator<? extends Inode> getChildrenFrom(final long parentId, final String fromName,
+                                                             final ReadOption option) {
+    Iterable<? extends Inode> children = getChildren(parentId, option);
+    return CloseableIterator.noopCloseable(StreamSupport.stream(children.spliterator(), false)
+        .filter((inode) -> inode.getName().compareTo(fromName) >= 0)
+        .sorted(Comparator.comparing(Inode::getName))
+        .iterator());
+  }
+
+  /**
+   * Returns a stream of the inodes sorted by filename of the children of the given directory
+   * that come after and including fromName.
+   * @param parentId the inode id of the parent directory
+   * @param option the read options
+   * @return an iterator of the children starting from fromName
+   */
+  default CloseableIterator<? extends Inode> getChildrenIterator(final long parentId, final ReadOption option) {
+    return getChildrenFrom(parentId, "", option);
+  }
 
   /**
    * @param inodeId an inode id to list child ids for

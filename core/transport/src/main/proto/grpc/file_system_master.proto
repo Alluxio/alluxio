@@ -214,6 +214,12 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
+  // If a partial listing should be used
+  optional bool partialListing = 6;
+  // An offset to start listing after if included
+  optional int64 offset = 7;
+  // Batch size for partial listings
+  optional int32 batchSize = 8;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */

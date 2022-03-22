@@ -33,6 +33,7 @@ import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.resource.RWLockResource;
 import alluxio.util.ConfigurationUtils;

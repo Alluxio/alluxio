@@ -69,6 +69,15 @@ public class LockedInodePath implements Closeable {
 
   /** Uri for the path represented. */
   protected final AlluxioURI mUri;
+
+  /**
+   *
+   * @return the components of the path.
+   */
+  public final String[] getPathComponents() {
+    return mPathComponents;
+  }
+
   /** The components of mUri. */
   protected final String[] mPathComponents;
   /** Lock list locking some portion of the path according to mLockPattern. */
@@ -352,10 +361,24 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(Inode child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(child.getName()), this,
-        childComponentsHint, lockPattern, mUseTryLock);
-    path.traverseOrClose();
-    return path;
+    return lockChildByName(child.getName(), lockPattern, childComponentsHint);
+  }
+
+  /**
+   * Efficient version of {@link #lockChild(Inode, LockPattern)} for when the child path
+   * components are already known.
+   *
+   * @param childName the name of the child inode
+   * @param lockPattern the lock pattern
+   * @param childComponentsHint path components for the new path
+   * @return the new locked path
+   */
+  public LockedInodePath lockChildByName(String childName, LockPattern lockPattern,
+                                         String[] childComponentsHint) throws InvalidPathException {
+      LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(childName), this,
+              childComponentsHint, lockPattern, mUseTryLock);
+      path.traverseOrClose();
+      return path;
   }
 
   private static String[] addComponent(String[] components, String component) {

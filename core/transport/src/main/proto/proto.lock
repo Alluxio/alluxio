@@ -2370,6 +2370,21 @@
                 "id": 5,
                 "name": "loadMetadataOnly",
                 "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "partialListing",
+                "type": "bool"
+              },
+              {
+                "id": 7,
+                "name": "offset",
+                "type": "int64"
+              },
+              {
+                "id": 8,
+                "name": "batchSize",
+                "type": "int32"
               }
             ]
           },

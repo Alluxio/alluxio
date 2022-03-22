@@ -24,6 +24,11 @@ public class ListStatusContext
     extends OperationContext<ListStatusPOptions.Builder, ListStatusContext> {
 
   /**
+   * The number of items listed so far
+   */
+  private int listedCount;
+
+  /**
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
@@ -59,6 +64,29 @@ public class ListStatusContext
    */
   public static ListStatusContext defaults() {
     return create(FileSystemOptions.listStatusDefaults(ServerConfiguration.global()).toBuilder());
+  }
+
+  /**
+   *
+   * @return the number of items listed so far
+   */
+  public int getListedCount() {
+    return listedCount;
+  }
+
+  /**
+   * called each time an item is listed
+   */
+  public void listedItem() {
+    listedCount++;
+  }
+
+  /**
+   *
+   * @return true if this is a partial listing and at least the batch size elements have been listed, false otherwise
+   */
+  public boolean donePartialListing() {
+    return getOptions().getPartialListing() && getOptions().getBatchSize() <= listedCount;
   }
 
   @Override

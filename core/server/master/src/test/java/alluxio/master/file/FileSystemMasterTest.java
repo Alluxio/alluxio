@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -83,7 +84,12 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
@@ -107,6 +113,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.hadoop.fs.Options;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -115,6 +122,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,9 +147,11 @@ import java.util.stream.Collectors;
 /**
  * Unit tests for {@link FileSystemMaster}.
  */
+@RunWith(Parameterized.class)
 public final class FileSystemMasterTest {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterTest.class);
 
+  private static final AlluxioURI NESTED_BASE_URI = new AlluxioURI("/nested");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI NESTED_FILE2_URI = new AlluxioURI("/nested/test/file2");
@@ -166,6 +178,7 @@ public final class FileSystemMasterTest {
   private DefaultFileSystemMaster mFileSystemMaster;
   private InodeTree mInodeTree;
   private ReadOnlyInodeStore mInodeStore;
+  private InodeStore.Factory mInodeStoreFactory;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
@@ -206,6 +219,21 @@ public final class FileSystemMasterTest {
   // Set ttl interval to 0 so that there is no delay in detecting expired files.
   @ClassRule
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(0);
+
+
+  @Parameters
+  public static Iterable<InodeStore.Factory> parameters() throws Exception {
+    String dir =
+        AlluxioTestDirectory.createTemporaryDirectory("inode-store-test").getAbsolutePath();
+    return Arrays.asList(
+        lockManager -> new HeapInodeStore(),
+        lockManager -> new RocksInodeStore(dir),
+        lockManager -> new CachingInodeStore(new RocksInodeStore(dir), lockManager));
+  }
+
+  public FileSystemMasterTest(InodeStore.Factory factory) {
+    mInodeStoreFactory = factory;
+  }
 
   /**
    * Sets up the dependencies before a test runs.
@@ -398,7 +426,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(new AlluxioURI("/a/b/c/d/e"));
     createFileWithSingleBlock(new AlluxioURI("/a/b/x/y/z"));
     mFileSystemMaster.delete(new AlluxioURI("/a/b"),
-        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+    DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     assertEquals(1, mInodeStore.allEdges().size());
     assertEquals(2, mInodeStore.allInodes().size());
   }
@@ -1062,6 +1090,340 @@ public final class FileSystemMasterTest {
       fail("listStatus() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
+    }
+  }
+
+  private ListStatusContext genListStatusPartial(int batchSize, long offset, boolean recursive) {
+    return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).
+            setPartialListing(true).setBatchSize(batchSize).setOffset(offset).setRecursive(recursive));
+  }
+
+  @Test
+  public void listStatusPartialDelete() throws Exception {
+    long offset = 0;
+    List<FileInfo> infos;
+
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(NESTED_DIR_URI);
+
+    // List two file from NESTED_URI, getting its offset
+    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(2, offset, true));
+    assertEquals(2, infos.size());
+    assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
+    assertEquals(NESTED_FILE_URI.toString(), infos.get(1).getPath());
+    offset = infos.get(1).getFileId();
+
+    // The next file should be NESTED_FILE_URI2
+    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+
+    // Now delete NESTED_FILE_URI, so the offset is no longer valid
+    mFileSystemMaster.delete(NESTED_FILE_URI,
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+
+    // Should throw an inode does not exist exception
+    final long throwOffset = offset;
+    assertThrows(FileDoesNotExistException.class, () -> mFileSystemMaster.listStatus(
+        NESTED_URI, genListStatusPartial(1, throwOffset, true)));
+
+    // Insert a new file with the same name
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    // An exception should still be thrown because it has a new inode id
+    assertThrows(FileDoesNotExistException.class, () -> mFileSystemMaster.listStatus(
+        NESTED_URI, genListStatusPartial(1, throwOffset, true)));
+  }
+
+  @Test
+  public void listStatusPartialRename() throws Exception {
+    long offset = 0;
+    List<FileInfo> infos;
+
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(NESTED_DIR_URI);
+
+    // List two file from NESTED_URI, getting its offset
+    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
+        2, offset, true));
+    assertEquals(2, infos.size());
+    assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
+    assertEquals(NESTED_FILE_URI.toString(), infos.get(1).getPath());
+    offset = infos.get(1).getFileId();
+
+    // The next file should still be NESTED_FILE_URI2
+    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
+        1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+
+    AlluxioURI renameTo = new AlluxioURI(NESTED_FILE_URI + "1");
+    // Now rename NESTED_FILE_URI, but in the same directory
+    mFileSystemMaster.rename(NESTED_FILE_URI, renameTo,
+        RenameContext.defaults());
+
+    // The next file should still be NESTED_FILE_URI2
+    infos = mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
+        1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+
+    // Now rename the renamed file into a different directory
+    mFileSystemMaster.rename(renameTo, new AlluxioURI("/moveHere"),
+        RenameContext.defaults());
+    // Should throw an exception since we are no longer in the same path as NESTED_URI
+    final long finalOffset = offset;
+    assertThrows(FileDoesNotExistException.class,
+        () -> mFileSystemMaster.listStatus(NESTED_URI, genListStatusPartial(
+            1, finalOffset, true)));
+  }
+
+  @Test
+  public void listStatusPartialNested() throws Exception {
+    long offset = 0;
+    List<FileInfo> infos;
+
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(NESTED_DIR_URI);
+
+    // list one at a time without recursion, the results should be sorted by name
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, 0, false));
+    assertEquals(1, infos.size());
+    assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, false));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, false));
+    assertEquals(0, infos.size());
+
+    // list one at a time with recursion, the results should be sorted by name, and returned in a depth first manner
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, 0, true));
+    assertEquals(1, infos.size());
+    assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_DIR_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_FILE_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_FILE2_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, true));
+    assertEquals(1, infos.size());
+    assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    offset = infos.get(0).getFileId();
+
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(1, offset, true));
+    assertEquals(0, infos.size());
+  }
+
+  @Test
+  public void listStatusPartial() throws Exception {
+    final int files = 13;
+    final int batchSize = 5;
+    List<FileInfo> infos;
+    List<String> filenames;
+
+    // Test files in root directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
+    }
+
+    long offset = 0;
+    for (int i = 0; i < files; i += batchSize) {
+      infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(batchSize, offset, false));
+      // Copy out filenames to use List contains.
+      filenames = infos.stream().map(FileInfo::getPath).collect(Collectors.toCollection(ArrayList::new));
+      // Compare all filenames.
+      for (int j = i; j < Math.min(i + batchSize, files); j++) {
+        assertTrue(
+                filenames.contains(ROOT_URI.join("file" + String.format("%05d", j)).toString()));
+      }
+      assertEquals(Math.min(i + batchSize, files) - i, filenames.size());
+      // start from the offset
+      offset = infos.get(infos.size() - 1).getFileId();
+    }
+
+    // test a non-existing file
+    assertThrows(FileDoesNotExistException.class, () -> mFileSystemMaster.listStatus(
+        new AlluxioURI("/doesNotExist"), genListStatusPartial(
+            batchSize, 0, false)));
+
+    /*
+    // Test single file.
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    infos = mFileSystemMaster.listStatus(ROOT_FILE_URI, ListStatusContext
+            .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+    assertEquals(1, infos.size());
+    assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
+
+    // Test files in nested directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
+    }
+    infos = mFileSystemMaster.listStatus(NESTED_URI, ListStatusContext
+            .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+    assertEquals(files, infos.size());
+    // Copy out filenames to use List contains.
+    filenames = new ArrayList<>();
+    for (FileInfo info : infos) {
+      filenames.add(info.getPath());
+    }
+    // Compare all filenames.
+    for (int i = 0; i < files; i++) {
+      assertTrue(
+              filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
+    }
+
+    // Test non-existent URIs.
+    try {
+      mFileSystemMaster.listStatus(NESTED_URI.join("DNE"), ListStatusContext
+              .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+      fail("listStatus() for a non-existent URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+    */
+  }
+
+  @Test
+  public void listStatusPartialBatchRecursive() throws Exception {
+    final int files = 13;
+    final int batchSize = 5;
+    final int depthSize = 5;
+    List<FileInfo> infos;
+    // we will start a listing from each depth
+    // so for each depth there will be an arraylist of files that are at that depth or greater
+    ArrayList<ArrayList<String>> filenames = new ArrayList<>(depthSize);
+    for (int i = 0; i < depthSize; i++) {
+      filenames.add(new ArrayList<>());
+    }
+
+    // First add number files in each depth
+    ArrayList<String> parent = new ArrayList<>();
+    for (int j = 0; j < depthSize; j++) {
+      for (int i = 0; i < files; i++) {
+        AlluxioURI nxt = new AlluxioURI(parent.stream().reduce("/", String::concat) + "file" + String.format("%05d", i));
+        // the file will be in the listing of every path that has an equal or smaller depth
+        for (int k = 0; k <= j; k++) {
+          filenames.get(k).add(nxt.getPath());
+        }
+        createFileWithSingleBlock(nxt);
+      }
+      parent.add("nxt/");
+    }
+    // The listings of the directories will be at the end with the deepest directory first
+    // since the listing is depth first and the directories have names later in alphabetical order
+    // than the files
+    parent.remove(parent.size()-1);
+    for (int i = depthSize - 2; i >= 0; i--) {
+      String nxtDir = parent.stream().skip(1).reduce("/", String::concat) + "nxt";
+      for (int j = i; j >=0; j--) {
+        filenames.get(j).add(nxtDir);
+      }
+      parent.remove(parent.size() - 1);
+    }
+
+    // Start a partial listing from each depth
+    StringBuilder parentPath = new StringBuilder();
+    for (int i = 0; i < depthSize; i++) {
+      long offset = 0;
+      ArrayList<String> myFileNames = filenames.get(i);
+      // do the partial listing for each batch at this depth and be sure all files are listed
+      for (int j = 0; j < myFileNames.size(); j += batchSize) {
+        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parentPath), genListStatusPartial(
+            batchSize, offset, true));
+        assertEquals(Math.min(myFileNames.size() - j, batchSize), infos.size());
+        for (int k = 0; k < infos.size(); k++) {
+          assertEquals(myFileNames.get(k + j), infos.get(k).getPath());
+        }
+        offset = infos.get(infos.size() - 1).getFileId();
+      }
+      // there should be no more files to list
+      assertEquals(0, mFileSystemMaster.listStatus(new AlluxioURI("/" + parentPath), genListStatusPartial(
+          batchSize, offset, true)).size());
+      parentPath.append("nxt/");
+    }
+  }
+
+  @Test
+  public void listStatusPartialBatch() throws Exception {
+    final int files = 13;
+    final int batchSize = 5;
+    final int depthSize = 5;
+    List<FileInfo> infos;
+    List<String> filenames = new ArrayList<>();
+
+    StringBuilder parent = new StringBuilder();
+    for (int j = 0; j < depthSize; j++) {
+      // Test files in root directory.
+      for (int i = 0; i < files; i++) {
+        AlluxioURI nxt = new AlluxioURI(parent + "/file" + String.format("%05d", i));
+        createFileWithSingleBlock(nxt);
+      }
+      parent.append("/nxt");
+    }
+
+    // go through each file without recursion
+    parent = new StringBuilder();
+    for (int j = 0; j < depthSize; j++) {
+      long offset = 0;
+      // the number of remaining files to list for this directory
+      int remain;
+      if (j == depthSize - 1) {
+        remain = files;
+      } else {
+        // +1 for the nested directory
+        remain = files + 1;
+      }
+      for (int i = 0; i < files; i += batchSize) {
+        infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), genListStatusPartial(
+                batchSize, offset, false));
+        // Copy out filenames to use List contains.
+        filenames = infos.stream().map(FileInfo::getPath).collect(
+            Collectors.toCollection(ArrayList::new));
+        // check all the remaining files are listed
+        assertEquals(Math.min(batchSize, remain), filenames.size());
+        for (int k = i; k < Math.min(files, i + batchSize); k++) {
+          assertTrue(filenames.contains("/" + parent + "file" + String.format("%05d", k)));
+        }
+        offset = infos.get(infos.size() - 1).getFileId();
+        remain -= batchSize;
+      }
+      // listing of the nested directory
+      if (j != depthSize - 1) {
+        assertEquals("/" + parent + "nxt", filenames.get(filenames.size()-1));
+      }
+      // all files should have been listed
+      infos = mFileSystemMaster.listStatus(new AlluxioURI("/" + parent), genListStatusPartial(
+          batchSize, offset, false));
+      assertEquals(0, infos.size());
+
+      parent.append("nxt/");
     }
   }
 
@@ -2695,7 +3057,7 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
-        new TestUserState(TEST_USER, ServerConfiguration.global()));
+        new TestUserState(TEST_USER, ServerConfiguration.global()), HeapBlockStore::new, mInodeStoreFactory);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();

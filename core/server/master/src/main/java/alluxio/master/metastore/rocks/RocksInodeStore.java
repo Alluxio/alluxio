@@ -31,6 +31,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.FlushOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -45,10 +46,16 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -191,6 +198,41 @@ public class RocksInodeStore implements InodeStore {
     return Optional.of(Longs.fromByteArray(id));
   }
 
+  class RocksIter implements Iterator<Long> {
+
+    final RocksIterator iter;
+
+    RocksIter(RocksIterator rocksIterator) {
+      iter = rocksIterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return iter.isValid();
+    }
+
+    @Override
+    public Long next() {
+      Long l = Longs.fromByteArray(iter.value());
+      iter.next();
+      return l;
+    }
+  }
+
+  @Override
+  public CloseableIterator<? extends Inode> getChildrenFrom(final long parentId, final String fromName,
+                                                    final ReadOption option) {
+    RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
+    iter.seek(Longs.toByteArray(parentId));
+    iter.seek(RocksUtils.toByteArray(parentId, fromName));
+    RocksIter rocksIter = new RocksIter(iter);
+    Iterator <? extends  Inode> inodeIterator = StreamSupport.stream(Spliterators
+        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false).map(
+        id -> get(id, option)
+    ).filter(Optional::isPresent).map(Optional::get).iterator();
+    return CloseableIterator.create(inodeIterator, (any) -> iter.close());
+  }
+
   @Override
   public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
     return getChildId(inodeId, name).flatMap(id -> {
@@ -214,7 +256,13 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public Set<EdgeEntry> allEdges() {
     Set<EdgeEntry> edges = new HashSet<>();
-    try (RocksIterator iter = db().newIterator(mEdgesColumn.get())) {
+    try {
+      db().flush(new FlushOptions().setWaitForFlush(true));
+    } catch (Exception e) {
+      System.err.println(e);
+    }
+    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(),
+        new ReadOptions().setTotalOrderSeek(true))) {
       iter.seekToFirst();
       while (iter.isValid()) {
         long parentId = RocksUtils.readLong(iter.key(), 0);
@@ -230,7 +278,8 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public Set<MutableInode<?>> allInodes() {
     Set<MutableInode<?>> inodes = new HashSet<>();
-    try (RocksIterator iter = db().newIterator(mInodesColumn.get())) {
+    try (RocksIterator iter = db().newIterator(mInodesColumn.get(),
+        new ReadOptions().setTotalOrderSeek(true))) {
       iter.seekToFirst();
       while (iter.isValid()) {
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
