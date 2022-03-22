@@ -252,4 +252,5 @@
 
 0.6.39
 
-- Fix csi controller rbac rule not specifying namespace.
+- Fix CSI controller rbac rule not specifying namespace.
+- Fix CSI driver compatibility issue under kubernetes 18+ version.
