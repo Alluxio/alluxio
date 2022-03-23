@@ -14,8 +14,10 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
@@ -29,8 +31,11 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.util.Collections;
 
@@ -55,6 +60,18 @@ public class DistributedCommandsStatsTest extends JobShellTest {
                 .setListStatusWithOptionsMs(SLEEP_MS)
                 .setExistsMs(SLEEP_MS)
                 .setMkdirsMs(SLEEP_MS)));
+
+  @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
+
+  private String mLocalUfsPath;
+  private FileSystem mFileSystem;
+
+  @Before
+  public void before() throws Exception {
+    mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
+    sFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
+  }
 
   @Test
   public void testCompleteStats() throws Exception {
@@ -120,9 +137,11 @@ public class DistributedCommandsStatsTest extends JobShellTest {
 
   @Test
   public void testDistributedLoadCancelStats() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileNew", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFileNew",
+            WritePType.THROUGH, 10);
 
-    long jobId = sJobMaster.run(new LoadConfig("/testFileNew", 1, Collections.EMPTY_SET,
+    long jobId = sJobMaster.run(new LoadConfig("/mnt/testFileNew",
+            1, Collections.EMPTY_SET,
             Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, false));
 
     sJobShell.run("cancel", Long.toString(jobId));
@@ -136,7 +155,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     assertEquals(String.format("ID: %s", jobId), output[0]);
     assertEquals(String.format("Name: Load"), output[1]);
     assertTrue(output[2].contains("Description: LoadConfig"));
-    assertTrue(output[2].contains("/testFileNew"));
+    assertTrue(output[2].contains("/mnt/testFileNew"));
     assertEquals("Status: CANCELED", output[3]);
     assertEquals("Task 0", output[4]);
     assertTrue(output[5].contains("\tWorker: "));
@@ -150,10 +169,12 @@ public class DistributedCommandsStatsTest extends JobShellTest {
 
   @Test
   public void testDistributedCpCancelStats() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileSource", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFileSource",
+            WritePType.THROUGH, 10);
 
     long jobId = sJobMaster.run(new MigrateConfig(
-            "/testFileSource", "/testFileDest", "THROUGH", false));
+            "/mnt/testFileSource", "/mnt/testFileDest",
+            "THROUGH", false));
 
     sJobShell.run("cancel", Long.toString(jobId));
 
@@ -166,8 +187,8 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     assertEquals(String.format("ID: %s", jobId), output[0]);
     assertEquals(String.format("Name: Migrate"), output[1]);
     assertTrue(output[2].contains("Description: MigrateConfig"));
-    assertTrue(output[2].contains("/testFileSource"));
-    assertTrue(output[2].contains("/testFileDest"));
+    assertTrue(output[2].contains("/mnt/testFileSource"));
+    assertTrue(output[2].contains("/mnt/testFileDest"));
     assertEquals("Status: CANCELED", output[3]);
     assertEquals("Task 0", output[4]);
     assertTrue(output[5].contains("\tWorker: "));
@@ -187,9 +208,11 @@ public class DistributedCommandsStatsTest extends JobShellTest {
 
   @Test
   public void testAsyncPersistCancelStats() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFile",
+            WritePType.THROUGH, 10);
 
-    long jobId = sJobMaster.run(new PersistConfig("/testFile", 0, false, "/testUfsPath"));
+    long jobId = sJobMaster.run(new PersistConfig("/mnt/testFile",
+            0, false, "/mnt/testUfsPath"));
 
     sJobShell.run("cancel", Long.toString(jobId));
 
@@ -202,7 +225,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     assertEquals(String.format("ID: %s", jobId), output[0]);
     assertEquals(String.format("Name: Persist"), output[1]);
     assertTrue(output[2].contains("Description: PersistConfig"));
-    assertTrue(output[2].contains("/testFile"));
+    assertTrue(output[2].contains("/mnt/testFile"));
     assertEquals("Status: CANCELED", output[3]);
     assertEquals("Task 0", output[4]);
     assertTrue(output[5].contains("\tWorker: "));
