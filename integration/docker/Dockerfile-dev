@@ -86,8 +86,9 @@ RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
 
-# Disable JVM DNS cache
-RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
+# Disable JVM DNS cache in both java8 and java11
+RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-1.8-openjdk/jre/lib/security/java.security
+RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-11-openjdk/conf/security/java.security
 
 # Add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
