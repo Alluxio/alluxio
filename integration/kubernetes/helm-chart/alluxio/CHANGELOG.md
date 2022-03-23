@@ -249,3 +249,8 @@
 0.6.38
 
 - Fix MOUNT_POINT env in fuse daemonset
+
+0.6.39
+
+- Fix CSI controller rbac rule not specifying namespace.
+- Fix CSI driver compatibility issue under kubernetes 18+ version.
