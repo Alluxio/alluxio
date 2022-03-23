@@ -29,8 +29,10 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.proto.journal.File;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
+import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -402,6 +404,7 @@ public final class S3RestServiceHandler {
    *                   otherwise null
    * @param uploadId the upload ID of the multipart upload, otherwise null
    * @param tagging query string to indicate if this is for PutObjectTagging or not
+   * @param taggingHeader URL encoded metadata tags passed in the header
    * @param is the request body
    * @return the response object
    */
@@ -413,6 +416,8 @@ public final class S3RestServiceHandler {
                                            @HeaderParam("x-amz-copy-source") String copySource,
                                            @HeaderParam("x-amz-decoded-content-length") String
                                                decodedLength,
+                                           @HeaderParam(S3Constants.S3_TAGGING_HEADER) String
+                                               taggingHeader,
                                            @HeaderParam("Content-Length") String contentLength,
                                            @PathParam("bucket") final String bucket,
                                            @PathParam("object") final String object,
@@ -478,9 +483,8 @@ public final class S3RestServiceHandler {
         Map<String, ByteString> tagMap = new HashMap<String, ByteString>();
         for (MetadataTaggingBody.TagObject tag : body.getTagSet().getTags()) {
           // TODO(czhu): validate tags for InvalidTagError
-          tagMap.put(tag.getKey(), ByteString.copyFrom(
-              TAGGING_GLOBAL_PREFIX + tag.getValue(), TAGGING_CHARSET)
-          );
+          tagMap.put(TAGGING_GLOBAL_PREFIX + tag.getKey(),
+              ByteString.copyFrom(tag.getValue(), TAGGING_CHARSET));
         }
         LOG.info("[czhu] PutObjectTagging tag map={}", tagMap);
 
@@ -499,6 +503,7 @@ public final class S3RestServiceHandler {
 
         return Response.ok().build();
       }
+      // TODO(czhu): parse metadata tags from header
 
       // remove exist object
       deleteExistObject(fs, objectURI);
@@ -815,11 +820,18 @@ public final class S3RestServiceHandler {
         S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
         RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
         // TODO(cc): Consider how to respond with the object's ETag.
-        return Response.ok(ris)
+        Response.ResponseBuilder res = Response.ok(ris)
             .lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
-            .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()))
-            .build();
+            .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+
+        // Check if object had tags, if so we need to return the count
+        // in the header "x-amz-tagging-count"
+        int taggingCount = getS3TagsFromFileInfo(status.getFileInfo()).size();
+        if (taggingCount > 0) {
+          res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
+        }
+        return res.build();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }
@@ -839,17 +851,7 @@ public final class S3RestServiceHandler {
       try {
         // Fetch the S3 tags from the Inode xAttr
         URIStatus status = fs.getStatus(objectURI);
-        Map<String, byte[]> xAttr = status.getFileInfo().getXAttr();
-        List<MetadataTaggingBody.TagObject> tagList =
-            new ArrayList<MetadataTaggingBody.TagObject>();
-        if (xAttr != null) {
-          for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
-            String tagStr = new String(entry.getValue(), TAGGING_CHARSET);
-            Matcher m = TAGGING_GLOBAL_PREFIX_PATTERN.matcher(tagStr);
-            if (!m.find()) { continue; }
-            tagList.add(new MetadataTaggingBody.TagObject(entry.getKey(), m.group(1)));
-          }
-        }
+        List<MetadataTaggingBody.TagObject> tagList = getS3TagsFromFileInfo(status.getFileInfo());
         LOG.info("GetObjectTagging tags={}", tagList);
 
         // TODO(czhu): verify return type with actual S3 API
@@ -859,6 +861,21 @@ public final class S3RestServiceHandler {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }
     });
+  }
+
+  private List<MetadataTaggingBody.TagObject> getS3TagsFromFileInfo(FileInfo fileInfo) {
+    Map<String, byte[]> xAttr = fileInfo.getXAttr();
+    List<MetadataTaggingBody.TagObject> tagList =
+        new ArrayList<MetadataTaggingBody.TagObject>();
+    if (xAttr != null) {
+      for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
+        Matcher m = TAGGING_GLOBAL_PREFIX_PATTERN.matcher(entry.getKey());
+        if (!m.find()) { continue; }
+        tagList.add(new MetadataTaggingBody.TagObject(
+            m.group(1), new String(entry.getValue(), TAGGING_CHARSET)));
+      }
+    }
+    return tagList;
   }
 
   /**

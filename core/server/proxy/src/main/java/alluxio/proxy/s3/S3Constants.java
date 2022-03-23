@@ -18,8 +18,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class S3Constants {
+  /* Headers */
   public static final String S3_CONTENT_LENGTH_HEADER = "Content-Length";
   public static final String S3_ETAG_HEADER = "ETAG";
+  public static final String S3_TAGGING_HEADER = "x-amz-tagging";
+  public static final String S3_TAGGING_COUNT_HEADER = "x-amz-tagging-count";
+
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
