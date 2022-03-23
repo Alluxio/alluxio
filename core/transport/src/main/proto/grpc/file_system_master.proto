@@ -8,6 +8,7 @@ package alluxio.grpc.file;
 
 import "grpc/common.proto";
 import "grpc/fscommon.proto";
+import "proto/journal/file.proto";
 
 enum WritePType {
   MUST_CACHE = 1;
@@ -398,6 +399,7 @@ message SetAttributePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   repeated string pinnedMedia = 10;
   map<string, bytes> xattr = 11;
+  optional alluxio.proto.journal.XAttrUpdateStrategy xattrUpdateStrategy = 12;
 }
 message SetAttributePRequest {
   /** the path of the file */

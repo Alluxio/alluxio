@@ -3754,6 +3754,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       LOG.info("Updating Inode={} with xAttr={}",
           inodePath.getInode(), protoOptions.getXattrMap());
       entry.putAllXAttr(protoOptions.getXattrMap());
+      if (protoOptions.hasXattrUpdateStrategy()) {
+        entry.setXAttrUpdateStrategy(protoOptions.getXattrUpdateStrategy());
+      } // otherwise, uses the gRPC message default: TRUNCATE
     }
     if (protoOptions.hasPersisted()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);

@@ -491,7 +491,8 @@ public final class S3RestServiceHandler {
         // call client FileSystem to write Inode metadata
         try {
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
-              .putAllXattr(tagMap).build();
+              .putAllXattr(tagMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+              .build();
           // DefaultFileSystemMaster setAttribute throws:
           // - FileNotFoundException, AccessControlException, InvalidPathException, IOException
           fs.setAttribute(objectURI, attrPOptions);

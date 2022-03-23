@@ -3002,6 +3002,11 @@
                 "name": "pinnedMedia",
                 "type": "string",
                 "is_repeated": true
+              },
+              {
+                "id": 12,
+                "name": "xattrUpdateStrategy",
+                "type": "alluxio.proto.journal.XAttrUpdateStrategy"
               }
             ],
             "maps": [
@@ -3583,6 +3588,9 @@
           },
           {
             "path": "grpc/fscommon.proto"
+          },
+          {
+            "path": "proto/journal/file.proto"
           }
         ],
         "package": {
@@ -7644,6 +7652,27 @@
       "def": {
         "enums": [
           {
+            "name": "XAttrUpdateStrategy",
+            "enum_fields": [
+              {
+                "name": "TRUNCATE",
+                "integer": 1
+              },
+              {
+                "name": "UNION_REPLACE",
+                "integer": 2
+              },
+              {
+                "name": "UNION_PRESERVE",
+                "integer": 3
+              },
+              {
+                "name": "DELETE_KEYS",
+                "integer": 4
+              }
+            ]
+          },
+          {
             "name": "PTtlAction",
             "enum_fields": [
               {
@@ -7983,6 +8012,17 @@
                 "id": 19,
                 "name": "overwrite_access_time",
                 "type": "bool"
+              },
+              {
+                "id": 20,
+                "name": "xAttr_update_strategy",
+                "type": "XAttrUpdateStrategy",
+                "options": [
+                  {
+                    "name": "default",
+                    "value": "TRUNCATE"
+                  }
+                ]
               }
             ],
             "maps": [
