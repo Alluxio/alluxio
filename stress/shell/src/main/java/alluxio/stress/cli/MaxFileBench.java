@@ -53,6 +53,7 @@ public class MaxFileBench extends StressMasterBench {
 
   static AtomicBoolean sFinish = new AtomicBoolean(false);
   private final MasterBenchTaskResult mTotalResults = new MasterBenchTaskResult();
+
   private final List<String> mDefaultParams = Arrays.asList(
       BaseParameters.BENCH_TIMEOUT, String.format("%ds", Integer.MAX_VALUE),
       FileSystemParameters.CLIENT_TYPE, FileSystemClientType.ALLUXIO_NATIVE.toString(),
@@ -132,14 +133,15 @@ public class MaxFileBench extends StressMasterBench {
   }
 
   private final class AlluxioNativeMaxFileThread implements Callable<Void> {
-    private final int mId;
+    private static final int INIT_WAIT_TIME_MS = 100;
+    private static final int MAX_WAIT_TIME_MS = 15_000;
+    private static final int OPERATION_TIMEOUT_MS = 2_000;
 
-    private final int mInitWaitTimeMs = 100;
-    private final int mMaxWaitTimeMs = 15_000;
-    private int mWaitTimeMs = mInitWaitTimeMs;
+    private int mWaitTimeMs = INIT_WAIT_TIME_MS;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-
     private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
+
+    private final int mId;
     private final FileSystem mFs;
     private final Path mBasePath;
     private final Path mFixedBasePath;
@@ -148,8 +150,9 @@ public class MaxFileBench extends StressMasterBench {
       mId = id;
       mFs = fs;
       mBasePath =
-          new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mId));
+          new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mId));
       mFixedBasePath = new Path(mBasePath, "fixed");
+      LOG.info("[{}]: basePath: {}, fixedBasePath: {}", mId, mBasePath, mFixedBasePath);
     }
 
     @Override
@@ -162,7 +165,7 @@ public class MaxFileBench extends StressMasterBench {
         }
         long increment = localCounter.getAndIncrement();
         if (increment % 100_000 == 0) {
-          LOG.info("[{}] Created {} files\n", mId, increment);
+          LOG.info("[{}] Created {} files", mId, increment);
         }
         try {
           mExecutor.submit(() -> {
@@ -171,21 +174,23 @@ public class MaxFileBench extends StressMasterBench {
             } catch (Exception e) {
               throw new RuntimeException(e);
             }
-          }).get(2_000, TimeUnit.MILLISECONDS);
+          }).get(OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-          if (mWaitTimeMs > mMaxWaitTimeMs) {
+          if (mWaitTimeMs > MAX_WAIT_TIME_MS) {
             LOG.info("[{}] Waiting timeout, ending: {}", mId, e);
             sFinish.set(true);
             break;
           } else {
             LOG.info("[{}] Failed, sleeping for {}: {}", mId, mWaitTimeMs, e);
             Thread.sleep(mWaitTimeMs);
+            // exponential backoff retry
             mWaitTimeMs *= 2;
             continue;
           }
         }
         mResult.incrementNumSuccess(1);
-        mWaitTimeMs = mInitWaitTimeMs;
+        // reset wait time after a success
+        mWaitTimeMs = INIT_WAIT_TIME_MS;
       }
 
       // record local results
