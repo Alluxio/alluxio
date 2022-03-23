@@ -24,9 +24,9 @@ import java.util.Random;
 import java.util.Set;
 
 public class SimpleCuckooTableTest {
-  static final int NUM_BUCKETS = 16;
-  static final int TAGS_PER_BUCKET = 4;
-  static final int BITS_PER_TAG = 8;
+  private static final int NUM_BUCKETS = 16;
+  private static final int TAGS_PER_BUCKET = 4;
+  private static final int BITS_PER_TAG = 8;
 
   CuckooTable createCuckooTable() {
     BitSet bits = new BuiltinBitSet(NUM_BUCKETS * BITS_PER_TAG * 4);

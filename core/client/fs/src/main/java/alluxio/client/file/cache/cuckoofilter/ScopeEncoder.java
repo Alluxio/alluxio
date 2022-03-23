@@ -14,6 +14,8 @@ package alluxio.client.file.cache.cuckoofilter;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.quota.CacheScope;
 
+import com.google.common.base.Preconditions;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,8 +25,7 @@ public class ScopeEncoder {
   private final int mMaxNumScopes;
   private final int mScopeMask;
   private final ConcurrentHashMap<CacheScope, Integer> mScopeToId;
-  private final ConcurrentHashMap<Integer, CacheScope> mIdToScope;
-  private int mCount; // the next scope id
+  private int mNextId; // the next scope id
 
   /**
    * Create a scope encoder.
@@ -32,11 +33,12 @@ public class ScopeEncoder {
    * @param bitsPerScope the number of bits the scope has
    */
   public ScopeEncoder(int bitsPerScope) {
+    Preconditions.checkArgument(bitsPerScope > 0 && bitsPerScope < Integer.SIZE - 1,
+            "check the value of bitsPerScope");
     mMaxNumScopes = (1 << bitsPerScope);
     mScopeMask = mMaxNumScopes - 1;
-    mCount = 0;
+    mNextId = 0;
     mScopeToId = new ConcurrentHashMap<>();
-    mIdToScope = new ConcurrentHashMap<>();
   }
 
   /**
@@ -50,26 +52,15 @@ public class ScopeEncoder {
     if (!mScopeToId.containsKey(scopeInfo)) {
       synchronized (this) {
         if (!mScopeToId.containsKey(scopeInfo)) {
-          // TODO(iluoeli): make sure scope id is smaller than mMaxNumScopes
           // NOTE: If update mScopeToId ahead of updating mIdToScope,
           // we may read a null scope info in decode.
-          int id = mCount;
-          mCount++;
-          mIdToScope.putIfAbsent(id, scopeInfo);
-          mScopeToId.putIfAbsent(scopeInfo, id);
+          int id = mNextId;
+          Preconditions.checkArgument(id < mMaxNumScopes, "too many scopes in shadow cache");
+          mNextId++;
+          mScopeToId.put(scopeInfo, id);
         }
       }
     }
     return mScopeToId.get(scopeInfo) & mScopeMask;
-  }
-
-  /**
-   * Decode scope information from integer.
-   *
-   * @param id the encoded scope id will be decoded
-   * @return the decoded scope information
-   */
-  public CacheScope decode(int id) {
-    return mIdToScope.get(id);
   }
 }

@@ -110,6 +110,14 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     mBitsPerSize = sizeTable.getBitsPerTag();
     mScopeTable = scopeTable;
     mBitsPerScope = scopeTable.getBitsPerTag();
+    Preconditions.checkArgument(mBitsPerSize > 0 && mBitsPerSize < Integer.SIZE - 1,
+            "check the value of bitsPerSize");
+    Preconditions.checkArgument(mBitsPerClock > 0 && mBitsPerClock < Integer.SIZE - 1,
+            "check the value of bitsPerClock");
+    Preconditions.checkArgument(mBitsPerScope > 0 && mBitsPerScope < Integer.SIZE - 1,
+            "check the value of bitsPerScope");
+    Preconditions.checkArgument(mBitsPerTag > 0 && mBitsPerTag < Integer.SIZE - 1,
+            "check the value of bitsPerTag");
     mMaxSize = (1 << mBitsPerSize);
     mMaxAge = (1 << mBitsPerClock) - 1;
     mSlidingWindowType = slidingWindowType;

@@ -44,7 +44,6 @@ public class ScopeEncoderTest {
   public void testBasic() {
     int id = mScopeEncoder.encode(SCOPE1);
     assertEquals(0, id);
-    assertEquals(SCOPE1, mScopeEncoder.decode(id));
   }
 
   @Test
@@ -56,7 +55,6 @@ public class ScopeEncoderTest {
           int r = ThreadLocalRandom.current().nextInt(NUM_SCOPES);
           CacheScope scopeInfo = CacheScope.create("schema1.table" + r);
           int id = mScopeEncoder.encode(scopeInfo);
-          assertEquals(scopeInfo, mScopeEncoder.decode(id));
           assertEquals(id, mScopeEncoder.encode(scopeInfo));
           assertTrue(0 <= id && id < NUM_SCOPES);
         }
