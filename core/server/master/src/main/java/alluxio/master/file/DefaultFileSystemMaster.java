@@ -137,6 +137,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
@@ -1232,54 +1233,63 @@ public class DefaultFileSystemMaster extends CoreMaster
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
 
-      Iterator<? extends Inode> childrenIterator;
-      // Check if we should process all children, or just the partial listing
-      // The partial listing iterator is sorted.
-      if (context.getOptions().getPartialListing()) {
-        // If we have already processed the first entry in the partial path
-        // then we just process from the start of the children
-        String listFrom = "";
-        if (partialPath != null && partialPath.hasNext()) {
-          listFrom = partialPath.next();
-        }
-        childrenIterator = mInodeStore.getChildrenFrom(inode.getId(), listFrom,
-                ReadOption.defaults());
-      } else {
-        // Perform a full listing of all children unsorted.
-        childrenIterator = mInodeStore.getChildren(inode.asDirectory()).iterator();
-      }
-      // This is to generate a parsed child path components to be passed to lockChildPath
-      String [] childComponentsHint = null;
-      for (Iterator<? extends Inode> it = childrenIterator; it.hasNext(); ) {
-        String childName = it.next().getName();
-        if (childComponentsHint == null) {
-          String[] parentComponents = PathUtils.getPathComponents(currInodePath.getUri().getPath());
-          childComponentsHint = new String[parentComponents.length + 1];
-          System.arraycopy(parentComponents, 0, childComponentsHint, 0, parentComponents.length);
-        }
-        // TODO(david): Make extending InodePath more efficient
-        childComponentsHint[childComponentsHint.length - 1] = childName;
+      try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
+          inode, partialPath, context)) {
+        // This is to generate a parsed child path components to be passed to lockChildPath
+        String[] childComponentsHint = null;
+        for (Iterator<? extends Inode> it = childrenIterator; it.hasNext(); ) {
+          String childName = it.next().getName();
+          if (childComponentsHint == null) {
+            String[] parentComponents = PathUtils.getPathComponents(
+                currInodePath.getUri().getPath());
+            childComponentsHint = new String[parentComponents.length + 1];
+            System.arraycopy(parentComponents, 0, childComponentsHint, 0, parentComponents.length);
+          }
+          // TODO(david): Make extending InodePath more efficient
+          childComponentsHint[childComponentsHint.length - 1] = childName;
 
-        try (LockedInodePath childInodePath =
-            currInodePath.lockChildByName(childName, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(context, rpcContext, childInodePath, auditContext, nextDescendantType,
-              resultStream, depth + 1, counter, partialPath);
-        } catch (InvalidPathException | FileDoesNotExistException e) {
-          LOG.debug("Path \"{}\" is invalid, has been ignored.",
-              PathUtils.concatPath("/", childComponentsHint));
+          try (LockedInodePath childInodePath =
+                   currInodePath.lockChildByName(
+                       childName, LockPattern.READ, childComponentsHint)) {
+            listStatusInternal(context, rpcContext, childInodePath, auditContext,
+                nextDescendantType, resultStream, depth + 1, counter, partialPath);
+          } catch (InvalidPathException | FileDoesNotExistException e) {
+            LOG.debug("Path \"{}\" is invalid, has been ignored.",
+                PathUtils.concatPath("/", childComponentsHint));
+          }
+          if (context.donePartialListing()) {
+            return;
+          }
+          // ensure that the listing of any new directories starts from the
+          // beginning of the children list
+          partialPath = null;
         }
-        if (context.donePartialListing()) {
-          return;
-        }
-        // ensure that the listing of any new directories starts from the
-        // beginning of the children list
-        partialPath = null;
       }
     }
     // Listing a directory should not emit item for the directory itself.
     if (depth != 0 || inode.isFile()) {
       resultStream.submit(getFileInfoInternal(currInodePath, counter));
       context.listedItem();
+    }
+  }
+
+  private CloseableIterator<? extends Inode> getChildrenIterator(
+      Inode inode, Iterator<String> partialPath, ListStatusContext context) {
+    // Check if we should process all children, or just the partial listing
+    // The partial listing iterator is sorted.
+    if (context.getOptions().getPartialListing()) {
+      // If we have already processed the first entry in the partial path
+      // then we just process from the start of the children
+      String listFrom = "";
+      if (partialPath != null && partialPath.hasNext()) {
+        listFrom = partialPath.next();
+      }
+      return mInodeStore.getChildrenFrom(inode.getId(), listFrom,
+          ReadOption.defaults());
+    } else {
+      // Perform a full listing of all children unsorted.
+      return CloseableIterator.noopCloseable(
+          mInodeStore.getChildren(inode.asDirectory()).iterator());
     }
   }
 
