@@ -12,6 +12,7 @@
 package alluxio.stress.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
@@ -48,6 +49,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * MaxFile StressBench class.
  */
+@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
 public class MaxFileBench extends StressMasterBench {
   private static final Logger LOG = LoggerFactory.getLogger(MaxFileBench.class);
 
