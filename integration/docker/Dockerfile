@@ -12,7 +12,7 @@
 # For production use, we use alpine as base image to minimize alluxio image size.
 FROM alpine:3.10.2
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.6.2-2/alluxio-2.6.2-2-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.6.2-4/alluxio-2.6.2-4-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
