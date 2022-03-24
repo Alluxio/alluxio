@@ -1809,7 +1809,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  // TODO(jiacheng): Add new unit tests for the new behavior?
   public void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
@@ -1935,7 +1934,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
       // This walks the tree in a DFS flavor, first all the children in a subtree,
       // then the sibling trees one by one.
-      // Therefore we first see a parent, then all its children.
+      // Therefore, we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
         if (bypassPermCheck) {
           inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
