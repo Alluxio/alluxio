@@ -1635,6 +1635,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER =
+      new Builder("Client.CacheBytesReadInStreamBuffer")
+          .setDescription("Total number of bytes read from the client cache's in stream buffer.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_BYTES_READ_EXTERNAL =
       new Builder("Client.CacheBytesReadExternal")
           .setDescription("Total number of bytes read from external storage due to a cache miss "
