@@ -2099,6 +2099,16 @@
                 "name": "persistenceWaitTime",
                 "type": "int64"
               }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 11,
+                  "name": "xattr",
+                  "type": "bytes"
+                }
+              }
             ]
           },
           {

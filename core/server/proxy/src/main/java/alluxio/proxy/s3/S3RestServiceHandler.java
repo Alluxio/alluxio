@@ -463,23 +463,35 @@ public final class S3RestServiceHandler {
       }
       AlluxioURI objectURI = new AlluxioURI(objectPath);
 
-      if (tagging != null) {
-        // Parse the XML body and validate the tags
-        MetadataTaggingBody body = null;
+      // Parse the MetadataTaggingBody
+      // - we will write the serialized version of this object into xAttr
+      //   since this is the same XML format that is returned for GetObjectTagging
+      MetadataTaggingBody body = null;
+      if (tagging != null) { // Parse the XML body
         try {
           body = new XmlMapper().readerFor(MetadataTaggingBody.class)
               .readValue(is);
         } catch (IOException e) {
-          if (e.getCause() instanceof IllegalArgumentException
-              && e.getCause().getCause() instanceof S3Exception) {
-            throw (S3Exception) e.getCause().getCause();
+          if (e.getCause() instanceof S3Exception) {
+            throw (S3Exception) e.getCause();
           }
           throw new S3Exception(e, objectPath, S3ErrorCode.MALFORMED_XML);
         }
-        LOG.info("[czhu] PutObjectTagging body={}", body);
+      } else if (taggingHeader != null) { // Parse the header
+        LOG.info("[czhu] tagging headers={}", taggingHeader);
+        List<MetadataTaggingBody.TagObject> tagObjectList =
+            new ArrayList<MetadataTaggingBody.TagObject>();
+        for (String tag : taggingHeader.split("&")) {
+          String[] entries = tag.split("=");
+          tagObjectList.add(new MetadataTaggingBody.TagObject(entries[0], entries[1]));
+        }
+        body = new MetadataTaggingBody(new MetadataTaggingBody.TagSet(tagObjectList));
+      }
+      LOG.info("[czhu] PutObjectTagging body={}", body);
 
-        // Serialize the metadata tags into a byte array
-        ByteString tagBytes;
+      ByteString tagBytes = null;
+      if (body != null) {
+        // Serialize the metadata tags object into bytes
         try {
           ByteArrayOutputStream bos = new ByteArrayOutputStream();
           ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -494,12 +506,15 @@ public final class S3RestServiceHandler {
           LOG.error(e.toString());
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
-        LOG.info("[czhu] tagBytes={}", tagBytes);
+      }
+      Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+      if (tagBytes != null) {
+        xattrMap.put(S3Constants.TAGGING_XATTR_KEY, tagBytes);
+      }
 
-        // call client FileSystem to write Inode metadata
+      // If this request is for PutObjectTagging, call client FileSystem to write Inode metadata
+      if (tagging != null) {
         try {
-          Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
-          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, tagBytes);
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
               .build();
@@ -513,15 +528,16 @@ public final class S3RestServiceHandler {
         }
 
         return Response.ok().build();
-      }
-      // TODO(czhu): parse metadata tags from header
+      } // else we add the tags to the CreateFile RPC
 
       // remove exist object
       deleteExistObject(fs, objectURI);
 
       CreateFilePOptions filePOptions =
           CreateFilePOptions.newBuilder().setRecursive(true)
-              .setWriteType(S3RestUtils.getS3WriteType()).build();
+              .setWriteType(S3RestUtils.getS3WriteType())
+              .putAllXattr(xattrMap)
+              .build();
 
       // not copying from an existing file
       if (copySource == null) {
@@ -973,7 +989,7 @@ public final class S3RestServiceHandler {
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     LOG.info("[czhu] DeleteObjectTagging object={}", object);
     Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
-    xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0])); // entry cannot be null
+    xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0]));
     SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
         .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
         .build();

@@ -112,9 +112,10 @@ public class MetadataTaggingBody implements Serializable {
         }
       }
     } catch (S3Exception e) {
-      // IllegalArgumentException will be wrapped in IOException from the
+      // IllegalArgumentException will be consumed by IOException from the
       // jersey library when the MetadataTaggingBody constructor runs validateTags()
-      throw new IllegalArgumentException(e);
+      // - the underlying S3Exception will be the throwable cause for the IOException
+      throw new IllegalArgumentException(e.getMessage(), e);
     }
   }
 
@@ -181,7 +182,6 @@ public class MetadataTaggingBody implements Serializable {
      * @param value the key indicating the tag value
      */
     public TagObject(String key, String value) {
-      // TODO(czhu): perform tag validation
       mKey = key;
       mValue = value;
     }
