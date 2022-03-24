@@ -27,5 +27,8 @@ public final class S3Constants {
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
+  /* S3 Metadata tagging. */
+  public static final String TAGGING_XATTR_KEY = "s3_tags";
+
   private S3Constants() {} // prevent instantiation
 }

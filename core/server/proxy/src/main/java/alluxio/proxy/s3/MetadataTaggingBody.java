@@ -15,15 +15,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Parsed version of a request to PutObjectTagging.
  * See https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html
  */
 @JacksonXmlRootElement(localName = "Tagging")
-public class MetadataTaggingBody {
+public class MetadataTaggingBody implements Serializable {
+  public static final long serialVersionUID = 1L;
 
   @JacksonXmlProperty(localName = "TagSet")
   private TagSet mTagSet;
@@ -41,7 +45,7 @@ public class MetadataTaggingBody {
    * @param tagSet the user metadata tags
    */
   public MetadataTaggingBody(TagSet tagSet) {
-    mTagSet = tagSet;
+    setTagSet(tagSet); // use setter method for tag validation
   }
 
   /**
@@ -52,6 +56,7 @@ public class MetadataTaggingBody {
   @JacksonXmlProperty(localName = "TagSet")
   public void setTagSet(TagSet tagSet) {
     mTagSet = tagSet;
+    validateTags();
   }
 
   /**
@@ -62,11 +67,42 @@ public class MetadataTaggingBody {
     return mTagSet;
   }
 
+  @Override
+  public String toString() {
+    return mTagSet.toString();
+  }
+
+  /**
+   * Validates S3 User tag restrictions.
+   */
+  void validateTags() {
+    List<TagObject> tags = mTagSet.getTags();
+    if (tags.size() == 0) { return; }
+    if (tags.size() > 10) {
+      throw new IllegalArgumentException("Exceeded maximum user tag limit (10).");
+    }
+    Set<String> tagKeys = new HashSet<>();
+    for (TagObject tag : tags) {
+      // Tag key validation
+      if (tag.mKey.length() > 128) {
+        throw new IllegalArgumentException("Tag keys can only be up to 128 characters long.");
+      }
+      if (tagKeys.contains(tag.mKey)) {
+        throw new IllegalArgumentException("Tags may not contain duplicate keys.");
+      }
+      tagKeys.add(tag.mKey);
+      // Tag value validation
+      if (tag.mValue.length() > 256) {
+        throw new IllegalArgumentException("Tag values can only be up to 256 characters long.");
+      }
+    }
+  }
+
   /**
    * Inner POJO representing the user metadata tag set in the S3 API.
    */
   @JacksonXmlRootElement(localName = "TagSet")
-  static class TagSet {
+  static class TagSet implements Serializable {
     @JacksonXmlProperty(localName = "Tag")
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<TagObject> mTags;
@@ -100,13 +136,18 @@ public class MetadataTaggingBody {
     public void setTags(List<TagObject> tags) {
       mTags = tags;
     }
+
+    @Override
+    public String toString() {
+      return mTags.toString();
+    }
   }
 
   /**
    * Inner POJO representing a user metadata tag in the S3 API.
    */
   @JacksonXmlRootElement(localName = "Tag")
-  static class TagObject {
+  static class TagObject implements Serializable {
     private String mKey;
     private String mValue;
 

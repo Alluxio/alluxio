@@ -45,10 +45,12 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -57,8 +59,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
@@ -95,11 +95,6 @@ public final class S3RestServiceHandler {
   public static final String BUCKET_PARAM = "{bucket}/";
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
-
-  /* S3 Metadata tag custom prefixes. */
-  public static final String TAGGING_GLOBAL_PREFIX = "s3:";
-  public static final Pattern TAGGING_GLOBAL_PREFIX_PATTERN = Pattern.compile("^s3:(.+)");
-  public static final Charset TAGGING_CHARSET = StandardCharsets.UTF_8;
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
@@ -475,23 +470,37 @@ public final class S3RestServiceHandler {
           body = new XmlMapper().readerFor(MetadataTaggingBody.class)
               .readValue(is);
         } catch (IOException e) {
-          // TODO(czhu): return MalformedXMLError
+          if (e.getCause() instanceof IllegalArgumentException) {
+            throw new S3Exception(e, objectPath, S3ErrorCode.INVALID_TAG);
+          }
+          throw new S3Exception(e, objectPath, S3ErrorCode.MALFORMED_XML);
+        }
+        LOG.info("[czhu] PutObjectTagging body={}", body);
+
+        // Serialize the metadata tags into a byte array
+        ByteString tagBytes;
+        try {
+          ByteArrayOutputStream bos = new ByteArrayOutputStream();
+          ObjectOutputStream oos = new ObjectOutputStream(bos);
+          LOG.info("[czhu] Writing object to output stream");
+          oos.writeObject(body);
+          oos.flush();
+          oos.close();
+          LOG.info("[czhu] Reading object as byte array");
+          tagBytes = ByteString.copyFrom(bos.toByteArray());
+          bos.close();
+        } catch (Exception e) {
+          LOG.error(e.toString());
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
-
-        // Parse request's tag set into a map
-        Map<String, ByteString> tagMap = new HashMap<String, ByteString>();
-        for (MetadataTaggingBody.TagObject tag : body.getTagSet().getTags()) {
-          // TODO(czhu): validate tags for InvalidTagError
-          tagMap.put(TAGGING_GLOBAL_PREFIX + tag.getKey(),
-              ByteString.copyFrom(tag.getValue(), TAGGING_CHARSET));
-        }
-        LOG.info("[czhu] PutObjectTagging tag map={}", tagMap);
+        LOG.info("[czhu] tagBytes={}", tagBytes);
 
         // call client FileSystem to write Inode metadata
         try {
+          Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, tagBytes);
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
-              .putAllXattr(tagMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+              .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
               .build();
           // DefaultFileSystemMaster setAttribute throws:
           // - FileNotFoundException, AccessControlException, InvalidPathException, IOException
@@ -828,9 +837,12 @@ public final class S3RestServiceHandler {
 
         // Check if object had tags, if so we need to return the count
         // in the header "x-amz-tagging-count"
-        int taggingCount = getS3TagsFromFileInfo(status.getFileInfo()).size();
-        if (taggingCount > 0) {
-          res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
+        MetadataTaggingBody tagBody = deserializeTags(status.getFileInfo());
+        if (tagBody != null) {
+          int taggingCount = tagBody.getTagSet().getTags().size();
+          if (taggingCount > 0) {
+            res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
+          }
         }
         return res.build();
       } catch (Exception e) {
@@ -852,31 +864,33 @@ public final class S3RestServiceHandler {
       try {
         // Fetch the S3 tags from the Inode xAttr
         URIStatus status = fs.getStatus(objectURI);
-        List<MetadataTaggingBody.TagObject> tagList = getS3TagsFromFileInfo(status.getFileInfo());
-        LOG.info("GetObjectTagging tags={}", tagList);
-
-        // TODO(czhu): verify return type with actual S3 API
-        // Return the tags in XML format
-        return new MetadataTaggingBody(new MetadataTaggingBody.TagSet(tagList));
+        MetadataTaggingBody tagBody = deserializeTags(status.getFileInfo());
+        LOG.info("GetObjectTagging body={}", tagBody);
+        return tagBody != null ? tagBody : new MetadataTaggingBody();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }
     });
   }
 
-  private List<MetadataTaggingBody.TagObject> getS3TagsFromFileInfo(FileInfo fileInfo) {
+  private MetadataTaggingBody deserializeTags(FileInfo fileInfo)
+      throws IOException, ClassNotFoundException {
     Map<String, byte[]> xAttr = fileInfo.getXAttr();
-    List<MetadataTaggingBody.TagObject> tagList =
-        new ArrayList<MetadataTaggingBody.TagObject>();
-    if (xAttr != null) {
-      for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
-        Matcher m = TAGGING_GLOBAL_PREFIX_PATTERN.matcher(entry.getKey());
-        if (!m.find()) { continue; }
-        tagList.add(new MetadataTaggingBody.TagObject(
-            m.group(1), new String(entry.getValue(), TAGGING_CHARSET)));
-      }
+    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+      return null;
     }
-    return tagList;
+    MetadataTaggingBody tagBody;
+    byte[] tagBytes = xAttr.get(S3Constants.TAGGING_XATTR_KEY);
+    try {
+      ByteArrayInputStream bis = new ByteArrayInputStream(tagBytes);
+      ObjectInputStream oos = new ObjectInputStream(bis);
+      tagBody = (MetadataTaggingBody) oos.readObject();
+      oos.close();
+      bis.close();
+    } catch (Exception e) {
+      throw e;
+    }
+    return tagBody;
   }
 
   /**
@@ -956,8 +970,20 @@ public final class S3RestServiceHandler {
       throws S3Exception {
     String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-    // TODO(czhu): implement DeleteObjectTagging
     LOG.info("[czhu] DeleteObjectTagging object={}", object);
+    Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+    xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0])); // entry cannot be null
+    SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
+        .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
+        .build();
+    try {
+      // DefaultFileSystemMaster setAttribute throws:
+      // - FileNotFoundException, AccessControlException, InvalidPathException, IOException
+      fs.setAttribute(new AlluxioURI(objectPath), attrPOptions);
+    } catch (Exception e) {
+      // TODO(czhu): verify error cases match with S3 API
+      throw S3RestUtils.toObjectS3Exception(e, objectPath);
+    }
   }
 
   /**
