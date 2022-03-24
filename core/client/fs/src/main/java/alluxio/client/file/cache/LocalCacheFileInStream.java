@@ -60,7 +60,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private final FileInStreamOpener mExternalFileInStreamOpener;
   private final ScopedMetrics mScopedMetrics;
 
-  private final byte[] mBuffer;
+  private byte[] mBuffer = null;
   private final int mBufferSize;
   private long mBufferStartOffset;
   private long mBufferEndOffset;
@@ -110,10 +110,10 @@ public class LocalCacheFileInStream extends FileInStream {
 
     mScopedMetrics = LocalCacheMetrics.Factory.get(conf).getLocalCacheMetricsInScope();
 
-    mBufferSize = 8192;
-    mBuffer = new byte[mBufferSize];
-    mBufferStartOffset = -1;
-    mBufferEndOffset = -1;
+    mBufferSize = (int) conf.getBytes(PropertyKey.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE);
+    if (mBufferSize > 0) {
+      mBuffer = new byte[mBufferSize];
+    }
   }
 
   @Override
@@ -218,7 +218,6 @@ public class LocalCacheFileInStream extends FileInStream {
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
   private int readInternal(byte[] b, int off, int len, ReadType readType, long pos,
       boolean isPositionedRead) throws IOException {
-
     Preconditions.checkArgument(len >= 0, "length should be non-negative");
     Preconditions.checkArgument(off >= 0, "offset should be non-negative");
     Preconditions.checkArgument(pos >= 0, "position should be non-negative");
@@ -231,7 +230,6 @@ public class LocalCacheFileInStream extends FileInStream {
     int totalBytesRead = 0;
     long currentPosition = pos;
     long lengthToRead = Math.min(len, mStatus.getLength() - pos);
-
     // used in positionedRead, so make stopwatch a local variable rather than class member
     Stopwatch stopwatch = createUnstartedStopwatch();
     // for each page, check if it is available in the cache
