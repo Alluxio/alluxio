@@ -11,6 +11,8 @@
 
 package alluxio.collections;
 
+import alluxio.annotation.SuppressFBWarnings;
+
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -51,6 +53,7 @@ public class UnmodifiableArrayList<T> implements List<T> {
   /**
    * @param elements the underlying array
    */
+  @SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
   public UnmodifiableArrayList(T[] elements) {
     // Explicitly disable null array because that makes no sense for this wrapper
     Preconditions.checkNotNull(elements);
@@ -236,7 +239,8 @@ public class UnmodifiableArrayList<T> implements List<T> {
         throw new NoSuchElementException();
       }
       mCursor = i + 1;
-      return mElements[mLastRet = i];
+      mLastRet = i;
+      return mElements[mLastRet];
     }
 
     @Override
@@ -293,7 +297,8 @@ public class UnmodifiableArrayList<T> implements List<T> {
         throw new ConcurrentModificationException();
       }
       mCursor = i;
-      return mElements[mLastRet = i];
+      mLastRet = i;
+      return mElements[mLastRet];
     }
 
     @Override
