@@ -470,8 +470,9 @@ public final class S3RestServiceHandler {
           body = new XmlMapper().readerFor(MetadataTaggingBody.class)
               .readValue(is);
         } catch (IOException e) {
-          if (e.getCause() instanceof IllegalArgumentException) {
-            throw new S3Exception(e, objectPath, S3ErrorCode.INVALID_TAG);
+          if (e.getCause() instanceof IllegalArgumentException
+              && e.getCause().getCause() instanceof S3Exception) {
+            throw (S3Exception) e.getCause().getCause();
           }
           throw new S3Exception(e, objectPath, S3ErrorCode.MALFORMED_XML);
         }

@@ -11,6 +11,8 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.Constants;
+
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -77,24 +79,42 @@ public class MetadataTaggingBody implements Serializable {
    */
   void validateTags() {
     List<TagObject> tags = mTagSet.getTags();
+    int totalBytes = 0;
     if (tags.size() == 0) { return; }
-    if (tags.size() > 10) {
-      throw new IllegalArgumentException("Exceeded maximum user tag limit (10).");
-    }
-    Set<String> tagKeys = new HashSet<>();
-    for (TagObject tag : tags) {
-      // Tag key validation
-      if (tag.mKey.length() > 128) {
-        throw new IllegalArgumentException("Tag keys can only be up to 128 characters long.");
+    try {
+      if (tags.size() > 10) {
+        throw new S3Exception("User-defined metadata tags cannot be greater than 10",
+            S3ErrorCode.BAD_REQUEST);
       }
-      if (tagKeys.contains(tag.mKey)) {
-        throw new IllegalArgumentException("Tags may not contain duplicate keys.");
+      Set<String> tagKeys = new HashSet<>();
+      for (TagObject tag : tags) {
+        // Tag key validation
+        if (tag.mKey.length() > 128) {
+          throw new S3Exception(String.format("Tag key exceeds maximum length (128): %s",
+              tag.mKey), S3ErrorCode.INVALID_TAG);
+        }
+        if (tagKeys.contains(tag.mKey)) {
+          throw new S3Exception("Tags cannot contain duplicate keys",
+              S3ErrorCode.INVALID_TAG);
+        }
+        tagKeys.add(tag.mKey);
+        // Tag value validation
+        if (tag.mValue.length() > 256) {
+          throw new S3Exception(String.format("Tag value exceeds maximum length (256): %s=%s",
+              tag.mKey, tag.mValue), S3ErrorCode.INVALID_TAG);
+        }
+        // Header user-metadata size limit validation (<= 2 KB)
+        // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
+        totalBytes += tag.getNumBytes();
+        if (totalBytes > 2 * Constants.KB) {
+          throw new S3Exception("User-defined metadata tags cannot exceed 2 KB",
+              S3ErrorCode.METADATA_TOO_LARGE);
+        }
       }
-      tagKeys.add(tag.mKey);
-      // Tag value validation
-      if (tag.mValue.length() > 256) {
-        throw new IllegalArgumentException("Tag values can only be up to 256 characters long.");
-      }
+    } catch (S3Exception e) {
+      // IllegalArgumentException will be wrapped in IOException from the
+      // jersey library when the MetadataTaggingBody constructor runs validateTags()
+      throw new IllegalArgumentException(e);
     }
   }
 
@@ -205,6 +225,15 @@ public class MetadataTaggingBody implements Serializable {
     @Override
     public String toString() {
       return mKey + " = " + mValue;
+    }
+
+    /**
+     * Convenience method for calculating metadata size limits.
+     * @return the sum of the number of bytes in the UTF-8 encoding of the tag key and value
+     */
+    int getNumBytes() {
+      return mKey.getBytes(S3Constants.TAGGING_CHARSET).length
+          + mValue.getBytes(S3Constants.TAGGING_CHARSET).length;
     }
   }
 }

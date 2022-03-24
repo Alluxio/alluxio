@@ -11,6 +11,8 @@
 
 package alluxio.proxy.s3;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -29,6 +31,7 @@ public final class S3Constants {
 
   /* S3 Metadata tagging. */
   public static final String TAGGING_XATTR_KEY = "s3_tags";
+  public static final Charset TAGGING_CHARSET = StandardCharsets.UTF_8;
 
   private S3Constants() {} // prevent instantiation
 }
