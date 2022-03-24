@@ -12,7 +12,6 @@
 package alluxio.collections;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
@@ -53,6 +52,7 @@ public class UnmodifiableArrayList<T> implements List<T> {
    * @param elements the underlying array
    */
   public UnmodifiableArrayList(T[] elements) {
+    // Explicitly disable null array because that makes no sense for this wrapper
     Preconditions.checkNotNull(elements);
     mElements = elements;
   }
@@ -64,7 +64,7 @@ public class UnmodifiableArrayList<T> implements List<T> {
 
   @Override
   public boolean isEmpty() {
-    return mElements == null || mElements.length == 0;
+    return mElements.length == 0;
   }
 
   @Override
@@ -74,7 +74,7 @@ public class UnmodifiableArrayList<T> implements List<T> {
 
   @Override
   public Iterator<T> iterator() {
-    return Iterators.forArray(mElements);
+    return new Itr();
   }
 
   @Override
