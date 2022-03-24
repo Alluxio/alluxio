@@ -13,6 +13,7 @@ package alluxio.collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
@@ -74,5 +75,39 @@ public class UnmodifiableArrayListTest {
       assertEquals(i, list.lastIndexOf(s));
     }
     assertFalse(list.contains("a"));
+  }
+
+  @Test
+  public void noModification() {
+    String[] array = new String[]{"a", "b", "c", "d"};
+    UnmodifiableArrayList<String> list = new UnmodifiableArrayList<>(array);
+
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.add("e");
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.add(0, "x");
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.addAll(ImmutableList.of("x", "y"));
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.remove("a");
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.remove(0);
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.removeAll(ImmutableList.of("a", "b"));
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.iterator().remove();
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.listIterator().add("x");
+    });
+    assertThrows(UnsupportedOperationException.class, () -> {
+      list.listIterator().remove();
+    });
   }
 }
