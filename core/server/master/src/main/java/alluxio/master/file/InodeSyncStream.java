@@ -78,6 +78,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -651,7 +652,7 @@ public class InodeSyncStream {
 
       // Fetch and populate children into the cache
       mStatusCache.prefetchChildren(inodePath.getUri(), mMountTable);
-      UfsStatus[] listStatus = mStatusCache
+      Collection<UfsStatus> listStatus = mStatusCache
           .fetchChildrenIfAbsent(mRpcContext, inodePath.getUri(), mMountTable);
       // Iterate over UFS listings and process UFS children.
       if (listStatus != null) {
@@ -748,7 +749,7 @@ public class InodeSyncStream {
         // now load all children if required
         LoadDescendantPType type = context.getOptions().getLoadDescendantType();
         if (type != LoadDescendantPType.NONE) {
-          UfsStatus[] children = mStatusCache.fetchChildrenIfAbsent(mRpcContext,
+          Collection<UfsStatus> children = mStatusCache.fetchChildrenIfAbsent(mRpcContext,
               inodePath.getUri(), mMountTable);
           if (children == null) {
             LOG.debug("fetching children for {} returned null", inodePath.getUri());

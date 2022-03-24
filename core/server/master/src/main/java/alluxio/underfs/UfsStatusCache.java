@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.UnmodifiableArrayList;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -49,8 +51,8 @@ public class UfsStatusCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsStatusCache.class);
 
   private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
-  private final ConcurrentHashMap<AlluxioURI, Future<UfsStatus[]>> mActivePrefetchJobs;
-  private final ConcurrentHashMap<AlluxioURI, UfsStatus[]> mChildren;
+  private final ConcurrentHashMap<AlluxioURI, Future<Collection<UfsStatus>>> mActivePrefetchJobs;
+  private final ConcurrentHashMap<AlluxioURI, Collection<UfsStatus>> mChildren;
   private final UfsAbsentPathCache mAbsentCache;
   private final long mCacheValidTime;
   private final ExecutorService mPrefetchExecutor;
@@ -110,12 +112,11 @@ public class UfsStatusCache {
    * @return the previous set of children if the mapping existed, null otherwise
    */
   @Nullable
-  public UfsStatus[] addChildren(AlluxioURI path, UfsStatus[] children) {
-    for (int i = 0; i < children.length; i++) {
-      UfsStatus child = children[i];
+  public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
+    children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
-    }
+    });
     return mChildren.put(path, children);
   }
 
@@ -214,10 +215,10 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public UfsStatus[] fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
+  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
        MountTable mountTable, boolean useFallback)
       throws InterruptedException, InvalidPathException {
-    Future<UfsStatus[]> prefetchJob = mActivePrefetchJobs.get(path);
+    Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
       while (true) {
         try {
@@ -239,7 +240,7 @@ public class UfsStatusCache {
         }
       }
     }
-    UfsStatus[] children = getChildren(path);
+    Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
       return children;
     }
@@ -263,7 +264,7 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public UfsStatus[] fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
+  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
        MountTable mountTable)
       throws InterruptedException, InvalidPathException {
     return fetchChildrenIfAbsent(rpcContext, path, mountTable, true);
@@ -282,9 +283,9 @@ public class UfsStatusCache {
    * @throws InvalidPathException when the table can't resolve the mount for the given URI
    */
   @Nullable
-  UfsStatus[] getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
+  Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InvalidPathException {
-    UfsStatus[] children = getChildren(path);
+    Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
       return children;
     }
@@ -300,8 +301,8 @@ public class UfsStatusCache {
         mAbsentCache.addSinglePath(path);
         return null;
       }
-      children = statuses;
-      addChildren(path, statuses);
+      children = new UnmodifiableArrayList<>(statuses);
+      addChildren(path, children);
     } catch (IllegalArgumentException | IOException e) {
       LOG.debug("Failed to add status to cache {}", path, e);
     }
@@ -315,7 +316,7 @@ public class UfsStatusCache {
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
   @Nullable
-  public UfsStatus[] getChildren(AlluxioURI path) {
+  public Collection<UfsStatus> getChildren(AlluxioURI path) {
     return mChildren.get(path);
   }
 
@@ -333,14 +334,14 @@ public class UfsStatusCache {
    * @return the future corresponding to the fetch task
    */
   @Nullable
-  public Future<UfsStatus[]> prefetchChildren(AlluxioURI path, MountTable mountTable) {
+  public Future<Collection<UfsStatus>> prefetchChildren(AlluxioURI path, MountTable mountTable) {
     if (mPrefetchExecutor == null) {
       return null;
     }
     try {
-      Future<UfsStatus[]> job =
+      Future<Collection<UfsStatus>> job =
           mPrefetchExecutor.submit(() -> getChildrenIfAbsent(path, mountTable));
-      Future<UfsStatus[]> prev = mActivePrefetchJobs.put(path, job);
+      Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, job);
       if (prev != null) {
         prev.cancel(true);
       }

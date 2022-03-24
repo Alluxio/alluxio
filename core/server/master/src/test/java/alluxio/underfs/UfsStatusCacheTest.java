@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -56,7 +55,8 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -156,10 +156,10 @@ public class UfsStatusCacheTest {
   public void testUseFallback() throws Exception {
     createUfsDirs("a");
     createUfsFile("a/b");
-    UfsStatus[] children = mCache
+    Collection<UfsStatus> children = mCache
         .fetchChildrenIfAbsent(null, new AlluxioURI("/a"), mMountTable);
-    assertEquals(1, children.length);
-    Arrays.stream(children).forEach(stat -> assertEquals("b", stat.getName()));
+    assertEquals(1, children.size());
+    children.forEach(stat -> assertEquals("b", stat.getName()));
   }
 
   @Test
@@ -276,11 +276,11 @@ public class UfsStatusCacheTest {
     when(statChild.getName()).thenReturn("123");
 
     mCache.addStatus(path, stat);
-    mCache.addChildren(path, new UfsStatus[]{statChild});
+    mCache.addChildren(path, Collections.singleton(statChild));
     assertEquals(stat, mCache.getStatus(path));
     assertEquals(statChild, mCache.getStatus(pathChild));
-    assertArrayEquals(new UfsStatus[]{statChild}, mCache.getChildren(path));
-    assertArrayEquals(new UfsStatus[]{statChild},
+    assertEquals(Collections.singleton(statChild), mCache.getChildren(path));
+    assertEquals(Collections.singleton(statChild),
         mCache.fetchChildrenIfAbsent(null, path, mMountTable));
 
     mCache.remove(path);
@@ -304,22 +304,22 @@ public class UfsStatusCacheTest {
         mUfs.getStatus(PathUtils.concatPath(mUfsUri, "/mnt/dir2/dir0")).setName("dir0"));
     mCache.prefetchChildren(new AlluxioURI("/mnt/dir1/dir0"), mMountTable);
     mCache.prefetchChildren(new AlluxioURI("/mnt/dir2/dir0"), mMountTable);
-    UfsStatus[] children;
+    Collection<UfsStatus> children;
     children = mCache.fetchChildrenIfAbsent(
         null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
     assertNotNull(children);
-    assertEquals(1, children.length);
-    Arrays.stream(children).forEach(s -> assertEquals("dir2", s.getName()));
+    assertEquals(1, children.size());
+    children.forEach(s -> assertEquals("dir2", s.getName()));
     children = mCache.fetchChildrenIfAbsent(
         null, new AlluxioURI("/mnt/dir2/dir0"), mMountTable, false);
     assertNotNull(children);
-    assertEquals(1, children.length);
-    Arrays.stream(children).forEach(s -> assertEquals("dir3", s.getName()));
+    assertEquals(1, children.size());
+    children.forEach(s -> assertEquals("dir3", s.getName()));
     children = mCache.fetchChildrenIfAbsent(
         null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
     assertNotNull(children);
-    assertEquals(1, children.length);
-    Arrays.stream(children).forEach(s -> assertEquals("dir2", s.getName()));
+    assertEquals(1, children.size());
+    children.forEach(s -> assertEquals("dir2", s.getName()));
   }
 
   @Test
@@ -328,13 +328,13 @@ public class UfsStatusCacheTest {
     createUfsFile("dir0/dir0/file");
     mCache.prefetchChildren(new AlluxioURI("/dir0/dir0"), mMountTable);
     mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
-    UfsStatus[] statuses =
+    Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, false);
-    assertEquals(1, statuses.length);
-    Arrays.stream(statuses).forEach(s -> assertEquals("file", s.getName()));
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("file", s.getName()));
     statuses = mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
-    assertEquals(1, statuses.length);
-    Arrays.stream(statuses).forEach(s -> assertEquals("dir0", s.getName()));
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("dir0", s.getName()));
   }
 
   @Test
@@ -357,16 +357,16 @@ public class UfsStatusCacheTest {
     Future<?> f2 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     assertNotNull(f1);
     assertTrue("first future is cancelled", f1.isCancelled());
-    UfsStatus[] statuses =
+    Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, true);
-    assertEquals(1, statuses.length);
-    Arrays.stream(statuses).forEach(s -> assertEquals("file", s.getName()));
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("file", s.getName()));
     l.unlock();
     statuses = mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
     assertNotNull(f2);
     assertTrue("second future should be finished", f2.isDone());
-    assertEquals(1, statuses.length);
-    Arrays.stream(statuses).forEach(s -> assertEquals("dir0", s.getName()));
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("dir0", s.getName()));
   }
 
   @Test
@@ -402,10 +402,10 @@ public class UfsStatusCacheTest {
     assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
     assertNull(mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable)); // rejected
     l.unlock();
-    UfsStatus[] statuses =
+    Collection<UfsStatus> statuses =
         mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
-    assertEquals(1, statuses.length);
-    Arrays.stream(statuses).forEach(s -> assertEquals("dir1", s.getName()));
+    assertEquals(1, statuses.size());
+    statuses.forEach(s -> assertEquals("dir1", s.getName()));
   }
 
   @Test
