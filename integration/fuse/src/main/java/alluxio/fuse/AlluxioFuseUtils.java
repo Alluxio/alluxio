@@ -25,6 +25,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
@@ -34,13 +35,19 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.FileUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -206,6 +213,48 @@ public final class AlluxioFuseUtils {
       return false;
     }
     return false;
+  }
+
+  /**
+   * Gets the local file status.
+   *
+   * @param path the local file to get status from
+   * @param stat the field to put status in
+   * @return 0 if success, error code otherwise
+   */
+  public static int getLocalFileStatus(Path path, FileStat stat) {
+    try {
+      if (!Files.exists(path)) {
+        return -alluxio.jnifuse.ErrorCodes.ENOENT();
+      }
+      BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+
+      stat.st_size.set(attributes.size());
+      stat.st_blksize.set((int) Math.ceil((double) attributes.size() / 512));
+
+      stat.st_ctim.tv_sec.set(attributes.creationTime().to(TimeUnit.SECONDS));
+      stat.st_ctim.tv_nsec.set(attributes.creationTime().to(TimeUnit.NANOSECONDS));
+      stat.st_mtim.tv_sec.set(attributes.lastModifiedTime().to(TimeUnit.SECONDS));
+      stat.st_mtim.tv_nsec.set(attributes.lastModifiedTime().to(TimeUnit.NANOSECONDS));
+
+      int uid = (Integer) Files.getAttribute(path, "unix:uid");
+      int gid = (Integer) Files.getAttribute(path, "unix:gid");
+      stat.st_uid.set(uid);
+      stat.st_gid.set(gid);
+
+      Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+      int mode = FileUtils.translatePosixPermissionToMode(permissions);
+      if (Files.isDirectory(path)) {
+        mode |= FileStat.S_IFDIR;
+      } else {
+        mode |= FileStat.S_IFREG;
+      }
+      stat.st_mode.set(mode);
+    } catch (Exception e) {
+      LOG.error("Failed to getattr {}", path, e);
+      return -alluxio.jnifuse.ErrorCodes.EIO();
+    }
+    return 0;
   }
 
   /**
