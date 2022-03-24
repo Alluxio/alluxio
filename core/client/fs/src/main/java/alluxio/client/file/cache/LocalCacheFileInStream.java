@@ -146,12 +146,14 @@ public class LocalCacheFileInStream extends FileInStream {
         // Skip load to the in stream buffer if the data piece is larger than buffer size
         return localCachedRead(b, off, len, readType, pos, stopwatch);
       } else {
-        int bytesToRead = (int) Math.min(mBufferSize, mStatus.getLength() - pos);
-        int bytesRead = localCachedRead(mBuffer, 0, bytesToRead, readType, pos, stopwatch);
+        int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - pos);
+        int bytesRead = localCachedRead(mBuffer, 0, bytesLoadToBuffer, readType, pos, stopwatch);
         mBufferStartOffset = pos;
         mBufferEndOffset = pos + bytesRead;
         int dataReadFromBuffer = Math.min(bytesRead, len);
         System.arraycopy(mBuffer, 0, b, off, dataReadFromBuffer);
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER.getName())
+            .mark(dataReadFromBuffer);
         return dataReadFromBuffer;
       }
     }
