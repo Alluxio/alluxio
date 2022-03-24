@@ -14,6 +14,7 @@ package alluxio.collections;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -27,14 +28,24 @@ import java.util.function.Consumer;
  * This class provides an unmodifiable List proxy for an underlying array.
  * In other words, this helps you use the array like a List, but not being able to modify it.
  *
+ * Create an instance with the constructor and get the underlying array with {@link #toArray()}.
+ *
  * The difference to {@code Collections.unmodifiableList(Arrays.asList(array))} is,
  * in some Java implementations like adoptjdk, Arrays.asList() copies the array with
  * {@code new ArrayList<>(array)} so it is not performant.
+ * Also this class makes it possible to recover the original array from the List,
+ * {@code list.toArray()} returns the underlying array instead of a copy.
+ * Use the underlying array for modification if needed.
  *
  * Use this when you just want to return an unmodifiable view of the array.
  *
- * Create an instance with the constructor and get the underlying array with {@link #toArray()}.
+ * There is no extra thread safety guarantee on this List.
+ * When the underlying array changes, the view will change too,
+ * and there is no extra thread safety.
+ *
+ * @param <T> element type of the underlying array
  */
+@NotThreadSafe
 public class UnmodifiableArrayList<T> implements List<T> {
   T[] mElements;
 
@@ -84,14 +95,31 @@ public class UnmodifiableArrayList<T> implements List<T> {
   }
 
   @Override
+  public void add(int index, T element) {
+    throw new UnsupportedOperationException(
+        "modification is not supported in UnmodifiableArrayList");
+  }
+
+  @Override
   public boolean remove(Object o) {
     throw new UnsupportedOperationException(
         "modification is not supported in UnmodifiableArrayList");
   }
 
   @Override
+  public T remove(int index) {
+    throw new UnsupportedOperationException(
+        "modification is not supported in UnmodifiableArrayList");
+  }
+
+  @Override
   public boolean containsAll(Collection<?> c) {
-    return false;
+    for (Object element : c) {
+      if (!contains(element)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
@@ -136,20 +164,39 @@ public class UnmodifiableArrayList<T> implements List<T> {
   }
 
   @Override
-  public void add(int index, T element) {
-    throw new UnsupportedOperationException(
-        "modification is not supported in UnmodifiableArrayList");
-  }
-
-  @Override
-  public T remove(int index) {
-    throw new UnsupportedOperationException(
-        "modification is not supported in UnmodifiableArrayList");
+  public int indexOf(Object o) {
+    if (o == null) {
+      for (int i = 0; i < mElements.length; i++) {
+        if (mElements[i] == null) {
+          return i;
+        }
+      }
+    } else {
+      for (int i = 0; i < mElements.length; i++) {
+        if (o.equals(mElements[i])) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 
   @Override
   public int lastIndexOf(Object o) {
-    return 0;
+    if (o == null) {
+      for (int i = mElements.length - 1; i >= 0; i--) {
+        if (mElements[i] == null) {
+          return i;
+        }
+      }
+    } else {
+      for (int i = mElements.length - 1; i >= 0; i--) {
+        if (o.equals(mElements[i])) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 
   @Override
@@ -159,8 +206,9 @@ public class UnmodifiableArrayList<T> implements List<T> {
 
   @Override
   public ListIterator<T> listIterator(int index) {
-    if (index < 0 || index > mElements.length)
-      throw new IndexOutOfBoundsException("Index: "+index);
+    if (index < 0 || index > mElements.length) {
+      throw new IndexOutOfBoundsException("Index: " + index);
+    }
     return new ListItr(index);
   }
 
@@ -170,39 +218,25 @@ public class UnmodifiableArrayList<T> implements List<T> {
         "subList is not supported in UnmodifiableArrayList, use the underlying array instead");
   }
 
-  @Override
-  public int indexOf(Object o) {
-    if (o == null) {
-      for (int i = 0; i < mElements.length; i++)
-        if (mElements[i]==null) {
-          return i;
-        }
-    } else {
-      for (int i = 0; i < mElements.length; i++)
-        if (o.equals(mElements[i])) {
-          return i;
-        }
-    }
-    return -1;
-  }
-
   private class Itr implements Iterator<T> {
-    int cursor;       // index of next element to return
-    int lastRet = -1; // index of last element returned; -1 if no such
+    int mCursor;       // index of next element to return
+    int mLastRet = -1; // index of last element returned; -1 if no such
 
     Itr() {}
 
+    @Override
     public boolean hasNext() {
-      return cursor != mElements.length;
+      return mCursor != mElements.length;
     }
 
     @Override
     public T next() {
-      int i = cursor;
-      if (i >= mElements.length)
+      int i = mCursor;
+      if (i >= mElements.length) {
         throw new NoSuchElementException();
-      cursor = i + 1;
-      return mElements[lastRet = i];
+      }
+      mCursor = i + 1;
+      return mElements[mLastRet = i];
     }
 
     @Override
@@ -215,7 +249,7 @@ public class UnmodifiableArrayList<T> implements List<T> {
     public void forEachRemaining(Consumer<? super T> consumer) {
       Objects.requireNonNull(consumer);
       final int size = mElements.length;
-      int i = cursor;
+      int i = mCursor;
       if (i >= size) {
         return;
       }
@@ -223,44 +257,52 @@ public class UnmodifiableArrayList<T> implements List<T> {
         consumer.accept(mElements[i++]);
       }
       // update once at end of iteration to reduce heap write traffic
-      cursor = i;
-      lastRet = i - 1;
+      mCursor = i;
+      mLastRet = i - 1;
     }
   }
 
   private class ListItr extends Itr implements ListIterator<T> {
     ListItr(int index) {
       super();
-      cursor = index;
+      mCursor = index;
     }
 
+    @Override
     public boolean hasPrevious() {
-      return cursor != 0;
+      return mCursor != 0;
     }
 
+    @Override
     public int nextIndex() {
-      return cursor;
+      return mCursor;
     }
 
+    @Override
     public int previousIndex() {
-      return cursor - 1;
+      return mCursor - 1;
     }
 
+    @Override
     public T previous() {
-      int i = cursor - 1;
-      if (i < 0)
+      int i = mCursor - 1;
+      if (i < 0) {
         throw new NoSuchElementException();
-      if (i >= mElements.length)
+      }
+      if (i >= mElements.length) {
         throw new ConcurrentModificationException();
-      cursor = i;
-      return mElements[lastRet = i];
+      }
+      mCursor = i;
+      return mElements[mLastRet = i];
     }
 
+    @Override
     public void set(T e) {
       throw new UnsupportedOperationException(
           "modification is not supported in UnmodifiableArrayList");
     }
 
+    @Override
     public void add(T e) {
       throw new UnsupportedOperationException(
           "modification is not supported in UnmodifiableArrayList");
