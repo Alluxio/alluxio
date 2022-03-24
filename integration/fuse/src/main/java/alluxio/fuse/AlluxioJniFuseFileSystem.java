@@ -47,7 +47,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.FileUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -60,12 +59,9 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -75,8 +71,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -134,6 +128,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
   private final Pattern mWriteThroughFilePattern;
+  private final long mWriteThroughOpenTimeoutMs;
 
   // Map for holding the async releasing entries for proper umount
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
@@ -221,6 +216,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // ignore
       }
     }
+    mWriteThroughOpenTimeoutMs = conf.getMs(PropertyKey.FUSE_WRITE_THROUGH_OPEN_TIMEOUT);
     mUfsRootPath = status != null ? status.getUfsPath() : null;
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.FUSE_READING_FILE_COUNT.getName()),
@@ -253,7 +249,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (mWriteThroughFilePattern != null
           && mWriteThroughFilePattern.matcher(path).matches()) {
         mPathLocks.putIfAbsent(path, new Semaphore(1));
-        mPathLocks.get(path).acquire();
+        if (!mPathLocks.get(path).tryAcquire(mWriteThroughOpenTimeoutMs, TimeUnit.MILLISECONDS)) {
+          LOG.error("Failed to create {}: failed to acquire write lock after {} ms",
+              path, mWriteThroughOpenTimeoutMs);
+          return -ErrorCodes.EIO();
+        }
         os = SeekableAlluxioFileOutStream.create(
             uri, Paths.get(mUfsRootPath, path).toAbsolutePath().toString(), mFileSystem);
       } else {
@@ -264,6 +264,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       mCreateFileEntries.add(new CreateFileEntry<>(fid, path, os));
       fi.fh.set(fid);
       mAuthPolicy.setUserGroupIfNeeded(uri);
+    } catch (InterruptedException ie) {
+      LOG.error("Fail to create {}: interrupted", path);
+      Thread.currentThread().interrupt();
     } catch (Throwable t) {
       LOG.error("Failed to create {}", path, t);
       return -ErrorCodes.EIO();
@@ -279,44 +282,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    if (mWriteThroughFilePattern != null
-        && mWriteThroughFilePattern.matcher(path).matches()) {
-      // ls locally
-      Path ufsPath = Paths.get(mUfsRootPath, path);
-      try {
-        if (!Files.exists(ufsPath)) {
-          return -ErrorCodes.ENOENT();
-        }
-        BasicFileAttributes attributes = Files.readAttributes(ufsPath, BasicFileAttributes.class);
-
-        stat.st_size.set(attributes.size());
-        stat.st_blksize.set((int) Math.ceil((double) attributes.size() / 512));
-
-        stat.st_ctim.tv_sec.set(attributes.creationTime().to(TimeUnit.SECONDS));
-        stat.st_ctim.tv_nsec.set(attributes.creationTime().to(TimeUnit.NANOSECONDS));
-        stat.st_mtim.tv_sec.set(attributes.lastModifiedTime().to(TimeUnit.SECONDS));
-        stat.st_mtim.tv_nsec.set(attributes.lastModifiedTime().to(TimeUnit.NANOSECONDS));
-
-        int uid = (Integer) Files.getAttribute(ufsPath, "unix:uid");
-        int gid = (Integer) Files.getAttribute(ufsPath, "unix:gid");
-        stat.st_uid.set(uid);
-        stat.st_gid.set(gid);
-
-        Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(ufsPath);
-        int mode = FileUtils.translatePosixPermissionToMode(permissions);
-        if (Files.isDirectory(ufsPath)) {
-          mode |= FileStat.S_IFDIR;
-        } else {
-          mode |= FileStat.S_IFREG;
-        }
-        stat.st_mode.set(mode);
-      } catch (Exception e) {
-        LOG.error("Failed to getattr {}", path, e);
-        return -ErrorCodes.EIO();
-      }
-      return 0;
-    }
     try {
+      if (mWriteThroughFilePattern != null
+          && mWriteThroughFilePattern.matcher(path).matches()) {
+        return AlluxioFuseUtils.getLocalFileStatus(Paths.get(mUfsRootPath, path), stat);
+      }
       URIStatus status;
       // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
@@ -453,14 +423,21 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         && openAction == OpenAction.READ_WRITE) {
       try {
         mPathLocks.putIfAbsent(path, new Semaphore(1));
-        mPathLocks.get(path).acquire();
+        if (!mPathLocks.get(path).tryAcquire(mWriteThroughOpenTimeoutMs, TimeUnit.MILLISECONDS)) {
+          LOG.error("Failed to open {}: failed to acquire write lock after {} ms",
+              path, mWriteThroughOpenTimeoutMs);
+          return -ErrorCodes.EIO();
+        }
         SeekableAlluxioFileOutStream stream = SeekableAlluxioFileOutStream.open(
             uri, Paths.get(mUfsRootPath, path).toAbsolutePath().toString(), mFileSystem);
         long fd = mNextOpenFileId.getAndIncrement();
         fi.fh.set(fd);
         mReadWriteOpenFileEntries.put(fd, stream);
         return 0;
-      } catch (Exception e) {
+      } catch (InterruptedException ie) {
+        LOG.error("Fail to open {}: interrupted", path);
+        Thread.currentThread().interrupt();
+      } catch (Throwable e) {
         LOG.error("Failed to open {}", path, e);
         return -ErrorCodes.EIO();
       }
@@ -815,6 +792,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     } finally {
       if (semaphore != null) {
         semaphore.release();
+        if (!semaphore.hasQueuedThreads() && semaphore.availablePermits() == 1) {
+          mPathLocks.remove(path);
+        }
       }
     }
     return 0;

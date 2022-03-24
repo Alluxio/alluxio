@@ -32,12 +32,10 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Stack FS implements the FUSE callbacks defined by jni-fuse
@@ -92,33 +90,7 @@ public class StackFS extends AbstractFuseFileSystem {
 
   private int getattrInternal(String path, FileStat stat) {
     path = transformPath(path);
-    try {
-      Path filePath = Paths.get(path);
-      if (!Files.exists(filePath)) {
-        return -ErrorCodes.ENOENT();
-      }
-      BasicFileAttributes attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
-
-      stat.st_size.set(attributes.size());
-      stat.st_blksize.set((int) Math.ceil((double) attributes.size() / 512));
-
-      stat.st_ctim.tv_sec.set(attributes.creationTime().to(TimeUnit.SECONDS));
-      stat.st_ctim.tv_nsec.set(attributes.creationTime().to(TimeUnit.NANOSECONDS));
-      stat.st_mtim.tv_sec.set(attributes.lastModifiedTime().to(TimeUnit.SECONDS));
-      stat.st_mtim.tv_nsec.set(attributes.lastModifiedTime().to(TimeUnit.NANOSECONDS));
-
-      int uid = (Integer) Files.getAttribute(filePath, "unix:uid");
-      int gid = (Integer) Files.getAttribute(filePath, "unix:gid");
-      stat.st_uid.set(uid);
-      stat.st_gid.set(gid);
-
-      int mode = getMode(filePath);
-      stat.st_mode.set(mode);
-    } catch (Exception e) {
-      LOG.error("Failed to getattr {}", path, e);
-      return -ErrorCodes.EIO();
-    }
-    return 0;
+    return AlluxioFuseUtils.getLocalFileStatus(Paths.get(path), stat);
   }
 
   @Override

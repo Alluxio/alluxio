@@ -5474,6 +5474,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_WRITE_THROUGH_OPEN_TIMEOUT =
+      new Builder(Name.FUSE_WRITE_THROUGH_OPEN_TIMEOUT)
+          .setDefaultValue("5min")
+          .setDescription("Fuse open will wait for the async fuse release "
+              + "before opening the file for reading or writing up to given timeout")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Standalone FUSE process related properties
@@ -7209,6 +7217,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.special.command.enabled";
     public static final String FUSE_WRITE_THROUGH_FILE_PATTERN =
         "alluxio.fuse.write.through.file.pattern";
+    public static final String FUSE_WRITE_THROUGH_OPEN_TIMEOUT =
+        "alluxio.fuse.write.through.open.timeout";
 
     //
     // Standalone FUSE process related properties
