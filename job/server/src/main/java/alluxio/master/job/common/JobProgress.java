@@ -36,6 +36,7 @@ public class JobProgress {
    */
   public JobProgress(long jobId) {
     mJobId = jobId;
+    mStatus = Status.CREATED;
   }
 
   /**
@@ -142,5 +143,21 @@ public class JobProgress {
             .add("errorMsg", mErrorMsg)
             .add("errorType", mErrorType)
             .toString();
+  }
+
+  /**
+   * Convert to protobuf.
+   * @return alluxio.grpc.JobProgress
+   */
+  public alluxio.grpc.JobProgress toProto() {
+    alluxio.grpc.JobProgress.Builder builder = alluxio.grpc.JobProgress.newBuilder()
+            .setJobId(mJobId)
+            .setErrorMsg(mErrorMsg)
+            .setErrorType(mErrorType)
+            .setFileCount(mFileCount)
+            .setFileSize(mFileSize)
+            .setLastUpdateMs(mLastUpdateMs)
+            .setStatus(mStatus.toProto());
+    return builder.build();
   }
 }

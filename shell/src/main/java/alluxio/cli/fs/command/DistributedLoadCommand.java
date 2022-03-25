@@ -16,11 +16,12 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.job.CmdConfig;
+import alluxio.job.cmd.load.LoadCliConfig;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -34,10 +35,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -233,7 +232,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         .addOption(HOSTS_OPTION)
         .addOption(HOST_FILE_OPTION)
         .addOption(PASSIVE_CACHE_OPTION)
-        .addOption(BATCH_SIZE_OPTION);
+        .addOption(BATCH_SIZE_OPTION)
+        .addOption(WAIT_OPTION);
   }
 
   @Override
@@ -269,6 +269,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
+    boolean wait = FileSystemShellUtils.getBoolArg(cl, WAIT_OPTION, true);
     boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt());
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
@@ -302,28 +303,49 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       String argOption = cl.getOptionValue(EXCLUDED_LOCALITY_OPTION.getLongOpt()).trim();
       readItemsFromOptionString(excludedLocalityIds, argOption);
     }
-    List<URIStatus> filePool = new ArrayList<>(batchSize);
+
+    Long jobControlId;
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication, workerSet,
-          excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
+      jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
+              localityIds, excludedLocalityIds, directCache);
+      if (wait) {
+        System.out.format("Waiting for the command to finish ...%n");
+        waitForCmd(jobControlId);
+      }
+      System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
+              jobControlId.toString());
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null;) {
           AlluxioURI path = new AlluxioURI(filename);
-
-          DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication,
-              workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
+          jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
+                  localityIds, excludedLocalityIds, directCache);
+          if (wait) {
+            System.out.format("Waiting for the command to finish ...%n");
+            waitForCmd(jobControlId);
+          }
+          System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
+                  jobControlId.toString());
         }
       }
     }
-    System.out.println(String.format("Completed count is %d,Failed count is %d.",
-        getCompletedCount(), getFailedCount()));
-    Set<String> failures = getFailedFiles();
-    if (failures.size() > 0) {
-      processFailures(args[0], failures);
-    }
+    System.out.println(String.format("Completed command count is %d,Failed count is %d.",
+        getCompletedCmdCount(), getFailedCmdCount()));
+//    Set<String> failures = getFailedFiles();
+//    if (failures.size() > 0) {
+//      processFailures(args[0], failures);
+//    }
     return 0;
+  }
+
+  private Long runDistLoad(AlluxioURI filePath, int replication, int batchSize,
+                           Set<String> workerSet, Set<String> excludedWorkerSet,
+                           Set<String> localityIds, Set<String> excludedLocalityIds,
+                           boolean directCache) {
+    CmdConfig cmdConfig = new LoadCliConfig(filePath.getPath(), batchSize, replication, workerSet,
+            excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
+    return submit(cmdConfig);
   }
 
   private void processFailures(String arg, Set<String> failures) {

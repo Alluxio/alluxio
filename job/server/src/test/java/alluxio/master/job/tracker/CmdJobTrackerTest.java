@@ -17,16 +17,22 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
-import alluxio.job.plan.PlanDefinition;
-import alluxio.job.plan.PlanDefinitionRegistry;
+import alluxio.job.cmd.load.LoadCliConfig;
+import alluxio.job.cmd.migrate.MigrateCliConfig;
+import alluxio.master.job.JobMaster;
+import alluxio.master.job.common.CmdInfo;
+import alluxio.master.job.plan.PlanTracker;
 import alluxio.underfs.UfsManager;
 
+import com.google.common.collect.Maps;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.reflect.Whitebox;
 
-import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Tests {@link CmdJobTrackerTest}.
@@ -35,6 +41,15 @@ public final class CmdJobTrackerTest {
   private long mJobId;
   private JobConfig mJobconfig;
   private JobServerContext mJobServerContext;
+  private CmdJobTracker mCmdJobTracker;
+  private JobMaster mJobMaster;
+  private PlanTracker mPlanTracker;
+  private LoadCliConfig mLoad;
+  private MigrateCliConfig mMigrate;
+  private final Map<Long, CmdInfo> mInfoMap = Maps.newHashMap();
+
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -42,29 +57,34 @@ public final class CmdJobTrackerTest {
     // Create mock JobServerContext
     FileSystem fs = mock(FileSystem.class);
     FileSystemContext fsCtx = PowerMockito.mock(FileSystemContext.class);
+    mJobMaster = mock(JobMaster.class);
+    mPlanTracker = mock(PlanTracker.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     //mJobServerContext = new JobServerContext(fs, fsCtx, ufsManager);
+
+    mCmdJobTracker = new CmdJobTracker(fsCtx, mJobMaster, mPlanTracker);
+
+    mLoad = mock(LoadCliConfig.class);
+    mMigrate = mock(MigrateCliConfig.class);
+
+    mLoad = new LoadCliConfig("/path/to/load", 3, 1, Collections.EMPTY_SET,
+            Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
+    mMigrate = new MigrateCliConfig("/path/from", "/path/to", "THROUGH", true, 2);
 
     // Create mock job info.
     mJobconfig = Mockito.mock(JobConfig.class, Mockito.withSettings().serializable());
     Mockito.when(mJobconfig.getName()).thenReturn("mock");
     mJobId = 1;
 
-    // Create mock job definition.
-    @SuppressWarnings("unchecked")
-    PlanDefinition<JobConfig, Serializable, Serializable> mockPlanDefinition =
-            Mockito.mock(PlanDefinition.class);
-    PlanDefinitionRegistry singleton = PowerMockito.mock(PlanDefinitionRegistry.class);
-    Whitebox.setInternalState(PlanDefinitionRegistry.class, "INSTANCE", singleton);
-    Mockito.when(singleton.getJobDefinition(mJobconfig)).thenReturn(mockPlanDefinition);
-    //mPlanDefinition = mockPlanDefinition;
-
-    // Create test worker.
-//    mWorkerInfo = new WorkerInfo();
-//    mWorkerInfo.setId(0);
-//    mWorkerInfoList = Lists.newArrayList(mWorkerInfo);
+//    // Create mock job definition.
+//    @SuppressWarnings("unchecked")
+//    PlanDefinition<JobConfig, Serializable, Serializable> mockPlanDefinition =
+//            Mockito.mock(PlanDefinition.class);
+//    PlanDefinitionRegistry singleton = PowerMockito.mock(PlanDefinitionRegistry.class);
+//    Whitebox.setInternalState(PlanDefinitionRegistry.class, "INSTANCE", singleton);
+//    Mockito.when(singleton.getJobDefinition(mJobconfig)).thenReturn(mockPlanDefinition);
   }
 
-  public void runDistCp() {
+  public void runDistributedCommandTest() throws Exception {
   }
 }

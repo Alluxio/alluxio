@@ -26,8 +26,8 @@ import java.util.List;
 public class CmdInfo {
   private long mJobControlId;
   private List<CmdRunAttempt> mCmdRunAttempt;
-  private OperationType mOperationType;
-  private JobSource mJobSource;
+  private final OperationType mOperationType;
+  private final JobSource mJobSource;
   private long mJobSubmissionTime;
   private List<String> mFilePath;
 

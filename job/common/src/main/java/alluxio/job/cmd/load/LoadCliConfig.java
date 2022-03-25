@@ -25,10 +25,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A config for a LoadCli job.
  */
+@ThreadSafe
 public class LoadCliConfig implements CliConfig {
   public static final String NAME = "LoadCli";
   private static final long serialVersionUID = -5268683490243619278L;
@@ -39,22 +41,29 @@ public class LoadCliConfig implements CliConfig {
   private final Set<String> mExcludedWorkerSet;
   private final Set<String> mLocalityIds;
   private final Set<String> mExcludedLocalityIds;
+  private final int mBatchSize;
+  private final boolean mDirectCache;
 
   /**
    * @param filePath the file path
+   * @param batchSize the batch size
    * @param replication the number of workers to store each block on, defaults to 1
    * @param workerSet the worker set
    * @param excludedWorkerSet the excluded worker set
    * @param localityIds the locality identify set
    * @param excludedLocalityIds the excluded locality identify set
+   * @param directCache direct cache
    **/
   public LoadCliConfig(@JsonProperty("filePath") String filePath,
-                    @JsonProperty("replication") Integer replication,
-                    @JsonProperty("workerSet") Set<String> workerSet,
-                    @JsonProperty("excludedWorkerSet") Set<String> excludedWorkerSet,
-                    @JsonProperty("localityIds") Set<String> localityIds,
-                    @JsonProperty("excludedLocalityIds") Set<String> excludedLocalityIds) {
+                   @JsonProperty("batchSize") Integer batchSize,
+                   @JsonProperty("replication") Integer replication,
+                   @JsonProperty("workerSet") Set<String> workerSet,
+                   @JsonProperty("excludedWorkerSet") Set<String> excludedWorkerSet,
+                   @JsonProperty("localityIds") Set<String> localityIds,
+                   @JsonProperty("excludedLocalityIds") Set<String> excludedLocalityIds,
+                   @JsonProperty("directCache") boolean directCache) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
+    mBatchSize = batchSize;
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
     mExcludedWorkerSet = excludedWorkerSet == null ? Collections.EMPTY_SET
@@ -62,6 +71,7 @@ public class LoadCliConfig implements CliConfig {
     mLocalityIds = localityIds == null ? Collections.EMPTY_SET : new HashSet(localityIds);
     mExcludedLocalityIds = excludedLocalityIds == null ? Collections.EMPTY_SET
         : new HashSet(excludedLocalityIds);
+    mDirectCache = directCache;
   }
 
   @Override
@@ -82,6 +92,20 @@ public class LoadCliConfig implements CliConfig {
   @Override
   public Collection<String> affectedPaths() {
     return ImmutableList.of(mFilePath);
+  }
+
+  /**
+   * @return file path
+   */
+  public String getFilePath() {
+    return mFilePath;
+  }
+
+  /**
+   * @return replication
+   */
+  public int getReplication() {
+    return mReplication;
   }
 
   /**
@@ -110,6 +134,22 @@ public class LoadCliConfig implements CliConfig {
    */
   public Set<String> getExcludedLocalityIds() {
     return mExcludedLocalityIds;
+  }
+
+  /**
+   * Get batch size.
+   * @return batch size
+   */
+  public int getBatchSize() {
+    return mBatchSize;
+  }
+
+  /**
+   * Use direct cache or not.
+   * @return boolean flag
+   */
+  public boolean getDirectCache() {
+    return mDirectCache;
   }
 
   @Override

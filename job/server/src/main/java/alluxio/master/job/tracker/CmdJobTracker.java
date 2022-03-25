@@ -15,9 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.grpc.CmdSummary;
 import alluxio.grpc.OperationType;
 import alluxio.job.CmdConfig;
+import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;
+import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.JobSource;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
@@ -34,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -44,7 +48,10 @@ public class CmdJobTracker {
   private static final Logger LOG = LoggerFactory.getLogger(CmdJobTracker.class);
   private final Map<Long, CmdProgress> mJobMap;
   private final Map<Long, LogLink> mLnk;
+  private final Map<Long, CmdInfo> mInfoMap;
+  private final DistLoadCliRunner mDistLoadCliRunner;
   private final MigrateCliRunner mMigrateCliRunner;
+  private final PersistRunner mPersistRunner;
   private PlanTracker mPlanTracker;
   protected FileSystemContext mFsContext;
 
@@ -58,9 +65,12 @@ public class CmdJobTracker {
                    JobMaster jobMaster, PlanTracker planTracker) {
 
     mFsContext = fsContext;
+    mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
+    mPersistRunner = new PersistRunner(mFsContext, jobMaster);
     mJobMap = Maps.newHashMap();
     mLnk = Maps.newHashMap();
+    mInfoMap = Maps.newHashMap();
     mPlanTracker = planTracker;
   }
 
@@ -78,8 +88,19 @@ public class CmdJobTracker {
           throws JobDoesNotExistException, IOException {
     CmdInfo cmdInfo = null;
     switch (cmdConfig.getOperationType()) {
-//      case DIST_LOAD: // todo
-//        break;
+      case DIST_LOAD:
+        LoadCliConfig loadCliConfig = (LoadCliConfig) cmdConfig;
+        int batchSize = loadCliConfig.getBatchSize();
+        AlluxioURI filePath = new AlluxioURI(loadCliConfig.getFilePath());
+        int replication = loadCliConfig.getReplication();
+        Set<String> workerSet = loadCliConfig.getWorkerSet();
+        Set<String> excludedWorkerSet = loadCliConfig.getExcludedWorkerSet();
+        Set<String> localityIds =  loadCliConfig.getLocalityIds();
+        Set<String> excludedLocalityIds = loadCliConfig.getExcludedLocalityIds();
+        boolean directCache = loadCliConfig.getDirectCache();
+        cmdInfo = mDistLoadCliRunner.runDistLoad(batchSize, filePath, replication, workerSet,
+                excludedWorkerSet, localityIds, excludedLocalityIds, directCache, jobControlId);
+        break;
       case DIST_CP:
         MigrateCliConfig migrateCliConfig = (MigrateCliConfig) cmdConfig;
         AlluxioURI srcPath = new AlluxioURI(migrateCliConfig.getSource());
@@ -88,36 +109,97 @@ public class CmdJobTracker {
         cmdInfo = mMigrateCliRunner.runDistCp(srcPath, dstPath,
             migrateCliConfig.getOverWrite(), migrateCliConfig.getBatchSize(),
             jobControlId);
-        createProgressEntry(cmdInfo);
+        //createProgressEntry(cmdInfo);
         break;
-//      case PERSIST: // todo
-//        break;
+      case PERSIST:
+        PersistCmdConfig persistCmdConfig = (PersistCmdConfig) cmdConfig;
+        cmdInfo = mPersistRunner.runPersistJob(persistCmdConfig, jobControlId);
+        break;
       default:
         throw new JobDoesNotExistException(
                 ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(cmdConfig.getName()));
     }
 
 // test status and progress.
-//    Status cmdStatus = getCmdStatus(cmdInfo);
+    mInfoMap.put(cmdInfo.getJobControlId(), cmdInfo);
+    Status cmdStatus = getCmdStatus(cmdInfo.getJobControlId());
 //    CmdProgress cmdProgress = getProgress(cmdInfo, true);
 //    LOG.info(String.format("status is %s", cmdStatus.toString()));
 //    cmdProgress.listAllProgress();
   }
 
   /**
-   * Get status information for a CMD.
-   * @param cmdInfo
-   * @return the Command level status
+   * Get CMD child job ids.
+   * @param jobControlId
+   * @return list of job ids
    */
-  public Status getCmdStatus(CmdInfo cmdInfo) throws JobDoesNotExistException {
-    long jobControlId = cmdInfo.getJobControlId();
+  public List<Long> getChildJobIds(long jobControlId) throws JobDoesNotExistException {
     if (!mJobMap.containsKey(jobControlId)) {
       throw new JobDoesNotExistException(
               ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
     }
-
     CmdProgress progress = mJobMap.get(jobControlId);
-    return progress.consolidateStatus();
+    return progress.getChildJobIds();
+  }
+
+  /**
+   * Get getCmdSummary.
+   * @param jobControlId
+   * @return getCmdSummary
+   * @throws JobDoesNotExistException
+   */
+  public CmdSummary getCmdSummary(long jobControlId) throws JobDoesNotExistException {
+    if (!mJobMap.containsKey(jobControlId)) {
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+    CmdProgress cmdProgress = mJobMap.get(jobControlId);
+    long currentTime = System.currentTimeMillis();
+    return CmdSummary.newBuilder().setJobControlId(jobControlId)
+            .setJobSource(cmdProgress.getJobSource().toProto())
+            .setOperationType(cmdProgress.getOperationType())
+            .setDuration(currentTime - cmdProgress.getSubmissionTime())
+            .setCmdProgress(cmdProgress.toProto())
+            .setErrorMessage(cmdProgress.getErrorMsg())
+            .build();
+  }
+
+  /**
+   * Get status information for a CMD.
+   * @param jobControlId
+   * @return the Command level status
+   */
+  public Status getCmdStatus(long jobControlId) throws JobDoesNotExistException {
+    if (!mInfoMap.containsKey(jobControlId)) {
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+
+    CmdInfo cmdInfo = mInfoMap.get(jobControlId);
+
+    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts created, throws an Exception
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+
+    int completed = 0;
+    for (CmdRunAttempt attempt : cmdInfo.getCmdRunAttempt()) {
+      Status s = attempt.checkJobStatus();
+      if (s == Status.FAILED) {
+        return Status.FAILED;
+      }
+      if (s == Status.CANCELED) {
+        return Status.CANCELED;
+      }
+      if (s == Status.COMPLETED) {
+        completed++;
+      }
+    }
+
+    if (completed == cmdInfo.getCmdRunAttempt().size()) {
+      return Status.COMPLETED;
+    }
+    return Status.RUNNING;
   }
 
   /**
@@ -162,7 +244,21 @@ public class CmdJobTracker {
    */
   public void createProgressEntry(CmdInfo cmdInfo) {
     long jobControlId = cmdInfo.getJobControlId();
-    mJobMap.put(jobControlId, new CmdProgress(jobControlId));
+    mJobMap.put(jobControlId, new CmdProgress(jobControlId,
+            cmdInfo.getJobSource(), cmdInfo.getOperationType(), cmdInfo.getJobSubmissionTime()));
+  }
+
+  /**
+   * Update progress for an entry.
+   * @param jobControlId
+   */
+  public void updateProgress(long jobControlId) throws JobDoesNotExistException {
+    if (!mInfoMap.containsKey(jobControlId)) {
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+    CmdInfo info = mInfoMap.get(jobControlId);
+    getProgress(info, false);
   }
 
   /**
@@ -186,8 +282,11 @@ public class CmdJobTracker {
       long fileSize = attempt.getFileSize();
       LOG.info("file count " + fileCount);
       LOG.info("file size " + fileSize);
+
+      // only create a progress entry when the job id is not null.
       if (jobId != null) {
-        progress.createOrUpdateChildProgress(mPlanTracker, jobId, fileCount, fileSize, verbose);
+        progress.createOrUpdateChildProgress(mPlanTracker, jobId, fileCount, fileSize,
+                verbose);
       }
     }
     return progress;

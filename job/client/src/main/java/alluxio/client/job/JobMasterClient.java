@@ -18,6 +18,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.Status;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
@@ -109,6 +110,14 @@ public interface JobMasterClient extends Client {
    * @throws IOException
    */
   long submit(CmdConfig cmdConfig) throws IOException;
+
+  /**
+   * Gets the status of the given command jobControlId.
+   *
+   * @param id the jobControl id
+   * @return the job information
+   */
+  Status getCmdStatus(long id) throws IOException;
 
   /**
    * Gets all worker health.

@@ -22,10 +22,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A config for a MigrateCli job.
  */
+@ThreadSafe
 public class MigrateCliConfig implements CliConfig {
   public static final String NAME = "MigrateCli";
   private static final long serialVersionUID = 6279399518859380714L;

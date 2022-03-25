@@ -13,6 +13,8 @@ package alluxio.master.job.common;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.grpc.OperationType;
+import alluxio.job.wire.JobSource;
 import alluxio.job.wire.Status;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
@@ -21,7 +23,10 @@ import com.beust.jcommander.internal.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Progress information for a distributed command.
@@ -30,14 +35,24 @@ public class CmdProgress {
   private static final Logger LOG = LoggerFactory.getLogger(CmdProgress.class);
   private long mJobControlId;
   private Map<Long, JobProgress> mCmdProgressMap;
+  private final JobSource mJobSource;
+  private final OperationType mType;
+  private final long mSubmissionTime;
+  //private String mDescription;
 
   /**
    * Constructor for CmdProgress.
    * @param jobControlId
+   * @param js
+   * @param type
+   * @param submissionTime
    */
-  public CmdProgress(long jobControlId) {
+  public CmdProgress(long jobControlId, JobSource js, OperationType type, long submissionTime) {
     mJobControlId = jobControlId;
     mCmdProgressMap = Maps.newHashMap();
+    mJobSource = js;
+    mType = type;
+    mSubmissionTime = submissionTime;
   }
 
   /**
@@ -79,7 +94,7 @@ public class CmdProgress {
          new JobProgress(jobId));
       progress.update(planCoordinator, verbose, fileCount, fileSize);
       mCmdProgressMap.put(jobId, progress);
-      System.out.println("createOrUpdateChildProgress: " + progress.toString());
+     // System.out.println("createOrUpdateChildProgress: " + progress.toString());
     } else {
       throw new JobDoesNotExistException(
               ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobId));
@@ -107,7 +122,7 @@ public class CmdProgress {
       }
     }
 
-    if (completed == mCmdProgressMap.size()) {
+    if (completed == mCmdProgressMap.size() && mCmdProgressMap.size() > 0) { // non-empty
       return Status.COMPLETED;
     }
 
@@ -122,5 +137,56 @@ public class CmdProgress {
     mCmdProgressMap.forEach((id, progress) -> {
       LOG.info(String.format("Child job id is %d, progress is %s", id, progress.toString()));
     });
+  }
+
+  /**
+   * Get JobSource.
+   * @return JobSource
+   */
+  public JobSource getJobSource() {
+    return mJobSource;
+  }
+
+  /**
+   * Get OperationType.
+   * @return OperationType
+   */
+  public OperationType getOperationType() {
+    return mType;
+  }
+
+  /**
+   * Get submissionTime.
+   * @return timestamp
+   */
+  public long getSubmissionTime() {
+    return mSubmissionTime;
+  }
+
+  /**
+   * Get all error msgs.
+   * @return string of msgs
+   */
+  public String getErrorMsg() {
+    return mCmdProgressMap.values().stream()
+            .map(JobProgress::getErrorMsg).collect(Collectors.joining(","));
+  }
+
+  /**
+   * Get child job Ids.
+   * @return list of child job ids
+   */
+  public List<Long> getChildJobIds() {
+    return new ArrayList<>(mCmdProgressMap.keySet());
+  }
+
+  /**
+   * Get protobuf format.
+   * @return alluxio.grpc.CmdProgress
+   */
+  public alluxio.grpc.CmdProgress toProto() {
+    return alluxio.grpc.CmdProgress.newBuilder()
+            .addAllJobProgress(mCmdProgressMap.values().stream()
+            .map(JobProgress::toProto).collect(Collectors.toList())).build();
   }
 }

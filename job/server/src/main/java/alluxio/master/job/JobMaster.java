@@ -188,9 +188,6 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkerHealth = new ConcurrentHashMap<>();
 
     mCmdJobTracker = new CmdJobTracker(
-//            ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
-//            ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-//            ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
             fsContext, this, mPlanTracker);
 
     MetricsSystem.registerGaugeIfAbsent(
@@ -357,6 +354,19 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
       planCoordinator.cancel();
       auditContext.setSucceeded(true);
+    }
+  }
+
+  /**
+   * Get command status.
+   * @param jobControlId
+   * @return status of a distributed commmand
+   */
+  public Status getCmdStatus(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getCmdStatus")) {
+      auditContext.setJobId(jobControlId);
+      return mCmdJobTracker.getCmdStatus(jobControlId);
     }
   }
 

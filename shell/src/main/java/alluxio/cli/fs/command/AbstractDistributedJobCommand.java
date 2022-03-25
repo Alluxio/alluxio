@@ -21,13 +21,10 @@ import alluxio.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.cli.Option;
 
-<<<<<<< HEAD
 import java.util.HashSet;
-||||||| parent of 838655807b (Create prototypes and async submission for distCp)
-=======
 import java.io.IOException;
->>>>>>> 838655807b (Create prototypes and async submission for distCp)
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,12 +36,24 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCommand {
   protected static final int DEFAULT_ACTIVE_JOBS = 3000;
+  protected static final Option WAIT_OPTION =
+          Option.builder()
+                  .longOpt("wait")
+                  .required(false)
+                  .hasArg(true)
+                  .numberOfArgs(1)
+                  .type(Boolean.class)
+                  .argName("wait")
+                  .desc("Wait for the command to finish")
+                  .build();
 
   protected List<JobAttempt> mSubmittedJobAttempts;
   protected int mActiveJobs;
   protected final JobMasterClient mClient;
   private int mFailedCount;
   private int mCompletedCount;
+  private int mFailedCmdCount; // user only knows command failure count from the client side
+  private int mCompletedCmdCount; // user only knows command success count from the client side
   private Set<String> mFailedFiles;
 
   protected AbstractDistributedJobCommand(FileSystemContext fsContext) {
@@ -56,6 +65,8 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     mActiveJobs = DEFAULT_ACTIVE_JOBS;
     mFailedCount = 0;
     mCompletedCount = 0;
+    mFailedCmdCount = 0;
+    mCompletedCmdCount = 0;
     mFailedFiles = new HashSet<>();
   }
 
@@ -111,6 +122,32 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
   }
 
   /**
+   * Waits for command to complete.
+   */
+  protected void waitForCmd(long jobControlId) {
+    while (true) {
+      try {
+        Status check = mClient.getCmdStatus(jobControlId);
+        if (check.equals(Status.FAILED)) {
+          mFailedCmdCount++;
+          break;
+        }
+        if (check.equals(Status.COMPLETED)) {
+          mCompletedCmdCount++;
+          break;
+        }
+        if (check.equals(Status.CANCELED)) {
+          break;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        break;
+      }
+      CommonUtils.sleepMs(5);
+    }
+  }
+
+  /**
    * Gets the number of failed jobs.
    * @return number of failed jobs
    */
@@ -124,6 +161,22 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
    */
   public int getCompletedCount() {
     return mCompletedCount;
+  }
+
+  /**
+   * Gets the number of failed commands.
+   * @return number of failed commands
+   */
+  public int getFailedCmdCount() {
+    return mFailedCmdCount;
+  }
+
+  /**
+   * Gets the number of completed commands.
+   * @return the number of completed commands
+   */
+  public int getCompletedCmdCount() {
+    return mCompletedCmdCount;
   }
 
   /**

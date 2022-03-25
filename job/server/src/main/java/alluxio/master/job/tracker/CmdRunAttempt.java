@@ -24,17 +24,21 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Abstract class for handling submission for a child job within a distributed command.
+ *  class for handling submission for a child job within a distributed command.
  */
-public abstract class CmdRunAttempt {
+public class CmdRunAttempt {
   private static final Logger LOG = LoggerFactory.getLogger(CmdRunAttempt.class);
-  static final long NON_EXISTED_JOB_ID = -1L;
+//  static final long NON_EXISTED_JOB_ID = -1L;
 
   protected final RetryPolicy mRetryPolicy;
   protected final JobMaster mJobMaster;
 
   private Long mJobId;
   private long mCreationTime;
+
+  private JobConfig mJobConfig;
+  private long mFileCount;
+  private long mFileSize;
 
   protected CmdRunAttempt(RetryPolicy retryPolicy, JobMaster jobMaster) {
     mRetryPolicy = retryPolicy;
@@ -43,22 +47,52 @@ public abstract class CmdRunAttempt {
   }
 
   /**
-   * Returns the job config.
+   * Set job config.
+   * @param config
+   */
+  public void setConfig(JobConfig config) {
+    mJobConfig = config;
+  }
+
+  /**
+   * Set file count.
+   * @param fileCount
+   */
+  public void setFileCount(long fileCount) {
+    mFileCount = fileCount;
+  }
+
+  /**
+   * Set file size.
+   * @param fileSize
+   */
+  public void setFileSize(long fileSize) {
+    mFileSize = fileSize;
+  }
+
+  /**
+   * Get job config.
    * @return job config
    */
-  public abstract JobConfig getJobConfig();
+  public JobConfig getJobConfig() {
+    return mJobConfig;
+  }
 
   /**
-   * Get file count for this job.
+   * Get file count.
    * @return file count
    */
-  public abstract long getFileCount();
+  public long getFileCount() {
+    return mFileCount;
+  }
 
   /**
-   * Get file size for this job.
+   * Get file size.
    * @return file size
    */
-  public abstract long getFileSize();
+  public long getFileSize() {
+    return mFileSize;
+  }
 
   /**
    * Returns the job creation time.
@@ -89,7 +123,7 @@ public abstract class CmdRunAttempt {
       }
       return true;
     }
-    logFailed();
+    //logFailed();
     return false;
   }
 
@@ -134,9 +168,9 @@ public abstract class CmdRunAttempt {
     return Status.RUNNING;
   }
 
-  protected abstract void logFailedAttempt(JobInfo jobInfo);
-
-  protected abstract void logFailed();
-
-  protected abstract void logCompleted();
+//  protected abstract void logFailedAttempt(JobInfo jobInfo);
+//
+//  protected abstract void logFailed();
+//
+//  protected abstract void logCompleted();
 }

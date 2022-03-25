@@ -15,6 +15,7 @@ import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetCmdStatusRequest;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusDetailedPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
@@ -31,6 +32,7 @@ import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.Status;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
@@ -158,5 +160,12 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
               .getWorkerHealthsList();
       return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());
     }, RPC_LOG, "GetAllWorkerHealth", "");
+  }
+
+  @Override
+  public Status getCmdStatus(long id) throws IOException {
+    return ProtoUtils.fromProto(retryRPC(() -> mClient.getCmdStatus(
+              GetCmdStatusRequest.newBuilder().setJobControlId(id).build())
+              .getCmdStatus(), RPC_LOG, "GetCmdStatus", "jobControlId=%d", id));
   }
 }

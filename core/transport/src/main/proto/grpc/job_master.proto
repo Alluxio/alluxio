@@ -66,29 +66,25 @@ message JobProgress {
   optional int64 fileCount = 2;
   optional int64 fileSize = 3;
   optional int64 lastUpdateMs = 4;
-  optional string description = 5;
-  optional string errorMsg = 6;
-  optional string errorType = 7;
-  optional Status status = 8;
+  optional string errorMsg = 5;
+  optional string errorType = 6;
+  optional Status status = 7;
 }
 
 message CmdProgress {
-  optional int64 jobControlId = 1;
-  repeated JobProgress jobProgress = 2;
+  repeated JobProgress jobProgress = 1;
 }
 
 message CmdSummary {
   optional int64 jobControlId = 1;
-  optional string name = 2;
-  optional string description = 3;
-  optional int64 creationTime = 4;
-  optional int64 lastUpdated = 5;
-  optional Status status = 6;
+  optional OperationType operationType = 2;
+  optional JobSource jobSource = 3;
+  optional Status status = 4;
+  optional int64 submissionTime = 5;
+  optional int64 duration = 6;
   optional string errorMessage = 7;
-  optional string errorType = 8;
-  repeated CmdProgress cmdProgress = 9;
-  repeated int64 childJobIds = 10;
-  repeated string filePaths = 11;
+  optional CmdProgress cmdProgress = 8;
+  optional float progressPercentage = 9;
 }
 
 message StatusSummary {
@@ -210,6 +206,15 @@ message SubmitResponse {
   optional int64 jobControlId = 1;
 }
 
+message GetCmdStatusOptions {}
+message GetCmdStatusRequest {
+  optional int64 jobControlId = 1;
+  optional GetCmdStatusOptions options = 2;
+}
+message GetCmdStatusResponse {
+  optional Status cmdStatus = 1;
+}
+
 /**
  * This interface contains job master service endpoints for job service clients.
  */
@@ -254,6 +259,11 @@ service JobMasterClientService {
    * Submit a CMD job, return a jobControlId.
    */
   rpc Submit(SubmitRequest) returns (SubmitResponse);
+
+  /**
+ * Get status for a CMD job, return a status.
+ */
+  rpc GetCmdStatus(GetCmdStatusRequest) returns (GetCmdStatusResponse);
 }
 
 message JobHeartbeatPOptions {}

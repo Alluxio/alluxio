@@ -25,13 +25,11 @@ import alluxio.grpc.OperationType;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
-import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobSource;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
 import alluxio.retry.CountingRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.util.io.PathUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -131,83 +129,22 @@ public final class MigrateCliRunner extends AbstractCmdRunner {
   private void submitDistCp(List<Pair<String, String>> pool, boolean overwrite,
          String writeType, CmdInfo cmdInfo) {
     if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
-      LOG.info("waiting for submitted job number to decrease...");
+     // LOG.info("waiting for submitted job number to decrease...");
       waitForCmdJob();
     }
 
-    MigrateRunAttempt attempt = new MigrateRunAttempt(new CountingRetry(3), mJobMaster);
+    CmdRunAttempt attempt = new CmdRunAttempt(new CountingRetry(3), mJobMaster);
     setJobConfigAndFileMetrics(pool, overwrite, writeType, attempt);
     mSubmitted.add(attempt);
     cmdInfo.addCmdRunAttempt(attempt);
 
-    LOG.info("submitDistCp, attempt = " + attempt.getJobConfig().toString());
+   // LOG.info("submitDistCp, attempt = " + attempt.getJobConfig().toString());
     attempt.run();
-  }
-
-  private class MigrateRunAttempt extends CmdRunAttempt {
-    private JobConfig mJobConfig;
-    private long mFileCount;
-    private long mFileSize;
-
-    MigrateRunAttempt(RetryPolicy retryPolicy, JobMaster jobMaster) {
-      super(retryPolicy, jobMaster);
-    }
-
-    /**
-     * Set job config.
-     * @param config
-     */
-    public void setConfig(JobConfig config) {
-      mJobConfig = config;
-    }
-
-    /**
-     * Set file count.
-     * @param fileCount
-     */
-    public void setFileCount(long fileCount) {
-      mFileCount = fileCount;
-    }
-
-    /**
-     * Set file size.
-     * @param fileSize
-     */
-    public void setFileSize(long fileSize) {
-      mFileSize = fileSize;
-    }
-
-    @Override
-    public JobConfig getJobConfig() {
-      return mJobConfig;
-    }
-
-    @Override
-    public long getFileCount() {
-      return mFileCount;
-    }
-
-    @Override
-    public long getFileSize() {
-      return mFileSize;
-    }
-
-    @Override
-    protected void logFailedAttempt(JobInfo jobInfo) {
-    }
-
-    @Override
-    protected void logFailed() {
-    }
-
-    @Override
-    protected void logCompleted() {
-    }
   }
 
   // Create a JobConfig and set file count and size for the Migrate job.
   private void setJobConfigAndFileMetrics(List<Pair<String, String>> filePath,
-        boolean overwrite, String writeType, MigrateRunAttempt attempt) {
+        boolean overwrite, String writeType, CmdRunAttempt attempt) {
     int poolSize = filePath.size();
     JobConfig jobConfig;
     long fileCount = 0;
@@ -218,7 +155,7 @@ public final class MigrateCliRunner extends AbstractCmdRunner {
       //LOG.info("pool size = 1, Copying " + source + " to " + pair.getSecond()); //print
       jobConfig = new MigrateConfig(source, pair.getSecond(), writeType, overwrite);
       fileCount = DEFAULT_FILE_COUNT;
-      fileSize = DistributedCmdMetrics.getFileSize(source, mFileSystem, new CountingRetry(1));
+      fileSize = DistributedCmdMetrics.getFileSize(source, mFileSystem, new CountingRetry(3));
     } else {
       HashSet<Map<String, String>> configs = Sets.newHashSet();
       ObjectMapper oMapper = new ObjectMapper();
@@ -229,7 +166,7 @@ public final class MigrateCliRunner extends AbstractCmdRunner {
         //LOG.info("pool size = " + poolSize + ", Copying " + source + " to " + pair.getSecond());
         Map<String, String> map = oMapper.convertValue(config, Map.class);
         configs.add(map);
-        fileSize += DistributedCmdMetrics.getFileSize(source, mFileSystem, new CountingRetry(1));
+        fileSize += DistributedCmdMetrics.getFileSize(source, mFileSystem, new CountingRetry(3));
       }
       fileCount = poolSize; // file count equals poolSize.
       jobConfig = new BatchedJobConfig(MigrateConfig.NAME, configs);
@@ -237,7 +174,7 @@ public final class MigrateCliRunner extends AbstractCmdRunner {
     attempt.setFileCount(fileCount);
     attempt.setFileSize(fileSize);
     attempt.setConfig(jobConfig);
-    LOG.info("file  count = " + fileCount + ", file size = " + fileSize);
+   // LOG.info("file  count = " + fileCount + ", file size = " + fileSize);
   }
 
   private void createFolders(AlluxioURI srcPath, AlluxioURI dstPath, FileSystem fileSystem)

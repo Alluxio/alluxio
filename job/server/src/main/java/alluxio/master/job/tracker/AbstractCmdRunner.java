@@ -13,11 +13,7 @@ package alluxio.master.job.tracker;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-//import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
-//import alluxio.exception.JobDoesNotExistException;
-//import alluxio.job.JobConfig;
-//import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.util.CommonUtils;
