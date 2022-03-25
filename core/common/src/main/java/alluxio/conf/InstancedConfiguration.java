@@ -168,6 +168,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   private boolean isResolvable(PropertyKey key) {
     Object value = mProperties.get(key);
+    // null values are unresolvable
+    if (value == null) {
+      return false;
+    }
     try {
       // Lookup to resolve any key before simply returning isSet. An exception will be thrown if
       // the key can't be resolved or if a lower level value isn't set.
