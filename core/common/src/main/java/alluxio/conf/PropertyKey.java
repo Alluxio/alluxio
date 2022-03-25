@@ -8398,6 +8398,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return property value in the expected type
    */
   public Object parseValue(String stringValue) {
+    if (stringValue == null) {
+      return null;
+    }
     try {
       switch (mType) {
         case BOOLEAN:
