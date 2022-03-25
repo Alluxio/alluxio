@@ -107,9 +107,9 @@ kill_process_and_umount_fuse() {
   local mount_point=${1%/}
   local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
   if [[ -z ${fuse_pid} ]]; then
+    err "Cannot find fuse process"
     umount_fuse
-    err "${mount_point} not mounted"
-    return 1
+    return $?
   fi
   if [[ "${FORCE_KILL_OPT}" = true ]] ; then
     kill -9 "${fuse_pid}"
@@ -144,15 +144,15 @@ Run \"alluxio-fuse umount -f <mount_point>\" if needed to forcibly kill the allu
 
 umount_fuse() {
   success_msg="Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})"
-  if umount "${mount_point}"; then
+  if umount "${mount_point}" > /dev/null 2>&1; then
     echo "${success_msg}"
     return 0
   fi
-  if fusermount -u -z "${mount_point}"; then
+  if fusermount -u -z "${mount_point}" > /dev/null 2>&1; then
     echo "${success_msg}"
     return 0
   fi
-  if umount -f "${mount_point}"; then
+  if umount -f "${mount_point}" > /dev/null 2>&1; then
     echo "${success_msg}"
     return 0
   fi
@@ -195,8 +195,8 @@ fuse_stat() {
     echo -e "$(ps ax -o pid,args | grep [S]tackMain | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $(NF-1)}')"
     return 0
   fi
-  err "No mount point found. AlluxioFuse process is not running"
-  echo -e "${MOUNT_USAGE}" >&2
+  echo "No mount point found. AlluxioFuse process is not running"
+  echo -e "${MOUNT_USAGE}"
   return 1
 }
 
