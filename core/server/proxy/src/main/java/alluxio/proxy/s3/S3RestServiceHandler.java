@@ -242,7 +242,7 @@ public final class S3RestServiceHandler {
         AlluxioURI uri = new AlluxioURI(bucketPath);
         try {
           TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
-          LOG.info("[czhu] GetBucketTagging tagData={}", tagData);
+          LOG.debug("GetBucketTagging tagData={}", tagData);
           return tagData != null ? tagData : new TaggingData();
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath);
@@ -366,7 +366,7 @@ public final class S3RestServiceHandler {
         try {
           TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
               .readValue(is);
-          LOG.info("[czhu] PutBucketTagging tagData={}", tagData);
+          LOG.debug("PutBucketTagging tagData={}", tagData);
           Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
           xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
@@ -416,7 +416,7 @@ public final class S3RestServiceHandler {
       S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
 
       if (tagging != null) { // DeleteBucketTagging
-        LOG.info("[czhu] DeleteBucketTagging bucket={}", bucketPath);
+        LOG.debug("DeleteBucketTagging bucket={}", bucketPath);
         Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
         xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0]));
         SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
@@ -425,7 +425,6 @@ public final class S3RestServiceHandler {
         try {
           fs.setAttribute(new AlluxioURI(bucketPath), attrPOptions);
         } catch (Exception e) {
-          // TODO(czhu): verify error cases match with S3 API
           throw S3RestUtils.toBucketS3Exception(e, bucketPath);
         }
         return Response.Status.NO_CONTENT;
@@ -445,7 +444,7 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary uploads an object or part of an object in multipart upload
+   * Uploads an object or part of an object in multipart upload.
    * @param authorization header parameter authorization
    * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param copySource the source path to copy the new file from
@@ -540,7 +539,6 @@ public final class S3RestServiceHandler {
         }
       }
       if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
-        LOG.info("[czhu] tagging headers={}", taggingHeader);
         List<TaggingData.TagObject> tagObjectList =
             new ArrayList<TaggingData.TagObject>();
         for (String tag : taggingHeader.split("&")) {
@@ -556,7 +554,7 @@ public final class S3RestServiceHandler {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
       }
-      LOG.info("[czhu] PutObjectTagging tagData={}", tagData);
+      LOG.debug("PutObjectTagging tagData={}", tagData);
 
       // Populate the xattr Map with the metadata tags if provided
       Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
@@ -573,12 +571,8 @@ public final class S3RestServiceHandler {
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
               .build();
-          // DefaultFileSystemMaster setAttribute throws:
-          // - FileNotFoundException, AccessControlException, InvalidPathException, IOException
           fs.setAttribute(objectURI, attrPOptions);
         } catch (Exception e) {
-          // TODO(czhu): return InternalError for any other uncaught exceptions
-          // TODO(czhu): return OperationAbortedError if cannot retrieve Inode write lock w/ retries
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
         return Response.ok().build();
@@ -664,7 +658,7 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary initiates or completes a multipart upload based on query parameters
+   * Initiates or completes a multipart upload based on query parameters.
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
@@ -774,7 +768,7 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary retrieves an object's metadata
+   * Retrieves an object's metadata.
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
@@ -818,7 +812,7 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary downloads an object or list parts of the object in multipart upload
+   * Downloads an object or list parts of the object in multipart upload.
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
@@ -935,7 +929,7 @@ public final class S3RestServiceHandler {
       AlluxioURI uri = new AlluxioURI(objectPath);
       try {
         TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
-        LOG.info("[czhu] GetObjectTags tagData={}", tagData);
+        LOG.debug("GetObjectTagging tagData={}", tagData);
         return tagData != null ? tagData : new TaggingData();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
@@ -954,7 +948,7 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary deletes a object
+   * Deletes an object, an object's tags, or aborts a multipart upload.
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
@@ -1032,18 +1026,15 @@ public final class S3RestServiceHandler {
     String bucketPath = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
     S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
     String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-    LOG.info("[czhu] DeleteObjectTagging object={}", object);
+    LOG.debug("DeleteObjectTagging object={}", object);
     Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
     xattrMap.put(S3Constants.TAGGING_XATTR_KEY, ByteString.copyFrom(new byte[0]));
     SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
         .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.DELETE_KEYS)
         .build();
     try {
-      // DefaultFileSystemMaster setAttribute throws:
-      // - FileNotFoundException, AccessControlException, InvalidPathException, IOException
       fs.setAttribute(new AlluxioURI(objectPath), attrPOptions);
     } catch (Exception e) {
-      // TODO(czhu): verify error cases match with S3 API
       throw S3RestUtils.toObjectS3Exception(e, objectPath);
     }
   }
