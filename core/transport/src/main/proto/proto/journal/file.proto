@@ -80,10 +80,10 @@ message NewBlockEntry {
 
 // XAttrUpdateStrategy controls the behaviour for
 // handling updates to the xAttr map
-// - TRUNCATE: Replaces any existing map with the provided xAttr
-// - UNION_REPLACE: Inserts all keys from xAttr and replaces any existing keys
+// - TRUNCATE:       Replaces the existing xAttr map with the provided xAttr
+// - UNION_REPLACE:  Inserts all keys from xAttr and overwrites any existing keys
 // - UNION_PRESERVE: Inserts all new keys from xAttr (i.e: preserves any existing keys)
-// - DELETE: Deletes any existing keys from the provided xAttr
+// - DELETE_KEYS:    Deletes the specified xAttr keys from the existing xAttr map
 enum XAttrUpdateStrategy {
     TRUNCATE = 1;
     UNION_REPLACE = 2;
