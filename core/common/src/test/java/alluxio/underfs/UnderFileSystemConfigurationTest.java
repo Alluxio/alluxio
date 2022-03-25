@@ -66,7 +66,7 @@ public final class UnderFileSystemConfigurationTest {
         new ConfigurationRule(PropertyKey.UNDERFS_LISTING_LENGTH, 2000, mConfiguration)
             .toResource()) {
       UnderFileSystemConfiguration conf = UnderFileSystemConfiguration.defaults(mConfiguration);
-      assertEquals(2000, conf.get(PropertyKey.UNDERFS_LISTING_LENGTH));
+      assertEquals(2000, conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH));
     }
   }
 

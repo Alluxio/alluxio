@@ -42,7 +42,7 @@ public class UfsJournalConfTest {
     int value = 10000;
     ServerConfiguration.set(key, value);
     UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
-    Assert.assertEquals(value, conf.get(PropertyKey.UNDERFS_LISTING_LENGTH));
+    Assert.assertEquals(value, conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH));
     Assert.assertEquals(1, conf.getMountSpecificConf().size());
   }
 }
