@@ -30,39 +30,40 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Parsed version of a request to PutObjectTagging.
- * See https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html
+ * Parsed version of the S3 tagging XML.
+ * Used by the following S3 API actions:
+ * - GetBucketTagging, GetObjectTagging, PutBucketTagging, PutObjectTagging
  */
 @JacksonXmlRootElement(localName = "Tagging")
-public class MetadataTaggingBody implements Serializable {
+public class TaggingData implements Serializable {
   public static final long serialVersionUID = 1L;
 
   /**
-   * Deserialize this object.
+   * Deserialize the object.
    * @param bytes byte array of the Java-serialized object
-   * @return a deserialized {@link MetadataTaggingBody} object
+   * @return a deserialized {@link TaggingData} object
    */
-  public static MetadataTaggingBody deserialize(byte[] bytes)
+  public static TaggingData deserialize(byte[] bytes)
       throws IOException, ClassNotFoundException {
-    MetadataTaggingBody tagBody;
+    TaggingData tagData;
     try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
          ObjectInputStream oos = new ObjectInputStream(bis)) {
-      tagBody = (MetadataTaggingBody) oos.readObject();
+      tagData = (TaggingData) oos.readObject();
     }
-    return tagBody;
+    return tagData;
   }
 
   /**
    * Serializes the object.
-   * @param tagBody the {@link MetadataTaggingBody} object to serialize
+   * @param tagData the {@link TaggingData} object to serialize
    * @return the {@link ByteString} serialization of this object
    */
-  public static ByteString serialize(MetadataTaggingBody tagBody)
+  public static ByteString serialize(TaggingData tagData)
       throws IOException {
     ByteString bytes;
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
          ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-      oos.writeObject(tagBody);
+      oos.writeObject(tagData);
       oos.flush();
       bytes = ByteString.copyFrom(bos.toByteArray());
     }
@@ -75,16 +76,16 @@ public class MetadataTaggingBody implements Serializable {
   /**
    * Default constructor for jackson.
    */
-  public MetadataTaggingBody() {
+  public TaggingData() {
     mTagSet = new TagSet();
   }
 
   /**
-   * Create a new {@link MetadataTaggingBody}.
+   * Create a new {@link TaggingData}.
    *
    * @param tagSet the user metadata tags
    */
-  public MetadataTaggingBody(TagSet tagSet) {
+  public TaggingData(TagSet tagSet) {
     setTagSet(tagSet); // use setter method for tag validation
   }
 

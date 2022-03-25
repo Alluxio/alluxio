@@ -241,9 +241,9 @@ public final class S3RestServiceHandler {
         S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
         AlluxioURI uri = new AlluxioURI(bucketPath);
         try {
-          MetadataTaggingBody tagBody = deserializeTags(fs.getStatus(uri).getFileInfo());
-          LOG.info("[czhu] GetBucketTagging body={}", tagBody);
-          return tagBody != null ? tagBody : new MetadataTaggingBody();
+          TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
+          LOG.info("[czhu] GetBucketTagging tagData={}", tagData);
+          return tagData != null ? tagData : new TaggingData();
         } catch (Exception e) {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath);
         }
@@ -364,11 +364,11 @@ public final class S3RestServiceHandler {
       if (tagging != null) { // PutBucketTagging
         S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
         try {
-          MetadataTaggingBody body = new XmlMapper().readerFor(MetadataTaggingBody.class)
+          TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
               .readValue(is);
-          LOG.info("[czhu] PutBucketTagging body={}", body);
+          LOG.info("[czhu] PutBucketTagging tagData={}", tagData);
           Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
-          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, MetadataTaggingBody.serialize(body));
+          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .putAllXattr(xattrMap).setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
               .build();
@@ -527,11 +527,11 @@ public final class S3RestServiceHandler {
       }
       AlluxioURI objectURI = new AlluxioURI(objectPath);
 
-      // Parse the MetadataTaggingBody
-      MetadataTaggingBody body = null;
+      // Parse the TaggingData
+      TaggingData tagData = null;
       if (tagging != null) { // PutObjectTagging
         try {
-          body = new XmlMapper().readerFor(MetadataTaggingBody.class).readValue(is);
+          tagData = new XmlMapper().readerFor(TaggingData.class).readValue(is);
         } catch (IOException e) {
           if (e.getCause() instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
@@ -541,14 +541,14 @@ public final class S3RestServiceHandler {
       }
       if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
         LOG.info("[czhu] tagging headers={}", taggingHeader);
-        List<MetadataTaggingBody.TagObject> tagObjectList =
-            new ArrayList<MetadataTaggingBody.TagObject>();
+        List<TaggingData.TagObject> tagObjectList =
+            new ArrayList<TaggingData.TagObject>();
         for (String tag : taggingHeader.split("&")) {
           String[] entries = tag.split("=");
-          tagObjectList.add(new MetadataTaggingBody.TagObject(entries[0], entries[1]));
+          tagObjectList.add(new TaggingData.TagObject(entries[0], entries[1]));
         }
         try {
-          body = new MetadataTaggingBody(new MetadataTaggingBody.TagSet(tagObjectList));
+          tagData = new TaggingData(new TaggingData.TagSet(tagObjectList));
         } catch (IllegalArgumentException e) {
           if (e.getCause() instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
@@ -556,13 +556,13 @@ public final class S3RestServiceHandler {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
       }
-      LOG.info("[czhu] PutObjectTagging body={}", body);
+      LOG.info("[czhu] PutObjectTagging tagData={}", tagData);
 
       // Populate the xattr Map with the metadata tags if provided
       Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
-      if (body != null) {
+      if (tagData != null) {
         try {
-          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, MetadataTaggingBody.serialize(body));
+          xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
         } catch (Exception e) {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
@@ -911,9 +911,9 @@ public final class S3RestServiceHandler {
 
         // Check if object had tags, if so we need to return the count
         // in the header "x-amz-tagging-count"
-        MetadataTaggingBody tagBody = deserializeTags(status.getFileInfo());
-        if (tagBody != null) {
-          int taggingCount = tagBody.getTagSet().getTags().size();
+        TaggingData tagData = deserializeTags(status.getFileInfo());
+        if (tagData != null) {
+          int taggingCount = tagData.getTagSet().getTags().size();
           if (taggingCount > 0) {
             res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
           }
@@ -934,23 +934,23 @@ public final class S3RestServiceHandler {
       String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
       AlluxioURI uri = new AlluxioURI(objectPath);
       try {
-        MetadataTaggingBody tagBody = deserializeTags(fs.getStatus(uri).getFileInfo());
-        LOG.info("[czhu] GetObjectTags body={}", tagBody);
-        return tagBody != null ? tagBody : new MetadataTaggingBody();
+        TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
+        LOG.info("[czhu] GetObjectTags tagData={}", tagData);
+        return tagData != null ? tagData : new TaggingData();
       } catch (Exception e) {
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }
     });
   }
 
-  private MetadataTaggingBody deserializeTags(FileInfo fileInfo)
+  private TaggingData deserializeTags(FileInfo fileInfo)
       throws IOException, ClassNotFoundException {
     // Fetch the S3 tags from the Inode xAttr
     Map<String, byte[]> xAttr = fileInfo.getXAttr();
     if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
       return null;
     }
-    return MetadataTaggingBody.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
   }
 
   /**
