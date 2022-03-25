@@ -492,7 +492,6 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @return the updated object
    */
   public T setXAttr(Map<String, byte[]> xAttr) {
-    // TRUNCATE is the default value in the gRPC message for XAttrUpdateStrategy
     return setXAttr(xAttr, File.XAttrUpdateStrategy.TRUNCATE);
   }
 
@@ -642,12 +641,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setUfsFingerprint(entry.getUfsFingerprint());
     }
     if (entry.getXAttrCount() > 0) {
-      if (entry.hasXAttrUpdateStrategy()) {
-        setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()),
-            entry.getXAttrUpdateStrategy());
-      } else {
-        setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
-      }
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()),
+          entry.getXAttrUpdateStrategy());
     }
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.

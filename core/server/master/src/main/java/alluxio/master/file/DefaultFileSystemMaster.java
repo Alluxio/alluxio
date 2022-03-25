@@ -3751,12 +3751,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     if (protoOptions.getXattrCount() > 0) {
-      LOG.info("Updating Inode={} with xAttr={}",
+      LOG.debug("Updating Inode={} with xAttr={}",
           inodePath.getInode(), protoOptions.getXattrMap());
       entry.putAllXAttr(protoOptions.getXattrMap());
       if (protoOptions.hasXattrUpdateStrategy()) {
         entry.setXAttrUpdateStrategy(protoOptions.getXattrUpdateStrategy());
-      } // otherwise, uses the gRPC message default: TRUNCATE
+      } // otherwise, uses the UpdateInodeEntry gRPC message default update strategy
     }
     if (protoOptions.hasPersisted()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);

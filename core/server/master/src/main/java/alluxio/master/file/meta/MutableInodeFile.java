@@ -111,6 +111,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setReplicationMin(getReplicationMin());
     ret.setUfsFingerprint(getUfsFingerprint());
     ret.setAcl(mAcl);
+    ret.setXAttr(getXAttr());
     return ret;
   }
 

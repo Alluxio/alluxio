@@ -114,8 +114,6 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   /**
    * Generates client file info for a folder.
    *
-   * xAttr is intentionally left out as the information is not yet exposed to clients
-   *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}
    */
@@ -145,6 +143,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setAcl(mAcl);
     ret.setDefaultAcl(mDefaultAcl);
     ret.setMediumTypes(getMediumTypes());
+    ret.setXAttr(getXAttr());
     return ret;
   }
 
