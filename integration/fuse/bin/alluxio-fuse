@@ -36,7 +36,7 @@ Usage:\n\talluxio-fuse umount [-f] [-w <umount wait timeout>] <mount_point>\n\tu
 -w \tumount wait timeout in seconds. Timeout to wait for fuse process to exit when '-f' is not set. Default is 120"
 
 get_env() {
-  DEFAULT_LIBEXEC_DIR=${SCRIPT_DIR}/../../../libexec
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
@@ -88,7 +88,7 @@ mount_fuse() {
   if [[ ${NO_DAEMON} = true ]]; then
     exec ${cmd}
   else
-    (nohup "${cmd}" > "${ALLUXIO_LOGS_DIR}"/fuse.out 2>&1) &
+    (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
     # sleep: workaround to let the bg java process exit on errors, if any
     sleep 2s
     if kill -0 $! > /dev/null 2>&1 ; then
@@ -201,7 +201,7 @@ fuse_stat() {
 }
 
 err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+  echo "$*" >&2
 }
 
 main() {
@@ -212,7 +212,7 @@ main() {
   fi
   
   get_env
-  if !check_fuse_jar; then
+  if [[ check_fuse_jar == 1 ]]; then
     exit 1
   fi
   
@@ -245,8 +245,7 @@ main() {
       done
       readonly NO_DAEMON
       readonly STACK_FS
-      
-      echo "here"
+
       shift $(( OPTIND - 1 ))
       if [[ $# -eq 0 ]]; then
         fuse_stat
