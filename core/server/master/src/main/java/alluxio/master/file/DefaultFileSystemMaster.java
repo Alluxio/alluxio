@@ -1848,7 +1848,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-        mMountTable.checkUnderWritableMountPoint(path);
+        // If the mount point is read only, we allow removing the in-Alluxio metadata and data
+        // in order to load it from the UFS again.
+        // This can happen if Alluxio is out-of-sync with the UFS.
+        if (!context.getOptions().getAlluxioOnly()) {
+          mMountTable.checkUnderWritableMountPoint(path);
+        }
         if (!inodePath.fullPathExists()) {
           throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
               .getMessage(path));
