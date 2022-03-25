@@ -778,6 +778,10 @@ public class InodeTree implements DelegatingJournaled {
               .setLastModificationTimeMs(context.getOperationTimeMs())
               .setLastAccessTimeMs(context.getOperationTimeMs());
           if (context.getXAttr() != null) {
+            LOG.info("[czhu] UpdateInodeEntry dir={} createPath::putAllXattr {}",
+                currentInodeDirectory.getName(), context.getXAttr());
+            // TODO(czhu): determine if xAttr update strategy is required for this
+            // TODO(czhu): determine if S3 bucket metadata gets erroneously put on the parent dirs
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
           mState.applyAndJournal(rpcContext, updateInodeEntry.build());
@@ -849,6 +853,11 @@ public class InodeTree implements DelegatingJournaled {
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), name, directoryContext);
 
+      if (directoryContext.getXAttr() != null) {
+        LOG.info("[czhu] CreateDirectoryContext createPath::setXAttr {}", directoryContext.getXAttr());
+        newDir.setXAttr(directoryContext.getXAttr());
+      }
+
       // if the parent has default ACL, take the default ACL ANDed with the umask as the new
       // directory's default and access acl
       // When it is a metadata load operation, do not take the umask into account
@@ -903,6 +912,10 @@ public class InodeTree implements DelegatingJournaled {
       }
       if (fileContext.getWriteType() == WriteType.ASYNC_THROUGH) {
         newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
+      }
+      if (fileContext.getXAttr() != null) {
+        LOG.info("[czhu] CreateFileContext createPath::setXAttr {}", fileContext.getXAttr());
+        newFile.setXAttr(fileContext.getXAttr());
       }
 
       // Do NOT call setOwner/Group after inheriting from parent if empty

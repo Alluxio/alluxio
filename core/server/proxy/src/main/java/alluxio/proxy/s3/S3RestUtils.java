@@ -231,6 +231,7 @@ public final class S3RestUtils {
     try {
       throw exception;
     } catch (S3Exception e) {
+      e.setResource(resource);
       return e;
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);

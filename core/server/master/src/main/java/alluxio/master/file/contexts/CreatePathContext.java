@@ -19,6 +19,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.google.common.base.MoreObjects;
@@ -81,13 +82,17 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     }
     // Initialize mPersisted based on proto write type.
     WritePType writeType = WritePType.NONE;
+    mXAttr = null;
     if (optionsBuilder instanceof CreateFilePOptions.Builder) {
       writeType = ((CreateFilePOptions.Builder) optionsBuilder).getWriteType();
+      mXAttr = CommonUtils.convertFromByteString(
+          ((CreateFilePOptions.Builder) optionsBuilder).getXattrMap());
     } else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
+      mXAttr = CommonUtils.convertFromByteString(
+          ((CreateDirectoryPOptions.Builder) optionsBuilder).getXattrMap());
     }
     mWriteType = WriteType.fromProto(writeType);
-    mXAttr = null;
   }
 
   private void loadExtractedFields() {

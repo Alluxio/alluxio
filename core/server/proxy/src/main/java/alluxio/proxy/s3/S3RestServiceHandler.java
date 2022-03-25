@@ -442,7 +442,9 @@ public final class S3RestServiceHandler {
 
       if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
         // Need to create a folder
-        // TODO(czhu): verify if this is the proper behaviour
+        // TODO(czhu): verify S3 behaviour when ending an object path with a delimiter
+        // - this is a convenience method for the Alluxio fs which does not have a
+        //   direct counterpart for S3, since S3 does not have "folders" as actual objects
         try {
           fs.createDirectory(new AlluxioURI(objectPath), dirOptions);
         } catch (FileAlreadyExistsException e) {
@@ -473,7 +475,7 @@ public final class S3RestServiceHandler {
               .readValue(is);
         } catch (IOException e) {
           if (e.getCause() instanceof S3Exception) {
-            throw (S3Exception) e.getCause();
+            throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
           }
           throw new S3Exception(e, objectPath, S3ErrorCode.MALFORMED_XML);
         }
@@ -485,7 +487,14 @@ public final class S3RestServiceHandler {
           String[] entries = tag.split("=");
           tagObjectList.add(new MetadataTaggingBody.TagObject(entries[0], entries[1]));
         }
-        body = new MetadataTaggingBody(new MetadataTaggingBody.TagSet(tagObjectList));
+        try {
+          body = new MetadataTaggingBody(new MetadataTaggingBody.TagSet(tagObjectList));
+        } catch (IllegalArgumentException e) {
+          if (e.getCause() instanceof S3Exception) {
+            throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
+          }
+          throw S3RestUtils.toObjectS3Exception(e, objectPath);
+        }
       }
       LOG.info("[czhu] PutObjectTagging body={}", body);
 
@@ -1040,8 +1049,10 @@ public final class S3RestServiceHandler {
   private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
     // Alluxio only support use / as delimiter
     if (!delimiter.equals(AlluxioURI.SEPARATOR)) {
-      throw new S3Exception("Alluxio S3 API only support / as delimiter.",
-          S3ErrorCode.PRECONDITION_FAILED);
+      throw new S3Exception(bucketPath, new S3ErrorCode(
+          S3ErrorCode.PRECONDITION_FAILED.getCode(),
+          "Alluxio S3 API only support / as delimiter.",
+          S3ErrorCode.PRECONDITION_FAILED.getStatus()));
     }
     char delim = AlluxioURI.SEPARATOR.charAt(0);
     String normalizedBucket =

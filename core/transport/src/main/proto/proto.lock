@@ -2019,6 +2019,16 @@
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
               }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 6,
+                  "name": "xattr",
+                  "type": "bytes"
+                }
+              }
             ]
           },
           {

@@ -83,39 +83,46 @@ public class MetadataTaggingBody implements Serializable {
     if (tags.size() == 0) { return; }
     try {
       if (tags.size() > 10) {
-        throw new S3Exception("User-defined metadata tags cannot be greater than 10",
-            S3ErrorCode.BAD_REQUEST);
+        throw new S3Exception(new S3ErrorCode(
+            S3ErrorCode.BAD_REQUEST.getCode(),
+            "User-defined metadata tags cannot be greater than 10",
+            S3ErrorCode.BAD_REQUEST.getStatus()));
       }
       Set<String> tagKeys = new HashSet<>();
       for (TagObject tag : tags) {
         // Tag key validation
         if (tag.mKey.length() > 128) {
-          throw new S3Exception(String.format("Tag key exceeds maximum length (128): %s",
-              tag.mKey), S3ErrorCode.INVALID_TAG);
+          throw new S3Exception(new S3ErrorCode(
+              S3ErrorCode.INVALID_TAG.getCode(),
+              String.format("Tag key exceeds maximum length (128): %s", tag.mKey),
+              S3ErrorCode.INVALID_TAG.getStatus()));
         }
         if (tagKeys.contains(tag.mKey)) {
-          throw new S3Exception("Tags cannot contain duplicate keys",
-              S3ErrorCode.INVALID_TAG);
+          throw new S3Exception(new S3ErrorCode(
+              S3ErrorCode.INVALID_TAG.getCode(),
+              "Tags cannot contain duplicate keys",
+              S3ErrorCode.INVALID_TAG.getStatus()));
         }
         tagKeys.add(tag.mKey);
         // Tag value validation
         if (tag.mValue.length() > 256) {
-          throw new S3Exception(String.format("Tag value exceeds maximum length (256): %s=%s",
-              tag.mKey, tag.mValue), S3ErrorCode.INVALID_TAG);
+          throw new S3Exception(new S3ErrorCode(
+              S3ErrorCode.INVALID_TAG.getCode(),
+              String.format("Tag value exceeds maximum length (256): %s=%s", tag.mKey, tag.mValue),
+              S3ErrorCode.INVALID_TAG.getStatus()));
         }
         // Header user-metadata size limit validation (<= 2 KB)
         // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
         totalBytes += tag.getNumBytes();
         if (totalBytes > 2 * Constants.KB) {
-          throw new S3Exception("User-defined metadata tags cannot exceed 2 KB",
-              S3ErrorCode.METADATA_TOO_LARGE);
+          throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
         }
       }
     } catch (S3Exception e) {
       // IllegalArgumentException will be consumed by IOException from the
-      // jersey library when the MetadataTaggingBody constructor runs validateTags()
+      // jersey library when parsing the XML into this object
       // - the underlying S3Exception will be the throwable cause for the IOException
-      throw new IllegalArgumentException(e.getMessage(), e);
+      throw new IllegalArgumentException(e);
     }
   }
 

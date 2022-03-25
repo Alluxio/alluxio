@@ -103,6 +103,7 @@ message CreateDirectoryPOptions {
   optional PMode mode = 3;
   optional WritePType writeType = 4;
   optional FileSystemMasterCommonPOptions commonOptions = 5;
+  map<string, bytes> xattr = 6;
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
