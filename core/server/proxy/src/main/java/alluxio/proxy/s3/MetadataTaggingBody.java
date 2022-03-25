@@ -16,7 +16,13 @@ import alluxio.Constants;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.protobuf.ByteString;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +36,38 @@ import java.util.Set;
 @JacksonXmlRootElement(localName = "Tagging")
 public class MetadataTaggingBody implements Serializable {
   public static final long serialVersionUID = 1L;
+
+  /**
+   * Deserialize this object.
+   * @param bytes byte array of the Java-serialized object
+   * @return a deserialized {@link MetadataTaggingBody} object
+   */
+  public static MetadataTaggingBody deserialize(byte[] bytes)
+      throws IOException, ClassNotFoundException {
+    MetadataTaggingBody tagBody;
+    try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+         ObjectInputStream oos = new ObjectInputStream(bis)) {
+      tagBody = (MetadataTaggingBody) oos.readObject();
+    }
+    return tagBody;
+  }
+
+  /**
+   * Serializes the object.
+   * @param tagBody the {@link MetadataTaggingBody} object to serialize
+   * @return the {@link ByteString} serialization of this object
+   */
+  public static ByteString serialize(MetadataTaggingBody tagBody)
+      throws IOException {
+    ByteString bytes;
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+      oos.writeObject(tagBody);
+      oos.flush();
+      bytes = ByteString.copyFrom(bos.toByteArray());
+    }
+    return bytes;
+  }
 
   @JacksonXmlProperty(localName = "TagSet")
   private TagSet mTagSet;
