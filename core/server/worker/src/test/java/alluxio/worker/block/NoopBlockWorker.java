@@ -78,6 +78,14 @@ public class NoopBlockWorker implements BlockWorker {
     return null;
   }
 
+  @Override
+  public
+  String createBlock(long sessionId, long blockId, int tier, String alluxioPath,
+      String medium, long initialBytes)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+    return null;
+  }
+
   @Nullable
   @Override
   public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
