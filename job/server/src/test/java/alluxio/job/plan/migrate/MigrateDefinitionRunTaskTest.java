@@ -14,7 +14,6 @@ package alluxio.job.plan.migrate;
 import static junit.framework.TestCase.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +29,6 @@ import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -167,9 +165,8 @@ public final class MigrateDefinitionRunTaskTest {
   }
 
   @Test
-  public void overwriteTest() throws Exception {
+  public void overwriteFailureTest() throws Exception {
     final AtomicBoolean deleteCalled = new AtomicBoolean(false);
-
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)), any()))
         .thenAnswer((invocation) -> {
           if (deleteCalled.get()) {
@@ -177,23 +174,29 @@ public final class MigrateDefinitionRunTaskTest {
           }
           throw new FileAlreadyExistsException("already exists");
         });
-
-    doAnswer((invocation) -> {
-      if (deleteCalled.get()) {
-        throw new FileDoesNotExistException("doesn't exist");
-      }
-      deleteCalled.set(true);
-      return null;
-    }).when(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DESTINATION)));
-
     try {
       runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, false);
       fail();
     } catch (FileAlreadyExistsException e) {
       // expected
     }
+  }
+
+  @Test
+  public void overwriteSuccessTest() throws Exception {
+    final AtomicBoolean deleteCalled = new AtomicBoolean(false);
+    when(mMockFileSystem.createFile(any(AlluxioURI.class), any()))
+        .thenAnswer((invocation) -> {
+          if (deleteCalled.get()) {
+            return mMockOutStream;
+          }
+          deleteCalled.set(true);
+          throw new FileAlreadyExistsException("already exists");
+        });
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH, true);
+    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DESTINATION)));
+    verify(mMockFileSystem).rename(any(AlluxioURI.class), eq(new AlluxioURI(TEST_DESTINATION)));
   }
 
   /**
