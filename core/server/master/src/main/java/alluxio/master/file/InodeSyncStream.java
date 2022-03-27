@@ -366,8 +366,6 @@ public class InodeSyncStream {
         }
         // remove the job because we know it is done.
         if (mSyncPathJobs.poll() != job) {
-          // TODO(jiacheng): This is currently not a problem, but if this happens
-          //  the execution will end in an undefined state.
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
         // TODO(jiacheng): update the active job count
@@ -529,7 +527,6 @@ public class InodeSyncStream {
         mRpcContext.throwIfCancelled();
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL.inc();
       } catch (ExecutionException e) {
-        // TODO(jiacheng): seriously? Runtime?
         LogUtils.warnWithException(LOG, "Failed to get result for prefetch job", e);
         throw new RuntimeException(e);
       }
@@ -595,7 +592,6 @@ public class InodeSyncStream {
         Fingerprint ufsFpParsed;
         // When the status is not cached and it was not due to file not found, we retry
         if (fileNotFound) {
-          // TODO(jiacheng): create an unmodifiable singleton empty Fingerprint
           ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
           ufsFpParsed = Fingerprint.parse(ufsFingerprint);
         } else if (cachedStatus == null) {

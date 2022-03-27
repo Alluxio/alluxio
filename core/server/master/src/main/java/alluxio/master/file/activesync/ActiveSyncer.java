@@ -77,9 +77,6 @@ public class ActiveSyncer implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    // TODO(jiacheng): add a monitor here
-
-
     LOG.debug("start sync heartbeat for {} with mount id {}", mMountUri, mMountId);
     // Remove any previously completed sync tasks
     mSyncTasks.removeIf(Future::isDone);
@@ -160,20 +157,17 @@ public class ActiveSyncer implements HeartbeatExecutor {
    * @param syncInfo active sync info for mount
    */
   private void processSyncPoint(AlluxioURI ufsUri, SyncInfo syncInfo) {
-    // TODO(jiacheng): catch NPE
     AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
     if (alluxioUri == null) {
       LOG.warn("Unable to reverse resolve ufsUri {}", ufsUri);
       return;
     }
     try {
-      // TODO(jiacheng): count full sync and incremental sync counts
       if (syncInfo.isForceSync()) {
         LOG.debug("force full sync {}", ufsUri);
         RetryUtils.retry("Full Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri, null, mSyncManager.getExecutor());
-          DefaultFileSystemMaster.Metrics.ACTIVESYNC_FULL_SYNC.inc();
-        }, RetryUtils.defaultActiveSyncClientRetry(
+          }, RetryUtils.defaultActiveSyncClientRetry(
             ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       } else {
         LOG.debug("incremental sync {}", ufsUri);
@@ -183,7 +177,6 @@ public class ActiveSyncer implements HeartbeatExecutor {
                   .map((uri) -> Objects.requireNonNull(mMountTable.reverseResolve(uri)).getUri())
                   .collect(Collectors.toSet()),
               mSyncManager.getExecutor());
-          DefaultFileSystemMaster.Metrics.ACTIVESYNC_INCREMENTAL_SYNC.inc();
         }, RetryUtils.defaultActiveSyncClientRetry(
             ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       }

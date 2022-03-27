@@ -533,12 +533,8 @@ public class ActiveSyncManager implements Journaled {
               if (ServerConfiguration.getBoolean(
                   PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
                 RetryUtils.retry("active sync during start",
-                    () -> {
-                      mFileSystemMaster.activeSyncMetadata(syncPoint,
-                              null, getExecutor());
-                      // TODO(jiacheng): count the initial full syncs
-                      DefaultFileSystemMaster.Metrics.ACTIVESYNC_FULL_SYNC.inc();
-                    },
+                    () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
+                      null, getExecutor()),
                     RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
                         .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
               }

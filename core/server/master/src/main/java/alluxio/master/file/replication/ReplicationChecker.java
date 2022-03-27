@@ -27,7 +27,6 @@ import alluxio.job.plan.replicate.ReplicationHandler;
 import alluxio.job.wire.Status;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -47,8 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -121,7 +118,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mMaxActiveJobs = Math.max(1,
         (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
-    MetricsSystem.registerGaugeIfAbsent(
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
         mActiveJobToInodeID::size);
   }
@@ -155,7 +152,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       return;
     }
 
-    Instant start = Instant.now();
     final Set<Long> activeJobIds = new HashSet<>();
     try {
       if (!mActiveJobToInodeID.isEmpty()) {
@@ -173,45 +169,26 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         activeJobIds.addAll(activeMoveJobIds);
         activeJobIds.addAll(activeReplicateJobIds);
         mActiveJobToInodeID.keySet().removeIf(jobId -> !activeJobIds.contains(jobId));
-        LOG.info("Found {} evict jobs, {} move jobs, {} replicate jobs. Total {} active jobs and {} mActiveJobToInodeID",
-                activeEvictJobIds.size(), activeMoveJobIds.size(), activeReplicateJobIds.size(),
-                activeJobIds.size(), mActiveJobToInodeID.size());
       }
     } catch (IOException e) {
       // It is possible the job master process is not answering rpcs,
       // log but do not throw the exception
       // which will kill the replication checker thread.
-      LOG.info("Failed to contact job master to get updated list of replication jobs", e);
+      LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
     }
 
     Set<Long> inodes;
 
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();
-    LOG.info("Checking {} pinned files", inodes.size());
-    int replicatedFiles = check(inodes, mReplicationHandler, Mode.REPLICATE);
 
     // Check the set of files that could possibly be over-replicated
     inodes = mInodeTree.getReplicationLimitedFileIds();
-    LOG.info("Checking {} replication limited files", inodes.size());
-    int evictedFiles = check(inodes, mReplicationHandler, Mode.EVICT);
+    check(inodes, mReplicationHandler, Mode.EVICT);
 
     // Check the set of files that could possibly be mis-replicated
-    LOG.info("Mis-replication check {} pinned files", inodes.size());
     inodes = mInodeTree.getPinIdSet();
-    int migratedFiles = checkMisreplicated(inodes, mReplicationHandler);
-
-    // Update metrics
-    DefaultFileSystemMaster.Metrics.REPLICATION_CHECKER_REPLICATED_FILES.inc(replicatedFiles);
-    DefaultFileSystemMaster.Metrics.REPLICATION_CHECKER_EVICTED_FILES.inc(evictedFiles);
-    DefaultFileSystemMaster.Metrics.REPLICATION_CHECKER_MIGRATED_FILES.inc(migratedFiles);
-
-    Instant end = Instant.now();
-    LOG.info("Heartbeat took {}ms, replicated {} files, evicted {} files and migrated {} files",
-        replicatedFiles,
-        evictedFiles,
-        migratedFiles,
-        Duration.between(start, end).toMillis());
+    checkMisreplicated(inodes, mReplicationHandler);
   }
 
   @Override
@@ -265,13 +242,13 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     return movement;
   }
 
-  private int checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
+  private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
       throws InterruptedException {
     int processedCount = 0;
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
         LOG.info("{} active jobs already, skip this check", mActiveJobToInodeID.size());
-        return processedCount;
+        return;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
         continue;
@@ -291,12 +268,12 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
             LOG.warn("The block master is not available: {}", e.toString());
-            return processedCount;
+            return;
           }
           if (blockInfo == null) {
             // no block info available, we simply log and return;
             LOG.warn("Block info is null");
-            return processedCount;
+            return;
           }
 
           for (Map.Entry<String, String> entry
@@ -305,7 +282,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               final long jobId =
                   handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
               mActiveJobToInodeID.put(jobId, inodeId);
-              processedCount++;
             } catch (Exception e) {
               LOG.warn(
                   "Unexpected exception encountered when starting a migration job (uri={},"
@@ -319,18 +295,16 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.toString());
       }
     }
-    return processedCount;
+    return;
   }
 
-  private int check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
+  private Set<Long> check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
       throws InterruptedException {
-//    Set<Long> processedFileIds = new HashSet<>();
-    int processedCount = 0;
+    Set<Long> processedFileIds = new HashSet<>();
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
         LOG.info("{} active jobs already, skip this check", mActiveJobToInodeID.size());
-//        return processedFileIds;
-        return processedCount;
+        return processedFileIds;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
         continue;
@@ -354,8 +328,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
             LOG.warn("The block master is not available: {}", e.toString());
-//            return processedFileIds;
-            return processedCount;
+            return processedFileIds;
           }
           int currentReplicas = (blockInfo == null) ? 0 : blockInfo.getLocations().size();
           switch (mode) {
@@ -409,17 +382,14 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             default:
               throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));
           }
-//          processedFileIds.add(inodeId);
-          processedCount++;
+          processedFileIds.add(inodeId);
           mActiveJobToInodeID.put(jobId, inodeId);
         } catch (JobDoesNotExistException | ResourceExhaustedException e) {
           LOG.warn("The job service is busy, will retry later. {}", e.toString());
-//          return processedFileIds;
-          return processedCount;
+          return processedFileIds;
         } catch (UnavailableException e) {
           LOG.warn("Unable to complete the replication check: {}, will retry later.", e.toString());
-//          return processedFileIds;
-          return processedCount;
+          return processedFileIds;
         } catch (Exception e) {
           SAMPLING_LOG.warn(
               "Unexpected exception encountered when starting a {} job (uri={},"
@@ -429,7 +399,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         }
       }
     }
-//    return processedFileIds;
-    return processedCount;
+    return processedFileIds;
   }
 }
