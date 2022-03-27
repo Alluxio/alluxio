@@ -34,8 +34,8 @@ public final class UfsSyncUtils {
    */
   public static SyncPlan computeSyncPlan(Inode inode, Fingerprint ufsFingerprint,
       boolean containsMountPoint) {
-    // TODO(jiacheng): We still store a string in the inode instead of a Fingerprint obj.
-    //  This parse is unavoidable until we change it.
+    // issues#15211: If Inodes store a Fingerprint proto instead of Strings,
+    // we would save many String parsings here.
     Fingerprint inodeFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
     boolean isContentSynced = inodeUfsIsContentSynced(inode, inodeFingerprint, ufsFingerprint);
     boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, inodeFingerprint, ufsFingerprint);
