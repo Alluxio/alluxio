@@ -156,6 +156,13 @@ public final class CreateBlockOptions {
   private long mInitialBytes;
   private String mMedium;
 
+  /**
+   * Constructor.
+   *
+   * @param alluxioPath the alluxio path
+   * @param medium the medium
+   * @param initialBytes the initialBytes
+   */
   public CreateBlockOptions(String alluxioPath, String medium, long initialBytes) {
     mAlluxioPath = alluxioPath;
     mMedium = medium;
