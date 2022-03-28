@@ -952,7 +952,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       fileInfo.setInMemoryPercentage(inMemoryPercentage);
       fileInfo.setInAlluxioPercentage(inAlluxioPercentage);
 
-      List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
+      List<FileBlockInfo> fileBlockInfos = new ArrayList<>(blockInfos.size());
       for (BlockInfo blockInfo : blockInfos) {
         fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo));
       }
