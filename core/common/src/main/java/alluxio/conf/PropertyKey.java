@@ -4350,6 +4350,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_METADATA_HEADER_MAX_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_HEADER_METADATA_MAX_SIZE)
+          .setDefaultValue("2KB")
+          .setDescription("The maximum size to allow for user-defined metadata in S3 PUT"
+              + "request headers. Set to 0 to disable size limits.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -7042,6 +7050,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.complete.multipart.upload.pool.size";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
+    public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
+        "alluxio.proxy.s3.header.metadata.max.size";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";

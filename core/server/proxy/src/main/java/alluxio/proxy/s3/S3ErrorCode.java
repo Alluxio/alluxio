@@ -28,14 +28,14 @@ public class S3ErrorCode {
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
-    public static final String MALFORMED_XML = "MalformedXMLError";
+    public static final String MALFORMED_XML = "MalformedXML";
     public static final String METADATA_TOO_LARGE = "MetadataTooLarge";
     public static final String NO_SUCH_BUCKET = "NoSuchBucket";
     public static final String NO_SUCH_KEY = "NoSuchKey";
     public static final String NO_SUCH_UPLOAD = "NoSuchUpload";
     public static final String PRECONDITION_FAILED = "PreconditionFailed";
     public static final String INVALID_CONTINUATION_TOKEN = "InvalidContinuationToken";
-    public static final String INVALID_TAG = "InvalidTagError";
+    public static final String INVALID_TAG = "InvalidTag";
     public static final String UPLOAD_ALREADY_EXISTS = "UploadAlreadyExists";
 
     private Name() {

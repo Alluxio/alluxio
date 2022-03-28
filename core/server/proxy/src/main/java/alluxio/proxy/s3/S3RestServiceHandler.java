@@ -105,6 +105,8 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
+    TaggingData.sMaxHeaderMetadataSize = (int) mFileSystem.getConf().getBytes(
+        PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
   }
 
   /**
@@ -543,7 +545,11 @@ public final class S3RestServiceHandler {
             new ArrayList<TaggingData.TagObject>();
         for (String tag : taggingHeader.split("&")) {
           String[] entries = tag.split("=");
-          tagObjectList.add(new TaggingData.TagObject(entries[0], entries[1]));
+          if (entries.length > 1) {
+            tagObjectList.add(new TaggingData.TagObject(entries[0], entries[1]));
+          } else { // Key was provided without a value
+            tagObjectList.add(new TaggingData.TagObject(entries[0], ""));
+          }
         }
         try {
           tagData = new TaggingData(new TaggingData.TagSet(tagObjectList));

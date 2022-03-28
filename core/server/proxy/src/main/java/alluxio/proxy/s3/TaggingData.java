@@ -11,8 +11,6 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.Constants;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -37,6 +35,7 @@ import java.util.Set;
 @JacksonXmlRootElement(localName = "Tagging")
 public class TaggingData implements Serializable {
   public static final long serialVersionUID = 1L;
+  public static int sMaxHeaderMetadataSize; // initialized by S3RestServiceHandler, 0 means disabled
 
   /**
    * Deserialize the object.
@@ -152,9 +151,11 @@ public class TaggingData implements Serializable {
         }
         // Header user-metadata size limit validation (<= 2 KB)
         // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
-        totalBytes += tag.getNumBytes();
-        if (totalBytes > 2 * Constants.KB) {
-          throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
+        if (sMaxHeaderMetadataSize > 0) {
+          totalBytes += tag.getNumBytes();
+          if (totalBytes > sMaxHeaderMetadataSize) {
+            throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
+          }
         }
       }
     } catch (S3Exception e) {
