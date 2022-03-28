@@ -13,16 +13,24 @@ export interface IParsedQueryString {
   [key: string]: string;
 }
 
+export const createEncodedQueryString = (queryObj: IParsedQueryString): string => {
+  const queryString = Object.keys(queryObj)
+    .filter(key => queryObj[key] !== undefined)
+    .map(key => key + '=' + encodeURIComponent(queryObj[key]))
+    .join('&');
+  return `?${queryString}`;
+};
+
 export const parseQueryString = (queryString: string): IParsedQueryString => {
   if (!queryString) {
     return {};
   }
-
-  const searchArray = queryString.replace('?', '').split(/[=&]/);
+  const rawPairArray = queryString.replace('?', '').split(/[&]/);
+  const searchArray: string[] = [];
+  rawPairArray.forEach(pair => searchArray.push(...pair.split(/=(.*)/).filter(x => x)));
   if (searchArray.length % 2 !== 0) {
     throw new Error('unable to parse querystring');
   }
-
   const parsedSearch: IParsedQueryString = {};
   for (let i = 0; i < searchArray.length; i += 2) {
     parsedSearch[searchArray[i]] = searchArray[i + 1];
