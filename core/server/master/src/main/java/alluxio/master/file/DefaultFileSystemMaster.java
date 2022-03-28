@@ -4644,42 +4644,39 @@ public class DefaultFileSystemMaster extends CoreMaster
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
     public static final Counter INODE_SYNC_STREAM_COUNT
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_COUNT.getName());
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_OPS_COUNT.getName());
+    public static final Counter INODE_SYNC_STREAM_SKIPPED
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_SKIPPED.getName());
+    public static final Counter INODE_SYNC_STREAM_SUCCESS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_SUCCESS.getName());
+    public static final Counter INODE_SYNC_STREAM_FAIL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_FAIL.getName());
     public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_SUCCESSFUL_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_SUCCESSFUL_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_FAILED_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_FAILED_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_FAILED_JOBS_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_FAILED_JOBS_TOTAL.getName());
-    public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL.getName());
-
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PENDING_PATHS.getName());
+    public static final Counter INODE_SYNC_STREAM_ACTIVE_PATHS_TOTAL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_ACTIVE_PATHS.getName());
+    public static final Counter INODE_SYNC_STREAM_SYNC_PATHS_SUCCESS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PATHS_SUCCESS.getName());
+    public static final Counter INODE_SYNC_STREAM_SYNC_PATHS_FAIL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PATHS_FAIL.getName());
+    public static final Counter INODE_SYNC_STREAM_SYNC_PATHS_CANCEL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PATHS_CANCEL.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_OPS_COUNT
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_RETRIES
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_RETRIES.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_SUCCESS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_SUCCESS.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_FAIL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_FAIL.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_CANCEL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_CANCEL.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_PATHS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_PATHS.getName());
     public static final Counter UFS_STATUS_CACHE_SIZE_TOTAL
         = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_SIZE_TOTAL.getName());
     public static final Counter UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL
         = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getName());
-    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL.getName());
-    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.getName());
-    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.getName());
-    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL.getName());
-    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL.getName());
-    public static final Counter UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.getName());
 
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();

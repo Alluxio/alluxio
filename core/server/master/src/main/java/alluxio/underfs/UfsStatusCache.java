@@ -100,6 +100,7 @@ public class UfsStatusCache {
               path.getName(), status.getName()));
     }
     mAbsentCache.processExisting(path);
+    // Update global counters for all InodeSyncStream
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.inc();
     return mStatuses.put(path, status);
   }
@@ -119,6 +120,7 @@ public class UfsStatusCache {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
     });
+    // Update global counters for all InodeSyncStream
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
   return mChildren.put(path, children);
   }
@@ -135,8 +137,9 @@ public class UfsStatusCache {
   public UfsStatus remove(AlluxioURI path) {
     Preconditions.checkNotNull(path, "can't remove null status cache path");
     UfsStatus removed = mStatuses.remove(path);
-    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
     int childrenCnt = mChildren.contains(path) ? mChildren.get(path).size() : 0;
+    // Update global counters for all InodeSyncStream
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(childrenCnt);
     mChildren.remove(path); // ok if there aren't any children
     return removed;
@@ -229,22 +232,22 @@ public class UfsStatusCache {
       while (true) {
         try {
           Collection<UfsStatus> statuses = prefetchJob.get(100, TimeUnit.MILLISECONDS);
-          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL.inc(statuses.size());
-          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL.inc();
+          DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS.inc(statuses.size());
+          DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS.inc();
           return statuses;
         } catch (TimeoutException e) {
           if (rpcContext != null) {
             rpcContext.throwIfCancelled();
           }
-          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL.inc();
+          DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_RETRIES.inc();
         } catch (InterruptedException | ExecutionException e) {
           LogUtils.warnWithException(LOG,
               "Failed to get result for prefetch job on alluxio path {}", path, e);
+          DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL.inc();
           if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
             throw (InterruptedException) e;
           }
-          DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL.inc();
           break;
         } finally {
           mActivePrefetchJobs.remove(path);
@@ -352,11 +355,11 @@ public class UfsStatusCache {
     try {
       Future<Collection<UfsStatus>> job =
           mPrefetchExecutor.submit(() -> getChildrenIfAbsent(path, mountTable));
-      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL.inc();
+      DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
       Future<Collection<UfsStatus>> prev = mActivePrefetchJobs.put(path, job);
       if (prev != null) {
         prev.cancel(true);
-        DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.inc();
+        DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL.inc();
       }
       return job;
     } catch (RejectedExecutionException e) {
@@ -372,7 +375,7 @@ public class UfsStatusCache {
     for (Future<?> f : mActivePrefetchJobs.values()) {
       f.cancel(false);
     }
-    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL.inc(mActivePrefetchJobs.size());
+    DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL.inc(mActivePrefetchJobs.size());
     mActivePrefetchJobs.clear();
   }
 }

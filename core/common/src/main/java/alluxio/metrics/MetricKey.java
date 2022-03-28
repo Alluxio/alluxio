@@ -15,7 +15,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
-import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -607,64 +606,101 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_COUNT =
-      new Builder("Master.InodeSyncStreamCount")
-          .setDescription("The number of active InodeSyncStream instances")
+  public static final MetricKey MASTER_METADATA_SYNC_OPS_COUNT =
+      new Builder("Master.MetadataSyncOpsCount")
+          .setDescription("The number of metadata sync operations. "
+              + "Each sync operation corresponds to one InodeSyncStream instance.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_SUCCESSFUL_TOTAL =
-      new Builder("Master.InodeSyncStreamSuccessfulTotal")
+  public static final MetricKey MASTER_METADATA_SYNC_SKIPPED =
+      new Builder("Master.MetadataSyncSkipped")
+          .setDescription("The number of InodeSyncStream that are skipped because "
+              + "the Alluxio metadata is fresher than "
+              + PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_SUCCESS =
+      new Builder("Master.MetadataSyncSuccess")
           .setDescription("The number of InodeSyncStream that succeeded")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_FAILED_TOTAL =
-      new Builder("Master.InodeSyncStreamFailedTotal")
-          .setDescription("The number of InodeSyncStream that succeeded")
+  public static final MetricKey MASTER_METADATA_SYNC_FAIL =
+      new Builder("Master.MetadataSyncFail")
+          .setDescription("The number of InodeSyncStream that failed, either partially or fully")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_PENDING_PATHS_TOTAL =
-      new Builder("Master.InodeSyncStreamPendingPathsTotal")
-          .setDescription("The number of pending paths from all InodeSyncStream instances")
+  public static final MetricKey MASTER_METADATA_SYNC_PENDING_PATHS =
+      new Builder("Master.MetadataSyncPendingPaths")
+          .setDescription("The number of pending paths from all active InodeSyncStream instances,"
+              + "waiting for metadata sync")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_PENDING_PATHS_IGNORED_TOTAL =
+  public static final MetricKey MASTER_METADATA_SYNC_ACTIVE_PATHS =
+      new Builder("Master.MetadataSyncActivePaths")
+          .setDescription("The number of in-progress paths from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  // TODO(jiacheng): further check the cancel logic for this
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_CANCEL =
       new Builder("Master.InodeSyncStreamPendingPathsIgnoredTotal")
           .setDescription("The number of pending paths from all InodeSyncStream instances that "
               + "are ignored in the end instead of processed")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_ACTIVE_JOBS_TOTAL =
-      new Builder("Master.InodeSyncStreamActiveJobsTotal")
-          .setDescription("The number of active jobs from all InodeSyncStream instances")
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_SUCCESS =
+      new Builder("Master.MetadataSyncPathsSuccess")
+          .setDescription("The number of paths sync-ed from all InodeSyncStream instances")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_SUCCESSFUL_JOBS_TOTAL =
-      new Builder("Master.InodeSyncStreamSuccessfulJobsTotal")
-          .setDescription("The number of jobs from all InodeSyncStream instances that succeeded")
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_FAIL =
+      new Builder("Master.MetadataSyncPathsFail")
+          .setDescription("The number of paths that failed during metadata sync"
+              + " from all InodeSyncStream instances")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_FAILED_JOBS_TOTAL =
-      new Builder("Master.InodeSyncStreamFailedJobsTotal")
-          .setDescription("The number of jobs from all InodeSyncStream instances that failed")
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT =
+      new Builder("Master.MetadataSyncPrefetchOpsCount")
+          .setDescription("The number of prefetch operations handled by the prefetch thread pool")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_FETCHED_PATHS_TOTAL =
-      new Builder("Master.InodeSyncStreamPrefetchJobFetchedPathsTotal")
-          .setDescription("The number of paths fetched using the prefetch pool from InodeSyncStream")
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_SUCCESS =
+      new Builder("Master.MetadataSyncPrefetchSuccess")
+          .setDescription("Number of successful prefetch jobs from metadata sync")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_INODE_SYNC_STREAM_PREFETCH_JOB_RETRIES_TOTAL =
-      new Builder("Master.InodeSyncStreamPrefetchJobRetriesTotal")
-          .setDescription("The number of retries trying to fetch from the prefetch pool from InodeSyncStream")
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_FAIL =
+      new Builder("Master.MetadataSyncPrefetchFail")
+          .setDescription("Number of failed prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_CANCEL =
+      new Builder("Master.MetadataSyncPrefetchCancel")
+          .setDescription("Number of cancelled prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  // TODO(jiacheng): mention the UFS timeout?
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_RETRIES =
+      new Builder("Master.MetadataSyncPrefetchRetries")
+          .setDescription("Number of retries to get from prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_PATHS =
+      new Builder("Master.MetadataSyncPrefetchPaths")
+          .setDescription("Total number of UFS paths fetched by prefetch jobs from metadata sync")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -677,42 +713,6 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL =
       new Builder("Master.UfsStatusCacheChildrenSizeTotal")
           .setDescription("Each InodeSyncStream has one UfsStatusCache, this is the total of children counts from all UfsStatusCache")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_TOTAL =
-      new Builder("Master.UfsStatusCachePrefetchJobTotal")
-          .setDescription("Total number of prefetch jobs created from the UfsStatusCache")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FETCHED_PATHS_TOTAL =
-      new Builder("Master.UfsStatusCachePrefetchJobFetchedPathsTotal")
-          .setDescription("Total number of paths fetched by prefetch jobs created from the UfsStatusCache")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_SUCCESSFUL_TOTAL =
-      new Builder("Master.UfsStatusCachePrefetchJobSuccessfulTotal")
-          .setDescription("Number of failed prefetch jobs from UfsStatusCache")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_FAILED_TOTAL =
-      new Builder("Master.UfsStatusCachePrefetchJobFailedTotal")
-          .setDescription("Number of failed prefetch jobs from UfsStatusCache")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_CANCELLED_TOTAL =
-      new Builder("Master.UfsStatusCachePrefetchJobCancelledTotal")
-          .setDescription("Number of cancelled prefetch jobs from UfsStatusCache")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_PREFETCH_JOB_RETRIES_TOTAL =
-      new Builder("Master.UfsStatusCachePrefetchJobRetriesTotal")
-          .setDescription("Number of retries to get from prefetch jobs from UfsStatusCache")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
