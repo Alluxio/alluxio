@@ -53,11 +53,11 @@ public class AWSSignatureProcessor implements SignatureProcessor {
     LowerCaseKeyStringMap headers =
         LowerCaseKeyStringMap.fromHeaderMap(mContext.getHeaders());
 
-    String authHeader = headers.get("Authorization");
+    String authHeader = headers.get(SignerConstants.AUTHORIZATION);
 
     List<SignatureParser> signatureParsers = new ArrayList<>();
     signatureParsers.add(new AuthorizationV4HeaderParser(authHeader,
-                headers.get(StringToSignProducer.X_AMAZ_DATE)));
+                headers.get(SignerConstants.X_AMZ_DATE)));
     signatureParsers.add(new AuthorizationV4QueryParser(
         StringToSignProducer.fromMultiValueToSingleValueMap(
                 mContext.getUriInfo().getQueryParameters())));
@@ -80,7 +80,7 @@ public class AWSSignatureProcessor implements SignatureProcessor {
   }
 
   @Override
-  public S3Auth getS3AuthInfo() throws S3Exception {
+  public SignedInfo getSignedInfo() throws S3Exception {
     try {
       SignatureInfo signatureInfo = parseSignature();
       String stringToSign = "";
@@ -95,7 +95,7 @@ public class AWSSignatureProcessor implements SignatureProcessor {
         throw new S3Exception("", S3ErrorCode.ACCESS_DENIED_ERROR);
       }
 
-      return new S3Auth(stringToSign,
+      return new SignedInfo(stringToSign,
               signatureInfo.getSignature(),
               awsAccessId);
     } catch (S3Exception ex) {

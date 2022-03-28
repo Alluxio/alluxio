@@ -11,29 +11,44 @@
 
 package alluxio.proxy.s3.signature;
 
+import static alluxio.proxy.s3.signature.SignerConstants.DATE_FORMATTER;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.proxy.s3.S3Exception;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import java.time.LocalDate;
 
 /**
  * This class tests Authorization header format v4.
  */
 public class TestAuthorizationV4HeaderParser {
+
+  private String mCurDate;
+
+  @Before
+  public void setup() {
+    LocalDate now = LocalDate.now();
+    mCurDate = DATE_FORMATTER.format(now);
+  }
+
   @Test
   public void testAuthHeaderV4() throws Exception {
     String auth = "AWS4-HMAC-SHA256 "
-            + "Credential=testuser/20220316/us-east-1/s3/aws4_request, "
+            + "Credential=testuser/"
+            + mCurDate
+            + "/us-east-1/s3/aws4_request, "
             + "SignedHeaders=host;range;x-amz-date, "
-            + "Signature=e21cc9301f70ff9ffe7ff0e940221da";
+            + "Signature=e21cc9301f70ff9ffe7ff0e940221daa";
     AuthorizationV4HeaderParser v4 =
                 new AuthorizationV4HeaderParser(auth, "20220316T083426Z");
     final SignatureInfo signatureInfo = v4.parseSignature();
     assertEquals("testuser", signatureInfo.getAwsAccessId());
-    assertEquals("20220316", signatureInfo.getDate());
+    assertEquals(mCurDate, signatureInfo.getDate());
     assertEquals("host;range;x-amz-date", signatureInfo.getSignedHeaders());
-    assertEquals("e21cc9301f70ff9ffe7ff0e940221da",
+    assertEquals("e21cc9301f70ff9ffe7ff0e940221daa",
                 signatureInfo.getSignature());
   }
 

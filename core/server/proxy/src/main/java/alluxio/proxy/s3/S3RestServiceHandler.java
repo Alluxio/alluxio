@@ -31,7 +31,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.proxy.s3.signature.AWSSignatureProcessor;
 import alluxio.proxy.s3.signature.SignatureProcessor;
 import alluxio.security.User;
-import alluxio.proxy.s3.signature.S3Auth;
+import alluxio.proxy.s3.signature.SignedInfo;
 import alluxio.web.ProxyWebServer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -132,30 +132,29 @@ public final class S3RestServiceHandler {
    * @throws S3Exception
    */
   public String getUserFromSignature() throws S3Exception {
-    S3Auth s3Auth = mSignatureProcessor.getS3AuthInfo();
-    if (!validateAuth(s3Auth)) {
-      throw new S3Exception(s3Auth.toString(), S3ErrorCode.INVALID_IDENTIFIER);
+    SignedInfo signedInfo = mSignatureProcessor.getSignedInfo();
+    if (!validateAuth(signedInfo)) {
+      throw new S3Exception(signedInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
     }
-    return s3Auth.getAccessID();
+    return signedInfo.getAccessID();
   }
 
   /**
    * validate s3 authorization info.
    *
-   * @param s3Auth s3Auth info
+   * @param signedInfo info to compute signature
    * @return whether or not validate success
    * @throws S3Exception
    */
-  public boolean validateAuth(S3Auth s3Auth) throws S3Exception {
+  public boolean validateAuth(SignedInfo signedInfo) throws S3Exception {
 
     //At present, there is no clear secret acquisition strategy.
     //After determining the method for getting secret, the
     //following method can be called for authentication:
     //  return AWSV4AuthValidator.validateRequest(
-    //            s3Auth.getStringTosSign(),
-    //            s3Auth.getSignature(),
+    //            signedInfo.getStringTosSign(),
+    //            signedInfo.getSignature(),
     //            secret);
-
     return true;
   }
 

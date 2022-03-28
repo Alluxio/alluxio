@@ -21,8 +21,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class AuthorizationV2HeaderParser implements SignatureParser {
 
-  public static final String IDENTIFIER = "AWS";
-
   private final String mAuthHeader;
 
   /**
@@ -34,22 +32,14 @@ public class AuthorizationV2HeaderParser implements SignatureParser {
 
   /**
    * This method parses the authorization header.
-   * <p>
-   * Authorization header sample:
-   * AWS AKIAIOSFODNN7EXAMPLE:frJIUN8DYpKDtOLCwo//yllqDzg=
    */
   @Override
   public SignatureInfo parseSignature() throws S3Exception {
-    if (mAuthHeader == null || !mAuthHeader.startsWith(IDENTIFIER + " ")) {
+    if (mAuthHeader == null || !mAuthHeader.startsWith(SignerConstants.IDENTIFIER + " ")) {
       return null;
     }
     String[] split = mAuthHeader.split(" ");
     if (split.length != 2) {
-      throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
-    }
-
-    String identifier = split[0];
-    if (!IDENTIFIER.equals(identifier)) {
       throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
 

@@ -17,8 +17,6 @@ import alluxio.proxy.s3.S3Exception;
  * Util to parse signature.
  */
 public interface SignatureParser {
-  String AUTHORIZATION_HEADER = "Authorization";
-
   /**
    * Function to parse signature.
    *

@@ -13,15 +13,10 @@ package alluxio.proxy.s3.signature;
 
 import alluxio.proxy.s3.S3Exception;
 
-import java.time.format.DateTimeFormatter;
-
 /**
  * Parser to request auth parser for http request.
  */
 public interface SignatureProcessor {
-
-  DateTimeFormatter DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyyMMdd");
 
   /**
    * API to return string to sign.
@@ -30,9 +25,9 @@ public interface SignatureProcessor {
   SignatureInfo parseSignature() throws S3Exception;
 
   /**
-   * Convert SignatureInfo to S3Auth.
-   * @return S3Auth
+   * Convert SignatureInfo to SignedInfo.
+   * @return SignedInfo
    * @throws S3Exception
    */
-  S3Auth getS3AuthInfo() throws S3Exception;
+  SignedInfo getSignedInfo() throws S3Exception;
 }

@@ -11,6 +11,8 @@
 
 package alluxio.proxy.s3.signature;
 
+import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.SigningAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
@@ -20,34 +22,18 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * AWS v4 authentication payload validator. For more details refer to AWS
  * documentation https://docs.aws.amazon.com/general/latest/gr/
  * sigv4-create-canonical-request.html.
  **/
-public class AWSV4AuthValidator {
+public class AuthorizationV4Validator {
 
   private static final Logger LOG =
-            LoggerFactory.getLogger(AWSV4AuthValidator.class);
-  private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
+            LoggerFactory.getLogger(AuthorizationV4Validator.class);
 
-  private AWSV4AuthValidator() {
-  }
-
-  /**
-   * hash function.
-   *
-   * @param payload
-   * @return hash string
-   * @throws NoSuchAlgorithmException
-   */
-  public static String hash(String payload) throws NoSuchAlgorithmException {
-    MessageDigest md = MessageDigest.getInstance("SHA-256");
-    md.update(payload.getBytes(StandardCharsets.UTF_8));
-    return String.format("%064x", new java.math.BigInteger(1, md.digest()));
+  private AuthorizationV4Validator() {
   }
 
   /**
@@ -57,11 +43,15 @@ public class AWSV4AuthValidator {
    * @return sign bytes
    */
   private static byte[] sign(byte[] key, String msg) {
+    return sign(msg.getBytes(StandardCharsets.UTF_8), key, SigningAlgorithm.HmacSHA256);
+  }
+
+  private static byte[] sign(byte[] data, byte[] key, SigningAlgorithm algorithm)
+          throws SdkClientException {
     try {
-      SecretKeySpec signingKey = new SecretKeySpec(key, HMAC_SHA256_ALGORITHM);
-      Mac mac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
-      mac.init(signingKey);
-      return mac.doFinal(msg.getBytes(StandardCharsets.UTF_8));
+      Mac mac = algorithm.getMac();
+      mac.init(new SecretKeySpec(key, algorithm.name()));
+      return mac.doFinal(data);
     } catch (GeneralSecurityException gse) {
       throw new RuntimeException(gse);
     }
@@ -83,7 +73,8 @@ public class AWSV4AuthValidator {
   private static byte[] getSigningKey(String key, String strToSign) {
     LOG.info("strToSign:{}", strToSign);
     String[] signData = StringUtils.split(StringUtils.split(strToSign,
-                '\n')[2], '/');
+            SignerConstants.LINE_SEPARATOR)[2],
+            SignerConstants.SIGN_SEPARATOR);
     String dateStamp = signData[0];
     String regionName = signData[1];
     String serviceName = signData[2];
@@ -91,7 +82,7 @@ public class AWSV4AuthValidator {
                 .getBytes(StandardCharsets.UTF_8), dateStamp);
     byte[] kRegion = sign(kDate, regionName);
     byte[] kService = sign(kRegion, serviceName);
-    byte[] kSigning = sign(kService, "aws4_request");
+    byte[] kSigning = sign(kService, SignerConstants.AWS4_TERMINATOR);
     LOG.info(Hex.encode(kSigning));
     return kSigning;
   }

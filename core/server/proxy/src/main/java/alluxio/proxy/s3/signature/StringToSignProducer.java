@@ -11,12 +11,16 @@
 
 package alluxio.proxy.s3.signature;
 
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_CONTENT_SHA256;
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
+import static alluxio.proxy.s3.signature.SignerConstants.HOST;
+import static alluxio.proxy.s3.signature.SignerConstants.UNSIGNED_PAYLOAD;
+
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.signature.AWSSignatureProcessor.LowerCaseKeyStringMap;
 import alluxio.util.StringUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +38,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.time.temporal.ChronoUnit;
@@ -49,22 +52,14 @@ import java.time.temporal.ChronoUnit;
  * Stateless utility to create stringToSign, the base of the signature.
  */
 public final class StringToSignProducer {
-
-  public static final String X_AMZ_CONTENT_SHA256 = "X-Amz-Content-SHA256";
-  public static final String X_AMAZ_DATE = "X-Amz-Date";
   private static final Logger LOG = LoggerFactory.getLogger(StringToSignProducer.class);
   private static final Charset UTF_8 = StandardCharsets.UTF_8;
   private static final String NEWLINE = "\n";
-  private static final String HOST = "host";
-  private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
   /**
    * Seconds in a week, which is the max expiration time Sig-v4 accepts.
    */
   private static final long PRESIGN_URL_MAX_EXPIRATION_SECONDS =
-            60 * 60 * 24 * 7;
-  public static final DateTimeFormatter TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
-                    .withZone(ZoneOffset.UTC);
+          60 * 60 * 24 * 7;
 
   private StringToSignProducer() {
   }
@@ -186,7 +181,6 @@ public final class StringToSignProducer {
    * @return formatted string
    * @throws S3Exception
    */
-  @VisibleForTesting
   public static String buildCanonicalRequest(
       String schema,
       String method,
@@ -196,13 +190,7 @@ public final class StringToSignProducer {
       Map<String, String> queryParams,
       boolean unsignedPayload
   ) throws S3Exception {
-
-    Iterable<String> parts = split("/", uri);
-    List<String> encParts = new ArrayList<>();
-    for (String p : parts) {
-      encParts.add(urlEncode(p));
-    }
-    String canonicalUri = join("/", encParts);
+    String canonicalUri = getCanonicalUri("/", uri);
 
     String canonicalQueryStr = getQueryParamString(queryParams);
 
@@ -231,51 +219,34 @@ public final class StringToSignProducer {
     } else {
       payloadHash = headers.get(X_AMZ_CONTENT_SHA256);
     }
-    String canonicalRequest = method + NEWLINE
-            + canonicalUri + NEWLINE
-            + canonicalQueryStr + NEWLINE
-            + canonicalHeaders + NEWLINE
-            + signedHeaders + NEWLINE
-            + payloadHash;
-    return canonicalRequest;
+    StringJoiner canonicalRequestJoiner = new StringJoiner(NEWLINE);
+    canonicalRequestJoiner.add(method)
+            .add(canonicalUri)
+            .add(canonicalQueryStr)
+            .add(canonicalHeaders)
+            .add(signedHeaders)
+            .add(payloadHash);
+    return canonicalRequestJoiner.toString();
   }
 
   /**
-   * String join that also works with empty strings.
-   *
-   * @return joined string
-   */
-  private static String join(String glue, List<String> parts) {
-    StringBuilder result = new StringBuilder();
-    boolean addSeparator = false;
-    for (String p : parts) {
-      if (addSeparator) {
-        result.append(glue);
-      }
-      result.append(p);
-      addSeparator = true;
-    }
-    return result.toString();
-  }
-
-  /**
-   * Returns matching strings.
+   * Returns CanonicalUri.
    *
    * @param regex Regular expression to split by
-   * @param whole The string to split
-   * @return pieces
+   * @param uri uri string
+   * @return CanonicalUri
    */
-  private static Iterable<String> split(String regex, String whole) {
+  private static String getCanonicalUri(String regex, String uri) {
+    StringJoiner result = new StringJoiner(regex);
     Pattern p = Pattern.compile(regex);
-    Matcher m = p.matcher(whole);
-    List<String> result = new ArrayList<>();
+    Matcher m = p.matcher(uri);
     int pos = 0;
     while (m.find()) {
-      result.add(whole.substring(pos, m.start()));
+      result.add(urlEncode(uri.substring(pos, m.start())));
       pos = m.end();
     }
-    result.add(whole.substring(pos));
-    return result;
+    result.add(urlEncode(uri.substring(pos)));
+    return result.toString();
   }
 
   private static String urlEncode(String str) {
@@ -310,7 +281,6 @@ public final class StringToSignProducer {
     return result.toString();
   }
 
-  @VisibleForTesting
   static void validateSignedHeader(
       String schema,
       String header,
@@ -327,8 +297,8 @@ public final class StringToSignProducer {
           throw new S3Exception(headerValue, S3ErrorCode.AUTHINFO_CREATION_ERROR);
         }
         break;
-      case X_AMAZ_DATE:
-        LocalDate date = LocalDate.parse(headerValue, TIME_FORMATTER);
+      case X_AMZ_DATE:
+        LocalDate date = LocalDate.parse(headerValue, SignerConstants.TIME_FORMATTER);
         LocalDate now = LocalDate.now();
         if (date.isBefore(now.minus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))
              || date.isAfter(now.plus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))) {

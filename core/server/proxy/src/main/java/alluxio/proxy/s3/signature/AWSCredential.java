@@ -17,14 +17,17 @@ import alluxio.proxy.s3.S3ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 /**
  * Credential in the AWS authorization header.
  * Ref: https://docs.aws.amazon.com/AmazonS3/latest/API/
  * sigv4-auth-using-authorization-header.html
  *
  */
-public class Credential {
-  private static final Logger LOG = LoggerFactory.getLogger(Credential.class);
+public class AWSCredential {
+  private static final Logger LOG = LoggerFactory.getLogger(AWSCredential.class);
 
   private String mAccessKeyID;
   private String mDate;
@@ -37,16 +40,17 @@ public class Credential {
    * Construct Credential Object.
    * @param cred
    */
-  Credential(String cred) throws S3Exception {
+  AWSCredential(String cred) throws S3Exception {
     mCredential = cred;
     parseCredential();
+    validateCredential();
   }
 
   /**
    * Parse credential value.
    *
    * Sample credential value:
-   * Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request
+   * Credential=testuser/20220316/us-east-1/s3/aws4_request
    *
    * @throws S3Exception
    */
@@ -55,7 +59,6 @@ public class Credential {
     String[] split = mCredential.split("/");
     switch (split.length) {
       case 5:
-        // Ex: dkjad922329ddnks/20190321/us-west-1/s3/aws4_request
         mAccessKeyID = split[0].trim();
         mDate = split[1].trim();
         mAwsRegion = split[2].trim();
@@ -64,7 +67,6 @@ public class Credential {
         return;
       case 6:
         // Access id is kerberos principal.
-        // Ex: testuser/om@EXAMPLE.COM/20190321/us-west-1/s3/aws4_request
         mAccessKeyID = split[0] + "/" + split[1];
         mDate = split[2].trim();
         mAwsRegion = split[3].trim();
@@ -74,6 +76,54 @@ public class Credential {
       default:
         LOG.error("Credentials not in expected format. credential:{}", mCredential);
         throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+  }
+
+  /**
+   * validate credential info.
+   * @throws S3Exception
+   */
+  public void validateCredential() throws S3Exception {
+    if (getAccessKeyID().isEmpty()) {
+      LOG.error("AWS access id shouldn't be empty. credential:{}", mCredential);
+      throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+    if (getAwsRegion().isEmpty()) {
+      LOG.error("AWS region shouldn't be empty. credential:{}", mCredential);
+      throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+    if (getAwsRequest().isEmpty()) {
+      LOG.error("AWS request shouldn't be empty. credential:{}", mCredential);
+      throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+    if (getAwsService().isEmpty()) {
+      LOG.error("AWS service shouldn't be empty. credential:{}", mCredential);
+      throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    // Date should not be empty and within valid range.
+    if (!getDate().isEmpty()) {
+      validateDateRange();
+    } else {
+      LOG.error("AWS date shouldn't be empty. credential:{}", mCredential);
+      throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+  }
+
+  /**
+   * validate date range.
+   *
+   * @throws S3Exception
+   */
+  public void validateDateRange() throws S3Exception {
+    LocalDate date = LocalDate.parse(getDate(), SignerConstants.DATE_FORMATTER);
+    LocalDate now = LocalDate.now();
+    if (date.isBefore(now.minus(1, ChronoUnit.DAYS))
+            || date.isAfter(now.plus(1, ChronoUnit.DAYS))) {
+      LOG.error("AWS date not in valid range. Date:{} should not be older "
+              + "than 1 day(i.e yesterday) and greater than 1 day(i.e "
+              + "tomorrow).", date);
+      throw new S3Exception(mCredential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
   }
 

@@ -14,9 +14,9 @@ package alluxio.proxy.s3.signature;
 import com.google.common.base.MoreObjects;
 
 /**
- * S3Auth wraps the data needed for S3 Authentication.
+ * signedInfo wraps the data needed for compute signature.
  */
-public class S3Auth {
+public class SignedInfo {
   private String mStringToSign;
   private String mSignature;
   private String mAccessID;
@@ -27,8 +27,8 @@ public class S3Auth {
    * @param signature signature
    * @param accessID accessID
    */
-  public S3Auth(final String stringToSign,
-                final String signature, final String accessID) {
+  public SignedInfo(final String stringToSign,
+                    final String signature, final String accessID) {
     mAccessID = accessID;
     mStringToSign = stringToSign;
     mSignature = signature;
