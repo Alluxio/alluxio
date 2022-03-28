@@ -2074,7 +2074,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     InodeFile file = inodePath.getInodeFile();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
-    List<FileBlockInfo> ret = new ArrayList<>();
+    List<FileBlockInfo> ret = new ArrayList<>(blockInfoList.size());
     for (BlockInfo blockInfo : blockInfoList) {
       ret.add(generateFileBlockInfo(inodePath, blockInfo));
     }
