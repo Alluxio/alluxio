@@ -44,7 +44,6 @@ imagePullSecrets:
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
-  alluxio.hub.manager.rpc.hostname: alluxio-hub
 
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
@@ -667,46 +666,3 @@ csi:
     - attr_timeout=36000
     - max_readahead=0
   javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
-
-hub:
-  enabled: false
-  clusterId:
-  # For elasticsearch.endpoint, omit http(s) prefix. e.g. use 'example.io' instead of 'https://example.io' 
-  elasticsearch:
-    endpoint: "" 
-    port: ""
-    username: ""
-    password: ""
-  env:
-  # Example:
-  # JAVA_HOME: /opt/java
-  args: # Arguments to Docker entrypoint
-    - hub-manager
-  resources:
-    limits:
-      cpu: "1"
-      memory: "1G"
-    requests:
-      cpu: "1"
-      memory: "1G"
-  ports:
-    rpc: 30076
-    logstash: 5044
-  agent:
-    args: # Arguments to Docker entrypoint
-      - hub-agent
-    ports:
-      rpc: 30075
-  serviceAccount: default
-  # Pod annotations for Metricbeat Autodiscovery
-  podAnnotations:
-    co.elastic.metrics/module: prometheus
-    co.elastic.metrics/metricsets: collector
-    co.elastic.metrics/hosts: '${data.host}:${data.ports.web}' # assumes web port exists
-    co.elastic.metrics/period: 1m
-    co.elastic.metrics/metrics_path: /metrics/prometheus
-  volumes:
-    conf:
-      path: /opt/alluxio/conf
-    logs:
-      path: /opt/alluxio/logs
