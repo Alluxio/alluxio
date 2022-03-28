@@ -52,16 +52,8 @@ public final class BlockLockManager {
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
 
  /** A pool of read write locks. */
-  private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
-    @Override
-    public void close() {}
-
-    @Override
-    public ClientRWLock createNewResource() {
-      return new ClientRWLock();
-    }
-  };
+ private final ResourcePool<ClientRWLock> mLockPool =
+         new BlockRWLockPool(ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS));
 
   /** A map from block id to the read write lock used to guard that block. */
   @GuardedBy("mSharedMapsLock")

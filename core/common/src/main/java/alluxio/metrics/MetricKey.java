@@ -1787,6 +1787,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey BLOCK_RW_LOCK_POOL_REMAINING_RESOURCES_KEY =
+        new Builder("Worker.BlockRwLockPoolAvailableResources")
+            .setDescription("Total number of remaining locks in the block client r/w lock pool.")
+            .setMetricType(MetricType.GAUGE)
+            .setIsClusterAggregated(false)
+            .build();
 
   /**
    * Registers the given key to the global key map.
