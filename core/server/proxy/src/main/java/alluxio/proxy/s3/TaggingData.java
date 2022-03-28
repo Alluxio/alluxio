@@ -170,6 +170,8 @@ public class TaggingData implements Serializable {
    */
   @JacksonXmlRootElement(localName = "TagSet")
   static class TagSet implements Serializable {
+    public static final long serialVersionUID = 1L;
+
     @JacksonXmlProperty(localName = "Tag")
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<TagObject> mTags;
@@ -215,6 +217,8 @@ public class TaggingData implements Serializable {
    */
   @JacksonXmlRootElement(localName = "Tag")
   static class TagObject implements Serializable {
+    public static final long serialVersionUID = 1L;
+
     private String mKey;
     private String mValue;
 
