@@ -646,9 +646,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  // TODO(jiacheng): further check the cancel logic for this
   public static final MetricKey MASTER_METADATA_SYNC_PATHS_CANCEL =
-      new Builder("Master.InodeSyncStreamPendingPathsIgnoredTotal")
+      new Builder("Master.MetadataSyncPathsCancel")
           .setDescription("The number of pending paths from all InodeSyncStream instances that "
               + "are ignored in the end instead of processed")
           .setMetricType(MetricType.COUNTER)

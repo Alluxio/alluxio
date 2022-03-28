@@ -16,7 +16,6 @@ import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
@@ -167,7 +166,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
         LOG.debug("force full sync {}", ufsUri);
         RetryUtils.retry("Full Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri, null, mSyncManager.getExecutor());
-          }, RetryUtils.defaultActiveSyncClientRetry(
+        }, RetryUtils.defaultActiveSyncClientRetry(
             ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       } else {
         LOG.debug("incremental sync {}", ufsUri);

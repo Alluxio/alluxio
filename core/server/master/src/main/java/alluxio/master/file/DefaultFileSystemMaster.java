@@ -402,8 +402,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private CallTracker mStateLockCallTracker;
 
-
-  // TODO(jiacheng): add metrics on other fields like finished task count?
   final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -505,9 +503,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
 
-    // The getActiveCount() returns the number of threads that are working in the pool,
-    // which is a fixed number as we configure
-    MetricsSystem.registerGaugeIfAbsent(
+    // TODO(jiacheng): Use cached gauge
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
         () -> mSyncPrefetchExecutor.getQueue().size());
     MetricsSystem.registerGaugeIfAbsent(

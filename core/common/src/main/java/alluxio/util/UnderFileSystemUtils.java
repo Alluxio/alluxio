@@ -159,7 +159,6 @@ public final class UnderFileSystemUtils {
    * @param modTime the content last modification time
    * @return the content hash
    */
-  // TODO(jiacheng): Improve this space usage, try base64?
   public static String approximateContentHash(long length, long modTime) {
     // approximating the content hash with the file length and modtime.
     StringBuilder sb = new StringBuilder();

@@ -187,11 +187,9 @@ public class InodeSyncStream {
   private final boolean mLoadOnly;
 
   /** Queue used to keep track of paths that still need to be synced. */
-  // TODO(jiacheng): how to aggregate the pending count?
   private final ConcurrentLinkedQueue<AlluxioURI> mPendingPaths;
 
   /** Queue of paths that have been submitted to the executor. */
-  // TODO(jiacheng): How to aggregate all streams?
   private final Queue<Future<Boolean>> mSyncPathJobs;
 
   /** The executor enabling concurrent processing. */
@@ -529,7 +527,6 @@ public class InodeSyncStream {
   }
 
   private Object getFromUfs(Callable<Object> task) throws InterruptedException {
-    // TODO(jiacheng): any other access to the prefetch?
     final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
     DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
     while (true) {
@@ -732,7 +729,6 @@ public class InodeSyncStream {
         }
         // If we're performing a recursive sync, add each child of our current Inode to the queue
         AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
-
         mPendingPaths.add(child);
         // Update a global counter for all sync streams
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.inc();

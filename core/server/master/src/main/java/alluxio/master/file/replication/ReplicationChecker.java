@@ -151,7 +151,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     if (!shouldRun()) {
       return;
     }
-
     final Set<Long> activeJobIds = new HashSet<>();
     try {
       if (!mActiveJobToInodeID.isEmpty()) {
@@ -181,6 +180,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();
+    check(inodes, mReplicationHandler, Mode.REPLICATE);
 
     // Check the set of files that could possibly be over-replicated
     inodes = mInodeTree.getReplicationLimitedFileIds();
@@ -244,10 +244,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
   private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
       throws InterruptedException {
-    int processedCount = 0;
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
-        LOG.info("{} active jobs already, skip this check", mActiveJobToInodeID.size());
         return;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
@@ -295,7 +293,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.toString());
       }
     }
-    return;
   }
 
   private Set<Long> check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
@@ -303,7 +300,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     Set<Long> processedFileIds = new HashSet<>();
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
-        LOG.info("{} active jobs already, skip this check", mActiveJobToInodeID.size());
         return processedFileIds;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
