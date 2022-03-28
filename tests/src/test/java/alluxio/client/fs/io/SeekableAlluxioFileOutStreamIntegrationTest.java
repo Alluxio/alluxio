@@ -190,6 +190,22 @@ public class SeekableAlluxioFileOutStreamIntegrationTest
   }
 
   @Test
+  public void CreateOpenTruncate() throws Exception {
+    mUfsRootPath = mFileSystem.getStatus(new AlluxioURI("/")).getUfsPath();
+    mUfsPath = PathUtils.concatUfsPath(mUfsRootPath, mAlluxioPath.getPath());
+    try (SeekableAlluxioFileOutStream os = SeekableAlluxioFileOutStream.create(
+        mAlluxioPath, mUfsPath, mFileSystem)) {
+      os.write(BufferUtils.getIncreasingByteArray(0, 1000));
+    }
+    try (SeekableAlluxioFileOutStream os =
+        SeekableAlluxioFileOutStream.open(mAlluxioPath, mUfsPath, mFileSystem)) {
+      os.setLength(500);
+    }
+    checkFileInAlluxio(mAlluxioPath, 500);
+    checkFileInUnderStorage(mAlluxioPath, 500);
+  }
+
+  @Test
   public void getPosAndBytesWritten() throws Exception {
     mUfsRootPath = mFileSystem.getStatus(new AlluxioURI("/")).getUfsPath();
     mUfsPath = PathUtils.concatUfsPath(mUfsRootPath, mAlluxioPath.getPath());
