@@ -1356,7 +1356,8 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT =
       new Builder("Worker.CacheMangerThreadQueueWaitingTaskCount")
           .setDescription("The current number of tasks waiting in the work queue "
-              + "in the cache manager thread pool")
+              + "in the cache manager thread pool, bounded by "
+              + PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
@@ -1387,13 +1388,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCK_READER_THREAD_QUEUE_WAITING_TASK_COUNT =
-      new Builder("Worker.BlockReaderThreadQueueWaitingTaskCount")
-          .setDescription("The current number of tasks waiting in the work queue "
-              + "in the reader thread thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_BLOCK_READER_THREAD_MAX_COUNT =
       new Builder("Worker.BlockReaderThreadMaxCount")
           .setDescription("The maximum allowed number of block read "
@@ -1418,13 +1412,6 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_BLOCK_WRITER_THREAD_CURRENT_COUNT =
       new Builder("Worker.BlockWriterThreadCurrentCount")
           .setDescription("The current number of write threads in the writer thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_QUEUE_WAITING_TASK_COUNT =
-      new Builder("Worker.BlockWriterThreadQueueWaitingTaskCount")
-          .setDescription("The current number of tasks waiting in the work queue "
-              + "in the block write thread pool")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
