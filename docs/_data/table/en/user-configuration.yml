@@ -13,7 +13,7 @@ alluxio.user.block.master.client.pool.size.min:
 alluxio.user.block.read.metrics.enabled:
   'Whether detailed block read metrics will be recorded and sink.'
 alluxio.user.block.read.retry.max.duration:
-  'N/A'
+  'This duration controls for how long Alluxio clients should tryreading a single block. If a particular block can''t be read within this duration, then the I/O will timeout.'
 alluxio.user.block.read.retry.sleep.base:
   'N/A'
 alluxio.user.block.read.retry.sleep.max:

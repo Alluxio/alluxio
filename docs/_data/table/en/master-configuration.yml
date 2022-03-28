@@ -60,6 +60,10 @@ alluxio.master.embedded.journal.flush.size.max:
   'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
 alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.raft.client.request.interval:
+  'Base interval for retrying Raft client calls. The retry policy is ExponentialBackoffRetry'
+alluxio.master.embedded.journal.raft.client.request.timeout:
+  'Time after which calls made through the Raft client timeout.'
 alluxio.master.embedded.journal.retry.cache.expiry.time:
   'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
 alluxio.master.embedded.journal.snapshot.replication.chunk.size:
@@ -150,6 +154,8 @@ alluxio.master.metadata.sync.executor.pool.size:
   'The number of threads used to execute all metadata syncoperations'
 alluxio.master.metadata.sync.ufs.prefetch.pool.size:
   'The number of threads used to fetch UFS objects for all metadata syncoperations'
+alluxio.master.metadata.sync.ufs.prefetch.timeout:
+  'The timeout for a metadata fetch operation from the UFSes. Adjust this timeout according to the expected UFS worst-case response time.'
 alluxio.master.metastore:
   'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.'
 alluxio.master.metastore.dir:

@@ -98,6 +98,7 @@ Master.RoleId,GAUGE
 Master.RpcQueueLength,GAUGE
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER
+Master.ToRemoveBlockCount,GAUGE
 Master.TotalPaths,GAUGE
 Master.TotalRpcs,TIMER
 Master.UfsJournalCatchupTimer,TIMER

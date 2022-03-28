@@ -196,6 +196,8 @@ Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:
   'Total number of SetAttribute operations'
+Master.ToRemoveBlockCount:
+  'Count of block replicas to be removed from the workers. If 1 block is to be removed from 2 workers, 2 will be counted here.'
 Master.TotalPaths:
   'Total number of files and directory in Alluxio namespace'
 Master.TotalRpcs:

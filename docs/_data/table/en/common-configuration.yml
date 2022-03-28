@@ -18,6 +18,8 @@ alluxio.fuse.fs.name:
   'The FUSE file system name.'
 alluxio.fuse.jnifuse.enabled:
   'Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.'
+alluxio.fuse.jnifuse.libfuse.version:
+  'The version of libfuse used by libjnifuse. Set 2 to force use libfuse2, 3 to libfuse3, and other value to use libfuse2 first, libfuse3 if libfuse2 failed'
 alluxio.fuse.logging.threshold:
   'Logging a FUSE API call when it takes more time than the threshold.'
 alluxio.fuse.maxwrite.bytes:
@@ -55,7 +57,7 @@ alluxio.hub.authentication.apiKey:
 alluxio.hub.authentication.secretKey:
   'The secret key of Hub Manager.'
 alluxio.hub.cluster.id:
-  'A user-defined id for the Hub cluster. Must be unique from other Hub clusters connecting to the same Hosted Hub tenant. Must be a 4-character alphanumeric string.'
+  'A user-defined id for the Hub cluster. Must be unique from other Hub clusters connecting to the same Hosted Hub tenant. must be a 4-character string containing only lowercase letters (a-z)and digits (0-9).'
 alluxio.hub.cluster.label:
   'A user-defined label for the Hub cluster.'
 alluxio.hub.hosted.rpc.hostname:
@@ -432,10 +434,14 @@ alluxio.zookeeper.leader.path:
   'Leader directory in ZooKeeper.'
 alluxio.zookeeper.session.timeout:
   'Session timeout to use when connecting to Zookeeper'
-s3a.accessKeyId:
-  'The access key of S3 bucket.'
-s3a.secretKey:
-  'The secret key of S3 bucket.'
+awt.toolkit:
+  'N/A'
+file.encoding:
+  'N/A'
+file.encoding.pkg:
+  'N/A'
+file.separator:
+  'N/A'
 fs.azure.account.oauth2.client.endpoint:
   'The oauth endpoint for ABFS.'
 fs.azure.account.oauth2.client.id:
@@ -494,3 +500,117 @@ fs.swift.tenant:
   'Swift user for authentication.'
 fs.swift.user:
   'Swift tenant for authentication.'
+ftp.nonProxyHosts:
+  'N/A'
+gopherProxySet:
+  'N/A'
+http.nonProxyHosts:
+  'N/A'
+java.awt.graphicsenv:
+  'N/A'
+java.awt.printerjob:
+  'N/A'
+java.class.path:
+  'N/A'
+java.class.version:
+  'N/A'
+java.endorsed.dirs:
+  'N/A'
+java.ext.dirs:
+  'N/A'
+java.home:
+  'N/A'
+java.io.tmpdir:
+  'N/A'
+java.library.path:
+  'N/A'
+java.net.preferIPv4Stack:
+  'N/A'
+java.runtime.name:
+  'N/A'
+java.runtime.version:
+  'N/A'
+java.specification.name:
+  'N/A'
+java.specification.vendor:
+  'N/A'
+java.specification.version:
+  'N/A'
+java.vendor:
+  'N/A'
+java.vendor.url:
+  'N/A'
+java.vendor.url.bug:
+  'N/A'
+java.version:
+  'N/A'
+java.vm.info:
+  'N/A'
+java.vm.name:
+  'N/A'
+java.vm.specification.name:
+  'N/A'
+java.vm.specification.vendor:
+  'N/A'
+java.vm.specification.version:
+  'N/A'
+java.vm.vendor:
+  'N/A'
+java.vm.version:
+  'N/A'
+line.separator:
+  'N/A'
+log4j.configuration:
+  'N/A'
+org.apache.jasper.compiler.disablejsr199:
+  'N/A'
+org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads:
+  'N/A'
+os.arch:
+  'N/A'
+os.name:
+  'N/A'
+os.version:
+  'N/A'
+path.separator:
+  'N/A'
+s3a.accessKeyId:
+  'The access key of S3 bucket.'
+s3a.secretKey:
+  'The secret key of S3 bucket.'
+socksNonProxyHosts:
+  'N/A'
+sun.arch.data.model:
+  'N/A'
+sun.boot.class.path:
+  'N/A'
+sun.boot.library.path:
+  'N/A'
+sun.cpu.endian:
+  'N/A'
+sun.cpu.isalist:
+  'N/A'
+sun.io.unicode.encoding:
+  'N/A'
+sun.java.command:
+  'N/A'
+sun.java.launcher:
+  'N/A'
+sun.jnu.encoding:
+  'N/A'
+sun.management.compiler:
+  'N/A'
+sun.os.patch.level:
+  'N/A'
+user.country:
+  'N/A'
+user.dir:
+  'N/A'
+user.home:
+  'N/A'
+user.language:
+  'N/A'
+user.name:
+  'N/A'
+user.timezone:
+  'N/A'
