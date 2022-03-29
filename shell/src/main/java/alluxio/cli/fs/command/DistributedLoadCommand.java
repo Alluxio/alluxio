@@ -210,7 +210,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(false)
           .desc("Use passive-cache as the cache implementation,"
               + " turn on to use the old cache through read implementation. "
-              + "Passive-cache is default when there's no option set or both options are set."
+              + "Passive-cache is default when there's no option set or "
+              + "both options are set for cache implementation."
               + "Notice that this flag is temporary, "
               + "and it would retire after direct cache graduate from experimental stage")
           .build();
