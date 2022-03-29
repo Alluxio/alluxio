@@ -12,13 +12,14 @@
 package alluxio
 
 import (
+	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
+	"k8s.io/client-go/kubernetes"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/golang/glog"
-	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,8 +27,9 @@ import (
 )
 
 type nodeServer struct {
-	nodeId string
+	client kubernetes.Clientset
 	*csicommon.DefaultNodeServer
+	nodeId string
 }
 
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
