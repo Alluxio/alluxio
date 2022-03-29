@@ -4838,15 +4838,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_FILTER_CLASS =
-      new Builder(Name.USER_CLIENT_CACHE_FILTER_CLASS)
+      classBuilder(Name.USER_CLIENT_CACHE_FILTER_CLASS)
           .setDefaultValue("alluxio.client.file.cache.filter.DefaultCacheFilter")
           .setDescription("The default cache filter caches everything")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_FILTER_CONFIG_FILE =
-      new Builder(Name.USER_CLIENT_CACHE_FILTER_CONFIG_FILE)
-          .setDefaultValue("/tmp/alluxio-filter-config")
+      stringBuilder(Name.USER_CLIENT_CACHE_FILTER_CONFIG_FILE)
+          .setDefaultValue(format("${%s}/cache_filter.properties", Name.CONF_DIR))
           .setDescription("The alluxio cache filter config file")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
