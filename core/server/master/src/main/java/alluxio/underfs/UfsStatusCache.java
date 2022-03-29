@@ -233,7 +233,9 @@ public class UfsStatusCache {
         try {
           Collection<UfsStatus> statuses = prefetchJob.get(
               mUfsFetchTimeout, TimeUnit.MILLISECONDS);
-          DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS.inc(statuses.size());
+          if (statuses != null) {
+            DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS.inc(statuses.size());
+          }
           DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS.inc();
           return statuses;
         } catch (TimeoutException e) {
