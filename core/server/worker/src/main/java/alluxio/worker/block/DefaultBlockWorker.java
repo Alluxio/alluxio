@@ -67,6 +67,7 @@ import alluxio.worker.grpc.GrpcExecutors;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -368,7 +369,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
-    if (createBlockOptions.getMedium() == null || createBlockOptions.getMedium().isEmpty()) {
+    if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
       loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
     } else {
       loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium());
