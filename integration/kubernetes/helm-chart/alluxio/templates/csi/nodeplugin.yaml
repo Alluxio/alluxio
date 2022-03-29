@@ -41,6 +41,7 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-csi-nodeplugin
     spec:
+      serviceAccount: csi-controller-sa
       hostNetwork: {{ .Values.csi.nodePlugin.hostNetwork }}
       dnsPolicy: {{ .Values.csi.nodePlugin.dnsPolicy }}
       {{- if .Values.imagePullSecrets }}
