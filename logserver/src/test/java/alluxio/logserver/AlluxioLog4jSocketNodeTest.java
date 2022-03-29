@@ -40,8 +40,8 @@ public class AlluxioLog4jSocketNodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLog4jSocketNodeTest.class);
   private static final String LOG_SERVER_HOST =
       InstancedConfiguration.defaults().getOrDefault(PropertyKey.LOGSERVER_HOSTNAME, "localhost");
-  private static final int LOG_SERVER_PORT = Integer.parseInt(
-      InstancedConfiguration.defaults().getOrDefault(PropertyKey.LOGSERVER_PORT, "45600"));
+  private static final int LOG_SERVER_PORT =
+      InstancedConfiguration.defaults().getInt(PropertyKey.LOGSERVER_PORT);
 
   private static void setupLog4J() {
     Properties properties = new Properties();
