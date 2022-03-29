@@ -78,12 +78,12 @@ data:
               name: {{ $fullName }}-config
           volumeMounts:
             - name: pods-mount-dir
-              mountPath: /var/lib/kubelet/pods
+              mountPath: /var/lib/kubelet
               mountPropagation: "Bidirectional"
       restartPolicy: Always
       volumes:
         - name: pods-mount-dir
           hostPath:
-            path: /var/lib/kubelet/pods
+            path: /var/lib/kubelet
             type: Directory
 {{- end }}
