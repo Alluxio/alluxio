@@ -70,8 +70,8 @@ public final class BlockWorkerDataWriter implements DataWriter {
     Preconditions.checkNotNull(blockWorker, "blockWorker");
     long sessionId = SessionIdUtils.createSessionId();
     try {
-      blockWorker.createBlock(sessionId, blockId, options.getWriteTier(), new CreateBlockOptions("", options.getMediumType(),
-          reservedBytes));
+      blockWorker.createBlock(sessionId, blockId, options.getWriteTier(),
+          new CreateBlockOptions("", options.getMediumType(), reservedBytes));
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);

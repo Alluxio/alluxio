@@ -140,7 +140,8 @@ public class DefaultBlockWorkerTest {
   public void abortBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.abortBlock(sessionId, blockId);
     assertNull(mBlockWorker.getTempBlockMeta(sessionId, blockId));
   }
@@ -149,7 +150,8 @@ public class DefaultBlockWorkerTest {
   public void accessBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     mBlockWorker.accessBlock(sessionId, blockId);
     verify(mBlockStore).accessBlock(sessionId, blockId);
@@ -159,7 +161,8 @@ public class DefaultBlockWorkerTest {
   public void commitBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     assertFalse(mBlockWorker.hasBlockMeta(blockId));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     assertTrue(mBlockWorker.hasBlockMeta(blockId));
@@ -169,7 +172,8 @@ public class DefaultBlockWorkerTest {
   public void commitBlockOnRetry() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,  new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     mBlockWorker.commitBlock(sessionId, blockId, true);
     assertTrue(mBlockWorker.hasBlockMeta(blockId));
@@ -180,7 +184,8 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long initialBytes = 1;
-    String path = mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", "", initialBytes));
+    String path = mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", "", initialBytes));
     assertTrue(path.startsWith(mMemDir)); // tier 0 is mem
   }
 
@@ -189,7 +194,8 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long initialBytes = 1;
-    String path = mBlockWorker.createBlock(sessionId, blockId, 1,  new CreateBlockOptions("", "", initialBytes));
+    String path = mBlockWorker.createBlock(sessionId, blockId, 1,
+        new CreateBlockOptions("", "", initialBytes));
     assertTrue(path.startsWith(mHddDir));
   }
 
@@ -197,7 +203,8 @@ public class DefaultBlockWorkerTest {
   public void getTempBlockWriter() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
       blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
       TempBlockMeta meta = mBlockWorker.getTempBlockMeta(sessionId, blockId);
@@ -259,7 +266,8 @@ public class DefaultBlockWorkerTest {
   public void getVolatileBlockMeta() throws Exception {
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     assertEquals(blockId, mBlockWorker.getVolatileBlockMeta(blockId).getBlockId());
   }
@@ -278,7 +286,8 @@ public class DefaultBlockWorkerTest {
   public void getBlockMeta() throws Exception {
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     long lockId = mBlockWorker.lockBlock(sessionId, blockId);
     assertEquals(blockId, mBlockWorker.getBlockMeta(sessionId, blockId, lockId).getBlockId());
@@ -289,7 +298,8 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
     assertFalse(mBlockWorker.hasBlockMeta(blockId));
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     assertTrue(mBlockWorker.hasBlockMeta(blockId));
   }
@@ -299,7 +309,8 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     assertEquals(INVALID_LOCK_ID, mBlockWorker.lockBlock(sessionId, blockId));
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     assertNotEquals(INVALID_LOCK_ID, mBlockWorker.lockBlock(sessionId, blockId));
   }
@@ -366,7 +377,8 @@ public class DefaultBlockWorkerTest {
   public void unlockBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     long lockId = mBlockWorker.lockBlock(sessionId, blockId);
     assertNotNull(mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
@@ -395,7 +407,8 @@ public class DefaultBlockWorkerTest {
   public void getBlockReader() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0, new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
+    mBlockWorker.createBlock(sessionId, blockId, 0,
+        new CreateBlockOptions("", Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     BlockReadRequest request = new BlockReadRequest(
         ReadRequest.newBuilder().setBlockId(blockId).setOffset(0).setLength(10).build());

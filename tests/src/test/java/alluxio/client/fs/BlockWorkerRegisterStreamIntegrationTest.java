@@ -530,7 +530,8 @@ public class BlockWorkerRegisterStreamIntegrationTest {
       BlockStoreLocation loc = entry.getKey();
       int tierIndex = mTierToIndex.get(loc.tierAlias());
       for (long blockId : entry.getValue()) {
-        mBlockWorker.createBlock(1L, blockId, tierIndex, new CreateBlockOptions("", loc.tierAlias(), 1));
+        mBlockWorker.createBlock(1L, blockId, tierIndex,
+            new CreateBlockOptions("", loc.tierAlias(), 1));
         mBlockWorker.commitBlock(1L, blockId, false);
       }
     }
