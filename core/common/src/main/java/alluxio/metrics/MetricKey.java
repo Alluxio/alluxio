@@ -702,29 +702,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_SIZE_TOTAL =
-      new Builder("Master.UfsStatusCacheSizeTotal")
-          .setDescription("Each InodeSyncStream has one UfsStatusCache, "
-              + "this is the total of all sizes")
+  public static final MetricKey MASTER_UFS_STATUS_CACHE_SIZE =
+      new Builder("Master.UfsStatusCacheSize")
+          .setDescription("Total number of Alluxio paths being processed by the "
+              + "metadata sync prefetch thread pool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL =
-      new Builder("Master.UfsStatusCacheChildrenSizeTotal")
-          .setDescription("Each InodeSyncStream has one UfsStatusCache, "
-              + "this is the total of children counts from all UfsStatusCache")
+  public static final MetricKey MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE =
+      new Builder("Master.UfsStatusCacheChildrenSize")
+          .setDescription("Total number of UFS file metadata cached."
+              + " The cache is used during metadata sync.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_PROCESSING_SIZE =
-      new Builder("Master.AbsentCacheProcessingSize")
-          .setDescription("The size of the AbsentPathCache processing queue")
+  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_SIZE =
+      new Builder("Master.UfsAbsentPathCacheSize")
+          .setDescription("Alluxio maintains a cache of absent UFS paths. "
+              + "This is the number of UFS paths cached.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_QUEUE_SIZE =
-      new Builder("Master.AbsentCacheQueueSize")
-          .setDescription("The size of the AbsentPathCache processing queue")
+  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE =
+      new Builder("Master.UfsAbsentPathCacheQueueSize")
+          .setDescription("Alluxio maintains a cache of absent UFS paths. "
+              + "This is the number of UFS paths being processed.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();

@@ -193,7 +193,6 @@ public class InodeSyncStream {
   private final Queue<Future<Boolean>> mSyncPathJobs;
 
   /** The executor enabling concurrent processing. */
-  // The size is gauged externally where the TPE is created
   private final ExecutorService mMetadataSyncService;
 
   /** The maximum number of concurrent paths that can be syncing at any moment. */

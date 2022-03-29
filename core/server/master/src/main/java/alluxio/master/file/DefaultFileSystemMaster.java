@@ -4669,9 +4669,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     public static final Counter METADATA_SYNC_PREFETCH_PATHS
         = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_PATHS.getName());
     public static final Counter UFS_STATUS_CACHE_SIZE_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_SIZE_TOTAL.getName());
+        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_SIZE.getName());
     public static final Counter UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL
-        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getName());
+        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE.getName());
 
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
