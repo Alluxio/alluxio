@@ -16,6 +16,7 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -44,6 +45,7 @@ public final class CreateBlockOptions {
   /**
    * @return the alluxio path
    */
+  @Nullable
   public String getAlluxioPath() {
     return mAlluxioPath;
   }
@@ -58,6 +60,7 @@ public final class CreateBlockOptions {
   /**
    * @return the medium
    */
+  @Nullable
   public String getMedium() {
     return mMedium;
   }
@@ -98,9 +101,9 @@ public final class CreateBlockOptions {
       return false;
     }
     CreateBlockOptions that = (CreateBlockOptions) o;
-    return Objects.equal(mAlluxioPath, that.mAlluxioPath)
+    return Objects.equal(mAlluxioPath, that.getAlluxioPath())
         && Objects.equal(mInitialBytes, that.mInitialBytes)
-        && Objects.equal(mMedium, that.mMedium);
+        && Objects.equal(mMedium, that.getMedium());
   }
 
   @Override

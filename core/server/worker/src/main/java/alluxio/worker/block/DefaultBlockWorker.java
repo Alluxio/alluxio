@@ -368,7 +368,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
-    if (createBlockOptions.getMedium().isEmpty()) {
+    if (createBlockOptions.getMedium() == null || createBlockOptions.getMedium().isEmpty()) {
       loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
     } else {
       loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium());
