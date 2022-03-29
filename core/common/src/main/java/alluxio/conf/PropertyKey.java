@@ -5810,7 +5810,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey S3_REST_AUTHENTICATION_ENABLED =
-      new Builder(Name.S3_REST_AUTHENTICATION_ENABLED)
+      booleanBuilder(Name.S3_REST_AUTHENTICATION_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to enable check s3 rest request header.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
