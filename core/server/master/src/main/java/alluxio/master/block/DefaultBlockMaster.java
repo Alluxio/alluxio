@@ -71,6 +71,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.Medium;
 import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -1424,7 +1425,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         // - only uses getters of final variables
         locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
             .setWorkerAddress(workerInfo.getWorkerAddress())
-            .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
+            .setTierAlias(location.getTier()).setMediumType(Medium.valueOf(location.getMediumType())));
       }
     }
     return Optional.of(

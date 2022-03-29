@@ -219,8 +219,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     int correctReplication = 0;
     List<String> candidates = new ArrayList<>();
     for (BlockLocation loc: blockInfo.getLocations()) {
-      // TODO(jiacheng): handle exception?
-      if (pinnedMediumTypes.contains(Medium.valueOf(loc.getMediumType()))) {
+      if (pinnedMediumTypes.contains(loc.getMediumType())) {
         correctReplication++;
       } else {
         candidates.add(loc.getWorkerAddress().getHost());

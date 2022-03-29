@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThrows;
 import alluxio.exception.BlockInfoException;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.Medium;
 import alluxio.wire.WorkerInfo;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class BlockMasterTestUtils {
       expectedLocations.add(new BlockLocation()
           .setWorkerAddress(w.getAddress())
           .setWorkerId(w.getId())
-          .setMediumType("MEM")
+          .setMediumType(Medium.MEM)
           .setTierAlias("MEM"));
     }
 

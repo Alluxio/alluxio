@@ -31,7 +31,7 @@ public final class BlockLocation implements Serializable {
   private long mWorkerId;
   private WorkerNetAddress mWorkerAddress = new WorkerNetAddress();
   private String mTierAlias = "";
-  private String mMediumType = "";
+  private Medium mMediumType = Medium.MEM;
 
   /**
    * Creates a new instance of {@link BlockLocation}.
@@ -62,7 +62,7 @@ public final class BlockLocation implements Serializable {
   /**
    * @return the medium type
    */
-  public String getMediumType() {
+  public Medium getMediumType() {
     return mMediumType;
   }
 
@@ -100,7 +100,7 @@ public final class BlockLocation implements Serializable {
    * @param mediumType the medium type to use
    * @return the block location
    */
-  public BlockLocation setMediumType(String mediumType) {
+  public BlockLocation setMediumType(Medium mediumType) {
     Preconditions.checkNotNull(mediumType, "mediumType");
     mMediumType = mediumType;
     return this;
