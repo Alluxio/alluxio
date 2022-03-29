@@ -51,6 +51,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class MutableInode<T extends MutableInode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(MutableInode.class);
+
+  private static final Set<String> MEDIUMS = Collections.unmodifiableSet(new HashSet<>(
+      ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)));
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -610,13 +613,26 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.
       if (entry.getPinned()) {
-        // TODO(jiacheng): get rid of this
-        List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
-        Set<String> validMediums = entry.getMediumTypeList().stream()
-            .filter(mediaList::contains).collect(Collectors.toSet());
-        if (!validMediums.isEmpty()) {
-          setMediumTypes(validMediums);
+        List<String> mediums = entry.getMediumTypeList();
+        if (!mediums.isEmpty()) {
+          int valid = 0;
+          for (int i = 0; i < mediums.size(); i++) {
+            if (MEDIUMS.contains(mediums.get(i))) {
+              valid++;
+            }
+          }
+          if (valid == 0) {
+            setMediumTypes(Collections.emptySet());
+          } else {
+            Set<String> validMediums = new HashSet<>();
+            for (int i = 0; i < mediums.size(); i++) {
+              String m = mediums.get(i);
+              if (MEDIUMS.contains(m)) {
+                validMediums.add(m);
+              }
+            }
+            setMediumTypes(validMediums);
+          }
         } else {
           setMediumTypes(Collections.emptySet());
         }
