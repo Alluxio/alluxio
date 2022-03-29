@@ -690,7 +690,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  // TODO(jiacheng): mention the UFS timeout?
   public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_RETRIES =
       new Builder("Master.MetadataSyncPrefetchRetries")
           .setDescription("Number of retries to get from prefetch jobs from metadata sync")
@@ -705,13 +704,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_UFS_STATUS_CACHE_SIZE_TOTAL =
       new Builder("Master.UfsStatusCacheSizeTotal")
-          .setDescription("Each InodeSyncStream has one UfsStatusCache, this is the total of all sizes")
+          .setDescription("Each InodeSyncStream has one UfsStatusCache, "
+              + "this is the total of all sizes")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL =
       new Builder("Master.UfsStatusCacheChildrenSizeTotal")
-          .setDescription("Each InodeSyncStream has one UfsStatusCache, this is the total of children counts from all UfsStatusCache")
+          .setDescription("Each InodeSyncStream has one UfsStatusCache, "
+              + "this is the total of children counts from all UfsStatusCache")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();

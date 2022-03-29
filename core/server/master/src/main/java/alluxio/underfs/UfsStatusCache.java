@@ -122,7 +122,7 @@ public class UfsStatusCache {
     });
     // Update global counters for all InodeSyncStream
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
-  return mChildren.put(path, children);
+    return mChildren.put(path, children);
   }
 
   /**
