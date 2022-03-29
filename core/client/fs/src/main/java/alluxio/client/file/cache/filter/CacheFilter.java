@@ -31,9 +31,10 @@ public interface CacheFilter {
     return CommonUtils.createNewClassInstance(
         conf.getClass(PropertyKey.USER_CLIENT_CACHE_FILTER_CLASS),
         new Class[] {AlluxioConfiguration.class, String.class},
-        new Object[] {conf, conf.getOrDefault(
-            PropertyKey.USER_CLIENT_CACHE_FILTER_CONFIG_FILE, "")});
+        new Object[] {conf, conf.getString(
+            PropertyKey.USER_CLIENT_CACHE_FILTER_CONFIG_FILE)});
   }
+
   /**
    * Whether the specific uri needs to be cached or not.
    * @param uriStatus the uri status
