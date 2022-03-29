@@ -358,14 +358,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
-      String medium, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    return createBlock(sessionId, blockId, tier,
-        new CreateBlockOptions("", medium, initialBytes));
-  }
-
-  @Override
-  public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
