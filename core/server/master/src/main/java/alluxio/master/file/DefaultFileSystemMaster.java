@@ -503,7 +503,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
+        MetricsSystem.getMetricName(
+            MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
         () -> mSyncPrefetchExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
