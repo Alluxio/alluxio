@@ -92,10 +92,10 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         mCache.stats()::missCount);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
         mCache.stats()::hitCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_PROCESSING_SIZE.getName(),
-        mCache::size);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_QUEUE_SIZE.getName(),
-        () -> mPool.getQueue().size());
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_PROCESSING_SIZE.getName(),
+        mCache::size, 3, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_QUEUE_SIZE.getName(),
+        () -> mPool.getQueue().size(), 3, TimeUnit.SECONDS);
   }
 
   @Override

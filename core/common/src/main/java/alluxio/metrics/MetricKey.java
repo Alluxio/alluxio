@@ -871,14 +871,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of running status job")
           .setMetricType(MetricType.COUNTER)
           .build();
-  public static final MetricKey MASTER_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
-      new Builder("Master.SyncPrefetchExecutorQueueSize")
-          .setDescription("The number of queuing prefetch jobs")
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
+          .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_SYNC_EXECUTOR_QUEUE_SIZE =
-      new Builder("Master.SyncExecutorQueueSize")
-          .setDescription("The number of queuing prefetch jobs")
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncExecutorQueueSize")
+          .setDescription("The number of queuing sync tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
           .setMetricType(MetricType.GAUGE)
           .build();
 

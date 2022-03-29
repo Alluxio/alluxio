@@ -502,14 +502,12 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
-
-    // TODO(jiacheng): Use cached gauge
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
-        () -> mSyncPrefetchExecutor.getQueue().size());
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.MASTER_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
-        () -> mSyncMetadataExecutor.getQueue().size());
+        MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
+        () -> mSyncPrefetchExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
+        () -> mSyncMetadataExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
