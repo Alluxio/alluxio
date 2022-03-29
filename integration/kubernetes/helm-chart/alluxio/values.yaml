@@ -630,19 +630,21 @@ csi:
         requests:
           cpu: 10m
           memory: 20Mi
-  # Will run fuse daemon inside csi nodeserver
+  # Run alluxio fuse process inside csi nodeserver container if mountInPod = false
+  # Run alluxio fuse process inside a separate pod if mountInPod = true
+  mountInPod: false
   nodePlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     nodeserver:
       resources:
-        # The default xmx is 8G
+        # fuse in nodeserver container needs more resources
         limits:
-          cpu: "4"
-          memory: "8G"
+          cpu: 4
+          memory: 8G
         requests:
-          cpu: "1"
-          memory: "1G"
+          cpu: 10m
+          memory: 300Mi
     driverRegistrar:
       image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.0
       resources:
@@ -652,11 +654,10 @@ csi:
         requests:
           cpu: 10m
           memory: 20Mi
-
   # for csi client
   clientEnabled: false
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   quota: 100Gi
   mountPath: /data
   alluxioPath: /
@@ -666,7 +667,6 @@ csi:
     - entry_timeout=36000
     - attr_timeout=36000
     - max_readahead=0
-  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
 
 hub:
   enabled: false
