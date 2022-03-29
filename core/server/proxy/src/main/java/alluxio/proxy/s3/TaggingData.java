@@ -122,9 +122,9 @@ public class TaggingData implements Serializable {
     try {
       if (tags.size() > 10) {
         throw new S3Exception(new S3ErrorCode(
-            S3ErrorCode.BAD_REQUEST.getCode(),
+            S3ErrorCode.INVALID_TAG.getCode(),
             "User-defined metadata tags cannot be greater than 10",
-            S3ErrorCode.BAD_REQUEST.getStatus()));
+            S3ErrorCode.INVALID_TAG.getStatus()));
       }
       Set<String> tagKeys = new HashSet<>();
       for (TagObject tag : tags) {

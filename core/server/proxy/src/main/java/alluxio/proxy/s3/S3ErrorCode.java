@@ -23,7 +23,6 @@ public class S3ErrorCode {
    */
   public static final class Name {
     public static final String BAD_DIGEST = "BadDigest";
-    public static final String BAD_REQUEST = "BadRequest";
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
@@ -105,10 +104,6 @@ public class S3ErrorCode {
   public static final S3ErrorCode METADATA_TOO_LARGE = new S3ErrorCode(
       Name.METADATA_TOO_LARGE,
       "Your metadata headers exceed the maximum allowed metadata size.",
-      Response.Status.BAD_REQUEST);
-  public static final S3ErrorCode BAD_REQUEST = new S3ErrorCode(
-      Name.BAD_REQUEST,
-      "The request was invalid.",
       Response.Status.BAD_REQUEST);
 
   //
