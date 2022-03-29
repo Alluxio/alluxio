@@ -37,8 +37,6 @@ public class S3ErrorCode {
     public static final String AUTHINFO_CREATION_ERROR = "AuthInfoCreationError";
     public static final String ACCESS_DENIED_ERROR = "AccessDenied";
     public static final String INVALID_IDENTIFIER = "InvalidIdentifier";
-    public static final String NOT_FOUND_CUSTOMIZED_SECRET_MANAGER
-            = "NotProvidCustomSecretManager";
 
     private Name() {
     } // prevents instantiation
@@ -109,10 +107,6 @@ public class S3ErrorCode {
           Name.INVALID_IDENTIFIER,
           "Invalid S3 identifier",
           Response.Status.FORBIDDEN);
-  public static final S3ErrorCode NOT_FOUND_CUSTOMIZED_SECRET_MANAGER = new S3ErrorCode(
-          Name.NOT_FOUND_CUSTOMIZED_SECRET_MANAGER,
-          "Not found implementation for S3SecretManager",
-          Response.Status.INTERNAL_SERVER_ERROR);
 
   //
   // Customized error codes.
