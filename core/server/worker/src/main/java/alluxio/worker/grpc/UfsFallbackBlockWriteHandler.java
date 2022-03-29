@@ -27,6 +27,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.worker.BlockUtils;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -94,7 +95,7 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-          request.getMediumType(), FILE_BUFFER_SIZE);
+          new CreateBlockOptions("", request.getMediumType(), FILE_BUFFER_SIZE));
     }
     return context;
   }

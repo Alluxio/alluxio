@@ -24,6 +24,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockWorker;
 
+import alluxio.worker.block.CreateBlockOptions;
 import com.google.common.base.Preconditions;
 import io.grpc.Context;
 import io.grpc.Status;
@@ -88,7 +89,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           if (mSessionId == INVALID_SESSION_ID) {
             mSessionId = IdUtils.createSessionId();
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
-                request.getTier(), request.getMediumType(), request.getSpaceToReserve());
+                request.getTier(), new CreateBlockOptions("", request.getMediumType(), request.getSpaceToReserve()));
             CreateLocalBlockResponse response =
                 CreateLocalBlockResponse.newBuilder().setPath(path).build();
             return response;
