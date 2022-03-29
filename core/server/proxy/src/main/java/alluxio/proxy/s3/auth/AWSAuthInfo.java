@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature;
+package alluxio.proxy.s3.auth;
 
 import com.google.common.base.MoreObjects;
 
 /**
- * signedInfo wraps the data needed for compute signature.
+ * AWSAuthInfo wraps the data needed for AWS authentication.
  */
-public class SignedInfo {
+public class AWSAuthInfo {
   private String mStringToSign;
   private String mSignature;
   private String mAccessID;
@@ -27,7 +27,7 @@ public class SignedInfo {
    * @param signature signature
    * @param accessID accessID
    */
-  public SignedInfo(final String stringToSign,
+  public AWSAuthInfo(final String stringToSign,
                     final String signature, final String accessID) {
     mAccessID = accessID;
     mStringToSign = stringToSign;

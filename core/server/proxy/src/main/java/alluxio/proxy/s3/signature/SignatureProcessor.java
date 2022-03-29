@@ -12,6 +12,7 @@
 package alluxio.proxy.s3.signature;
 
 import alluxio.proxy.s3.S3Exception;
+import alluxio.proxy.s3.auth.AWSAuthInfo;
 
 /**
  * Parser to request auth parser for http request.
@@ -25,9 +26,9 @@ public interface SignatureProcessor {
   SignatureInfo parseSignature() throws S3Exception;
 
   /**
-   * Convert SignatureInfo to SignedInfo.
-   * @return SignedInfo
+   * Convert SignatureInfo to AWSAuthInfo.
+   * @return AWSAuthInfo
    * @throws S3Exception
    */
-  SignedInfo getSignedInfo() throws S3Exception;
+  AWSAuthInfo getAuthInfo() throws S3Exception;
 }

@@ -13,6 +13,7 @@ package alluxio.proxy.s3.signature;
 
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
+import alluxio.proxy.s3.auth.AWSAuthInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,7 @@ public class AWSSignatureProcessor implements SignatureProcessor {
   }
 
   @Override
-  public SignedInfo getSignedInfo() throws S3Exception {
+  public AWSAuthInfo getAuthInfo() throws S3Exception {
     try {
       SignatureInfo signatureInfo = parseSignature();
       String stringToSign = "";
@@ -91,11 +92,11 @@ public class AWSSignatureProcessor implements SignatureProcessor {
       String awsAccessId = signatureInfo.getAwsAccessId();
       // ONLY validate aws access id when needed.
       if (awsAccessId == null || awsAccessId.equals("")) {
-        LOG.debug("Malformed s3 header. awsAccessID: ", awsAccessId);
-        throw new S3Exception("", S3ErrorCode.ACCESS_DENIED_ERROR);
+        LOG.debug("Malformed s3 header. awsAccessID is empty");
+        throw new S3Exception("awsAccessID is empty", S3ErrorCode.ACCESS_DENIED_ERROR);
       }
 
-      return new SignedInfo(stringToSign,
+      return new AWSAuthInfo(stringToSign,
               signatureInfo.getSignature(),
               awsAccessId);
     } catch (S3Exception ex) {

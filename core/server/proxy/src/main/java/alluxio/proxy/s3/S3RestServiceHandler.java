@@ -28,10 +28,11 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.proxy.s3.auth.AWSAuthInfo;
+import alluxio.proxy.s3.auth.Authenticator;
 import alluxio.proxy.s3.signature.AWSSignatureProcessor;
 import alluxio.proxy.s3.signature.SignatureProcessor;
 import alluxio.security.User;
-import alluxio.proxy.s3.signature.SignedInfo;
 import alluxio.web.ProxyWebServer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -93,6 +94,7 @@ public final class S3RestServiceHandler {
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
   private SignatureProcessor mSignatureProcessor;
+  private Authenticator mAuthenticator;
 
   @Context
   private ContainerRequestContext mRequestContext;
@@ -119,6 +121,7 @@ public final class S3RestServiceHandler {
   public String getUser(String authorization) throws S3Exception {
     if (S3RestUtils.isAuthenticationEnabled(mSConf)) {
       mSignatureProcessor = new AWSSignatureProcessor(mRequestContext);
+      mAuthenticator = Authenticator.Factory.create(mSConf);
       return getUserFromSignature();
     } else {
       return getUserFromAuthorization(authorization);
@@ -132,7 +135,7 @@ public final class S3RestServiceHandler {
    * @throws S3Exception
    */
   public String getUserFromSignature() throws S3Exception {
-    SignedInfo signedInfo = mSignatureProcessor.getSignedInfo();
+    AWSAuthInfo signedInfo = mSignatureProcessor.getAuthInfo();
     if (!validateAuth(signedInfo)) {
       throw new S3Exception(signedInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
     }
@@ -142,20 +145,12 @@ public final class S3RestServiceHandler {
   /**
    * validate s3 authorization info.
    *
-   * @param signedInfo info to compute signature
+   * @param authInfo info to compute signature
    * @return whether or not validate success
    * @throws S3Exception
    */
-  public boolean validateAuth(SignedInfo signedInfo) throws S3Exception {
-
-    //At present, there is no clear secret acquisition strategy.
-    //After determining the method for getting secret, the
-    //following method can be called for authentication:
-    //  return AWSV4AuthValidator.validateRequest(
-    //            signedInfo.getStringTosSign(),
-    //            signedInfo.getSignature(),
-    //            secret);
-    return true;
+  public boolean validateAuth(AWSAuthInfo authInfo) throws S3Exception {
+    return mAuthenticator.isValid(authInfo);
   }
 
   /**

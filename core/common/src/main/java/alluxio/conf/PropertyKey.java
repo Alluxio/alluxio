@@ -5813,9 +5813,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.S3_REST_AUTHENTICATION_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to enable check s3 rest request header.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey S3_REST_AUTHENTICATOR_CLASSNAME =
+       classBuilder(Name.S3_REST_AUTHENTICATOR_CLASSNAME)
+           .setDescription("Full name of the class that will be instantiated for s3 authenticator")
+           .setDefaultValue("alluxio.proxy.s3.auth.DefaultAuthenticator")
+           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+           .setScope(Scope.ALL)
+           .build();
   //
   // Network TLS support
   //
@@ -7461,6 +7468,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.stale.channel.purge.interval";
     public static final String S3_REST_AUTHENTICATION_ENABLED =
         "alluxio.s3.rest.authentication.enabled";
+    public static final String S3_REST_AUTHENTICATOR_CLASSNAME =
+        "alluxio.s3.rest.authenticator.classname";
 
     //
     // Network TLS support
