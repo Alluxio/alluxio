@@ -1930,7 +1930,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     // Inodes for which deletion will be attempted
-    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
+    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete;
+    if (inode.isDirectory()) {
+      inodesToDelete = new ArrayList<>((int) inode.asDirectory().getChildCount());
+    } else {
+      inodesToDelete = new ArrayList<>(1);
+    }
 
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
@@ -1946,8 +1951,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             deleteContext.getOptions().build());
       }
 
-      // Inodes to delete from tree after attempting to delete from UFS
-      List<Pair<AlluxioURI, LockedInodePath>> revisedInodesToDelete = new ArrayList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
       // Alluxio URIs (and the reason for failure) which could not be deleted
@@ -1995,12 +1998,15 @@ public class DefaultFileSystemMaster extends CoreMaster
               job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
             }
           }
-          revisedInodesToDelete.add(new Pair<>(alluxioUriToDelete, inodePairToDelete.getSecond()));
         } else {
           unsafeInodes.add(inodeToDelete.getId());
           // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
           unsafeInodes.add(inodeToDelete.getParentId());
           failedUris.add(new Pair<>(alluxioUriToDelete.toString(), failureReason));
+
+          // Something went wrong with this path so it cannot be removed normally
+          // Remove the path from further processing
+          inodesToDelete.set(i, null);
         }
       }
 
@@ -2008,8 +2014,13 @@ public class DefaultFileSystemMaster extends CoreMaster
         mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
       }
 
-      // Delete Inodes
-      for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
+      // Delete Inodes from children to parents
+      for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+        Pair<AlluxioURI, LockedInodePath> delInodePair = inodesToDelete.get(i);
+        // The entry is null because an error is met from the pre-processing
+        if (delInodePair == null) {
+          continue;
+        }
         LockedInodePath tempInodePath = delInodePair.getSecond();
         MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
