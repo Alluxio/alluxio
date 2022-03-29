@@ -137,7 +137,7 @@ public class UfsStatusCache {
   public UfsStatus remove(AlluxioURI path) {
     Preconditions.checkNotNull(path, "can't remove null status cache path");
     UfsStatus removed = mStatuses.remove(path);
-    int childrenCnt = mChildren.contains(path) ? mChildren.get(path).size() : 0;
+    int childrenCnt = mChildren.containsKey(path) ? mChildren.get(path).size() : 0;
     // Update global counters for all InodeSyncStream
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(childrenCnt);
