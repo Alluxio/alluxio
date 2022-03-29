@@ -17,7 +17,7 @@ metadata:
 provisioner: alluxio
 parameters:
   alluxioPath: {{ .Values.csi.alluxioPath }}
-  javaOptions: {{ .Values.csi.javaOptions }}
+  mountInPod: {{ .Values.csi.mountInPod}}
 volumeBindingMode: Immediate
 mountOptions:
   {{- range .Values.csi.mountOptions }}
