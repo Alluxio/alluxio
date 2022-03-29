@@ -41,6 +41,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
+import alluxio.wire.Medium;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -137,7 +138,7 @@ public final class JobUtils {
           .getMessage(blockId));
     }
 
-    Set<String> pinnedLocation = status.getPinnedMediumTypes();
+    Set<Medium> pinnedLocation = status.getPinnedMediumTypes();
     if (pinnedLocation.size() > 1) {
       throw new AlluxioException(
           ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(status.getPath()));
@@ -157,7 +158,7 @@ public final class JobUtils {
 
     // TODO(bin): remove the following case when we consolidate tier and medium
     // since there is only one element in the set, we take the first element in the set
-    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
+    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next().toString();
 
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();

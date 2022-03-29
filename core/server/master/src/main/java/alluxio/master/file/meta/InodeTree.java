@@ -56,6 +56,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
+import alluxio.wire.Medium;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
@@ -66,6 +67,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +75,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -807,7 +810,11 @@ public class InodeTree implements DelegatingJournaled {
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
       if (currentInodeDirectory.isPinned() && !newDir.isPinned()) {
         newDir.setPinned(true);
-        newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+        if (currentInodeDirectory.getMediumTypes().isEmpty()) {
+          newDir.setMediumTypes(Medium.EMPTY_SET);
+        } else {
+          newDir.setMediumTypes(EnumSet.copyOf(currentInodeDirectory.getMediumTypes()));
+        }
       }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
@@ -913,7 +920,11 @@ public class InodeTree implements DelegatingJournaled {
     }
     if (currentInodeDirectory.isPinned() && !newInode.isPinned()) {
       newInode.setPinned(true);
-      newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      if (currentInodeDirectory.getMediumTypes().isEmpty()) {
+        newInode.setMediumTypes(Medium.EMPTY_SET);
+      } else {
+        newInode.setMediumTypes(EnumSet.copyOf(currentInodeDirectory.getMediumTypes()));
+      }
     }
 
     mState.applyAndJournal(rpcContext, newInode,
@@ -1098,7 +1109,7 @@ public class InodeTree implements DelegatingJournaled {
       mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(inode.getId())
           .setPinned(newMin > 0)
-          .addAllMediumType(inode.getMediumTypes())
+          .addAllMediumType(inode.getMediumTypes().stream().map(Medium::toString).collect(Collectors.toList()))
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {

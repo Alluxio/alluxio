@@ -30,6 +30,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
+import alluxio.wire.Medium;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  private Set<String> mMediumTypes;
+  private Set<Medium> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
   private Map<String, byte[]> mXAttr;
@@ -81,7 +82,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mMediumTypes = new HashSet<>();
+    mMediumTypes = Medium.EMPTY_SET;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mXAttr = null;
@@ -189,7 +190,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-  public Set<String> getMediumTypes() {
+  public Set<Medium> getMediumTypes() {
     return mMediumTypes;
   }
 
@@ -497,7 +498,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param mediumTypes the medium types to pin to
    * @return the updated object
    */
-  public T setMediumTypes(Set<String> mediumTypes) {
+  public T setMediumTypes(Set<Medium> mediumTypes) {
     mMediumTypes = mediumTypes;
     return getThis();
   }
@@ -578,7 +579,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setMode((short) entry.getMode());
     }
     if (entry.getMediumTypeCount() != 0) {
-      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+      setMediumTypes(Medium.fromValues(entry.getMediumTypeList()));
     }
     if (entry.hasName()) {
       setName(entry.getName());
@@ -610,12 +611,13 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.
       if (entry.getPinned()) {
-        List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
-        setMediumTypes(entry.getMediumTypeList().stream()
-            .filter(mediaList::contains).collect(Collectors.toSet()));
+        if (entry.getMediumTypeList().isEmpty()) {
+          setMediumTypes(Medium.EMPTY_SET);
+        } else {
+          setMediumTypes(Medium.fromValues(entry.getMediumTypeList()));
+        }
       } else {
-        setMediumTypes(Collections.emptySet());
+        setMediumTypes(Medium.EMPTY_SET);
       }
     }
   }
@@ -680,7 +682,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
         .setUfsFingerprint(getUfsFingerprint())
-        .addAllMediumType(getMediumTypes());
+        .addAllMediumType(getMediumTypes().stream().map(Medium::toString).collect(Collectors.toList()));
     if (getXAttr() != null) {
       inode.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }

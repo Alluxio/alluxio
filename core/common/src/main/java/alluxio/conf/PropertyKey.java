@@ -2756,6 +2756,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  // TODO(jiacheng): This will be demised once we convert mediums to enum
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
       listBuilder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
           .setDefaultValue("MEM,SSD,HDD")

@@ -48,7 +48,7 @@ public final class FileInfo implements Serializable {
   private boolean mCompleted;
   private boolean mFolder;
   private boolean mPinned;
-  private Set<String> mMediumTypes = new HashSet<>();
+  private Set<Medium> mMediumTypes = new HashSet<>();
   private boolean mCacheable;
   private boolean mPersisted;
   private ArrayList<Long> mBlockIds = new ArrayList<>();
@@ -323,7 +323,7 @@ public final class FileInfo implements Serializable {
   /**
    * @return a set of pinned locations
    */
-  public Set<String> getMediumTypes() {
+  public Set<Medium> getMediumTypes() {
     return mMediumTypes;
   }
 
@@ -628,7 +628,7 @@ public final class FileInfo implements Serializable {
    * @param mediumTypes the pinned locations
    * @return the file information
    */
-  public FileInfo setMediumTypes(Set<String> mediumTypes) {
+  public FileInfo setMediumTypes(Set<Medium> mediumTypes) {
     mMediumTypes = mediumTypes;
     return this;
   }

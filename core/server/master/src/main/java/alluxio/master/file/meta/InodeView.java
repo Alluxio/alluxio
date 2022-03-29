@@ -19,6 +19,7 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
+import alluxio.wire.Medium;
 
 import java.util.List;
 import java.util.Map;
@@ -124,7 +125,7 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   /**
    * @return the pinned medium types set
    */
-  Set<String> getMediumTypes();
+  Set<Medium> getMediumTypes();
 
   /**
    * @return the UFS fingerprint
