@@ -11,6 +11,7 @@
 
 package alluxio.master.meta.checkconf;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.PropertyKey;
@@ -45,19 +46,19 @@ public class ServerConfigurationCheckerTest {
   @Test
   public void checkConf() {
     // Prepare data
-    PropertyKey keyMasterEnforce = new PropertyKey.Builder("TestKey1")
+    PropertyKey keyMasterEnforce = stringBuilder("TestKey1")
         .setConsistencyCheckLevel(PropertyKey.ConsistencyCheckLevel.ENFORCE)
         .setScope(Scope.MASTER).build();
     ConfigProperty masterEnforceProp = ConfigProperty.newBuilder()
         .setName(keyMasterEnforce.getName()).setSource("Test").setValue("Value").build();
 
-    PropertyKey keyWorkerWarn = new PropertyKey.Builder("TestKey2")
+    PropertyKey keyWorkerWarn = stringBuilder("TestKey2")
         .setConsistencyCheckLevel(PropertyKey.ConsistencyCheckLevel.WARN)
         .setScope(Scope.WORKER).build();
     ConfigProperty workerWarnProp = ConfigProperty.newBuilder()
         .setName(keyWorkerWarn.getName()).setSource("Test").setValue("Value").build();
 
-    PropertyKey keyServerEnforce = new PropertyKey.Builder("TestKey3")
+    PropertyKey keyServerEnforce = stringBuilder("TestKey3")
         .setConsistencyCheckLevel(PropertyKey.ConsistencyCheckLevel.ENFORCE)
         .setScope(Scope.SERVER).build();
     ConfigProperty serverEnforceProp = ConfigProperty.newBuilder()

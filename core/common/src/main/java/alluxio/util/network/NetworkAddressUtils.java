@@ -224,7 +224,7 @@ public final class NetworkAddressUtils {
      * @return default port
      */
     public int getDefaultPort() {
-      return Integer.parseInt(mPortKey.getDefaultValue());
+      return (int) mPortKey.getDefaultValue();
     }
   }
 
@@ -318,13 +318,13 @@ public final class NetworkAddressUtils {
    */
   public static String getConnectHost(ServiceType service, AlluxioConfiguration conf) {
     if (conf.isSet(service.mHostNameKey)) {
-      String connectHost = conf.get(service.mHostNameKey);
+      String connectHost = conf.getString(service.mHostNameKey);
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
     if (conf.isSet(service.mBindHostKey)) {
-      String bindHost = conf.get(service.mBindHostKey);
+      String bindHost = conf.getString(service.mBindHostKey);
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
@@ -375,9 +375,8 @@ public final class NetworkAddressUtils {
    * @return the bind hostname
    */
   public static String getBindHost(ServiceType service, AlluxioConfiguration conf) {
-    if (conf.isSet(service.mBindHostKey) && !conf.get(service.mBindHostKey)
-        .isEmpty()) {
-      return conf.get(service.mBindHostKey);
+    if (conf.isSet(service.mBindHostKey) && !conf.getString(service.mBindHostKey).isEmpty()) {
+      return conf.getString(service.mBindHostKey);
     } else {
       return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
@@ -392,10 +391,10 @@ public final class NetworkAddressUtils {
    */
   public static String getClientHostName(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-      return conf.get(PropertyKey.USER_HOSTNAME);
+      return conf.getString(PropertyKey.USER_HOSTNAME);
     }
     if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+      return conf.getString(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -410,34 +409,34 @@ public final class NetworkAddressUtils {
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case JOB_MASTER:
         if (conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
-          return conf.get(PropertyKey.JOB_MASTER_HOSTNAME);
+          return conf.getString(PropertyKey.JOB_MASTER_HOSTNAME);
         }
         break;
       case JOB_WORKER:
         if (conf.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
-          return conf.get(PropertyKey.JOB_WORKER_HOSTNAME);
+          return conf.getString(PropertyKey.JOB_WORKER_HOSTNAME);
         }
         break;
       case CLIENT:
         if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-          return conf.get(PropertyKey.USER_HOSTNAME);
+          return conf.getString(PropertyKey.USER_HOSTNAME);
         }
         break;
       case MASTER:
         if (conf.isSet(PropertyKey.MASTER_HOSTNAME)) {
-          return conf.get(PropertyKey.MASTER_HOSTNAME);
+          return conf.getString(PropertyKey.MASTER_HOSTNAME);
         }
         break;
       case WORKER:
         if (conf.isSet(PropertyKey.WORKER_HOSTNAME)) {
-          return conf.get(PropertyKey.WORKER_HOSTNAME);
+          return conf.getString(PropertyKey.WORKER_HOSTNAME);
         }
         break;
       default:
         break;
     }
     if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+      return conf.getString(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }

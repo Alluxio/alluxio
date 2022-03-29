@@ -45,7 +45,7 @@ public class LostWorkerIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
-      PropertyKey.JOB_MASTER_WORKER_TIMEOUT, Integer.toString(WORKER_HEARTBEAT_TIMEOUT_MS)),
+      PropertyKey.JOB_MASTER_WORKER_TIMEOUT, WORKER_HEARTBEAT_TIMEOUT_MS),
       ServerConfiguration.global());
 
   // We need this because LocalAlluxioJobCluster doesn't work without it.

@@ -93,8 +93,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
   @ClassRule
   public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
       .setIncludeProxy(true)
-      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .build();
 

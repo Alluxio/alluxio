@@ -193,7 +193,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
-    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST, ","));
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
   }
@@ -717,7 +717,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
-          String value = ServerConfiguration.getOrDefault(key, null,
+          Object value = ServerConfiguration.getOrDefault(key, null,
                   ConfigurationValueOptions.defaults().useDisplayValue(true)
                           .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);

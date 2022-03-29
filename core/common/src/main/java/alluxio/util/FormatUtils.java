@@ -181,7 +181,12 @@ public final class FormatUtils {
       index--;
     }
     spaceSize = spaceSize.substring(0, index + 1);
-    double ret = Double.parseDouble(spaceSize);
+    double ret;
+    try {
+      ret = Double.parseDouble(spaceSize);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
+    }
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
@@ -223,7 +228,12 @@ public final class FormatUtils {
       time = m.group(1);
       size = m.group(2);
     }
-    double douTime = Double.parseDouble(time);
+    double douTime;
+    try {
+      douTime = Double.parseDouble(time);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
+    }
     long sign = 1;
     if (douTime < 0) {
       sign = -1;
@@ -246,23 +256,6 @@ public final class FormatUtils {
       return sign * (long) (douTime * Constants.DAY + alpha);
     } else {
       throw new IllegalArgumentException("Fail to parse " + timeSize + " to milliseconds");
-    }
-  }
-
-  /**
-   * Parses a boolean from a string.
-   *
-   * @param bool the boolean to parse
-   * @return whether the value was "true" or "false"
-   * @throws IllegalArgumentException if the value cannot be parsed
-   */
-  public static boolean parseBoolean(String bool) throws IllegalArgumentException {
-    if (bool.equalsIgnoreCase("true")) {
-      return true;
-    } else if (bool.equalsIgnoreCase("false")) {
-      return false;
-    } else {
-      throw new IllegalArgumentException("Failed to parse " + bool + " as boolean");
     }
   }
 

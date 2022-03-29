@@ -316,7 +316,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
             new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
             new HashSet<>(), new HashSet<>(), false, false);
       } finally {
-        mResult.incrementNumSuccess((long) cmd.getCompletedCount() * mParameters.mBatchSize);
+        mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
     }
   }

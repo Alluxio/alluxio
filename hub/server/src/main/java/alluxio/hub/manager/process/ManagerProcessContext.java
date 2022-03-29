@@ -247,7 +247,7 @@ public class ManagerProcessContext implements AutoCloseable {
         LOG.error("Unable to initialize K8s client config", e);
       }
     }
-    String hubClusterId = mConf.get(PropertyKey.HUB_CLUSTER_ID);
+    String hubClusterId = mConf.getString(PropertyKey.HUB_CLUSTER_ID);
     if (!checkClusterId(hubClusterId)) {
       throw new RuntimeException(
               String.format("%s (%s) is an invalid cluster id - must be a 4-character string"
@@ -257,7 +257,7 @@ public class ManagerProcessContext implements AutoCloseable {
     mHubMetadata = HubMetadata.newBuilder()
             .setAlluxioVersion(RuntimeConstants.VERSION)
             .setClusterId(hubClusterId)
-            .setLabel(mConf.get(PropertyKey.HUB_CLUSTER_LABEL))
+            .setLabel(mConf.getString(PropertyKey.HUB_CLUSTER_LABEL))
             .setAlluxioEdition(AlluxioEdition.ALLUXIO_COMMUNITY_EDITION)
             .build();
     AlluxioConfiguration modConf = getConfWithHubTlsEnabled();
@@ -267,8 +267,8 @@ public class ManagerProcessContext implements AutoCloseable {
         (Channel channel) -> {
           ((GrpcChannel) channel).intercept(new HubAuthenticationInterceptor(
                   HubAuthentication.newBuilder()
-                  .setApiKey(modConf.get(PropertyKey.HUB_AUTHENTICATION_API_KEY))
-                  .setSecretKey(modConf.get(PropertyKey.HUB_AUTHENTICATION_SECRET_KEY))
+                  .setApiKey(modConf.getString(PropertyKey.HUB_AUTHENTICATION_API_KEY))
+                  .setSecretKey(modConf.getString(PropertyKey.HUB_AUTHENTICATION_SECRET_KEY))
                   .build()
           ));
           return HostedManagerServiceGrpc.newBlockingStub(channel);
@@ -373,7 +373,7 @@ public class ManagerProcessContext implements AutoCloseable {
 
   private AlluxioConfiguration getConfWithHubTlsEnabled() {
     InstancedConfiguration modifiedConfig = InstancedConfiguration.defaults();
-    Map<String, String> properties = new HashMap<>(mConf.toMap());
+    Map<String, Object> properties = new HashMap<>(mConf.toMap());
     properties.put(PropertyKey.NETWORK_TLS_ENABLED.getName(),
             mConf.get(PropertyKey.HUB_NETWORK_TLS_ENABLED));
     properties.put(PropertyKey.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME.getName(),
@@ -392,8 +392,8 @@ public class ManagerProcessContext implements AutoCloseable {
       try {
         GrpcChannel channel = RpcClient.createChannel(addr, modifiedConfig);
         channel.intercept(new HubAuthenticationInterceptor(HubAuthentication.newBuilder()
-                .setApiKey(modifiedConfig.get(PropertyKey.HUB_AUTHENTICATION_API_KEY))
-                .setSecretKey(modifiedConfig.get(PropertyKey.HUB_AUTHENTICATION_SECRET_KEY))
+                .setApiKey(modifiedConfig.getString(PropertyKey.HUB_AUTHENTICATION_API_KEY))
+                .setSecretKey(modifiedConfig.getString(PropertyKey.HUB_AUTHENTICATION_SECRET_KEY))
                 .build()));
         mHostedAsyncSub =
                 HostedManagerServiceGrpc.newStub(channel);
@@ -690,7 +690,7 @@ public class ManagerProcessContext implements AutoCloseable {
           public ListCatalogResponse exec(ListCatalogRequest req) {
             PrestoCatalogListingResult result = listCatalogs(getUpdatedProps(
                 configurationSetFor(AlluxioNodeType.MASTER))
-                .get(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH));
+                .getString(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH));
             return ListCatalogResponse.newBuilder()
                     .setHubMetadata(mHubMetadata)
                     .setPayload(ListCatalogResponse.Payload.newBuilder().addAllCatalog(result
@@ -1186,7 +1186,7 @@ public class ManagerProcessContext implements AutoCloseable {
    */
   public GetPrestoConfDirResponse.Payload getPrestoConf() {
     String path = getUpdatedProps(configurationSetFor(AlluxioNodeType.MASTER))
-            .get(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH);
+            .getString(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH);
     return GetPrestoConfDirResponse.Payload.newBuilder().setConfDir(path).setIsDefault(
             path.equals(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue())).build();
   }
@@ -1606,7 +1606,7 @@ public class ManagerProcessContext implements AutoCloseable {
                       PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue())).build();
     } else {
       String oldConfDir = getUpdatedProps(configurationSetFor(AlluxioNodeType.MASTER))
-              .get(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH);
+              .getString(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH);
       return builder.setSuccess(false).setConfDir(oldConfDir).setIsDefault(
               oldConfDir.equals(PropertyKey.HUB_MANAGER_PRESTO_CONF_PATH.getDefaultValue()))
               .build();

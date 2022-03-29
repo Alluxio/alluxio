@@ -55,7 +55,7 @@ public class CollectConfigCommand extends AbstractCollectInfoCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mWorkingDirPath = getWorkingDirectory(cl);
-    String confDirPath = mFsContext.getClusterConf().get(PropertyKey.CONF_DIR);
+    String confDirPath = mFsContext.getClusterConf().getString(PropertyKey.CONF_DIR);
 
     File confDir = new File(confDirPath);
     List<File> allFiles = CommonUtils.recursiveListLocalDir(confDir);

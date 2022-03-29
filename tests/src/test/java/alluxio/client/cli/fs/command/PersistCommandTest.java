@@ -88,7 +88,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   public void persistOnRenameDirectory() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
 
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
@@ -119,7 +119,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   public void persistOnRenameDirectoryBlacklist() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
     // MASTER_PERSISTENCE_BLACKLIST is set to "foobar_blacklist" for the server configuration
 
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
