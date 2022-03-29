@@ -139,7 +139,7 @@ expose_alluxio_client_jar() {
 
 configure_alluxio_systemd_services() {
   if [[ "${ROLE}" == "Master" ]]; then
-    # The master role runs 3 daemons: AlluxioMaster and AlluxioJobMaster
+    # The master role runs 2 daemons: AlluxioMaster and AlluxioJobMaster
     # Service for AlluxioMaster JVM
     cat >"/etc/systemd/system/alluxio-master.service" <<- EOF
 [Unit]
