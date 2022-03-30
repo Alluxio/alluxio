@@ -120,11 +120,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
 
-  // Map for holding the async releasing entries for proper umount
-  private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
-  private final Map<Long, CreateFileEntry<FileOutStream>> mReleasingWriteEntries =
-      new ConcurrentHashMap<>();
-
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
   public static final int UNKNOWN_INODES = -1;
@@ -623,23 +618,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // Remove earlier to try best effort to avoid write() - async release() - getAttr()
         // without waiting for file completed and return 0 bytes file size error
         mCreateFileEntries.remove(ce);
-        mReleasingWriteEntries.put(fd, ce);
-        try {
-          synchronized (ce) {
-            ce.close();
-          }
-        } finally {
-          mReleasingWriteEntries.remove(fd);
+        synchronized (ce) {
+          ce.close();
         }
       }
       if (is != null) {
-        mReleasingReadEntries.put(fd, is);
-        try {
-          synchronized (is) {
-            is.close();
-          }
-        } finally {
-          mReleasingReadEntries.remove(fd);
+        synchronized (is) {
+          is.close();
         }
       }
     } catch (Throwable e) {
@@ -1018,7 +1003,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
+    if (mMaxUmountWaitTime > 0 && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
@@ -1032,37 +1017,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             + "when unmounting {}. {} fileInStream remain unclosed. "
             + "{} fileOutStream remain unclosed.",
             mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
-      }
-    }
-
-    // Waiting for in progress async release to finish
-    if (!mReleasingReadEntries.isEmpty() || !mReleasingWriteEntries.isEmpty()) {
-      LOG.info("Unmounting {}. Waiting for all in progress file read/write closing to finish",
-          mMountPoint);
-      try {
-        CommonUtils.waitFor("all in progress file read/write closing to finish",
-            () -> mReleasingReadEntries.isEmpty() && mReleasingWriteEntries.isEmpty(),
-            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
-      } catch (InterruptedException e) {
-        LOG.error("Unmount {} interrupted", mMountPoint);
-        Thread.currentThread().interrupt();
-      } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting in progress file read/write closing to finish "
-            + "when unmounting {}. {} fileInStream and {} fileOutStream "
-            + "are still in closing process.",
-            mMountPoint, mReleasingReadEntries.size(), mReleasingWriteEntries.size());
-      }
-    }
-
-    if (!(mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty())) {
-      // TODO(lu) consider the case that client application may not call release()
-      // for all open() or create(). Force closing those operations.
-      // TODO(lu,bin) properly prevent umount when device is busy
-      LOG.error("Unmounting {} when device is busy in reading/writing files. "
-          + "{} fileInStream and {} fileOutStream remain open.",
-          mMountPoint, mCreateFileEntries.size(), mOpenFileEntries.size());
-      if (!force) {
-        throw new FuseException("Timed out for umount due to device is busy.");
+        if (!force) {
+          throw new FuseException("Timed out for umount due to device is busy.");
+        }
       }
     }
     super.umount(force);

@@ -5656,9 +5656,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.FUSE_UMOUNT_TIMEOUT)
           .setDefaultValue("1min")
           .setDescription("The timeout to wait for all in progress file read and write to finish "
-              + "before unmounting the Fuse filesystem. After the timeout, "
-              + "all in progress file read will be forced to stop "
-              + "and all in progress file write will be abandoned.")
+              + "before unmounting the Fuse filesystem when SIGTERM signal is received. "
+              + "A value smaller than or equal to zero means no umount wait time. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
