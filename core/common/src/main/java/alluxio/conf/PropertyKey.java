@@ -2367,16 +2367,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
-<<<<<<< HEAD
-      new Builder(Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
-          .setDefaultValue("10min")
-||||||| 196acdaace
-      new Builder(Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
-          .setDefaultValue("1min")
-=======
       durationBuilder(Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
-          .setDefaultValue("1min")
->>>>>>> 9fa64d92341ab000a194446db8766128247e51af
+          .setDefaultValue("10min")
           .setDescription("When the worker registers the master with streaming, "
               + "the worker will be sending messages to the master during the streaming."
               + "During an active stream if the master have not heard from the worker "
