@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class ResourcePool<T> implements Pool<T> {
-  private static final long WAIT_INDEFINITELY = -1;
+  protected static final long WAIT_INDEFINITELY = -1;
   private final ReentrantLock mTakeLock;
   private final Condition mNotEmpty;
   protected final int mMaxCapacity;

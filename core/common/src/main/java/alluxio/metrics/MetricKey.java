@@ -1406,6 +1406,12 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey WORKER_BLOCK_LOCK_POOL_REMAINING_RESOURCES_KEY =
+      new Builder("Worker.BlockLockPoolRemainingResources")
+          .setDescription("Total number of remaining locks in the block client r/w lock pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
