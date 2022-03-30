@@ -309,10 +309,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       AlluxioURI path = new AlluxioURI(args[0]);
       jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
               localityIds, excludedLocalityIds, directCache);
-//      if (wait) {
-//        System.out.format("Waiting for the command to finish ...%n");
-//        waitForCmd(jobControlId);
-//      }
+      if (wait) {
+        System.out.format("Waiting for the command to finish ...%n");
+        waitForCmd(jobControlId);
+      }
       System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
               jobControlId.toString());
     } else {
@@ -321,10 +321,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           AlluxioURI path = new AlluxioURI(filename);
           jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
                   localityIds, excludedLocalityIds, directCache);
-//          if (wait) {
-//            System.out.format("Waiting for the command to finish ...%n");
-//            waitForCmd(jobControlId);
-//          }
+          if (wait) {
+            System.out.format("Waiting for the command to finish ...%n");
+            waitForCmd(jobControlId);
+          }
           System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
                   jobControlId.toString());
         }
@@ -332,10 +332,6 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
     System.out.println(String.format("Completed command count is %d,Failed count is %d.",
         getCompletedCmdCount(), getFailedCmdCount()));
-//    Set<String> failures = getFailedFiles();
-//    if (failures.size() > 0) {
-//      processFailures(args[0], failures);
-//    }
     return 0;
   }
 

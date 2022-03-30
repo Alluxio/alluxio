@@ -31,15 +31,12 @@ import alluxio.master.job.common.LogLink;
 import alluxio.master.job.plan.PlanTracker;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -167,6 +164,7 @@ public class CmdJobTracker {
     return progress.getChildJobIds();
   }
 
+
   /**
    * Get getCmdSummary.
    * @param jobControlId
@@ -211,7 +209,6 @@ public class CmdJobTracker {
     boolean finished = true;
     boolean failed = false;
     boolean canceled = false;
-    Set<String> failedFiles = new HashSet<>(); // FAILED files
     for (CmdRunAttempt attempt : cmdInfo.getCmdRunAttempt()) {
       Status s = attempt.checkJobStatus();
       if (!s.isFinished()) {
@@ -220,8 +217,7 @@ public class CmdJobTracker {
       }
       if (!failed && s == Status.FAILED) {
         failed = true;
-        failedFiles.add(StringUtils.substringBetween(attempt.getJobConfig().toString(),
-                "FilePath=", ","));
+        attempt.printFailed();
       }
       if (!canceled && s == Status.CANCELED) {
         canceled = true;
@@ -243,11 +239,6 @@ public class CmdJobTracker {
       }
     }
 
-    if (failedFiles.isEmpty()) {
-      LOG.warn("Failed file paths are:  ");
-      failedFiles.forEach(LOG::warn);
-    }
-
     return Status.RUNNING;
   }
 
@@ -255,7 +246,7 @@ public class CmdJobTracker {
    * @param statusList status list filter
    * @return cmd ids matching conditions
    */
-  public Set<Long> findCmds(List<Status> statusList) throws JobDoesNotExistException {
+  public Set<Long> findCmdIds(List<Status> statusList) throws JobDoesNotExistException {
     Set<Long> set = new HashSet<>();
     for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
       if (statusList.isEmpty()
@@ -265,6 +256,44 @@ public class CmdJobTracker {
       }
     }
     return set;
+  }
+
+  /**
+   * @return all failed file paths
+   */
+  public Set<String> findAllFailedPaths() {
+    Set<String> set = new HashSet<>();
+    for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
+      long jobControlId = x.getKey();
+      try {
+        set.addAll(findFailedPaths(jobControlId));
+      } catch (JobDoesNotExistException e) {
+        LOG.info("skip because of no such a command id.");
+      }
+    }
+    return set;
+  }
+
+  /**
+   * @param jobControlId jobControlId
+   * @return failed file paths
+   */
+  public Set<String> findFailedPaths(long jobControlId) throws JobDoesNotExistException {
+    if (!mInfoMap.containsKey(jobControlId)) {
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+
+    CmdInfo cmdInfo = mInfoMap.get(jobControlId);
+
+    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts created, throws an Exception
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+
+    return cmdInfo.getCmdRunAttempt().stream()
+            .map(CmdRunAttempt::getFailedFiles).flatMap(Collection::stream)
+            .collect(Collectors.toSet());
   }
 
   /**

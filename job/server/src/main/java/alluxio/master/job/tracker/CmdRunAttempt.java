@@ -18,10 +18,14 @@ import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.retry.RetryPolicy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *  class for handling submission for a child job within a distributed command.
@@ -38,6 +42,7 @@ public class CmdRunAttempt {
   private JobConfig mJobConfig;
   private long mFileCount;
   private long mFileSize;
+  private Set<String> mFailedFiles = new HashSet<>(); // FAILED files
 
   protected CmdRunAttempt(RetryPolicy retryPolicy, JobMaster jobMaster) {
     mRetryPolicy = retryPolicy;
@@ -162,9 +167,32 @@ public class CmdRunAttempt {
     }
 
     if (finished) {
+      if (jobInfo.getStatus().equals(Status.FAILED)) {
+        Set<JobInfo> failed = jobInfo.getChildren().stream()
+                .filter(child -> child.getStatus() == Status.FAILED).collect(Collectors.toSet());
+        for (JobInfo task : failed) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
+      }
       return jobInfo.getStatus();
     }
     return Status.RUNNING;
+  }
+
+  /**
+   * Log failed file information.
+   */
+  public void printFailed() {
+    LOG.warn("Failed file paths are:  ");
+    mFailedFiles.forEach(LOG::warn);
+  }
+
+  /**
+   * Return a copy of failed paths.
+   * @return
+   */
+  public Set<String> getFailedFiles() {
+    return new HashSet<>(mFailedFiles);
   }
 
 //  protected abstract void logFailedAttempt(JobInfo jobInfo);

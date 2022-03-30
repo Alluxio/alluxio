@@ -73,12 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -398,13 +393,40 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    */
   public List<Long> listCmds(ListAllPOptions options) throws JobDoesNotExistException {
     try (JobMasterAuditContext auditContext =
-                 createAuditContext("list")) {
+                 createAuditContext("listCmds")) {
       List<Long> ids = new ArrayList<>();
-      ids.addAll(mCmdJobTracker.findCmds(
+      ids.addAll(mCmdJobTracker.findCmdIds(
               options.getStatusList().stream()
                       .map(status -> Status.valueOf(status.name()))
                       .collect(Collectors.toList())));
       Collections.sort(ids);
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return all failed paths
+   */
+  public Set<String> getAllFailedPaths() {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getAllFailedPaths")) {
+      Set<String> ids = new HashSet<>();
+      ids.addAll(mCmdJobTracker.findAllFailedPaths());
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return get failed paths for a command
+   * @param jobControlId job control id
+   */
+  public Set<String> getFailedPaths(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getFailedPaths")) {
+      Set<String> ids = new HashSet<>();
+      ids.addAll(mCmdJobTracker.findFailedPaths(jobControlId));
       auditContext.setSucceeded(true);
       return ids;
     }
