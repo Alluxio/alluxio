@@ -781,8 +781,6 @@ public class InodeTree implements DelegatingJournaled {
           if (context.getXAttr() != null) {
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
-          updateInodeEntry.setPinned(currentInodeDirectory.isPinned());
-          updateInodeEntry.addAllMediumType(currentInodeDirectory.getMediumTypes());
           mState.applyAndJournal(rpcContext, updateInodeEntry.build());
         }
       }

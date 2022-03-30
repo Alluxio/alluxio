@@ -581,8 +581,6 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     }
     if (entry.getMediumTypeCount() != 0) {
       setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
-    } else {
-      setMediumTypes(MutableInode.NO_MEDIUM);
     }
     if (entry.hasName()) {
       setName(entry.getName());
@@ -636,6 +634,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         } else {
           setMediumTypes(NO_MEDIUM);
         }
+      } else {
+        setMediumTypes(NO_MEDIUM);
       }
     }
   }
