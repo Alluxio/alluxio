@@ -82,7 +82,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     // Create mount with auth user id
     String userId = null;
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_ID)) {
-      userId = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_ID);
+      userId = conf.getString(PropertyKey.UNDERFS_CEPHFS_AUTH_ID);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_ID, userId);
       if (userId != null && userId.isEmpty()) {
         userId = null;
@@ -92,7 +92,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Load a configuration file if specified
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_CONF_FILE)) {
-      String confFile = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_FILE);
+      String confFile = conf.getString(PropertyKey.UNDERFS_CEPHFS_CONF_FILE);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_FILE, confFile);
       if (confFile != null && !confFile.isEmpty()) {
         File file = new File(confFile);
@@ -104,7 +104,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Parse and set Ceph configuration options
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_CONF_OPTS)) {
-      String confOpts = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_OPTS);
+      String confOpts = conf.getString(PropertyKey.UNDERFS_CEPHFS_CONF_OPTS);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_OPTS, confOpts);
       if (confOpts != null && !confOpts.isEmpty()) {
         String[] options = confOpts.split(";");
@@ -126,7 +126,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Set auth key
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_KEY)) {
-      String key = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEY);
+      String key = conf.getString(PropertyKey.UNDERFS_CEPHFS_AUTH_KEY);
       if (key != null && !key.isEmpty()) {
         mount.conf_set(CEPH_AUTH_KEY, key);
       }
@@ -134,7 +134,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Set auth keyfile
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE)) {
-      String keyfile = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE);
+      String keyfile = conf.getString(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE, keyfile);
       if (keyfile != null && !keyfile.isEmpty()) {
         mount.conf_set(CEPH_AUTH_KEYFILE, keyfile);
@@ -143,7 +143,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Set auth keyring
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING)) {
-      String keyring = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING);
+      String keyring = conf.getString(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING, keyring);
       if (keyring != null && !keyring.isEmpty()) {
         mount.conf_set(CEPH_AUTH_KEYRING, keyring);
@@ -154,7 +154,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     String monHost = ufsUri.getAuthority().toString();
     if (monHost == null || monHost.isEmpty()) {
       if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MON_HOST)) {
-        monHost = conf.get(PropertyKey.UNDERFS_CEPHFS_MON_HOST);
+        monHost = conf.getString(PropertyKey.UNDERFS_CEPHFS_MON_HOST);
         LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MON_HOST, monHost);
       }
     }
@@ -165,7 +165,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Set filesystem to mount
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE)) {
-      String namespace = conf.get(PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE);
+      String namespace = conf.getString(PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE, namespace);
       if (namespace != null && !namespace.isEmpty()) {
         mount.conf_set(CEPH_CLIENT_MDS_NAMESPACE, namespace);
@@ -174,7 +174,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Set uid/gid to mount
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_UID)) {
-      String uid = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_UID);
+      String uid = conf.getString(PropertyKey.UNDERFS_CEPHFS_MOUNT_UID);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_UID, uid);
       if (uid != null && !uid.isEmpty()) {
         mount.conf_set(CEPH_CLIENT_MOUNT_UID, uid);
@@ -182,7 +182,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     }
 
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_GID)) {
-      String gid = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_GID);
+      String gid = conf.getString(PropertyKey.UNDERFS_CEPHFS_MOUNT_GID);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_GID, gid);
       if (gid != null && !gid.isEmpty()) {
         mount.conf_set(CEPH_CLIENT_MOUNT_GID, gid);
@@ -192,7 +192,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     // Actually mount the file system
     String root = null;
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT)) {
-      root = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT);
+      root = conf.getString(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT, root);
       if (root != null && root.isEmpty()) {
         root = null;
@@ -202,12 +202,9 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Allow reads from replica objects
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS)) {
-      String localizeReads = conf.get(PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS);
+      boolean localizeReads = conf.getBoolean(PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS, localizeReads);
-      if (localizeReads != null && !localizeReads.isEmpty()) {
-        boolean bLocalize = Boolean.parseBoolean(localizeReads);
-        mount.localize_reads(bLocalize);
-      }
+      mount.localize_reads(localizeReads);
     }
 
     return new CephFSUnderFileSystem(ufsUri, mount, conf);

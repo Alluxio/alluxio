@@ -63,7 +63,7 @@ public final class InstallCommand implements Command {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     AlluxioConfiguration conf = ServerConfiguration.global();
-    String extensionsDir = conf.get(PropertyKey.EXTENSIONS_DIR);
+    String extensionsDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     File dir = new File(extensionsDir);
     if (!dir.exists() && !dir.mkdirs()) {
       System.err.println("Failed to create extensions directory " + extensionsDir);

@@ -152,7 +152,7 @@ public abstract class AbstractBackupRole implements BackupRole {
         mUfsManager.getRoot().acquireUfsResource()) {
       // Get backup parent directory.
       String backupParentDir = request.hasTargetDirectory() ? request.getTargetDirectory()
-          : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+          : ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
       // Get ufs resource for backup.
       UnderFileSystem ufs = ufsResource.get();
       if (request.getOptions().getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
@@ -174,7 +174,7 @@ public abstract class AbstractBackupRole implements BackupRole {
           now.toEpochMilli());
       String backupFilePath = PathUtils.concatPath(backupParentDir, backupFileName);
       // Calculate URI for the path.
-      String rootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootUfs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       if (request.getOptions().getLocalFileSystem()) {
         rootUfs = "file:///";
       }

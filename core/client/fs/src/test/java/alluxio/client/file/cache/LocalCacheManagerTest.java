@@ -27,6 +27,7 @@ import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
@@ -273,7 +274,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void evictSmallPagesByPutPigPageWithRetry() throws Exception {
     int smallPageLen = 8;
-    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    int numPages = (int) (mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_EVICTION_RETRIES, numPages);
     mCacheManager = createLocalCacheManager();
@@ -735,7 +736,7 @@ public final class LocalCacheManagerTest {
     final int threads = 16;
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
     HangingPageStore pageStore = new HangingPageStore(PageStoreOptions.create(mConf).toOptions());
     pageStore.setPutHanging(true);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, pageStore);
@@ -761,7 +762,7 @@ public final class LocalCacheManagerTest {
     final int threads = 16;
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
     HangingPageStore pageStore = new HangingPageStore(PageStoreOptions.create(mConf).toOptions());
     pageStore.setPutHanging(true);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, pageStore);

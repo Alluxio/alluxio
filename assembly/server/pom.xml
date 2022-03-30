@@ -66,11 +66,6 @@
       <artifactId>alluxio-table-server-master</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-hub-server</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

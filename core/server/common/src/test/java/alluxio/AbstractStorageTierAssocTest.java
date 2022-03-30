@@ -38,7 +38,7 @@ public final class AbstractStorageTierAssocTest {
     List<String> expectedOrderedAliases = new ArrayList<>();
 
     for (int i = 0; i < size; i++) {
-      String alias = ServerConfiguration.get(template.format(i));
+      String alias = ServerConfiguration.getString(template.format(i));
       Assert.assertEquals(i, assoc.getOrdinal(alias));
       Assert.assertEquals(alias, assoc.getAlias(i));
       expectedOrderedAliases.add(alias);
@@ -54,9 +54,9 @@ public final class AbstractStorageTierAssocTest {
   @Test
   public void masterWorkerConfConstructor() throws Exception {
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "3",
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3,
         PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2), "BOTTOM",
-        PropertyKey.WORKER_TIERED_STORE_LEVELS, "2",
+        PropertyKey.WORKER_TIERED_STORE_LEVELS, 2,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "BOTTOM"),
         ServerConfiguration.global())
         .toResource()) {

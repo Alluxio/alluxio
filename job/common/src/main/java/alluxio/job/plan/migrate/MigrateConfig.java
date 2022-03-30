@@ -11,6 +11,7 @@
 
 package alluxio.job.plan.migrate;
 
+import alluxio.client.WriteType;
 import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,7 +34,7 @@ public class MigrateConfig implements PlanConfig {
 
   private final String mSource;
   private final String mDestination;
-  private final String mWriteType;
+  private final WriteType mWriteType;
   private final boolean mOverwrite;
 
   /**
@@ -47,7 +48,7 @@ public class MigrateConfig implements PlanConfig {
    */
   public MigrateConfig(@JsonProperty("source") String source,
                        @JsonProperty("destination") String dst,
-                       @JsonProperty("writeType") String writeType,
+                       @JsonProperty("writeType") WriteType writeType,
                        @JsonProperty("overwrite") boolean overwrite) {
     mSource = Preconditions.checkNotNull(source, "source must be set");
     mDestination = Preconditions.checkNotNull(dst, "destination must be set");
@@ -72,7 +73,7 @@ public class MigrateConfig implements PlanConfig {
   /**
    * @return the writeType
    */
-  public String getWriteType() {
+  public WriteType getWriteType() {
     return mWriteType;
   }
 

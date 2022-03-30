@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.UnmodifiableArrayList;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
@@ -27,11 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -116,13 +113,11 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    Set<UfsStatus> set = new HashSet<>(children.size());
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
-      set.add(child);
     });
-    return mChildren.put(path, Collections.unmodifiableSet(set));
+    return mChildren.put(path, children);
   }
 
   /**
@@ -221,7 +216,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
-                                                     MountTable mountTable, boolean useFallback)
+       MountTable mountTable, boolean useFallback)
       throws InterruptedException, InvalidPathException {
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
@@ -270,7 +265,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
-                                                     MountTable mountTable)
+       MountTable mountTable)
       throws InterruptedException, InvalidPathException {
     return fetchChildrenIfAbsent(rpcContext, path, mountTable, true);
   }
@@ -306,7 +301,7 @@ public class UfsStatusCache {
         mAbsentCache.addSinglePath(path);
         return null;
       }
-      children = Arrays.asList(statuses);
+      children = new UnmodifiableArrayList<>(statuses);
       addChildren(path, children);
     } catch (IllegalArgumentException | IOException e) {
       LOG.debug("Failed to add status to cache {}", path, e);

@@ -122,7 +122,7 @@ public class UfsJournal implements Journal {
   private long mEntriesSinceLastCheckPoint = 0;
 
   private enum State {
-    STANDBY, PRIMARY, CLOSED;
+    STANDBY, PRIMARY, CLOSED
   }
 
   private AtomicReference<State> mState = new AtomicReference<>(State.STANDBY);
@@ -134,7 +134,7 @@ public class UfsJournal implements Journal {
    * @return the ufs configuration to use for the journal operations
    */
   public static UnderFileSystemConfiguration getJournalUfsConf() {
-    Map<String, String> ufsConf =
+    Map<String, Object> ufsConf =
         ServerConfiguration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
     return UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
                .createMountSpecificConf(ufsConf);
@@ -437,7 +437,7 @@ public class UfsJournal implements Journal {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = ServerConfiguration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (UfsStatus file : files) {
       if (file.getName().startsWith(formatFilePrefix)) {
         return true;
@@ -474,7 +474,8 @@ public class UfsJournal implements Journal {
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
-        ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+        ServerConfiguration.getString(
+            PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }
 

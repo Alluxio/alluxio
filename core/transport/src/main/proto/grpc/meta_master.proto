@@ -75,6 +75,8 @@ message MasterInfo {
  repeated grpc.NetAddress workerAddresses = 9;
  repeated string zookeeperAddresses = 10;// Empty means zookeeper is not enabled
  optional string clusterId = 11;
+ optional bool raftJournal = 12;
+ repeated string raftAddress = 13;
 }
 
 enum MasterInfoField {
@@ -89,6 +91,8 @@ enum MasterInfoField {
   WORKER_ADDRESSES = 8;
   ZOOKEEPER_ADDRESSES = 9;
   CLUSTER_ID = 10;
+  RAFT_JOURNAL = 11;
+  RAFT_ADDRESSES = 12;
 }
 
 message GetMasterInfoPOptions {

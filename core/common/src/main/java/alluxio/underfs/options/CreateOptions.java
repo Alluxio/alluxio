@@ -46,7 +46,7 @@ public final class CreateOptions {
    * @return the default {@link CreateOptions}
    */
   public static CreateOptions defaults(AlluxioConfiguration conf) {
-    return new CreateOptions(conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+    return new CreateOptions(conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**

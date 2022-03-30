@@ -202,11 +202,4 @@ public class ManagementTaskCoordinator implements Closeable {
     }
     LOG.debug("Block management coordinator exited.");
   }
-
-  /**
-   * Used to specify from where to back-off.
-   */
-  enum BackoffStrategy {
-    ANY, DIRECTORY
-  }
 }

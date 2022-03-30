@@ -12,6 +12,7 @@
 package alluxio.stress.common;
 
 import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.Parameters;
@@ -40,7 +41,7 @@ public class FileSystemParameters extends Parameters {
           + "CACHE_THROUGH, THROUGH, ASYNC_THROUGH, ALL]",
       converter = FileSystemParameters.FileSystemParametersWriteTypeConverter.class)
   public String mWriteType = InstancedConfiguration.defaults()
-      .get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
+      .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).name();
 
   /**
    * Converts from String to FileSystemClientType instance.
