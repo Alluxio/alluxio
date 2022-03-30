@@ -1601,6 +1601,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         .setLastModificationTimeMs(opTimeMs)
         .setLastAccessTimeMs(opTimeMs)
         .setOverwriteModificationTime(true)
+        .setPinned(inode.isPinned())
+        .addAllMediumType(inode.getMediumTypes())
         .build());
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 
@@ -3700,11 +3702,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInode();
     SetAttributePOptions.Builder protoOptions = context.getOptions();
+    UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());
     if (protoOptions.hasPinned()) {
       mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(),
           context.getOptions().getPinnedMediaList(), opTimeMs);
+      entry.setPinned(protoOptions.getPinned());
+      entry.addAllMediumType(protoOptions.getPinnedMediaList());
     }
-    UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());
+
     if (protoOptions.hasReplicationMax() || protoOptions.hasReplicationMin()) {
       Integer replicationMax =
           protoOptions.hasReplicationMax() ? protoOptions.getReplicationMax() : null;
