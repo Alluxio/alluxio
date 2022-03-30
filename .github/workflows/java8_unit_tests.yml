@@ -14,7 +14,7 @@ jobs:
       matrix:
         modules:
           - >-
-            !alluxio.client.**,!alluxio.master.**,!alluxio.hub
+            !alluxio.client.**,!alluxio.master.**
           - >-
             alluxio.client.**,alluxio.master.**
 
@@ -45,7 +45,7 @@ jobs:
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!assembly/client,!assembly/server \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui,!hub,!hub/server,!hub/transport'
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
         timeout-minutes: 60
 
       - name: Archive artifacts
