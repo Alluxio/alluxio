@@ -24,8 +24,11 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
+import alluxio.wire.Medium;
 
+import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -209,7 +212,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
-    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    ret.setMediumTypes(Medium.fromValues(entry.getMediumTypeList()));
     if (entry.getXAttrCount() > 0) {
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
@@ -260,7 +263,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(ProtoUtils.toProto(mAcl))
         .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
-        .addAllMediumType(getMediumTypes());
+        .addAllMediumType(getMediumTypes().stream().map(Medium::toString).collect(Collectors.toList()));
     if (getXAttr() != null) {
       inodeDirectory.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
@@ -304,7 +307,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
         .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setMediumTypes(Medium.fromValues(inode.getMediumTypeList()));
     if (inode.getXAttrCount() > 0) {
       d.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
     }

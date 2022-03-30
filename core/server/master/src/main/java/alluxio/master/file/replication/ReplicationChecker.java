@@ -38,6 +38,7 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
+import alluxio.wire.Medium;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -206,14 +207,14 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    */
   private Map<String, String> findMisplacedBlock(
       InodeFile file, BlockInfo blockInfo) {
-    Set<String> pinnedMediumTypes = file.getMediumTypes();
+    Set<Medium> pinnedMediumTypes = file.getMediumTypes();
     if (pinnedMediumTypes.isEmpty()) {
       // nothing needs to be moved
       return Collections.emptyMap();
     }
     Map<String, String> movement = new HashMap<>();
     // at least pinned to one medium type
-    String firstPinnedMedium = pinnedMediumTypes.iterator().next();
+    String firstPinnedMedium = pinnedMediumTypes.iterator().next().toString();
     int minReplication = file.getReplicationMin();
     int correctReplication = 0;
     List<String> candidates = new ArrayList<>();

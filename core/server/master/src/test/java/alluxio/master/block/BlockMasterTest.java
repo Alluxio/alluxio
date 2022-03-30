@@ -37,6 +37,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.Medium;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -390,7 +391,7 @@ public class BlockMasterTest {
         .setTierAlias(Constants.MEDIUM_MEM)
         .setWorkerAddress(NET_ADDRESS_1)
         .setWorkerId(worker1)
-        .setMediumType(Constants.MEDIUM_MEM);
+        .setMediumType(Medium.MEM);
     BlockInfo expectedBlockInfo = new BlockInfo()
         .setBlockId(1L)
         .setLength(20L)

@@ -28,6 +28,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
+import alluxio.wire.Medium;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
 import alluxio.wire.RegisterLease;
@@ -41,9 +42,12 @@ import com.google.common.net.HostAndPort;
 import com.google.protobuf.ByteString;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -187,7 +191,7 @@ public final class GrpcUtils {
     blockLocation.setWorkerId(blockPLocation.getWorkerId());
     blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
     blockLocation.setTierAlias(blockPLocation.getTierAlias());
-    blockLocation.setMediumType(blockPLocation.getMediumType());
+    blockLocation.setMediumType(Medium.valueOf(blockPLocation.getMediumType()));
     return blockLocation;
   }
 
@@ -236,7 +240,7 @@ public final class GrpcUtils {
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
         .setCompleted(pInfo.getCompleted()).setFolder(pInfo.getFolder())
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
-        .setMediumTypes(ImmutableSet.copyOf(pInfo.getMediumTypeList()))
+        .setMediumTypes(Medium.fromValues(pInfo.getMediumTypeList()))
         .setPersisted(pInfo.getPersisted()).setBlockIds(pInfo.getBlockIdsList())
         .setLastModificationTimeMs(pInfo.getLastModificationTimeMs()).setTtl(pInfo.getTtl())
         .setLastAccessTimeMs(pInfo.getLastAccessTimeMs())
@@ -454,7 +458,7 @@ public final class GrpcUtils {
     return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
         .setTierAlias(blockLocation.getTierAlias())
-        .setMediumType(blockLocation.getMediumType())
+        .setMediumType(blockLocation.getMediumType().toString())
         .build();
   }
 
@@ -501,7 +505,11 @@ public final class GrpcUtils {
       }
     }
     if (!fileInfo.getMediumTypes().isEmpty()) {
-      builder.addAllMediumType(fileInfo.getMediumTypes());
+      Set<String> mediums = new HashSet<>();
+      for (Medium m : fileInfo.getMediumTypes()) {
+        mediums.add(m.toString());
+      }
+      builder.addAllMediumType(mediums);
     }
     return builder.build();
   }

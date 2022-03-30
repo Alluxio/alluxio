@@ -28,11 +28,13 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
+import alluxio.wire.Medium;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -417,7 +419,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
 
-    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    ret.setMediumTypes(Medium.fromValues(entry.getMediumTypeList()));
     return ret;
   }
 
@@ -465,7 +467,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   public JournalEntry toJournalEntry() {
     InodeFileEntry.Builder inodeFile = InodeFileEntry.newBuilder()
         .addAllBlocks(getBlockIds())
-        .addAllMediumType(getMediumTypes())
+        .addAllMediumType(getMediumTypes().stream().map(Medium::toString).collect(Collectors.toList()))
         .setBlockSizeBytes(getBlockSizeBytes())
         .setCacheable(isCacheable())
         .setCompleted(isCompleted())
@@ -543,7 +545,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setMediumTypes(Medium.fromValues(inode.getMediumTypeList()));
     if (inode.getXAttrCount() > 0) {
       f.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
     }

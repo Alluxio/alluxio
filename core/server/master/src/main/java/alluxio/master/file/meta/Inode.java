@@ -20,6 +20,7 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
+import alluxio.wire.Medium;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
@@ -144,7 +145,7 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
-  public Set<String> getMediumTypes() {
+  public Set<Medium> getMediumTypes() {
     return mDelegate.getMediumTypes();
   }
 

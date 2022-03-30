@@ -19,6 +19,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
+import alluxio.wire.Medium;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -275,7 +276,7 @@ public class URIStatus {
   /**
    * @return the pinned location list
    */
-  public Set<String> getPinnedMediumTypes() {
+  public Set<Medium> getPinnedMediumTypes() {
     return mInfo.getMediumTypes();
   }
 

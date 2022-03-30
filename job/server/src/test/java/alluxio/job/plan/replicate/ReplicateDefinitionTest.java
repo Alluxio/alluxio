@@ -54,6 +54,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.Medium;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -72,6 +73,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -280,7 +282,7 @@ public final class ReplicateDefinitionTest {
     for (boolean persisted : new boolean[] {true, false}) {
       for (boolean pinned : new boolean[] {true, false}) {
         mTestStatus.getFileInfo().setPersisted(persisted)
-            .setMediumTypes(pinned ? Sets.newHashSet(Constants.MEDIUM_MEM)
+            .setMediumTypes(pinned ? EnumSet.of(Medium.MEM)
                 : Collections.emptySet());
         byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
         TestBlockInStream mockInStream =
@@ -304,7 +306,7 @@ public final class ReplicateDefinitionTest {
   @Test
   public void runTaskInputIOException() throws Exception {
     // file is pinned on a medium
-    mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet(Constants.MEDIUM_MEM));
+    mTestStatus.getFileInfo().setMediumTypes(EnumSet.of(Medium.MEM));
     BlockInStream mockInStream = mock(BlockInStream.class);
     BlockOutStream mockOutStream = mock(BlockOutStream.class);
 

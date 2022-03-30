@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class BlockLocationTest {
 
@@ -53,7 +54,7 @@ public final class BlockLocationTest {
     long workerId = random.nextLong();
     WorkerNetAddress workerAddress = WorkerNetAddressTest.createRandom();
     String tierAlias = CommonUtils.randomAlphaNumString(random.nextInt(10));
-    String mediumType = CommonUtils.randomAlphaNumString(random.nextInt(3));
+    Medium mediumType = Medium.VALUES.get(ThreadLocalRandom.current().nextInt(3));
 
     result.setWorkerId(workerId);
     result.setWorkerAddress(workerAddress);
