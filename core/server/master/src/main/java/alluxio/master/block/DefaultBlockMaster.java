@@ -1414,7 +1414,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Collections.sort(blockLocations,
         Comparator.comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTier())));
 
-    List<alluxio.wire.BlockLocation> locations = new ArrayList<>();
+    List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
