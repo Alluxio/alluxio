@@ -40,7 +40,12 @@ public class PersistRunner {
   private FileSystem mFileSystem;
   private JobMaster mJobMaster;
 
-  PersistRunner(@Nullable FileSystemContext fsContext, JobMaster jobMaster) {
+  /**
+   * constructor.
+   * @param fsContext
+   * @param jobMaster
+   */
+  public PersistRunner(@Nullable FileSystemContext fsContext, JobMaster jobMaster) {
     if (fsContext == null) {
       fsContext =
               FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));

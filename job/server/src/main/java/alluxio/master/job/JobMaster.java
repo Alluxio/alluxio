@@ -393,6 +393,24 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * @return list of all command ids
+   * @param options listing options (using existing options)
+   */
+  public List<Long> listCmds(ListAllPOptions options) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("list")) {
+      List<Long> ids = new ArrayList<>();
+      ids.addAll(mCmdJobTracker.findCmds(
+              options.getStatusList().stream()
+                      .map(status -> Status.valueOf(status.name()))
+                      .collect(Collectors.toList())));
+      Collections.sort(ids);
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
    * @return list of all job infos
    */
   public List<JobInfo> listDetailed() {

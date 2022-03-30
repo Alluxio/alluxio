@@ -28,7 +28,6 @@ import java.io.IOException;
  */
 public class CmdRunAttempt {
   private static final Logger LOG = LoggerFactory.getLogger(CmdRunAttempt.class);
-//  static final long NON_EXISTED_JOB_ID = -1L;
 
   protected final RetryPolicy mRetryPolicy;
   protected final JobMaster mJobMaster;

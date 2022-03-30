@@ -47,10 +47,15 @@ import java.util.Map;
 /**
  * A config runner for a MigrateCli job.
  */
-public final class MigrateCliRunner extends AbstractCmdRunner {
+public class MigrateCliRunner extends AbstractCmdRunner {
   private static final Logger LOG = LoggerFactory.getLogger(MigrateCliRunner.class);
 
-  MigrateCliRunner(FileSystemContext fsContext, JobMaster jobMaster) {
+  /**
+   * constructor.
+   * @param fsContext
+   * @param jobMaster
+   */
+  public MigrateCliRunner(FileSystemContext fsContext, JobMaster jobMaster) {
     super(fsContext, jobMaster);
   }
 
@@ -142,8 +147,14 @@ public final class MigrateCliRunner extends AbstractCmdRunner {
     attempt.run();
   }
 
-  // Create a JobConfig and set file count and size for the Migrate job.
-  private void setJobConfigAndFileMetrics(List<Pair<String, String>> filePath,
+  /**
+   *  Create a JobConfig and set file count and size for the Migrate job.
+   * @param filePath file paths to do distCp
+   * @param overwrite overwrite destination
+   * @param writeType write type
+   * @param attempt each child job attempt
+   */
+  public void setJobConfigAndFileMetrics(List<Pair<String, String>> filePath,
         boolean overwrite, String writeType, CmdRunAttempt attempt) {
     int poolSize = filePath.size();
     JobConfig jobConfig;

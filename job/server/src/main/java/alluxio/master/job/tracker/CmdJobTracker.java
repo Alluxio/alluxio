@@ -31,10 +31,12 @@ import alluxio.master.job.common.LogLink;
 import alluxio.master.job.plan.PlanTracker;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +70,29 @@ public class CmdJobTracker {
     mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
     mPersistRunner = new PersistRunner(mFsContext, jobMaster);
+    mJobMap = Maps.newHashMap();
+    mLnk = Maps.newHashMap();
+    mInfoMap = Maps.newHashMap();
+    mPlanTracker = planTracker;
+  }
+
+  /**
+   * Constructor with runner providers.
+   * @param fsContext Filesystem context
+   * @param planTracker Plan tracker
+   * @param distLoadCliRunner DistributedLoad runner
+   * @param migrateCliRunner DistributedCopy runner
+   * @param persistRunner Persist runner
+   */
+  public CmdJobTracker(FileSystemContext fsContext,
+                       PlanTracker planTracker,
+                       DistLoadCliRunner distLoadCliRunner,
+                       MigrateCliRunner migrateCliRunner,
+                       PersistRunner persistRunner) {
+    mFsContext = fsContext;
+    mDistLoadCliRunner = distLoadCliRunner;
+    mMigrateCliRunner = migrateCliRunner;
+    mPersistRunner = persistRunner;
     mJobMap = Maps.newHashMap();
     mLnk = Maps.newHashMap();
     mInfoMap = Maps.newHashMap();
@@ -122,7 +147,7 @@ public class CmdJobTracker {
 
 // test status and progress.
     mInfoMap.put(cmdInfo.getJobControlId(), cmdInfo);
-    Status cmdStatus = getCmdStatus(cmdInfo.getJobControlId());
+  //  Status cmdStatus = getCmdStatus(cmdInfo.getJobControlId());
 //    CmdProgress cmdProgress = getProgress(cmdInfo, true);
 //    LOG.info(String.format("status is %s", cmdStatus.toString()));
 //    cmdProgress.listAllProgress();
@@ -183,23 +208,63 @@ public class CmdJobTracker {
     }
 
     int completed = 0;
+    boolean finished = true;
+    boolean failed = false;
+    boolean canceled = false;
+    Set<String> failedFiles = new HashSet<>(); // FAILED files
     for (CmdRunAttempt attempt : cmdInfo.getCmdRunAttempt()) {
       Status s = attempt.checkJobStatus();
-      if (s == Status.FAILED) {
-        return Status.FAILED;
+      if (!s.isFinished()) {
+        finished = false;
+        break;
       }
-      if (s == Status.CANCELED) {
-        return Status.CANCELED;
+      if (!failed && s == Status.FAILED) {
+        failed = true;
+        failedFiles.add(StringUtils.substringBetween(attempt.getJobConfig().toString(),
+                "FilePath=", ","));
+      }
+      if (!canceled && s == Status.CANCELED) {
+        canceled = true;
       }
       if (s == Status.COMPLETED) {
         completed++;
       }
     }
 
-    if (completed == cmdInfo.getCmdRunAttempt().size()) {
-      return Status.COMPLETED;
+    if (finished) {
+      if (failed) {
+        return Status.FAILED; // FAILED has higher priority than CANCELED
+      }
+      if (canceled) {
+        return Status.CANCELED;
+      }
+      if (completed == cmdInfo.getCmdRunAttempt().size()) {
+        return Status.COMPLETED;
+      }
     }
+
+    if (failedFiles.isEmpty()) {
+      LOG.warn("Failed file paths are:  ");
+      failedFiles.forEach(LOG::warn);
+    }
+
     return Status.RUNNING;
+  }
+
+  /**
+   * @param statusList status list filter
+   * @return cmd ids matching conditions
+   */
+  public Set<Long> findCmds(List<Status> statusList) throws JobDoesNotExistException {
+    Set<Long> set = new HashSet<>();
+    for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
+      if (statusList.isEmpty()
+              || statusList.contains(getCmdStatus(x.getValue().getJobControlId()))) {
+        Long key = x.getKey();
+        set.add(key);
+      }
+    }
+    return set;
   }
 
   /**

@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
  */
 public abstract class AbstractCmdRunner {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCmdRunner.class);
-  protected static final int DEFAULT_ACTIVE_JOBS = 30000;
+  protected static final int DEFAULT_ACTIVE_JOBS = 3000;
   protected static final long DEFAULT_FILE_COUNT = 1;
 
   protected FileSystem mFileSystem;
