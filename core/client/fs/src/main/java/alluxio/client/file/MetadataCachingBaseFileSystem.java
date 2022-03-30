@@ -148,7 +148,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-
     if (options.getRecursive()) {
       // Do not cache results of recursive list status,
       // because some results might be cached multiple times.
