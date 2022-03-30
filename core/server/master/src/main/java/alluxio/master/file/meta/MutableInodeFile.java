@@ -29,6 +29,7 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -419,9 +420,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     }
 
     if (!entry.getMediumTypeList().isEmpty()) {
-      ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
-    } else {
-      ret.setMediumTypes(Collections.emptySet());
+      ret.setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
     }
     return ret;
   }
@@ -549,9 +548,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath());
     if (!inode.getMediumTypeList().isEmpty()) {
-      f.setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
-    } else {
-      f.setMediumTypes(Collections.emptySet());
+      f.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
     }
     if (inode.getXAttrCount() > 0) {
       f.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));

@@ -31,9 +31,11 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +54,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class MutableInode<T extends MutableInode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(MutableInode.class);
 
+  public static final Set<String> EMPTY_MEDIUMS = ImmutableSet.of();
   private static final Set<String> MEDIUMS = Collections.unmodifiableSet(new HashSet<>(
       ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)));
   protected long mCreationTimeMs;
@@ -84,7 +87,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mMediumTypes = Collections.emptySet();
+    mMediumTypes = EMPTY_MEDIUMS;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mXAttr = null;
@@ -192,6 +195,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
+  // TODO(jiacheng): Make this interface immutable
   public Set<String> getMediumTypes() {
     return mMediumTypes;
   }
@@ -581,7 +585,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setMode((short) entry.getMode());
     }
     if (entry.getMediumTypeCount() != 0) {
-      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+      setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
     }
     if (entry.hasName()) {
       setName(entry.getName());
@@ -613,31 +617,24 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.
       if (entry.getPinned()) {
-        List<String> mediums = entry.getMediumTypeList();
-        if (!mediums.isEmpty()) {
+        if (entry.getMediumTypeCount() > 0) {
+          List<String> mediums = entry.getMediumTypeList();
           int valid = 0;
-          for (int i = 0; i < mediums.size(); i++) {
-            if (MEDIUMS.contains(mediums.get(i))) {
+          for (String medium : entry.getMediumTypeList()) {
+            if (MEDIUMS.contains(medium)) {
               valid++;
             }
           }
-          if (valid == 0) {
-            setMediumTypes(Collections.emptySet());
-          } else {
-            Set<String> validMediums = new HashSet<>();
-            for (int i = 0; i < mediums.size(); i++) {
-              String m = mediums.get(i);
+          if (valid > 0) {
+            List<String> validMediums = new ArrayList<>(valid);
+            for (String m : mediums) {
               if (MEDIUMS.contains(m)) {
                 validMediums.add(m);
               }
             }
-            setMediumTypes(validMediums);
+            setMediumTypes(ImmutableSet.copyOf(validMediums));
           }
-        } else {
-          setMediumTypes(Collections.emptySet());
         }
-      } else {
-        setMediumTypes(Collections.emptySet());
       }
     }
   }

@@ -59,6 +59,7 @@ import alluxio.util.interfaces.Scoped;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -808,9 +809,7 @@ public class InodeTree implements DelegatingJournaled {
       if (currentInodeDirectory.isPinned() && !newDir.isPinned()) {
         newDir.setPinned(true);
         if (!currentInodeDirectory.getMediumTypes().isEmpty()) {
-          newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
-        } else {
-          newDir.setMediumTypes(Collections.emptySet());
+          newDir.setMediumTypes(ImmutableSet.copyOf(currentInodeDirectory.getMediumTypes()));
         }
       }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
@@ -918,9 +917,7 @@ public class InodeTree implements DelegatingJournaled {
     if (currentInodeDirectory.isPinned() && !newInode.isPinned()) {
       newInode.setPinned(true);
       if (!currentInodeDirectory.getMediumTypes().isEmpty()) {
-        newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
-      } else {
-        newInode.setMediumTypes(Collections.emptySet());
+        newInode.setMediumTypes(ImmutableSet.copyOf(currentInodeDirectory.getMediumTypes()));
       }
     }
 
