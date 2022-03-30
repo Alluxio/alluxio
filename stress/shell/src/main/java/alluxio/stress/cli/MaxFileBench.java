@@ -149,9 +149,8 @@ public class MaxFileBench extends StressMasterBench {
     AlluxioNativeMaxFileThread(int id, FileSystem fs) {
       mId = id;
       mFs = fs;
-      mBasePath =
-          new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mId));
-      mFixedBasePath = new Path(mBasePath, "fixed");
+      mBasePath = new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mId));
+      mFixedBasePath = new Path(mBasePath, mFixedDir);
       LOG.info("[{}]: basePath: {}, fixedBasePath: {}", mId, mBasePath, mFixedBasePath);
     }
 

@@ -73,6 +73,10 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
 
   /** In case the Alluxio Native API is used,  use the following instead. */
   protected alluxio.client.file.FileSystem[] mCachedNativeFs;
+  /* Directories where the stress bench creates files depending on the --operation chosen. */
+  protected final String mDirsDir = "dirs";
+  protected final String mFilesDir = "files";
+  protected final String mFixedDir = "fixed";
 
   /**
    * Creates instance.
@@ -327,12 +331,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mCounter = new AtomicLong();
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
+            new Path(PathUtils.concatPath(mParameters.mBasePath, mDirsDir, mBaseParameters.mId));
       } else {
         mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
+            new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mBaseParameters.mId));
       }
-      mFixedBasePath = new Path(mBasePath, "fixed");
+      mFixedBasePath = new Path(mBasePath, mFixedDir);
       LOG.info("BenchContext: basePath: {}, fixedBasePath: {}", mBasePath, mFixedBasePath);
     }
 
