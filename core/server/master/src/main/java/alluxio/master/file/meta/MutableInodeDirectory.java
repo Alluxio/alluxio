@@ -24,10 +24,9 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
+
 import com.google.common.collect.ImmutableSet;
 
-import java.util.Collections;
-import java.util.HashSet;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

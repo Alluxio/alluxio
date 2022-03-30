@@ -36,12 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -54,9 +50,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class MutableInode<T extends MutableInode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(MutableInode.class);
 
-  public static final Set<String> EMPTY_MEDIUMS = ImmutableSet.of();
-  private static final Set<String> MEDIUMS = Collections.unmodifiableSet(new HashSet<>(
-      ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)));
+  public static final ImmutableSet<String> NO_MEDIUM = ImmutableSet.of();
+  private static final ImmutableSet<String> MEDIUMS = ImmutableSet.copyOf(
+      ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE));
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -69,7 +65,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  private Set<String> mMediumTypes;
+  private ImmutableSet<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
   private Map<String, byte[]> mXAttr;
@@ -87,7 +83,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mMediumTypes = EMPTY_MEDIUMS;
+    mMediumTypes = NO_MEDIUM;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mXAttr = null;
@@ -195,8 +191,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-  // TODO(jiacheng): Make this interface immutable
-  public Set<String> getMediumTypes() {
+  public ImmutableSet<String> getMediumTypes() {
     return mMediumTypes;
   }
 
@@ -504,7 +499,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param mediumTypes the medium types to pin to
    * @return the updated object
    */
-  public T setMediumTypes(Set<String> mediumTypes) {
+  public T setMediumTypes(ImmutableSet<String> mediumTypes) {
     mMediumTypes = mediumTypes;
     return getThis();
   }
