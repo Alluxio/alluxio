@@ -621,6 +621,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey MASTER_METADATA_SYNC_NO_CHANGE =
+      new Builder("Master.MetadataSyncNoChange")
+          .setDescription("The number of InodeSyncStream that finished with no change to inodes.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey MASTER_METADATA_SYNC_SUCCESS =
       new Builder("Master.MetadataSyncSuccess")
           .setDescription("The number of InodeSyncStream that succeeded")

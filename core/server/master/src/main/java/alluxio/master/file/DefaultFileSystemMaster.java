@@ -4643,6 +4643,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_OPS_COUNT.getName());
     public static final Counter INODE_SYNC_STREAM_SKIPPED
         = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_SKIPPED.getName());
+    public static final Counter INODE_SYNC_STREAM_NO_CHANGE
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_NO_CHANGE.getName());
     public static final Counter INODE_SYNC_STREAM_SUCCESS
         = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_SUCCESS.getName());
     public static final Counter INODE_SYNC_STREAM_FAIL

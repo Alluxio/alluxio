@@ -627,6 +627,9 @@ public class InodeSyncStream {
 
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
+        if (!syncPlan.toUpdateMetaData() && !syncPlan.toDelete()) {
+          DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_NO_CHANGE.inc();
+        }
 
         if (syncPlan.toUpdateMetaData()) {
           // UpdateMetadata is used when a file or a directory only had metadata change.
