@@ -58,29 +58,27 @@ public class MaxFileBench extends StressMasterBench {
 
   private final List<String> mDefaultParams = Arrays.asList(
       BaseParameters.BENCH_TIMEOUT, String.format("%ds", Integer.MAX_VALUE),
-      FileSystemParameters.CLIENT_TYPE, FileSystemClientType.ALLUXIO_NATIVE.toString(),
+      FileSystemParameters.CLIENT_TYPE_OPTION_NAME, FileSystemClientType.ALLUXIO_NATIVE.toString(),
       BaseParameters.CLUSTER_START_DELAY_FLAG, "0s",
-      MasterBenchParameters.DURATION, String.format("%ds", Integer.MAX_VALUE),
-      MasterBenchParameters.OPERATION, Operation.CREATE_FILE.toString(),
-      MasterBenchBaseParameters.STOP_COUNT, Integer.toString(
+      MasterBenchParameters.DURATION_OPTION_NAME, String.format("%ds", Integer.MAX_VALUE),
+      MasterBenchParameters.OPERATION_OPTION_NAME, Operation.CREATE_FILE.toString(),
+      MasterBenchBaseParameters.STOP_COUNT_OPTION_NAME, Integer.toString(
           MasterBenchBaseParameters.STOP_COUNT_INVALID),
-      MasterBenchBaseParameters.WARMUP, "0s",
-      FileSystemParameters.WRITE_TYPE, WritePType.MUST_CACHE.toString()
+      MasterBenchBaseParameters.WARMUP_OPTION_NAME, "0s",
+      FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE.toString()
   );
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    // TODO(jenoudet): run MaxThroughput beforehand
-
     mainInternal(args, new MaxFileBench());
   }
 
   @Override
   public String getBenchDescription() {
     List<String> descLines = new ArrayList<>(Arrays.asList(
-        "MaxFile. This stressbench runs CreateFile until the master becomes unresponsive.",
+        "MaxFile. Creates files until no more files can be created.",
         "This stressbench ignore the following options and sets its own values as follows:"
     ));
     for (int i = 0; i < mDefaultParams.size(); i += 2) {
