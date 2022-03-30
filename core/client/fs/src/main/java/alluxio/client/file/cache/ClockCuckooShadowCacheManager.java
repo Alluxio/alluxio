@@ -86,14 +86,14 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
 
   @Override
   public int get(PageId pageId, int bytesToRead, CacheScope cacheScope) {
-    boolean seen = mFilter.mightContainAndResetClock(pageId);
-    if (seen) {
-      mShadowCachePageHit.getAndIncrement();
-      mShadowCacheByteHit.getAndAdd(bytesToRead);
-    }
     mShadowCachePageRead.getAndIncrement();
     mShadowCacheByteRead.getAndAdd(bytesToRead);
-    return seen ? bytesToRead : 0;
+    if (mFilter.mightContainAndResetClock(pageId)) {
+      mShadowCachePageHit.getAndIncrement();
+      mShadowCacheByteHit.getAndAdd(bytesToRead);
+      return bytesToRead;
+    }
+    return 0;
   }
 
   @Override
