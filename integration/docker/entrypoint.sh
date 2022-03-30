@@ -116,7 +116,7 @@ function mountAlluxioRootFSWithFuseOption {
 
   ! mkdir -p ${MOUNT_POINT}
   # Unmount first if cleanup failed and ignore error
-  exec integration/fuse/bin/alluxio-fuse umount ${MOUNT_POINT}
+  ! umount ${MOUNT_POINT}
   exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} ${ALLUXIO_PATH}
 }
 

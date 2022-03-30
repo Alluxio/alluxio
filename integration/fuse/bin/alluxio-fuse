@@ -105,6 +105,7 @@ mount_fuse() {
 
 kill_process_and_umount_fuse() {
   local mount_point=${1%/}
+  # TODO(lu) check if fuse_pid contains multiple pids
   local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
   if [[ -z ${fuse_pid} ]]; then
     err "Cannot find fuse process"
@@ -138,21 +139,28 @@ Run \"alluxio-fuse umount -f <mount_point>\" if needed to forcibly kill the allu
     fi
   done
   printf '\n'
-  echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
-  return 0
+
+  if fuse_mounted; then
+    # should not reach here
+    err "Failed to umount fuse mount point ${mount_point}"
+    return 1
+  else
+    echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid}).]"
+    return 0
+  fi
 }
 
 umount_fuse() {
-  success_msg="Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})"
-  if umount "${mount_point}" > /dev/null 2>&1; then
+  success_msg="Successfully unmount fuse at ${mount_point}"
+  if umount "${mount_point}" > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1; then
     echo "${success_msg}"
     return 0
   fi
-  if fusermount -u -z "${mount_point}" > /dev/null 2>&1; then
+  if fusermount -u -z "${mount_point}" > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1; then
     echo "${success_msg}"
     return 0
   fi
-  if umount -f "${mount_point}" > /dev/null 2>&1; then
+  if umount -f "${mount_point}" > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1; then
     echo "${success_msg}"
     return 0
   fi
