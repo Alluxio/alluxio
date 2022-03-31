@@ -1312,6 +1312,32 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_READ_TIMEOUT =
+      new Builder("Worker.CacheReadTimeout")
+          .setDescription("Number of timeouts when writing to worker storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_READ_THREADS_REJECTED =
+      new Builder("Worker.CacheReadThreadsRejected")
+          .setDescription("Number of rejection of I/O threads on submitting tasks to thread pool, "
+              + "likely due to unresponsive local file system.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_WRITE_TIMEOUT =
+      new Builder("Worker.CacheWriteTimeout")
+          .setDescription("Number of timeouts when writing to worker storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_WRITE_THREADS_REJECTED =
+      new Builder("Worker.CacheWriteThreadsRejected")
+          .setDescription("Number of rejection of I/O threads on submitting tasks to thread pool, "
+              + "likely due to unresponsive local file system.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_CACHE_BLOCKS_SIZE =
       new Builder("Worker.CacheBlocksSize")
           .setDescription("Total number of bytes that being cached through cache requests")
