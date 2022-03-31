@@ -37,9 +37,10 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Test for {@link DistributedLoadCommand}.
@@ -257,7 +258,6 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
-    int cmdCount = 1;
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
           10);
@@ -267,7 +267,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     }
     fsShell.run("distributedLoad", "/testCount", "--batch-size", "3");
     String[] output = mOutput.toString().split("\n");
-    Assert.assertEquals(String.format("Completed command count is %s,Failed count is 0.", cmdCount),
+    Assert.assertEquals(String.format("Completed count is %s,Failed count is 0.", fileSize),
         output[output.length - 1]);
   }
 
@@ -289,11 +289,13 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
         failures.add(pathStr);
       }
     }
+    String failureFilePath = "./logs/user/distributedLoad_testFailure_failures.csv";
     fsShell.run("distributedLoad", "/testFailure");
-    Set<String> failedPathsFromJobMasterLog = sJobMaster.getAllFailedPaths();
-    System.out.println(failedPathsFromJobMasterLog);
-
-    Assert.assertEquals(failedPathsFromJobMasterLog.size(), fileSize / 2);
-    Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failedPathsFromJobMasterLog));
+    Assert.assertTrue(mOutput.toString().contains(
+        String.format("Completed count is %s,Failed count is %s.\n", fileSize / 2, fileSize / 2)));
+    Assert.assertTrue(mOutput.toString()
+        .contains(String.format("Check out %s for full list of failed files.", failureFilePath)));
+    List<String> failuresFromFile = Files.readAllLines(Paths.get(failureFilePath));
+    Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failuresFromFile));
   }
 }
