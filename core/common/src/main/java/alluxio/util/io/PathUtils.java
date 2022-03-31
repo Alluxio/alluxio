@@ -36,7 +36,7 @@ public final class PathUtils {
   private static final CharMatcher SEPARATOR_MATCHER =
       CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0));
   private static final Pattern TEMPORARY_FILE_NAME =
-      Pattern.compile("^.*\\.alluxio\\" + ".0x[0" + "-9A-F]{16}\\.tmp$");
+      Pattern.compile("^.*\\.alluxio\\.0x[0-9A-F]{16}\\.tmp$");
 
   /**
    * Checks and normalizes the given path.
