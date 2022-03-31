@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.common.FileSystemClientType;
@@ -135,7 +135,7 @@ public class MaxFileBench extends StressMasterBench {
   }
 
   private final class AlluxioNativeMaxFileThread implements Callable<Void> {
-    private static final int OPERATION_TIMEOUT_MS = 2_000;
+    private static final int OPERATION_TIMEOUT_MS = 2 * 60 * 1_000;
 
     private RetryPolicy mRetryPolicy = createPolicy();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -155,10 +155,8 @@ public class MaxFileBench extends StressMasterBench {
     }
 
     private RetryPolicy createPolicy() {
-      final int initWaitTimeMs = 100;
-      final int maxWaitTimeMs = 15_000;
-      final int numAttempts = 8;
-      return new ExponentialBackoffRetry(initWaitTimeMs, maxWaitTimeMs, numAttempts);
+      final int numAttempts = 3;
+      return new CountingRetry(numAttempts);
     }
 
     @Override
