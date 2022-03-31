@@ -35,7 +35,6 @@ import java.util.Set;
 @JacksonXmlRootElement(localName = "Tagging")
 public class TaggingData implements Serializable {
   public static final long serialVersionUID = 1L;
-  public static int sMaxHeaderMetadataSize; // initialized by S3RestServiceHandler, 0 means disabled
 
   /**
    * Deserialize the object.
@@ -148,14 +147,6 @@ public class TaggingData implements Serializable {
               S3ErrorCode.INVALID_TAG.getCode(),
               String.format("Tag value exceeds maximum length (256): %s=%s", tag.mKey, tag.mValue),
               S3ErrorCode.INVALID_TAG.getStatus()));
-        }
-        // Header user-metadata size limit validation (<= 2 KB)
-        // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
-        if (sMaxHeaderMetadataSize > 0) {
-          totalBytes += tag.getNumBytes();
-          if (totalBytes > sMaxHeaderMetadataSize) {
-            throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
-          }
         }
       }
     } catch (S3Exception e) {

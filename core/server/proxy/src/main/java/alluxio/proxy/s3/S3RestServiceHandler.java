@@ -94,6 +94,7 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
+  private final int mMaxHeaderMetadataSize; // 0 means disabled
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -105,7 +106,7 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
-    TaggingData.sMaxHeaderMetadataSize = (int) mFileSystem.getConf().getBytes(
+    mMaxHeaderMetadataSize = (int) mFileSystem.getConf().getBytes(
         PropertyKey.PROXY_S3_METADATA_HEADER_MAX_SIZE);
   }
 
@@ -541,6 +542,13 @@ public final class S3RestServiceHandler {
         }
       }
       if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
+        // Header user-metadata size limit validation (<= 2 KB)
+        // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
+        if (mMaxHeaderMetadataSize > 0
+            && taggingHeader.getBytes(S3Constants.TAGGING_CHARSET).length
+            > mMaxHeaderMetadataSize) {
+          throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
+        }
         List<TaggingData.TagObject> tagObjectList =
             new ArrayList<TaggingData.TagObject>();
         for (String tag : taggingHeader.split("&")) {
