@@ -137,6 +137,28 @@ public final class PathUtilsTest {
     assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
+    paths.add(new AlluxioURI("/"));
+    paths.add(new AlluxioURI("/a/b/c/d"));
+    paths.add(new AlluxioURI("/a/b/c/d/e/f"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a"));
+    paths.add(new AlluxioURI("/a/b"));
+    paths.add(new AlluxioURI("/aaa/b"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/"));
+    assertEquals("/a/b", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/c"));
+    paths.add(new AlluxioURI("/a"));
+    paths.add(new AlluxioURI("/a/b/c/d"));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
     paths.add(new AlluxioURI("/a"));
     assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
 
@@ -269,15 +291,15 @@ public final class PathUtilsTest {
    */
   @Test
   public void getPathComponentsNoException() throws InvalidPathException {
-    assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
-    assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
-    assertArrayEquals(new String[] {"", "foo", "bar"},
+    assertArrayEquals(new String[]{""}, PathUtils.getPathComponents("/"));
+    assertArrayEquals(new String[]{"", "bar"}, PathUtils.getPathComponents("/bar"));
+    assertArrayEquals(new String[]{"", "foo", "bar"},
         PathUtils.getPathComponents("/foo/bar"));
-    assertArrayEquals(new String[] {"", "foo", "bar"},
+    assertArrayEquals(new String[]{"", "foo", "bar"},
         PathUtils.getPathComponents("/foo/bar/"));
-    assertArrayEquals(new String[] {"", "bar"},
+    assertArrayEquals(new String[]{"", "bar"},
         PathUtils.getPathComponents("/foo/../bar"));
-    assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
+    assertArrayEquals(new String[]{"", "foo", "bar", "a", "b", "c"},
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 

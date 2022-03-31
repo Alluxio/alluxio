@@ -147,13 +147,10 @@ public final class PathUtils {
       }
       if (res.equals("")) {
         res = path.getPath();
-      } else {
+      } else if (!res.equals(pathStr)) {
         len = Math.min(res.length(), pathStr.length());
         temp = "";
         for (i = 0; i < len; i++) {
-          if (i >= res.length() + AlluxioURI.SEPARATOR.length()) {
-            break;
-          }
           if (res.charAt(i) == pathStr.charAt(i)) {
             temp = temp + res.charAt(i);
             if (i == len - AlluxioURI.SEPARATOR.length() && ((res.length() > pathStr.length() && !res.startsWith(AlluxioURI.SEPARATOR,
@@ -184,9 +181,6 @@ public final class PathUtils {
         if (temp.equals(AlluxioURI.SEPARATOR)) {
           res = temp;
           break;
-        }
-        if (temp.endsWith(AlluxioURI.SEPARATOR)) {
-          temp = temp.substring(0, temp.length() - AlluxioURI.SEPARATOR.length());
         }
         res = res.length() > temp.length() ? temp : res;
       }
