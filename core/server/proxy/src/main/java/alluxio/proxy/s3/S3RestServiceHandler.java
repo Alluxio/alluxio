@@ -238,18 +238,16 @@ public final class S3RestServiceHandler {
 
       String path = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
       final FileSystem fs = getFileSystem(authorization);
+      S3RestUtils.checkPathIsAlluxioDirectory(fs, path);
 
       if (tagging != null) { // GetBucketTagging
-        String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
-            AlluxioURI.SEPARATOR, bucket));
-        S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
-        AlluxioURI uri = new AlluxioURI(bucketPath);
+        AlluxioURI uri = new AlluxioURI(path);
         try {
           TaggingData tagData = deserializeTags(fs.getStatus(uri).getFileInfo());
           LOG.debug("GetBucketTagging tagData={}", tagData);
           return tagData != null ? tagData : new TaggingData();
         } catch (Exception e) {
-          throw S3RestUtils.toBucketS3Exception(e, bucketPath);
+          throw S3RestUtils.toBucketS3Exception(e, path);
         }
       }
 
