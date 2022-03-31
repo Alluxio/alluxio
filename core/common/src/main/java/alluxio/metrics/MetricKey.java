@@ -606,6 +606,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+
+  // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_OPS_COUNT =
       new Builder("Master.MetadataSyncOpsCount")
           .setDescription("The number of metadata sync operations. "
@@ -735,6 +737,18 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "This is the number of UFS paths being processed.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
+          .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncExecutorQueueSize")
+          .setDescription("The number of queuing sync tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
+          .setMetricType(MetricType.GAUGE)
           .build();
 
   // Journal metrics
@@ -878,18 +892,6 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.JobRunning")
           .setDescription("The number of running status job")
           .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
-      new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
-          .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
-              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE =
-      new Builder("Master.MetadataSyncExecutorQueueSize")
-          .setDescription("The number of queuing sync tasks in the metadata sync thread pool"
-              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
-          .setMetricType(MetricType.GAUGE)
           .build();
 
   // Distributed command related metrics
