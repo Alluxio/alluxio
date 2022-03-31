@@ -46,7 +46,7 @@ public final class PathUtils {
    *
    * @param path The path to clean up
    * @return a normalized version of the path, with single separators between path components and
-   *         dot components resolved
+   * dot components resolved
    * @throws InvalidPathException if the path is invalid
    */
   public static String cleanPath(String path) throws InvalidPathException {
@@ -96,10 +96,10 @@ public final class PathUtils {
    * concatPath("/", "dir", "filename").equals("/dir/filename");
    * }
    * </pre>
-   *
+   * <p>
    * Note that empty element in base or paths is ignored.
    *
-   * @param base base path
+   * @param base  base path
    * @param paths paths to concatenate
    * @return joined path
    * @throws IllegalArgumentException if base or paths is null
@@ -136,24 +136,62 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    List<String> matchedComponents = null;
-    int matchedLen = 0;
-    for (AlluxioURI path : paths) {
-      String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
-      if (matchedComponents == null) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
-        matchedLen = pathComp.length;
-      }
+    String res = "", temp = "";
+    int i = 0, prev = 0, lastSeparator = 0, len;
 
-      for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
-        if (!matchedComponents.get(i).equals(pathComp[i])) {
-          matchedLen = i;
+    for (AlluxioURI path : paths) {
+      String pathStr = path.getPath();
+      if (pathStr.equals(AlluxioURI.SEPARATOR)) {
+        res = AlluxioURI.SEPARATOR;
+        break;
+      }
+      if (res.equals("")) {
+        res = path.getPath();
+      } else {
+        len = Math.min(res.length(), pathStr.length());
+        temp = "";
+        for (i = 0; i < len; i++) {
+          if (i >= res.length() + AlluxioURI.SEPARATOR.length()) {
+            break;
+          }
+          if (res.charAt(i) == pathStr.charAt(i)) {
+            temp = temp + res.charAt(i);
+            if (i == len - AlluxioURI.SEPARATOR.length() && ((res.length() > pathStr.length() && !res.startsWith(AlluxioURI.SEPARATOR,
+                i + 1)) || (pathStr.length() > res.length() && !pathStr.startsWith(AlluxioURI.SEPARATOR,
+                i + 1)))) {
+              // last char
+              if ((res.length() > len && res.substring(i + 1,
+                  i + 1 + AlluxioURI.SEPARATOR.length()) != AlluxioURI.SEPARATOR) || (pathStr.length() > len && pathStr.substring(i + 1, i + 1 + AlluxioURI.SEPARATOR.length()) != AlluxioURI.SEPARATOR)) {
+                // back to the last separator
+                temp = temp.substring(0, lastSeparator);
+              }
+            }
+          } else {
+            temp = temp.substring(0, lastSeparator);
+            break;
+          }
+
+          prev = i - AlluxioURI.SEPARATOR.length() + 1;
+          if (prev >= 0 && res.startsWith(AlluxioURI.SEPARATOR,
+              prev)) {
+            // update last separator
+            lastSeparator = prev;
+          }
+        }
+        if (temp.equals("")) {
+          temp = AlluxioURI.SEPARATOR;
+        }
+        if (temp.equals(AlluxioURI.SEPARATOR)) {
+          res = temp;
           break;
         }
+        if (temp.endsWith(AlluxioURI.SEPARATOR)) {
+          temp = temp.substring(0, temp.length() - AlluxioURI.SEPARATOR.length());
+        }
+        res = res.length() > temp.length() ? temp : res;
       }
     }
-    return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-        matchedComponents.subList(0, matchedLen).toArray()));
+    return new AlluxioURI(res);
   }
 
   /**
@@ -176,7 +214,7 @@ public final class PathUtils {
 
   /**
    * Join two path elements for ufs, separated by {@link AlluxioURI#SEPARATOR}.
-   *
+   * <p>
    * For example,
    *
    * <pre>
@@ -230,7 +268,7 @@ public final class PathUtils {
 
   /**
    * Gets the path components of the given path. The first component will be an empty string.
-   *
+   * <p>
    * "/a/b/c" => {"", "a", "b", "c"}
    * "/" => {""}
    *
@@ -248,10 +286,10 @@ public final class PathUtils {
 
   /**
    * Removes the prefix from the path, yielding a relative path from the second path to the first.
-   *
+   * <p>
    * If the paths are the same, this method returns the empty string.
    *
-   * @param path the full path
+   * @param path   the full path
    * @param prefix the prefix to remove
    * @return the path with the prefix removed
    * @throws InvalidPathException if either of the arguments are not valid paths
@@ -277,23 +315,20 @@ public final class PathUtils {
    * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
    * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
    *
-   * @param path a path
+   * @param path   a path
    * @param prefix a prefix
    * @return whether the given path has the given prefix
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    String[] pathComponents = getPathComponents(path);
-    String[] prefixComponents = getPathComponents(prefix);
-    if (pathComponents.length < prefixComponents.length) {
+    if (prefix.charAt(prefix.length() - 1) == '/' && path.charAt(path.length() - 1) != '/') {
+      path = path + '/';
+    }
+
+    if (path.length() < prefix.length()) {
       return false;
     }
-    for (int i = 0; i < prefixComponents.length; i++) {
-      if (!pathComponents[i].equals(prefixComponents[i])) {
-        return false;
-      }
-    }
-    return true;
+    return path.startsWith(prefix) && (path.length() == prefix.length() || path.charAt(prefix.length()) == '/');
   }
 
   /**
@@ -328,7 +363,7 @@ public final class PathUtils {
    * Generates a deterministic temporary file name for the a path and a file id and a nonce.
    *
    * @param nonce a nonce token
-   * @param path a file path
+   * @param path  a file path
    * @return a deterministic temporary file name
    */
   public static String temporaryFileName(long nonce, String path) {
@@ -370,7 +405,7 @@ public final class PathUtils {
   /**
    * Adds a trailing separator if it does not exist in path.
    *
-   * @param path the file name
+   * @param path      the file name
    * @param separator trailing separator to add
    * @return updated path with trailing separator
    */
@@ -378,5 +413,6 @@ public final class PathUtils {
     return path.endsWith(separator) ? path : path + separator;
   }
 
-  private PathUtils() {} // prevent instantiation
+  private PathUtils() {
+  } // prevent instantiation
 }
