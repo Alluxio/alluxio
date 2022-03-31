@@ -93,10 +93,9 @@ public final class PathUtils {
    * concatPath("/", "dir", "filename").equals("/dir/filename");
    * }
    * </pre>
-   * <p>
    * Note that empty element in base or paths is ignored.
    *
-   * @param base  base path
+   * @param base base path
    * @param paths paths to concatenate
    * @return joined path
    * @throws IllegalArgumentException if base or paths is null
@@ -214,7 +213,7 @@ public final class PathUtils {
 
   /**
    * Join two path elements for ufs, separated by {@link AlluxioURI#SEPARATOR}.
-   * <p>
+   *
    * For example,
    *
    * <pre>
@@ -268,7 +267,7 @@ public final class PathUtils {
 
   /**
    * Gets the path components of the given path. The first component will be an empty string.
-   * <p>
+   *
    * "/a/b/c" => {"", "a", "b", "c"}
    * "/" => {""}
    *
@@ -286,10 +285,10 @@ public final class PathUtils {
 
   /**
    * Removes the prefix from the path, yielding a relative path from the second path to the first.
-   * <p>
+   *
    * If the paths are the same, this method returns the empty string.
    *
-   * @param path   the full path
+   * @param path the full path
    * @param prefix the prefix to remove
    * @return the path with the prefix removed
    * @throws InvalidPathException if either of the arguments are not valid paths
@@ -408,7 +407,7 @@ public final class PathUtils {
   /**
    * Adds a trailing separator if it does not exist in path.
    *
-   * @param path      the file name
+   * @param path the file name
    * @param separator trailing separator to add
    * @return updated path with trailing separator
    */
