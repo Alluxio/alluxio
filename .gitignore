@@ -31,7 +31,6 @@
 /extensions/
 /generated/
 /integration/docker/*.tar.gz
-/integration/hub-elastic/**/env
 /integration/vagrant/.request_ids
 /integration/vagrant/.vagrant/
 /integration/vagrant/conf/ec2.yml
