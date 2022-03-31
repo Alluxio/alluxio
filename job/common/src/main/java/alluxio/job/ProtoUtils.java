@@ -13,6 +13,7 @@ package alluxio.job;
 
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.PlanInfo;
+import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 
@@ -38,6 +39,28 @@ public class ProtoUtils {
         return new WorkflowInfo(jobInfo);
       default:
         throw new IllegalStateException(String.format("Unexpected Type: %s", jobInfo.getType()));
+    }
+  }
+
+  /**
+   * @param status the proto status to convert
+   * @return {@link Status} representation
+   * @throws IOException if result can't be deserialized
+   */
+  public static Status fromProto(alluxio.grpc.Status status) throws IOException {
+    switch (status) {
+      case CREATED:
+        return Status.CREATED;
+      case CANCELED:
+        return Status.CANCELED;
+      case FAILED:
+        return Status.FAILED;
+      case RUNNING:
+        return Status.RUNNING;
+      case COMPLETED:
+        return Status.COMPLETED;
+      default:
+        throw new IllegalStateException(String.format("Unexpected Status type: %s", status));
     }
   }
 
