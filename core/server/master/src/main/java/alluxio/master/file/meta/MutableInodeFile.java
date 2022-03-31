@@ -29,9 +29,9 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -417,7 +417,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
 
-    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    if (!entry.getMediumTypeList().isEmpty()) {
+      ret.setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
+    }
     return ret;
   }
 
@@ -542,8 +544,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
-        .setTempUfsPath(inode.getPersistJobTempUfsPath())
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setTempUfsPath(inode.getPersistJobTempUfsPath());
+    if (!inode.getMediumTypeList().isEmpty()) {
+      f.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
+    }
     if (inode.getXAttrCount() > 0) {
       f.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
     }
