@@ -37,7 +37,8 @@ public final class BlockRWLockPool extends ResourcePool<ClientRWLock> {
 
   @VisibleForTesting
   final AtomicBoolean mHasReachedFullCapacity;
-  private final AtomicInteger mRemainingPoolResources;
+  @VisibleForTesting
+  final AtomicInteger mRemainingPoolResources;
 
   /**
    * Creates a new client read/write lock pool.
@@ -50,17 +51,8 @@ public final class BlockRWLockPool extends ResourcePool<ClientRWLock> {
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.WORKER_BLOCK_LOCK_POOL_REMAINING_RESOURCES_COUNT.toString(),
-        this::getRemainingPoolResources
+        mRemainingPoolResources::get
     );
-  }
-
-  /**
-   * Get the number of remaining pool resources.
-   * @return the number of remaining resources
-   */
-  @VisibleForTesting
-  public long getRemainingPoolResources() {
-    return mRemainingPoolResources.get();
   }
 
   private void maybeLogPoolReachesFullCapacity() {

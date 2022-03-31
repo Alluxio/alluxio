@@ -76,7 +76,7 @@ public class BlockRWLockPoolTest {
       }
       threads.forEach(Thread::start);
       barrier1.await();
-      Assert.assertEquals(0, pool.getRemainingPoolResources());
+      Assert.assertEquals(0, pool.mRemainingPoolResources.get());
       barrier2.await();
       threads.forEach((it) -> {
         try {
@@ -85,7 +85,7 @@ public class BlockRWLockPoolTest {
           throw new RuntimeException(e);
         }
       });
-      Assert.assertEquals(poolCapacity, pool.getRemainingPoolResources());
+      Assert.assertEquals(poolCapacity, pool.mRemainingPoolResources.get());
     }
   }
 
