@@ -4152,7 +4152,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_METASTORE_PATH =
-      booleanBuilder(Name.WORKER_METASTORE_PATH)
+      stringBuilder(Name.WORKER_METASTORE_PATH)
           .setDefaultValue(String.format("${%s}/worker_meta", Name.HOME))
           .setDescription("The path used to save the info such as "
               + "the cluster ID which the worker belongs.")
