@@ -64,7 +64,7 @@ public final class GetConfTest {
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx,
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
-    assertEquals("2097152\n", mOutputStream.toString());
+    assertEquals("2MB\n", mOutputStream.toString());
 
     mOutputStream.reset();
     ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, 2048);

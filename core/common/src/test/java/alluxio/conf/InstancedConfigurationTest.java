@@ -140,7 +140,7 @@ public class InstancedConfigurationTest {
               new String[] {"b", "kb", "mb", "gb"} [random.nextInt(4)]);
           long storedDataSize = FormatUtils.parseSpaceSize(dataSizeValue);
           mConfiguration.set(key, dataSizeValue);
-          assertEquals(storedDataSize, mConfiguration.get(key));
+          assertEquals(dataSizeValue, mConfiguration.get(key));
           assertEquals(storedDataSize, mConfiguration.getBytes(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
@@ -150,7 +150,7 @@ public class InstancedConfigurationTest {
               new String[] {"ms", "s", "m", "h", "d"} [random.nextInt(5)]);
           long storedDuration = FormatUtils.parseTimeSize(durationValue);
           mConfiguration.set(key, durationValue);
-          assertEquals(storedDuration, mConfiguration.get(key));
+          assertEquals(durationValue, mConfiguration.get(key));
           assertEquals(storedDuration, mConfiguration.getMs(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getBytes(key));
