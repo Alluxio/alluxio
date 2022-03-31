@@ -53,7 +53,7 @@ func (d *driver) newNodeServer() *nodeServer {
 	return &nodeServer{
 		nodeId:            d.nodeId,
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d.csiDriver),
-		client:			   d.client,
+		client:            d.client,
 	}
 }
 

@@ -13,12 +13,7 @@ package alluxio
 
 import (
 	"fmt"
-	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"io/ioutil"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	"os"
 	"os/exec"
 	"strings"
@@ -27,9 +22,14 @@ import (
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/golang/glog"
+	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	mount "k8s.io/mount-utils"
 )
 
@@ -207,7 +207,7 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	csiFuseObj, grpVerKind, err := scheme.Codecs.UniversalDeserializer().Decode(csiFuseYaml, nil, nil)
 	if err != nil {
 		glog.V(4).Info("Failed to decode csi-fuse config yaml file")
-		return nil, status.Errorf(codes.NotFound, "Failed to decode csi-fuse config yaml file.\n", err.Error())
+		return nil, status.Errorf(codes.Internal, "Failed to decode csi-fuse config yaml file.\n", err.Error())
 	}
 	// Only support Fuse Pod for now
 	if grpVerKind.Kind != "Pod" {

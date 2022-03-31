@@ -659,11 +659,11 @@ csi:
       resources:
         # fuse in nodeserver container needs more resources
         limits:
-          cpu: 4
-          memory: 8G
+          cpu: "4"
+          memory: "8G"
         requests:
-          cpu: 10m
-          memory: 300Mi
+          cpu: "1"
+          memory: "1G"
     driverRegistrar:
       image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.0
       resources:
