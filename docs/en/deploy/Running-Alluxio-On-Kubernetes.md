@@ -1473,12 +1473,12 @@ Here are some common properties that you can customize:
     <td>The path in Alluxio which will be mounted</td>
   </tr>
   <tr>
-    <td>mountPath</td>
-    <td>The path that Alluxio will be mounted to in the application container</td>
+    <td>mountInPod</td>
+    <td>Set to true to launch Fuse process in an alluxio-fuse pod. Otherwise in the same container as nodeserver</td>
   </tr>
   <tr>
-    <td>javaOptions</td>
-    <td>The customized options which will be passes to fuse daemon</td>
+    <td>mountPath</td>
+    <td>The path that Alluxio will be mounted to in the application container</td>
   </tr>
   <tr>
     <td>mountOptions</td>
@@ -1496,11 +1496,12 @@ Modify or add any configuration properties as required, then create the respecti
 $ mv alluxio-csi-controller-rbac.yaml.template alluxio-csi-controller-rbac.yaml
 $ mv alluxio-csi-controller.yaml.template alluxio-csi-controller.yaml
 $ mv alluxio-csi-driver.yaml.template alluxio-csi-driver.yaml
+$ mv alluxio-csi-fuse-configmap.yaml.template alluxio-csi-fuse-configmap.yaml
 $ mv alluxio-csi-nodeplugin.yaml.template alluxio-csi-nodeplugin.yaml
 ```
 Then run
 ```console
-$ kubectl apply -f alluxio-csi-controller-rbac.yaml -f alluxio-csi-controller.yaml -f alluxio-csi-driver.yaml -f alluxio-csi-nodeplugin.yaml
+$ kubectl apply -f alluxio-csi-controller-rbac.yaml -f alluxio-csi-controller.yaml -f alluxio-csi-driver.yaml -f alluxio-csi-fuse-configmap.yaml -f alluxio-csi-nodeplugin.yaml
 ```
 to deploy CSI-related services.
 
