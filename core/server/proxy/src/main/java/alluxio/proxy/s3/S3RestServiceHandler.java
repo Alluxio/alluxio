@@ -454,6 +454,7 @@ public final class S3RestServiceHandler {
    * @param copySource the source path to copy the new file from
    * @param decodedLength the length of the content when in aws-chunked encoding
    * @param contentLength the total length of the request body
+   * @param contentType the content type of the request body
    * @param bucket the bucket name
    * @param object the object name
    * @param partNumber the identification of the part of the object in multipart upload,
@@ -474,6 +475,7 @@ public final class S3RestServiceHandler {
                                                decodedLength,
                                            @HeaderParam(S3Constants.S3_TAGGING_HEADER) String
                                                taggingHeader,
+                                           @HeaderParam("Content-Type") String contentType,
                                            @HeaderParam("Content-Length") String contentLength,
                                            @PathParam("bucket") final String bucket,
                                            @PathParam("object") final String object,
@@ -572,7 +574,7 @@ public final class S3RestServiceHandler {
       LOG.debug("PutObjectTagging tagData={}", tagData);
 
       // Populate the xattr Map with the metadata tags if provided
-      Map<String, ByteString> xattrMap = new HashMap<String, ByteString>();
+      Map<String, ByteString> xattrMap = new HashMap<>();
       if (tagData != null) {
         try {
           xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
@@ -596,6 +598,11 @@ public final class S3RestServiceHandler {
       // remove exist object
       deleteExistObject(fs, objectURI);
 
+      // populate the xAttr map with the "Content-Type" header
+      if (contentType != null) {
+        xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
+            ByteString.copyFrom(contentType, S3Constants.HEADER_CHARSET));
+      }
       CreateFilePOptions filePOptions =
           CreateFilePOptions.newBuilder().setRecursive(true)
               .setWriteType(S3RestUtils.getS3WriteType())
@@ -810,13 +817,23 @@ public final class S3RestServiceHandler {
         if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
           throw new FileDoesNotExistException(status.getPath() + " is a directory");
         }
-        // TODO(cc): Consider how to respond with the object's ETag.
-        return Response.ok()
+        Response.ResponseBuilder res = Response.ok()
             .lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
-                status.isFolder() ? 0 : status.getLength())
-            .build();
+                status.isFolder() ? 0 : status.getLength());
+
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        // Check if the object had a specified "Content-Type"
+        if (status.getFileInfo().getXAttr() != null
+            && status.getFileInfo().getXAttr().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+          String contentType = new String(status.getFileInfo().getXAttr()
+              .get(S3Constants.CONTENT_TYPE_XATTR_KEY), S3Constants.HEADER_CHARSET);
+          type = MediaType.valueOf(contentType);
+        }
+        res.type(type);
+        // TODO(cc): Consider how to respond with the object's ETag.
+        return res.build();
       } catch (FileDoesNotExistException e) {
         // must be null entity (content length 0) for S3A Filesystem
         return Response.status(404).entity(null).header("Content-Length", "0").build();
@@ -838,7 +855,8 @@ public final class S3RestServiceHandler {
    */
   @GET
   @Path(OBJECT_PARAM)
-  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
+  @Produces({MediaType.APPLICATION_OCTET_STREAM,
+      MediaType.APPLICATION_XML, MediaType.WILDCARD})
   public Response getObjectOrListParts(@HeaderParam("Authorization") String authorization,
                                        @HeaderParam("Range") final String range,
                                        @PathParam("bucket") final String bucket,
@@ -913,10 +931,21 @@ public final class S3RestServiceHandler {
         S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
         RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
         // TODO(cc): Consider how to respond with the object's ETag.
+
         Response.ResponseBuilder res = Response.ok(ris)
             .lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
             .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
+
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        // Check if the object had a specified "Content-Type"
+        if (status.getFileInfo().getXAttr() != null
+            && status.getFileInfo().getXAttr().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+          String contentType = new String(status.getFileInfo().getXAttr()
+              .get(S3Constants.CONTENT_TYPE_XATTR_KEY), S3Constants.HEADER_CHARSET);
+          type = MediaType.valueOf(contentType);
+        }
+        res.type(type);
 
         // Check if object had tags, if so we need to return the count
         // in the header "x-amz-tagging-count"

@@ -29,6 +29,10 @@ public final class S3Constants {
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
+  /* Headers xAttr. */
+  public static final String CONTENT_TYPE_XATTR_KEY = "s3_content_type";
+  public static final Charset HEADER_CHARSET = StandardCharsets.UTF_8;
+
   /* S3 Metadata tagging. */
   public static final String TAGGING_XATTR_KEY = "s3_tags";
   public static final Charset TAGGING_CHARSET = StandardCharsets.UTF_8;
