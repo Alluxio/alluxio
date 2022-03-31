@@ -49,7 +49,7 @@ public final class BlockRWLockPool extends ResourcePool<ClientRWLock> {
     mRemainingPoolResources = new AtomicInteger(maxCapacity);
 
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.WORKER_BLOCK_LOCK_POOL_REMAINING_RESOURCES_KEY.toString(),
+        MetricKey.WORKER_BLOCK_LOCK_POOL_REMAINING_RESOURCES_COUNT.toString(),
         this::getRemainingPoolResources
     );
   }
