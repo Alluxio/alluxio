@@ -354,7 +354,7 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  @Consumes(MediaType.APPLICATION_XML)
+  @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
   public Response createBucket(@HeaderParam("Authorization") String authorization,
                                @PathParam("bucket") final String bucket,
                                @QueryParam("tagging") final String tagging,
