@@ -3215,7 +3215,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CLEAN_DIRTY_WORKER =
-      new Builder(Name.MASTER_CLEAN_DIRTY_WORKER)
+      booleanBuilder(Name.MASTER_CLEAN_DIRTY_WORKER)
           .setDefaultValue(false)
           .setDescription("Whether to clean (delete all the blocks of the worker) the worker "
               + "if the worker may contain dirty data")
@@ -4152,7 +4152,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_METASTORE_PATH =
-      new Builder(Name.WORKER_METASTORE_PATH)
+      booleanBuilder(Name.WORKER_METASTORE_PATH)
           .setDefaultValue(String.format("${%s}/worker_meta", Name.HOME))
           .setDescription("The path used to save the info such as "
               + "the cluster ID which the worker belongs.")
@@ -4160,7 +4160,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MUST_PRESIST_CLUSTERID =
-      new Builder(Name.WORKER_MUST_PRESIST_CLUSTERID)
+      booleanBuilder(Name.WORKER_MUST_PRESIST_CLUSTERID)
           .setDefaultValue(true)
           .setDescription("Whether the worker must persist the cluster ID,"
                + " If true, worker will exit if it fails")
