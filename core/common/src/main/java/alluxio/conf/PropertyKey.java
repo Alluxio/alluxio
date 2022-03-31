@@ -3254,7 +3254,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_DURATION =
-      new Builder(Name.WORKER_CACHE_IO_TIMEOUT_DURATION)
+      durationBuilder(Name.WORKER_CACHE_IO_TIMEOUT_DURATION)
           .setDefaultValue("-1")
           .setDescription("The timeout duration for worker cache I/O operations ("
               + "reading/writing). When this property is a positive value,"
@@ -3265,7 +3265,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_THREADS_MAX =
-      new Builder(Name.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX)
+      intBuilder(Name.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX)
           .setDefaultValue("1024")
           .setDescription("The number of threads to handle cache I/O operation timeout, "
               + "when " + Name.WORKER_CACHE_IO_TIMEOUT_DURATION + " is positive. "
