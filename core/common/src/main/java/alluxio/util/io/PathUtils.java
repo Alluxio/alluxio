@@ -315,7 +315,7 @@ public final class PathUtils {
    * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
    * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
    *
-   * @param path   a path
+   * @param path a path
    * @param prefix a prefix
    * @return whether the given path has the given prefix
    * @throws InvalidPathException when the path or prefix is invalid
@@ -365,7 +365,7 @@ public final class PathUtils {
    * Generates a deterministic temporary file name for the a path and a file id and a nonce.
    *
    * @param nonce a nonce token
-   * @param path  a file path
+   * @param path a file path
    * @return a deterministic temporary file name
    */
   public static String temporaryFileName(long nonce, String path) {
@@ -415,6 +415,5 @@ public final class PathUtils {
     return path.endsWith(separator) ? path : path + separator;
   }
 
-  private PathUtils() {
-  } // prevent instantiation
+  private PathUtils() {} // prevent instantiation
 }
