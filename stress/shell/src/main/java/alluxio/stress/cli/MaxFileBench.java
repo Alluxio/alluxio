@@ -17,6 +17,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.FileSystemParameters;
@@ -133,11 +135,9 @@ public class MaxFileBench extends StressMasterBench {
   }
 
   private final class AlluxioNativeMaxFileThread implements Callable<Void> {
-    private static final int INIT_WAIT_TIME_MS = 100;
-    private static final int MAX_WAIT_TIME_MS = 15_000;
     private static final int OPERATION_TIMEOUT_MS = 2_000;
 
-    private int mWaitTimeMs = INIT_WAIT_TIME_MS;
+    private RetryPolicy mRetryPolicy = createPolicy();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
 
@@ -154,11 +154,18 @@ public class MaxFileBench extends StressMasterBench {
       LOG.info("[{}]: basePath: {}, fixedBasePath: {}", mId, mBasePath, mFixedBasePath);
     }
 
+    private RetryPolicy createPolicy() {
+      final int initWaitTimeMs = 100;
+      final int maxWaitTimeMs = 15_000;
+      final int numAttempts = 8;
+      return new ExponentialBackoffRetry(initWaitTimeMs, maxWaitTimeMs, numAttempts);
+    }
+
     @Override
     public Void call() throws Exception {
       mResult.setRecordStartMs(CommonUtils.getCurrentMs());
       AtomicLong localCounter = new AtomicLong();
-      while (!sFinish.get()) {
+      while (!sFinish.get() && mRetryPolicy.attempt()) {
         if (Thread.currentThread().isInterrupted()) {
           break;
         }
@@ -174,23 +181,13 @@ public class MaxFileBench extends StressMasterBench {
               throw new RuntimeException(e);
             }
           }).get(OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+          mResult.incrementNumSuccess(1);
+          mRetryPolicy = createPolicy();
         } catch (Exception e) {
-          if (mWaitTimeMs > MAX_WAIT_TIME_MS) {
-            LOG.info("[{}] Waiting timeout, ending: {}", mId, e);
-            sFinish.set(true);
-            break;
-          } else {
-            LOG.info("[{}] Failed, sleeping for {}: {}", mId, mWaitTimeMs, e);
-            Thread.sleep(mWaitTimeMs);
-            // exponential backoff retry
-            mWaitTimeMs *= 2;
-            continue;
-          }
+          LOG.info("[{}] Attempt #{} failed: {}", mId, mRetryPolicy.getAttemptCount(), e);
         }
-        mResult.incrementNumSuccess(1);
-        // reset wait time after a success
-        mWaitTimeMs = INIT_WAIT_TIME_MS;
       }
+      sFinish.set(true);
 
       // record local results
       mResult.setEndMs(CommonUtils.getCurrentMs());
