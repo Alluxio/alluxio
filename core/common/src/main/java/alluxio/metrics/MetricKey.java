@@ -615,6 +615,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey MASTER_METADATA_SYNC_TIME_MS =
+      new Builder("Master.MetadataSyncTimeMs")
+          .setDescription("The total time elapsed in all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey MASTER_METADATA_SYNC_SKIPPED =
       new Builder("Master.MetadataSyncSkipped")
           .setDescription("The number of InodeSyncStream that are skipped because "

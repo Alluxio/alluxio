@@ -312,7 +312,7 @@ public class InodeSyncStream {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
-    Instant start = Instant.now();
+    Instant startTime = Instant.now();
     try (LockedInodePath path = mInodeTree.lockInodePath(mRootScheme)) {
       if (mAuditContext != null && mAuditContextSrcInodeFunc != null) {
         mAuditContext.setSrcInode(mAuditContextSrcInodeFunc.apply(path));
@@ -330,7 +330,7 @@ public class InodeSyncStream {
       try {
         path.traverse();
       } catch (InvalidPathException e) {
-        updateMetrics(false, syncPathCount, failedSyncPathCount);
+        updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
         throw new RuntimeException(e);
       }
     } catch (BlockInfoException | FileAlreadyCompletedException
@@ -343,7 +343,7 @@ public class InodeSyncStream {
       // Catch and re-throw just to update metrics before exit
       LogUtils.warnWithException(LOG, "Failed to sync metadata on root path {}",
           toString(), e);
-      updateMetrics(false, syncPathCount, failedSyncPathCount);
+      updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
       throw e;
     } finally {
       // regardless of the outcome, remove the UfsStatus for this path from the cache
@@ -370,7 +370,7 @@ public class InodeSyncStream {
         }
         // remove the job because we know it is done.
         if (mSyncPathJobs.poll() != job) {
-          updateMetrics(false, syncPathCount, failedSyncPathCount);
+          updateMetrics(false, startTime, syncPathCount, failedSyncPathCount);
           throw new ConcurrentModificationException("Head of queue modified while executing");
         }
         // Update a global counter
@@ -430,15 +430,7 @@ public class InodeSyncStream {
         }
       }
     }
-    if (LOG.isDebugEnabled()) {
-      Instant end = Instant.now();
-      Duration elapsedTime = Duration.between(start, end);
-      LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
-          syncPathCount + failedSyncPathCount, syncPathCount, failedSyncPathCount,
-              elapsedTime.toMillis(), mRootScheme);
-    }
-    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_SUCCESS.inc(syncPathCount);
-    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_FAIL.inc(failedSyncPathCount);
+
     boolean success = syncPathCount > 0;
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_REPORT_FAILURE)) {
       // There should not be any failed or outstanding jobs
@@ -455,19 +447,27 @@ public class InodeSyncStream {
         mPendingPaths.size() + mSyncPathJobs.size());
 
     // Update metrics at the end of operation
-    updateMetrics(success, syncPathCount, failedSyncPathCount);
+    updateMetrics(success, startTime, syncPathCount, failedSyncPathCount);
     return success ? SyncStatus.OK : SyncStatus.FAILED;
   }
 
-  private void updateMetrics(boolean success, int successPathCount, int failedPathCount) {
+  private void updateMetrics(boolean success, Instant startTime,
+      int successPathCount, int failedPathCount) {
+    Instant endTime = Instant.now();
+    Duration elapsedTime = Duration.between(startTime, endTime);
+    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_TIME_MS.inc(elapsedTime.toMillis());
     if (success) {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SUCCESS.inc();
     } else {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_FAIL.inc();
     }
-
     DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_SUCCESS.inc(successPathCount);
     DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_FAIL.inc(failedPathCount);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("synced {} paths ({} success, {} failed) in {} ms on {}",
+          successPathCount + failedPathCount, successPathCount, failedPathCount,
+          elapsedTime.toMillis(), mRootScheme);
+    }
   }
 
   /**
