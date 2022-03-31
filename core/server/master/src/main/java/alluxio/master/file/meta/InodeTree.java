@@ -26,6 +26,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -44,7 +45,6 @@ import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
-import alluxio.proxy.s3.S3Constants;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -67,7 +67,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -729,15 +728,6 @@ public class InodeTree implements DelegatingJournaled {
             "Invalid block size " + fileContext.getOptions().getBlockSizeBytes());
       }
     }
-
-    // Parse out S3 metadata tags from xAttr, and re-insert it only where necessary
-    // - We only need the S3 metadata tags on the child "object" Inode, not on its "folders"
-    byte[] s3TagData = null;
-    if (context.getXAttr() != null) {
-      s3TagData = context.getXAttr().get(S3Constants.TAGGING_XATTR_KEY); // may be null
-      context.getXAttr().remove(S3Constants.TAGGING_XATTR_KEY);
-    }
-
     LOG.debug("createPath {}", path);
 
     String[] pathComponents = inodePath.mPathComponents;
@@ -787,7 +777,9 @@ public class InodeTree implements DelegatingJournaled {
               .setId(currentId)
               .setLastModificationTimeMs(context.getOperationTimeMs())
               .setLastAccessTimeMs(context.getOperationTimeMs());
-          if (context.getXAttr() != null) {
+          if (context.getXAttr() != null
+              && context.getXAttrPropStrat() != null
+              && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
             // TODO(czhu): determine if xAttr update strategy is required for this
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
@@ -808,7 +800,11 @@ public class InodeTree implements DelegatingJournaled {
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());
-    missingDirContext.setXAttr(context.getXAttr());
+    if (context.getXAttr() != null
+        && context.getXAttrPropStrat() != null
+        && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
+      missingDirContext.setXAttr(context.getXAttr());
+    }
     StringBuilder pathBuilder = new StringBuilder().append(
         String.join(AlluxioURI.SEPARATOR, Arrays.asList(pathComponents).subList(0, pathIndex))
     );
@@ -853,14 +849,6 @@ public class InodeTree implements DelegatingJournaled {
 
     // Create the final path component.
     MutableInode<?> newInode;
-    Map<String, byte[]> finalPathXAttr = null;
-    if (context.getXAttr() != null) {
-      // we have to copy to a new object to prevent modifying the overall context's xAttr
-      finalPathXAttr = new HashMap<>(context.getXAttr());
-      if (s3TagData != null) {
-        finalPathXAttr.put(S3Constants.TAGGING_XATTR_KEY, s3TagData);
-      }
-    }
 
     // create the new inode, with a write lock
     if (context instanceof CreateDirectoryContext) {
@@ -869,8 +857,8 @@ public class InodeTree implements DelegatingJournaled {
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), name, directoryContext);
 
-      if (finalPathXAttr != null) {
-        newDir.setXAttr(finalPathXAttr);
+      if (context.getXAttr() != null) {
+        newDir.setXAttr(context.getXAttr());
       }
 
       // if the parent has default ACL, take the default ACL ANDed with the umask as the new
@@ -928,8 +916,8 @@ public class InodeTree implements DelegatingJournaled {
       if (fileContext.getWriteType() == WriteType.ASYNC_THROUGH) {
         newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
       }
-      if (finalPathXAttr != null) {
-        newFile.setXAttr(finalPathXAttr);
+      if (context.getXAttr() != null) {
+        newFile.setXAttr(context.getXAttr());
       }
 
       // Do NOT call setOwner/Group after inheriting from parent if empty

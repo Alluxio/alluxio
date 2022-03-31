@@ -17,6 +17,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -49,6 +50,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   protected boolean mMetadataLoad;
   private WriteType mWriteType;
   protected Map<String, byte[]> mXAttr;
+  protected XAttrPropagationStrategy mXAttrPropStrat;
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -87,10 +89,12 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
       writeType = ((CreateFilePOptions.Builder) optionsBuilder).getWriteType();
       mXAttr = CommonUtils.convertFromByteString(
           ((CreateFilePOptions.Builder) optionsBuilder).getXattrMap());
+      mXAttrPropStrat = ((CreateFilePOptions.Builder) optionsBuilder).getXattrPropStrat();
     } else if (optionsBuilder instanceof CreateDirectoryPOptions.Builder) {
       writeType = ((CreateDirectoryPOptions.Builder) optionsBuilder).getWriteType();
       mXAttr = CommonUtils.convertFromByteString(
           ((CreateDirectoryPOptions.Builder) optionsBuilder).getXattrMap());
+      mXAttrPropStrat = ((CreateDirectoryPOptions.Builder) optionsBuilder).getXattrPropStrat();
     }
     mWriteType = WriteType.fromProto(writeType);
   }
@@ -288,6 +292,22 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    */
   public K setXAttr(@Nullable Map<String, byte[]> xattr) {
     mXAttr = xattr;
+    return getThis();
+  }
+
+  /**
+   * @return extended attributes propagation strategy of this context
+   */
+  public XAttrPropagationStrategy getXAttrPropStrat() {
+    return mXAttrPropStrat;
+  }
+
+  /**
+   * @param propStrat the {@link XAttrPropagationStrategy} to set
+   * @return the updated context
+   */
+  public K setXAttrPropStrat(XAttrPropagationStrategy propStrat) {
+    mXAttrPropStrat = propStrat;
     return getThis();
   }
 

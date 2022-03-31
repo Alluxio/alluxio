@@ -57,6 +57,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WritePType;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -108,6 +109,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.protobuf.ByteString;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -122,6 +124,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -130,6 +133,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -2680,6 +2684,203 @@ public final class FileSystemMasterTest {
     assertEquals(PersistenceState.PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent2,
             GetStatusContext.defaults()).getPersistenceState());
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the TRUNCATE update strategy.
+   */
+  @Test
+  public void setAttributeXAttrTruncate() throws Exception {
+    setAttributeXAttr(alluxio.proto.journal.File.XAttrUpdateStrategy.TRUNCATE);
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the UNION_REPLACE update strategy.
+   */
+  @Test
+  public void setAttributeXAttrUnionReplace() throws Exception {
+    setAttributeXAttr(alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_REPLACE);
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the UNION_PRESERVE update strategy.
+   */
+  @Test
+  public void setAttributeXAttrUnionPreserve() throws Exception {
+    setAttributeXAttr(alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_PRESERVE);
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the DELETE_KEYS update strategy.
+   */
+  @Test
+  public void setAttributeXAttrDeleteKeys() throws Exception {
+    setAttributeXAttr(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS);
+  }
+
+  private void setAttributeXAttr(alluxio.proto.journal.File.XAttrUpdateStrategy updateStrategy)
+      throws Exception {
+    // Create file with xAttr to overwrite
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("foo", StandardCharsets.UTF_8))
+        .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+        .setRecursive(true));
+    mFileSystemMaster.createFile(ROOT_FILE_URI, context);
+
+    switch (updateStrategy) {
+      case TRUNCATE:
+        mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+            SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+                .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+                .setXattrUpdateStrategy(updateStrategy)));
+        // Verify that the xAttr were overwritten
+        assertEquals(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().size(), 1);
+        assertEquals(new String(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().get("bar"), StandardCharsets.UTF_8), "bar");
+        break;
+      case UNION_REPLACE:
+        mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+            SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+                .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))
+                .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+                .setXattrUpdateStrategy(updateStrategy)));
+        // Verify that the xAttr were combined, replacing existing keys
+        assertEquals(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().size(), 2);
+        assertEquals(new String(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().get("foo"), StandardCharsets.UTF_8), "baz");
+        assertEquals(new String(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().get("bar"), StandardCharsets.UTF_8), "bar");
+        break;
+      case UNION_PRESERVE:
+        mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+            SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+                .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))
+                .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+                .setXattrUpdateStrategy(updateStrategy)));
+        // Verify that the xAttr were combined, preserving existing keys
+        assertEquals(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().size(), 2);
+        assertEquals(new String(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().get("foo"), StandardCharsets.UTF_8), "foo");
+        assertEquals(new String(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().get("bar"), StandardCharsets.UTF_8), "bar");
+        break;
+      case DELETE_KEYS:
+        // Delete a non-existing key
+        mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+            SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+                .putXattr("bar", ByteString.copyFrom("", StandardCharsets.UTF_8))
+                .setXattrUpdateStrategy(updateStrategy)));
+        assertEquals(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().size(), 1);
+
+        // Delete an existing key
+        mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+            SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+                .putXattr("foo", ByteString.copyFrom("", StandardCharsets.UTF_8))
+                .setXattrUpdateStrategy(updateStrategy)));
+        assertEquals(mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT)
+            .getXAttr().size(), 0);
+        break;
+      default:
+        throw new IllegalArgumentException(
+            String.format("Invalid XAttrUpdateStrategy: %s", updateStrategy));
+    }
+  }
+
+  /**
+   * Tests setting xAttr when creating a file in a nested directory, and
+   * propagates the xAttr back to the parent directories.
+   */
+  @Test
+  public void createFileXAttrPropagateNewPaths() throws Exception {
+    createFileXAttr(XAttrPropagationStrategy.NEW_PATHS);
+  }
+
+  /**
+   * Tests setting xAttr when creating a file in a nested directory, and
+   * only assigns xAttr to the leaf node.
+   */
+  @Test
+  public void createFileXAttrPropagateLeaf() throws Exception {
+    createFileXAttr(XAttrPropagationStrategy.LEAF_NODE);
+  }
+
+  private void createFileXAttr(XAttrPropagationStrategy propStrat) throws Exception {
+    // Set xAttr upon creating the file
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+        .setRecursive(true)
+        .setXattrPropStrat(propStrat));
+    FileInfo fileInfo = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    assertEquals(new String(fileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "bar");
+
+    checkParentXAttrTags(NESTED_FILE_URI, propStrat);
+  }
+
+  /**
+   * Tests setting xAttr when creating a nested subdirectory, and
+   * propagates the xAttr back to the parent directories.
+   */
+  @Test
+  public void createDirXAttrPropagateNewPaths() throws Exception {
+    createDirXAttr(XAttrPropagationStrategy.NEW_PATHS);
+  }
+
+  /**
+   * Tests setting xAttr when creating a nested subdirectory, and
+   * only assigns xAttr to the leaf node.
+   */
+  @Test
+  public void createDirXAttrPropagateLeaf() throws Exception {
+    createDirXAttr(XAttrPropagationStrategy.LEAF_NODE);
+  }
+
+  private void createDirXAttr(XAttrPropagationStrategy propStrat) throws Exception {
+    // Set xAttr upon creating the directory
+    CreateDirectoryContext directoryContext = CreateDirectoryContext.mergeFrom(
+        CreateDirectoryPOptions.newBuilder()
+            .putXattr("foo", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+            .setXattrPropStrat(propStrat)
+            .setRecursive(true));
+    long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryContext);
+    assertEquals(new String(mFileSystemMaster.getFileInfo(dirId).getXAttr().get("foo"),
+        StandardCharsets.UTF_8), "bar");
+
+    checkParentXAttrTags(NESTED_DIR_URI, propStrat);
+  }
+
+  private void checkParentXAttrTags(AlluxioURI uri, XAttrPropagationStrategy propStrat)
+      throws Exception {
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
+    Map<String, byte[]> xAttrs = fileInfo.getXAttr();
+    assertNotEquals(xAttrs, null);
+
+    switch (propStrat) {
+      case NEW_PATHS:
+        // Verify that the parent directories have matching xAttr
+        for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
+          for (Map.Entry<String, byte[]> entry : xAttrs.entrySet()) {
+            assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+                GET_STATUS_CONTEXT).getXAttr().get(entry.getKey()), xAttrs.get(entry.getKey()));
+          }
+        }
+        break;
+      case LEAF_NODE:
+        // Verify that the parent directories have no xAttr
+        for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
+          assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+              GET_STATUS_CONTEXT).getXAttr().size(), 0);
+        }
+        break;
+      default:
+        throw new IllegalArgumentException(
+            String.format("Invalid XAttrPropagationStrategy: %s", propStrat));
+    }
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

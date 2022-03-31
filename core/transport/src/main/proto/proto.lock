@@ -1683,6 +1683,19 @@
             ]
           },
           {
+            "name": "XAttrPropagationStrategy",
+            "enum_fields": [
+              {
+                "name": "NEW_PATHS",
+                "integer": 1
+              },
+              {
+                "name": "LEAF_NODE",
+                "integer": 2
+              }
+            ]
+          },
+          {
             "name": "SyncPointStatus",
             "enum_fields": [
               {
@@ -2018,6 +2031,17 @@
                 "id": 5,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 7,
+                "name": "xattrPropStrat",
+                "type": "XAttrPropagationStrategy",
+                "options": [
+                  {
+                    "name": "default",
+                    "value": "NEW_PATHS"
+                  }
+                ]
               }
             ],
             "maps": [
@@ -2108,6 +2132,17 @@
                 "id": 10,
                 "name": "persistenceWaitTime",
                 "type": "int64"
+              },
+              {
+                "id": 12,
+                "name": "xattrPropStrat",
+                "type": "XAttrPropagationStrategy",
+                "options": [
+                  {
+                    "name": "default",
+                    "value": "NEW_PATHS"
+                  }
+                ]
               }
             ],
             "maps": [

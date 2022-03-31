@@ -29,6 +29,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.proto.journal.File;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
@@ -598,7 +599,7 @@ public final class S3RestServiceHandler {
       CreateFilePOptions filePOptions =
           CreateFilePOptions.newBuilder().setRecursive(true)
               .setWriteType(S3RestUtils.getS3WriteType())
-              .putAllXattr(xattrMap)
+              .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
               .build();
 
       // not copying from an existing file

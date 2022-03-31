@@ -96,6 +96,15 @@ message OpenFilePOptions {
   optional bool updateLastAccessTime = 4 [default = true];
 }
 
+// XAttrPropagationStrategy controls the behaviour for assigning xAttr
+// on Inodes within nested directories
+// - NEW_PATHS: Assign xAttr for any missing nodes along the filepath
+// - LEAF_NODE: Only assign xAttr on the leaf node of the filepath
+enum XAttrPropagationStrategy {
+  NEW_PATHS = 1;
+  LEAF_NODE = 2;
+}
+
 message CreateDirectoryPResponse {}
 message CreateDirectoryPOptions {
   optional bool recursive = 1;
@@ -104,6 +113,7 @@ message CreateDirectoryPOptions {
   optional WritePType writeType = 4;
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
+  optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -126,6 +136,7 @@ message CreateFilePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
+  optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
 }
 message CreateFilePRequest {
   /** the path of the file */
