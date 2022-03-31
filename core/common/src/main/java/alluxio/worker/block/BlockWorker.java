@@ -121,6 +121,26 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
+   * Creates a block in Alluxio managed space.
+   * Calls {@link #createBlockWriter} to get a writer for writing to the block.
+   * The block will be temporary until it is committed by {@link #commitBlock} .
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
+   *
+   * @param sessionId the id of the client
+   * @param blockId the id of the block to create
+   * @param tier the tier to place the new block in
+   *        {@link BlockStoreLocation#ANY_TIER} for any tier
+   * @param createBlockOptions the createBlockOptions
+   * @return a string representing the path to the local file
+   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
+   *         or block in eviction plan already exists
+   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
+   */
+  String createBlock(long sessionId, long blockId, int tier,
+      CreateBlockOptions createBlockOptions)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
+
+  /**
    * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
    *

@@ -45,6 +45,7 @@ public final class BlockWorkerMetricsTest {
     mBlockWorker = mock(BlockWorker.class);
     mBlockStoreMeta = mock(BlockStoreMeta.class);
     when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
+    when(mBlockWorker.getStoreMetaFull()).thenReturn(mBlockStoreMeta);
     StorageTierAssoc assoc = new WorkerStorageTierAssoc(Lists.newArrayList(MEM, HDD));
     when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(assoc);
     Metrics.registerGauges(mBlockWorker);
@@ -74,6 +75,7 @@ public final class BlockWorkerMetricsTest {
     assertEquals(1800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + HDD));
   }
 
+  @Test
   public void testMetricBocksCached() {
     when(mBlockStoreMeta.getNumberOfBlocks()).thenReturn(200);
     Assert.assertEquals(200, getGauge(MetricKey.WORKER_BLOCKS_CACHED.getName()));

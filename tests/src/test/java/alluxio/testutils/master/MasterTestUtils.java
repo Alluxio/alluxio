@@ -77,7 +77,7 @@ public class MasterTestUtils {
    * @return a resource that contains the master registry and the journal system
    */
   public static FsMasterResource createLeaderFileSystemMasterFromJournalCopy() throws Exception {
-    String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String masterJournal = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     File tmpDirFile = Files.createTempDir();
     tmpDirFile.deleteOnExit();
     String tempDir = tmpDirFile.getAbsolutePath();
@@ -95,7 +95,7 @@ public class MasterTestUtils {
    */
   private static FsMasterResource createFileSystemMasterFromJournal(boolean isLeader,
       UserState userState) throws Exception {
-    String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String masterJournal = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     return createFileSystemMasterFromJournal(isLeader, userState, masterJournal);
   }
 
@@ -115,7 +115,7 @@ public class MasterTestUtils {
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
     int port = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
-    String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
+    String baseDir = ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     if (userState == null) {
       userState = ServerUserState.global();

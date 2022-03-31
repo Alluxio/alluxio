@@ -46,11 +46,11 @@ public final class DefaultTempBlockMeta implements TempBlockMeta {
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
-    final String tmpDir = ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
+    final String tmpDir = ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
     final int subDirMax = ServerConfiguration.getInt(PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
 
     return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
-        String.format("%d-%d", sessionId, blockId));
+        String.format("%x-%d", sessionId, blockId));
   }
 
   /**

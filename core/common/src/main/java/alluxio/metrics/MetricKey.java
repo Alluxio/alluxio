@@ -352,6 +352,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Count of lost unique blocks")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_TO_REMOVE_BLOCK_COUNT =
+      new Builder("Master.ToRemoveBlockCount")
+          .setDescription("Count of block replicas to be removed from the workers. "
+              + "If 1 block is to be removed from 2 workers, 2 will be counted here.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_LOST_FILE_COUNT =
       new Builder("Master.LostFileCount")
           .setDescription("Count of lost files. This number is cached and may not be in sync with "

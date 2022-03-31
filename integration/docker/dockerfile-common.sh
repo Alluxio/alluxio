@@ -13,11 +13,12 @@
 # Shared chunk of commands used both in Dockerfile and Dockerfile-dev.
 
 #######################################
-# Install libfuse with MAX_IDLE_THREAD able to be configured.
+# Install libfuse2 with MAX_IDLE_THREAD able to be configured.
 # Arguments:
 #   None
 #######################################
-function installLibfuse {
+function installLibfuse2 {
+  # libfuse2
   git clone https://github.com/Alluxio/libfuse.git
   cd libfuse
   git checkout fuse_2_9_5_customize_multi_threads
@@ -94,8 +95,8 @@ function main {
   command=$1
   shift
   case $command in
-    "install-libfuse")
-      installLibfuse 
+    "install-libfuse2")
+      installLibfuse2
       ;;
     "user-operation")
       userOperation "$@"

@@ -111,6 +111,8 @@ spec:
                 fieldPath: status.hostIP
           - name: FUSE_ALLUXIO_PATH
             value: {{ .Values.fuse.alluxioPath }}
+          - name: MOUNT_POINT
+            value: {{ .Values.fuse.mountPath }}
           {{- range $key, $value := .Values.fuse.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"

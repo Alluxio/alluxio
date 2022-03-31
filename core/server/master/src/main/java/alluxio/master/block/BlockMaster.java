@@ -37,8 +37,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import java.util.Collection;
 import java.io.IOException;
+import java.util.Collection;
+import java.time.Clock;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -361,4 +362,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param context the stream context to be closed
    */
   void workerRegisterFinish(WorkerRegisterContext context);
+
+  /**
+   * Returns the BlockMaster's clock so other components can align with
+   * the BlockMaster's time.
+   *
+   * @return the current clock
+   */
+  Clock getClock();
 }

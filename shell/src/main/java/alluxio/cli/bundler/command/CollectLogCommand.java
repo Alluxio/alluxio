@@ -166,7 +166,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
    * */
   public CollectLogCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mLogDirPath = fsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
+    mLogDirPath = fsContext.getClusterConf().getString(PropertyKey.LOGS_DIR);
     mLogDir = new File(mLogDirPath);
     mLogDirUri = mLogDir.toURI();
   }

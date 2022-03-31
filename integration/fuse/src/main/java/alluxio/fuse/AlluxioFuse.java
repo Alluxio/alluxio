@@ -20,6 +20,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.jnifuse.FuseException;
+import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.NativeLibraryLoader;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
@@ -29,6 +31,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -44,6 +47,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -102,6 +106,10 @@ public final class AlluxioFuse {
   public static void main(String[] args) {
     LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
+
+    // Parsing options needs to know which version is being used.
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+
     FileSystemContext fsContext = FileSystemContext.create(conf);
     try {
       InetSocketAddress confMasterAddress =
@@ -117,12 +125,13 @@ public final class AlluxioFuse {
           + "Proceed with local configuration for FUSE: {}", e.toString());
     }
     conf = fsContext.getClusterConf();
+
     final FuseMountOptions opts = parseOptions(args, conf);
     if (opts == null) {
       System.exit(1);
     }
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-    MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
       FuseWebServer webServer = new FuseWebServer(
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
@@ -153,6 +162,11 @@ public final class AlluxioFuse {
       FuseMountOptions opts, boolean blocking) throws IOException {
     Preconditions.checkNotNull(opts,
         "Fuse mount options should not be null to launch a Fuse application");
+
+    // There are other entries to this method other than the main function above
+    // It is ok to call this function multiple times.
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
+
     try {
       String mountPoint = opts.getMountPoint();
       if (!FileUtils.exists(mountPoint)) {
@@ -232,7 +246,8 @@ public final class AlluxioFuse {
       String alluxioRootValue = cli.getOptionValue("r");
 
       List<String> fuseOpts = parseFuseOptions(
-          cli.hasOption("o") ? cli.getOptionValues("o") : new String[0], alluxioConf);
+          cli.hasOption("o") ? Arrays.asList(cli.getOptionValues("o")) : ImmutableList.of(),
+          alluxioConf);
 
       final boolean fuseDebug = alluxioConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
@@ -252,15 +267,26 @@ public final class AlluxioFuse {
    * @param alluxioConf alluxio configuration
    * @return the parsed fuse options
    */
-  public static List<String> parseFuseOptions(String[] fuseOptions,
+  public static List<String> parseFuseOptions(List<String> fuseOptions,
       AlluxioConfiguration alluxioConf) {
+
+    boolean using3 =
+        NativeLibraryLoader.getLoadState().equals(NativeLibraryLoader.LoadState.LOADED_3);
+
     List<String> res = new ArrayList<>();
     boolean noUserMaxWrite = true;
     for (final String opt : fuseOptions) {
       if (opt.isEmpty()) {
         continue;
       }
+
+      // libfuse3 has dropped big_writes
+      if (using3 && opt.equals("big_writes")) {
+        continue;
+      }
+
       res.add("-o" + opt);
+
       if (noUserMaxWrite && opt.startsWith("max_write")) {
         noUserMaxWrite = false;
       }
@@ -272,10 +298,6 @@ public final class AlluxioFuse {
       res.add(String.format("-omax_write=%d", maxWrite));
     }
 
-    if (alluxioConf.getBoolean(PropertyKey.FUSE_PERMISSION_CHECK_ENABLED)) {
-      // double same fuse mount options will not error out
-      res.add("-odefault_permissions");
-    }
     return res;
   }
 

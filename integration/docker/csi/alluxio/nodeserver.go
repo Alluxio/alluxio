@@ -33,16 +33,9 @@ type nodeServer struct {
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	targetPath := req.GetTargetPath()
 
-	notMnt, err := mount.New("").IsLikelyNotMountPoint(targetPath)
+	notMnt, err := ns.ensureMountPoint(targetPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			if err := os.MkdirAll(targetPath, 0750); err != nil {
-				return nil, status.Error(codes.Internal, err.Error())
-			}
-			notMnt = true
-		} else {
-			return nil, status.Error(codes.Internal, err.Error())
-		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if !notMnt {
@@ -124,4 +117,34 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 
 func (ns *nodeServer) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "")
+}
+
+func (ns *nodeServer) isCorruptedDir(dir string) bool {
+	pathExists, pathErr := mount.PathExists(dir)
+	glog.V(3).Infoln("isCorruptedDir(%s) returned with error: (%v, %v)\\n", dir, pathExists, pathErr)
+	return pathErr != nil && mount.IsCorruptedMnt(pathErr)
+}
+
+func (ns *nodeServer) ensureMountPoint(targetPath string) (bool, error) {
+	mounter := mount.New(targetPath)
+	notMnt, err := mounter.IsLikelyNotMountPoint(targetPath)
+
+	if err == nil {
+		return notMnt, nil
+	}
+	if err != nil && os.IsNotExist(err) {
+		if err := os.MkdirAll(targetPath, 0750); err != nil {
+			return notMnt, err
+		}
+		return true, nil
+	}
+	if ns.isCorruptedDir(targetPath) {
+		glog.V(3).Infoln("detected corrupted mount for targetPath [%s]", targetPath)
+		if err := mounter.Unmount(targetPath); err != nil {
+			glog.V(3).Infoln("failed to umount corrupted path [%s]", targetPath)
+			return false, err
+		}
+		return true, nil
+	}
+	return notMnt, err
 }

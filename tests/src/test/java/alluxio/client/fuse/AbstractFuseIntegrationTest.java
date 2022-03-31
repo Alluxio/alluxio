@@ -76,8 +76,8 @@ public abstract class AbstractFuseIntegrationTest {
   /**
    * Mounts the Fuse application if needed.
    *
-   * @param fileSystem the filesystem to create the Fuse application
-   * @param mountPoint the Fuse mount point
+   * @param fileSystem  the filesystem to create the Fuse application
+   * @param mountPoint  the Fuse mount point
    * @param alluxioRoot the Fuse mounted alluxio root
    */
   public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
@@ -135,6 +135,9 @@ public abstract class AbstractFuseIntegrationTest {
       mAlluxioCluster.stop();
     } finally {
       IntegrationTestUtils.releaseMasterPorts();
+    }
+    if (fuseMounted()) {
+      ShellUtils.execCommand("umount", mMountPoint);
     }
   }
 

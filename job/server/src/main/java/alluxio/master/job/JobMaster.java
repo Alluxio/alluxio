@@ -175,9 +175,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkflowTracker = new WorkflowTracker(this);
 
     mPlanTracker = new PlanTracker(
-        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY),
         ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();

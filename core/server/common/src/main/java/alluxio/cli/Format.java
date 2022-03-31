@@ -69,7 +69,7 @@ public final class Format {
     Files.createDirectory(path);
     // For short-circuit read/write to work, others needs to be able to access this directory.
     // Therefore, default is 777 but if the user specifies the permissions, respect those instead.
-    String permissions = ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+    String permissions = ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
     Set<PosixFilePermission> perms = PosixFilePermissions.fromString(permissions);
     Files.setPosixFilePermissions(path, perms);
     FileUtils.setLocalDirStickyBit(path.toAbsolutePath().toString());
@@ -126,13 +126,13 @@ public final class Format {
         journalSystem.format();
         break;
       case WORKER:
-        String workerDataFolder = ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER);
+        String workerDataFolder = ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER);
         LOG.info("Formatting worker data folder: {}", workerDataFolder);
         int storageLevels = ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
         for (int level = 0; level < storageLevels; level++) {
           PropertyKey tierLevelDirPath =
               PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-          String[] dirPaths = ServerConfiguration.get(tierLevelDirPath).split(",");
+          String[] dirPaths = ServerConfiguration.getString(tierLevelDirPath).split(",");
           String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
             String dirWorkerDataFolder = CommonUtils.getWorkerDataDirectory(dirPath, alluxioConf);

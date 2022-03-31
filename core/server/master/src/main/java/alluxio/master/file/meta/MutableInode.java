@@ -611,7 +611,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       // pinning status has changed, therefore we change the medium list with it.
       if (entry.getPinned()) {
         List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
         setMediumTypes(entry.getMediumTypeList().stream()
             .filter(mediaList::contains).collect(Collectors.toSet()));
       } else {

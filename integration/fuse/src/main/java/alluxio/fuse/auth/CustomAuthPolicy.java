@@ -40,8 +40,8 @@ public class CustomAuthPolicy implements AuthPolicy {
   public CustomAuthPolicy(FileSystem fileSystem, AlluxioConfiguration conf,
       AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
-    mUname = conf.get(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
-    mGname = conf.get(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
+    mUname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
+    mGname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
   }
 
   @Override

@@ -35,7 +35,7 @@ public final class JobServiceBenchParameters extends GeneralParameters {
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
-  public String mBasePath = "alluxio://localhost:19998/stress-job-service-base";
+  public String mBasePath = "alluxio:///stress-job-service-base";
 
   @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")

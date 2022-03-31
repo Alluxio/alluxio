@@ -53,7 +53,8 @@ public final class UIFileBlockInfo {
       mTierAliases.add(location.getTierAlias());
     }
     mIsInHighestTier = mTierAliases
-        .contains(alluxioConfiguration.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
+        .contains(alluxioConfiguration.getString(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 
   /**
@@ -72,7 +73,8 @@ public final class UIFileBlockInfo {
     mLastAccessTimeMs = blockLastAccessTimeMs;
     mTierAliases.add(tierAlias);
     mIsInHighestTier = mTierAliases
-        .contains(alluxioConfiguration.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
+        .contains(alluxioConfiguration.getString(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 
   private void addLocations(FileBlockInfo fileBlockInfo) {

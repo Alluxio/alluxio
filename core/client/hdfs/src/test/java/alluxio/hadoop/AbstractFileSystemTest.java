@@ -240,10 +240,10 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    Map<PropertyKey, String> properties = new HashMap<>();
+    Map<PropertyKey, Object> properties = new HashMap<>();
     properties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    properties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    properties.put(PropertyKey.ZOOKEEPER_ENABLED, "false");
+    properties.put(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    properties.put(PropertyKey.ZOOKEEPER_ENABLED, false);
     properties.put(PropertyKey.ZOOKEEPER_ADDRESS, null);
     try (Closeable c = new ConfigurationRule(properties, mConfiguration).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
@@ -285,7 +285,7 @@ public class AbstractFileSystemTest {
     URI otherUri = URI.create(Constants.HEADER + "alluxioHost:19998/tmp/path.txt");
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(otherUri, conf));
     assertEquals("alluxioHost", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("19998", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(19998, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
     assertFalse(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertFalse(fs.mFileSystem.getConf().isSet(PropertyKey.ZOOKEEPER_ADDRESS));
   }
@@ -374,12 +374,12 @@ public class AbstractFileSystemTest {
     URI uri = URI.create("alluxio://host1:1");
     FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, conf));
     assertEquals("host1", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("1", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(1, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
 
     uri = URI.create("alluxio://host2:2");
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, conf));
     assertEquals("host2", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("2", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(2, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
   }
 
   /**
@@ -604,7 +604,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, true,
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
@@ -634,7 +634,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, true,
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
