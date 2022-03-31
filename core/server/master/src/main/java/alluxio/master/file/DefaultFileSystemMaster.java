@@ -1863,11 +1863,12 @@ public class DefaultFileSystemMaster extends CoreMaster
         if (context.getOptions().getRecursive()) {
           List<MountInfo> childrenMountPoints = mMountTable.findChildrenMountPoints(path, true);
           if (!childrenMountPoints.isEmpty()) {
-            // TODO(jiacheng): a better string?
-            LOG.debug("Deleting {} which contains mount points {}", path, childrenMountPoints);
+            LOG.debug("Recursively deleting {} which contains mount points {}",
+                path, childrenMountPoints);
             for (MountInfo mount : childrenMountPoints) {
               if (mount.getOptions().getReadOnly()) {
-                failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY, mount.getAlluxioUri(), mount).getMessage());
+                failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY,
+                    mount.getAlluxioUri(), mount).getMessage());
               }
             }
           }
@@ -1905,8 +1906,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   @VisibleForTesting
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      DeleteContext deleteContext, boolean bypassPermCheck) throws FileDoesNotExistException, IOException,
-      DirectoryNotEmptyException, InvalidPathException {
+      DeleteContext deleteContext, boolean bypassPermCheck) throws FileDoesNotExistException,
+      IOException, DirectoryNotEmptyException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is

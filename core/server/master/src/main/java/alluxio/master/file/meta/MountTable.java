@@ -283,7 +283,15 @@ public final class MountTable implements DelegatingJournaled {
     return false;
   }
 
-  public List<MountInfo> findChildrenMountPoints(AlluxioURI uri, boolean containsSelf) throws InvalidPathException {
+  /**
+   * Returns the mount points under the specified path.
+   *
+   * @param uri the Alluxio uri to check
+   * @param containsSelf if the given uri itself can be a mount point and included in the return
+   * @return the mount points found
+   */
+  public List<MountInfo> findChildrenMountPoints(AlluxioURI uri, boolean containsSelf)
+      throws InvalidPathException {
     String path = uri.getPath();
     List<MountInfo> childrenMountPoints = new ArrayList<>();
 

@@ -509,16 +509,22 @@ public final class FileSystemMasterTest {
     }
     // The existing files/dirs will be: /, /nested/, /nested/test/, /nested/test/file
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
     // The other files should be deleted successfully
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
   }
 
   @Test
@@ -576,21 +582,28 @@ public final class FileSystemMasterTest {
       assertTrue(e.getMessage().contains("/nested/test (Permission denied"));
       assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
     }
-    // The existing files/dirs will be: /, /nested/, /nested/test/ and everything under /nested/test/
-
+    // The existing files/dirs will be: /, /nested/, /nested/test/
+    // and everything under /nested/test/
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
-    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test/file2")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test/file2")));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_FILE_URI));
     // The other files should be deleted successfully
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
-    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
   }
 
   /**
@@ -636,8 +649,8 @@ public final class FileSystemMasterTest {
     loadPersistedDirectories(levels);
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)
-            .setUnchecked(unchecked)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
+            .setAlluxioOnly(false).setUnchecked(unchecked)));
     checkPersistedDirectoriesDeleted(levels, ufsMount, Collections.EMPTY_LIST);
   }
 
