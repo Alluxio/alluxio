@@ -3266,7 +3266,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_THREADS_MAX =
       intBuilder(Name.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX)
-          .setDefaultValue("1024")
+          .setDefaultValue(1024)
           .setDescription("The number of threads to handle cache I/O operation timeout, "
               + "when " + Name.WORKER_CACHE_IO_TIMEOUT_DURATION + " is positive. "
               + "Suggest setting this value to the maximum of "
