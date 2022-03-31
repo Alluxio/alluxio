@@ -20,6 +20,7 @@ import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountOptions;
 import alluxio.fuse.FuseUmountable;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,30 +57,27 @@ public class FuseManager implements Closeable {
   public void start() {
     AlluxioConfiguration conf = ServerConfiguration.global();
     if (!conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_POINT)
-        || conf.get(PropertyKey.WORKER_FUSE_MOUNT_POINT).isEmpty()) {
+        || conf.getString(PropertyKey.WORKER_FUSE_MOUNT_POINT).isEmpty()) {
       LOG.error("Failed to launch worker internal Fuse application. {} should be set.",
           PropertyKey.WORKER_FUSE_MOUNT_POINT);
       return;
     }
     if (!conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
-        || conf.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
+        || conf.getString(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH).isEmpty()) {
       LOG.error("Failed to launch worker internal Fuse application. {} should be set.",
           PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH.getName());
       return;
     }
-    String fuseMount = conf.get(PropertyKey.WORKER_FUSE_MOUNT_POINT);
-    String alluxioPath = conf.get(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
+    String fuseMount = conf.getString(PropertyKey.WORKER_FUSE_MOUNT_POINT);
+    String alluxioPath = conf.getString(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH);
     // TODO(lu) check if the given fuse mount point exists
     // create the folder if it does not exist
     try {
-      String[] fuseOptsSeparated = new String[0];
+      List<String> fuseOpts = ImmutableList.of();
       if (conf.isSet(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS)) {
-        String fuseOptsString = conf.get(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
-        if (!fuseOptsString.isEmpty()) {
-          fuseOptsSeparated = fuseOptsString.split(FUSE_OPTION_SEPARATOR);
-        }
+        fuseOpts = conf.getList(PropertyKey.WORKER_FUSE_MOUNT_OPTIONS);
       }
-      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(fuseOptsSeparated, conf);
+      List<String> fuseOptions = AlluxioFuse.parseFuseOptions(fuseOpts, conf);
       FuseMountOptions options = new FuseMountOptions(fuseMount, alluxioPath,
           conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED), fuseOptions);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation

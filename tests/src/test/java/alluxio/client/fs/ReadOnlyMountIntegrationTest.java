@@ -67,7 +67,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     // Create another directory on the local filesystem, alongside the existing Ufs, to be used as
     // a second Ufs.
     AlluxioURI parentURI =
-        new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+        new AlluxioURI(ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
             .getParent();
     mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     mAlternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();

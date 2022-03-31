@@ -31,6 +31,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -129,7 +131,7 @@ public final class AlluxioFuse {
       System.exit(1);
     }
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-    MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
       FuseWebServer webServer = new FuseWebServer(
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
@@ -244,7 +246,8 @@ public final class AlluxioFuse {
       String alluxioRootValue = cli.getOptionValue("r");
 
       List<String> fuseOpts = parseFuseOptions(
-          cli.hasOption("o") ? cli.getOptionValues("o") : new String[0], alluxioConf);
+          cli.hasOption("o") ? Arrays.asList(cli.getOptionValues("o")) : ImmutableList.of(),
+          alluxioConf);
 
       final boolean fuseDebug = alluxioConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
@@ -264,7 +267,7 @@ public final class AlluxioFuse {
    * @param alluxioConf alluxio configuration
    * @return the parsed fuse options
    */
-  public static List<String> parseFuseOptions(String[] fuseOptions,
+  public static List<String> parseFuseOptions(List<String> fuseOptions,
       AlluxioConfiguration alluxioConf) {
 
     boolean using3 =
@@ -295,10 +298,6 @@ public final class AlluxioFuse {
       res.add(String.format("-omax_write=%d", maxWrite));
     }
 
-    if (alluxioConf.getBoolean(PropertyKey.FUSE_PERMISSION_CHECK_ENABLED)) {
-      // double same fuse mount options will not error out
-      res.add("-odefault_permissions");
-    }
     return res;
   }
 

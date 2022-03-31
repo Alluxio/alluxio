@@ -54,7 +54,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
     // args[0] is the path, args[1] to args[end] is the list of possible media to pin
     List<String> pinnedMediumTypes = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
     List<String> availableMediumList = mFsContext.getPathConf(path).getList(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
     List<String> invalidMediumType = new ArrayList<>();
     List<String> validMediumType = new ArrayList<>();
     for (String mediumType: pinnedMediumTypes) {

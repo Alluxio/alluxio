@@ -669,8 +669,6 @@ public final class CommonUtils {
 
   /** Alluxio process types. */
   public enum ProcessType {
-    HUB_AGENT,
-    HUB_MANAGER,
     JOB_MASTER,
     JOB_WORKER,
     CLIENT,

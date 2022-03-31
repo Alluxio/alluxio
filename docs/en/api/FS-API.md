@@ -159,7 +159,7 @@ normalOut.close();
 InstancedConfiguration conf = InstancedConfiguration.defaults();
 conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alice");
 FileSystem customizedFs = FileSystem.Factory.create(conf);
-AlluxioURI normalPath = new AlluxioURI("/customizedFile");
+AlluxioURI customizedPath = new AlluxioURI("/customizedFile");
 // The newly created file will be created under the username "alice"
 FileOutStream customizedOut = customizedFs.createFile(customizedPath);
 ...

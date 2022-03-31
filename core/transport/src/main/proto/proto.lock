@@ -4697,6 +4697,14 @@
               {
                 "name": "CLUSTER_ID",
                 "integer": 10
+              },
+              {
+                "name": "RAFT_JOURNAL",
+                "integer": 11
+              },
+              {
+                "name": "RAFT_ADDRESSES",
+                "integer": 12
               }
             ]
           },
@@ -4952,6 +4960,17 @@
                 "id": 11,
                 "name": "clusterId",
                 "type": "string"
+              },
+              {
+                "id": 12,
+                "name": "raftJournal",
+                "type": "bool"
+              },
+              {
+                "id": 13,
+                "name": "raftAddress",
+                "type": "string",
+                "is_repeated": true
               }
             ]
           },
@@ -5020,6 +5039,11 @@
               {
                 "id": 3,
                 "name": "allowLeader",
+                "type": "bool"
+              },
+              {
+                "id": 4,
+                "name": "bypassDelegation",
                 "type": "bool"
               }
             ]

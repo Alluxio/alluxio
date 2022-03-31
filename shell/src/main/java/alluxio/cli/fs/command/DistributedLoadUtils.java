@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -144,15 +145,15 @@ public final class DistributedLoadUtils {
    * @param command The command to execute loading
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
-   * @param directCache
+   * @param directCache use direct cache or passive cache
    * @param printOut whether print out progress in console
    */
   private static JobAttempt newJob(AbstractDistributedJobCommand command, List<URIStatus> filePath,
       int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
       Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
       boolean printOut) {
-    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication, workerSet,
-        excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut);
+    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication,
+        workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache, printOut);
     jobAttempt.run();
     return jobAttempt;
   }
@@ -166,8 +167,20 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getFilePath());
+      }
     }
 
     @Override
@@ -198,8 +211,20 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getFilePath());
+      }
     }
 
     @Override
@@ -223,12 +248,26 @@ public final class DistributedLoadUtils {
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
           .collect(Collectors.joining(","));
       mFilesPathString = String.format("[%s]", StringUtils.abbreviate(pathString, 80));
-      System.out.printf("files: %s" + " loading", mFilesPathString);
+      System.out.printf("files: %s" + " loading%n", mFilesPathString);
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
+      }
     }
 
     @Override
@@ -260,8 +299,22 @@ public final class DistributedLoadUtils {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+        }
+      }
     }
 
     @Override
@@ -295,9 +348,8 @@ public final class DistributedLoadUtils {
         int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
         Set<String> localityIds, Set<String> excludedLocalityIds, boolean directCache,
         boolean printOut) {
-      int poolSize = filePath.size();
       JobAttempt jobAttempt;
-      if (poolSize == 1) {
+      if (filePath.size() == 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
             workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
         if (printOut) {

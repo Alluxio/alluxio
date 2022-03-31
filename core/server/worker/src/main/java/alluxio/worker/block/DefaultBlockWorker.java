@@ -67,6 +67,7 @@ import alluxio.worker.grpc.GrpcExecutors;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,7 +194,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
-    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST, ","));
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
   }
@@ -359,21 +360,30 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public String createBlock(long sessionId, long blockId, int tier,
       String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+    return createBlock(sessionId, blockId, tier,
+        new CreateBlockOptions("", medium, initialBytes));
+  }
+
+  @Override
+  public String createBlock(long sessionId, long blockId, int tier,
+      CreateBlockOptions createBlockOptions)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
-    if (medium.isEmpty()) {
+    if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
       loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
     } else {
-      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
+      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium());
     }
     TempBlockMeta createdBlock;
     try {
       createdBlock = mLocalBlockStore.createBlock(sessionId, blockId,
-          AllocateOptions.forCreate(initialBytes, loc));
+          AllocateOptions.forCreate(createBlockOptions.getInitialBytes(), loc));
     } catch (WorkerOutOfSpaceException e) {
       LOG.error(
           "Failed to create block. SessionId: {}, BlockId: {}, "
               + "TierAlias:{}, Medium:{}, InitialBytes:{}, Error:{}",
-          sessionId, blockId, mStorageTierAssoc.getAlias(tier), medium, initialBytes, e);
+          sessionId, blockId, mStorageTierAssoc.getAlias(tier),
+          createBlockOptions.getMedium(), createBlockOptions.getInitialBytes(), e);
 
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
@@ -717,7 +727,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
-          String value = ServerConfiguration.getOrDefault(key, null,
+          Object value = ServerConfiguration.getOrDefault(key, null,
                   ConfigurationValueOptions.defaults().useDisplayValue(true)
                           .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);

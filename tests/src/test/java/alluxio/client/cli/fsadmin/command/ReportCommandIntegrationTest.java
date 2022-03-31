@@ -11,12 +11,8 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.ProjectConstants;
 import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.util.network.NetworkAddressUtils;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -41,33 +37,6 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
         ReportCommand.description(),
         "report category is invalid.") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
-  }
-
-  @Test
-  public void reportSummary() {
-    int ret = mFsAdminShell.run("report", "summary");
-    Assert.assertEquals(0, ret);
-    String output = mOutput.toString();
-
-    // Check if meta master values are available
-    String expectedMasterAddress = NetworkAddressUtils
-        .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()).toString();
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Master Address: " + expectedMasterAddress));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Web Port: " + ServerConfiguration.get(PropertyKey.MASTER_WEB_PORT)));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Rpc Port: " + ServerConfiguration.get(PropertyKey.MASTER_RPC_PORT)));
-    Assert.assertFalse(output.contains("Started: 12-31-1969 16:00:00:000"));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Version: " + ProjectConstants.VERSION));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Zookeeper Enabled: false"));
-
-    // Check if block master values are available
-    Assert.assertThat(output, CoreMatchers.containsString("Live Workers: 1"));
-    Assert.assertFalse(output.contains("Total Capacity: 0B"));
   }
 
   @Test

@@ -455,9 +455,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         mDirectoryIdGenerator, mMountTable, mInodeLockManager);
 
     // TODO(gene): Handle default config value for whitelist.
-    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST));
     mPersistBlacklist = ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ",")
+        ? ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
         : Collections.emptyList();
 
     mStateLockCallTracker = new CallTracker() {
@@ -511,10 +511,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       boolean readonly = ServerConfiguration.getBoolean(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
       String rootUfsUri = PathUtils.normalizePath(
-          ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+          ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
           AlluxioURI.SEPARATOR);
       Map<String, String> rootUfsConf =
-          ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+          ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION)
+              .entrySet().stream()
+              .filter(entry -> entry.getValue() != null)
+              .collect(Collectors.toMap(Map.Entry::getKey,
+                  entry -> String.valueOf(entry.getValue())));
       MountPOptions mountOptions = MountContext
           .mergeFrom(MountPOptions.newBuilder().setShared(shared).setReadOnly(readonly)
                   .putAllProperties(rootUfsConf))
@@ -564,7 +568,8 @@ public class DefaultFileSystemMaster extends CoreMaster
               SecurityUtils.getOwner(mMasterContext.getUserState()),
               SecurityUtils.getGroup(mMasterContext.getUserState(), ServerConfiguration.global()),
               ModeUtils.applyDirectoryUMask(Mode.createFullAccess(),
-                  ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
+                  ServerConfiguration.getString(
+                      PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
         }
       } else if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SKIP_ROOT_ACL_CHECK)) {
@@ -639,7 +644,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         validateInodeBlocks(true);
       }
 
-      int blockIntegrityCheckInterval = (int) ServerConfiguration
+      long blockIntegrityCheckInterval = ServerConfiguration
           .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
 
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
@@ -651,26 +656,26 @@ public class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
-              (int) ServerConfiguration.getMs(PropertyKey
+              ServerConfiguration.getMs(PropertyKey
                   .MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       mReplicationCheckHeartbeatThread = new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
               mSafeModeManager, mJobMasterClientPool),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
           ServerConfiguration.global(), mMasterContext.getUserState());
       ReconfigurableRegistry.register(this);
       getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
@@ -681,12 +686,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_METRICS_TIME_SERIES,
               new TimeSeriesRecorder(),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
+              ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
@@ -699,7 +704,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
-                (int) ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
+                ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
                 ServerConfiguration.global(), mMasterContext.getUserState()));
       }
       mAccessTimeUpdater.start();
@@ -1529,7 +1534,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         if (ufsStatus == null) {
-          ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+          ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
         } else {
           ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         }
@@ -1843,7 +1848,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       try (LockedInodePath inodePath = mInodeTree
               .lockInodePath(lockingScheme)) {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-        mMountTable.checkUnderWritableMountPoint(path);
+        // If the mount point is read only, we allow removing the in-Alluxio metadata and data
+        // in order to load it from the UFS again.
+        // This can happen if Alluxio is out-of-sync with the UFS.
+        if (!context.getOptions().getAlluxioOnly()) {
+          mMountTable.checkUnderWritableMountPoint(path);
+        }
         if (!inodePath.fullPathExists()) {
           throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST
               .getMessage(path));
@@ -1923,7 +1933,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
 
     // Inodes for which deletion will be attempted
-    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete = new ArrayList<>();
+    List<Pair<AlluxioURI, LockedInodePath>> inodesToDelete;
+    if (inode.isDirectory()) {
+      inodesToDelete = new ArrayList<>((int) inode.asDirectory().getChildCount());
+    } else {
+      inodesToDelete = new ArrayList<>(1);
+    }
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
     // Inodes that are not safe for recursive deletes
@@ -1968,9 +1983,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             deleteContext.getOptions().build());
       }
 
-      // Inodes to delete from tree after attempting to delete from UFS
-      List<Pair<AlluxioURI, LockedInodePath>> revisedInodesToDelete = new ArrayList<>();
-
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
@@ -2013,12 +2025,15 @@ public class DefaultFileSystemMaster extends CoreMaster
               job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
             }
           }
-          revisedInodesToDelete.add(new Pair<>(alluxioUriToDelete, inodePairToDelete.getSecond()));
         } else {
           unsafeInodes.add(inodeToDelete.getId());
           // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
           unsafeInodes.add(inodeToDelete.getParentId());
           failedUris.add(new Pair<>(alluxioUriToDelete.toString(), failureReason));
+
+          // Something went wrong with this path so it cannot be removed normally
+          // Remove the path from further processing
+          inodesToDelete.set(i, null);
         }
       }
 
@@ -2026,8 +2041,13 @@ public class DefaultFileSystemMaster extends CoreMaster
         mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
       }
 
-      // Delete Inodes
-      for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
+      // Delete Inodes from children to parents
+      for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
+        Pair<AlluxioURI, LockedInodePath> delInodePair = inodesToDelete.get(i);
+        // The entry is null because an error is met from the pre-processing
+        if (delInodePair == null) {
+          continue;
+        }
         LockedInodePath tempInodePath = delInodePair.getSecond();
         MountTable.Resolution resolution = mMountTable.resolve(tempInodePath.getUri());
         mInodeTree.deleteInode(rpcContext, tempInodePath, opTimeMs);
@@ -2092,7 +2112,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     InodeFile file = inodePath.getInodeFile();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
-    List<FileBlockInfo> ret = new ArrayList<>();
+    List<FileBlockInfo> ret = new ArrayList<>(blockInfoList.size());
     for (BlockInfo blockInfo : blockInfoList) {
       ret.add(generateFileBlockInfo(inodePath, blockInfo));
     }
@@ -2397,7 +2417,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufsStatus == null) {
-            ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+            ufsFingerprint = ufs.getParsedFingerprint(resolvedUri.toString()).serialize();
           } else {
             ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
           }
@@ -2846,7 +2866,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public String getUfsAddress() {
-    return ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    return ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }
 
   @Override
@@ -3631,7 +3651,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       long newValue = ServerConfiguration.getMs(
           PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
       mReplicationCheckHeartbeatThread.updateIntervalMs(
-          (int) newValue);
+          newValue);
       LOG.info("The interval of {} updated to {}",
           HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
     }
@@ -3815,7 +3835,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               context.setUfsFingerprint(fp.serialize());
             } else {
               // Need to retrieve the fingerprint from ufs.
-              context.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+              context.setUfsFingerprint(ufs.getParsedFingerprint(ufsUri).serialize());
             }
           }
         }
@@ -4246,7 +4266,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
                 }
               }
-              builder.setUfsFingerprint(ufs.getFingerprint(ufsPath));
+              builder.setUfsFingerprint(ufs.getParsedFingerprint(ufsPath).serialize());
             }
 
             mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
@@ -4710,7 +4730,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
           inodeTree::getFileSizeHistogram);
 
-      final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      final String ufsDataFolder = ServerConfiguration.getString(
+          PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName(),
           () -> {

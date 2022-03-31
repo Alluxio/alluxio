@@ -87,8 +87,8 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Rule
   public ConfigurationRule mConfiguration =
-      new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, "0",
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, "true"), mConf);
+      new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true), mConf);
 
   @Before
   public void before() throws Exception {

@@ -58,8 +58,8 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   // fix the test setup in SIMPLE mode.
   @ClassRule
   public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
-      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
       .setProperty(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0sec")

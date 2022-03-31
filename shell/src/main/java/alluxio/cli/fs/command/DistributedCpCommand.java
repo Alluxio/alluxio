@@ -16,6 +16,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.job.JobAttempt;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
@@ -44,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
-  private String mWriteType;
+  private WriteType mWriteType;
 
   private static final Option ACTIVE_JOB_COUNT_OPTION =
       Option.builder()
@@ -143,7 +145,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
-    mWriteType = conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
+    mWriteType = conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     distributedCp(srcPath, dstPath, overwrite, batchSize);
@@ -261,8 +263,20 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return 1;
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        mFailedFiles = Collections.singleton(mJobConfig.getSource());
+      }
     }
 
     @Override
@@ -299,8 +313,22 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
 
     @Override
-    protected JobConfig getJobConfig() {
+    public JobConfig getJobConfig() {
       return mJobConfig;
+    }
+
+    @Override
+    public int getSize() {
+      return mJobConfig.getJobConfigs().size();
+    }
+
+    @Override
+    public void setFailedFiles() {
+      if (!mFailedTasks.isEmpty()) {
+        for (JobInfo task : mFailedTasks) {
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "Source=", ","));
+        }
+      }
     }
 
     @Override
