@@ -23,7 +23,6 @@ import alluxio.job.cmd.migrate.MigrateCliConfig;
 import alluxio.job.wire.JobSource;
 import alluxio.job.wire.Status;
 import alluxio.master.job.common.CmdInfo;
-import alluxio.master.job.plan.PlanTracker;
 
 import com.beust.jcommander.internal.Lists;
 import org.junit.Assert;
@@ -48,7 +47,6 @@ public final class CmdJobTrackerTest {
   private static final int ONE_ATTEMPT = 1;
 
   private CmdJobTracker mCmdJobTracker;
-  private PlanTracker mPlanTracker;
   private FileSystem mFs;
 
   private long mLoadJobId;
@@ -66,14 +64,13 @@ public final class CmdJobTrackerTest {
   @Before
   public void before() throws Exception {
     mFs = mock(FileSystem.class);
-    mPlanTracker = mock(PlanTracker.class);
     FileSystemContext fsCtx = mock(FileSystemContext.class);
 
     mMigrateCliRunner = PowerMockito.mock(MigrateCliRunner.class);
     mDistLoadRunner = PowerMockito.mock(DistLoadCliRunner.class);
     mPersistRunner = PowerMockito.mock(PersistRunner.class);
 
-    mCmdJobTracker = new CmdJobTracker(fsCtx, mPlanTracker,
+    mCmdJobTracker = new CmdJobTracker(fsCtx,
             mDistLoadRunner, mMigrateCliRunner, mPersistRunner);
 
     mLoad = new LoadCliConfig("/path/to/load", 3, 1, Collections.EMPTY_SET,

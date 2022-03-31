@@ -26,17 +26,12 @@ import alluxio.job.cmd.load.LoadCliConfig;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -342,29 +337,6 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     CmdConfig cmdConfig = new LoadCliConfig(filePath.getPath(), batchSize, replication, workerSet,
             excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
     return submit(cmdConfig);
-  }
-
-  private void processFailures(String arg, Set<String> failures) {
-    String path = String.join("_", StringUtils.split(arg, "/"));
-    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
-    StringBuilder output = new StringBuilder();
-    output.append("Here are recent failed files: \n");
-    Iterator<String> iterator = failures.iterator();
-    for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
-      String failure = iterator.next();
-      output.append(failure);
-      output.append(",\n");
-    }
-    output.append(String.format("Check out %s for full list of failed files.", failurePath));
-    System.out.print(output);
-    try (FileOutputStream writer = FileUtils.openOutputStream(new File(failurePath))) {
-      for (String failure : failures) {
-        writer.write(String.format("%s%n", failure).getBytes(StandardCharsets.UTF_8));
-      }
-    } catch (Exception e) {
-      System.out.println("Exception writing failure files:");
-      System.out.println(e.getMessage());
-    }
   }
 
   private void readItemsFromOptionString(Set<String> localityIds, String argOption) {

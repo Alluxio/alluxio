@@ -50,14 +50,6 @@ public class CmdInfo {
     mCmdRunAttempt = Lists.newArrayList();
   }
 
-//  /**
-//   * Set the CmdRunAttempt.
-//   * @param attempts CmdRunAttempt
-//   */
-//  public void setCmdRunAttempt(List<CmdRunAttempt> attempts) {
-//    mCmdRunAttempt = attempts;
-//  }
-
   /**
    * Add the CmdRunAttempt.
    * @param attempt CmdRunAttempt

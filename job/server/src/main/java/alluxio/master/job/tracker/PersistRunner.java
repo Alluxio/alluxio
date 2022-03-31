@@ -70,7 +70,6 @@ public class PersistRunner {
     setJobConfigAndFileMetrics(config, attempt);
 
     cmdInfo.addCmdRunAttempt(attempt);
-    //LOG.info("submitPersist, attempt = " + attempt.getJobConfig().toString());
     attempt.run();
     return cmdInfo;
   }
@@ -83,6 +82,5 @@ public class PersistRunner {
     attempt.setFileCount(fileCount);
     attempt.setFileSize(fileSize);
     attempt.setConfig(config.toPersistConfig());
-    //LOG.info("file  count = " + fileCount + ", file size = " + fileSize);
   }
 }

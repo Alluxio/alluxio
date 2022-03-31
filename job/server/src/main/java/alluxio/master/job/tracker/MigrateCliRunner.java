@@ -134,7 +134,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
   private void submitDistCp(List<Pair<String, String>> pool, boolean overwrite,
          String writeType, CmdInfo cmdInfo) {
     if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
-     // LOG.info("waiting for submitted job number to decrease...");
       waitForCmdJob();
     }
 
@@ -142,8 +141,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     setJobConfigAndFileMetrics(pool, overwrite, writeType, attempt);
     mSubmitted.add(attempt);
     cmdInfo.addCmdRunAttempt(attempt);
-
-   // LOG.info("submitDistCp, attempt = " + attempt.getJobConfig().toString());
     attempt.run();
   }
 
@@ -163,7 +160,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     if (poolSize == 1) {
       Pair<String, String> pair = filePath.iterator().next();
       String source = pair.getFirst();
-      //LOG.info("pool size = 1, Copying " + source + " to " + pair.getSecond()); //print
       jobConfig = new MigrateConfig(source, pair.getSecond(), writeType, overwrite);
       fileCount = DEFAULT_FILE_COUNT;
       fileSize = DistributedCmdMetrics.getFileSize(source, mFileSystem, new CountingRetry(3));
@@ -174,7 +170,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
         String source = pair.getFirst();
         MigrateConfig config =
                 new MigrateConfig(source, pair.getSecond(), writeType, overwrite);
-        //LOG.info("pool size = " + poolSize + ", Copying " + source + " to " + pair.getSecond());
         Map<String, String> map = oMapper.convertValue(config, Map.class);
         configs.add(map);
         fileSize += DistributedCmdMetrics.getFileSize(source, mFileSystem, new CountingRetry(3));
@@ -185,7 +180,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     attempt.setFileCount(fileCount);
     attempt.setFileSize(fileSize);
     attempt.setConfig(jobConfig);
-   // LOG.info("file  count = " + fileCount + ", file size = " + fileSize);
   }
 
   private void createFolders(AlluxioURI srcPath, AlluxioURI dstPath, FileSystem fileSystem)

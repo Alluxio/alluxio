@@ -183,7 +183,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkerHealth = new ConcurrentHashMap<>();
 
     mCmdJobTracker = new CmdJobTracker(
-            fsContext, this, mPlanTracker);
+            fsContext, this);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOB_COUNT.getName(),

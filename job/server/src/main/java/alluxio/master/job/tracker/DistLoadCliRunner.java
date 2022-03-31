@@ -159,7 +159,6 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
                               Set<String> localityIds, Set<String> excludedLocalityIds,
                               boolean directCache, CmdInfo cmdInfo) {
     if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
-      //LOG.info("waiting for submitted job number to decrease...");
       waitForCmdJob();
     }
 
@@ -168,8 +167,6 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
             localityIds, excludedLocalityIds, directCache, attempt);
     mSubmitted.add(attempt);
     cmdInfo.addCmdRunAttempt(attempt);
-
-    //LOG.info("submitDistLoad, attempt = " + attempt.getJobConfig().toString());
     attempt.run();
   }
 
@@ -207,7 +204,6 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
     attempt.setFileCount(fileCount);
     attempt.setFileSize(fileSize);
     attempt.setConfig(jobConfig);
-   // LOG.info("file  count = " + fileCount + ", file size = " + fileSize);
   }
 }
 

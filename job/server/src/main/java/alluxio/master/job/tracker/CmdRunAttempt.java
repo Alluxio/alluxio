@@ -112,11 +112,9 @@ public class CmdRunAttempt {
    */
   public boolean run() {
     mCreationTime = System.currentTimeMillis(); // set job creation time.
-    //System.out.println(String.format("creation time is %d", mCreationTime));
     while (mRetryPolicy.attempt()) {
       try {
         mJobId = mJobMaster.run(getJobConfig());
-        //System.out.println(String.format("after: In CmdRunAttept, start job %d", mJobId));
       } catch (IOException | JobDoesNotExistException e) {
         int retryCount = mRetryPolicy.getAttemptCount();
         System.out.println(String.format("Retry %d Failed to start job with error: %s",
@@ -127,7 +125,6 @@ public class CmdRunAttempt {
       }
       return true;
     }
-    //logFailed();
     return false;
   }
 
@@ -194,10 +191,4 @@ public class CmdRunAttempt {
   public Set<String> getFailedFiles() {
     return new HashSet<>(mFailedFiles);
   }
-
-//  protected abstract void logFailedAttempt(JobInfo jobInfo);
-//
-//  protected abstract void logFailed();
-//
-//  protected abstract void logCompleted();
 }
