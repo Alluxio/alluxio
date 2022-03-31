@@ -59,7 +59,6 @@ import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
@@ -7818,7 +7817,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return all pre-defined property keys
    */
   public static Collection<? extends PropertyKey> defaultKeys() {
-    return Sets.newHashSet(DEFAULT_KEYS_MAP.values());
+    return DEFAULT_KEYS_MAP.values();
   }
 
   /** Property name. */
