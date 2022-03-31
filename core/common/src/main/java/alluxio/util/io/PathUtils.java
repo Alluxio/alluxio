@@ -20,10 +20,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -39,7 +36,7 @@ public final class PathUtils {
   private static final CharMatcher SEPARATOR_MATCHER =
       CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0));
   private static final Pattern TEMPORARY_FILE_NAME =
-      Pattern.compile("^.*\\.alluxio\\.0x[0-9A-F]{16}\\.tmp$");
+      Pattern.compile("^.*\\.alluxio\\" + ".0x[0" + "-9A-F]{16}\\.tmp$");
 
   /**
    * Checks and normalizes the given path.
@@ -136,8 +133,12 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    String res = "", temp = "";
-    int i = 0, prev = 0, lastSeparator = 0, len;
+    String res = "";
+    String temp = "";
+    int i;
+    int prev;
+    int lastSeparator = 0;
+    int len;
 
     for (AlluxioURI path : paths) {
       String pathStr = path.getPath();
@@ -153,12 +154,18 @@ public final class PathUtils {
         for (i = 0; i < len; i++) {
           if (res.charAt(i) == pathStr.charAt(i)) {
             temp = temp + res.charAt(i);
-            if (i == len - AlluxioURI.SEPARATOR.length() && ((res.length() > pathStr.length() && !res.startsWith(AlluxioURI.SEPARATOR,
-                i + 1)) || (pathStr.length() > res.length() && !pathStr.startsWith(AlluxioURI.SEPARATOR,
-                i + 1)))) {
-              // last char
-              if ((res.length() > len && res.substring(i + 1,
-                  i + 1 + AlluxioURI.SEPARATOR.length()) != AlluxioURI.SEPARATOR) || (pathStr.length() > len && pathStr.substring(i + 1, i + 1 + AlluxioURI.SEPARATOR.length()) != AlluxioURI.SEPARATOR)) {
+            if (i == len - AlluxioURI.SEPARATOR.length()
+                &&
+                ((res.length() > pathStr.length() && !res.startsWith(AlluxioURI.SEPARATOR, i + 1))
+                    ||
+                    (pathStr.length() > res.length()
+                        && !pathStr.startsWith(AlluxioURI.SEPARATOR, i + 1)))) {
+              if ((res.length() > len
+                  && res.substring(i + 1, i + 1 + AlluxioURI.SEPARATOR.length())
+                  != AlluxioURI.SEPARATOR)
+                  || (pathStr.length() > len
+                  && pathStr.substring(i + 1, i + 1 + AlluxioURI.SEPARATOR.length())
+                  != AlluxioURI.SEPARATOR)) {
                 // back to the last separator
                 temp = temp.substring(0, lastSeparator);
               }
@@ -169,8 +176,7 @@ public final class PathUtils {
           }
 
           prev = i - AlluxioURI.SEPARATOR.length() + 1;
-          if (prev >= 0 && res.startsWith(AlluxioURI.SEPARATOR,
-              prev)) {
+          if (prev >= 0 && res.startsWith(AlluxioURI.SEPARATOR, prev)) {
             // update last separator
             lastSeparator = prev;
           }
@@ -296,7 +302,8 @@ public final class PathUtils {
     }
     if (!hasPrefix(cleanedPath, cleanedPrefix)) {
       throw new RuntimeException(
-          String.format("Cannot subtract %s from %s because it is not a prefix", prefix, path));
+          String.format("Cannot subtract %s from %s because it is not a " + "prefix",
+              prefix, path));
     }
     // The only clean path which ends in '/' is the root.
     int prefixLen = cleanedPrefix.length();
@@ -322,7 +329,9 @@ public final class PathUtils {
     if (path.length() < prefix.length()) {
       return false;
     }
-    return path.startsWith(prefix) && (path.length() == prefix.length() || path.charAt(prefix.length()) == '/');
+    return path.startsWith(prefix)
+        &&
+        (path.length() == prefix.length() || path.charAt(prefix.length()) == '/');
   }
 
   /**
