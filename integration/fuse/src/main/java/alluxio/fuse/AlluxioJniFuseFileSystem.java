@@ -91,8 +91,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
-  private final LoadingCache<String, Long> mUidCache;
-  private final LoadingCache<String, Long> mGidCache;
+  public final LoadingCache<String, Long> mUidCache;
+  public final LoadingCache<String, Long> mGidCache;
   private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
@@ -338,9 +338,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       // standard . and .. entries
       FuseFillDir.apply(filter, buff, ".", null, 0);
       FuseFillDir.apply(filter, buff, "..", null, 0);
-
+      
       mFileSystem.iterateStatus(uri, file -> {
-        FuseFillDir.apply(filter, buff, file.getName(), null, 0);
+        FileStat stat = getFileStat();
+        AlluxioFuseUtils.setStat(file, stat);
+        FuseFillDir.apply(filter, buff, file.getName(), stat, 0);
       });
     } catch (Throwable e) {
       LOG.error("Failed to readdir {}: ", path, e);

@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -24,6 +25,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.struct.FileStat;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -32,6 +34,9 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -60,9 +65,49 @@ public final class AlluxioFuseUtils {
   public static final String INVALID_USER_GROUP_NAME = "";
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
-
+  
   private AlluxioFuseUtils() {}
 
+  /**
+   * Sets the uri status to file status.
+   */
+  public static void setStat(URIStatus uri, FileStat stat) {
+    long size = uri.getLength();
+    stat.st_size.set(size);
+
+    // Sets block number to fulfill du command needs
+    // `st_blksize` is ignored in `getattr` according to
+    // https://github.com/libfuse/libfuse/blob/d4a7ba44b022e3b63fc215374d87ed9e930d9974/include/fuse.h#L302
+    // According to http://man7.org/linux/man-pages/man2/stat.2.html,
+    // `st_blocks` is the number of 512B blocks allocated
+    stat.st_blocks.set((int) Math.ceil((double) size / 512));
+
+    final long ctime_sec = uri.getLastModificationTimeMs() / 1000;
+    final long atime_sec = uri.getLastAccessTimeMs() / 1000;
+    // Keeps only the "residual" nanoseconds not caputred in citme_sec
+    final long ctime_nsec = (uri.getLastModificationTimeMs() % 1000) * 1_000_000L;
+    final long atime_nsec = (uri.getLastAccessTimeMs() % 1000) * 1_000_000L;
+
+    stat.st_atim.tv_sec.set(atime_sec);
+    stat.st_atim.tv_nsec.set(atime_nsec);
+    stat.st_ctim.tv_sec.set(ctime_sec);
+    stat.st_ctim.tv_nsec.set(ctime_nsec);
+    stat.st_mtim.tv_sec.set(ctime_sec);
+    stat.st_mtim.tv_nsec.set(ctime_nsec);
+    
+    stat.st_uid.set(AlluxioFuseUtils.DEFAULT_UID);
+    stat.st_gid.set(AlluxioFuseUtils.DEFAULT_GID);
+
+    int mode = uri.getMode();
+    if (uri.isFolder()) {
+      mode |= FileStat.S_IFDIR;
+    } else {
+      mode |= FileStat.S_IFREG;
+    }
+    stat.st_mode.set(mode);
+    stat.st_nlink.set(1);
+  }
+  
   /**
    * Retrieves the uid of the given user.
    *

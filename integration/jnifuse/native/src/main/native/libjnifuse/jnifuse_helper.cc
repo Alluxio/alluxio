@@ -83,8 +83,8 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
   LOGD("enter fill");
   fuse_fill_dir_t filler = (fuse_fill_dir_t)(void *)address;
   const char *fn = env->GetStringUTFChars(name, 0);
-
-  int ret = filler((void *)bufaddr, fn, NULL, 0);
+  struct stat* st = (stat*)&stbuf;
+  int ret = filler((void *)bufaddr, fn, st, 0);
   env->ReleaseStringUTFChars(name, fn);
 
   return ret;
@@ -95,6 +95,14 @@ jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1context(JNIEnv *env, job
   struct fuse_context *cxt = fuse_get_context();
   jobject fibuf =
     env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
+  return fibuf;
+}
+
+jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1stat(JNIEnv *env, jobject obj) {
+  LOGD("enter get_stat");
+  struct stat stbuf;
+  jobject fibuf =
+    env->NewDirectByteBuffer(&stbuf, sizeof(struct stat));
   return fibuf;
 }
 
