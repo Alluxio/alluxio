@@ -506,6 +506,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     resetState();
     Metrics.registerGauges(mUfsManager, mInodeTree);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(
+            MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE.getName()),
+        () -> mSyncPrefetchExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
+        () -> mSyncMetadataExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -4532,6 +4539,45 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
+    public static final Counter INODE_SYNC_STREAM_COUNT
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_OPS_COUNT.getName());
+    public static final Counter INODE_SYNC_STREAM_TIME_MS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_TIME_MS.getName());
+    public static final Counter INODE_SYNC_STREAM_SKIPPED
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_SKIPPED.getName());
+    public static final Counter INODE_SYNC_STREAM_NO_CHANGE
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_NO_CHANGE.getName());
+    public static final Counter INODE_SYNC_STREAM_SUCCESS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_SUCCESS.getName());
+    public static final Counter INODE_SYNC_STREAM_FAIL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_FAIL.getName());
+    public static final Counter INODE_SYNC_STREAM_PENDING_PATHS_TOTAL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PENDING_PATHS.getName());
+    public static final Counter INODE_SYNC_STREAM_ACTIVE_PATHS_TOTAL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_ACTIVE_PATHS.getName());
+    public static final Counter INODE_SYNC_STREAM_SYNC_PATHS_SUCCESS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PATHS_SUCCESS.getName());
+    public static final Counter INODE_SYNC_STREAM_SYNC_PATHS_FAIL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PATHS_FAIL.getName());
+    public static final Counter INODE_SYNC_STREAM_SYNC_PATHS_CANCEL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PATHS_CANCEL.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_OPS_COUNT
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_RETRIES
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_RETRIES.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_SUCCESS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_SUCCESS.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_FAIL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_FAIL.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_CANCEL
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_CANCEL.getName());
+    public static final Counter METADATA_SYNC_PREFETCH_PATHS
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_PATHS.getName());
+    public static final Counter UFS_STATUS_CACHE_SIZE_TOTAL
+        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_SIZE.getName());
+    public static final Counter UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL
+        = MetricsSystem.counter(MetricKey.MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE.getName());
+
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
 
