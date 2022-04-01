@@ -70,8 +70,8 @@ public class AuthorizationV4Validator {
    * .com/AmazonS3/latest/API/sig-v4-header-based-auth.html
    *
    * */
-  private static byte[] getSigningKey(String key, String strToSign) {
-    LOG.info("strToSign:{}", strToSign);
+  private static byte[] getSignedKey(String key, String strToSign) {
+    LOG.debug("strToSign:{}", strToSign);
     String[] signData = StringUtils.split(StringUtils.split(strToSign,
             SignerConstants.LINE_SEPARATOR)[2],
             SignerConstants.SIGN_SEPARATOR);
@@ -102,7 +102,7 @@ public class AuthorizationV4Validator {
    */
   public static boolean validateRequest(String strToSign, String signature,
                                           String userKey) {
-    String expectedSignature = Hex.encode(sign(getSigningKey(userKey,
+    String expectedSignature = Hex.encode(sign(getSignedKey(userKey,
                 strToSign), strToSign));
     return expectedSignature.equals(signature);
   }
