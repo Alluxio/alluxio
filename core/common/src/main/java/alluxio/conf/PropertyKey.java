@@ -170,11 +170,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     /**
      * The Property's value represents a time duration, stored as a Long in ms.
      */
-    DURATION(Long.class),
+    DURATION(String.class),
     /**
      * The Property's value represents a data size, stored as a Long in bytes.
      */
-    DATASIZE(Long.class),
+    DATASIZE(String.class),
     /**
      * The Property's value is of list type, stored as a delimiter separated string.
      */
@@ -8167,8 +8167,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       Object value, PropertyType type, Optional<Class<? extends Enum>> enumType,
       Function<Object, Boolean> valueValidationFunction) {
     if (value instanceof String) {
-      if (!type.getJavaType().equals(String.class) && type != PropertyType.ENUM
-          && type != PropertyType.DURATION && type != PropertyType.DATASIZE) {
+      if (!type.getJavaType().equals(String.class) && type != PropertyType.ENUM) {
         String stringValue = (String) value;
         Matcher matcher = CONF_REGEX.matcher(stringValue);
         if (!matcher.matches()) {
@@ -8238,7 +8237,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           break;
         case DURATION:
         case DATASIZE:
-          value = ((Number) value).longValue();
+          value = value.toString();
           break;
         default:
           break;
@@ -8254,10 +8253,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             value = Enum.valueOf(enumType.get(), stringValue.toUpperCase());
             break;
           case DURATION:
-            value = FormatUtils.parseTimeSize(stringValue);
+            FormatUtils.parseTimeSize(stringValue);
             break;
           case DATASIZE:
-            value = FormatUtils.parseSpaceSize(stringValue);
+            FormatUtils.parseSpaceSize(stringValue);
             break;
           default:
             break;
@@ -8292,9 +8291,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // Allow String value and try to use upper case to resolve enum.
           return Enum.valueOf(getEnumType(), stringValue.toUpperCase());
         case DURATION:
-          return FormatUtils.parseTimeSize(stringValue);
         case DATASIZE:
-          return FormatUtils.parseSpaceSize(stringValue);
         case STRING:
         case CLASS:
         case LIST:

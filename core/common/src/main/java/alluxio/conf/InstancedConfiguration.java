@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -328,13 +329,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public long getBytes(PropertyKey key) {
     checkArgument(key.getType() == PropertyKey.PropertyType.DATASIZE);
-    return (long) get(key);
+    return FormatUtils.parseSpaceSize((String) get(key));
   }
 
   @Override
   public long getMs(PropertyKey key) {
     checkArgument(key.getType() == PropertyKey.PropertyType.DURATION);
-    return (long) get(key);
+    return FormatUtils.parseTimeSize((String) get(key));
   }
 
   @Override
