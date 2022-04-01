@@ -34,9 +34,6 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -74,6 +71,7 @@ public final class AlluxioFuseUtils {
   public static void setStat(URIStatus uri, FileStat stat) {
     long size = uri.getLength();
     stat.st_size.set(size);
+    LOG.info("set file size stat");
 
     // Sets block number to fulfill du command needs
     // `st_blksize` is ignored in `getattr` according to
@@ -81,6 +79,7 @@ public final class AlluxioFuseUtils {
     // According to http://man7.org/linux/man-pages/man2/stat.2.html,
     // `st_blocks` is the number of 512B blocks allocated
     stat.st_blocks.set((int) Math.ceil((double) size / 512));
+    LOG.info("set st blocks");
 
     final long ctime_sec = uri.getLastModificationTimeMs() / 1000;
     final long atime_sec = uri.getLastAccessTimeMs() / 1000;
@@ -94,9 +93,11 @@ public final class AlluxioFuseUtils {
     stat.st_ctim.tv_nsec.set(ctime_nsec);
     stat.st_mtim.tv_sec.set(ctime_sec);
     stat.st_mtim.tv_nsec.set(ctime_nsec);
+    LOG.info("set stat time");
     
     stat.st_uid.set(AlluxioFuseUtils.DEFAULT_UID);
     stat.st_gid.set(AlluxioFuseUtils.DEFAULT_GID);
+    LOG.info("set user group");
 
     int mode = uri.getMode();
     if (uri.isFolder()) {
@@ -105,6 +106,7 @@ public final class AlluxioFuseUtils {
       mode |= FileStat.S_IFREG;
     }
     stat.st_mode.set(mode);
+    LOG.info("set mode");
     stat.st_nlink.set(1);
   }
   

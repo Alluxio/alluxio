@@ -91,8 +91,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
-  public final LoadingCache<String, Long> mUidCache;
-  public final LoadingCache<String, Long> mGidCache;
+  private final LoadingCache<String, Long> mUidCache;
+  private final LoadingCache<String, Long> mGidCache;
   private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
@@ -238,6 +238,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int getattrInternal(String path, FileStat stat) {
+    LOG.info("getattr {}", path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       URIStatus status = null;
@@ -259,10 +260,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             FileOutStream os = ce.getOut();
             size = os.getBytesWritten();
           }
-        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          // Always block waiting for file to be completed except when the file is writing
-          // We do not want to block the writing process
-          LOG.error("File {} is not completed", path);
         } else {
           // Update the file status after waiting
           status = mFileSystem.getStatus(uri);
@@ -336,13 +333,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
       // standard . and .. entries
+      LOG.info("In readdir");
       FuseFillDir.apply(filter, buff, ".", null, 0);
       FuseFillDir.apply(filter, buff, "..", null, 0);
+      LOG.info("Filled the dot and dot dot");
       
       mFileSystem.iterateStatus(uri, file -> {
+        LOG.info("Start getting file stat of the first file");
         FileStat stat = getFileStat();
+        LOG.info("Got file stat");
         AlluxioFuseUtils.setStat(file, stat);
+        LOG.info("Fill in the file stat");
         FuseFillDir.apply(filter, buff, file.getName(), stat, 0);
+        LOG.info("Fill the status of {}", file.getName());
       });
     } catch (Throwable e) {
       LOG.error("Failed to readdir {}: ", path, e);
