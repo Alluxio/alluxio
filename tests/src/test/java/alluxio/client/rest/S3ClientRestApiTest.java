@@ -38,6 +38,7 @@ import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.proxy.s3.TaggingData;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
@@ -68,6 +69,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.security.auth.Subject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
@@ -936,6 +938,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
   }
 
+  @Test
+  public void putBucketTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    TaggingData tagsRef = new TaggingData();
+    getTagsRestCall(bucketName, tagsRef);
+    Assert.assertEquals(tagsRef.getTagSet().getTags().size(), 0);
+  }
+
   private void createBucketRestCall(String bucketUri) throws Exception {
     new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, NO_PARAMS, HttpMethod.PUT,
@@ -1009,5 +1021,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.DELETE,
         TestCaseOptions.defaults()).runAndCheckResult();
+  }
+
+  private void getTagsRestCall(String uri, @NotNull TaggingData tagsRef) throws Exception {
+    new TestCase(mHostname, mPort, uri, ImmutableMap.of("tagging", ""),
+        HttpMethod.GET, tagsRef,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE),
+        S3_SERVICE_PREFIX).run();
   }
 }

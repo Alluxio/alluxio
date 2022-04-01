@@ -161,7 +161,7 @@ public class TaggingData implements Serializable {
    * Inner POJO representing the user metadata tag set in the S3 API.
    */
   @JacksonXmlRootElement(localName = "TagSet")
-  static class TagSet implements Serializable {
+  public static class TagSet implements Serializable {
     public static final long serialVersionUID = 1L;
 
     @JacksonXmlProperty(localName = "Tag")
@@ -208,7 +208,7 @@ public class TaggingData implements Serializable {
    * Inner POJO representing a user metadata tag in the S3 API.
    */
   @JacksonXmlRootElement(localName = "Tag")
-  static class TagObject implements Serializable {
+  public static class TagObject implements Serializable {
     public static final long serialVersionUID = 1L;
 
     private String mKey;
