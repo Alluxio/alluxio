@@ -2582,6 +2582,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_LOCAL_LOG_COMPACTION =
+      booleanBuilder(Name.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)
+          .setDefaultValue(true)
+          .setDescription("Whether to employ a quorum level log compaction policy or a "
+              + "local (individual) log compaction policy.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_GC_PERIOD_MS =
       durationBuilder(Name.MASTER_JOURNAL_GC_PERIOD_MS)
           .setAlias("alluxio.master.journal.gc.period.ms")
@@ -6799,6 +6807,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
+    public static final String MASTER_JOURNAL_LOCAL_LOG_COMPACTION =
+        "alluxio.master.journal.local.log.compaction";
     public static final String MASTER_JOURNAL_GC_PERIOD_MS = "alluxio.master.journal.gc.period";
     public static final String MASTER_JOURNAL_GC_THRESHOLD_MS =
         "alluxio.master.journal.gc.threshold";
