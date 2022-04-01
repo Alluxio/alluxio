@@ -19,7 +19,6 @@ import static alluxio.proxy.s3.signature.SignerConstants.UNSIGNED_PAYLOAD;
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.signature.AWSSignatureProcessor.LowerCaseKeyStringMap;
-import alluxio.util.StringUtils;
 
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
@@ -87,6 +86,17 @@ public final class StringToSignProducer {
 
   /**
    * Convert request info to strToSign.
+   *
+   * Construct String to sign in below format.
+   * StringToSign =
+   * Algorithm + \n +
+   * RequestDateTime + \n +
+   * CredentialScope + \n +
+   * HashedCanonicalRequest
+   *
+   * For more details refer to AWS documentation:
+   * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html
+   *
    * @param signatureInfo
    * @param scheme
    * @param method
@@ -105,17 +115,6 @@ public final class StringToSignProducer {
        Map<String, String> queryParams
   ) throws Exception {
     StringBuilder strToSign = new StringBuilder();
-    // According to AWS sigv4 documentation, authorization header should be
-    // in following format.
-    // Authorization: algorithm Credential=access key ID/credential scope,
-    // SignedHeaders=SignedHeaders, Signature=signature
-
-    // Construct String to sign in below format.
-    // StringToSign =
-    //    Algorithm + \n +
-    //    RequestDateTime + \n +
-    //    CredentialScope + \n +
-    //    HashedCanonicalRequest
     String credentialScope = signatureInfo.getCredentialScope();
 
     // If the absolute path is empty, use a forward slash (/)
@@ -135,8 +134,7 @@ public final class StringToSignProducer {
          !signatureInfo.isSignPayload());
     strToSign.append(hash(canonicalRequest));
     if (LOG.isDebugEnabled()) {
-      LOG.debug("canonicalRequest:[{}]", canonicalRequest);
-      LOG.debug("StringToSign:[{}]", strToSign);
+      LOG.debug("canonicalRequest:[{}], StringToSign:[{}]", canonicalRequest, strToSign);
     }
 
     return strToSign.toString();
@@ -196,7 +194,7 @@ public final class StringToSignProducer {
 
     StringBuilder canonicalHeaders = new StringBuilder();
 
-    for (String header : StringUtils.getStringCollection(signedHeaders, ";")) {
+    for (String header : signedHeaders.split(";")) {
       canonicalHeaders.append(header.toLowerCase());
       canonicalHeaders.append(":");
       if (headers.containsKey(header)) {
@@ -249,6 +247,16 @@ public final class StringToSignProducer {
     return result.toString();
   }
 
+  /**
+   * Encode url.
+   *
+   * Spaces must be encoded as %20. Do not encode spaces as plus signs (+).
+   * Apply the encoding algorithm and replace the plus sign (+) in the encoded
+   * string with %20, the asterisk (*) with %2A, and %7E with the tilde (~).
+   *
+   * @param str string to be encoded
+   * @return the encoded String
+   */
   private static String urlEncode(String str) {
     try {
       return URLEncoder.encode(str, "UTF-8")
@@ -289,7 +297,7 @@ public final class StringToSignProducer {
     switch (header) {
       case HOST:
         try {
-          URI hostUri = new URI(schema + "://" + headerValue);
+          URI hostUri = new URI(String.format("%s://%s", schema, headerValue));
           InetAddress.getByName(hostUri.getHost());
         } catch (UnknownHostException | URISyntaxException e) {
           LOG.error("Host value mentioned in signed header is not valid. "

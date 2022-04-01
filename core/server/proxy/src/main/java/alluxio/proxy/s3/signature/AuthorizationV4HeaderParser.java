@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.util.StringTokenizer;
 
 /**
  * Class to parse v4 auth information from header.
@@ -57,13 +57,13 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
     if (StringUtils.isNotEmpty(signedHeadersStr)
          && signedHeadersStr.startsWith(SIGNEDHEADERS)) {
       String parsedSignedHeaders = signedHeadersStr.substring(SIGNEDHEADERS.length());
-      Collection<String> signedHeaders =
-              alluxio.util.StringUtils.getStringCollection(parsedSignedHeaders, ";");
-      if (signedHeaders.size() == 0) {
+      StringTokenizer tokenizer = new StringTokenizer(parsedSignedHeaders, ";");
+      if (tokenizer.hasMoreTokens()) {
+        return parsedSignedHeaders;
+      } else {
         LOG.error("No signed headers found. AuthHeader:{}", mAuthHeader);
         throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
       }
-      return parsedSignedHeaders;
     } else {
       LOG.error("No signed headers found. AuthHeader:{}", mAuthHeader);
       throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
