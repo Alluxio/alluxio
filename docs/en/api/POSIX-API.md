@@ -85,8 +85,10 @@ can further simplify the setup.
 
 - Install JDK 1.8 or newer
 - Install libfuse
-    - On Linux, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
-reported to also work - with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
+    - On Linux, we support libfuse both version 2 and 3
+        - To use with libfuse2, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
+        - To use with libfuse3, install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3 fuse3-devel`
+        - See [Select which libfuse version to use](#select-which-libfuse-version-to-use) to learn more about libfuse version used by alluxio
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
 ## Basic Setup
@@ -169,6 +171,26 @@ pid mount_point alluxio_path
 
 ## Advanced Setup
 
+### Select which libfuse version to use
+
+Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production. Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
+
+If only one version of libfuse is installed, that version is used. In most distros, libfuse2 and libfuse3 can coexist. If both versions are installed, **libfuse2** will be used by default (for backward compatibility). 
+
+To set the version explicitly, add the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`. 
+
+```
+alluxio.fuse.jnifuse.libfuse.version=3
+```
+
+Valid values are `2` (use libfuse2 only), `3` (use libfuse3 only) or other integer value (load libfuse2 first, and if failed, load libfuse3). 
+
+See `logs/fuse.out` for which version is used.
+
+```
+INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
+```
+
 ### Fuse on worker process
 
 Unlike standalone Fuse which you can mount at any time without Alluxio worker involves,
@@ -201,6 +223,8 @@ alluxio.worker.fuse.mount.alluxio.path=/people
 alluxio.worker.fuse.mount.point=/mnt/people
 alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
 ```
+
+Fuse on worker also uses `alluxio.fuse.jnifuse.libfuse.version` configuration to determine which libfuse version to use. 
 
 ### Configure Alluxio fuse options
 
@@ -273,7 +297,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
         <td>big_writes</td>
         <td></td>
         <td>Set</td>
-        <td>Stop Fuse from splitting I/O into small chunks and speed up write.</td>
+        <td>Stop Fuse from splitting I/O into small chunks and speed up write. [Not supported in libfuse3](https://github.com/libfuse/libfuse/blob/master/ChangeLog.rst#libfuse-300-2016-12-08). Will be ignored if libfuse3 is used.</td>
     </tr>
     <tr>
         <td>entry_timeout=N</td>
