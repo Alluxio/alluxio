@@ -16,6 +16,7 @@ import com.google.common.base.Objects;
 
 import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Method options for creating a REST API test case.
@@ -23,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(jiri): consolidate input stream and body fields
 @NotThreadSafe
 public final class TestCaseOptions {
-  public static final String JSON_CONTENT_TYPE = "application/json";
-  public static final String XML_CONTENT_TYPE = "application/xml";
+  public static final String JSON_CONTENT_TYPE = MediaType.APPLICATION_JSON;
+  public static final String XML_CONTENT_TYPE = MediaType.APPLICATION_XML;
 
   private Object mBody;
   private InputStream mInputStream;

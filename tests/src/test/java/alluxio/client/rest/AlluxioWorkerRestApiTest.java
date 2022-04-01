@@ -59,8 +59,8 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   private AlluxioWorkerInfo getInfo() throws Exception {
     String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_INFO),
-            NO_PARAMS, HttpMethod.GET, null).call();
+        new TestCase(mHostname, mPort, AlluxioWorkerRestServiceHandler.GET_INFO,
+            NO_PARAMS, HttpMethod.GET, null, mServicePrefix).call();
     AlluxioWorkerInfo info = new ObjectMapper().readValue(result, AlluxioWorkerInfo.class);
     return info;
   }

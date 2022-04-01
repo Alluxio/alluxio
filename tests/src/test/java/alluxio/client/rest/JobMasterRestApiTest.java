@@ -60,7 +60,7 @@ public final class JobMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getInfo() throws Exception {
-    new TestCase(mHostname, mPort, getEndpoint(AlluxioJobMasterRestServiceHandler.GET_INFO),
-        NO_PARAMS, HttpMethod.GET, null).call();
+    new TestCase(mHostname, mPort, AlluxioJobMasterRestServiceHandler.GET_INFO,
+        NO_PARAMS, HttpMethod.GET, null, mServicePrefix).call();
   }
 }

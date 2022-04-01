@@ -79,16 +79,16 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
     String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_INFO),
-            params, HttpMethod.GET, null).call();
+        new TestCase(mHostname, mPort, AlluxioMasterRestServiceHandler.GET_INFO,
+            params, HttpMethod.GET, null, mServicePrefix).call();
     AlluxioMasterInfo info = new ObjectMapper().readValue(result, AlluxioMasterInfo.class);
     return info;
   }
 
   private Map<String, String> getMetrics(Map<String, String> params) throws Exception {
     String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_METRICS),
-            params, HttpMethod.GET, null).call();
+        new TestCase(mHostname, mPort, AlluxioMasterRestServiceHandler.WEBUI_METRICS,
+            params, HttpMethod.GET, null, mServicePrefix).call();
     Map<String, String> info = new ObjectMapper().readValue(result, Map.class);
     return info;
   }

@@ -13,17 +13,14 @@ package alluxio.client.rest;
 
 import alluxio.testutils.BaseIntegrationTest;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
 public abstract class RestApiTest extends BaseIntegrationTest {
-  protected static final Map<String, String> NO_PARAMS = new HashMap<>();
+  protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
 
   protected String mHostname;
   protected int mPort;
   protected String mServicePrefix;
-
-  protected String getEndpoint(String suffix) {
-    return mServicePrefix + "/" + suffix;
-  }
 }

@@ -29,6 +29,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -36,45 +37,33 @@ import javax.ws.rs.core.Response;
  */
 @NotThreadSafe
 public final class TestCase {
-  private String mHostname;
-  private int mPort;
-  private String mEndpoint;
-  private Map<String, String> mParameters;
-  private String mMethod;
-  private Object mExpectedResult;
-  private TestCaseOptions mOptions;
-  private String mPrefix;
+  /* Required */
+  private final String mHostname;
+  private final int mPort;
+  private final String mEndpoint;
+  private final Map<String, String> mParameters;
+  private final String mMethod;
+  private final Object mExpectedResult;
+  /* Optional */
+  private final TestCaseOptions mOptions;
+  private final String mServicePrefix;
 
-  /**
-   * Creates a new instance of {@link TestCase}.
-   *
-   * @param hostname the hostname to use
-   * @param port the port to use
-   * @param endpoint the endpoint to use
-   * @param parameters the parameters to use
-   * @param method the method to use
-   * @param expectedResult the expected result to use
-   */
   public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
       String method, Object expectedResult) {
-    this(hostname, port, endpoint, parameters, method, expectedResult, TestCaseOptions.defaults());
+    this(hostname, port, endpoint, parameters, method, expectedResult,
+        TestCaseOptions.defaults(), "");
   }
 
-  /**
-   * Creates a new instance of {@link TestCase} with JSON data.
-   *
-   * @param hostname the hostname to use
-   * @param port the port to use
-   * @param endpoint the endpoint to use
-   * @param parameters the parameters to use
-   * @param method the method to use
-   * @param expectedResult the expected result to use
-   * @param options the test case options to use
-   */
   public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
       String method, Object expectedResult, TestCaseOptions options) {
-    this(hostname, port, endpoint, parameters, method, expectedResult, options,
-        Constants.REST_API_PREFIX);
+    this(hostname, port, endpoint, parameters, method, expectedResult,
+        options, "");
+  }
+
+  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
+                  String method, Object expectedResult, String servicePrefix) {
+    this(hostname, port, endpoint, parameters, method, expectedResult,
+        TestCaseOptions.defaults(), servicePrefix);
   }
 
   /**
@@ -87,10 +76,10 @@ public final class TestCase {
    * @param method the method to use
    * @param expectedResult the expected result to use
    * @param options the test case options to use
-   * @param prefix the endpoint prefix to use
+   * @param servicePrefix the prefix to prepend to the endpoint
    */
   public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult, TestCaseOptions options, String prefix) {
+      String method, Object expectedResult, TestCaseOptions options, String servicePrefix) {
     mHostname = hostname;
     mPort = port;
     mEndpoint = endpoint;
@@ -98,7 +87,7 @@ public final class TestCase {
     mMethod = method;
     mExpectedResult = expectedResult;
     mOptions = options;
-    mPrefix = prefix;
+    mServicePrefix = servicePrefix;
   }
 
   /**
@@ -120,15 +109,21 @@ public final class TestCase {
    */
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
+    boolean addAmpersands = false;
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
-      if (parameter.getValue() == null || parameter.getValue().isEmpty()) {
-        sb.append(parameter.getKey());
-      } else {
-        sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
+      if (!addAmpersands) { addAmpersands = true; }
+      else { sb.append("&"); }
+      sb.append(parameter.getKey());
+      if (parameter.getValue() != null && !parameter.getValue().isEmpty()) {
+        sb.append("=").append(parameter.getValue());
       }
     }
-    return new URL(
-        "http://" + mHostname + ":" + mPort + mPrefix + "/" + mEndpoint + "?" + sb.toString());
+    String url = String.format("http://%s:%s%s/%s/%s",
+        mHostname, mPort, Constants.REST_API_PREFIX, mServicePrefix, mEndpoint);
+    if (sb.length() > 0) {
+      url = String.format("%s?%s", url, sb);
+    }
+    return new URL(url);
   }
 
   /**
@@ -163,7 +158,7 @@ public final class TestCase {
     }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", "application/octet-stream");
+      connection.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
       ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
     }
     if (mOptions.getBody() != null) {
