@@ -346,9 +346,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   @Override
-  public FileStat getFileStat() {
-    ByteBuffer buffer = libFuse.fuse_get_stat();
-    LOG.info("buffer size {}", buffer.remaining());
-    return FileStat.of(buffer);
+  public int getFileStatSize() {
+    return libFuse.fuse_get_stat();
   }
 }

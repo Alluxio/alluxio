@@ -46,6 +46,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -64,8 +65,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
@@ -125,6 +129,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
   private final Map<Long, CreateFileEntry<FileOutStream>> mReleasingWriteEntries =
       new ConcurrentHashMap<>();
+  
+  // private final Queue<ByteBuffer> mBufferQueue = new ConcurrentLinkedQueue<ByteBuffer>();
 
   /**
    * df command will treat -1 as an unknown value.
@@ -338,14 +344,20 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       FuseFillDir.apply(filter, buff, "..", null, 0);
       LOG.info("Filled the dot and dot dot");
       
+      int size = getFileStatSize();
       mFileSystem.iterateStatus(uri, file -> {
         LOG.info("Start getting file stat of the first file");
-        FileStat stat = getFileStat();
-        LOG.info("Got file stat");
-        AlluxioFuseUtils.setStat(file, stat);
-        LOG.info("Fill in the file stat");
-        FuseFillDir.apply(filter, buff, file.getName(), stat, 0);
-        LOG.info("Fill the status of {}", file.getName());
+        ByteBuffer buffer = ByteBuffer.allocateDirect(size);
+        try {
+          FileStat stat = FileStat.of(buffer);
+          LOG.info("Got file stat");
+          AlluxioFuseUtils.setStat(file, stat);
+          LOG.info("Fill in the file stat");
+          FuseFillDir.apply(filter, buff, file.getName(), stat, 0);
+          LOG.info("Fill the status of {}", file.getName());
+        } finally {
+          BufferUtils.cleanDirectBuffer(buffer);
+        }
       });
     } catch (Throwable e) {
       LOG.error("Failed to readdir {}: ", path, e);

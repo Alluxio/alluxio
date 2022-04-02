@@ -90,7 +90,8 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
     LOGD("filled null");
   } else {
     LOGD("fill dir stbuf ");
-    // TODO(lu) how to clean
+    // struct stat *st = (struct stat *)(env)->GetDirectBufferAddress(stbuf);
+    // ret = filler((void *)bufaddr, fn, st, 0);
     ret = filler((void *)bufaddr, fn, (struct stat*)stbuf, 0);
     LOGD("filled dir stbuf ");
   }
@@ -107,14 +108,8 @@ jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1context(JNIEnv *env, job
   return fibuf;
 }
 
-jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1stat(JNIEnv *env, jobject obj) {
-  LOGD("enter get_stat");
-  void *stbuf = malloc(sizeof(struct stat));
-  memset(stbuf, 0, sizeof(stbuf));
-  jobject fibuf =
-    env->NewDirectByteBuffer(stbuf, sizeof(struct stat));
-  LOGD("get stat return new direct byte buffer");
-  return fibuf;
+jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1stat(JNIEnv *env, jobject obj) {
+  return sizeof(struct stat);
 }
 
 #ifdef __cplusplus

@@ -109,8 +109,8 @@ public interface FuseFileSystem {
     return FuseContext.of(ByteBuffer.allocate(32));
   }
 
-  default FileStat getFileStat() {
-    return FileStat.of(ByteBuffer.allocate(256));
+  default int getFileStatSize() {
+    return 256;
   }
 
   default String getFileSystemName() {
