@@ -110,6 +110,10 @@ public interface FuseFileSystem {
     return FuseContext.of(ByteBuffer.allocate(32));
   }
 
+  default int getFileStatSize() {
+    return 256;
+  }
+
   default String getFileSystemName() {
     return "fusefs" + ThreadLocalRandom.current().nextInt();
   }
