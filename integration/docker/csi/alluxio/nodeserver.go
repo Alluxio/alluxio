@@ -43,6 +43,12 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 
 	mountOptions := req.GetVolumeCapability().GetMount().GetMountFlags()
+    if len(mountOptions) == 0 {
+        if opts, ok := req.GetVolumeContext()["mountOptions"]; ok {
+            mountOptions = strings.Split(opts, ",")
+        }
+    }
+
 	if req.GetReadonly() {
 		mountOptions = append(mountOptions, "ro")
 	}
