@@ -225,6 +225,7 @@ public final class AlluxioFuseUtils {
   public static int getLocalFileStatus(Path path, FileStat stat) {
     try {
       if (!Files.exists(path)) {
+        LOG.debug("Failed to getattr \"{}\", file does not exist", path);
         return -alluxio.jnifuse.ErrorCodes.ENOENT();
       }
       BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);

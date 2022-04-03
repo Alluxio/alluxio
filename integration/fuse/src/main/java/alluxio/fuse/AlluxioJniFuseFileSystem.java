@@ -405,6 +405,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       FuseFillDir.apply(filter, buff, "..", null, 0);
 
       mFileSystem.iterateStatus(uri, file -> {
+        LOG.debug("Get file name \"{}\" in readdir", file.getName());
         FuseFillDir.apply(filter, buff, file.getName(), null, 0);
       });
     } catch (Throwable e) {
