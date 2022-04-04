@@ -11,7 +11,6 @@
 
 package alluxio.client.rest;
 
-import alluxio.Constants;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,57 +36,33 @@ import javax.ws.rs.core.Response;
  */
 @NotThreadSafe
 public final class TestCase {
-  /* Required */
   private final String mHostname;
   private final int mPort;
+  private final String mBaseUri;
   private final String mEndpoint;
   private final Map<String, String> mParameters;
   private final String mMethod;
-  private final Object mExpectedResult;
-  /* Optional */
   private final TestCaseOptions mOptions;
-  private final String mServicePrefix;
-
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult) {
-    this(hostname, port, endpoint, parameters, method, expectedResult,
-        TestCaseOptions.defaults(), "");
-  }
-
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult, TestCaseOptions options) {
-    this(hostname, port, endpoint, parameters, method, expectedResult,
-        options, "");
-  }
-
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-                  String method, Object expectedResult, String servicePrefix) {
-    this(hostname, port, endpoint, parameters, method, expectedResult,
-        TestCaseOptions.defaults(), servicePrefix);
-  }
 
   /**
    * Creates a new instance of {@link TestCase}.
-   *
    * @param hostname the hostname to use
    * @param port the port to use
+   * @param baseUri the base URI of the REST server
    * @param endpoint the endpoint to use
    * @param parameters the parameters to use
    * @param method the method to use
-   * @param expectedResult the expected result to use
    * @param options the test case options to use
-   * @param servicePrefix the prefix to prepend to the endpoint
    */
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult, TestCaseOptions options, String servicePrefix) {
+  public TestCase(String hostname, int port, String baseUri, String endpoint,
+                  Map<String, String> parameters, String method, TestCaseOptions options) {
     mHostname = hostname;
     mPort = port;
+    mBaseUri = baseUri;
     mEndpoint = endpoint;
     mParameters = parameters;
     mMethod = method;
-    mExpectedResult = expectedResult;
     mOptions = options;
-    mServicePrefix = servicePrefix;
   }
 
   /**
@@ -118,8 +93,8 @@ public final class TestCase {
         sb.append("=").append(parameter.getValue());
       }
     }
-    String url = String.format("http://%s:%s%s/%s/%s",
-        mHostname, mPort, Constants.REST_API_PREFIX, mServicePrefix, mEndpoint);
+    String url = String.format("http://%s:%s%s/%s",
+        mHostname, mPort, mBaseUri, mEndpoint);
     if (sb.length() > 0) {
       url = String.format("%s?%s", url, sb);
     }
@@ -187,32 +162,36 @@ public final class TestCase {
   /**
    * Runs the test case and returns the output.
    */
-  public String call() throws Exception {
+  public String runAndGetResponse() throws Exception {
     return getResponse(execute());
+  }
+
+  public void runAndCheckResult() throws Exception {
+    runAndCheckResult(null);
   }
 
   /**
    * Runs the test case.
    */
-  public void run() throws Exception {
+  public void runAndCheckResult(Object expectedResult) throws Exception {
     String expected = "";
-    if (mExpectedResult != null) {
+    if (expectedResult != null) {
       switch (mOptions.getContentType()) {
         case TestCaseOptions.JSON_CONTENT_TYPE: {
           ObjectMapper mapper = new ObjectMapper();
           if (mOptions.isPrettyPrint()) {
-            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
           } else {
-            expected = mapper.writeValueAsString(mExpectedResult);
+            expected = mapper.writeValueAsString(expectedResult);
           }
           break;
         }
         case TestCaseOptions.XML_CONTENT_TYPE: {
           XmlMapper mapper = new XmlMapper();
           if (mOptions.isPrettyPrint()) {
-            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
           } else {
-            expected = mapper.writeValueAsString(mExpectedResult);
+            expected = mapper.writeValueAsString(expectedResult);
           }
           break;
         }
@@ -220,7 +199,7 @@ public final class TestCase {
           throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
       }
     }
-    String result = call();
+    String result = runAndGetResponse();
     Assert.assertEquals(mEndpoint, expected, result);
   }
 }

@@ -54,13 +54,13 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   public void before() {
     mHostname = sResource.get().getHostname();
     mPort = sResource.get().getWorkerProcess().getWebLocalPort();
-    mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, AlluxioWorkerRestServiceHandler.SERVICE_PREFIX);
   }
 
   private AlluxioWorkerInfo getInfo() throws Exception {
-    String result =
-        new TestCase(mHostname, mPort, AlluxioWorkerRestServiceHandler.GET_INFO,
-            NO_PARAMS, HttpMethod.GET, null, mServicePrefix).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioWorkerRestServiceHandler.GET_INFO, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
     AlluxioWorkerInfo info = new ObjectMapper().readValue(result, AlluxioWorkerInfo.class);
     return info;
   }

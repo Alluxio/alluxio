@@ -11,6 +11,7 @@
 
 package alluxio.web;
 
+import alluxio.Constants;
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
@@ -66,8 +67,10 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   private void verifyMetricsJson(ServiceType serviceType) throws Exception {
     InetSocketAddress address = getInetSocketAddresss(serviceType);
     Map<String, String> params = new HashMap<>();
-    String result = new TestCase(address.getHostName(), address.getPort(), "metrics/json", params,
-        HttpMethod.GET, null, TestCaseOptions.defaults(), "").call();
+    String result = new TestCase(address.getHostName(), address.getPort(),
+        Constants.REST_API_PREFIX,
+        "metrics/json", params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
 
     TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
     };

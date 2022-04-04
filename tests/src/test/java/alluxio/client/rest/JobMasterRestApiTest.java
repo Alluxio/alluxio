@@ -49,7 +49,7 @@ public final class JobMasterRestApiTest extends RestApiTest {
     mJobCluster.start();
     mHostname = mJobCluster.getHostname();
     mPort = mJobCluster.getMaster().getWebAddress().getPort();
-    mServicePrefix = AlluxioJobMasterRestServiceHandler.SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, AlluxioJobMasterRestServiceHandler.SERVICE_PREFIX);
   }
 
   @After
@@ -60,7 +60,8 @@ public final class JobMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getInfo() throws Exception {
-    new TestCase(mHostname, mPort, AlluxioJobMasterRestServiceHandler.GET_INFO,
-        NO_PARAMS, HttpMethod.GET, null, mServicePrefix).call();
+    new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioJobMasterRestServiceHandler.GET_INFO, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
   }
 }

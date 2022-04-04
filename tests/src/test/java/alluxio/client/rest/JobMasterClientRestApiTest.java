@@ -75,7 +75,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     mJobMaster = mJobCluster.getMaster().getJobMaster();
     mHostname = mJobCluster.getHostname();
     mPort = mJobCluster.getMaster().getWebAddress().getPort();
-    mServicePrefix = ServiceConstants.MASTER_SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, ServiceConstants.MASTER_SERVICE_PREFIX);
   }
 
   @After
@@ -85,15 +85,16 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
 
   @Test
   public void serviceName() throws Exception {
-    new TestCase(mHostname, mPort, ServiceConstants.SERVICE_NAME,
-        NO_PARAMS, HttpMethod.GET, Constants.JOB_MASTER_CLIENT_SERVICE_NAME, mServicePrefix).run();
+    new TestCase(mHostname, mPort, mBaseUri,
+        ServiceConstants.SERVICE_NAME, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndCheckResult(Constants.JOB_MASTER_CLIENT_SERVICE_NAME);
   }
 
   @Test
   public void serviceVersion() throws Exception {
-    new TestCase(mHostname, mPort, ServiceConstants.SERVICE_VERSION,
-        NO_PARAMS, HttpMethod.GET, Constants.JOB_MASTER_CLIENT_SERVICE_VERSION, mServicePrefix)
-        .run();
+    new TestCase(mHostname, mPort, mBaseUri,
+        ServiceConstants.SERVICE_VERSION, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndCheckResult(Constants.JOB_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Test
@@ -112,8 +113,9 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     CommonUtils.sleepMs(30);
     Map<String, String> params = Maps.newHashMap();
     params.put("jobId", Long.toString(jobId));
-    new TestCase(mHostname, mPort, ServiceConstants.CANCEL,
-        params, HttpMethod.POST, null, mServicePrefix).run();
+    new TestCase(mHostname, mPort, mBaseUri,
+        ServiceConstants.CANCEL, params, HttpMethod.POST,
+        TestCaseOptions.defaults()).runAndCheckResult();
     waitForStatus(jobId, Status.CANCELED);
   }
 
@@ -123,8 +125,9 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("name", "");
     params.put("status", "");
-    new TestCase(mHostname, mPort, ServiceConstants.LIST, params,
-        HttpMethod.GET, empty, mServicePrefix).run();
+    new TestCase(mHostname, mPort, mBaseUri,
+        ServiceConstants.LIST, params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndCheckResult(empty);
   }
 
   @Test
@@ -135,8 +138,9 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     params.put("jobId", Long.toString(jobId));
 
     TestCaseOptions options = TestCaseOptions.defaults().setPrettyPrint(true);
-    String result = new TestCase(mHostname, mPort, ServiceConstants.GET_STATUS,
-        params, HttpMethod.GET, null, options, mServicePrefix).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        ServiceConstants.GET_STATUS, params, HttpMethod.GET,
+        options).runAndGetResponse();
     TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>(){};
     HashMap<String, Object> jobInfo = new ObjectMapper().readValue(result, typeRef);
     Assert.assertEquals(jobId, jobInfo.get("id"));
@@ -145,8 +149,9 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
 
   private long startJob(JobConfig config) throws Exception {
     TestCaseOptions options = TestCaseOptions.defaults().setBody(config);
-    String result = new TestCase(mHostname, mPort, ServiceConstants.RUN,
-        NO_PARAMS, HttpMethod.POST, null, options, mServicePrefix).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        ServiceConstants.RUN, NO_PARAMS, HttpMethod.POST,
+        options).runAndGetResponse();
     return new ObjectMapper().readValue(result, Long.TYPE);
   }
 

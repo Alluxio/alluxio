@@ -11,6 +11,7 @@
 
 package alluxio.client.rest;
 
+import alluxio.Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
 import com.google.common.collect.ImmutableMap;
@@ -22,5 +23,5 @@ public abstract class RestApiTest extends BaseIntegrationTest {
 
   protected String mHostname;
   protected int mPort;
-  protected String mServicePrefix;
+  protected String mBaseUri = Constants.REST_API_PREFIX;
 }
