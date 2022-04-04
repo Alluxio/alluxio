@@ -16,6 +16,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -83,20 +84,10 @@ public final class TestCase {
    * @return The URL which is created
    */
   public URL createURL() throws Exception {
-    StringBuilder sb = new StringBuilder();
-    boolean addAmpersands = false;
-    for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
-      if (!addAmpersands) { addAmpersands = true; }
-      else { sb.append("&"); }
-      sb.append(parameter.getKey());
-      if (parameter.getValue() != null && !parameter.getValue().isEmpty()) {
-        sb.append("=").append(parameter.getValue());
-      }
-    }
-    String url = String.format("http://%s:%s%s/%s",
-        mHostname, mPort, mBaseUri, mEndpoint);
-    if (sb.length() > 0) {
-      url = String.format("%s?%s", url, sb);
+    String url = String.format("http://%s:%s%s/%s", mHostname, mPort, mBaseUri, mEndpoint);
+    String params = Joiner.on("&").withKeyValueSeparator("=").join(mParameters.entrySet());
+    if (params.length() > 0) {
+      url = String.format("%s?%s", url, params);
     }
     return new URL(url);
   }
