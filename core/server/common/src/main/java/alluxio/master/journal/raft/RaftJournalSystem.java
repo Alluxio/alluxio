@@ -732,18 +732,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         continue;
       }
 
-      try {
-        CommonUtils.waitFor("term start entry " + gainPrimacySN
-            + " to be applied to state machine", () ->
-            stateMachine.getLastPrimaryStartSequenceNumber() == gainPrimacySN,
-            WaitForOptions.defaults()
-                .setInterval(Constants.SECOND_MS)
-                .setTimeoutMs(5 * Constants.SECOND_MS));
-      } catch (TimeoutException e) {
-        LOG.info(e.toString());
-        continue;
-      }
-
       // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
       try {
