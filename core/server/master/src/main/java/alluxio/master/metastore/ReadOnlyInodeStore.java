@@ -59,7 +59,6 @@ public interface ReadOnlyInodeStore extends Closeable {
     Iterable<? extends Inode> children = getChildren(parentId, option);
     return CloseableIterator.noopCloseable(StreamSupport.stream(children.spliterator(), false)
         .filter((inode) -> inode.getName().compareTo(fromName) >= 0)
-        .sorted(Comparator.comparing(Inode::getName))
         .iterator());
   }
 

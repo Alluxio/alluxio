@@ -62,6 +62,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -645,7 +646,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMap.computeIfAbsent(inodeId, x -> {
         mWeight.incrementAndGet();
         ListingCacheEntry entry = new ListingCacheEntry();
-        entry.mChildren = new ConcurrentHashMap<>(4);
+        entry.mChildren = new ConcurrentSkipListMap<>();
         return entry;
       });
     }
@@ -744,7 +745,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         // Perform the update inside computeIfPresent to prevent concurrent modification to the
         // cache entry.
         if (!entry.mModified) {
-          entry.mChildren = new ConcurrentHashMap<>(listing);
+          entry.mChildren = new ConcurrentSkipListMap<>(listing);
           mWeight.addAndGet(weight(entry));
           return entry;
         }
