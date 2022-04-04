@@ -33,14 +33,19 @@ import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorageImpl;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 public class EmbeddedJournalIntegrationTestFaultTolerance
     extends EmbeddedJournalIntegrationTestBase {
@@ -157,6 +162,40 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
       File[] files = snapshotDir.listFiles();
       return files != null && files.length > 1 && files[0].length() > 0;
     }, WaitForOptions.defaults().setInterval(RETRY_INTERVAL_MS).setTimeoutMs(RESTART_TIMEOUT_MS));
+  }
+
+  @Test
+  public void snapshotTransferLoad() throws Exception {
+    int numFile = 1_500;
+    int snapshotPeriod = 100;
+
+    mCluster =
+        MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD)
+        .setClusterName("EmbeddedJournalTransferLeadership_snapshotTransferLoad")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10KB")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE, "4KB")
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, snapshotPeriod)
+        .build();
+    mCluster.start();
+
+    for (int i = 0; i < numFile; i++) {
+      mCluster.getFileSystemClient().createFile(new AlluxioURI(String.format("/%d", i)));
+    }
+
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      Path start = Paths.get(mCluster.getJournalDir(i));
+      try (Stream<Path> stream = Files.walk(start, Integer.MAX_VALUE)) {
+        long count = stream.filter(path -> path.toString().endsWith(".md5")).count();
+        Assert.assertTrue(count > numFile / snapshotPeriod);
+      }
+    }
+    mCluster.notifySuccess();
   }
 
   @Test
