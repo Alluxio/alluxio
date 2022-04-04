@@ -1126,7 +1126,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 descendantTypeForListStatus, resultStream, 0,
                 Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                     Metrics.UFSOps.GET_FILE_INFO),
-                    getPartialListingPaths(context, partialPathNames, inodePath));
+                    computePartialListingPaths(context, partialPathNames, inodePath));
             if (!ufsAccessed) {
               Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                   Metrics.UFSOps.LIST_STATUS).inc();
@@ -1143,7 +1143,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     final List<FileInfo> fileInfos = new ArrayList<>();
-    listStatus(path, context, (item) -> fileInfos.add(item));
+    listStatus(path, context, fileInfos::add);
     return fileInfos;
   }
 
@@ -1157,8 +1157,8 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the nested components in root path from where to start the partial listing
    * @throws FileDoesNotExistException if the path in pathNames does not exist in rootPath
    */
-  private Iterator<String> getPartialListingPaths(ListStatusContext context,
-                                                  List<String> pathNames, LockedInodePath rootPath)
+  private @Nullable Iterator<String> computePartialListingPaths(ListStatusContext context,
+                                                                List<String> pathNames, LockedInodePath rootPath)
       throws FileDoesNotExistException {
     if (!context.getOptions().getPartialListing() || context.getOptions().getOffset() == 0) {
       // start from the beginning of the listing
@@ -1198,7 +1198,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
       LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
-      ResultStream<FileInfo> resultStream, int depth, Counter counter, Iterator<String> partialPath)
+      ResultStream<FileInfo> resultStream, int depth, Counter counter, @Nullable Iterator<String> partialPath)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
 
@@ -1218,7 +1218,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         if (descendantType == DescendantType.ALL) {
           if (partialPath != null) {
-            // if we are on our initial partial path and we do not have access,
+            // if we are on our initial partial path, and we do not have access,
             // then we are done processing the partial path
             // so consume the remaining elements
             partialPath.forEachRemaining((nxt) -> { });
@@ -1237,8 +1237,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           inode, partialPath, context)) {
         // This is to generate a parsed child path components to be passed to lockChildPath
         String[] childComponentsHint = null;
-        for (Iterator<? extends Inode> it = childrenIterator; it.hasNext(); ) {
-          String childName = it.next().getName();
+        while (childrenIterator.hasNext()) {
+          String childName = childrenIterator.next().getName();
           if (childComponentsHint == null) {
             String[] parentComponents = PathUtils.getPathComponents(
                 currInodePath.getUri().getPath());
@@ -1254,8 +1254,10 @@ public class DefaultFileSystemMaster extends CoreMaster
             listStatusInternal(context, rpcContext, childInodePath, auditContext,
                 nextDescendantType, resultStream, depth + 1, counter, partialPath);
           } catch (InvalidPathException | FileDoesNotExistException e) {
-            LOG.debug("Path \"{}\" is invalid, has been ignored.",
-                PathUtils.concatPath("/", childComponentsHint));
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Path \"{}\" is invalid, has been ignored.",
+                  PathUtils.concatPath("/", (Object) childComponentsHint));
+            }
           }
           if (context.donePartialListing()) {
             return;
@@ -1274,7 +1276,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private CloseableIterator<? extends Inode> getChildrenIterator(
-      Inode inode, Iterator<String> partialPath, ListStatusContext context) {
+      Inode inode, @Nullable Iterator<String> partialPath, ListStatusContext context) {
     // Check if we should process all children, or just the partial listing
     // The partial listing iterator is sorted.
     if (context.getOptions().getPartialListing()) {
