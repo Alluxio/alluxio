@@ -943,9 +943,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
 
-    TaggingData tagsRef = new TaggingData();
-    getTagsRestCall(bucketName, tagsRef);
-    Assert.assertEquals(tagsRef.getTagSet().getTags().size(), 0);
+    TaggingData tagData = getTagsRestCall(bucketName);
+    Assert.assertEquals(tagData.getTagMap().size(), 0);
+
+    Map<String, String> tagMap = ImmutableMap.of(
+        "foo", "bar",
+        "fu", "bar",
+        "baz", ""
+    );
+    tagData.addTags(tagMap);
+    putTagsRestCall(bucketName, tagData);
+
+    TaggingData newTags = getTagsRestCall(bucketName);
+    Assert.assertEquals(newTags.getTagMap().size(), 3);
+
+    for (Map.Entry<String, String> tag: tagMap.entrySet()) {
+      Assert.assertTrue(newTags.getTagMap().containsKey(tag.getKey()));
+      Assert.assertEquals(newTags.getTagMap().get(tag.getKey()), tag.getValue());
+    }
   }
 
   private void createBucketRestCall(String bucketUri) throws Exception {
@@ -1023,10 +1038,20 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults()).runAndCheckResult();
   }
 
-  private void getTagsRestCall(String uri, @NotNull TaggingData tagsRef) throws Exception {
-    new TestCase(mHostname, mPort, uri, ImmutableMap.of("tagging", ""),
-        HttpMethod.GET, tagsRef,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE),
-        S3_SERVICE_PREFIX).run();
+  private TaggingData getTagsRestCall(String uri) throws Exception {
+    String res = new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)
+    ).runAndGetResponse();
+    XmlMapper mapper = new XmlMapper();
+    return mapper.readValue(res, TaggingData.class);
+  }
+
+  private void putTagsRestCall(String uri, @NotNull TaggingData tags) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE)
+            .setBody(tags)).runAndCheckResult();
   }
 }

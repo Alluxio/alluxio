@@ -550,18 +550,17 @@ public final class S3RestServiceHandler {
             > mMaxHeaderMetadataSize) {
           throw new S3Exception(S3ErrorCode.METADATA_TOO_LARGE);
         }
-        List<TaggingData.TagObject> tagObjectList =
-            new ArrayList<TaggingData.TagObject>();
+        Map<String, String> tagMap = new HashMap<>();
         for (String tag : taggingHeader.split("&")) {
           String[] entries = tag.split("=");
           if (entries.length > 1) {
-            tagObjectList.add(new TaggingData.TagObject(entries[0], entries[1]));
+            tagMap.put(entries[0], entries[1]);
           } else { // Key was provided without a value
-            tagObjectList.add(new TaggingData.TagObject(entries[0], ""));
+            tagMap.put(entries[0], "");
           }
         }
         try {
-          tagData = new TaggingData(new TaggingData.TagSet(tagObjectList));
+          tagData = new TaggingData().addTags(tagMap);
         } catch (IllegalArgumentException e) {
           if (e.getCause() instanceof S3Exception) {
             throw S3RestUtils.toObjectS3Exception((S3Exception) e.getCause(), objectPath);
@@ -949,7 +948,7 @@ public final class S3RestServiceHandler {
         // in the header "x-amz-tagging-count"
         TaggingData tagData = deserializeTags(status.getFileInfo());
         if (tagData != null) {
-          int taggingCount = tagData.getTagSet().getTags().size();
+          int taggingCount = tagData.getTagMap().size();
           if (taggingCount > 0) {
             res.header(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
           }

@@ -139,7 +139,19 @@ public final class TestCase {
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", mOptions.getContentType());
-      ObjectMapper mapper = new ObjectMapper();
+      ObjectMapper mapper;
+      switch (mOptions.getContentType()) {
+        case TestCaseOptions.XML_CONTENT_TYPE: // encode as XML string
+          mapper = new XmlMapper();
+          break;
+        case TestCaseOptions.JSON_CONTENT_TYPE: // encode as JSON string
+          mapper = new ObjectMapper();
+          break;
+        default:
+          throw new InvalidArgumentException(String.format(
+              "No mapper available for content type %s in TestCaseOptions!",
+              mOptions.getContentType()));
+      }
       // make sure that serialization of empty objects does not fail
       mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
       OutputStream os = connection.getOutputStream();
