@@ -21,6 +21,7 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
@@ -66,7 +67,7 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    List<BlockWorkerInfo> shuffledWorkers = options.getBlockWorkerInfos();
+    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
     Collections.shuffle(shuffledWorkers);
     // Workers must have enough capacity to hold the block.
     List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
