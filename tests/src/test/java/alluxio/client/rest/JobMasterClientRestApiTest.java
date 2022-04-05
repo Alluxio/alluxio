@@ -120,13 +120,10 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void list() throws Exception {
+  public void listEmpty() throws Exception {
     List<Long> empty = Lists.newArrayList();
-    Map<String, String> params = Maps.newHashMap();
-    params.put("name", "");
-    params.put("status", "");
     new TestCase(mHostname, mPort, mBaseUri,
-        ServiceConstants.LIST, params, HttpMethod.GET,
+        ServiceConstants.LIST, NO_PARAMS, HttpMethod.GET,
         TestCaseOptions.defaults()).runAndCheckResult(empty);
   }
 
