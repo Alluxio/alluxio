@@ -12,6 +12,7 @@
 package alluxio.client.block.policy;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
@@ -70,6 +71,7 @@ public class ConsistentHashPolicyTest {
     Set<BlockWorkerInfo> preferredWorkers =
         policy.getPreferredWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
             .setBlockInfo(new BlockInfo().setBlockId(1)), 3);
+    assertEquals(3, preferredWorkers.size());
     for (int i = 0; i < 10; i++) {
       // For the same block, always return the same worker.
       Collections.shuffle(mWorkerInfos);
@@ -86,10 +88,30 @@ public class ConsistentHashPolicyTest {
     Map<WorkerNetAddress, Integer> result = new HashMap<>();
     for (int i = 0; i < 1_000_000; i++) {
       WorkerNetAddress workerAddr = policy.getWorker(
-              GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
-                  .setBlockInfo(new BlockInfo().setBlockId(i)));
+          GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              .setBlockInfo(new BlockInfo().setBlockId(i)));
       result.put(workerAddr, result.getOrDefault(workerAddr, 0) + 1);
     }
     assertTrue(result.values().stream().allMatch(count -> count >= 80000 && count <= 120000));
+  }
+
+  @Test
+  public void insufficientWorkerTest() {
+    ConsistentHashPolicy policy = (ConsistentHashPolicy) BlockLocationPolicy.Factory.create(
+        ConsistentHashPolicy.class, sConf);
+    //Request 3 times as many workers as available workers
+    Set<BlockWorkerInfo> preferredWorkers =
+        policy.getPreferredWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+            .setBlockInfo(new BlockInfo().setBlockId(1)), mWorkerInfos.size() * 3);
+    assertEquals(mWorkerInfos.size(), preferredWorkers.size());
+    //Request workers when there is no available workers
+    preferredWorkers =
+        policy.getPreferredWorkers(
+            GetWorkerOptions.defaults().setBlockWorkerInfos(Collections.EMPTY_LIST)
+                .setBlockInfo(new BlockInfo().setBlockId(1)), 3);
+    assertEquals(0, preferredWorkers.size());
+    assertNull(
+        policy.getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(Collections.EMPTY_LIST)
+            .setBlockInfo(new BlockInfo().setBlockId(1))));
   }
 }
