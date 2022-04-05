@@ -54,16 +54,9 @@ check_fuse_jar() {
 }
 
 mount_fuse() {
-    # parse configuration (shell input > configuration)
-    # get fuse mount point, create fuse mount point if it does not exist
-    # umount fuse mount point if mounted, kill process if needed
-    # same workload
-
-  # parse input arguments
   local mount_point=""
   local mount_alluxio_path=""
   local mount_options=""
-  
   if [[ $# -ge 2]]; then
     mount_point="$1"
     mount_alluxio_path="$2"
@@ -271,11 +264,6 @@ main() {
       readonly STACK_FS
 
       shift $(( OPTIND - 1 ))
-      if [[ $# -eq 0 ]]; then
-        fuse_stat
-        exit $?
-      fi
-
       if mount_fuse "$@"; then
         exit 0
       fi

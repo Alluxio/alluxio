@@ -187,19 +187,19 @@ By default, Fuse on worker will mount the Alluxio root path `/` to default local
 You can change the alluxio path, mount point, and mount options through Alluxio configuration:
 
 ```
-alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
-alluxio.worker.fuse.mount.point=<mount_point>
-alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
+alluxio.fuse.mount.alluxio.path=<alluxio_path>
+alluxio.fuse.mount.point=<mount_point>
+alluxio.fuse.mount.options=<list of mount options separated by comma>
 ```
 
 For example, one can mount Alluxio path `/people` to local path `/mnt/people`
 with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
 
 ```
-alluxio.worker.fuse.enabled=true
-alluxio.worker.fuse.mount.alluxio.path=/people
-alluxio.worker.fuse.mount.point=/mnt/people
-alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
+alluxio.fuse.enabled=true
+alluxio.fuse.mount.alluxio.path=/people
+alluxio.fuse.mount.point=/mnt/people
+alluxio.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
 ```
 
 ### Configure Alluxio fuse options

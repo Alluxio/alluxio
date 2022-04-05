@@ -110,7 +110,7 @@ function mountAlluxioRootFSWithFuseOption {
     mountOptions="-o ${OPTIONS#*=}"
   fi
 
-  exec integration/fuse/bin/alluxio-fuse mount -n ${mountOptions} ${ALLUXIO_FUSE_MOUNT_POINT} ${ALLUXIO_FUSE_MOUNT_ALLUXIO_PATH}
+  exec integration/fuse/bin/alluxio-fuse mount -n ${mountOptions}
 }
 
 function startCsiServer {
