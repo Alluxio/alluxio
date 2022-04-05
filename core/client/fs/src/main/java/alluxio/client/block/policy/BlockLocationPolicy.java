@@ -72,12 +72,12 @@ public interface BlockLocationPolicy {
   WorkerNetAddress getWorker(GetWorkerOptions options);
 
   /**
-   * Gets the preferred workers.
+   * Gets a list of workers for serving the operations requested for the block.
    * @param options the options to get preferred workers
    * @param count
-   * @return the preferred workers
+   * @return the preferred workers to write to or read from, empty set if no worker can be selected
    */
-  default Set<BlockWorkerInfo> getPreferredWorkers(GetWorkerOptions options, int count) {
+  default Set<BlockWorkerInfo> getWorkers(GetWorkerOptions options, int count) {
     throw new UnsupportedOperationException();
   }
 }

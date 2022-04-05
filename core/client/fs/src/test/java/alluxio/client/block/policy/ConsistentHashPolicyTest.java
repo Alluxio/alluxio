@@ -69,14 +69,14 @@ public class ConsistentHashPolicyTest {
     ConsistentHashPolicy policy = (ConsistentHashPolicy) BlockLocationPolicy.Factory.create(
         ConsistentHashPolicy.class, sConf);
     Set<BlockWorkerInfo> preferredWorkers =
-        policy.getPreferredWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+        policy.getWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
             .setBlockInfo(new BlockInfo().setBlockId(1)), 3);
     assertEquals(3, preferredWorkers.size());
     for (int i = 0; i < 10; i++) {
       // For the same block, always return the same worker.
       Collections.shuffle(mWorkerInfos);
       assertEquals(preferredWorkers,
-          policy.getPreferredWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+          policy.getWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1)), 3));
     }
   }
@@ -101,12 +101,12 @@ public class ConsistentHashPolicyTest {
         ConsistentHashPolicy.class, sConf);
     //Request 3 times as many workers as available workers
     Set<BlockWorkerInfo> preferredWorkers =
-        policy.getPreferredWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+        policy.getWorkers(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
             .setBlockInfo(new BlockInfo().setBlockId(1)), mWorkerInfos.size() * 3);
     assertEquals(mWorkerInfos.size(), preferredWorkers.size());
     //Request workers when there is no available workers
     preferredWorkers =
-        policy.getPreferredWorkers(
+        policy.getWorkers(
             GetWorkerOptions.defaults().setBlockWorkerInfos(Collections.EMPTY_LIST)
                 .setBlockInfo(new BlockInfo().setBlockId(1)), 3);
     assertEquals(0, preferredWorkers.size());

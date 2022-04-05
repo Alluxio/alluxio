@@ -27,6 +27,7 @@ import com.google.common.hash.HashFunction;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
@@ -56,28 +57,29 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
     if (options.getBlockWorkerInfos().size() == 0) {
       return null;
     }
-    HASH_PROVIDER.refresh(ImmutableSet.copyOf(options.getBlockWorkerInfos()), mNumVirtualNodes);
+    HASH_PROVIDER.refresh(options.getBlockWorkerInfos(), mNumVirtualNodes);
     return HASH_PROVIDER.get(String.valueOf(options.getBlockInfo().getBlockId()), 0)
         .getNetAddress();
   }
 
   @Override
-  public Set<BlockWorkerInfo> getPreferredWorkers(GetWorkerOptions options, int count) {
+  public Set<BlockWorkerInfo> getWorkers(GetWorkerOptions options, int count) {
     if (options.getBlockWorkerInfos().size() == 0) {
       return Collections.EMPTY_SET;
     }
-    HASH_PROVIDER.refresh(ImmutableSet.copyOf(options.getBlockWorkerInfos()), mNumVirtualNodes);
+    HASH_PROVIDER.refresh(options.getBlockWorkerInfos(), mNumVirtualNodes);
     return HASH_PROVIDER.getMultiple(String.valueOf(options.getBlockInfo().getBlockId()), count);
   }
 
   private static class ConsistentHashProvider {
     private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
     private static final int MAX_ATTEMPTS = 100;
-    private Set<BlockWorkerInfo> mLastWorkerInfos;
+    private List<BlockWorkerInfo> mLastWorkerInfos;
     private NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
 
-    public void refresh(Set<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-      if (!workerInfos.equals(mLastWorkerInfos)) {
+    public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
+      if (workerInfos != mLastWorkerInfos
+          && !ImmutableSet.copyOf(workerInfos).equals(ImmutableSet.copyOf(mLastWorkerInfos))) {
         build(workerInfos, numVirtualNodes);
       }
     }
@@ -103,7 +105,7 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
       }
     }
 
-    private void build(Set<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
+    private void build(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
       int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
       for (BlockWorkerInfo workerInfo : workerInfos) {
