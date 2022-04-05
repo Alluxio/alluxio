@@ -184,15 +184,22 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
         .build();
     mCluster.start();
 
+    // this operation creates more that numFiles log entries
     for (int i = 0; i < numFile; i++) {
       mCluster.getFileSystemClient().createFile(new AlluxioURI(String.format("/%d", i)));
     }
 
+    // only the latest 3 snapshots are kept, but each snapshot leaves behind a small md5 file.
+    // this checks to make sure there are enough md5 files, meaning many snapshots were propagated.
     for (int i = 0; i < NUM_MASTERS; i++) {
-      Path start = Paths.get(mCluster.getJournalDir(i));
-      try (Stream<Path> stream = Files.walk(start, Integer.MAX_VALUE)) {
+      File journalDir = new File(mCluster.getJournalDir(i));
+      Path raftDir = Paths.get(RaftJournalUtils.getRaftJournalDir(journalDir).toString(),
+          RaftJournalSystem.RAFT_GROUP_UUID.toString());
+      try (Stream<Path> stream = Files.walk(raftDir, Integer.MAX_VALUE)) {
         long count = stream.filter(path -> path.toString().endsWith(".md5")).count();
-        Assert.assertTrue(count > numFile / snapshotPeriod);
+        long expected = numFile / snapshotPeriod * 3 / 2;
+        Assert.assertTrue(String.format("Expected at least %d snapshots, got %d", expected,
+            count), count >= expected);
       }
     }
     mCluster.notifySuccess();

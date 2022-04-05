@@ -164,7 +164,7 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
-    try (RaftJournalServiceClient client = getJournalServiceClient()) {
+    try (RaftJournalServiceClient client = createJournalServiceClient()) {
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
@@ -216,7 +216,7 @@ public class SnapshotReplicationManager {
 
     SnapshotUploader<UploadSnapshotPRequest, UploadSnapshotPResponse> snapshotUploader =
         SnapshotUploader.forFollower(mStorage, snapshot);
-    RaftJournalServiceClient client = getJournalServiceClient();
+    RaftJournalServiceClient client = createJournalServiceClient();
     LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
         snapshot.getTermIndex());
     StreamObserver<UploadSnapshotPRequest> requestObserver =
@@ -522,7 +522,7 @@ public class SnapshotReplicationManager {
   }
 
   @VisibleForTesting
-  synchronized RaftJournalServiceClient getJournalServiceClient()
+  synchronized RaftJournalServiceClient createJournalServiceClient()
       throws AlluxioStatusException {
     RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
