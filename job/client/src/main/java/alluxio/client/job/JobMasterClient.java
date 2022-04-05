@@ -15,6 +15,7 @@ import alluxio.Client;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
+import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -115,9 +116,17 @@ public interface JobMasterClient extends Client {
    * Gets the status of the given command jobControlId.
    *
    * @param id the jobControl id
-   * @return the job information
+   * @return the command status
    */
   Status getCmdStatus(long id) throws IOException;
+
+  /**
+   * Gets the detailed status of the given command jobControlId.
+   *
+   * @param id the jobControl id
+   * @return the detailed command status information
+   */
+  CmdStatusBlock getCmdStatusDetailed(long id) throws IOException;
 
   /**
    * Gets all worker health.

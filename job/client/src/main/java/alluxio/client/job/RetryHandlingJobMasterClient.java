@@ -15,6 +15,7 @@ import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetCmdStatusDetailedRequest;
 import alluxio.grpc.GetCmdStatusRequest;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusDetailedPRequest;
@@ -29,6 +30,7 @@ import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.ProtoUtils;
 import alluxio.job.util.SerializationUtils;
+import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -167,5 +169,13 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
     return ProtoUtils.fromProto(retryRPC(() -> mClient.getCmdStatus(
               GetCmdStatusRequest.newBuilder().setJobControlId(id).build())
               .getCmdStatus(), RPC_LOG, "GetCmdStatus", "jobControlId=%d", id));
+  }
+
+  @Override
+  public CmdStatusBlock getCmdStatusDetailed(long id) throws IOException {
+    return ProtoUtils.convertToCmdStatusBlock(retryRPC(() -> mClient.getCmdStatusDetailed(
+                            GetCmdStatusDetailedRequest.newBuilder().setJobControlId(id).build())
+                    .getCmdStatusBlock(), RPC_LOG,
+            "getCmdStatusDetailed", "jobControlId=%d", id));
   }
 }
