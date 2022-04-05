@@ -27,7 +27,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -85,10 +87,17 @@ public final class TestCase {
    */
   public URL createURL() throws Exception {
     String url = String.format("http://%s:%s%s/%s", mHostname, mPort, mBaseUri, mEndpoint);
-    String params = Joiner.on("&").withKeyValueSeparator("=").join(mParameters.entrySet());
-    if (params.length() > 0) {
-      url = String.format("%s?%s", url, params);
+    if (mParameters.size() == 0) {
+      return new URL(url);
     }
+    Map<Boolean, List<Map.Entry<String, String>>> streams = mParameters.entrySet().stream().collect(
+        Collectors.partitioningBy(e -> e.getValue().isEmpty()));
+    Joiner j = Joiner.on("&");
+    String emptyValParams = j.join(streams.get(true).stream().map(Map.Entry::getKey).collect(
+        Collectors.toList()));
+    String argParams = j.withKeyValueSeparator("=").join(streams.get(false).stream().collect(
+        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    url = String.format("%s?%s%s", url, emptyValParams, argParams);
     return new URL(url);
   }
 
