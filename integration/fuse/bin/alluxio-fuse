@@ -30,12 +30,15 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] [mount_point] [alluxio_path]
 -s \tstackFS. This launches StackFS process for testing purpose"
 
 readonly UMOUNT_USAGE="
-Usage:\n\talluxio-fuse umount [-f] [-w <umount wait timeout>] <mount_point>\n\tuse mount stat to show mount points
+Umounts a given fuse mount point (defaults to \"alluxio.fuse.mount.point\"), use mount stat to show mount points.
+
+Usage:\n\talluxio-fuse umount [-f] [-w <umount wait timeout>] [mount_point]
 
 -f \tif '-f' specified, fuse process will be forcibly killed even if fuse device is busy
 -w \tumount wait timeout in seconds. Timeout to wait for fuse process to exit when '-f' is not set. Default is 120"
 
 get_env() {
+  BIN="${SCRIPT_DIR}"/../../../bin
   DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
@@ -116,7 +119,12 @@ mount_fuse() {
 }
 
 kill_process_and_umount_fuse() {
-  local mount_point=${1%/}
+  local mount_point=""
+  if [[ $# -ge 1 ]]; then
+    mount_point=${1%/}
+  else
+    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
+  fi
   # TODO(lu) check if fuse_pid contains multiple pids
   local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
   if [[ -z ${fuse_pid} ]]; then
@@ -295,13 +303,9 @@ main() {
       readonly FORCE_KILL_OPT
 
       shift $(( OPTIND - 1 ))
-      if [[ $# -eq 1 ]]; then
-        kill_process_and_umount_fuse "$1"
-        exit $?
+      if kill_process_and_umount_fuse "$@"; then
+        exit 0
       fi
-      err "Umount expects exactly one fuse_mount_point parameter"
-      echo -e "${UMOUNT_USAGE}" >&2
-      exit 1
       ;;
     stat)
       fuse_stat
