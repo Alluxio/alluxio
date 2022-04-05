@@ -50,7 +50,6 @@ import javax.ws.rs.HttpMethod;
  * Tests {@link JobMasterClientRestServiceHandler}.
  */
 public final class JobMasterClientRestApiTest extends RestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private LocalAlluxioJobCluster mJobCluster;
   private JobMaster mJobMaster;
 

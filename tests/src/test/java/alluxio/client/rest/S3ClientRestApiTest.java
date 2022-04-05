@@ -81,10 +81,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private static final int LARGE_DATA_SIZE = 256 * Constants.KB;
 
   private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
-
-  private static final String S3_SERVICE_PREFIX = S3RestServiceHandler.SERVICE_PREFIX;
 
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
