@@ -979,7 +979,7 @@ public final class S3RestServiceHandler {
   }
 
   private TaggingData deserializeTags(FileInfo fileInfo)
-      throws IOException, ClassNotFoundException {
+      throws IOException {
     // Fetch the S3 tags from the Inode xAttr
     Map<String, byte[]> xAttr = fileInfo.getXAttr();
     if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {

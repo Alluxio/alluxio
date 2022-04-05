@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * - GetBucketTagging, GetObjectTagging, PutBucketTagging, PutObjectTagging
  */
 @JacksonXmlRootElement(localName = "Tagging")
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"tagMap"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaggingData {
   private static final XmlMapper MAPPER = new XmlMapper();
 
@@ -88,7 +88,7 @@ public class TaggingData {
    * @param tagSet set of user metadata tags
    */
   @JacksonXmlProperty(localName = "TagSet")
-  public void setTagSet(@Nullable TagSet tagSet) {
+  private void setTagSet(@Nullable TagSet tagSet) {
     if (tagSet == null) { // forced to accept null parameter for unmarshalling XML strings
       tagSet = new TagSet();
     }
@@ -101,7 +101,7 @@ public class TaggingData {
    * @return the tag set
    */
   @JacksonXmlProperty(localName = "TagSet")
-  public TagSet getTagSet() {
+  private TagSet getTagSet() {
     return mTagSet;
   }
 
@@ -127,7 +127,6 @@ public class TaggingData {
    * @param value
    * @return a reference to this object
    */
-  @XmlTransient
   private void addTag(String key, String value) {
     if (!mTagMap.containsKey(key)) {
       mTagSet.mTags.add(new TagObject(key, value));
@@ -160,7 +159,6 @@ public class TaggingData {
   /**
    * Fills the tag map with the contents of the tag set.
    */
-  @XmlTransient
   private void repopulateTagMap() {
     mTagMap.clear();
     for (TagObject tag : mTagSet.mTags) {
@@ -171,7 +169,7 @@ public class TaggingData {
   /**
    * Validates S3 User tag restrictions.
    */
-  void validateTags() {
+  private void validateTags() {
     List<TagObject> tags = mTagSet.getTags();
     if (tags.size() == 0) { return; }
     try {
@@ -225,7 +223,7 @@ public class TaggingData {
     /**
      * Default constructor for jackson.
      */
-    public TagSet() { mTags = new ArrayList<TagObject>(); }
+    public TagSet() { this(new ArrayList<TagObject>()); }
 
     /**
      * @param tags the tags
@@ -238,7 +236,7 @@ public class TaggingData {
      * @return the tags
      */
     @JacksonXmlProperty(localName = "Tag")
-    public List<TagObject> getTags() {
+    private List<TagObject> getTags() {
       return mTags;
     }
 
@@ -248,7 +246,7 @@ public class TaggingData {
      * @param tags the tags
      */
     @JacksonXmlProperty(localName = "Tag")
-    public void setTags(List<TagObject> tags) {
+    private void setTags(List<TagObject> tags) {
       mTags = tags;
     }
 
@@ -284,7 +282,7 @@ public class TaggingData {
      * @return the key of the object
      */
     @JacksonXmlProperty(localName = "Key")
-    public String getKey() {
+    private String getKey() {
       return mKey;
     }
 
@@ -292,7 +290,7 @@ public class TaggingData {
      * @return the key of the object
      */
     @JacksonXmlProperty(localName = "Value")
-    public String getValue() {
+    private String getValue() {
       return mValue;
     }
 
@@ -302,7 +300,7 @@ public class TaggingData {
      * @param key the key
      */
     @JacksonXmlProperty(localName = "Key")
-    public void setKey(String key) {
+    private void setKey(String key) {
       mKey = key;
     }
 
@@ -312,22 +310,13 @@ public class TaggingData {
      * @param value the value
      */
     @JacksonXmlProperty(localName = "Value")
-    public void setValue(String value) {
+    private void setValue(String value) {
       mValue = value;
     }
 
     @Override
     public String toString() {
       return mKey + " = " + mValue;
-    }
-
-    /**
-     * Convenience method for calculating metadata size limits.
-     * @return the sum of the number of bytes in the UTF-8 encoding of the tag key and value
-     */
-    int getNumBytes() {
-      return mKey.getBytes(S3Constants.TAGGING_CHARSET).length
-          + mValue.getBytes(S3Constants.TAGGING_CHARSET).length;
     }
   }
 }
