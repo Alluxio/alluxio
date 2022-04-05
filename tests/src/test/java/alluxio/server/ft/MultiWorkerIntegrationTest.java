@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -196,7 +196,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
     FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
-    AlluxioBlockStore store = AlluxioBlockStore.create(fsContext);
+    BlockStoreClient store = BlockStoreClient.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
     List<BlockWorkerInfo> workers = fsContext.getCachedWorkers();
