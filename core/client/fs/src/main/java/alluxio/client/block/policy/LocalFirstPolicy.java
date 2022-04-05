@@ -67,7 +67,7 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
+    List<BlockWorkerInfo> shuffledWorkers = options.getBlockWorkerInfos();
     Collections.shuffle(shuffledWorkers);
     // Workers must have enough capacity to hold the block.
     List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()

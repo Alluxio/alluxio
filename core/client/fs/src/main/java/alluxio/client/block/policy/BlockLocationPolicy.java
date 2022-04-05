@@ -12,12 +12,15 @@
 package alluxio.client.block.policy;
 
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
+import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * <p>
@@ -68,4 +71,14 @@ public interface BlockLocationPolicy {
    */
   @Nullable
   WorkerNetAddress getWorker(GetWorkerOptions options);
+
+  /**
+   * Gets the preferred workers
+   * @param options the options to get preferred workers
+   * @param count
+   * @return the preferred workers
+   */
+  default Set<BlockWorkerInfo> getPreferredWorkers(GetWorkerOptions options, int count) {
+    throw new UnsupportedOperationException();
+  }
 }
