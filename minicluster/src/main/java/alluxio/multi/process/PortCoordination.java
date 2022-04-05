@@ -41,7 +41,7 @@ public class PortCoordination {
   // for EmbeddedJournalIntegrationTestResizing
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(3, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPLACE_ALL = allocate(10, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPLACE_ALL = allocate(5, 0);
   // for EmbeddedJournalIntegrationTestTransferLeadership
   public static final List<ReservedPort> EMBEDDED_JOURNAL_TRANSFER_LEADER = allocate(5, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_REPEAT_TRANSFER_LEADER = allocate(5, 0);
