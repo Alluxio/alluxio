@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -125,20 +124,15 @@ public final class TestCase {
   public HttpURLConnection execute() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
-    if (mOptions.getMD5() != null) {
-      connection.setRequestProperty("Content-MD5", mOptions.getMD5());
-    }
-    if (mOptions.getAuthorization() != null) {
-      connection.setRequestProperty("Authorization", mOptions.getAuthorization());
+    for (Map.Entry<String, String> entry : mOptions.getHeaders().entrySet()) {
+      connection.setRequestProperty(entry.getKey(), entry.getValue());
     }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
       ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
     }
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", mOptions.getContentType());
       ObjectMapper mapper;
       switch (mOptions.getContentType()) {
         case TestCaseOptions.XML_CONTENT_TYPE: // encode as XML string

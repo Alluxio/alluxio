@@ -15,7 +15,10 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -24,8 +27,14 @@ import javax.ws.rs.core.MediaType;
 // TODO(jiri): consolidate input stream and body fields
 @NotThreadSafe
 public final class TestCaseOptions {
+  /* Supported content types */
   public static final String JSON_CONTENT_TYPE = MediaType.APPLICATION_JSON;
   public static final String XML_CONTENT_TYPE = MediaType.APPLICATION_XML;
+
+  /* Headers */
+  public static final String AUTHORIZATION_HEADER = "Authorization";
+  public static final String CONTENT_TYPE_HEADER = "Content-Type";
+  public static final String MD5_HEADER = "Content-MD5";
 
   private Object mBody;
   private InputStream mInputStream;
@@ -33,6 +42,7 @@ public final class TestCaseOptions {
   private String mContentType;
   private String mMD5;
   private String mAuthorization;
+  private final Map<String, String> mHeaders;
 
   /**
    * @return the default {@link TestCaseOptions}
@@ -48,6 +58,7 @@ public final class TestCaseOptions {
     mContentType = JSON_CONTENT_TYPE;
     mMD5 = null;
     mAuthorization = null;
+    mHeaders = new HashMap<>();
   }
 
   /**
@@ -93,6 +104,13 @@ public final class TestCaseOptions {
   }
 
   /**
+   * @return the headers map
+   */
+  public Map<String, String> getHeaders() {
+    return mHeaders;
+  }
+
+  /**
    * @param body the body to use
    * @return the updated options object
    */
@@ -107,6 +125,7 @@ public final class TestCaseOptions {
    */
   public TestCaseOptions setInputStream(InputStream inputStream) {
     mInputStream = inputStream;
+    setContentType(MediaType.APPLICATION_OCTET_STREAM); // fallback content type
     return this;
   }
 
@@ -125,6 +144,7 @@ public final class TestCaseOptions {
    */
   public TestCaseOptions setContentType(String contentType) {
     mContentType = contentType;
+    mHeaders.put(CONTENT_TYPE_HEADER, contentType);
     return this;
   }
 
@@ -134,6 +154,7 @@ public final class TestCaseOptions {
    */
   public TestCaseOptions setMD5(String md5) {
     mMD5 = md5;
+    mHeaders.put(MD5_HEADER, md5);
     return this;
   }
 
@@ -143,6 +164,28 @@ public final class TestCaseOptions {
    */
   public TestCaseOptions setAuthorization(String authorization) {
     mAuthorization = authorization;
+    mHeaders.put(AUTHORIZATION_HEADER, authorization);
+    return this;
+  }
+
+  /**
+   * Clears all existing headers and uses the provided headers.
+   * @param headers headers map
+   * @return the updated options object
+   */
+  public TestCaseOptions setHeaders(@NotNull Map<String, String> headers) {
+    mHeaders.clear();
+    mHeaders.putAll(headers);
+    return this;
+  }
+
+  /**
+   * Adds the provided headers to the existing headers map. Overwrites duplicate keys.
+   * @param headers headers map
+   * @return the updated options object
+   */
+  public TestCaseOptions addHeaders(@NotNull Map<String, String> headers) {
+    mHeaders.putAll(headers);
     return this;
   }
 
@@ -160,12 +203,14 @@ public final class TestCaseOptions {
         && mPrettyPrint == that.mPrettyPrint
         && Objects.equal(mContentType, that.mContentType)
         && Objects.equal(mMD5, that.mMD5)
-        && Objects.equal(mAuthorization, that.mAuthorization);
+        && Objects.equal(mAuthorization, that.mAuthorization)
+        && Objects.equal(mHeaders, that.mHeaders);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mContentType, mMD5, mAuthorization);
+    return Objects.hashCode(mBody, mInputStream, mPrettyPrint,
+        mContentType, mMD5, mAuthorization, mHeaders);
   }
 
   @Override
@@ -177,6 +222,7 @@ public final class TestCaseOptions {
         .add("content type", mContentType)
         .add("MD5", mMD5)
         .add("authorization", mAuthorization)
+        .add("headers", mHeaders)
         .toString();
   }
 }
