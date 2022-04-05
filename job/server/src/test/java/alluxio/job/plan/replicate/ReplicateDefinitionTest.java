@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -80,7 +80,7 @@ import java.util.Set;
  * Tests {@link ReplicateConfig}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class,
+@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, JobServerContext.class,
     BlockInStream.class})
 public final class ReplicateDefinitionTest {
   private static final long TEST_BLOCK_ID = 1L;
@@ -102,7 +102,7 @@ public final class ReplicateDefinitionTest {
   private static final String TEST_PATH = "/test";
 
   private FileSystemContext mMockFileSystemContext;
-  private AlluxioBlockStore mMockBlockStore;
+  private BlockStoreClient mMockBlockStore;
   private FileSystem mMockFileSystem;
   private JobServerContext mMockJobServerContext;
   private UfsManager mMockUfsManager;
@@ -119,13 +119,13 @@ public final class ReplicateDefinitionTest {
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
     when(mMockFileSystemContext.getClusterConf())
         .thenReturn(ServerConfiguration.global());
-    mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
     mMockJobServerContext =
         new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    when(BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     mTestBlockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID).setLength(TEST_BLOCK_SIZE);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(mTestBlockInfo);
     mTestStatus = new URIStatus(
@@ -176,8 +176,8 @@ public final class ReplicateDefinitionTest {
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID))
         .thenReturn(mTestBlockInfo
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    when(BlockStoreClient.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
 
     ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
     ReplicateDefinition definition = new ReplicateDefinition();

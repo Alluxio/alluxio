@@ -13,7 +13,7 @@ package alluxio.job.util;
 
 import alluxio.Constants;
 import alluxio.client.Cancelable;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
@@ -176,7 +176,7 @@ public final class JobUtils {
     BlockInfo blockInfo = status.getBlockInfo(blockId);
     Preconditions.checkNotNull(blockInfo, "Can not find block %s in status %s", blockId, status);
     long blockSize = blockInfo.getLength();
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    BlockStoreClient blockStore = BlockStoreClient.create(context);
     try (OutputStream outputStream =
         blockStore.getOutStream(blockId, blockSize, localNetAddress, outOptions)) {
       try (InputStream inputStream = blockStore.getInStream(blockId, inOptions)) {
@@ -195,7 +195,7 @@ public final class JobUtils {
   private static void loadThroughCacheRequest(URIStatus status, FileSystemContext context,
       long blockId, AlluxioConfiguration conf, WorkerNetAddress localNetAddress)
       throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
@@ -227,7 +227,7 @@ public final class JobUtils {
 
   private static void loadThroughRead(URIStatus status, FileSystemContext context, long blockId,
       AlluxioConfiguration conf) throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);

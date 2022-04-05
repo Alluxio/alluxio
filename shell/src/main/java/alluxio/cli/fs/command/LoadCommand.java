@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -137,7 +137,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       if (local) {
         dataSource = mFsContext.getNodeLocalWorker();
       } else { // send request to data source
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
+        BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
         Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
             .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
         dataSource = dataSourceAndType.getFirst();

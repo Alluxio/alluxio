@@ -87,11 +87,11 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Tests for {@link AlluxioBlockStore}.
+ * Tests for {@link BlockStoreClient}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
-public final class AlluxioBlockStoreTest {
+public final class BlockStoreClientTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
@@ -151,7 +151,7 @@ public final class AlluxioBlockStoreTest {
 
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mWorkerClient;
-  private AlluxioBlockStore mBlockStore;
+  private BlockStoreClient mBlockStore;
   private WorkerNetAddress mLocalAddr;
   private FileSystemContext mContext;
   private ClientContext mClientContext;
@@ -172,7 +172,7 @@ public final class AlluxioBlockStoreTest {
         new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName(
             (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
-    mBlockStore = new AlluxioBlockStore(mContext,
+    mBlockStore = new BlockStoreClient(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, sConf));
 
     when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))

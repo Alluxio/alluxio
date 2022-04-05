@@ -54,14 +54,13 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
-// TODO(jianjian): rename AlluxioBlockStore since it would get confused by BlockStore
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
- * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors.
+ * An instance of this class can be obtained via {@link BlockStoreClient} constructors.
  */
 @ThreadSafe
-public final class AlluxioBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioBlockStore.class);
+public final class BlockStoreClient {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockStoreClient.class);
 
   private final FileSystemContext mContext;
   private final TieredIdentity mTieredIdentity;
@@ -70,10 +69,10 @@ public final class AlluxioBlockStore {
    * Creates an Alluxio block store with default local hostname.
    *
    * @param context the file system context
-   * @return the {@link AlluxioBlockStore} created
+   * @return the {@link BlockStoreClient} created
    */
-  public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context,
+  public static BlockStoreClient create(FileSystemContext context) {
+    return new BlockStoreClient(context,
         TieredIdentityFactory.localIdentity(context.getClusterConf()));
   }
 
@@ -84,7 +83,7 @@ public final class AlluxioBlockStore {
    * @param tieredIdentity the tiered identity
    */
   @VisibleForTesting
-  AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity) {
+  BlockStoreClient(FileSystemContext context, TieredIdentity tieredIdentity) {
     mContext = context;
     mTieredIdentity = tieredIdentity;
   }

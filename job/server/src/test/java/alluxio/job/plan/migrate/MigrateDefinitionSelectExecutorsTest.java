@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
@@ -51,7 +51,7 @@ import java.util.Set;
  * No matter whether to delete source, selectExecutors should have the same behavior.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class})
+@PrepareForTest({BlockStoreClient.class})
 public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
@@ -60,15 +60,15 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host2"), 0, 0))
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host3"), 0, 0)).build();
 
-  private AlluxioBlockStore mMockBlockStore;
+  private BlockStoreClient mMockBlockStore;
 
   @Before
   @Override
   public void before() throws Exception {
     super.before();
-    mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     when(mMockFileSystemContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
     createDirectory("/");
   }
