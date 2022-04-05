@@ -56,43 +56,45 @@ check_fuse_jar() {
 mount_fuse() {
   local mount_point=""
   local mount_alluxio_path=""
-  local mount_options=""
-  if [[ $# -ge 2]]; then
+  if [[ $# -ge 2 ]]; then
     mount_point="$1"
     mount_alluxio_path="$2"
-  elif [[ $# -eq 1]]; then
+  elif [[ $# -eq 1 ]]; then
     mount_point="$1"
-    mount_alluxio_path=$(${BIN}/alluxio getConf alluxio.fuse.mount.alluxio.path)
   else
     mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
-    mount_alluxio_path=$(${BIN}/alluxio getConf alluxio.fuse.mount.alluxio.path)
   fi
   
-  if [[ kill_process_and_umount_fuse "${mount_point}" == 1 ]]; then
+  kill_process_and_umount_fuse "${mount_point}"
+  if [[ $? == 1 ]]; then
     return 1
   fi
-  
+
   if [[ ${NO_DAEMON} = true ]]; then
     ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
   fi
 
-  local cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
-    alluxio.fuse.AlluxioFuse \
-    -o ${mount_options} \
-    -m ${mount_point} \
-    -p ${mount_alluxio_path}"
-  local message="Starting AlluxioFuse process: mounting alluxio path \"${mount_alluxio_path}\" to local mount point \"${mount_point}\" with options=\"${mount_option}\""
-
+  local cmd=""
   if [[ ${STACK_FS} = true ]]; then
     stackfs_mount_option="$(echo "${mount_options}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g')"
     cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.StackMain \
     ${mount_point} \
-    ${alluxio_root} \
+    ${mount_alluxio_path} \
     ${stackfs_mount_option}"
-    message="Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\" with options=\"${stackfs_mount_option}\""
+    message="Starting StackFS process"
+  else
+    if [[ -n "${mount_options}" ]]; then
+      mount_options="-o ${mount_options}"
+    fi
+    if [[ -n "${mount_alluxio_path}" ]];then
+      mount_alluxio_path="-a ${mount_alluxio_path}"
+    fi
+    cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
+      alluxio.fuse.AlluxioFuse \
+      ${mount_options} -m ${mount_point} ${mount_alluxio_path}"
+    local message="Starting AlluxioFuse process"
   fi
-
   echo "${message}"
 
   if [[ ${NO_DAEMON} = true ]]; then
@@ -102,11 +104,11 @@ mount_fuse() {
     # sleep: workaround to let the bg java process exit on errors, if any
     sleep 2s
     if kill -0 $! > /dev/null 2>&1 ; then
-      echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
+      echo "Successfully mounted Alluxio to ${mount_point}."
       echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
       return 0
     else
-      err "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
+      err "Failed to mount Alluxio to ${mount_point}."
       err "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
       return 1
     fi

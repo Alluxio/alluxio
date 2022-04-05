@@ -62,8 +62,7 @@ public final class FuseMountConfig {
       Preconditions.checkArgument(alluxioPath != null && !alluxioPath.isEmpty(),
           "Fuse mount alluxio path should be set");
     }
-    if (fuseOptions.isEmpty()) {
-      // TODO(lu) what will happen for an empty string
+    if (fuseOptions.isEmpty() && conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)) {
       fuseOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS);
     }
     fuseOptions = AlluxioFuse.parseFuseOptions(fuseOptions, conf);
