@@ -171,6 +171,7 @@ umount_fuse() {
     echo "${success_msg}"
     return 0
   fi
+  # Only root can execute umount -f
   if umount -f "${mount_point}" > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1; then
     echo "${success_msg}"
     return 0
@@ -180,6 +181,7 @@ umount_fuse() {
     err "Failed to umount fuse mount point ${mount_point}"
     return 1
   else 
+    echo "Path ${mount_point} is not mounted"
     return 0
   fi
 }
@@ -214,8 +216,10 @@ fuse_stat() {
 fuse_mounted() {
   local fuse_mount_info="$(mount | grep "${mount_point}")"
   if [[ -n "${fuse_mount_info}" ]]; then
+    # 0 = true
     return 0
   fi
+  # 1 = false
   return 1
 }
 
