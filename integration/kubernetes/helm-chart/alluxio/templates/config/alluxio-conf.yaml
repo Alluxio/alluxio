@@ -171,6 +171,11 @@
   {{- range $key, $val := .Values.fuse.properties }}
     {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
   {{- end }}
+  {{ - $fuseJavaOpts = printf "-Dalluxio.fuse.mount.alluxio.path=%v" .Values.fuse.alluxioPath | append $fuseJavaOpts }}
+  {{ - $fuseJavaOpts = printf "-Dalluxio.fuse.mount.point=%v" .Values.fuse.mountPath | append $fuseJavaOpts }}
+  {{ - if .Values.fuse.mountOptions }}
+  {{ - $fuseJavaOpts = printf "-Dalluxio.fuse.mount.options=%v" .Values.fuse.mountOptions | append $fuseJavaOpts }}
+  {{ - end }}
   {{- if .Values.fuse.jvmOptions }}
     {{- $fuseJavaOpts = concat $fuseJavaOpts .Values.fuse.jvmOptions }}
   {{- end }}

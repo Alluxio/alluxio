@@ -442,7 +442,6 @@ fuse:
   # fuse args specific to standalone fuse
   args:
     - fuse
-    - --fuse-opts=allow_other
   # fuse options specific to fuse embedded in the worker process, separated by comma without whitespace
   mountOptions: allow_other
   # Mount path in the host
