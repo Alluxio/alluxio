@@ -19,13 +19,13 @@ umount \tunmount an Alluxio path from local file system
 stat \tshow status of Alluxio mount points"
 
 readonly MOUNT_USAGE="
-Mounts a path in Alluxio namespace (defaults to "/") to mount point on local file system.
-When no argument is given, list the current mount point
+Mounts a path in Alluxio namespace (defaults to \"alluxio.fuse.mount.point\") 
+to mount point on local file system (defaults to \"alluxio.fuse.mount.alluxio.path\").
 
-Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
+Usage:\talluxio-fuse mount [-n] [-o <mount option>] [mount_point] [alluxio_path]
 \talluxio-fuse mount
 
--o \tmount options for the fuse daemon
+-o \tmount options for the fuse daemon,separated by comma
 -n \tno-daemon. This launches the process in the foreground and logs to stdout
 -s \tstackFS. This launches StackFS process for testing purpose"
 
@@ -54,36 +54,53 @@ check_fuse_jar() {
 }
 
 mount_fuse() {
-  local mount_point=$1
-  local alluxio_root=$2
-  local full_mount_option=""
-  if [[ -n "${mount_option}" ]]; then
-    full_mount_option="big_writes,${mount_option}"
-  else
-    full_mount_option="big_writes"
-  fi
+    # parse configuration (shell input > configuration)
+    # get fuse mount point, create fuse mount point if it does not exist
+    # umount fuse mount point if mounted, kill process if needed
+    # same workload
 
+  # parse input arguments
+  local mount_point=""
+  local mount_alluxio_path=""
+  local mount_options=""
+  
+  if [[ $# -ge 2]]; then
+    mount_point="$1"
+    mount_alluxio_path="$2"
+  elif [[ $# -eq 1]]; then
+    mount_point="$1"
+    mount_alluxio_path=$(${BIN}/alluxio getConf alluxio.fuse.mount.alluxio.path)
+  else
+    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
+    mount_alluxio_path=$(${BIN}/alluxio getConf alluxio.fuse.mount.alluxio.path)
+  fi
+  
+  if [[ kill_process_and_umount_fuse "${mount_point}" == 1 ]]; then
+    return 1
+  fi
+  
   if [[ ${NO_DAEMON} = true ]]; then
     ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
   fi
+
   local cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
-    -o ${full_mount_option} \
+    -o ${mount_options} \
     -m ${mount_point} \
-    -r ${alluxio_root}"
-  if [[ ${STACK_FS} = true ]]; then
-    stackfs_mount_option="$(echo "${full_mount_option}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g')"
+    -p ${mount_alluxio_path}"
+  local message="Starting AlluxioFuse process: mounting alluxio path \"${mount_alluxio_path}\" to local mount point \"${mount_point}\" with options=\"${mount_option}\""
 
+  if [[ ${STACK_FS} = true ]]; then
+    stackfs_mount_option="$(echo "${mount_options}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g')"
     cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.StackMain \
     ${mount_point} \
     ${alluxio_root} \
     ${stackfs_mount_option}"
-
-    echo "Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\" with options=\"${stackfs_mount_option}\""
-  else
-    echo "Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\" with options=\"${full_mount_option}\""
+    message="Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\" with options=\"${stackfs_mount_option}\""
   fi
+
+  echo "${message}"
 
   if [[ ${NO_DAEMON} = true ]]; then
     exec ${cmd}
@@ -108,7 +125,6 @@ kill_process_and_umount_fuse() {
   # TODO(lu) check if fuse_pid contains multiple pids
   local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
   if [[ -z ${fuse_pid} ]]; then
-    err "Cannot find fuse process"
     umount_fuse
     return $?
   fi
@@ -173,14 +189,6 @@ umount_fuse() {
   fi
 }
 
-fuse_mounted() {
-  local fuse_mount_info="$(mount | grep "${mount_point}")"
-  if [[ -n "${fuse_mount_info}" ]]; then
-    return 0
-  fi
-  return 1
-}
-
 fuse_stat() {
   local fuse_info="$(ps aux | grep [A]lluxioFuse)"
   if [[ -n ${fuse_info} ]]; then
@@ -191,8 +199,8 @@ fuse_stat() {
   fuse_info=$(ps ax -o pid,args | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
   if [[ -n ${fuse_info} ]]; then
     fuse_worker_pid="$(echo "${fuse_info}" | awk '{print $1}')"
-    fuse_mount_point="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.point=)\S+(?=\s)')"
-    fuse_alluxio_path="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
+    fuse_mount_point="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.point=)\S+(?=\s)')"
+    fuse_alluxio_path="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
     echo -e "pid\tmount_point\talluxio_path"
     echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
     return 0
@@ -205,6 +213,14 @@ fuse_stat() {
   fi
   echo "No mount point found. AlluxioFuse process is not running"
   echo -e "${MOUNT_USAGE}"
+  return 1
+}
+
+fuse_mounted() {
+  local fuse_mount_info="$(mount | grep "${mount_point}")"
+  if [[ -n "${fuse_mount_info}" ]]; then
+    return 0
+  fi
   return 1
 }
 
@@ -236,7 +252,7 @@ main() {
       while getopts 'o:ns' option; do
         case "${option}" in
           o)
-            mount_option="${OPTARG}"
+            mount_options="${OPTARG}"
             ;;
           n)
             NO_DAEMON=true
@@ -259,16 +275,10 @@ main() {
         fuse_stat
         exit $?
       fi
-      if [[ $# -eq 1 ]]; then
-        mount_fuse "$1" /
-        exit $?
+
+      if mount_fuse "$@"; then
+        exit 0
       fi
-      if [[ $# -eq 2 ]]; then
-        mount_fuse "$1" "$2"
-        exit $?
-      fi
-      err "Invalid mount option ${option}"
-      echo -e "${MOUNT_USAGE}" >&2
       exit 1
       ;;
     umount|unmount)
