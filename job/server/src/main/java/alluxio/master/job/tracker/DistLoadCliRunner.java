@@ -44,10 +44,7 @@ import java.util.concurrent.atomic.LongAdder;
  * A config runner for a DistLoadCli job.
  */
 public class DistLoadCliRunner extends AbstractCmdRunner {
-  private static final Logger LOG = LoggerFactory.getLogger(MigrateCliRunner.class);
-  private static final int DEFAULT_FAILURE_LIMIT = 20;
-  private static final String DEFAULT_FAILURE_FILE_PATH =
-          "./logs/user/distributedLoad_%s_failures.csv";
+  private static final Logger LOG = LoggerFactory.getLogger(DistLoadCliRunner.class);
 
   /**
    * constructor.

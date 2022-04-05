@@ -37,6 +37,7 @@ import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -409,6 +410,17 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       Collections.sort(ids);
       auditContext.setSucceeded(true);
       return ids;
+    }
+  }
+
+  /**
+   * @return get a detailed status information for a command
+   * @param jobControlId job control ID of a command
+   */
+  public CmdStatusBlock getCmdStatusDetailed(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getCmdStatusDetailed")) {
+      return mCmdJobTracker.getCmdStatusBlock(jobControlId);
     }
   }
 

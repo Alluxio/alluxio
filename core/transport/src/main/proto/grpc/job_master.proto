@@ -215,6 +215,23 @@ message GetCmdStatusResponse {
   optional Status cmdStatus = 1;
 }
 
+message GetCmdStatusDetailedOptions {}
+message GetCmdStatusDetailedRequest {
+  optional int64 jobControlId = 1;
+  optional GetCmdStatusOptions options = 2;
+}
+message JobStatusBlock {
+  optional int64 jobId = 1;
+  optional Status jobStatus = 2;
+}
+message CmdStatusBlock {
+  optional int64 jobControlId = 1;
+  repeated JobStatusBlock jobStatusBlock = 2;
+}
+message GetCmdStatusDetailedResponse {
+  optional CmdStatusBlock cmdStatusBlock = 1;
+}
+
 /**
  * This interface contains job master service endpoints for job service clients.
  */
@@ -264,6 +281,11 @@ service JobMasterClientService {
  * Get status for a CMD job, return a status.
  */
   rpc GetCmdStatus(GetCmdStatusRequest) returns (GetCmdStatusResponse);
+
+  /**
+* Get detailed status for a CMD job, return detailed status information.
+*/
+  rpc GetCmdStatusDetailed(GetCmdStatusDetailedRequest) returns (GetCmdStatusDetailedResponse);
 }
 
 message JobHeartbeatPOptions {}

@@ -11,13 +11,19 @@
 
 package alluxio.job;
 
+import alluxio.grpc.JobStatusBlock;
+import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.PlanInfo;
+import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 
+import com.google.common.collect.Lists;
+
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Utility for converting proto job representation to java job representation.
@@ -62,6 +68,24 @@ public class ProtoUtils {
       default:
         throw new IllegalStateException(String.format("Unexpected Status type: %s", status));
     }
+  }
+
+  /**
+   * Convert proto to list of SimpleJobStatusBlock.
+   * @param cmdStatusBlock the cmdStatusBlock to convert
+   * @return {@link CmdStatusBlock}
+   * @throws IOException if result can't be deserialized
+   */
+  public static CmdStatusBlock convertToCmdStatusBlock(
+          alluxio.grpc.CmdStatusBlock cmdStatusBlock) throws IOException {
+    List<SimpleJobStatusBlock> simpleJobStatusBlockList = Lists.newArrayList();
+    List<alluxio.grpc.JobStatusBlock> blocks = cmdStatusBlock
+            .getJobStatusBlockList();
+    for (JobStatusBlock block : blocks) {
+      simpleJobStatusBlockList
+              .add(new SimpleJobStatusBlock(block.getJobId(), fromProto(block.getJobStatus())));
+    }
+    return new CmdStatusBlock(cmdStatusBlock.getJobControlId(), simpleJobStatusBlockList);
   }
 
   private ProtoUtils() {} // prevent instantiation

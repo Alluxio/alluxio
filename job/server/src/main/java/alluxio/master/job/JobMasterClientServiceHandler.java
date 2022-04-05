@@ -17,6 +17,8 @@ import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetAllWorkerHealthPResponse;
+import alluxio.grpc.GetCmdStatusDetailedRequest;
+import alluxio.grpc.GetCmdStatusDetailedResponse;
 import alluxio.grpc.GetCmdStatusRequest;
 import alluxio.grpc.GetCmdStatusResponse;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
@@ -168,5 +170,16 @@ public class JobMasterClientServiceHandler
               .setCmdStatus(mJobMaster.getCmdStatus(request.getJobControlId()).toProto())
               .build();
     }, "GetCmdStatus", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getCmdStatusDetailed(GetCmdStatusDetailedRequest request,
+                                   StreamObserver<GetCmdStatusDetailedResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetCmdStatusDetailedResponse>) () -> {
+      return GetCmdStatusDetailedResponse.newBuilder()
+              .setCmdStatusBlock(mJobMaster
+                      .getCmdStatusDetailed(request.getJobControlId()).toProto())
+              .build();
+    }, "getCmdStatusDetailed", "request=%s", responseObserver, request);
   }
 }

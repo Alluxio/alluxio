@@ -9,35 +9,38 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
-
-import alluxio.grpc.OperationType;
-import alluxio.job.wire.JobSource;
-
-import java.io.Serializable;
-import java.util.Collection;
+package alluxio.job.wire;
 
 /**
- * A Cmd configuration. All the subclasses are both Java and JSON serializable.
+ * Class for simple job status information.
  */
-public interface CmdConfig extends Serializable {
-  /**
-   * @return name of the Cmd job
-   */
-  String getName();
+public class SimpleJobStatusBlock {
+  private long mJobId;
+  private Status mStatus;
 
   /**
-   * @return JobSource of the Cmd job
+   * Constructor.
+   * @param jobId
+   * @param status
    */
-  JobSource getJobSource();
+  public SimpleJobStatusBlock(long jobId, Status status) {
+    mJobId = jobId;
+    mStatus = status;
+  }
 
   /**
-   * @return OperationType of the Cmd job
+   * Get job id.
+   * @return job id
    */
-  OperationType getOperationType();
+  public long getJobId() {
+    return mJobId;
+  }
 
   /**
-   * @return list of affected paths
+   * Get status of the job.
+   * @return status information
    */
-  Collection<String> affectedPaths();
+  public Status getStatus() {
+    return mStatus;
+  }
 }

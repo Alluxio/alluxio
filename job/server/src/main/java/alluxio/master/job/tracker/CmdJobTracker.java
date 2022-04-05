@@ -19,6 +19,8 @@ import alluxio.job.CmdConfig;
 import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;
 import alluxio.job.cmd.persist.PersistCmdConfig;
+import alluxio.job.wire.CmdStatusBlock;
+import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
@@ -194,7 +196,8 @@ public class CmdJobTracker {
     Set<Long> set = new HashSet<>();
     for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
       if (statusList.isEmpty()
-              || statusList.contains(getCmdStatus(x.getValue().getJobControlId()))) {
+              || statusList.contains(getCmdStatus(
+                      x.getValue().getJobControlId()))) {
         Long key = x.getKey();
         set.add(key);
       }
@@ -230,7 +233,7 @@ public class CmdJobTracker {
 
     CmdInfo cmdInfo = mInfoMap.get(jobControlId);
 
-    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts created, throws an Exception
+    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts are created, throws an Exception
       throw new JobDoesNotExistException(
               ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
     }
@@ -238,5 +241,30 @@ public class CmdJobTracker {
     return cmdInfo.getCmdRunAttempt().stream()
             .map(CmdRunAttempt::getFailedFiles).flatMap(Collection::stream)
             .collect(Collectors.toSet());
+  }
+
+  /**
+   * Get a cmdStatusBlock information.
+   * @param jobControlId command id
+   * @return CmdStatusBlock
+   */
+  public CmdStatusBlock getCmdStatusBlock(long jobControlId)
+          throws JobDoesNotExistException {
+    if (!mInfoMap.containsKey(jobControlId)) {
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+
+    CmdInfo cmdInfo = mInfoMap.get(jobControlId);
+
+    if (cmdInfo.getCmdRunAttempt().isEmpty()) { // If no attempts are created, throws an Exception
+      throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobControlId));
+    }
+
+    List<SimpleJobStatusBlock> blockList = cmdInfo.getCmdRunAttempt().stream()
+            .map(attempt -> new SimpleJobStatusBlock(attempt.getJobId(),
+                    attempt.checkJobStatus())).collect(Collectors.toList());
+    return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList);
   }
 }
