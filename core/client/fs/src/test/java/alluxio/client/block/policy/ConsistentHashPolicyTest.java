@@ -33,13 +33,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class ConsistentHashPolicyTest {
-private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
+  private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() {
     mWorkerInfos.clear();
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
       mWorkerInfos.add(new BlockWorkerInfo(
           new WorkerNetAddress().setHost("worker" + i).setRpcPort(8080).setDataPort(8080)
               .setWebPort(8080), Constants.GB, 0));
