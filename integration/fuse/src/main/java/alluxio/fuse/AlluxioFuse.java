@@ -30,7 +30,6 @@ import alluxio.util.JvmPauseMonitor;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -258,7 +257,7 @@ public final class AlluxioFuse {
       String mountPoint = cli.getOptionValue(MOUNT_POINT_OPTION_NAME);
       String mountAlluxioPath = cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME);
       List<String> fuseOpts = cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)
-          ? Arrays.asList(cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME)) : ImmutableList.of();
+          ? Arrays.asList(cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME)) : null;
 
       return FuseMountConfig.create(mountPoint, mountAlluxioPath, fuseOpts, alluxioConf);
     } catch (ParseException e) {
@@ -278,7 +277,8 @@ public final class AlluxioFuse {
    */
   public static List<String> parseFuseOptions(List<String> fuseOptions,
       AlluxioConfiguration alluxioConf) {
-
+    Preconditions.checkNotNull(fuseOptions, "fuse options");
+    Preconditions.checkNotNull(alluxioConf, "alluxio configuration");
     boolean using3 =
         NativeLibraryLoader.getLoadState().equals(NativeLibraryLoader.LoadState.LOADED_3);
 

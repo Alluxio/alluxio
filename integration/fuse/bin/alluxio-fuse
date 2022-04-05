@@ -92,7 +92,7 @@ mount_fuse() {
     fi
     cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
       alluxio.fuse.AlluxioFuse \
-      ${mount_options} -m ${mount_point} ${mount_alluxio_path}"
+      -m ${mount_point} ${mount_alluxio_path} ${mount_options}"
     local message="Starting AlluxioFuse process"
   fi
   echo "${message}"

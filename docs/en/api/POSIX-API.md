@@ -196,7 +196,7 @@ For example, one can mount Alluxio path `/people` to local path `/mnt/people`
 with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
 
 ```
-alluxio.fuse.enabled=true
+alluxio.worker.fuse.enabled=true
 alluxio.fuse.mount.alluxio.path=/people
 alluxio.fuse.mount.point=/mnt/people
 alluxio.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
