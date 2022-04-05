@@ -18,15 +18,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.protobuf.ByteString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,44 +36,30 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 @JacksonXmlRootElement(localName = "Tagging")
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"tagMap"})
-public class TaggingData implements Serializable {
-  public static final long serialVersionUID = 1L;
-  private static final Logger LOG = LoggerFactory.getLogger(TaggingData.class);
+public class TaggingData {
   private static final XmlMapper MAPPER = new XmlMapper();
 
   @XmlTransient
   private final Map<String, String> mTagMap;
 
   /**
-   * Deserialize the object.
+   * Deserialize the XML (bytes).
    * @param bytes byte array of the Java-serialized object
    * @return a deserialized {@link TaggingData} object
    */
   public static TaggingData deserialize(byte[] bytes)
-      throws IOException, ClassNotFoundException {
-    TaggingData tagData;
-    try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-         ObjectInputStream oos = new ObjectInputStream(bis)) {
-      tagData = (TaggingData) oos.readObject();
-    }
-    return tagData;
+      throws IOException {
+    return MAPPER.readerFor(TaggingData.class).readValue(bytes);
   }
 
   /**
-   * Serializes the object.
+   * Serializes the object as an XML (bytes).
    * @param tagData the {@link TaggingData} object to serialize
    * @return the {@link ByteString} serialization of this object
    */
   public static ByteString serialize(TaggingData tagData)
-      throws IOException {
-    ByteString bytes;
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-      oos.writeObject(tagData);
-      oos.flush();
-      bytes = ByteString.copyFrom(bos.toByteArray());
-    }
-    return bytes;
+      throws JsonProcessingException {
+    return ByteString.copyFrom(MAPPER.writeValueAsBytes(tagData));
   }
 
   @JacksonXmlProperty(localName = "TagSet")
@@ -128,9 +107,6 @@ public class TaggingData implements Serializable {
 
   @Override
   public String toString() {
-    try {
-      return MAPPER.writeValueAsString(this);
-    } catch (JsonProcessingException e) { LOG.error(e.toString()); }
     return mTagSet.toString();
   }
 
@@ -241,9 +217,7 @@ public class TaggingData implements Serializable {
    * Inner POJO representing the user metadata tag set in the S3 API.
    */
   @JacksonXmlRootElement(localName = "TagSet")
-  private static class TagSet implements Serializable {
-    public static final long serialVersionUID = 1L;
-
+  private static class TagSet {
     @JacksonXmlProperty(localName = "Tag")
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<TagObject> mTags;
@@ -288,9 +262,7 @@ public class TaggingData implements Serializable {
    * Inner POJO representing a user metadata tag in the S3 API.
    */
   @JacksonXmlRootElement(localName = "Tag")
-  private static class TagObject implements Serializable {
-    public static final long serialVersionUID = 1L;
-
+  private static class TagObject {
     private String mKey;
     private String mValue;
 

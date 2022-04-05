@@ -1137,7 +1137,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, mBaseUri,
         uri, ImmutableMap.of("tagging", ""), HttpMethod.PUT,
         TestCaseOptions.defaults()
-            .setContentType(TestCaseOptions.XML_CONTENT_TYPE)
-            .setBody(tags)).runAndCheckResult();
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setCharset(S3Constants.TAGGING_CHARSET)
+            .setBody(TaggingData.serialize(tags).toByteArray()))
+        .runAndCheckResult();
   }
 }

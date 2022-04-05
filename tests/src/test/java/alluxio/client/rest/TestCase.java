@@ -38,6 +38,12 @@ import javax.ws.rs.core.Response;
  */
 @NotThreadSafe
 public final class TestCase {
+  // make sure that serialization of empty objects does not fail
+  private static final ObjectMapper XML_MAPPER = new XmlMapper()
+      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
   private final String mHostname;
   private final int mPort;
   private final String mBaseUri;
@@ -133,24 +139,27 @@ public final class TestCase {
     }
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
-      ObjectMapper mapper;
       switch (mOptions.getContentType()) {
         case TestCaseOptions.XML_CONTENT_TYPE: // encode as XML string
-          mapper = new XmlMapper();
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write(XML_MAPPER.writeValueAsBytes(mOptions.getBody()));
+          }
           break;
         case TestCaseOptions.JSON_CONTENT_TYPE: // encode as JSON string
-          mapper = new ObjectMapper();
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write(JSON_MAPPER.writeValueAsBytes(mOptions.getBody()));
+          }
+          break;
+        case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: // encode as-is
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write((byte[]) mOptions.getBody());
+          }
           break;
         default:
           throw new InvalidArgumentException(String.format(
               "No mapper available for content type %s in TestCaseOptions!",
               mOptions.getContentType()));
       }
-      // make sure that serialization of empty objects does not fail
-      mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-      OutputStream os = connection.getOutputStream();
-      os.write(mapper.writeValueAsString(mOptions.getBody()).getBytes());
-      os.close();
     }
 
     connection.connect();
@@ -199,6 +208,10 @@ public final class TestCase {
           } else {
             expected = mapper.writeValueAsString(expectedResult);
           }
+          break;
+        }
+        case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: {
+          expected = new String((byte[]) expectedResult, mOptions.getCharset());
           break;
         }
         default:
