@@ -5548,7 +5548,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey
       USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES =
       intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES)
-          .setDefaultValue(1)
+          .setDefaultValue(2000)
           .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
               + "alluxio.client.block.policy.ConsistentHashPolicy, this specifies the number of "
               + "virtual nodes")

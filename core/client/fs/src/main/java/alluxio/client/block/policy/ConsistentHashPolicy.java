@@ -46,7 +46,8 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
    * @param conf Alluxio configuration
    */
   public ConsistentHashPolicy(AlluxioConfiguration conf) {
-    mNumVirtualNodes = conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES);
+    mNumVirtualNodes =
+        conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES);
   }
 
   @Nullable
@@ -56,7 +57,8 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
       return null;
     }
     HASH_PROVIDER.refresh(ImmutableSet.copyOf(options.getBlockWorkerInfos()), mNumVirtualNodes);
-    return HASH_PROVIDER.get(String.valueOf(options.getBlockInfo().getBlockId()), 0).getNetAddress();
+    return HASH_PROVIDER.get(String.valueOf(options.getBlockInfo().getBlockId()), 0)
+        .getNetAddress();
   }
 
   @Override
@@ -92,11 +94,11 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
 
     public BlockWorkerInfo get(String key, int index) {
       int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-      Map.Entry<Integer, BlockWorkerInfo> entry = mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
+      Map.Entry<Integer, BlockWorkerInfo> entry =
+          mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
       if (entry != null) {
         return mActiveNodesByConsistentHashing.ceilingEntry(hashKey).getValue();
-      }
-      else {
+      } else {
         return mActiveNodesByConsistentHashing.firstEntry().getValue();
       }
     }
@@ -107,8 +109,9 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
       for (BlockWorkerInfo workerInfo : workerInfos) {
         for (int i = 0; i < weight; i++) {
           activeNodesByConsistentHashing.put(
-                  HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().toString(), i), UTF_8).asInt(),
-                  workerInfo);
+              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().toString(), i),
+                  UTF_8).asInt(),
+              workerInfo);
         }
       }
       mLastWorkerInfos = workerInfos;
