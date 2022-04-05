@@ -126,6 +126,9 @@ Multiple Alluxio FUSE mount points can be created in the same node.
 All the `AlluxioFuse` processes share the same log output at `${ALLUXIO_HOME}/logs/fuse.log`, which is
 useful for troubleshooting when errors happen on operations under the filesystem.
 
+See [alluxio fuse options](#configure-alluxio-fuse-options) and [mount point options](#configure-mount-point-options)
+for more advanced mount configuration.
+
 ### Unmount Alluxio from FUSE
 
 To unmount a previously mounted Alluxio-FUSE file system, on the node where the file system is
@@ -143,11 +146,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
-By default, the `unmount` operation will wait for 120 seconds for any in-progress read/write operations to finish. If read/write operations haven't finished after 120 seconds, the fuse process will be forcibly killed which may cause read/write operations to fail. You can add `-s` to avoid the fuse process being killed if there are remaining in-progress read/write operations after the timeout. For example,
-
-```console
-$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people
-```
+See [alluxio fuse umount options](#configure-alluxio-unmount-options) for more advanced umount settings.
 
 ### Check the Alluxio POSIX API mounting status
 
@@ -336,6 +335,31 @@ $ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_pat
 Note that only one of the `allow_other` or `allow_root` could be set.
   {% endcollapsible %}
 {% endaccordion %}
+
+### Configure Alluxio unmount options
+
+Alluxio fuse has two kinds of unmount operation, soft unmount and hard umount.
+
+The unmount operation is soft unmount by default.
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -w 200 mount_point
+```
+
+You can use `-w [unmount_wait_timeout_in_seconds]` to set the unmount wait time in seconds.
+The unmount operation will kill the Fuse process and waiting up to `[unmount_wait_timeout_in_seconds]` for the Fuse process to be killed.
+However, if the Fuse process is still alive after the wait timeout, the unmount operation will error out.
+
+In Alluxio Fuse implementation, `alluxio.fuse.umount.timeout` defines the maximum timeout to wait for all in-progress read/write operations to finish.
+If there are still in-progress read/write operations left after timeout, the `alluxio-fuse umount <mount>` operation is a no-op.
+Alluxio Fuse process is still running, and fuse mount point is still functioning.
+Note that when `alluxio.fuse.umount.timeout=0`, umount operations will not wait for in-progress read/write operations.
+
+Recommend to set `-w [unmount_wait_timeout_in_seconds]` to a value that is slightly larger than `alluxio.fuse.umount.timeout`.
+
+Hard umount will always kill the fuse process and umount fuse mount point immediately.
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -f mount_point
+```
 
 ## Assumptions and Limitations
 
