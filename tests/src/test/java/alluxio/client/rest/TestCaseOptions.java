@@ -14,7 +14,6 @@ package alluxio.client.rest;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -31,24 +30,25 @@ import javax.ws.rs.core.MediaType;
 public final class TestCaseOptions {
   /* Supported content types */
   public static final String JSON_CONTENT_TYPE = MediaType.APPLICATION_JSON;
-  public static final String XML_CONTENT_TYPE = MediaType.APPLICATION_XML;
   public static final String OCTET_STREAM_CONTENT_TYPE = MediaType.APPLICATION_OCTET_STREAM;
+  public static final String XML_CONTENT_TYPE = MediaType.APPLICATION_XML;
+  public static final String TEXT_PLAIN_CONTENT_TYPE = MediaType.TEXT_PLAIN;
 
   /* Headers */
   public static final String AUTHORIZATION_HEADER = "Authorization";
   public static final String CONTENT_TYPE_HEADER = "Content-Type";
-  public static final String MD5_HEADER = "Content-MD5";
-
-  // used when converting OCTET_STREAM_CONTENT_TYPE data into strings
-  private Charset mCharset = StandardCharsets.UTF_8;
-
-  private Object mBody;
-  private InputStream mInputStream;
-  private boolean mPrettyPrint;
+  public static final String CONTENT_MD5_HEADER = "Content-MD5";
+  private String mAuthorization;
   private String mContentType;
   private String mMD5;
-  private String mAuthorization;
+
+  // mHeaders contains the previously defined headers
+  // - Users may add additional headers
   private final Map<String, String> mHeaders;
+
+  private Object mBody;
+  private Charset mCharset; // used when converting byte data into strings
+  private boolean mPrettyPrint; // used for ObjectMapper when printing strings
 
   /**
    * @return the default {@link TestCaseOptions}
@@ -58,13 +58,13 @@ public final class TestCaseOptions {
   }
 
   private TestCaseOptions() {
-    mBody = null;
-    mInputStream = null;
-    mPrettyPrint = false;
-    mContentType = JSON_CONTENT_TYPE;
-    mMD5 = null;
     mAuthorization = null;
+    mBody = null;
+    mContentType = OCTET_STREAM_CONTENT_TYPE;
+    mCharset = StandardCharsets.UTF_8;
     mHeaders = new HashMap<>();
+    mMD5 = null;
+    mPrettyPrint = false;
   }
 
   /**
@@ -72,13 +72,6 @@ public final class TestCaseOptions {
    */
   public Object getBody() {
     return mBody;
-  }
-
-  /**
-   * @return the input stream representing data to be sent to the web server
-   */
-  public InputStream getInputStream() {
-    return mInputStream;
   }
 
   /**
@@ -133,16 +126,6 @@ public final class TestCaseOptions {
   }
 
   /**
-   * @param inputStream the input stream to use
-   * @return the updated options object
-   */
-  public TestCaseOptions setInputStream(InputStream inputStream) {
-    mInputStream = inputStream;
-    setContentType(OCTET_STREAM_CONTENT_TYPE); // fallback content type
-    return this;
-  }
-
-  /**
    * @param prettyPrint the pretty print flag value to use
    * @return the updated options object
    */
@@ -167,7 +150,7 @@ public final class TestCaseOptions {
    */
   public TestCaseOptions setMD5(String md5) {
     mMD5 = md5;
-    mHeaders.put(MD5_HEADER, md5);
+    mHeaders.put(CONTENT_MD5_HEADER, md5);
     return this;
   }
 
@@ -191,23 +174,25 @@ public final class TestCaseOptions {
   }
 
   /**
-   * Clears all existing headers and uses the provided headers.
-   * @param headers headers map
-   * @return the updated options object
-   */
-  public TestCaseOptions setHeaders(@NotNull Map<String, String> headers) {
-    mHeaders.clear();
-    mHeaders.putAll(headers);
-    return this;
-  }
-
-  /**
    * Adds the provided headers to the existing headers map. Overwrites duplicate keys.
+   * Note that this does not update the class header fields if you overwrite them.
    * @param headers headers map
    * @return the updated options object
    */
   public TestCaseOptions addHeaders(@NotNull Map<String, String> headers) {
     mHeaders.putAll(headers);
+    return this;
+  }
+
+  /**
+   * Adds the provided header to the existing headers map. Overwrites duplicate keys.
+   * Note that this does not update the class header fields if you overwrite them.
+   * @param key header key
+   * @param value header value
+   * @return the updated options object
+   */
+  public TestCaseOptions addHeader(String key, String value) {
+    mHeaders.put(key, value);
     return this;
   }
 
@@ -220,33 +205,31 @@ public final class TestCaseOptions {
       return false;
     }
     TestCaseOptions that = (TestCaseOptions) o;
-    return Objects.equal(mBody, that.mBody)
-        && Objects.equal(mInputStream, that.mInputStream)
-        && mPrettyPrint == that.mPrettyPrint
-        && Objects.equal(mContentType, that.mContentType)
-        && Objects.equal(mMD5, that.mMD5)
-        && Objects.equal(mAuthorization, that.mAuthorization)
+    return Objects.equal(mAuthorization, that.mAuthorization)
+        && Objects.equal(mBody, that.mBody)
         && Objects.equal(mCharset, that.mCharset)
-        && Objects.equal(mHeaders, that.mHeaders);
+        && Objects.equal(mContentType, that.mContentType)
+        && Objects.equal(mHeaders, that.mHeaders)
+        && Objects.equal(mMD5, that.mMD5)
+        && mPrettyPrint == that.mPrettyPrint;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBody, mInputStream, mPrettyPrint,
-        mContentType, mMD5, mAuthorization, mCharset, mHeaders);
+    return Objects.hashCode(mAuthorization, mBody, mCharset, mContentType, mHeaders, mMD5,
+        mPrettyPrint);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("body", mBody)
-        .add("input stream", mInputStream)
-        .add("pretty print", mPrettyPrint)
-        .add("content type", mContentType)
-        .add("MD5", mMD5)
         .add("authorization", mAuthorization)
+        .add("body", mBody)
         .add("charset", mCharset)
+        .add("content type", mContentType)
         .add("headers", mHeaders)
+        .add("MD5", mMD5)
+        .add("pretty print", mPrettyPrint)
         .toString();
   }
 }

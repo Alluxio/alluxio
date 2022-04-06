@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Joiner;
-import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
@@ -133,10 +132,6 @@ public final class TestCase {
     for (Map.Entry<String, String> entry : mOptions.getHeaders().entrySet()) {
       connection.setRequestProperty(entry.getKey(), entry.getValue());
     }
-    if (mOptions.getInputStream() != null) {
-      connection.setDoOutput(true);
-      ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
-    }
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
       switch (mOptions.getContentType()) {
@@ -153,6 +148,11 @@ public final class TestCase {
         case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: // encode as-is
           try (OutputStream os = connection.getOutputStream()) {
             os.write((byte[]) mOptions.getBody());
+          }
+          break;
+        case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: // encode string using the charset
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write(((String) mOptions.getBody()).getBytes(mOptions.getCharset()));
           }
           break;
         default:
@@ -212,6 +212,10 @@ public final class TestCase {
         }
         case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: {
           expected = new String((byte[]) expectedResult, mOptions.getCharset());
+          break;
+        }
+        case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: {
+          expected = (String) expectedResult;
           break;
         }
         default:
