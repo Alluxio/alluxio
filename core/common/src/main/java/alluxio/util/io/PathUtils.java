@@ -43,7 +43,7 @@ public final class PathUtils {
    *
    * @param path The path to clean up
    * @return a normalized version of the path, with single separators between path components and
-   * dot components resolved
+   *         dot components resolved
    * @throws InvalidPathException if the path is invalid
    */
   public static String cleanPath(String path) throws InvalidPathException {
@@ -301,8 +301,7 @@ public final class PathUtils {
     }
     if (!hasPrefix(cleanedPath, cleanedPrefix)) {
       throw new RuntimeException(
-          String.format("Cannot subtract %s from %s because it is not a " + "prefix",
-              prefix, path));
+          String.format("Cannot subtract %s from %s because it is not a prefix", prefix, path));
     }
     // The only clean path which ends in '/' is the root.
     int prefixLen = cleanedPrefix.length();
