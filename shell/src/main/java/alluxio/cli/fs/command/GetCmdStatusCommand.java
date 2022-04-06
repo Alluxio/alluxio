@@ -62,10 +62,15 @@ public class GetCmdStatusCommand extends AbstractDistributedJobCommand {
     long jobControlId = Long.parseLong(args[0]);
 
     CmdStatusBlock cmdStatus = mClient.getCmdStatusDetailed(jobControlId);
-    System.out.format("Get command status information below: %n");
-    cmdStatus.getJobStatusBlock().forEach(block -> {
-      System.out.format("Job Id = %s, Status = %s %n", block.getJobId(), block.getStatus());
-    });
+    if (cmdStatus.getJobStatusBlock().isEmpty()) {
+      System.out.format("Unable to get command status for jobControlId=%s, please retry.%n",
+              jobControlId);
+    } else {
+      System.out.format("Get command status information below: %n");
+      cmdStatus.getJobStatusBlock().forEach(block -> {
+        System.out.format("Job Id = %s, Status = %s %n", block.getJobId(), block.getStatus());
+      });
+    }
     return 0;
   }
 }

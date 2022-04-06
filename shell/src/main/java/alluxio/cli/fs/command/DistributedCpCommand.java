@@ -133,10 +133,10 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     Long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
     if (wait) {
-      System.out.format("Waiting for the command to finish ...");
+      System.out.format("Waiting for the command to finish ...%n");
       waitForCmd(jobControlId);
     }
-    System.out.format("Submitted migrate job successfully, jobControlId = %s",
+    System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
             jobControlId.toString());
     return 0;
   }

@@ -42,9 +42,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
-  private static final int DEFAULT_FAILURE_LIMIT = 20;
-  private static final String DEFAULT_FAILURE_FILE_PATH =
-      "./logs/user/distributedLoad_%s_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -342,12 +339,26 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         }
       }
     }
-    System.out.println(String.format("Completed command count is %d,Failed count is %d.",
-        getCompletedCmdCount(), getFailedCmdCount()));
+    if (wait) {
+      System.out.println(String.format("Completed command count is %d,Failed count is %d.",
+              getCompletedCmdCount(), getFailedCmdCount()));
+    }
     return 0;
   }
 
-  private Long runDistLoad(AlluxioURI filePath, int replication, int batchSize,
+  /**
+   * Run the actual distributedLoad command.
+   * @param filePath file path to load
+   * @param replication Number of block replicas of each loaded file
+   * @param batchSize Batch size for loading
+   * @param workerSet A set of worker hosts to load data
+   * @param excludedWorkerSet A set of worker hosts can not to load data
+   * @param localityIds The locality identify set
+   * @param excludedLocalityIds A set of worker locality identify can not to load data
+   * @param directCache use direct cache request or cache through read
+   * @return job Control ID
+   */
+  public Long runDistLoad(AlluxioURI filePath, int replication, int batchSize,
                            Set<String> workerSet, Set<String> excludedWorkerSet,
                            Set<String> localityIds, Set<String> excludedLocalityIds,
                            boolean directCache) {
