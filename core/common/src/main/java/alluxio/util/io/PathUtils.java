@@ -96,6 +96,7 @@ public final class PathUtils {
    * concatPath("/", "dir", "filename").equals("/dir/filename");
    * }
    * </pre>
+   *
    * Note that empty element in base or paths is ignored.
    *
    * @param base base path
@@ -289,12 +290,14 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    if (prefix.isEmpty()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(prefix));
+    if (prefix.isEmpty() || path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(""));
     }
-    if (path.isEmpty()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+
+    if (prefix.equals("/")) {
+      return true;
     }
+
     if (prefix.charAt(prefix.length() - 1) == '/' && path.charAt(path.length() - 1) != '/') {
       path = path + '/';
       if (path.equals(prefix)) {
@@ -307,9 +310,7 @@ public final class PathUtils {
     }
     return path.startsWith(prefix)
         &&
-        (path.length() == prefix.length()
-            || prefix.equals("/")
-            || path.charAt(prefix.length()) == '/');
+        (path.length() == prefix.length() || path.charAt(prefix.length()) == '/');
   }
 
   /**
