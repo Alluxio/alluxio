@@ -20,7 +20,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -132,65 +135,24 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    String res = "";
-    String temp = "";
-    int i;
-    int prev;
-    int lastSeparator = 0;
-    int len;
-
+    List<String> matchedComponents = null;
+    int matchedLen = 0;
     for (AlluxioURI path : paths) {
-      String pathStr = path.getPath();
-      if (pathStr.equals(AlluxioURI.SEPARATOR)) {
-        res = AlluxioURI.SEPARATOR;
-        break;
+      String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
+      if (matchedComponents == null) {
+        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedLen = pathComp.length;
       }
-      if (res.equals("")) {
-        res = path.getPath();
-      } else if (!res.equals(pathStr)) {
-        len = Math.min(res.length(), pathStr.length());
-        temp = "";
-        for (i = 0; i < len; i++) {
-          if (res.charAt(i) == pathStr.charAt(i)) {
-            temp = temp + res.charAt(i);
-            if (i == len - AlluxioURI.SEPARATOR.length()
-                &&
-                ((res.length() > pathStr.length() && !res.startsWith(AlluxioURI.SEPARATOR, i + 1))
-                    ||
-                    (pathStr.length() > res.length()
-                        && !pathStr.startsWith(AlluxioURI.SEPARATOR, i + 1)))) {
-              if ((res.length() > len
-                  && res.substring(i + 1, i + 1 + AlluxioURI.SEPARATOR.length())
-                  != AlluxioURI.SEPARATOR)
-                  || (pathStr.length() > len
-                  && pathStr.substring(i + 1, i + 1 + AlluxioURI.SEPARATOR.length())
-                  != AlluxioURI.SEPARATOR)) {
-                // back to the last separator
-                temp = temp.substring(0, lastSeparator);
-              }
-            }
-          } else {
-            temp = temp.substring(0, lastSeparator);
-            break;
-          }
 
-          prev = i - AlluxioURI.SEPARATOR.length() + 1;
-          if (prev >= 0 && res.startsWith(AlluxioURI.SEPARATOR, prev)) {
-            // update last separator
-            lastSeparator = prev;
-          }
-        }
-        if (temp.equals("")) {
-          temp = AlluxioURI.SEPARATOR;
-        }
-        if (temp.equals(AlluxioURI.SEPARATOR)) {
-          res = temp;
+      for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
+        if (!matchedComponents.get(i).equals(pathComp[i])) {
+          matchedLen = i;
           break;
         }
-        res = res.length() > temp.length() ? temp : res;
       }
     }
-    return new AlluxioURI(res);
+    return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
+        matchedComponents.subList(0, matchedLen).toArray()));
   }
 
   /**
