@@ -32,7 +32,7 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] [mount_point] [alluxio_path]
 readonly UMOUNT_USAGE="
 Umounts a given fuse mount point (defaults to \"alluxio.fuse.mount.point\"), use mount stat to show mount points.
 
-Usage:\n\talluxio-fuse umount [-f] [-w <umount wait timeout>] [mount_point]
+Usage:\n\talluxio-fuse umount [-f] [-w <umount waittimeout>] [mount_point]
 
 -f \tif '-f' specified, fuse process will be forcibly killed even if fuse device is busy
 -w \tumount wait timeout in seconds. Timeout to wait for fuse process to exit when '-f' is not set. Default is 120"
@@ -64,8 +64,10 @@ mount_fuse() {
     mount_alluxio_path="$2"
   elif [[ $# -eq 1 ]]; then
     mount_point="$1"
+    mount_alluxio_path=$(${BIN}/alluxio getConf alluxio.fuse.mount.alluxio.path)
   else
     mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
+    mount_alluxio_path=$(${BIN}/alluxio getConf alluxio.fuse.mount.alluxio.path)
   fi
   
   kill_process_and_umount_fuse "${mount_point}"
@@ -78,6 +80,7 @@ mount_fuse() {
   fi
 
   local cmd=""
+  local message=""
   if [[ ${STACK_FS} = true ]]; then
     stackfs_mount_option="$(echo "${mount_options}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g')"
     cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
@@ -85,18 +88,15 @@ mount_fuse() {
     ${mount_point} \
     ${mount_alluxio_path} \
     ${stackfs_mount_option}"
-    message="Starting StackFS process"
+    message="Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\""
   else
     if [[ -n "${mount_options}" ]]; then
       mount_options="-o ${mount_options}"
     fi
-    if [[ -n "${mount_alluxio_path}" ]];then
-      mount_alluxio_path="-a ${mount_alluxio_path}"
-    fi
     cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
       alluxio.fuse.AlluxioFuse \
-      -m ${mount_point} ${mount_alluxio_path} ${mount_options}"
-    local message="Starting AlluxioFuse process"
+      -m ${mount_point} -a ${mount_alluxio_path} ${mount_options}"
+    message="Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\""
   fi
   echo "${message}"
 
@@ -127,7 +127,7 @@ kill_process_and_umount_fuse() {
   fi
   # TODO(lu) check if fuse_pid contains multiple pids
   local fuse_pid="$(get_fuse_pid ${mount_point})"
-  echo "${fuse_pid}"
+
   if [[ -z ${fuse_pid} ]]; then
     umount_fuse
     return $?
@@ -209,21 +209,29 @@ get_fuse_pid() {
 }
 
 fuse_stat() {
-  local mount_point=""
-  if [[ $# -ge 1 ]]; then
-    mount_point=${1%/}
-  else
-    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
-  fi
-
-  local mount_info="$(mount | grep ${mount_point})"
+  local fuse_info="$(ps aux | grep [A]lluxioFuse)"
   if [[ -n ${fuse_info} ]]; then
-    echo ${mount_info}
-    return 0;
+    echo -e "pid\tmount_point\talluxio_path"
+    echo -e "$(ps ax -o pid,args | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $NF}')"
+    return 0
   fi
-
+  fuse_info=$(ps ax -o pid,args | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
+  if [[ -n ${fuse_info} ]]; then
+    fuse_worker_pid="$(echo "${fuse_info}" | awk '{print $1}')"
+    fuse_mount_point="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.point=)\S+(?=\s)')"
+    fuse_alluxio_path="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
+    echo -e "pid\tmount_point\talluxio_path"
+    echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
+    return 0
+  fi
+  fuse_info="$(ps aux | grep [S]tackMain)"
+  if [[ -n "${fuse_info}" ]]; then
+    echo -e "pid\tmount_point\tsource_path"
+    echo -e "$(ps ax -o pid,args | grep [S]tackMain | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $(NF-1)}')"
+    return 0
+  fi
   echo "No mount point found. AlluxioFuse process is not running"
-  echo -e "${MOUNT_USAGE}"
+  echo -e "${STAT_USAGE}"
   return 1
 }
 
@@ -312,6 +320,7 @@ main() {
       if kill_process_and_umount_fuse "$@"; then
         exit 0
       fi
+      exit 1
       ;;
     stat)
       fuse_stat
