@@ -943,20 +943,27 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter)
       throws FileDoesNotExistException, UnavailableException {
+    int inMemoryPercentage;
+    int inAlluxioPercentage;
     Inode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     if (fileInfo.isFolder()) {
       fileInfo.setLength(inode.asDirectory().getChildCount());
     }
-    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
-    fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
-      try {
-        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
-      } catch (InvalidPathException e) {
-        throw new FileDoesNotExistException(e.getMessage(), e);
+      InodeFile inodeFile = inode.asFile();
+      List<BlockInfo> blockInfos = mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
+      inMemoryPercentage = getFileInMemoryPercentageInternal(inodeFile, blockInfos);
+      inAlluxioPercentage = getFileInAlluxioPercentageInternal(inodeFile, blockInfos);
+      fileInfo.setInMemoryPercentage(inMemoryPercentage);
+      fileInfo.setInAlluxioPercentage(inAlluxioPercentage);
+
+      List<FileBlockInfo> fileBlockInfos = new ArrayList<>(blockInfos.size());
+      for (BlockInfo blockInfo : blockInfos) {
+        fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo));
       }
+      fileInfo.setFileBlockInfos(fileBlockInfos);
     }
     // Rehydrate missing block-infos for persisted files.
     if (fileInfo.isCompleted()
@@ -2262,13 +2269,24 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     InodeFile inodeFile = inode.asFile();
 
+    return getFileInMemoryPercentageInternal(inodeFile,
+        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+  }
+
+  /**
+   * Gets the File in-memory percentage of a File Inode.
+   *
+   * @param blockInfos the inode
+   * @return the in memory percentage
+   */
+  private int getFileInMemoryPercentageInternal(InodeFile inodeFile, List<BlockInfo> blockInfos) {
     long length = inodeFile.getLength();
     if (length == 0) {
       return 100;
     }
 
     long inMemoryLength = 0;
-    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+    for (BlockInfo info : blockInfos) {
       if (isInTopStorageTier(info)) {
         inMemoryLength += info.getLength();
       }
@@ -2289,13 +2307,24 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     InodeFile inodeFile = inode.asFile();
 
+    return getFileInAlluxioPercentageInternal(inodeFile,
+        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+  }
+
+  /**
+   * Gets the File in-Alluxio percentage of a File Inode.
+   *
+   * @param inodeFile the File inode
+   * @return the in alluxio percentage
+   */
+  private int getFileInAlluxioPercentageInternal(InodeFile inodeFile, List<BlockInfo> blockInfos) {
     long length = inodeFile.getLength();
     if (length == 0) {
       return 100;
     }
 
     long inAlluxioLength = 0;
-    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+    for (BlockInfo info : blockInfos) {
       if (!info.getLocations().isEmpty()) {
         inAlluxioLength += info.getLength();
       }
