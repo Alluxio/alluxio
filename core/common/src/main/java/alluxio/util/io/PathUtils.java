@@ -307,7 +307,9 @@ public final class PathUtils {
     }
     return path.startsWith(prefix)
         &&
-        (path.length() == prefix.length() || prefix.equals("/") ||path.charAt(prefix.length()) == '/');
+        (path.length() == prefix.length()
+            || prefix.equals("/")
+            || path.charAt(prefix.length()) == '/');
   }
 
   /**
