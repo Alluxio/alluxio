@@ -88,7 +88,7 @@ mount_fuse() {
     ${mount_point} \
     ${mount_alluxio_path} \
     ${stackfs_mount_option}"
-    message="Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\""
+    message="Starting StackFS process: mounting src local path \"${mount_alluxio_path}\" to dst local path \"${mount_point}\""
   else
     if [[ -n "${mount_options}" ]]; then
       mount_options="-o ${mount_options}"
@@ -96,7 +96,7 @@ mount_fuse() {
     cmd="${JAVA} ${ALLUXIO_FUSE_ATTACH_OPTS} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
       alluxio.fuse.AlluxioFuse \
       -m ${mount_point} -a ${mount_alluxio_path} ${mount_options}"
-    message="Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\""
+    message="Starting AlluxioFuse process: mounting alluxio path \"${mount_alluxio_path}\" to local mount point \"${mount_point}\""
   fi
   echo "${message}"
 
@@ -269,7 +269,7 @@ main() {
             STACK_FS=true
             ;;
           *)
-            err "Invalid mount option ${option}"
+            err "Invalid mount option"
             echo -e "${MOUNT_USAGE}" >&2
             exit 1
             ;;
@@ -295,7 +295,7 @@ main() {
             FORCE_KILL_OPT=true
             ;;
           *)
-          err "Invalid umount option ${option}"
+          err "Invalid umount option"
           echo -e "${UMOUNT_USAGE}" >&2
           exit 1
           ;;
