@@ -422,6 +422,23 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getNonExistingBucket() throws Exception {
+    final String bucketName = "root-level-file";
+    mFileSystem.createFile(new AlluxioURI("/" + bucketName));
+
+    try {
+      // GET on a non-existing bucket should fail.
+      new TestCase(mHostname, mPort, mBaseUri,
+          bucketName, NO_PARAMS, HttpMethod.GET,
+          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+          .runAndGetResponse();
+    } catch (AssertionError e) {
+      return; // expected
+    }
+    Assert.fail("GET on a non-existing bucket should fail");
+  }
+
+  @Test
   public void deleteNonEmptyBucket() throws Exception {
     final String bucketName = "non-empty-bucket";
 
@@ -573,23 +590,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, mBaseUri,
         objectKey, NO_PARAMS, HttpMethod.PUT,
         options).runAndCheckResult();
-  }
-
-  @Test
-  public void getNonExistingBucket() throws Exception {
-    final String bucketName = "non-existing-bucket";
-
-    try {
-      // Delete a non-existing bucket should fail.
-      new TestCase(mHostname, mPort, mBaseUri,
-          bucketName, NO_PARAMS, HttpMethod.GET,
-          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-          .runAndCheckResult();
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("get a non-existing bucket should fail");
   }
 
   private void getObjectTest(byte[] expectedObject) throws Exception {
