@@ -3393,6 +3393,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * @deprecated use {@link #FUSE_MOUNT_ALLUXIO_PATH} instead
+   */
+  @Deprecated
   public static final PropertyKey WORKER_FUSE_MOUNT_ALLUXIO_PATH =
       stringBuilder(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
@@ -3402,6 +3406,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * @deprecated use {@link #FUSE_MOUNT_OPTIONS} instead
+   */
+  @Deprecated
   public static final PropertyKey WORKER_FUSE_MOUNT_OPTIONS =
       listBuilder(Name.WORKER_FUSE_MOUNT_OPTIONS)
           .setDescription("The platform specific Fuse mount options "
@@ -3410,6 +3418,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * @deprecated use {@link #FUSE_MOUNT_POINT} instead
+   */
+  @Deprecated
   public static final PropertyKey WORKER_FUSE_MOUNT_POINT =
       stringBuilder(Name.WORKER_FUSE_MOUNT_POINT)
           .setDefaultValue("/mnt/alluxio-fuse")
@@ -5681,6 +5693,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
+      stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
+          .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
+          .setDefaultValue("/")
+          .setDescription(format("The Alluxio path to mount to the given "
+                  + "Fuse mount point configured by %s in the worker when %s is enabled "
+                  + "or in the standalone Fuse process.",
+              Name.FUSE_MOUNT_POINT, Name.WORKER_FUSE_ENABLED))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey FUSE_MOUNT_OPTIONS =
+      listBuilder(Name.FUSE_MOUNT_OPTIONS)
+          .setAlias(Name.WORKER_FUSE_MOUNT_OPTIONS)
+          .setDescription("The platform specific Fuse mount options "
+              + "to mount the given Fuse mount point. "
+              + "If multiple mount options are provided, separate them with comma.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey FUSE_MOUNT_POINT =
+      stringBuilder(Name.FUSE_MOUNT_POINT)
+          .setAlias(Name.WORKER_FUSE_MOUNT_POINT)
+          .setDefaultValue("/mnt/alluxio-fuse")
+          .setDescription(format("The absolute local filesystem path that worker (if %s is enabled)"
+              + "or standalone Fuse will mount Alluxio path to.", Name.WORKER_FUSE_ENABLED))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       durationBuilder(Name.FUSE_UMOUNT_TIMEOUT)
           .setDefaultValue("1min")
@@ -7331,6 +7372,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_MOUNT_ALLUXIO_PATH =
+        "alluxio.fuse.mount.alluxio.path";
+    public static final String FUSE_MOUNT_OPTIONS =
+        "alluxio.fuse.mount.options";
+    public static final String FUSE_MOUNT_POINT =
+        "alluxio.fuse.mount.point";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
