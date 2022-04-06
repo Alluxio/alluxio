@@ -361,6 +361,7 @@ public final class PathUtilsTest {
   @Test
   public void hasPrefix() throws InvalidPathException {
     assertTrue(PathUtils.hasPrefix("/", "/"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/"));
     assertTrue(PathUtils.hasPrefix("/a", "/a"));
     assertTrue(PathUtils.hasPrefix("/a", "/a/"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
