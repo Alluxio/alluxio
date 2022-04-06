@@ -22,6 +22,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashFunction;
 
@@ -69,6 +70,23 @@ public class ConsistentHashPolicy implements BlockLocationPolicy {
     }
     HASH_PROVIDER.refresh(options.getBlockWorkerInfos(), mNumVirtualNodes);
     return HASH_PROVIDER.getMultiple(String.valueOf(options.getBlockInfo().getBlockId()), count);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ConsistentHashPolicy)) {
+      return false;
+    }
+    ConsistentHashPolicy that = (ConsistentHashPolicy) o;
+    return Objects.equal(mNumVirtualNodes, that.mNumVirtualNodes);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mNumVirtualNodes);
   }
 
   private static class ConsistentHashProvider {
