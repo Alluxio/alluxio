@@ -1943,6 +1943,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
     // Inodes that are not safe for recursive deletes
+    // Issues#15266: This can be replaced by a Trie<Long> using prefix matching
     Set<Long> unsafeInodes = new HashSet<>();
     // Alluxio URIs (and the reason for failure) which could not be deleted
     List<Pair<String, String>> failedUris = new ArrayList<>();
