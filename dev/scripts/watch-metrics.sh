@@ -59,8 +59,11 @@ WDIFF_OPTS is required, and is one of:
 
 # argument parsing
 OPTIND=1
-while getopts ":hH:p:f:F:n:w:" opt; do
+while getopts ":hH:d:p:f:F:n:w:" opt; do
     case ${opt} in
+        d )
+            metrics_dir="${OPTARG}"
+            ;;
         f )
             metrics_file_prefix="${OPTARG}"
             ;;
