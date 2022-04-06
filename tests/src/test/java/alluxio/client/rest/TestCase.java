@@ -11,12 +11,12 @@
 
 package alluxio.client.rest;
 
-import alluxio.Constants;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -27,8 +27,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -36,69 +39,33 @@ import javax.ws.rs.core.Response;
  */
 @NotThreadSafe
 public final class TestCase {
-  private String mHostname;
-  private int mPort;
-  private String mEndpoint;
-  private Map<String, String> mParameters;
-  private String mMethod;
-  private Object mExpectedResult;
-  private TestCaseOptions mOptions;
-  private String mPrefix;
+  private final String mHostname;
+  private final int mPort;
+  private final String mBaseUri;
+  private final String mEndpoint;
+  private final Map<String, String> mParameters;
+  private final String mMethod;
+  private final TestCaseOptions mOptions;
 
   /**
    * Creates a new instance of {@link TestCase}.
-   *
    * @param hostname the hostname to use
    * @param port the port to use
+   * @param baseUri the base URI of the REST server
    * @param endpoint the endpoint to use
    * @param parameters the parameters to use
    * @param method the method to use
-   * @param expectedResult the expected result to use
-   */
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult) {
-    this(hostname, port, endpoint, parameters, method, expectedResult, TestCaseOptions.defaults());
-  }
-
-  /**
-   * Creates a new instance of {@link TestCase} with JSON data.
-   *
-   * @param hostname the hostname to use
-   * @param port the port to use
-   * @param endpoint the endpoint to use
-   * @param parameters the parameters to use
-   * @param method the method to use
-   * @param expectedResult the expected result to use
    * @param options the test case options to use
    */
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult, TestCaseOptions options) {
-    this(hostname, port, endpoint, parameters, method, expectedResult, options,
-        Constants.REST_API_PREFIX);
-  }
-
-  /**
-   * Creates a new instance of {@link TestCase}.
-   *
-   * @param hostname the hostname to use
-   * @param port the port to use
-   * @param endpoint the endpoint to use
-   * @param parameters the parameters to use
-   * @param method the method to use
-   * @param expectedResult the expected result to use
-   * @param options the test case options to use
-   * @param prefix the endpoint prefix to use
-   */
-  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
-      String method, Object expectedResult, TestCaseOptions options, String prefix) {
+  public TestCase(String hostname, int port, String baseUri, String endpoint,
+                  Map<String, String> parameters, String method, TestCaseOptions options) {
     mHostname = hostname;
     mPort = port;
+    mBaseUri = baseUri;
     mEndpoint = endpoint;
     mParameters = parameters;
     mMethod = method;
-    mExpectedResult = expectedResult;
     mOptions = options;
-    mPrefix = prefix;
   }
 
   /**
@@ -119,16 +86,19 @@ public final class TestCase {
    * @return The URL which is created
    */
   public URL createURL() throws Exception {
-    StringBuilder sb = new StringBuilder();
-    for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
-      if (parameter.getValue() == null || parameter.getValue().isEmpty()) {
-        sb.append(parameter.getKey());
-      } else {
-        sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
-      }
+    String url = String.format("http://%s:%s%s/%s", mHostname, mPort, mBaseUri, mEndpoint);
+    if (mParameters.size() == 0) {
+      return new URL(url);
     }
-    return new URL(
-        "http://" + mHostname + ":" + mPort + mPrefix + "/" + mEndpoint + "?" + sb.toString());
+    Map<Boolean, List<Map.Entry<String, String>>> streams = mParameters.entrySet().stream().collect(
+        Collectors.partitioningBy(e -> e.getValue().isEmpty()));
+    Joiner j = Joiner.on("&");
+    String emptyValParams = j.join(streams.get(true).stream().map(Map.Entry::getKey).collect(
+        Collectors.toList()));
+    String argParams = j.withKeyValueSeparator("=").join(streams.get(false).stream().collect(
+        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    url = String.format("%s?%s%s", url, emptyValParams, argParams);
+    return new URL(url);
   }
 
   /**
@@ -163,7 +133,7 @@ public final class TestCase {
     }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", "application/octet-stream");
+      connection.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
       ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
     }
     if (mOptions.getBody() != null) {
@@ -192,32 +162,36 @@ public final class TestCase {
   /**
    * Runs the test case and returns the output.
    */
-  public String call() throws Exception {
+  public String runAndGetResponse() throws Exception {
     return getResponse(execute());
+  }
+
+  public void runAndCheckResult() throws Exception {
+    runAndCheckResult(null);
   }
 
   /**
    * Runs the test case.
    */
-  public void run() throws Exception {
+  public void runAndCheckResult(Object expectedResult) throws Exception {
     String expected = "";
-    if (mExpectedResult != null) {
+    if (expectedResult != null) {
       switch (mOptions.getContentType()) {
         case TestCaseOptions.JSON_CONTENT_TYPE: {
           ObjectMapper mapper = new ObjectMapper();
           if (mOptions.isPrettyPrint()) {
-            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
           } else {
-            expected = mapper.writeValueAsString(mExpectedResult);
+            expected = mapper.writeValueAsString(expectedResult);
           }
           break;
         }
         case TestCaseOptions.XML_CONTENT_TYPE: {
           XmlMapper mapper = new XmlMapper();
           if (mOptions.isPrettyPrint()) {
-            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
           } else {
-            expected = mapper.writeValueAsString(mExpectedResult);
+            expected = mapper.writeValueAsString(expectedResult);
           }
           break;
         }
@@ -225,7 +199,7 @@ public final class TestCase {
           throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
       }
     }
-    String result = call();
+    String result = runAndGetResponse();
     Assert.assertEquals(mEndpoint, expected, result);
   }
 }
