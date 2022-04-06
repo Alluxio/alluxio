@@ -126,12 +126,12 @@ kill_process_and_umount_fuse() {
     mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
   fi
   # TODO(lu) check if fuse_pid contains multiple pids
-  local fuse_pid="$(get_fuse_pid ${mount_point})"
-
+  local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
   if [[ -z ${fuse_pid} ]]; then
     umount_fuse
     return $?
   fi
+
   if [[ "${FORCE_KILL_OPT}" = true ]] ; then
     kill -9 "${fuse_pid}"
     echo "Forcibly killed fuse process ${fuse_pid}"
@@ -192,19 +192,6 @@ umount_fuse() {
   else 
     echo "Path ${mount_point} is not mounted"
     return 0
-  fi
-}
-
-get_fuse_pid() {
-  local mount_point=""
-  if [[ $# -ge 1 ]]; then
-    mount_point=${1%/}
-  else
-    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
-  fi
-  local fuse_info="$(ps ax -o pid,args | grep ${mount_point})"
-  if [[ -n ${fuse_info} ]]; then
-    echo "$(echo ${fuse_info} | awk '{print $1}')"
   fi
 }
 
