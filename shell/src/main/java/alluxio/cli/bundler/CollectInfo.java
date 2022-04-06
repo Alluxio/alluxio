@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 public class CollectInfo extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfo.class);
   private static final String USAGE =
-      "collectInfo [--max-threads <threadNum>] [--local] [--help] "
+      "collectInfo [--max-threads <threadNum>] [--local] [--help] [--exclude-worker-metrics]"
           + "[--exclude-logs <filename-prefixes>] [--include-logs <filename-prefixes>] "
           + "[--additional-logs <filename-prefixes>] [--start-time <datetime>] "
           + "[--end-time <datetime>] COMMAND <outputPath>\n\n"
