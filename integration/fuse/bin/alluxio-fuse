@@ -123,7 +123,7 @@ kill_process_and_umount_fuse() {
   if [[ $# -ge 1 ]]; then
     mount_point=${1%/}
   else
-    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
+    mount_point=$(${BIN}/alluxio getConf ${ALLUXIO_FUSE_JAVA_OPTS} alluxio.fuse.mount.point)
   fi
   # TODO(lu) check if fuse_pid contains multiple pids
   local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
