@@ -148,14 +148,15 @@ public final class PathUtils {
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
         if (!matchedComponents.get(i).equals(pathComp[i])) {
-          matchedComponents = new ArrayList<>(Arrays.asList(Arrays.copyOfRange(pathComp, 0, i)));
           matchedLen = i;
           break;
         }
       }
-
+      // here, either matchedComponents or pathComp is the prefix of one another,
+      // if pathComp is the prefix of matchedComponents (e.g. pathComp: ["", "a"]
+      // matchedComponents: ["", "a", "b"]), then the lowest common ancestor of
+      // pathComp and current matchedComponents is pathComp (the shorter one).
       if (matchedLen > pathComp.length) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
         matchedLen = pathComp.length;
       }
     }
@@ -298,16 +299,17 @@ public final class PathUtils {
       return true;
     }
 
-    if (prefix.charAt(prefix.length() - 1) == '/' && path.charAt(path.length() - 1) != '/') {
+    if (prefix.endsWith("/") && !path.endsWith("/")) {
       path = path + '/';
-      if (path.equals(prefix)) {
-        return true;
-      }
     }
 
-    if (path.length() < prefix.length()) {
-      return false;
-    }
+    // Firstly, we check if the `path` starts with `prefix`,
+    // if so, either `path` and `prefix` is equal, or the char at the index right
+    // after the `prefix` indicates the end of the last directory(which is a `/`)
+    // can prove that `prefix` is the prefix of `path`.
+    // The second "or" condition at the second "and" condition is to exclude the
+    // case where `path` starts with the `prefix`, but the last matched position
+    // is actually not the end of a directory(e.g. prefix: '/a/b/c', path: '/a/b/ccc').
     return path.startsWith(prefix)
         &&
         (path.length() == prefix.length() || path.charAt(prefix.length()) == '/');
