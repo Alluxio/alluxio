@@ -321,6 +321,12 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    if (prefix.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(prefix));
+    }
+    if (path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+    }
     if (prefix.charAt(prefix.length() - 1) == '/' && path.charAt(path.length() - 1) != '/') {
       path = path + '/';
       if (path.equals(prefix)) {
