@@ -291,15 +291,15 @@ public final class PathUtilsTest {
    */
   @Test
   public void getPathComponentsNoException() throws InvalidPathException {
-    assertArrayEquals(new String[]{""}, PathUtils.getPathComponents("/"));
-    assertArrayEquals(new String[]{"", "bar"}, PathUtils.getPathComponents("/bar"));
-    assertArrayEquals(new String[]{"", "foo", "bar"},
+    assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
+    assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
+    assertArrayEquals(new String[] {"", "foo", "bar"},
         PathUtils.getPathComponents("/foo/bar"));
-    assertArrayEquals(new String[]{"", "foo", "bar"},
+    assertArrayEquals(new String[] {"", "foo", "bar"},
         PathUtils.getPathComponents("/foo/bar/"));
-    assertArrayEquals(new String[]{"", "bar"},
+    assertArrayEquals(new String[] {"", "bar"},
         PathUtils.getPathComponents("/foo/../bar"));
-    assertArrayEquals(new String[]{"", "foo", "bar", "a", "b", "c"},
+    assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 
