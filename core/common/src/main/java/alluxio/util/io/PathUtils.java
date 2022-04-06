@@ -142,13 +142,20 @@ public final class PathUtils {
       if (matchedComponents == null) {
         matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
         matchedLen = pathComp.length;
+        continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
         if (!matchedComponents.get(i).equals(pathComp[i])) {
+          matchedComponents = new ArrayList<>(Arrays.asList(Arrays.copyOfRange(pathComp, 0, i)));
           matchedLen = i;
           break;
         }
+      }
+
+      if (matchedLen > pathComp.length) {
+        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedLen = pathComp.length;
       }
     }
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
