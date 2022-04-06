@@ -126,7 +126,8 @@ kill_process_and_umount_fuse() {
     mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
   fi
   # TODO(lu) check if fuse_pid contains multiple pids
-  local fuse_pid="$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')"
+  local fuse_pid="$(get_fuse_pid ${mount_point})"
+  echo "${fuse_pid}"
   if [[ -z ${fuse_pid} ]]; then
     umount_fuse
     return $?
@@ -194,28 +195,33 @@ umount_fuse() {
   fi
 }
 
+get_fuse_pid() {
+  local mount_point=""
+  if [[ $# -ge 1 ]]; then
+    mount_point=${1%/}
+  else
+    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
+  fi
+  local fuse_info="$(ps ax -o pid,args | grep ${mount_point})"
+  if [[ -n ${fuse_info} ]]; then
+    echo "$(echo ${fuse_info} | awk '{print $1}')"
+  fi
+}
+
 fuse_stat() {
-  local fuse_info="$(ps aux | grep [A]lluxioFuse)"
+  local mount_point=""
+  if [[ $# -ge 1 ]]; then
+    mount_point=${1%/}
+  else
+    mount_point=$(${BIN}/alluxio getConf alluxio.fuse.mount.point)
+  fi
+
+  local mount_info="$(mount | grep ${mount_point})"
   if [[ -n ${fuse_info} ]]; then
-    echo -e "pid\tmount_point\talluxio_path"
-    echo -e "$(ps ax -o pid,args | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $NF}')"
-    return 0
+    echo ${mount_info}
+    return 0;
   fi
-  fuse_info=$(ps ax -o pid,args | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
-  if [[ -n ${fuse_info} ]]; then
-    fuse_worker_pid="$(echo "${fuse_info}" | awk '{print $1}')"
-    fuse_mount_point="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.point)\S+(?=\s)')"
-    fuse_alluxio_path="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
-    echo -e "pid\tmount_point\talluxio_path"
-    echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
-    return 0
-  fi
-  fuse_info="$(ps aux | grep [S]tackMain)"
-  if [[ -n "${fuse_info}" ]]; then
-    echo -e "pid\tmount_point\tsource_path"
-    echo -e "$(ps ax -o pid,args | grep [S]tackMain | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $(NF-1)}')"
-    return 0
-  fi
+
   echo "No mount point found. AlluxioFuse process is not running"
   echo -e "${MOUNT_USAGE}"
   return 1
