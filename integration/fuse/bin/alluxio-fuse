@@ -204,7 +204,7 @@ fuse_stat() {
   fuse_info=$(ps ax -o pid,args | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
   if [[ -n ${fuse_info} ]]; then
     fuse_worker_pid="$(echo "${fuse_info}" | awk '{print $1}')"
-    fuse_mount_point="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.point=)\S+(?=\s)')"
+    fuse_mount_point="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.point)\S+(?=\s)')"
     fuse_alluxio_path="$(echo "${fuse_info}" | grep -Po '(?<=alluxio\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
     echo -e "pid\tmount_point\talluxio_path"
     echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
