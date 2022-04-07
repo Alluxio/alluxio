@@ -187,30 +187,6 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Swaps location of two blocks in metadata.
-   *
-   * @param blockMeta1 the first block meta
-   * @param blockMeta2 the second block meta
-   * @throws BlockDoesNotExistException
-   * @throws BlockAlreadyExistsException
-   * @throws WorkerOutOfSpaceException
-   */
-  public void swapBlocks(BlockMeta blockMeta1, BlockMeta blockMeta2)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
-    StorageDir blockDir1 = blockMeta1.getParentDir();
-    StorageDir blockDir2 = blockMeta2.getParentDir();
-    // Remove existing metas from dirs.
-    blockDir1.removeBlockMeta(blockMeta1);
-    blockDir2.removeBlockMeta(blockMeta2);
-
-    // Add new block metas with new block id and sizes.
-    blockDir1.addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(),
-        blockMeta2.getBlockSize(), blockDir1));
-    blockDir2.addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(),
-        blockMeta1.getBlockSize(), blockDir2));
-  }
-
-  /**
    * Cleans up the metadata of the given temp block ids.
    *
    * @param sessionId the id of the client associated with the temp blocks
