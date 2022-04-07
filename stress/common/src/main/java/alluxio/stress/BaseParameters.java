@@ -14,6 +14,7 @@ package alluxio.stress;
 import com.beust.jcommander.Parameter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -93,4 +94,48 @@ public final class BaseParameters {
 
   @Parameter(names = {"-h", HELP_FLAG}, help = true)
   public boolean mHelp = false;
+
+  /**
+   * @return a list storing the strings that could be parsed into
+   * the same BaseParameter
+   */
+  public List<String> toBatchTaskArgumentString() {
+    List<String> res = new ArrayList<>(Arrays.asList(
+        CLUSTER_LIMIT_FLAG, String.valueOf(mClusterLimit),
+        CLUSTER_START_DELAY_FLAG, mClusterStartDelay,
+        BENCH_TIMEOUT, mBenchTimeout,
+        START_MS_FLAG, String.valueOf(mStartMs)));
+
+    if (!mProfileAgent.isEmpty()) {
+      res.add(PROFILE_AGENT);
+      res.add(mProfileAgent);
+    }
+
+    if (!mId.equals(DEFAULT_TASK_ID)) {
+      res.add(ID_FLAG);
+      res.add(mId);
+    }
+
+    if (!mJavaOpts.isEmpty()) {
+      for (String s : mJavaOpts) {
+        res.add(JAVA_OPT_FLAG);
+        res.add(s);
+      }
+    }
+
+    if (mCluster) {
+      res.add(CLUSTER_FLAG);
+    }
+    if (mDistributed) {
+      res.add(DISTRIBUTED_FLAG);
+    }
+    if (mInProcess) {
+      res.add(IN_PROCESS_FLAG);
+    }
+    if (mHelp) {
+      res.add(HELP_FLAG);
+    }
+
+    return res;
+  }
 }

@@ -69,6 +69,14 @@ export class OverviewPresenter extends React.Component<AllProps> {
                 <th scope="row">Server Configuration Check</th>
                 <td className={data.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>{data.configCheckStatus}</td>
               </tr>
+              <tr>
+                <th scope="row">Role</th>
+                <td>{data.masterRole}</td>
+              </tr>
+              <tr>
+                <th scope="row">LeaderId</th>
+                <td>{data.leaderId}</td>
+              </tr>
               {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
               {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
               {this.renderJournalDiskWarnings(data.journalDiskWarnings, 'text-warning')}

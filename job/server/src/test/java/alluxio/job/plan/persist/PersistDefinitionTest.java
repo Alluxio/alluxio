@@ -14,7 +14,7 @@ package alluxio.job.plan.persist;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -46,20 +46,20 @@ import java.util.Set;
  * Tests {@link PersistDefinition}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
+@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, JobServerContext.class})
 public final class PersistDefinitionTest {
   private FileSystem mMockFileSystem;
   private FileSystemContext mMockFileSystemContext;
-  private AlluxioBlockStore mMockBlockStore;
+  private BlockStoreClient mMockBlockStore;
   private JobServerContext mJobServerContext;
 
   @Before
   public void before() {
     mMockFileSystem = Mockito.mock(FileSystem.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     mJobServerContext =
         new JobServerContext(mMockFileSystem, mMockFileSystemContext, mock(UfsManager.class));
   }

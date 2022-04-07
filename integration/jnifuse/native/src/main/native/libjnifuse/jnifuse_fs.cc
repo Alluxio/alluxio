@@ -24,26 +24,9 @@
 #include "debug.h"
 
 namespace jnifuse {
-
-struct ThreadData {
-  JavaVM *attachedJVM;
-  JNIEnv *attachedEnv;
-};
-
-static pthread_key_t jffs_threadKey;
-
-static void thread_data_free(void *ptr) {
-  ThreadData *td = (ThreadData *)ptr;
-  if (td->attachedJVM != nullptr) {
-    td->attachedJVM->DetachCurrentThread();
-  }
-  delete td;
-}
-
 JniFuseFileSystem *JniFuseFileSystem::instance = nullptr;
 
 JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
-  env->GetJavaVM(&this->jvm);
   this->fs = env->NewGlobalRef(obj);
 
   this->chmodOper = new ChmodOperation(this);
@@ -62,6 +45,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->renameOper = new RenameOperation(this);
   this->rmdirOper = new RmdirOperation(this);
   this->setxattrOper = new SetxattrOperation(this);
+  this->statfsOper = new StatfsOperation(this);
   this->symlinkOper = new SymlinkOperation(this);
   this->truncateOper = new TruncateOperation(this);
   this->unlinkOper = new UnlinkOperation(this);
@@ -86,6 +70,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->renameOper;
   delete this->rmdirOper;
   delete this->setxattrOper;
+  delete this->statfsOper;
   delete this->truncateOper;
   delete this->unlinkOper;
   delete this->utimensOper;
@@ -93,10 +78,10 @@ JniFuseFileSystem::~JniFuseFileSystem() {
 }
 
 void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
+  // TODO(lu) support one mount per instance
   if (instance != nullptr) {
     LOGE("you cant initialize more than once");
   }
-  pthread_key_create(&jffs_threadKey, thread_data_free);
   instance = new JniFuseFileSystem(env, obj);
 }
 
@@ -107,20 +92,6 @@ JniFuseFileSystem *JniFuseFileSystem::getInstance() {
   }
   return instance;
 }
-
-JNIEnv *JniFuseFileSystem::getEnv() {
-  ThreadData *td = (ThreadData *)pthread_getspecific(jffs_threadKey);
-  if (td == nullptr) {
-    td = new ThreadData();
-    td->attachedJVM = this->jvm;
-    this->jvm->AttachCurrentThreadAsDaemon((void **)&td->attachedEnv, nullptr);
-    pthread_setspecific(jffs_threadKey, td);
-    return td->attachedEnv;
-  }
-  return td->attachedEnv;
-}
-
-JavaVM *JniFuseFileSystem::getJVM() { return this->jvm; }
 
 jobject JniFuseFileSystem::getFSObj() { return this->fs; }
 

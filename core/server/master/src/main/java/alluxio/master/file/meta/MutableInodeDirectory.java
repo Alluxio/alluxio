@@ -25,7 +25,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
-import java.util.HashSet;
+import com.google.common.collect.ImmutableSet;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -209,7 +210,9 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
-    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    if (!entry.getMediumTypeList().isEmpty()) {
+      ret.setMediumTypes(ImmutableSet.copyOf(entry.getMediumTypeList()));
+    }
     if (entry.getXAttrCount() > 0) {
       ret.setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
@@ -303,8 +306,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
-        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
-        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
+    if (!inode.getMediumTypeList().isEmpty()) {
+      d.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
+    }
     if (inode.getXAttrCount() > 0) {
       d.setXAttr(CommonUtils.convertFromByteString(inode.getXAttrMap()));
     }

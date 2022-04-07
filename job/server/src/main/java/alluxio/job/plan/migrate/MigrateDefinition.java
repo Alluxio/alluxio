@@ -141,7 +141,7 @@ public final class MigrateDefinition
       RunTaskContext context) throws Exception {
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-        : WriteType.valueOf(config.getWriteType());
+        : config.getWriteType();
     migrate(command, writeType.toProto(), context.getFileSystem(), config.isOverwrite());
     return null;
   }
@@ -164,17 +164,30 @@ public final class MigrateDefinition
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-    final AlluxioURI destinationURI = new AlluxioURI(destination);
+    AlluxioURI destinationUri = new AlluxioURI(destination);
+    String tmpPath =
+        PathUtils.temporaryFileName(System.currentTimeMillis(), destinationUri.toString());
+    AlluxioURI tmpUri = new AlluxioURI(tmpPath);
     boolean retry;
+    boolean processOverwrite = false;
     do {
       retry = false;
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source), openFileOptions);
-           FileOutStream out = fileSystem.createFile(destinationURI, createOptions)) {
+           FileOutStream out = fileSystem.createFile(destinationUri, createOptions)) {
         try {
           IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
+          if (processOverwrite) {
+            fileSystem.delete(tmpUri);
+            fileSystem.rename(destinationUri, tmpUri);
+          }
         } catch (Throwable t) {
+          // Since we only catch CancelledException here if we get interrupted, so we want to keep
+          // the following clean up process not interrupted. If we have other exception, the flag
+          // doesn't matter here.
+          Thread.interrupted();
           try {
             out.cancel();
+            fileSystem.delete(destinationUri);
           } catch (Throwable t2) {
             t.addSuppressed(t2);
           }
@@ -182,8 +195,11 @@ public final class MigrateDefinition
         }
       } catch (FileAlreadyExistsException e) {
         if (overwrite) {
-          fileSystem.delete(destinationURI);
+          AlluxioURI switchUri = destinationUri;
+          destinationUri = tmpUri;
+          tmpUri = switchUri;
           retry = true;
+          processOverwrite = true;
         } else {
           throw e;
         }

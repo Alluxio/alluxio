@@ -30,6 +30,7 @@
 /docs/serve/
 /extensions/
 /generated/
+/integration/docker/*.tar.gz
 /integration/vagrant/.request_ids
 /integration/vagrant/.vagrant/
 /integration/vagrant/conf/ec2.yml

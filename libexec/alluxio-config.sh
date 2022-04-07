@@ -67,6 +67,21 @@ if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
 
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.conf.dir* ]]; then
+  echo "Warning: setting alluxio.conf.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_CONF_DIR instead"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.logs.dir* ]]; then
+  echo "Warning: setting alluxio.logs.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_LOGS_DIR instead"
+fi
+
+if [[ ${ALLUXIO_JAVA_OPTS} == *alluxio.user.logs.dir* ]]; then
+  echo "Warning: setting alluxio.user.logs.dir through ALLUXIO_JAVA_OPTS (or ALLUXIO_MASTER_JAVA_OPTS and etc) will be ignored."
+  echo "Use environment variable ALLUXIO_USER_LOGS_DIR instead"
+fi
+
 ALLUXIO_JAVA_OPTS+=" -Dalluxio.conf.dir=${ALLUXIO_CONF_DIR} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.user.logs.dir=${ALLUXIO_USER_LOGS_DIR}"
 
 if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
@@ -138,14 +153,6 @@ if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; t
 fi
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS="${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}"
 
-# Alluxio Hub specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_HUB_AGENT_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_HUB_AGENT_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_AGENT_LOGGER:-HUB_AGENT_LOGGER}"
-ALLUXIO_HUB_MANAGER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_HUB_MANAGER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_MANAGER_LOGGER:-HUB_MANAGER_LOGGER}"
-ALLUXIO_HUB_HOSTED_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_HUB_HOSTED_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_HOSTED_LOGGER:-HUB_HOSTED_LOGGER}"
-
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
@@ -161,7 +168,7 @@ fi
 ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}"
 
 # FUSE specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=FUSE_LOGGER -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=FUSE_LOGGER -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
 ALLUXIO_FUSE_JAVA_OPTS="${ALLUXIO_FUSE_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS}"
 
 # Log server specific parameters that will be passed to alluxio log server

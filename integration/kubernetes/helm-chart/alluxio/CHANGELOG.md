@@ -234,3 +234,27 @@
 - Enable mounting a specific directory in Alluxio through Fuse
 - Fixes a typo in rendering the fuse mount directory.
 
+0.6.35
+
+- Remove usage of Helm hook annotations in Charts
+
+0.6.36
+
+- Fix volumeMounts indentations in master statefulset
+
+0.6.37
+
+- Fix jobMaster.env indentations in master statefulset
+
+0.6.38
+
+- Fix MOUNT_POINT env in fuse daemonset
+
+0.6.39
+
+- Fix CSI controller rbac rule not specifying namespace.
+- Fix CSI driver compatibility issue under kubernetes 18+ version.
+
+0.6.40
+
+- Fix incorrect directory when mounting & formatting master journal volume

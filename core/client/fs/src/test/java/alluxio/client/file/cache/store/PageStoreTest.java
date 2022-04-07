@@ -24,6 +24,7 @@ import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,7 +71,7 @@ public class PageStoreTest {
     mOptions.setPageSize(1024);
     mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
-    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
+    mOptions.setRootDirs(Lists.newArrayList(Paths.get(mTemp.getRoot().getAbsolutePath())));
     mPageStore = PageStore.create(mOptions);
   }
 

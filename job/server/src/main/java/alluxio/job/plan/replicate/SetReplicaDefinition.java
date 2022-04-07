@@ -12,7 +12,7 @@
 package alluxio.job.plan.replicate;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.URIStatus;
@@ -72,7 +72,7 @@ public final class SetReplicaDefinition
     int numReplicas = config.getReplicas();
     Preconditions.checkArgument(numReplicas >= 0);
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
+    BlockStoreClient blockStore = BlockStoreClient.create(context.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
     int currentNumReplicas = blockInfo.getLocations().size();
     Set<Pair<WorkerInfo, SetReplicaTask>> result = Sets.newHashSet();

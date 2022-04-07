@@ -11,10 +11,13 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
 import org.rocksdb.RocksIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Convenience methods for working with RocksDB.
  */
 public final class RocksUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(RocksUtils.class);
 
   private RocksUtils() {} // Utils class.
 
@@ -99,7 +103,7 @@ public final class RocksUtils {
   }
 
   /**
-   * Used to wrap an {@link Iterator} over {@link RocksIterator}.
+   * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
    * It seeks given iterator to first entry before returning the iterator.
    *
    * @param rocksIterator the rocks iterator
@@ -107,11 +111,11 @@ public final class RocksUtils {
    * @param <T> iterator value type
    * @return wrapped iterator
    */
-  public static <T> Iterator<T> createIterator(RocksIterator rocksIterator,
-      RocksIteratorParser<T> parser) {
+  public static <T> CloseableIterator<T> createCloseableIterator(
+      RocksIterator rocksIterator, RocksIteratorParser<T> parser) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
-    return new Iterator<T>() {
+    Iterator<T> iter = new Iterator<T>() {
       @Override
       public boolean hasNext() {
         return valid.get() && rocksIterator.isValid();
@@ -122,6 +126,7 @@ public final class RocksUtils {
         try {
           return parser.next(rocksIterator);
         } catch (Exception exc) {
+          LOG.warn("Iteration aborted because of error", exc);
           rocksIterator.close();
           valid.set(false);
           throw new RuntimeException(exc);
@@ -134,5 +139,9 @@ public final class RocksUtils {
         }
       }
     };
+
+    return CloseableIterator.create(iter, (whatever) -> {
+      rocksIterator.close();
+    });
   }
 }

@@ -13,7 +13,7 @@ package alluxio.job.plan.replicate;
 
 import static org.mockito.Mockito.when;
 
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
@@ -43,7 +43,7 @@ import java.util.Set;
  * Tests evict functionality of {@link SetReplicaDefinition}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
+@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, JobServerContext.class})
 public final class SetReplicaDefinitionEvictTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final WorkerNetAddress ADDRESS_1 =
@@ -59,14 +59,14 @@ public final class SetReplicaDefinitionEvictTest {
 
   private FileSystem mMockFileSystem;
   private FileSystemContext mMockFileSystemContext;
-  private AlluxioBlockStore mMockBlockStore;
+  private BlockStoreClient mMockBlockStore;
   private JobServerContext mJobServerContext;
 
   @Before
   public void before() {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mJobServerContext = new JobServerContext(mMockFileSystem, mMockFileSystemContext,
         PowerMockito.mock(UfsManager.class));
   }
@@ -85,8 +85,8 @@ public final class SetReplicaDefinitionEvictTest {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
     blockInfo.setLocations(blockLocations);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
     SetReplicaConfig config = new SetReplicaConfig("", TEST_BLOCK_ID, replicas);
     SetReplicaDefinition definition = new SetReplicaDefinition();

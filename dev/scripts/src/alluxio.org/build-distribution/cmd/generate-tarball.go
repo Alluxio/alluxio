@@ -115,19 +115,12 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	}
 
 	args = append(args, fmt.Sprintf("-Dhadoop.version=%v", hadoopVersion), fmt.Sprintf("-P%v", hadoopVersion.hadoopProfile()))
-	if includeYarnIntegration(hadoopVersion) {
-		args = append(args, "-Pyarn")
-	}
 
 	// Ensure that the "-T" parameter passed from "-mvn_args" can take effect,
 	// because only the first -T parameter in "mvn" command will take effect.
 	// If the -T parameter is not given in "-mvn_args", this configuration will take effect.
-	args = append(args, "-T", "1");
+	args = append(args, "-T", "1")
 	return args
-}
-
-func includeYarnIntegration(hadoopVersion version) bool {
-	return hadoopVersion.compare(2, 4, 0) >= 0
 }
 
 func getVersion() (string, error) {
@@ -227,16 +220,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
 	}
 
-	if includeYarnIntegration(hadoopVersion) {
-		pathsToCopy = append(pathsToCopy, []string{
-			"integration/yarn/bin/alluxio-application-master.sh",
-			"integration/yarn/bin/alluxio-master-yarn.sh",
-			"integration/yarn/bin/alluxio-worker-yarn.sh",
-			"integration/yarn/bin/alluxio-yarn.sh",
-			"integration/yarn/bin/alluxio-yarn-setup.sh",
-			"integration/yarn/bin/common.sh",
-		}...)
-	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
 		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
@@ -329,7 +312,6 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
 	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))
@@ -347,13 +329,6 @@ func generateTarball(skipUI, skipHelm bool) error {
 		workerWebappDir := "webui/worker"
 		run("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
 		run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
-	}
-	if includeYarnIntegration(hadoopVersion) {
-		// Update the YARN jar path
-		replace("integration/yarn/bin/alluxio-yarn.sh", "target/alluxio-integration-yarn-${VERSION}-jar-with-dependencies.jar", "alluxio-yarn-${VERSION}.jar")
-		// Create directories for the yarn integration
-		mkdir(filepath.Join(dstPath, "integration", "yarn"))
-		run("adding Alluxio YARN jar", "mv", fmt.Sprintf("integration/yarn/target/alluxio-integration-yarn-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "yarn", fmt.Sprintf("alluxio-yarn-%v.jar", version)))
 	}
 
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)

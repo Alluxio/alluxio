@@ -30,6 +30,9 @@ import javax.annotation.Nullable;
  *     ...
  *   }
  * </pre>
+ *
+ * The subclasses will be tracked by the leak detector.
+ * The subclasses should call super.close() in their close(), otherwise a leak will be reported.
  */
 // extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
 public class LockResource implements Closeable {

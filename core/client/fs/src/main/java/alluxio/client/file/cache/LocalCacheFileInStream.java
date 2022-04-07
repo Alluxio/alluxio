@@ -75,6 +75,13 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   /**
+   * Registers metrics.
+   */
+  public static void registerMetrics() {
+    Metrics.registerGauges();
+  }
+
+  /**
    * Constructor when the {@link URIStatus} is already available.
    *
    * @param status file status

@@ -146,8 +146,8 @@ namespace specify all required properties as a key-value pair under `properties`
 ```properties
 properties:
   alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
-  alluxio.master.mount.table.root.option.aws.accessKeyId: "<accessKey>"
-  alluxio.master.mount.table.root.option.aws.secretKey: "<secretKey>"
+  alluxio.master.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
+  alluxio.master.mount.table.root.option.s3a.secretKey: "<secretKey>"
 ```
   {% endcollapsible %}
 
@@ -160,14 +160,32 @@ master:
   count: 1 # For multiMaster mode increase this to >1
 
 journal:
-  type: "UFS"
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
   ufsType: "local"
-  folder: "/journal"
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: persistentVolumeClaim
-  # Attributes to use when the journal is persistentVolumeClaim
+  ### Unique attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
@@ -183,14 +201,32 @@ master:
   count: 1 # For multiMaster mode increase this to >1
 
 journal:
-  type: "UFS"
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
   ufsType: "local"
-  folder: "/journal"
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: emptyDir # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: emptyDir
-  # Attributes to use when the journal is emptyDir
+  ### Unique attributes to use when the journal is emptyDir
   medium: ""
 ```
 
@@ -211,12 +247,24 @@ $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DI
 
 ```properties
 journal:
-  type: "UFS"
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "hdfs://{$hostname}:{$hostport}/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
   ufsType: "HDFS"
-  folder: "hdfs://{$hostname}:{$hostport}/journal"
 
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/alluxio"
   alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 
 secrets:
@@ -232,14 +280,22 @@ secrets:
 master:
   count: 3
 
-journal:
-  type: "EMBEDDED"
-  folder: "/journal"
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: persistentVolumeClaim
+  # [ Required values ]
+  type: "EMBEDDED" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # Attributes to use when the journal is persistentVolumeClaim
+  ### Unique attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
@@ -252,14 +308,22 @@ master:
   count: 3
 
 journal:
-  type: "UFS"
-  ufsType: "local"
-  folder: "/journal"
+  # [ Required values ]
+  type: "EMBEDDED" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: emptyDir # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: emptyDir
-  # Attributes to use when the journal is emptyDir
+  ### Unique attributes to use when the journal is emptyDir
   medium: ""
 ```
 
@@ -660,6 +724,9 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
   securityContext:
     runAsUser: 1000
   command: ["alluxio","formatJournal"]
+  envFrom:
+    - configMapRef:
+      name: alluxio-config
   volumeMounts:
     - name: alluxio-journal
       mountPath: /journal
@@ -793,7 +860,7 @@ matching PersistentVolumes. See "(Optional) Provision a Persistent Volume" in
 
 Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0 -- /bin/bash
 ```
 
 From the master Pod, execute the following:
@@ -1232,7 +1299,7 @@ capture the updated environment variables and send logs to the remote log server
 You can go into the log server pod and verify the logs exist.
 
 ```console
-$ kubectl exec -it <logserver-pod-name> bash
+$ kubectl exec -it <logserver-pod-name> -- bash
 # In the logserver pod
 bash-4.4$ pwd
 /opt/alluxio
@@ -1792,7 +1859,7 @@ follows:
 
 Access the Alluxio CLI from the master Pod.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0 -- /bin/bash
 ```
 
 From the master Pod, execute the following:

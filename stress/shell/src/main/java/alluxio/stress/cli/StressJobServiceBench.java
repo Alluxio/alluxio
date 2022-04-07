@@ -107,7 +107,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
         "# 256 requests would be sent concurrently to job master",
         "# Each request contains 1000 files with file size 1k",
         "$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --file-size 1k \\"
-            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad",
+            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad --cluster",
         ""));
   }
 
@@ -316,7 +316,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
             new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
             new HashSet<>(), new HashSet<>(), false, false);
       } finally {
-        mResult.incrementNumSuccess((long) cmd.getCompletedCount() * mParameters.mBatchSize);
+        mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
     }
   }

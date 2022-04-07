@@ -130,12 +130,4 @@ public class StateLockOptions {
         0 // grace-cycle total duration ms
     );
   }
-
-  /**
-   * Defines the grace mode of exclusive locking of the state-lock.
-   */
-  public enum GraceMode {
-    TIMEOUT,    // Timeout if lock can't be acquired by grace-cycle.
-    FORCED,     // Force the lock if grace-cycle failed to acquire it.
-  }
 }

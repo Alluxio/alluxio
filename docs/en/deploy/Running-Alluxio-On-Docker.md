@@ -460,7 +460,7 @@ capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 - Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
 The default fuse mount point is `/mnt/alluxio-fuse` in the worker container which will be created at runtime if not exist.
-To change the fuse mount point, specify `alluxio.worker.fuse.mount.point=<mount_point>`.
+To change the fuse mount point, specify `alluxio.fuse.mount.point=<mount_point>`.
 
 Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
 This is because local path `/mnt` in worker container is mapped to host path `/tmp/mnt`,

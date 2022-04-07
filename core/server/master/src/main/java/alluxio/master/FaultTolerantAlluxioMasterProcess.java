@@ -74,9 +74,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   public void start() throws Exception {
     LOG.info("Process starting.");
     mRunning = true;
+    startCommonServices();
     mJournalSystem.start();
-
     startMasters(false);
+    startJvmMonitorProcess();
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
@@ -165,7 +166,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     mServingThread = new Thread(() -> {
       try {
-        startServing(" (gained leadership)", " (lost leadership)");
+        startCommonServices();
+        startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
         if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
@@ -187,7 +189,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private void losePrimacy() throws Exception {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
-      stopServing();
+      stopLeaderServing();
+      stopCommonServicesIfNecessary();
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
@@ -227,9 +230,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
+  public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
+      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isGrpcServing()),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
@@ -237,6 +240,50 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       return false;
     } catch (TimeoutException e) {
       return false;
+    }
+  }
+
+  @Override
+  protected void startCommonServices() {
+    boolean standbyMetricsSinkEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
+    boolean standbyWebEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
+    // Masters will always start from standby state, and later be elected to primary.
+    // If standby masters are enabled to start metric sink service,
+    // the service will have been started before the master is promoted to primary.
+    // Thus when the master is primary, no need to start metric sink service again.
+    //
+    // Vice versa, if the standby masters do not start the metric sink service,
+    // the master should start the metric sink when it is primacy.
+    //
+    LOG.info("state is {}, standbyMetricsSinkEnabled is {}, standbyWebEnabled is {}",
+        mLeaderSelector.getState(), standbyMetricsSinkEnabled, standbyWebEnabled);
+    if ((mLeaderSelector.getState() == State.STANDBY && standbyMetricsSinkEnabled)
+        || (mLeaderSelector.getState() == State.PRIMARY && !standbyMetricsSinkEnabled)) {
+      LOG.info("Start metric sinks.");
+      MetricsSystem.startSinks(
+          ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+    }
+
+    // Same as the metrics sink service
+    if ((mLeaderSelector.getState() == State.STANDBY && standbyWebEnabled)
+        || (mLeaderSelector.getState() == State.PRIMARY && !standbyWebEnabled)) {
+      LOG.info("Start web server.");
+      startServingWebServer();
+    }
+  }
+
+  protected void stopCommonServicesIfNecessary() throws Exception {
+    if (!ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
+      LOG.info("Stop metric sinks.");
+      MetricsSystem.stopSinks();
+    }
+    if (!ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
+      LOG.info("Stop web server.");
+      stopServingWebServer();
     }
   }
 }

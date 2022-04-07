@@ -34,7 +34,6 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
-import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
@@ -62,11 +61,10 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Single node stress test.
  */
-public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
+public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult,
+    MasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
-
-  @ParametersDelegate
-  private MasterBenchParameters mParameters = new MasterBenchParameters();
 
   private byte[] mFiledata;
 
@@ -74,12 +72,17 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   private FileSystem[] mCachedFs;
 
   /** In case the Alluxio Native API is used,  use the following instead. */
-  private alluxio.client.file.FileSystem[] mCachedNativeFs;
+  protected alluxio.client.file.FileSystem[] mCachedNativeFs;
+  /* Directories where the stress bench creates files depending on the --operation chosen. */
+  protected final String mDirsDir = "dirs";
+  protected final String mFilesDir = "files";
+  protected final String mFixedDir = "fixed";
 
   /**
    * Creates instance.
    */
   public StressMasterBench() {
+    mParameters = new MasterBenchParameters();
   }
 
   /**
@@ -99,12 +102,13 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         "# this would continuously run `ListDir` opeartion for 30s and record the throughput after "
             + "5s warmup.",
         "$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir \\",
-        "--warmup 5s --duration 30s",
+        "--warmup 5s --duration 30s --cluster",
         ""
     ));
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
@@ -116,7 +120,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       Configuration hdfsConf = new Configuration();
       // force delete, create dirs through to UFS
       hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
       // more threads for parallel deletes for cleanup
       hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
@@ -164,6 +168,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
+
+    hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
@@ -258,6 +264,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public MasterBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
@@ -296,6 +303,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     return context.getResult();
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private BenchThread getBenchThread(BenchContext context, int index) {
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length]);
@@ -315,6 +323,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     /** The results. Access must be synchronized for thread safety. */
     private MasterBenchTaskResult mResult;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     public BenchContext(RateLimiter rateLimiter, long startMs, long endMs) {
       mRateLimiter = rateLimiter;
       mStartMs = startMs;
@@ -322,12 +331,12 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mCounter = new AtomicLong();
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
+            new Path(PathUtils.concatPath(mParameters.mBasePath, mDirsDir, mBaseParameters.mId));
       } else {
         mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
+            new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mBaseParameters.mId));
       }
-      mFixedBasePath = new Path(mBasePath, "fixed");
+      mFixedBasePath = new Path(mBasePath, mFixedDir);
       LOG.info("BenchContext: basePath: {}, fixedBasePath: {}", mBasePath, mFixedBasePath);
     }
 
@@ -415,6 +424,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
 
     @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     public Void call() {
       try {
         runInternal();
@@ -435,6 +445,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -501,6 +512,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mFs = fs;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
       Path path;
       switch (mParameters.mOperation) {
@@ -597,6 +609,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mFs = fs;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException, AlluxioException {
       Path path;
       switch (mParameters.mOperation) {

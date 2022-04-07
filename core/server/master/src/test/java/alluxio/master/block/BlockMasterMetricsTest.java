@@ -79,6 +79,7 @@ public final class BlockMasterMetricsTest {
     assertEquals(100L, getGauge(MetricKey.MASTER_UNIQUE_BLOCKS.getName()));
   }
 
+  @Test
   public void testMetricWorkers() {
     when(mBlockMaster.getWorkerCount()).thenReturn(200);
     assertEquals(200, getGauge(MetricKey.CLUSTER_WORKERS.getName()));

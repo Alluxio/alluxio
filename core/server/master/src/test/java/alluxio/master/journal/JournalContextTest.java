@@ -165,7 +165,7 @@ public class JournalContextTest {
 
       // after un-pausing, new journal contexts can be created
       lock.close();
-      thread2.run();
+      thread2.start();
       CommonUtils.waitFor("journal context created", journalContextCreated::get,
           WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
     } finally {

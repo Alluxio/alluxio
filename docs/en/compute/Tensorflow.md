@@ -89,7 +89,7 @@ Run the following command to mount this S3 bucket to Alluxio path `/training-dat
 
 ```console
 $ ./bin/alluxio fs mount /training-data/mnist/ s3://alluxio-tensorflow-mnist/ \
-  --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+  --option s3a.accessKeyID=<ACCESS_KEY_ID> --option s3a.secretKey=<SECRET_KEY>
 ```
 
 Note this command takes options to pass the S3 credentials of the bucket. 
