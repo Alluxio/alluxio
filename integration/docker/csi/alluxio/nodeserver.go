@@ -213,7 +213,7 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	}
 
 	// Append volumeId to pod name for uniqueness
-	csiFusePodObj.Name = csiFusePodObj.Name + req.GetVolumeId()
+	csiFusePodObj.Name = csiFusePodObj.Name + "-" + req.GetVolumeId()
 
 	// Set node name for scheduling
 	csiFusePodObj.Spec.NodeName = nodeId

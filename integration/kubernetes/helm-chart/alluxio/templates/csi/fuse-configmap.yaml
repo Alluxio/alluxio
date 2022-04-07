@@ -30,7 +30,7 @@ data:
     kind: Pod
     apiVersion: v1
     metadata:
-      name: {{ $fullName }}-fuse-
+      name: {{ $fullName }}-fuse
       labels:
         name: {{ $fullName }}-fuse
         app: {{ $name }}
