@@ -140,7 +140,8 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
           break;
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        System.out.println(String.format("Unable to get job status for %s," +
+                " please retry using getCmdStatus %n", jobControlId));
         break;
       }
       CommonUtils.sleepMs(5);

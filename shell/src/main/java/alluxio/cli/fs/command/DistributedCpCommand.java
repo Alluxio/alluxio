@@ -113,7 +113,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
-    System.out.format("Allow up to %s active jobs%n", mActiveJobs);
     boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
     boolean wait = FileSystemShellUtils.getBoolArg(cl, WAIT_OPTION, true);
 

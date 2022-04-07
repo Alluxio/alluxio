@@ -271,7 +271,6 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
-    System.out.format("Allow up to %s active jobs%n", mActiveJobs);
     String[] args = cl.getArgs();
     AlluxioConfiguration conf = mFsContext.getClusterConf();
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
