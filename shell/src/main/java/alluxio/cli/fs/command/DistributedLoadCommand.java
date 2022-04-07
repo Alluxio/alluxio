@@ -16,28 +16,22 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.job.CmdConfig;
+import alluxio.job.cmd.load.LoadCliConfig;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,9 +42,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
-  private static final int DEFAULT_FAILURE_LIMIT = 20;
-  private static final String DEFAULT_FAILURE_FILE_PATH =
-      "./logs/user/distributedLoad_%s_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -248,7 +239,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         .addOption(HOST_FILE_OPTION)
         .addOption(PASSIVE_CACHE_OPTION)
         .addOption(DIRECT_CACHE_OPTION)
-        .addOption(BATCH_SIZE_OPTION);
+        .addOption(BATCH_SIZE_OPTION)
+        .addOption(WAIT_OPTION);
   }
 
   @Override
@@ -279,7 +271,6 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
-    System.out.format("Allow up to %s active jobs%n", mActiveJobs);
     String[] args = cl.getArgs();
     AlluxioConfiguration conf = mFsContext.getClusterConf();
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
@@ -287,6 +278,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt()) && cl.hasOption(
         DIRECT_CACHE_OPTION.getLongOpt());
+    boolean wait = FileSystemShellUtils.getBoolArg(cl, WAIT_OPTION, true);
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
@@ -319,51 +311,59 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       String argOption = cl.getOptionValue(EXCLUDED_LOCALITY_OPTION.getLongOpt()).trim();
       readItemsFromOptionString(excludedLocalityIds, argOption);
     }
-    List<URIStatus> filePool = new ArrayList<>(batchSize);
+
+    Long jobControlId;
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication, workerSet,
-          excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
+      jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
+              localityIds, excludedLocalityIds, directCache);
+      if (wait) {
+        System.out.format("Waiting for the command to finish ...%n");
+        waitForCmd(jobControlId);
+      }
+      System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
+              jobControlId.toString());
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null;) {
           AlluxioURI path = new AlluxioURI(filename);
-
-          DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication,
-              workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, directCache, true);
+          jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
+                  localityIds, excludedLocalityIds, directCache);
+          if (wait) {
+            System.out.format("Waiting for the command to finish ...%n");
+            waitForCmd(jobControlId);
+          }
+          System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
+                  jobControlId.toString());
         }
       }
     }
-    System.out.println(String.format("Completed count is %d,Failed count is %d.",
-        getCompletedCount(), getFailedCount()));
-    Set<String> failures = getFailedFiles();
-    if (failures.size() > 0) {
-      processFailures(args[0], failures);
+    if (wait) {
+      System.out.println(String.format("Completed command count is %d,Failed count is %d.",
+              getCompletedCmdCount(), getFailedCmdCount()));
     }
     return 0;
   }
 
-  private void processFailures(String arg, Set<String> failures) {
-    String path = String.join("_", StringUtils.split(arg, "/"));
-    String failurePath = String.format(DEFAULT_FAILURE_FILE_PATH, path);
-    StringBuilder output = new StringBuilder();
-    output.append("Here are recent failed files: \n");
-    Iterator<String> iterator = failures.iterator();
-    for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
-      String failure = iterator.next();
-      output.append(failure);
-      output.append(",\n");
-    }
-    output.append(String.format("Check out %s for full list of failed files.", failurePath));
-    System.out.print(output);
-    try (FileOutputStream writer = FileUtils.openOutputStream(new File(failurePath))) {
-      for (String failure : failures) {
-        writer.write(String.format("%s%n", failure).getBytes(StandardCharsets.UTF_8));
-      }
-    } catch (Exception e) {
-      System.out.println("Exception writing failure files:");
-      System.out.println(e.getMessage());
-    }
+  /**
+   * Run the actual distributedLoad command.
+   * @param filePath file path to load
+   * @param replication Number of block replicas of each loaded file
+   * @param batchSize Batch size for loading
+   * @param workerSet A set of worker hosts to load data
+   * @param excludedWorkerSet A set of worker hosts can not to load data
+   * @param localityIds The locality identify set
+   * @param excludedLocalityIds A set of worker locality identify can not to load data
+   * @param directCache use direct cache request or cache through read
+   * @return job Control ID
+   */
+  public Long runDistLoad(AlluxioURI filePath, int replication, int batchSize,
+                           Set<String> workerSet, Set<String> excludedWorkerSet,
+                           Set<String> localityIds, Set<String> excludedLocalityIds,
+                           boolean directCache) {
+    CmdConfig cmdConfig = new LoadCliConfig(filePath.getPath(), batchSize, replication, workerSet,
+            excludedWorkerSet, localityIds, excludedLocalityIds, directCache);
+    return submit(cmdConfig);
   }
 
   private void readItemsFromOptionString(Set<String> localityIds, String argOption) {
