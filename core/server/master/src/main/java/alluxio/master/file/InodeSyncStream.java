@@ -487,7 +487,7 @@ public class InodeSyncStream {
    * be synced as well.
    *
    * @param path The path to sync
-   * @return true if this path was synced
+   * @return true if the system has valid cache for this path
    */
   private boolean processSyncPath(AlluxioURI path) {
     if (path == null) {
@@ -502,7 +502,7 @@ public class InodeSyncStream {
     }
 
     if (!scheme.shouldSync() && !mForceSync) {
-      return false;
+      return true;
     }
     try (LockedInodePath inodePath = mInodeTree.tryLockInodePath(scheme)) {
       if (Thread.currentThread().isInterrupted()) {
