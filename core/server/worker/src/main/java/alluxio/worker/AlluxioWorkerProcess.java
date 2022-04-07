@@ -11,6 +11,8 @@
 
 package alluxio.worker;
 
+import static alluxio.Constants.CLUSTERID_FILE;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricKey;
@@ -316,10 +318,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       if (mRegistry.get(BlockWorker.class).getClusterId().get()
           .equals(IdUtils.EMPTY_CLUSTER_ID)) {
-        LOG.warn("BlockWorker clsuter ID: {} "
-                + "This may be caused by the worker process not be able to persist the clusterid"
-                + " to the file {}", IdUtils.EMPTY_CLUSTER_ID,
-            ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH));
+        LOG.warn("Worker has an empty cluster ID! "
+                + "Please check if the worker has permission to persist cluster ID in {}/{}",
+            ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE);
       }
       return true;
     } catch (InterruptedException e) {

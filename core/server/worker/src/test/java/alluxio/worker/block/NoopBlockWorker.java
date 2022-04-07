@@ -50,7 +50,7 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public AtomicReference<String> getClusterId() {
-    return null;
+    return new AtomicReference("");
   }
 
   @Override
