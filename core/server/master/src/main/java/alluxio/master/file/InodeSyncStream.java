@@ -858,9 +858,9 @@ public class InodeSyncStream {
    */
   public static List<Journal.JournalEntry> mergeCreateComplete(
       List<alluxio.proto.journal.Journal.JournalEntry> entries) {
-    List<alluxio.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>();
+    List<alluxio.proto.journal.Journal.JournalEntry> newEntries = new ArrayList<>(entries.size());
     // file id : index in the newEntries, InodeFileEntry
-    Map<Long, Pair<Integer, MutableInodeFile>> fileEntryMap = new HashMap<>();
+    Map<Long, Pair<Integer, MutableInodeFile>> fileEntryMap = new HashMap<>(entries.size());
     for (alluxio.proto.journal.Journal.JournalEntry oldEntry : entries) {
       if (oldEntry.hasInodeFile()) {
         // Use the old entry as a placeholder, to be replaced later
