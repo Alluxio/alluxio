@@ -14,12 +14,17 @@ package alluxio.job;
 import alluxio.grpc.OperationType;
 import alluxio.job.wire.JobSource;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.io.Serializable;
 import java.util.Collection;
 
 /**
  * A Cmd configuration. All the subclasses are both Java and JSON serializable.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@type")
 public interface CmdConfig extends Serializable {
   /**
    * @return name of the Cmd job
