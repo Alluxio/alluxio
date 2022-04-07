@@ -120,7 +120,10 @@ $ chmod 755 /mnt/people
 $ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
 
-When `<alluxio_path>` is not given, the value defaults to the root (`/`).
+When `<mount_point>` or `<alluxio_path>` is not provided, the values of alluxio configuration
+`alluxio.fuse.mount.point` (default to local path `/mnt/alluxio-fuse`)
+and `alluxio.fuse.mount.alluxio.path` (default to alluxio root `/`) will be used.
+
 Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy
 and that the user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point
 and have read and write permissions on it.
@@ -255,8 +258,10 @@ and the set up process may be different depending on the platform.
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
-  -o [comma separated mount options] mount_point [alluxio_path]
+  -o [comma separated mount options] [mount_point] [alluxio_path]
 ```
+
+If no mount option is provided, the value of alluxio configuration `alluxio.fuse.mount.options` (default: no mount options) will be used.
 
 {% accordion mount %}
   {% collapsible Tuning mount options %}

@@ -1333,13 +1333,19 @@ fuse:
   clientEnabled: true
 ```
 
-By default, the mountPath is `/mnt/alluxio-fuse`. If you'd like to configure the mountPath of the fuse, please update the following properties:
+To modify the default Fuse mount configuration, one can set
+- `mountPath`: The container path to be mounted. Default to `/mnt/alluxio-fuse`
+- `alluxioPath`: The alluxio path to be mounted to container `mountPath`. Default to `/`
+- `mountOptions`: The Fuse mount options. Default to `allow_other`.
+See [Fuse mount options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-mount-point-options) for more details.
 
 ```properties
 fuse:
   enabled: true
   clientEnabled: true
   mountPath: /mnt/alluxio-fuse
+  alluxioPath: /
+  mountOptions: allow_other
 ```
 
 Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
@@ -1372,9 +1378,7 @@ fuse:
 - Alluxio fuse mount options
 ```properties
 fuse:
-  args:
-    - fuse
-    - --fuse-opts=kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+  mountOptions: kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
 ```
 - Alluxio fuse environment variables
 ```properties
@@ -1416,6 +1420,9 @@ across multiple containers.
 - Alluxio fuse/client java opts can be set in `alluxio-configmap.yaml`:
 ```yaml
   ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse 
+    -Dalluxio.fuse.mount.alluxio.path=/ 
+    -Dalluxio.fuse.mount.options=kernel_cache,max_read=131072,entry_timeout=7200,attr_timeout=7200 
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
     -Dalluxio.user.metadata.cache.enabled=true 
     -Dalluxio.user.metadata.cache.expiration.time=40min 
@@ -1427,14 +1434,6 @@ Note that if Alluxio Worker and Alluxio Fuse is co-located in the same node, All
 can read from the worker storage directly to improve read performance. 
 In this case, Alluxio Fuse need to know about the worker storage information.
 This is why worker storage configuration is set in `ALLUXIO_JAVA_OPTS` shared by all Alluxio containers.
-- Alluxio fuse mount options can be set in `alluxio-fuse.yaml`:
-```yaml
-containers:
-  - name: alluxio-fuse
-    args:
-      - fuse
-      - --fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200
-```
 - Alluxio fuse environment variables can be set in `alluxio-fuse.yaml`:
 ```yaml
 containers:
