@@ -1528,6 +1528,11 @@ $ kubectl apply -f alluxio-pvc-static.yaml
 ```
 to deploy the resources.
 
+Note: If `mountInPod` is set to `true`, in `alluxio-pv.yaml`, the value of `spec.csi.volumeHandle`
+needs to be unique for CSI to identify different volumes. If the values of `volumeHundle` of two
+PVs are the same, CSI would regard them as the same volume, and thus may not launch Fuse pod,
+affecting the business pods.
+
 {% endnavtab %}
 {% navtab Dynamic Volume Provisioning %}
 

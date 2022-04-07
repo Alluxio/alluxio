@@ -261,6 +261,5 @@
 
 0.6.41
 
-- Remove javaOptions under CSI
 - Add property to enable launching Fuse process in a separate pod in CSI
 - Fix default CSI accessMode
