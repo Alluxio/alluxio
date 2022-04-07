@@ -11,6 +11,8 @@
 
 package alluxio.job.plan.replicate;
 
+import alluxio.util.CommonUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,47 +20,39 @@ import org.junit.Test;
 import java.util.Random;
 
 /**
- * Test {@link EvictConfig}.
+ * Test {@link SetReplicaConfig}.
  */
-public final class EvictConfigTest {
+public final class SetReplicaConfigTest {
   @Test
   public void json() throws Exception {
-    EvictConfig config = createRandom();
+    SetReplicaConfig config = createRandom();
     ObjectMapper mapper = new ObjectMapper();
-    EvictConfig other = mapper.readValue(mapper.writeValueAsString(config), EvictConfig.class);
+    SetReplicaConfig other =
+        mapper.readValue(mapper.writeValueAsString(config), SetReplicaConfig.class);
     checkEquality(config, other);
   }
 
   @Test
-  public void negativeReplicas() {
+  public void negativeReplicateNumber() {
     try {
-      new EvictConfig("", 0, -1);
-      Assert.fail("Cannot create EvictConfig with negative replicas");
-    } catch (IllegalArgumentException e) {
+      new SetReplicaConfig("", 0, -1);
+      Assert.fail("Cannot create ReplicateConfig with negative replicateNumber");
+    } catch (IllegalArgumentException exception) {
       // expected exception thrown. test passes
     }
   }
 
-  @Test
-  public void zeroReplicas() {
-    try {
-      new EvictConfig("", 0, 0);
-      Assert.fail("Cannot create EvictConfig with zero replicas");
-    } catch (IllegalArgumentException e) {
-      // expected exception thrown. test passes
-    }
-  }
-
-  public void checkEquality(EvictConfig a, EvictConfig b) {
+  public void checkEquality(SetReplicaConfig a, SetReplicaConfig b) {
     Assert.assertEquals(a.getBlockId(), b.getBlockId());
     Assert.assertEquals(a.getReplicas(), b.getReplicas());
     Assert.assertEquals(a, b);
   }
 
-  public static EvictConfig createRandom() {
+  public static SetReplicaConfig createRandom() {
     Random random = new Random();
-    EvictConfig config = new EvictConfig("", random.nextLong(),
-        random.nextInt(Integer.MAX_VALUE) + 1);
+    String path = "/" + CommonUtils.randomAlphaNumString(random.nextInt(10) + 1);
+    SetReplicaConfig config =
+        new SetReplicaConfig(path, random.nextLong(), random.nextInt(Integer.MAX_VALUE) + 1);
     return config;
   }
 }

@@ -46,7 +46,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.util.SerializableVoid;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -77,12 +76,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tests {@link ReplicateConfig}.
+ * Tests replicate functionality of {@link SetReplicaDefinition}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockStoreClient.class, FileSystemContext.class, JobServerContext.class,
     BlockInStream.class})
-public final class ReplicateDefinitionTest {
+public final class SetReplicaDefinitionReplicateTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final long TEST_BLOCK_SIZE = 512L;
   private static final int MAX_BYTES = 1000;
@@ -142,11 +141,11 @@ public final class ReplicateDefinitionTest {
    * @param workerInfoList a list of current available job workers
    * @return the selection result
    */
-  private Set<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
+  private Set<Pair<WorkerInfo, SetReplicaTask>> selectExecutorsTestHelper(
       int numReplicas, List<WorkerInfo> workerInfoList)
       throws Exception {
-    ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
-    ReplicateDefinition definition = new ReplicateDefinition();
+    SetReplicaConfig config = new SetReplicaConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
+    SetReplicaDefinition definition = new SetReplicaDefinition();
     return definition.selectExecutors(config, workerInfoList,
         new SelectExecutorsContext(1, mMockJobServerContext));
   }
@@ -178,20 +177,21 @@ public final class ReplicateDefinitionTest {
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
     PowerMockito.mockStatic(BlockStoreClient.class);
     when(BlockStoreClient.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
-
-    ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
-    ReplicateDefinition definition = new ReplicateDefinition();
-    definition.runTask(config, null, new RunTaskContext(1, 1, mMockJobServerContext));
+    SetReplicaConfig config =
+        new SetReplicaConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
+    SetReplicaDefinition definition = new SetReplicaDefinition();
+    definition.runTask(config, new SetReplicaTask(Mode.REPLICATE),
+        new RunTaskContext(1, 1, mMockJobServerContext));
   }
 
   @Test
   public void selectExecutorsOnlyOneWorkerAvailable() throws Exception {
     mTestBlockInfo.setLocations(Lists.newArrayList());
-    Set<Pair<WorkerInfo, SerializableVoid>> result =
-        selectExecutorsTestHelper(1,
+    Set<Pair<WorkerInfo, SetReplicaTask>> result =
+        selectExecutorsTestHelper(2,
             Lists.newArrayList(WORKER_INFO_1));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
-    expected.add(new Pair<>(WORKER_INFO_1, null));
+    Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_1, new SetReplicaTask(Mode.REPLICATE)));
     // select the only worker
     assertEquals(expected, result);
   }
@@ -200,11 +200,11 @@ public final class ReplicateDefinitionTest {
   public void selectExecutorsOnlyOneWorkerValid() throws Exception {
     mTestBlockInfo.setLocations(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
-    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        1,
+    Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
+        2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
-    expected.add(new Pair<>(WORKER_INFO_2, null));
+    Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_2, new SetReplicaTask(Mode.REPLICATE)));
     // select one worker left
     assertEquals(expected, result);
   }
@@ -213,12 +213,12 @@ public final class ReplicateDefinitionTest {
   public void selectExecutorsTwoWorkersValid() throws Exception {
     mTestBlockInfo.setLocations(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
-    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        2,
+    Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
+        3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
-    expected.add(new Pair<>(WORKER_INFO_2, null));
-    expected.add(new Pair<>(WORKER_INFO_3, null));
+    Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_2, new SetReplicaTask(Mode.REPLICATE)));
+    expected.add(new Pair<>(WORKER_INFO_3, new SetReplicaTask(Mode.REPLICATE)));
     // select both workers left
     assertEquals(expected, result);
   }
@@ -227,22 +227,22 @@ public final class ReplicateDefinitionTest {
   public void selectExecutorsOneOutOFTwoWorkersValid() throws Exception {
     mTestBlockInfo.setLocations(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
-    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        1,
+    Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
+        2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // select one worker out of two
     assertEquals(1, result.size());
-    assertEquals(null, result.iterator().next().getSecond());
+    assertEquals(new SetReplicaTask(Mode.REPLICATE), result.iterator().next().getSecond());
   }
 
   @Test
   public void selectExecutorsNoWorkerValid() throws Exception {
     mTestBlockInfo.setLocations(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
-    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        1,
+    Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
+        2,
         Lists.newArrayList(WORKER_INFO_1));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
+    Set<Pair<WorkerInfo, SetReplicaTask>> expected = ImmutableSet.of();
     // select none as no choice left
     assertEquals(expected, result);
   }
@@ -251,11 +251,11 @@ public final class ReplicateDefinitionTest {
   public void selectExecutorsInsufficientWorkerValid() throws Exception {
     mTestBlockInfo.setLocations(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
-    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        2,
+    Set<Pair<WorkerInfo, SetReplicaTask>> result = selectExecutorsTestHelper(
+        3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
-    expected.add(new Pair<>(WORKER_INFO_2, null));
+    Set<Pair<WorkerInfo, SetReplicaTask>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_2, new SetReplicaTask(Mode.REPLICATE)));
     // select the only worker left though more copies are requested
     assertEquals(expected, result);
   }
