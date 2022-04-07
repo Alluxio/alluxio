@@ -813,7 +813,7 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service. User will get a job control ID after the command submission is successful.
+using the job service. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -831,7 +831,7 @@ $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ### distributedLoad
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
-across workers using the job service. The job is a no-op if the file is already loaded into Alluxio. User will get a job control ID after the command submission is successful.
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.

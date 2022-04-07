@@ -28,8 +28,10 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Tests for getting cmd status {@link alluxio.cli.fs.command.GetCmdStatusCommand}.
@@ -73,7 +75,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     sFsShell.run("distributedLoad", "/testRoot");
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[3].split("=\\s+")[1];
+    String jobControlId = output[2].split("=\\s+")[1];
     sFsShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
     Assert.assertTrue(mOutput.toString().contains("Status = COMPLETED"));
@@ -89,7 +91,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", String.valueOf(batch));
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[2].split("=\\s+")[1];
+    String jobControlId = output[1].split("=\\s+")[1];
     sFsShell.run("getCmdStatus", jobControlId);
     output = mOutput.toString().split("\n");
     Assert.assertTrue(output[output.length - batch].contains("Status = COMPLETED"));

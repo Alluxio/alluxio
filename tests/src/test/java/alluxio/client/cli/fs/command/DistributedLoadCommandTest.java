@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -295,5 +296,19 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
     Assert.assertEquals(failedPathsFromJobMasterLog.size(), fileSize / 2);
     Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failedPathsFromJobMasterLog));
+  }
+
+  @Test
+  public void testWaitIsFalseForLoad() throws IOException {
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+            10);
+    FileSystemTestUtils
+            .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+    sFsShell.run("distributedLoad", "--wait", "false", "/testRoot");
+
+    String[] output = mOutput.toString().split("\n");
+    Assert.assertFalse(Arrays.toString(output).contains("Waiting for the command to finish ..."));
+    Assert.assertFalse(Arrays.toString(output).contains("Completed command count is"));
   }
 }
