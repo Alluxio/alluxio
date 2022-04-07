@@ -18,6 +18,7 @@ provisioner: alluxio
 parameters:
   alluxioPath: {{ .Values.csi.alluxioPath }}
   mountInPod: "{{ .Values.csi.mountInPod }}"
+  javaOptions: {{ .Values.csi.javaOptions }}
 volumeBindingMode: Immediate
 mountOptions:
   {{- range .Values.csi.mountOptions }}

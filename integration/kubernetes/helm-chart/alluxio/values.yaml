@@ -686,3 +686,4 @@ csi:
     - entry_timeout=36000
     - attr_timeout=36000
     - max_readahead=0
+  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "

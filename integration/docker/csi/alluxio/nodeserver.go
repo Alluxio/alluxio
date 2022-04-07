@@ -41,19 +41,28 @@ type nodeServer struct {
 }
 
 /*
- * If mount in nodeserver, start fuse process
- * If mount in seperate pod, mount bind global mount point to pod mount point
+ * When there is no app pod using the pv, the first app pod using the pv would trigger NodeStageVolume().
+ * Only after a successful return, NodePublishVolume() is called.
+ * When a pv is already in use and a new app pod uses it as its volume, it would only trigger NodePublishVolume()
+ *
+ * NodeUnpublishVolume() and NodeUnstageVolume() are the opposites of NodePublishVolume() and NodeStageVolume()
+ * When a pv would still be using by other pods after an app pod terminated, only NodeUnpublishVolume() is called.
+ * When a pv would not be in use after an app pod terminated, NodeUnpublishVolume() is called. Only after a successful
+ * return, NodeUnstageVolume() is called.
+ *
+ * For more detailed CSI doc, refer to https://github.com/container-storage-interface/spec/blob/master/spec.md
  */
+
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
-	if req.GetVolumeContext()["mountInPod"] == "false" {
-		glog.V(4).Infoln("Will start Fuse process in csi-node-plugin pod.")
-		return nodePublishVolumeMountProcess(req)
+	if req.GetVolumeContext()["mountInPod"] == "true" {
+		glog.V(4).Infoln("Bind mount staging path (global mount point) to target path (pod volume path).")
+		return bindMountGlobalMountPointToPodVolPath(req)
 	}
-	glog.V(4).Infoln("Will start Fuse process in alluxio-fuse pod.")
-	return nodePublishVolumeMountPod(req)
+	glog.V(4).Infoln("Mount Alluxio to target path (pod volume path) with AlluxioFuse in CSI node server.")
+	return newFuseProcessInNodeServer(req)
 }
 
-func nodePublishVolumeMountProcess(req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+func newFuseProcessInNodeServer(req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	targetPath := req.GetTargetPath()
 
 	notMnt, err := ensureMountPoint(targetPath)
@@ -87,6 +96,13 @@ func nodePublishVolumeMountProcess(req *csi.NodePublishVolumeRequest) (*csi.Node
 	args = append(args, targetPath, alluxioPath)
 	command := exec.Command("/opt/alluxio/integration/fuse/bin/alluxio-fuse", args...)
 
+	extraJavaOptions := req.GetVolumeContext()["javaOptions"]
+	alluxioFuseJavaOpts := os.Getenv("ALLUXIO_FUSE_JAVA_OPTS")
+	alluxioFuseJavaOpts = "ALLUXIO_FUSE_JAVA_OPTS=" + strings.Join([]string{alluxioFuseJavaOpts,
+		extraJavaOptions,
+	}, " ")
+	command.Env = append(os.Environ(), alluxioFuseJavaOpts)
+
 	glog.V(4).Infoln(command)
 	stdoutStderr, err := command.CombinedOutput()
 	glog.V(4).Infoln(string(stdoutStderr))
@@ -103,7 +119,7 @@ func nodePublishVolumeMountProcess(req *csi.NodePublishVolumeRequest) (*csi.Node
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
-func nodePublishVolumeMountPod(req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+func bindMountGlobalMountPointToPodVolPath(req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	targetPath := req.GetTargetPath()
 	stagingPath := req.GetStagingTargetPath()
 
@@ -117,26 +133,6 @@ func nodePublishVolumeMountPod(req *csi.NodePublishVolumeRequest) (*csi.NodePubl
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
-	// Wait for alluxio-fuse pod finishing mount to global mount point
-	i := 0
-	for i < 10 {
-		time.Sleep(3 * time.Second)
-		command := exec.Command("bash", "-c", fmt.Sprintf("mount | grep %v | grep alluxio-fuse", stagingPath))
-		stdout, err := command.CombinedOutput()
-		if err != nil {
-			glog.V(3).Infoln("Alluxio is not mounted.")
-		}
-		if len(stdout) > 0 {
-			break
-		}
-		i++
-	}
-	if i == 10 {
-		glog.V(3).Infoln("alluxio-fuse is not mounted to global mount point in 30s.")
-		return nil, status.Error(codes.DeadlineExceeded, "alluxio-fuse is not mounted to global mount point in 30s")
-	}
-
-	// mount bind global mount point to pod mount point
 	args := []string{"--bind", stagingPath, targetPath}
 	command := exec.Command("mount", args...)
 	glog.V(4).Infoln(command)
@@ -154,12 +150,9 @@ func nodePublishVolumeMountPod(req *csi.NodePublishVolumeRequest) (*csi.NodePubl
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
-/*
- * Call umount for both mount in nodeserver and in separate pod.
- */
 func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
 	targetPath := req.GetTargetPath()
-	command := exec.Command("umount", targetPath)
+	command := exec.Command("/opt/alluxio/integration/fuse/bin/alluxio-fuse", "umount", targetPath)
 	glog.V(4).Infoln(command)
 	stdoutStderr, err := command.CombinedOutput()
 	if err != nil {
@@ -176,10 +169,6 @@ func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
-/*
- * If mount in node server, do nothing
- * If mount in separate pod, mount Alluxio to global mount point
- */
 func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
 	if req.GetVolumeContext()["mountInPod"] == "true" {
 		ns.mutex.Lock()
@@ -190,37 +179,41 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		if err != nil {
 			return nil, err
 		}
-		if _, err := ns.client.CoreV1().Pods("default").Create(fusePod); err != nil {
+		if _, err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Create(fusePod); err != nil {
 			return nil, status.Errorf(codes.Internal, "Failed to launch Fuse Pod at %v.\n%v", ns.nodeId, err.Error())
 		}
 		glog.V(4).Infoln("Successfully creating Fuse pod.")
+
+		// Wait for alluxio-fuse pod finishing mount to global mount point
+		i := 0
+		for i < 12 {
+			time.Sleep(5 * time.Second)
+			command := exec.Command("bash", "-c", fmt.Sprintf("mount | grep %v | grep alluxio-fuse", req.GetStagingTargetPath()))
+			stdout, err := command.CombinedOutput()
+			if err != nil {
+				glog.V(3).Infoln("Alluxio is not mounted yet.")
+			}
+			if len(stdout) > 0 {
+				break
+			}
+			i++
+		}
+		if i == 12 {
+			glog.V(3).Infoln("alluxio-fuse is not mounted to global mount point in 60s.")
+			return nil, status.Error(codes.DeadlineExceeded, "alluxio-fuse is not mounted to global mount point in 60s")
+		}
 	}
 	return &csi.NodeStageVolumeResponse{}, nil
 }
 
 func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*v1.Pod, error) {
-	csiFuseYaml, err := ioutil.ReadFile("/opt/alluxio/integration/kubernetes/csi/alluxio-csi-fuse.yaml")
+	csiFusePodObj, err := getFusePodObj()
 	if err != nil {
-		glog.V(4).Info("csi-fuse config yaml file not found")
-		return nil, status.Errorf(codes.NotFound, "csi-fuse config yaml file not found: %v", err.Error())
+		return nil, err
 	}
-	csiFuseObj, grpVerKind, err := scheme.Codecs.UniversalDeserializer().Decode(csiFuseYaml, nil, nil)
-	if err != nil {
-		glog.V(4).Info("Failed to decode csi-fuse config yaml file")
-		return nil, status.Errorf(codes.Internal, "Failed to decode csi-fuse config yaml file.\n", err.Error())
-	}
-	// Only support Fuse Pod for now
-	if grpVerKind.Kind != "Pod" {
-		glog.V(4).Info("csi-fuse only support pod. %v found.")
-		return nil, status.Errorf(codes.InvalidArgument, "csi-fuse only support Pod. %v found.\n%v", grpVerKind.Kind, err.Error())
-	}
-	csiFusePodObj := csiFuseObj.(*v1.Pod)
 
-	// Add nodeName to pod name for uniqueness
-	if nodeId == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "nodeID is missing in the csi setup.\n%v", err.Error())
-	}
-	csiFusePodObj.Name = csiFusePodObj.Name + nodeId
+	// Append volumeId to pod name for uniqueness
+	csiFusePodObj.Name = csiFusePodObj.Name + req.GetVolumeId()
 
 	// Set node name for scheduling
 	csiFusePodObj.Spec.NodeName = nodeId
@@ -236,6 +229,7 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	// Set mount path provided by CSI
 	mountPoint := v1.EnvVar{Name: "MOUNT_POINT", Value: req.GetStagingTargetPath()}
 	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, mountPoint)
+
 	// Set pre-stop command (umount) in pod lifecycle
 	lifecycle := &v1.Lifecycle {
 		PreStop: &v1.Handler {
@@ -250,15 +244,18 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	fuseOptsStr := strings.Join(req.GetVolumeCapability().GetMount().GetMountFlags(), ",")
 	csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, "--fuse-opts=" + fuseOptsStr)
 
+	// Update ALLUXIO_FUSE_JAVA_OPTS to include csi client java options
+	alluxioCSIFuseJavaOpts :=
+		strings.Join([]string{os.Getenv("ALLUXIO_FUSE_JAVA_OPTS"), req.GetVolumeContext()["javaOptions"]}, " ")
+	alluxioFuseJavaOptsEnv := v1.EnvVar{Name: "ALLUXIO_FUSE_JAVA_OPTS", Value: alluxioCSIFuseJavaOpts}
+	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, alluxioFuseJavaOptsEnv)
+
 	return csiFusePodObj, nil
 }
 
-/*
- * Call umount for both mount in nodeserver and in separate pod
- */
 func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
-	podName := "alluxio-fuse-" + ns.nodeId
-	if err := ns.client.CoreV1().Pods("default").Delete(podName, &metav1.DeleteOptions{}); err != nil {
+	podName := "alluxio-fuse-" + req.GetVolumeId()
+	if err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Delete(podName, &metav1.DeleteOptions{}); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			// Pod not found. Try to clean up the mount point.
 			command := exec.Command("umount", req.GetStagingTargetPath())
@@ -321,4 +318,23 @@ func ensureMountPoint(targetPath string) (bool, error) {
 		return true, nil
 	}
 	return notMnt, err
+}
+
+func getFusePodObj() (*v1.Pod, error) {
+	csiFuseYaml, err := ioutil.ReadFile("/opt/alluxio/integration/kubernetes/csi/alluxio-csi-fuse.yaml")
+	if err != nil {
+		glog.V(3).Info("csi-fuse config yaml file not found")
+		return nil, status.Errorf(codes.NotFound, "csi-fuse config yaml file not found: %v", err.Error())
+	}
+	csiFuseObj, grpVerKind, err := scheme.Codecs.UniversalDeserializer().Decode(csiFuseYaml, nil, nil)
+	if err != nil {
+		glog.V(3).Info("Failed to decode csi-fuse config yaml file")
+		return nil, status.Errorf(codes.Internal, "Failed to decode csi-fuse config yaml file.\n", err.Error())
+	}
+	// Only support Fuse Pod
+	if grpVerKind.Kind != "Pod" {
+		glog.V(3).Info("csi-fuse only support pod. %v found.")
+		return nil, status.Errorf(codes.InvalidArgument, "csi-fuse only support Pod. %v found.\n%v", grpVerKind.Kind, err.Error())
+	}
+	return csiFuseObj.(*v1.Pod), nil
 }

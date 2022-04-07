@@ -67,7 +67,7 @@ func main() {
 
 func handle() {
 	startReaper()
-	client, err := startKubeClient()
+	client, err := newKubeClient()
 	if err != nil {
 		glog.Fatalf("Error starting kubeClient")
 		return
@@ -103,7 +103,7 @@ func startReaper() {
 	}()
 }
 
-func startKubeClient() (*kubernetes.Clientset, error) {
+func newKubeClient() (*kubernetes.Clientset, error) {
 	// Use the inClusterConfig because k8s worker machines may not have .kube config file
 	config, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
