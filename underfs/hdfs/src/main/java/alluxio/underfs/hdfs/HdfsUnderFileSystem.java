@@ -223,7 +223,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       // ignore
       LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
           + "HDFS ActiveSync will not be supported. "
-          + "Please upgrade to an HDFS version > 2.7 to enable support for HDFS ActiveSync");
+          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
       LOG.debug("Exception:", e);
     }
 
