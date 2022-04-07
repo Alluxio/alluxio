@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Joiner;
-import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -39,6 +37,12 @@ import javax.ws.rs.core.Response;
  */
 @NotThreadSafe
 public final class TestCase {
+  // make sure that serialization of empty objects does not fail
+  private static final ObjectMapper XML_MAPPER = new XmlMapper()
+      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+      .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
   private final String mHostname;
   private final int mPort;
   private final String mBaseUri;
@@ -125,26 +129,37 @@ public final class TestCase {
   public HttpURLConnection execute() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
-    if (mOptions.getMD5() != null) {
-      connection.setRequestProperty("Content-MD5", mOptions.getMD5());
-    }
-    if (mOptions.getAuthorization() != null) {
-      connection.setRequestProperty("Authorization", mOptions.getAuthorization());
-    }
-    if (mOptions.getInputStream() != null) {
-      connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
-      ByteStreams.copy(mOptions.getInputStream(), connection.getOutputStream());
+    for (Map.Entry<String, String> entry : mOptions.getHeaders().entrySet()) {
+      connection.setRequestProperty(entry.getKey(), entry.getValue());
     }
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", mOptions.getContentType());
-      ObjectMapper mapper = new ObjectMapper();
-      // make sure that serialization of empty objects does not fail
-      mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-      OutputStream os = connection.getOutputStream();
-      os.write(mapper.writeValueAsString(mOptions.getBody()).getBytes());
-      os.close();
+      switch (mOptions.getContentType()) {
+        case TestCaseOptions.XML_CONTENT_TYPE: // encode as XML string
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write(XML_MAPPER.writeValueAsBytes(mOptions.getBody()));
+          }
+          break;
+        case TestCaseOptions.JSON_CONTENT_TYPE: // encode as JSON string
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write(JSON_MAPPER.writeValueAsBytes(mOptions.getBody()));
+          }
+          break;
+        case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: // encode as-is
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write((byte[]) mOptions.getBody());
+          }
+          break;
+        case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: // encode string using the charset
+          try (OutputStream os = connection.getOutputStream()) {
+            os.write(((String) mOptions.getBody()).getBytes(mOptions.getCharset()));
+          }
+          break;
+        default:
+          throw new InvalidArgumentException(String.format(
+              "No mapper available for content type %s in TestCaseOptions!",
+              mOptions.getContentType()));
+      }
     }
 
     connection.connect();
@@ -193,6 +208,14 @@ public final class TestCase {
           } else {
             expected = mapper.writeValueAsString(expectedResult);
           }
+          break;
+        }
+        case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: {
+          expected = new String((byte[]) expectedResult, mOptions.getCharset());
+          break;
+        }
+        case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: {
+          expected = (String) expectedResult;
           break;
         }
         default:

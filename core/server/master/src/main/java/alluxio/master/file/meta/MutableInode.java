@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
@@ -491,7 +492,40 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @return the updated object
    */
   public T setXAttr(Map<String, byte[]> xAttr) {
-    mXAttr = xAttr;
+    return setXAttr(xAttr, File.XAttrUpdateStrategy.TRUNCATE);
+  }
+
+  /**
+   * @param xAttr The new set of extended attributes
+   * @param strategy The update strategy to use
+   * @return the updated object
+   */
+  public T setXAttr(Map<String, byte[]> xAttr, File.XAttrUpdateStrategy strategy)
+      throws IllegalArgumentException {
+    switch (strategy) {
+      case TRUNCATE:
+        mXAttr = xAttr;
+        break;
+      case UNION_REPLACE:
+        mXAttr.putAll(xAttr);
+        break;
+      case UNION_PRESERVE:
+        for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
+          if (mXAttr.containsKey(entry.getKey())) {
+            continue;
+          }
+          mXAttr.put(entry.getKey(), entry.getValue());
+        }
+        break;
+      case DELETE_KEYS:
+        for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
+          mXAttr.remove(entry.getKey());
+        }
+        break;
+      default:
+        throw new IllegalArgumentException(String.format(
+            "Invalid XAttrUpdateStrategy: %s", strategy));
+    }
     return getThis();
   }
 
@@ -607,7 +641,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
       setUfsFingerprint(entry.getUfsFingerprint());
     }
     if (entry.getXAttrCount() > 0) {
-      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
+      setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()),
+          entry.getXAttrUpdateStrategy());
     }
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.

@@ -86,14 +86,16 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   public void serviceName() throws Exception {
     new TestCase(mHostname, mPort, mBaseUri,
         ServiceConstants.SERVICE_NAME, NO_PARAMS, HttpMethod.GET,
-        TestCaseOptions.defaults()).runAndCheckResult(Constants.JOB_MASTER_CLIENT_SERVICE_NAME);
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.JSON_CONTENT_TYPE))
+        .runAndCheckResult(Constants.JOB_MASTER_CLIENT_SERVICE_NAME);
   }
 
   @Test
   public void serviceVersion() throws Exception {
     new TestCase(mHostname, mPort, mBaseUri,
         ServiceConstants.SERVICE_VERSION, NO_PARAMS, HttpMethod.GET,
-        TestCaseOptions.defaults()).runAndCheckResult(Constants.JOB_MASTER_CLIENT_SERVICE_VERSION);
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.JSON_CONTENT_TYPE))
+        .runAndCheckResult(Constants.JOB_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   @Test
@@ -114,7 +116,8 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     params.put("jobId", Long.toString(jobId));
     new TestCase(mHostname, mPort, mBaseUri,
         ServiceConstants.CANCEL, params, HttpMethod.POST,
-        TestCaseOptions.defaults()).runAndCheckResult();
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.JSON_CONTENT_TYPE))
+        .runAndCheckResult();
     waitForStatus(jobId, Status.CANCELED);
   }
 
@@ -123,7 +126,8 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     List<Long> empty = Lists.newArrayList();
     new TestCase(mHostname, mPort, mBaseUri,
         ServiceConstants.LIST, NO_PARAMS, HttpMethod.GET,
-        TestCaseOptions.defaults()).runAndCheckResult(empty);
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.JSON_CONTENT_TYPE))
+        .runAndCheckResult(empty);
   }
 
   @Test
@@ -133,7 +137,8 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     Map<String, String> params = Maps.newHashMap();
     params.put("jobId", Long.toString(jobId));
 
-    TestCaseOptions options = TestCaseOptions.defaults().setPrettyPrint(true);
+    TestCaseOptions options = TestCaseOptions.defaults()
+        .setContentType(TestCaseOptions.JSON_CONTENT_TYPE).setPrettyPrint(true);
     String result = new TestCase(mHostname, mPort, mBaseUri,
         ServiceConstants.GET_STATUS, params, HttpMethod.GET,
         options).runAndGetResponse();
@@ -144,7 +149,9 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   }
 
   private long startJob(JobConfig config) throws Exception {
-    TestCaseOptions options = TestCaseOptions.defaults().setBody(config);
+    TestCaseOptions options = TestCaseOptions.defaults()
+        .setBody(config)
+        .setContentType(TestCaseOptions.JSON_CONTENT_TYPE);
     String result = new TestCase(mHostname, mPort, mBaseUri,
         ServiceConstants.RUN, NO_PARAMS, HttpMethod.POST,
         options).runAndGetResponse();

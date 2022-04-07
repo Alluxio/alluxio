@@ -1683,6 +1683,19 @@
             ]
           },
           {
+            "name": "XAttrPropagationStrategy",
+            "enum_fields": [
+              {
+                "name": "NEW_PATHS",
+                "integer": 1
+              },
+              {
+                "name": "LEAF_NODE",
+                "integer": 2
+              }
+            ]
+          },
+          {
             "name": "SyncPointStatus",
             "enum_fields": [
               {
@@ -2018,6 +2031,27 @@
                 "id": 5,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 7,
+                "name": "xattrPropStrat",
+                "type": "XAttrPropagationStrategy",
+                "options": [
+                  {
+                    "name": "default",
+                    "value": "NEW_PATHS"
+                  }
+                ]
+              }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 6,
+                  "name": "xattr",
+                  "type": "bytes"
+                }
               }
             ]
           },
@@ -2098,6 +2132,27 @@
                 "id": 10,
                 "name": "persistenceWaitTime",
                 "type": "int64"
+              },
+              {
+                "id": 12,
+                "name": "xattrPropStrat",
+                "type": "XAttrPropagationStrategy",
+                "options": [
+                  {
+                    "name": "default",
+                    "value": "NEW_PATHS"
+                  }
+                ]
+              }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 11,
+                  "name": "xattr",
+                  "type": "bytes"
+                }
               }
             ]
           },
@@ -3002,6 +3057,21 @@
                 "name": "pinnedMedia",
                 "type": "string",
                 "is_repeated": true
+              },
+              {
+                "id": 12,
+                "name": "xattrUpdateStrategy",
+                "type": "alluxio.proto.journal.XAttrUpdateStrategy"
+              }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 11,
+                  "name": "xattr",
+                  "type": "bytes"
+                }
               }
             ]
           },
@@ -3573,6 +3643,9 @@
           },
           {
             "path": "grpc/fscommon.proto"
+          },
+          {
+            "path": "proto/journal/file.proto"
           }
         ],
         "package": {
@@ -7634,6 +7707,27 @@
       "def": {
         "enums": [
           {
+            "name": "XAttrUpdateStrategy",
+            "enum_fields": [
+              {
+                "name": "TRUNCATE",
+                "integer": 1
+              },
+              {
+                "name": "UNION_REPLACE",
+                "integer": 2
+              },
+              {
+                "name": "UNION_PRESERVE",
+                "integer": 3
+              },
+              {
+                "name": "DELETE_KEYS",
+                "integer": 4
+              }
+            ]
+          },
+          {
             "name": "PTtlAction",
             "enum_fields": [
               {
@@ -7973,6 +8067,17 @@
                 "id": 19,
                 "name": "overwrite_access_time",
                 "type": "bool"
+              },
+              {
+                "id": 20,
+                "name": "xAttr_update_strategy",
+                "type": "XAttrUpdateStrategy",
+                "options": [
+                  {
+                    "name": "default",
+                    "value": "TRUNCATE"
+                  }
+                ]
               }
             ],
             "maps": [

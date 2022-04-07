@@ -3808,6 +3808,14 @@ public class DefaultFileSystemMaster extends CoreMaster
         entry.setLastModificationTimeMs(opTimeMs);
       }
     }
+    if (protoOptions.getXattrCount() > 0) {
+      LOG.debug("Updating Inode={} with xAttr={}",
+          inodePath.getInode(), protoOptions.getXattrMap());
+      entry.putAllXAttr(protoOptions.getXattrMap());
+      if (protoOptions.hasXattrUpdateStrategy()) {
+        entry.setXAttrUpdateStrategy(protoOptions.getXattrUpdateStrategy());
+      } // otherwise, uses the UpdateInodeEntry gRPC message default update strategy
+    }
     if (protoOptions.hasPersisted()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
       Preconditions.checkArgument(inode.asFile().isCompleted(),
