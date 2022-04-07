@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
