@@ -302,21 +302,18 @@ public final class PathUtils {
     if (prefix.endsWith("/") && !path.endsWith("/")) {
       path = normalizePath(path, "/");
     }
-
     // Firstly, we check if the `path` starts with `prefix`,
-    // if so, then if `path` and `prefix` is equal, or the prefix endsWith `/` and
-    // the char at the index, which the prefix lastly match, is also a `/`, or the
-    // char at the index right after the `prefix` indicates the end of the last
-    // directory(which is a `/`)
-    // can prove that `prefix` is the prefix of `path`.
-    // The second "or" condition at the second "and" condition is to exclude the
-    // case where `path` starts with the `prefix`, but the last matched position
-    // is actually not the end of a directory(e.g. prefix: '/a/b/c', path: '/a/b/ccc').
-    return path.startsWith(prefix)
-        &&
-        (path.length() == prefix.length()
-            || (prefix.endsWith("/") && path.charAt(prefix.length() - 1) == '/')
-            || path.charAt(prefix.length()) == '/');
+    if (path.startsWith(prefix)) {
+      // Then, check if path and prefix has the same length;
+      boolean isPathLengthEqualsPrefix = path.length() == prefix.length();
+      // This condition is to include the case like `prefix: /a/b/, path: /a/b/c/`
+      boolean isPathPrefixEnd = prefix.endsWith("/") && path.charAt(prefix.length() - 1) == '/';
+      // This condition is to exclude the case like `prefix: '/a/b/c', path: '/a/b/ccc'`
+      boolean isPathValidAfterThePrefix =
+          path.length() > prefix.length() && path.charAt(prefix.length()) == '/';
+      return isPathLengthEqualsPrefix || isPathPrefixEnd || isPathValidAfterThePrefix;
+    }
+    return false;
   }
 
   /**
