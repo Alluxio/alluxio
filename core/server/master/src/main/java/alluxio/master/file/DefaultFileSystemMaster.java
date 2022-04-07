@@ -943,20 +943,27 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath, Counter counter)
       throws FileDoesNotExistException, UnavailableException {
+    int inMemoryPercentage;
+    int inAlluxioPercentage;
     Inode inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     if (fileInfo.isFolder()) {
       fileInfo.setLength(inode.asDirectory().getChildCount());
     }
-    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
-    fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
-      try {
-        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
-      } catch (InvalidPathException e) {
-        throw new FileDoesNotExistException(e.getMessage(), e);
+      InodeFile inodeFile = inode.asFile();
+      List<BlockInfo> blockInfos = mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
+      inMemoryPercentage = getFileInMemoryPercentageInternal(inodeFile, blockInfos);
+      inAlluxioPercentage = getFileInAlluxioPercentageInternal(inodeFile, blockInfos);
+      fileInfo.setInMemoryPercentage(inMemoryPercentage);
+      fileInfo.setInAlluxioPercentage(inAlluxioPercentage);
+
+      List<FileBlockInfo> fileBlockInfos = new ArrayList<>(blockInfos.size());
+      for (BlockInfo blockInfo : blockInfos) {
+        fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo));
       }
+      fileInfo.setFileBlockInfos(fileBlockInfos);
     }
     // Rehydrate missing block-infos for persisted files.
     if (fileInfo.isCompleted()
@@ -1866,30 +1873,27 @@ public class DefaultFileSystemMaster extends CoreMaster
               .getMessage(path));
         }
 
+        List<String> failedChildren = new ArrayList<>();
         if (context.getOptions().getRecursive()) {
-          List<String> failedChildren = new ArrayList<>();
-          try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
-            for (LockedInodePath childPath : descendants) {
-              try {
-                mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
-                if (mMountTable.isMountPoint(childPath.getUri())) {
-                  mMountTable.checkUnderWritableMountPoint(childPath.getUri());
-                }
-              } catch (AccessControlException e) {
-                failedChildren.add(e.getMessage());
+          List<MountInfo> childrenMountPoints = mMountTable.findChildrenMountPoints(path, true);
+          if (!childrenMountPoints.isEmpty()) {
+            LOG.debug("Recursively deleting {} which contains mount points {}",
+                path, childrenMountPoints);
+            for (MountInfo mount : childrenMountPoints) {
+              if (mount.getOptions().getReadOnly()) {
+                failedChildren.add(new AccessControlException(ExceptionMessage.MOUNT_READONLY,
+                    mount.getAlluxioUri(), mount).getMessage());
               }
             }
-            if (failedChildren.size() > 0) {
-              throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
-                  .getMessage(path, StringUtils.join(failedChildren, ",")));
-            }
-          } catch (AccessControlException e) {
+          }
+          if (failedChildren.size() > 0) {
             auditContext.setAllowed(false);
-            throw e;
+            throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
+                .getMessage(path, StringUtils.join(failedChildren, ",")));
           }
         }
 
-        deleteInternal(rpcContext, inodePath, context);
+        deleteInternal(rpcContext, inodePath, context, false);
         auditContext.setSucceeded(true);
         cacheOperation(context);
       }
@@ -1903,14 +1907,21 @@ public class DefaultFileSystemMaster extends CoreMaster
    * be deleted after the inode deletion journal entry has been written. We cannot delete blocks
    * earlier because the inode deletion may fail, leaving us with inode containing deleted blocks.
    *
+   * This method is used at:
+   * (1) delete()
+   * (2) unmount()
+   * (3) metadata sync (when a file/dir has been removed in UFS)
+   * Permission check should be skipped in (2) and (3).
+   *
    * @param rpcContext the rpc context
    * @param inodePath the file {@link LockedInodePath}
    * @param deleteContext the method optitions
+   * @param bypassPermCheck whether the permission check has been done before entering this call
    */
   @VisibleForTesting
   public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      DeleteContext deleteContext) throws FileDoesNotExistException, IOException,
-      DirectoryNotEmptyException, InvalidPathException {
+      DeleteContext deleteContext, boolean bypassPermCheck) throws FileDoesNotExistException,
+      IOException, DirectoryNotEmptyException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
@@ -1943,13 +1954,43 @@ public class DefaultFileSystemMaster extends CoreMaster
     } else {
       inodesToDelete = new ArrayList<>(1);
     }
-
     // Add root of sub-tree to delete
     inodesToDelete.add(new Pair<>(inodePath.getUri(), inodePath));
+    // Inodes that are not safe for recursive deletes
+    // Issues#15266: This can be replaced by a Trie<Long> using prefix matching
+    Set<Long> unsafeInodes = new HashSet<>();
+    // Alluxio URIs (and the reason for failure) which could not be deleted
+    List<Pair<String, String>> failedUris = new ArrayList<>();
 
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
+      // This walks the tree in a DFS flavor, first all the children in a subtree,
+      // then the sibling trees one by one.
+      // Therefore, we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
-        inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
+        if (bypassPermCheck) {
+          inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
+        } else {
+          try {
+            // If this inode's parent already failed the permission check, skip this child
+            // Because we first see the parent then all its children
+            if (unsafeInodes.contains(childPath.getAncestorInode().getId())) {
+              // We still need to add this child to the unsafe set because we are going to
+              // walk over this child's children.
+              unsafeInodes.add(childPath.getInode().getId());
+              continue;
+            }
+            mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
+            inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
+          } catch (AccessControlException e) {
+            // If we do not have permission to delete the inode, then
+            Inode inodeToDelete = childPath.getInode();
+            unsafeInodes.add(inodeToDelete.getId());
+            // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
+            unsafeInodes.add(inodeToDelete.getParentId());
+            // All this node's children will be skipped in the failure message
+            failedUris.add(new Pair<>(childPath.toString(), e.getMessage()));
+          }
+        }
       }
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
@@ -1957,11 +1998,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         ufsDeleter = new SafeUfsDeleter(mMountTable, mInodeStore, inodesToDelete,
             deleteContext.getOptions().build());
       }
-
-      // Inodes that are not safe for recursive deletes
-      Set<Long> unsafeInodes = new HashSet<>();
-      // Alluxio URIs (and the reason for failure) which could not be deleted
-      List<Pair<String, String>> failedUris = new ArrayList<>();
 
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
@@ -2262,13 +2298,24 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     InodeFile inodeFile = inode.asFile();
 
+    return getFileInMemoryPercentageInternal(inodeFile,
+        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+  }
+
+  /**
+   * Gets the File in-memory percentage of a File Inode.
+   *
+   * @param blockInfos the inode
+   * @return the in memory percentage
+   */
+  private int getFileInMemoryPercentageInternal(InodeFile inodeFile, List<BlockInfo> blockInfos) {
     long length = inodeFile.getLength();
     if (length == 0) {
       return 100;
     }
 
     long inMemoryLength = 0;
-    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+    for (BlockInfo info : blockInfos) {
       if (isInTopStorageTier(info)) {
         inMemoryLength += info.getLength();
       }
@@ -2289,13 +2336,24 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     InodeFile inodeFile = inode.asFile();
 
+    return getFileInAlluxioPercentageInternal(inodeFile,
+        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+  }
+
+  /**
+   * Gets the File in-Alluxio percentage of a File Inode.
+   *
+   * @param inodeFile the File inode
+   * @return the in alluxio percentage
+   */
+  private int getFileInAlluxioPercentageInternal(InodeFile inodeFile, List<BlockInfo> blockInfos) {
     long length = inodeFile.getLength();
     if (length == 0) {
       return 100;
     }
 
     long inAlluxioLength = 0;
-    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+    for (BlockInfo info : blockInfos) {
       if (!info.getLocations().isEmpty()) {
         inAlluxioLength += info.getLength();
       }
@@ -3169,7 +3227,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       deleteInternal(rpcContext, inodePath, DeleteContext
-          .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
+          .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)), true);
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "

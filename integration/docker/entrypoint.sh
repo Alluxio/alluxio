@@ -15,8 +15,6 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
-MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
-ALLUXIO_PATH="${FUSE_ALLUXIO_PATH:-/}"
 ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
 ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
 ALLUXIO_UID="${ALLUXIO_UID:-0}"
@@ -103,19 +101,24 @@ function formatWorkerIfSpecified {
 }
 
 function mountAlluxioRootFSWithFuseOption {
-  local fuseOptions=""
+  local mountOptions=""
   if [[ -n ${OPTIONS} ]]; then
     if [[ ! ${OPTIONS} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${OPTIONS#*=} ]]; then
       printUsage
       exit 1
     fi
-    fuseOptions="-o ${OPTIONS#*=}"
+    mountOptions="-o ${OPTIONS#*=}"
+  fi
+  local mountPoint=""
+  local alluxioPath=""
+  if [[ -n "${MOUNT_POINT}" ]]; then
+    mountPoint="${MOUNT_POINT}"
+    if [[ -n "${FUSE_ALLUXIO_PATH}" ]]; then
+      alluxioPath="${FUSE_ALLUXIO_PATH}"
+    fi
   fi
 
-  ! mkdir -p ${MOUNT_POINT}
-  # Unmount first if cleanup failed and ignore error
-  ! umount ${MOUNT_POINT}
-  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} ${ALLUXIO_PATH}
+  exec integration/fuse/bin/alluxio-fuse mount -n ${mountOptions} ${mountPoint} ${alluxioPath}
 }
 
 function startCsiServer {

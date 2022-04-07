@@ -14,6 +14,7 @@ package alluxio.logserver;
 import alluxio.AlluxioRemoteLogFilter;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Hierarchy;
@@ -49,7 +50,8 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private final String mBaseLogsDir;
   private final Socket mSocket;
 
-  private static void setAcceptList(ValidatingObjectInputStream validatingObjectInputStream) {
+  @VisibleForTesting
+  static void setAcceptList(ValidatingObjectInputStream validatingObjectInputStream) {
     validatingObjectInputStream.accept(java.util.Hashtable.class);
     validatingObjectInputStream.accept("java.lang.*", "[Ljava.lang.*");
     validatingObjectInputStream.accept(org.apache.log4j.spi.LoggingEvent.class);

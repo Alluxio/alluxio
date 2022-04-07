@@ -168,7 +168,7 @@ fi
 ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}"
 
 # FUSE specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=FUSE_LOGGER -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=FUSE_LOGGER -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
 ALLUXIO_FUSE_JAVA_OPTS="${ALLUXIO_FUSE_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS}"
 
 # Log server specific parameters that will be passed to alluxio log server

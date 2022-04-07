@@ -28,8 +28,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Configuration of a job replicating a block.
  */
 @ThreadSafe
-@JsonTypeName(ReplicateConfig.NAME)
-public final class ReplicateConfig implements PlanConfig {
+@JsonTypeName(SetReplicaConfig.NAME)
+public final class SetReplicaConfig implements PlanConfig {
   private static final long serialVersionUID = 1807931900696165058L;
   public static final String NAME = "Replicate";
 
@@ -39,20 +39,20 @@ public final class ReplicateConfig implements PlanConfig {
   /** Alluxio path of the file to replicate. */
   private String mPath;
 
-  /** How many replicas to make for this block. */
+  /** target replicas to make for this block. */
   private int mReplicas;
 
   /**
-   * Creates a new instance of {@link ReplicateConfig}.
+   * Creates a new instance of {@link SetReplicaConfig}.
    *
    * @param path Alluxio path of the file whose block to replicate
    * @param blockId id of the block to replicate
    * @param replicas number of additional replicas to create
    */
   @JsonCreator
-  public ReplicateConfig(@JsonProperty("path") String path, @JsonProperty("blockId") long blockId,
+  public SetReplicaConfig(@JsonProperty("path") String path, @JsonProperty("blockId") long blockId,
       @JsonProperty("replicas") int replicas) {
-    Preconditions.checkArgument(replicas > 0, "replicas must be positive.");
+    Preconditions.checkArgument(replicas >= 0, "replicas must be non-negative.");
     mBlockId = blockId;
     mPath = path;
     mReplicas = replicas;
@@ -97,10 +97,10 @@ public final class ReplicateConfig implements PlanConfig {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof ReplicateConfig)) {
+    if (!(obj instanceof SetReplicaConfig)) {
       return false;
     }
-    ReplicateConfig that = (ReplicateConfig) obj;
+    SetReplicaConfig that = (SetReplicaConfig) obj;
     return Objects.equal(mBlockId, that.mBlockId)
         && Objects.equal(mPath, that.mPath)
         && Objects.equal(mReplicas, that.mReplicas);

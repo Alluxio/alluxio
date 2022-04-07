@@ -135,12 +135,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    * @param conf Alluxio configuration
    */
   public AlluxioJniFuseFileSystem(
-      FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
+      FileSystem fs, FuseMountConfig opts, AlluxioConfiguration conf) {
     super(Paths.get(opts.getMountPoint()));
     mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mConf = conf;
-    mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    mAlluxioRootPath = Paths.get(opts.getMountAlluxioPath());
     mMountPoint = opts.getMountPoint();
     mFuseShell = new FuseShell(fs, conf);
     mPathResolverCache = CacheBuilder.newBuilder()

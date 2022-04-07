@@ -53,6 +53,7 @@ import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
@@ -67,7 +68,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Isolation tests for {@link AlluxioJniFuseFileSystem}.
@@ -92,9 +92,8 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    final List<String> empty = Collections.emptyList();
-    FuseMountOptions opts =
-        new FuseMountOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
+    FuseMountConfig opts =
+        FuseMountConfig.create("/doesnt/matter", TEST_ROOT_PATH, ImmutableList.of(), mConf);
 
     mFileSystem = mock(FileSystem.class);
     try {
