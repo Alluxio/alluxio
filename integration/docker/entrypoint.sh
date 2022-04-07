@@ -109,8 +109,16 @@ function mountAlluxioRootFSWithFuseOption {
     fi
     mountOptions="-o ${OPTIONS#*=}"
   fi
+  local mountPoint=""
+  local alluxioPath=""
+  if [[ -n "${MOUNT_POINT}" ]]; then
+    mountPoint="${MOUNT_POINT}"
+    if [[ -n "${FUSE_ALLUXIO_PATH}" ]]; then
+      alluxioPath="${FUSE_ALLUXIO_PATH}"
+    fi
+  fi
 
-  exec integration/fuse/bin/alluxio-fuse mount -n ${mountOptions}
+  exec integration/fuse/bin/alluxio-fuse mount -n ${mountOptions} ${mountPoint} ${alluxioPath}
 }
 
 function startCsiServer {

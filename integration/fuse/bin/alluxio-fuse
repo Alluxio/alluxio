@@ -223,7 +223,8 @@ fuse_stat() {
 }
 
 fuse_mounted() {
-  local fuse_mount_info="$(mount | grep "${mount_point}")"
+  # Add spaces around the mount point to avoid the mount point be wrapped in existing mount points path
+  local fuse_mount_info="$(mount | grep " ${mount_point} ")"
   if [[ -n "${fuse_mount_info}" ]]; then
     # 0 = true
     return 0
