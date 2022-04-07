@@ -28,10 +28,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Tests for getting cmd status {@link alluxio.cli.fs.command.GetCmdStatusCommand}.
