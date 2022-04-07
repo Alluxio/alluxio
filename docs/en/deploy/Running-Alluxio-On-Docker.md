@@ -460,7 +460,8 @@ capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 - Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
 The default fuse mount point is `/mnt/alluxio-fuse` in the worker container which will be created at runtime if not exist.
-To change the fuse mount point, specify `alluxio.fuse.mount.point=<mount_point>`.
+See [Fuse on worker process]({{ '/en/api/POSIX-API.html' | relativize_url }}#fuse-on-worker-process)
+for more details about how to modify the mount configuration.
 
 Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
 This is because local path `/mnt` in worker container is mapped to host path `/tmp/mnt`,
@@ -480,7 +481,11 @@ $ docker run -d --rm \
     --net=host \
     --name=alluxio-fuse \
     -v /tmp/mnt:/mnt:rshared \
-    -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=localhost" \
+    -e ALLUXIO_FUSE_JAVA_OPTS=" \
+        -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse \
+        -Dalluxio.fuse.mount.alluxio.path=/ \
+        -Dalluxio.fuse.mount.options=kernel_cache" \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
     --security-opt apparmor:unconfined \
@@ -494,15 +499,17 @@ To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tm
 capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 
+See [Fuse options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-alluxio-fuse-options) for more details about how to modify the Fuse mount configuration.
+
 {% endnavtab %}
 {% endnavtabs %}
 
 Additional POSIX API configuration can also be added based on actual use cases.
 For example,
-- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
+- `-e "ALLUXIO_FUSE_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
 to Alluxio POSIX API container. The example java opts enables translating Alluxio users and groups
 into Unix users and groups when exposing Alluxio files through the FUSE API.
-- `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
+- `-e "ALLUXIO_FUSE_JAVA_OPTS="-Dlluxio.fuse.mount.point=/mnt/alluxio-fuse-diff-path"` set Alluxio Fuse mount point to a different path other than default value `/mnt/alluxio-fuse`.
 
 ## Performance Optimization
 
