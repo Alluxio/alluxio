@@ -408,7 +408,7 @@ tieredstore:
 ## Proxy ##
 proxy:
   enabled: false # Enable this to enable the proxy for REST API
-  replicas: 1
+  count: 1
   env:
   # Extra environment variables for the Proxy pod
   # Example:

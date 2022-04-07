@@ -94,7 +94,8 @@ function generateWorkerTemplates {
 
 function generateProxyTemplates {
   echo "Generating proxy templates"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set proxy.enabled=true --show-only templates/proxy/deployment.yaml -f $dir/config.yaml > "$dir/proxy/alluxio-proxy-deployment.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set proxy.enabled=true --show-only templates/proxy/statefulset.yaml -f $dir/config.yaml > "$dir/proxy/alluxio-proxy-statefulset.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/proxy/service.yaml -f $dir/config.yaml > "$dir/proxy/alluxio-proxy-service.yaml.template"
 }
 
 function generateFuseTemplates {

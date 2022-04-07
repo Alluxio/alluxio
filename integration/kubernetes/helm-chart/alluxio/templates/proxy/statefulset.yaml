@@ -10,12 +10,13 @@
 #
 
 {{- if .Values.proxy.enabled }}
+{{- $proxyCount := int .Values.proxy.count }}
 {{- $hostNetwork := .Values.proxy.hostNetwork }}
 {{- $hostPID := .Values.proxy.hostPID }}
 {{- $fullName := include "alluxio.fullname" . }}
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ template "alluxio.fullname" . }}-proxy
   labels:
@@ -32,7 +33,9 @@ spec:
       release: {{ .Release.Name }}
       heritage: {{ .Release.Service }}
       role: alluxio-proxy
-  replicas: {{ .Values.proxy.replicas }}
+  serviceName: {{ $fullName }}-proxy
+  podManagementPolicy: Parallel
+  replicas: {{ $proxyCount }}
   template:
     metadata:
       labels:
@@ -79,7 +82,7 @@ spec:
                   - key: role
                     operator: In
                     values:
-                      - alluxio-worker
+                      - alluxio-master
               topologyKey: kubernetes.io/hostname
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
