@@ -38,6 +38,7 @@ import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.proxy.s3.TaggingData;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
@@ -60,7 +61,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
-import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -68,6 +68,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.security.auth.Subject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
@@ -420,6 +421,23 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getNonExistingBucket() throws Exception {
+    final String bucketName = "root-level-file";
+    mFileSystem.createFile(new AlluxioURI("/" + bucketName));
+
+    try {
+      // GET on a non-existing bucket should fail.
+      new TestCase(mHostname, mPort, mBaseUri,
+          bucketName, NO_PARAMS, HttpMethod.GET,
+          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+          .runAndGetResponse();
+    } catch (AssertionError e) {
+      return; // expected
+    }
+    Assert.fail("GET on a non-existing bucket should fail");
+  }
+
+  @Test
   public void deleteNonEmptyBucket() throws Exception {
     final String bucketName = "non-empty-bucket";
 
@@ -452,7 +470,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     if (partNumber != null) {
       params.put("partNumber", partNumber.toString());
     }
-    createObjectRestCall(objectKey, object, null, params);
+    createObjectRestCall(objectKey, params,
+        TestCaseOptions.defaults()
+            .setBody(object)
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(object)));
   }
 
   private void putObjectTest(String bucket, String objectKey, byte[] object, Long uploadId,
@@ -521,7 +543,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     String message = "hello world";
     try {
-      createObjectRestCall(objectKey, message.getBytes(), null, NO_PARAMS);
+      createObjectRestCall(objectKey, NO_PARAMS,
+          TestCaseOptions.defaults()
+              .setBody(message.getBytes())
+              .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+              .setMD5(computeObjectChecksum(message.getBytes())));
     } catch (AssertionError e) {
       // expected
       return;
@@ -538,7 +564,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectContent = "hello world";
     try {
       String wrongMD5 = BaseEncoding.base64().encode(objectContent.getBytes());
-      createObjectRestCall(objectKey, objectContent.getBytes(), wrongMD5, NO_PARAMS);
+      createObjectRestCall(objectKey, NO_PARAMS,
+          TestCaseOptions.defaults()
+              .setBody(objectContent.getBytes())
+              .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+              .setMD5(wrongMD5));
     } catch (AssertionError e) {
       // expected
       return;
@@ -554,34 +584,22 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     String objectContent = "no md5 set";
     TestCaseOptions options = TestCaseOptions.defaults();
-    options.setInputStream(new ByteArrayInputStream(objectContent.getBytes()));
+    options.setBody(objectContent.getBytes());
+    options.setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE);
     new TestCase(mHostname, mPort, mBaseUri,
         objectKey, NO_PARAMS, HttpMethod.PUT,
         options).runAndCheckResult();
-  }
-
-  @Test
-  public void getNonExistingBucket() throws Exception {
-    final String bucketName = "non-existing-bucket";
-
-    try {
-      // Delete a non-existing bucket should fail.
-      new TestCase(mHostname, mPort, mBaseUri,
-          bucketName, NO_PARAMS, HttpMethod.GET,
-          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-          .runAndCheckResult();
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("get a non-existing bucket should fail");
   }
 
   private void getObjectTest(byte[] expectedObject) throws Exception {
     final String bucket = "bucket";
     createBucketRestCall(bucket);
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
-    createObjectRestCall(objectKey, expectedObject, null, NO_PARAMS);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(expectedObject)
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(expectedObject)));
     Assert.assertArrayEquals(expectedObject, getObjectRestCall(objectKey).getBytes());
   }
 
@@ -614,7 +632,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     final byte[] objectContent = CommonUtils.randomAlphaNumString(10).getBytes();
-    createObjectRestCall(objectKey, objectContent, null, NO_PARAMS);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectContent)
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectContent)));
 
     HttpURLConnection connection = getObjectMetadataRestCall(objectKey);
     URIStatus status = mFileSystem.getStatus(
@@ -936,6 +958,118 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
   }
 
+  @Test
+  public void testObjectContentType() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData)
+            .setContentType(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes())));
+
+    HttpURLConnection connection = getObjectMetadataRestCall(objectKey);
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE,
+        connection.getHeaderField(TestCaseOptions.CONTENT_TYPE_HEADER));
+  }
+
+  @Test
+  public void testBucketTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+    testTagging(bucketName, ImmutableMap.of());
+  }
+
+  @Test
+  public void testObjectTagsHeader() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=bar&baz"));
+
+    testTagging(objectKey, ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ));
+  }
+
+  @Test
+  public void testObjectTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes())));
+
+    testTagging(objectKey, ImmutableMap.of());
+  }
+
+  @Test
+  public void testFolderTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String folderName = "folder";
+    String folderKey = bucketName + AlluxioURI.SEPARATOR + folderName;
+    final String objectName = "object";
+    String objectKey = folderKey + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=bar"));
+
+    // Ensure that folders are not populated with tags from children
+    testTagging(folderKey, ImmutableMap.of());
+  }
+
+  private void testTagging(String resource, ImmutableMap<String, String> expectedTags)
+      throws Exception {
+    // Get{...}Tagging
+    TaggingData tagData = getTagsRestCall(resource);
+    if (expectedTags != null) { // allow skipping checking of initial tags
+      Assert.assertEquals(expectedTags, tagData.getTagMap());
+    }
+
+    // Put{...}Tagging
+    Map<String, String> tagMap = ImmutableMap.of(
+        "foo", "bar",
+        "fu", "bar",
+        "baz", ""
+    );
+    tagData.addTags(tagMap);
+    putTagsRestCall(resource, tagData);
+
+    // Get{...}Tagging
+    TaggingData newTags = getTagsRestCall(resource);
+    Assert.assertEquals(tagMap, newTags.getTagMap());
+
+    // Delete{...}Tagging
+    deleteTagsRestCall(resource);
+    TaggingData deletedTags = getTagsRestCall(resource);
+    Assert.assertEquals(0, deletedTags.getTagMap().size());
+  }
+
   private void createBucketRestCall(String bucketUri) throws Exception {
     new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, NO_PARAMS, HttpMethod.PUT,
@@ -948,19 +1082,16 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults()).execute();
   }
 
-  private void createObjectRestCall(String objectUri, byte[] objectContent, String md5,
-      Map<String, String> params) throws Exception {
-    TestCaseOptions options = TestCaseOptions.defaults();
-    if (md5 == null) {
-      MessageDigest md5Hash = MessageDigest.getInstance("MD5");
-      byte[] md5Digest = md5Hash.digest(objectContent);
-      md5 = BaseEncoding.base64().encode(md5Digest);
-    }
-    options.setMD5(md5);
-    options.setInputStream(new ByteArrayInputStream(objectContent));
-    new TestCase(mHostname, mPort, mBaseUri,
-        objectUri, params, HttpMethod.PUT,
-        options).runAndCheckResult();
+  private String computeObjectChecksum(byte[] objectContent) throws Exception {
+    MessageDigest md5Hash = MessageDigest.getInstance("MD5");
+    byte[] md5Digest = md5Hash.digest(objectContent);
+    return BaseEncoding.base64().encode(md5Digest);
+  }
+
+  private void createObjectRestCall(String objectUri, @NotNull Map<String, String> params,
+                                    @NotNull TestCaseOptions options) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri, objectUri, params, HttpMethod.PUT, options)
+        .runAndCheckResult();
   }
 
   private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
@@ -1009,5 +1140,30 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.DELETE,
         TestCaseOptions.defaults()).runAndCheckResult();
+  }
+
+  private void deleteTagsRestCall(String uri) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.DELETE,
+        TestCaseOptions.defaults()).runAndCheckResult();
+  }
+
+  private TaggingData getTagsRestCall(String uri) throws Exception {
+    String res = new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)
+    ).runAndGetResponse();
+    XmlMapper mapper = new XmlMapper();
+    return mapper.readValue(res, TaggingData.class);
+  }
+
+  private void putTagsRestCall(String uri, @NotNull TaggingData tags) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setCharset(S3Constants.TAGGING_CHARSET)
+            .setBody(TaggingData.serialize(tags).toByteArray()))
+        .runAndCheckResult();
   }
 }

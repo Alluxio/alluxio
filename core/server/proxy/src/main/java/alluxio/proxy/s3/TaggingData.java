@@ -11,21 +11,23 @@
 
 package alluxio.proxy.s3;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.protobuf.ByteString;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Parsed version of the S3 tagging XML.
@@ -33,39 +35,31 @@ import java.util.Set;
  * - GetBucketTagging, GetObjectTagging, PutBucketTagging, PutObjectTagging
  */
 @JacksonXmlRootElement(localName = "Tagging")
-public class TaggingData implements Serializable {
-  public static final long serialVersionUID = 1L;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class TaggingData {
+  private static final XmlMapper MAPPER = new XmlMapper();
+
+  @XmlTransient
+  private final Map<String, String> mTagMap;
 
   /**
-   * Deserialize the object.
+   * Deserialize the XML (bytes).
    * @param bytes byte array of the Java-serialized object
    * @return a deserialized {@link TaggingData} object
    */
   public static TaggingData deserialize(byte[] bytes)
-      throws IOException, ClassNotFoundException {
-    TaggingData tagData;
-    try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-         ObjectInputStream oos = new ObjectInputStream(bis)) {
-      tagData = (TaggingData) oos.readObject();
-    }
-    return tagData;
+      throws IOException {
+    return MAPPER.readerFor(TaggingData.class).readValue(bytes);
   }
 
   /**
-   * Serializes the object.
+   * Serializes the object as an XML (bytes).
    * @param tagData the {@link TaggingData} object to serialize
    * @return the {@link ByteString} serialization of this object
    */
   public static ByteString serialize(TaggingData tagData)
-      throws IOException {
-    ByteString bytes;
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-      oos.writeObject(tagData);
-      oos.flush();
-      bytes = ByteString.copyFrom(bos.toByteArray());
-    }
-    return bytes;
+      throws JsonProcessingException {
+    return ByteString.copyFrom(MAPPER.writeValueAsBytes(tagData));
   }
 
   @JacksonXmlProperty(localName = "TagSet")
@@ -75,7 +69,7 @@ public class TaggingData implements Serializable {
    * Default constructor for jackson.
    */
   public TaggingData() {
-    mTagSet = new TagSet();
+    this(new TagSet());
   }
 
   /**
@@ -83,7 +77,8 @@ public class TaggingData implements Serializable {
    *
    * @param tagSet the user metadata tags
    */
-  public TaggingData(TagSet tagSet) {
+  public TaggingData(@Nullable TagSet tagSet) {
+    mTagMap = new HashMap<>();
     setTagSet(tagSet); // use setter method for tag validation
   }
 
@@ -93,16 +88,20 @@ public class TaggingData implements Serializable {
    * @param tagSet set of user metadata tags
    */
   @JacksonXmlProperty(localName = "TagSet")
-  public void setTagSet(TagSet tagSet) {
+  private void setTagSet(@Nullable TagSet tagSet) {
+    if (tagSet == null) { // forced to accept null parameter for unmarshalling XML strings
+      tagSet = new TagSet();
+    }
     mTagSet = tagSet;
     validateTags();
+    repopulateTagMap();
   }
 
   /**
    * @return the tag set
    */
   @JacksonXmlProperty(localName = "TagSet")
-  public TagSet getTagSet() {
+  private TagSet getTagSet() {
     return mTagSet;
   }
 
@@ -112,11 +111,66 @@ public class TaggingData implements Serializable {
   }
 
   /**
+   * Returns the Map object containing the contents of
+   * the TagSet. Useful for parsing or iterating over tag data.
+   * @return a Map object containing the tags
+   */
+  @XmlTransient
+  public Map<String, String> getTagMap() {
+    return mTagMap;
+  }
+
+  /**
+   * Adds the provided key-value pair as a new tag
+   * Overwrites any duplicate tags.
+   * @param key
+   * @param value
+   * @return a reference to this object
+   */
+  private void addTag(String key, String value) {
+    if (!mTagMap.containsKey(key)) {
+      mTagSet.mTags.add(new TagObject(key, value));
+      mTagMap.put(key, value);
+    } // else, we have to update the existing tag
+    for (TagObject tag : mTagSet.mTags) {
+      if (tag.mKey.equals(key)) {
+        tag.mValue = value;
+        break;
+      }
+    }
+    mTagMap.put(key, value);
+  }
+
+  /**
+   * Merges the contents of the provided tag map with
+   * the existing tags. Overwrites any duplicate tags.
+   * @param tagMap
+   * @return a reference to this object
+   */
+  @XmlTransient
+  public TaggingData addTags(Map<String, String> tagMap) {
+    for (Map.Entry<String, String> tag : tagMap.entrySet()) {
+      addTag(tag.getKey(), tag.getValue());
+    }
+    validateTags();
+    return this;
+  }
+
+  /**
+   * Fills the tag map with the contents of the tag set.
+   */
+  private void repopulateTagMap() {
+    mTagMap.clear();
+    for (TagObject tag : mTagSet.mTags) {
+      mTagMap.put(tag.mKey, tag.mValue);
+    }
+  }
+
+  /**
    * Validates S3 User tag restrictions.
    */
-  void validateTags() {
+  private void validateTags() {
     List<TagObject> tags = mTagSet.getTags();
-    int totalBytes = 0;
     if (tags.size() == 0) { return; }
     try {
       if (tags.size() > 10) {
@@ -161,9 +215,7 @@ public class TaggingData implements Serializable {
    * Inner POJO representing the user metadata tag set in the S3 API.
    */
   @JacksonXmlRootElement(localName = "TagSet")
-  static class TagSet implements Serializable {
-    public static final long serialVersionUID = 1L;
-
+  private static class TagSet {
     @JacksonXmlProperty(localName = "Tag")
     @JacksonXmlElementWrapper(useWrapping = false)
     private List<TagObject> mTags;
@@ -171,7 +223,7 @@ public class TaggingData implements Serializable {
     /**
      * Default constructor for jackson.
      */
-    public TagSet() { mTags = new ArrayList<TagObject>(); }
+    public TagSet() { this(new ArrayList<TagObject>()); }
 
     /**
      * @param tags the tags
@@ -184,7 +236,7 @@ public class TaggingData implements Serializable {
      * @return the tags
      */
     @JacksonXmlProperty(localName = "Tag")
-    public List<TagObject> getTags() {
+    private List<TagObject> getTags() {
       return mTags;
     }
 
@@ -194,7 +246,7 @@ public class TaggingData implements Serializable {
      * @param tags the tags
      */
     @JacksonXmlProperty(localName = "Tag")
-    public void setTags(List<TagObject> tags) {
+    private void setTags(List<TagObject> tags) {
       mTags = tags;
     }
 
@@ -208,9 +260,7 @@ public class TaggingData implements Serializable {
    * Inner POJO representing a user metadata tag in the S3 API.
    */
   @JacksonXmlRootElement(localName = "Tag")
-  static class TagObject implements Serializable {
-    public static final long serialVersionUID = 1L;
-
+  private static class TagObject {
     private String mKey;
     private String mValue;
 
@@ -232,7 +282,7 @@ public class TaggingData implements Serializable {
      * @return the key of the object
      */
     @JacksonXmlProperty(localName = "Key")
-    public String getKey() {
+    private String getKey() {
       return mKey;
     }
 
@@ -240,7 +290,7 @@ public class TaggingData implements Serializable {
      * @return the key of the object
      */
     @JacksonXmlProperty(localName = "Value")
-    public String getValue() {
+    private String getValue() {
       return mValue;
     }
 
@@ -250,7 +300,7 @@ public class TaggingData implements Serializable {
      * @param key the key
      */
     @JacksonXmlProperty(localName = "Key")
-    public void setKey(String key) {
+    private void setKey(String key) {
       mKey = key;
     }
 
@@ -260,22 +310,13 @@ public class TaggingData implements Serializable {
      * @param value the value
      */
     @JacksonXmlProperty(localName = "Value")
-    public void setValue(String value) {
+    private void setValue(String value) {
       mValue = value;
     }
 
     @Override
     public String toString() {
       return mKey + " = " + mValue;
-    }
-
-    /**
-     * Convenience method for calculating metadata size limits.
-     * @return the sum of the number of bytes in the UTF-8 encoding of the tag key and value
-     */
-    int getNumBytes() {
-      return mKey.getBytes(S3Constants.TAGGING_CHARSET).length
-          + mValue.getBytes(S3Constants.TAGGING_CHARSET).length;
     }
   }
 }
