@@ -61,7 +61,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
-import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -585,7 +584,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     String objectContent = "no md5 set";
     TestCaseOptions options = TestCaseOptions.defaults();
-    options.setBody(new ByteArrayInputStream(objectContent.getBytes()));
+    options.setBody(objectContent.getBytes());
     options.setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE);
     new TestCase(mHostname, mPort, mBaseUri,
         objectKey, NO_PARAMS, HttpMethod.PUT,
