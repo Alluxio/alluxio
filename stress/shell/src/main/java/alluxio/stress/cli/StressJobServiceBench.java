@@ -15,12 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.cli.Command;
 import alluxio.cli.fs.command.DistributedLoadCommand;
-import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
@@ -245,17 +244,18 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
-      applyOperation(mPath);
+      applyOperation(mPath, true);
+      applyOperation(mPath, false);
     }
 
-    private void applyOperation(String dirPath)
+    private void applyOperation(String dirPath, boolean wait)
         throws IOException, AlluxioException, InterruptedException, TimeoutException {
       switch (mParameters.mOperation) {
         case DISTRIBUTED_LOAD:
           mResult.setRecordStartMs(mContext.getStartMs());
           long startNs = System.nanoTime();
           // send distributed load task to job service and wait for result
-          runDistributedLoad(dirPath);
+          runDistributedLoad(dirPath, wait);
           long endNs = System.nanoTime();
           // record response times
           recordResponseTimeInfo(startNs, endNs);
@@ -307,16 +307,23 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private void runDistributedLoad(String dirPath) throws AlluxioException, IOException {
+    private void runDistributedLoad(String dirPath, boolean wait) throws AlluxioException, IOException {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
-      List<URIStatus> pool = new ArrayList<>(1);
+//      FileSystem fs = FileSystem.Factory.create(mFsContext);
+//      fs.getStatus(new AlluxioURI(dirPath)).getFileInfo().
       try {
-        DistributedLoadUtils.distributedLoad(cmd, pool, mParameters.mBatchSize,
-            new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
-            new HashSet<>(), new HashSet<>(), false, false);
+        long jobControlId = cmd.runDistLoad(new AlluxioURI(dirPath), numReplication, mParameters.mBatchSize,
+                new HashSet<>(), new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), false);
+        if (wait) {
+          cmd.waitForCmd(jobControlId);
+        }
+//        String[] args = new String[] {dirPath, "--batch-size", "1", "--replication", "1"};
+//        CommandLine cli = cmd.parseAndValidateArgs(args);
+//        cmd.run(cli);
       } finally {
-        mResult.incrementNumSuccess(cmd.getCompletedCount());
+        mResult.incrementNumSuccess(1);
       }
     }
   }
