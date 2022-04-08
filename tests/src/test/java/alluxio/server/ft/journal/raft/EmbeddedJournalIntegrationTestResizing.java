@@ -137,7 +137,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
 
   @Test
   public void replaceAll() throws Exception {
-    final int NUM_MASTERS = 5;
+    final int NUM_MASTERS = 3;
     final int NUM_WORKERS = 0;
     // reusing ports
     ArrayList<PortCoordination.ReservedPort> ports =
