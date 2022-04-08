@@ -72,6 +72,7 @@ data:
             privileged: true
             capabilities:
               add:
+                # SYS_ADMIN is needed for run `mount` command in the container
                 - SYS_ADMIN
           envFrom:
           - configMapRef:
