@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -170,40 +171,44 @@ func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 }
 
 func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
-	if req.GetVolumeContext()["mountInPod"] == "true" {
-		ns.mutex.Lock()
-		defer ns.mutex.Unlock()
+	if req.GetVolumeContext()["mountInPod"] != "true" {
+		return &csi.NodeStageVolumeResponse{}, nil
+	}
+	ns.mutex.Lock()
+	defer ns.mutex.Unlock()
 
-		glog.V(4).Infoln("Creating Alluxio-fuse pod and mounting Alluxio to global mount point.")
-		fusePod, err := getAndCompleteFusePodObj(ns.nodeId, req)
+	glog.V(4).Infoln("Creating Alluxio-fuse pod and mounting Alluxio to global mount point.")
+	fusePod, err := getAndCompleteFusePodObj(ns.nodeId, req)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Create(fusePod); err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to launch Fuse Pod at %v.\n%v", ns.nodeId, err.Error())
+	}
+	glog.V(4).Infoln("Successfully creating Fuse pod.")
+
+	// Wait for alluxio-fuse pod finishing mount to global mount point
+	retry, err := strconv.Atoi(os.Getenv("FAILURE_THRESHOLD"))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Cannot convert failure threshold %v to int.", os.Getenv("FAILURE_THRESHOLD"))
+	}
+	timeout, err := strconv.Atoi(os.Getenv("PERIOD_SECONDS"))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Cannot convert period seconds %v to int.", os.Getenv("PERIOD_SECONDS"))
+	}
+	for i:= 0; i < retry; i++ {
+		time.Sleep(time.Duration(timeout) * time.Second)
+		command := exec.Command("bash", "-c", fmt.Sprintf("mount | grep %v | grep alluxio-fuse", req.GetStagingTargetPath()))
+		stdout, err := command.CombinedOutput()
 		if err != nil {
-			return nil, err
+			glog.V(3).Infoln(fmt.Sprintf("Alluxio is not mounted in %v seconds.", i * timeout))
 		}
-		if _, err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Create(fusePod); err != nil {
-			return nil, status.Errorf(codes.Internal, "Failed to launch Fuse Pod at %v.\n%v", ns.nodeId, err.Error())
-		}
-		glog.V(4).Infoln("Successfully creating Fuse pod.")
-
-		// Wait for alluxio-fuse pod finishing mount to global mount point
-		i := 0
-		for i < 12 {
-			time.Sleep(5 * time.Second)
-			command := exec.Command("bash", "-c", fmt.Sprintf("mount | grep %v | grep alluxio-fuse", req.GetStagingTargetPath()))
-			stdout, err := command.CombinedOutput()
-			if err != nil {
-				glog.V(3).Infoln("Alluxio is not mounted yet.")
-			}
-			if len(stdout) > 0 {
-				break
-			}
-			i++
-		}
-		if i == 12 {
-			glog.V(3).Infoln("alluxio-fuse is not mounted to global mount point in 60s.")
-			return nil, status.Error(codes.DeadlineExceeded, "alluxio-fuse is not mounted to global mount point in 60s")
+		if len(stdout) > 0 {
+			return &csi.NodeStageVolumeResponse{}, nil
 		}
 	}
-	return &csi.NodeStageVolumeResponse{}, nil
+	glog.V(3).Infoln(fmt.Sprintf("Time out. Alluxio-fuse is not mounted to global mount point in %vs.", (retry - 1) * timeout))
+	return nil, status.Error(codes.DeadlineExceeded, fmt.Sprintf("alluxio-fuse is not mounted to global mount point in %vs", (retry - 1) * timeout))
 }
 
 func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*v1.Pod, error) {
