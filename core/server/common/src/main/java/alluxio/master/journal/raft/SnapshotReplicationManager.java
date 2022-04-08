@@ -164,7 +164,8 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
-    try (RaftJournalServiceClient client = createJournalServiceClient()) {
+    try {
+      RaftJournalServiceClient client = createJournalServiceClient();
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
@@ -190,6 +191,7 @@ public class SnapshotReplicationManager {
         if (throwable != null) {
           LOG.error("Unexpected exception downloading snapshot from leader {}.", address,
               throwable);
+          client.close();
           transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
         }
       });

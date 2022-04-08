@@ -166,8 +166,8 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
 
   @Test
   public void snapshotTransferLoad() throws Exception {
-    int numFile = 1_500;
-    int snapshotPeriod = 100;
+    int numFile = 500;
+    int snapshotPeriod = 50;
 
     mCluster =
         MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD)
@@ -178,8 +178,6 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
-        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10KB")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE, "4KB")
         .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, snapshotPeriod)
         .build();
     mCluster.start();
