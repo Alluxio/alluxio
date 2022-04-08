@@ -11,9 +11,11 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.ResourcePool;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -23,7 +25,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,11 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * thread is done using the client.
  */
 @ThreadSafe
-public final class BlockRWLockPool extends ResourcePool<ClientRWLock> {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockRWLockPool.class);
+public class BlockRWLockPool extends ResourcePool<ClientRWLock> {
+  private static final Logger SAMPLING_LOG =
+      new SamplingLogger(LoggerFactory.getLogger(BlockRWLockPool.class),
+          30L * Constants.SECOND_MS);
 
-  @VisibleForTesting
-  final AtomicBoolean mHasReachedFullCapacity;
   @VisibleForTesting
   final AtomicInteger mRemainingPoolResources;
 
@@ -46,36 +47,44 @@ public final class BlockRWLockPool extends ResourcePool<ClientRWLock> {
    */
   public BlockRWLockPool(int maxCapacity) {
     super(maxCapacity);
-    mHasReachedFullCapacity = new AtomicBoolean(false);
     mRemainingPoolResources = new AtomicInteger(maxCapacity);
 
-    MetricsSystem.registerGaugeIfAbsent(
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.WORKER_BLOCK_LOCK_POOL_REMAINING_RESOURCES_COUNT.toString(),
-        mRemainingPoolResources::get
+        mRemainingPoolResources::get,
+        2,
+        TimeUnit.SECONDS
     );
   }
 
-  private void maybeLogPoolReachesFullCapacity() {
-    if (this.size() == mMaxCapacity
-        && !mHasReachedFullCapacity.get()
-        && mHasReachedFullCapacity.compareAndSet(false, true)
-    ) {
-      LOG.warn("Block lock manager client RW lock pool exhausted. Capacity size {}", mMaxCapacity);
-    }
-  }
-
+  /**
+   * Do a timed acquire with 1 second timeout first.
+   *
+   */
   @Override
   public ClientRWLock acquire() {
-    return this.acquire(WAIT_INDEFINITELY, null);
+    ClientRWLock ret = this.acquire(1, TimeUnit.SECONDS);
+    if (ret != null) {
+      return ret;
+    }
+    ret = this.acquire(WAIT_INDEFINITELY, null);
+    return ret;
   }
 
   @Nullable
   @Override
   public ClientRWLock acquire(long time, TimeUnit unit) {
     ClientRWLock ret = super.acquire(time, unit);
-    maybeLogPoolReachesFullCapacity();
     if (ret != null) {
       mRemainingPoolResources.decrementAndGet();
+    } else {
+      SAMPLING_LOG.error(
+          "Lock acquisition failed due to lock pool resources being exhausted. "
+              + "Pool capacity size {}; lock acquisition duration {}{}",
+          mMaxCapacity,
+          time,
+          unit
+      );
     }
     return ret;
   }

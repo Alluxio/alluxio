@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 
 public class BlockRWLockPoolTest {
   /**
@@ -90,65 +91,33 @@ public class BlockRWLockPoolTest {
   }
 
   /**
-   * To test logging when the pool is exhausted.
-   * pool size of 10, 10 threads acquire locks and release early
-   * while another 10 threads acquire locks but release late.
-   * Since there must be a point where the pool is exhausted,
-   * mHasReachedFullCapacity must have been set true.
-   * And hence the message is guaranteed to be logged.
+   * To test acquire and timed acquire and
+   * make sure the lock are acquired and released as expected.
    */
   @Test
-  public void testLogging() {
-    final int numIterations = 10;
-    final int numLocksEarlyRelease = 10;
-    final int numLocksLateRelease = 10;
-    final int poolCapacity = 10;
-    Random r = new Random();
-    for (int i = 0; i < numIterations; ++i) {
-      BlockRWLockPool pool = new BlockRWLockPool(poolCapacity);
-      List<Thread> threads = new ArrayList<>();
-      final CyclicBarrier barrier = new CyclicBarrier(numLocksEarlyRelease + numLocksLateRelease);
-      for (int j = 0; j < numLocksEarlyRelease; ++j) {
-        threads.add(new Thread(
-            () -> {
-              try {
-                Thread.sleep(r.nextInt(50));
-                ClientRWLock l = pool.acquire();
-                Thread.sleep(r.nextInt(100));
-                pool.release(l);
-                barrier.await();
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            }
-        ));
+  public void testAcquire() {
+    BlockRWLockPool pool = new BlockRWLockPool(1);
+
+    ClientRWLock lock1 = pool.acquire(1, TimeUnit.SECONDS);
+    Assert.assertEquals(0, pool.mRemainingPoolResources.get());
+    new Thread(() -> {
+      try {
+        Thread.sleep(3000);
+      } catch (Exception e) {
+        System.out.println(e.getMessage());
       }
-      for (int j = 0; j < numLocksLateRelease; ++j) {
-        threads.add(new Thread(
-            () -> {
-              try {
-                // Sleep 100ms to make sure early release locks acquire lock first.
-                Thread.sleep(100);
-                Thread.sleep(r.nextInt(100));
-                ClientRWLock l = pool.acquire();
-                barrier.await();
-                Thread.sleep(r.nextInt(100));
-                pool.release(l);
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            }
-        ));
-      }
-      threads.forEach(Thread::start);
-      threads.forEach((it) -> {
-        try {
-          it.join();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      });
-      Assert.assertTrue(pool.mHasReachedFullCapacity.get());
-    }
+      pool.release(lock1);
+    }).start();
+    Assert.assertNotNull(lock1);
+
+    ClientRWLock lock2 = pool.acquire(100, TimeUnit.MILLISECONDS);
+    Assert.assertNull(lock2);
+    Assert.assertEquals(0, pool.mRemainingPoolResources.get());
+
+    ClientRWLock lock3 = pool.acquire();
+    Assert.assertNotNull(lock3);
+    Assert.assertEquals(0, pool.mRemainingPoolResources.get());
+    pool.release(lock3);
+    Assert.assertEquals(1, pool.mRemainingPoolResources.get());
   }
 }
