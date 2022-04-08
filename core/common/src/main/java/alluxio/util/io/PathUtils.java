@@ -299,19 +299,16 @@ public final class PathUtils {
       return true;
     }
 
+    // If prefix is "/a/" and path is "/a", make path "/a/"
     if (prefix.endsWith("/") && !path.endsWith("/")) {
       path = normalizePath(path, "/");
     }
-    // Firstly, we check if the `path` starts with `prefix`,
     if (path.startsWith(prefix)) {
-      // Then, check if path and prefix has the same length;
-      boolean isPathLengthEqualsPrefix = path.length() == prefix.length();
-      // This condition is to include the case like `prefix: /a/b/, path: /a/b/c/`
-      boolean isPathPrefixEnd = prefix.endsWith("/") && path.charAt(prefix.length() - 1) == '/';
-      // This condition is to exclude the case like `prefix: '/a/b/c', path: '/a/b/ccc'`
-      boolean isPathValidAfterThePrefix =
-          path.length() > prefix.length() && path.charAt(prefix.length()) == '/';
-      return isPathLengthEqualsPrefix || isPathPrefixEnd || isPathValidAfterThePrefix;
+      return path.length() == prefix.length()  // path == prefix
+          // Include cases like `prefix=/a/b/, path=/a/b/c/`
+          || (prefix.endsWith("/") && path.charAt(prefix.length() - 1) == '/')
+          // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
+          || (path.charAt(prefix.length()) == '/');
     }
     return false;
   }
