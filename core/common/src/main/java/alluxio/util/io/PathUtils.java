@@ -306,7 +306,7 @@ public final class PathUtils {
     if (path.startsWith(prefix)) {
       return path.length() == prefix.length()  // path == prefix
           // Include cases like `prefix=/a/b/, path=/a/b/c/`
-          || (prefix.endsWith("/") && path.charAt(prefix.length() - 1) == '/')
+          || prefix.endsWith("/")
           // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
           || (path.charAt(prefix.length()) == '/');
     }
