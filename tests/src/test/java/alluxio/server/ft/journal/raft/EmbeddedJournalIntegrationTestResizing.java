@@ -165,14 +165,9 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
       int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
       mCluster.stopAndRemoveMaster(masterIdx);
       waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
-      // remove said master from the Ratis quorum
-      NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
-      mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
-      waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
       // start a new master to replace the lost master
       mCluster.startNewMasters(1, false);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS);
+      waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 0);
       // verify that the cluster is still operational
       fs = mCluster.getFileSystemClient();
       assertTrue(fs.exists(testDir));
