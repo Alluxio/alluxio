@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -27,9 +29,8 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -93,7 +94,7 @@ public final class TieredBlockStoreTestUtils {
     if (workerDataFolder != null) {
       ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, nTier);
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
@@ -126,7 +127,7 @@ public final class TieredBlockStoreTestUtils {
     if (workerDataFolder != null) {
       ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
     setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity, tierMedia);
   }
 
@@ -149,20 +150,17 @@ public final class TieredBlockStoreTestUtils {
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(ordinal),
             tierAlias);
 
-    String tierPathString = StringUtils.join(tierPath, ",");
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(ordinal),
-            tierPathString);
+            Arrays.stream(tierPath).collect(toImmutableList()));
 
-    String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
-            tierCapacityString);
+            Arrays.stream(tierCapacity).boxed().map(String::valueOf).collect(toImmutableList()));
 
-    String tierMediumString = StringUtils.join(tierMediumType, ",");
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(ordinal),
-            tierMediumString);
+            Arrays.stream(tierMediumType).collect(toImmutableList()));
   }
 
   /**

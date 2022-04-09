@@ -123,7 +123,8 @@ public final class MetaMasterClientServiceHandler
           case ZOOKEEPER_ADDRESSES:
             if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+                  Arrays.asList(ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ADDRESS)
+                      .split(",")));
             }
             break;
           case RAFT_ADDRESSES:

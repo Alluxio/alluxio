@@ -37,10 +37,10 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Test for {@link DistributedLoadCommand}.
@@ -58,7 +58,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
           .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Long.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
           .build();
@@ -258,6 +258,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
+    int cmdCount = 1;
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
           10);
@@ -267,7 +268,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     }
     fsShell.run("distributedLoad", "/testCount", "--batch-size", "3");
     String[] output = mOutput.toString().split("\n");
-    Assert.assertEquals(String.format("Completed count is %s,Failed count is 0.", fileSize),
+    Assert.assertEquals(String.format("Completed command count is %s,Failed count is 0.", cmdCount),
         output[output.length - 1]);
   }
 
@@ -289,13 +290,25 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
         failures.add(pathStr);
       }
     }
-    String failureFilePath = "./logs/user/distributedLoad_testFailure_failures.csv";
     fsShell.run("distributedLoad", "/testFailure");
-    Assert.assertTrue(mOutput.toString().contains(
-        String.format("Completed count is %s,Failed count is %s.\n", fileSize / 2, fileSize / 2)));
-    Assert.assertTrue(mOutput.toString()
-        .contains(String.format("Check out %s for full list of failed files.", failureFilePath)));
-    List<String> failuresFromFile = Files.readAllLines(Paths.get(failureFilePath));
-    Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failuresFromFile));
+    Set<String> failedPathsFromJobMasterLog = sJobMaster.getAllFailedPaths();
+    System.out.println(failedPathsFromJobMasterLog);
+
+    Assert.assertEquals(failedPathsFromJobMasterLog.size(), fileSize / 2);
+    Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failedPathsFromJobMasterLog));
+  }
+
+  @Test
+  public void testWaitIsFalseForLoad() throws IOException {
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+            10);
+    FileSystemTestUtils
+            .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+    sFsShell.run("distributedLoad", "--wait", "false", "/testRoot");
+
+    String[] output = mOutput.toString().split("\n");
+    Assert.assertFalse(Arrays.toString(output).contains("Waiting for the command to finish ..."));
+    Assert.assertFalse(Arrays.toString(output).contains("Completed command count is"));
   }
 }

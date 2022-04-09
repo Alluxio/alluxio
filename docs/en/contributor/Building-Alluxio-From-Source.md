@@ -209,3 +209,15 @@ If you see following error message by maven:
 "`An error occurred while running protolock: Cannot run program "/alluxio/core/transport/target/protolock-bin/protolock" (in directory "/alluxio/core/transport/target/classes"): error=2, No such file or directory`"
 
 please make sure the maven flag "`-Dskip.protoc`" is NOT included when building the source code.
+
+### NullPointerException occurred while execute org.codehaus.mojo:buildnumber-maven-plugin:1.4:create
+
+If you see following error message by maven like below:
+"`Failed to execute goal org.codehaus.mojo:buildnumber-maven-plugin:1.4:create-metadata (default) on project alluxio-core-common: Execution default of goal org.codehaus.mojo:buildnumber-maven-plugin:1.4:create-metadata failed.: NullPointerException`"
+
+Because the build number is based on the revision number retrieved from SCM, it will check build number from git hash code. If check failed, SCM will throw NPE. To avoid the exception,  please set the alluxio version with  maven parameter "`-Dmaven.buildNumber.revisionOnScmFailure`".
+
+For example, if the alluxio version is 2.7.3 then set  parameter "`-Dmaven.buildNumber.revisionOnScmFailure=2.7.3`". 
+
+See https://www.mojohaus.org/buildnumber-maven-plugin/create-mojo.html#revisionOnScmFailure for more infomation.
+

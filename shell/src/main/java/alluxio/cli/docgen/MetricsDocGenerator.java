@@ -58,7 +58,7 @@ public final class MetricsDocGenerator {
     Collections.sort(defaultKeys);
 
     String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .get(PropertyKey.HOME);
+        .getString(PropertyKey.HOME);
 
     // Map from metric key prefix to metric category
     Map<String, String> metricTypeMap = new HashMap<>();

@@ -22,6 +22,7 @@ The following benchmark suites are currently supported:
 * `StressMasterBench` - A benchmark tool measuring the master performance of Alluxio.
 * `StressWorkerBench` - A benchmark tool measuring the IO performance of reading from Alluxio Worker.
 * `UfsIOBench` - A benchmark tool measuring the IO throughput between the Alluxio cluster and the UFS.
+* `MaxFileBench` - A benchmark tool measuring the maximum number of empty files in Alluxio metastore. 
 
 ## Examples
 ### Basic Examples
@@ -720,6 +721,76 @@ The cluster testing is similar to single node testing except that
 
 ### Limitations
 - Worker Stress Bench only supports testing self-generated test files.
+
+
+## Max File Stress Bench
+
+The Max File Stress Bench is designed to measure the maximum number of empty files that can be held in Alluxio metastore.
+
+### Parameters
+Unlike other stress benches, the Max File Stress Bench has only a limited number of configurable options:
+
+<table class="table table-striped">
+    <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>base</td>
+        <td>alluxio://localhost:19998/stress-master-base</td>
+        <td>The base directory path URI to perform operations in. </td>
+    </tr>
+    <tr>
+        <td>base-alias</td>
+        <td></td>
+        <td>The alias for the base path, unused if empty</td>
+    </tr>
+    <tr>
+        <td>clients</td>
+        <td>1</td>
+        <td>The number of fs client instances to use</td>
+    </tr>
+    <tr>
+        <td>conf</td>
+        <td>{}</td>
+        <td>Any HDFS client configuration key=value. Can repeat to provide multiple configuration values.</td>
+    </tr>
+    <tr>
+        <td>create-file-size</td>
+        <td>0</td>
+        <td>The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)</td>
+    </tr>
+    <tr>
+        <td>threads</td>
+        <td>256</td>
+        <td>The number of concurrent threads to use</td>
+    </tr>
+</table>
+
+### Single node testing
+#### Prerequisite
+A running Alluxio cluster with one master and one worker.
+
+#### Single test
+```console
+$ bin/alluxio runClass alluxio.stress.cli.MaxFileBench ...
+```
+### Cluster testing
+This is only useful if the throughput provided by running this stress bench on the master node directly is insufficient.
+
+#### Prerequisite
+A running Alluxio cluster. Each worker node contains one worker, one job worker.
+
+#### Testing
+Use the `--cluster` flag. 
+
+### Expected runtime and ending condition
+Because this stress bench creates file until the master metastore is full, it takes a long time to run. Expect several hours of runtime depending 
+on which metastore you have configured and how much heap space / disk space is available to said metastore. 
+
+The stress bench ends after many create operations fail successively. Each failure is followed by an increasingly long timeout. This means that if
+your network is particularly slow, this stress bench could end prematurely. 
 
 ## UFS IO Bench
 

@@ -29,6 +29,8 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
+import alluxio.worker.block.io.TimeBoundBlockReader;
+import alluxio.worker.block.io.TimeBoundBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
@@ -90,6 +92,11 @@ public class TieredBlockStore implements BlockStore {
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private static final long FREE_AHEAD_BYTETS =
       ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
+  private static final long TIMEOUT_DURATION =
+      ServerConfiguration.getMs(PropertyKey.WORKER_CACHE_IO_TIMEOUT_DURATION);
+  private static final int TIMEOUT_THREADS_MAX =
+      ServerConfiguration.getInt(PropertyKey.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX);
+
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -208,7 +215,11 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      return new StoreBlockWriter(tempBlockMeta);
+      BlockWriter writer = new StoreBlockWriter(tempBlockMeta);
+      if (TIMEOUT_DURATION > 0) {
+        return new TimeBoundBlockWriter(writer, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
+      }
+      return writer;
     }
   }
 
@@ -219,7 +230,11 @@ public class TieredBlockStore implements BlockStore {
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      return new StoreBlockReader(sessionId, blockMeta);
+      BlockReader reader = new StoreBlockReader(sessionId, blockMeta);
+      if (TIMEOUT_DURATION > 0) {
+        return new TimeBoundBlockReader(reader, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
+      }
+      return reader;
     }
   }
 
@@ -962,7 +977,7 @@ public class TieredBlockStore implements BlockStore {
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private static void createBlockFile(String blockPath) throws IOException {
     FileUtils.createBlockPath(blockPath,
-        ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);

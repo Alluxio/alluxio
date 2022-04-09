@@ -52,7 +52,7 @@ public class CreateFileContext
    */
   public static CreateFileContext mergeFrom(CreateFilePOptions.Builder optionsBuilder) {
     CreateFilePOptions masterOptions =
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global());
+        FileSystemOptions.createFileDefaults(ServerConfiguration.global(), false);
     CreateFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CreateFileContext(mergedOptionsBuilder);
@@ -62,7 +62,8 @@ public class CreateFileContext
    * @return the instance of {@link CreateFileContext} with default values for master
    */
   public static CreateFileContext defaults() {
-    return create(FileSystemOptions.createFileDefaults(ServerConfiguration.global()).toBuilder());
+    return create(
+        FileSystemOptions.createFileDefaults(ServerConfiguration.global(), false).toBuilder());
   }
 
   /**

@@ -26,6 +26,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -807,7 +808,6 @@ public class InodeTree implements DelegatingJournaled {
             "Invalid block size " + fileContext.getOptions().getBlockSizeBytes());
       }
     }
-
     LOG.debug("createPath {}", path);
 
     String[] pathComponents = inodePath.mPathComponents;
@@ -857,7 +857,10 @@ public class InodeTree implements DelegatingJournaled {
               .setId(currentId)
               .setLastModificationTimeMs(context.getOperationTimeMs())
               .setLastAccessTimeMs(context.getOperationTimeMs());
-          if (context.getXAttr() != null) {
+          if (context.getXAttr() != null
+              && context.getXAttrPropStrat() != null
+              && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
+            // TODO(czhu): determine if xAttr update strategy is required for this
             updateInodeEntry.putAllXAttr(CommonUtils.convertToByteString(context.getXAttr()));
           }
           mState.applyAndJournal(rpcContext, updateInodeEntry.build());
@@ -877,7 +880,11 @@ public class InodeTree implements DelegatingJournaled {
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());
-    missingDirContext.setXAttr(context.getXAttr());
+    if (context.getXAttr() != null
+        && context.getXAttrPropStrat() != null
+        && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
+      missingDirContext.setXAttr(context.getXAttr());
+    }
     StringBuilder pathBuilder = new StringBuilder().append(
         String.join(AlluxioURI.SEPARATOR, Arrays.asList(pathComponents).subList(0, pathIndex))
     );
@@ -887,7 +894,7 @@ public class InodeTree implements DelegatingJournaled {
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
       if (currentInodeDirectory.isPinned() && !newDir.isPinned()) {
         newDir.setPinned(true);
-        newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+        newDir.setMediumTypes(currentInodeDirectory.getMediumTypes());
       }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
@@ -922,12 +929,17 @@ public class InodeTree implements DelegatingJournaled {
 
     // Create the final path component.
     MutableInode<?> newInode;
+
     // create the new inode, with a write lock
     if (context instanceof CreateDirectoryContext) {
       CreateDirectoryContext directoryContext = (CreateDirectoryContext) context;
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), name, directoryContext);
+
+      if (context.getXAttr() != null) {
+        newDir.setXAttr(context.getXAttr());
+      }
 
       // if the parent has default ACL, take the default ACL ANDed with the umask as the new
       // directory's default and access acl
@@ -984,6 +996,9 @@ public class InodeTree implements DelegatingJournaled {
       if (fileContext.getWriteType() == WriteType.ASYNC_THROUGH) {
         newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
       }
+      if (context.getXAttr() != null) {
+        newFile.setXAttr(context.getXAttr());
+      }
 
       // Do NOT call setOwner/Group after inheriting from parent if empty
       inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
@@ -993,7 +1008,7 @@ public class InodeTree implements DelegatingJournaled {
     }
     if (currentInodeDirectory.isPinned() && !newInode.isPinned()) {
       newInode.setPinned(true);
-      newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      newInode.setMediumTypes(currentInodeDirectory.getMediumTypes());
     }
 
     mState.applyAndJournal(rpcContext, newInode,
@@ -1088,7 +1103,7 @@ public class InodeTree implements DelegatingJournaled {
 
   private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
     List<String> mediumTypeList = ServerConfiguration.getList(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
     for (String medium : pinnedMediumTypes) {
       if (!mediumTypeList.contains(medium)) {
         // mediumTypeList does not contains medium

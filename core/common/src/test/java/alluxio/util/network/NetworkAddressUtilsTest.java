@@ -165,7 +165,7 @@ public class NetworkAddressUtilsTest {
         masterAddress);
 
     // connect host and wildcard bind host with port
-    mConfiguration.set(service.getPortKey(), "10000");
+    mConfiguration.set(service.getPortKey(), 10000);
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
     assertEquals(InetSocketAddress.createUnresolved("connect.host", 10000), masterAddress);
 
@@ -248,49 +248,40 @@ public class NetworkAddressUtilsTest {
     // connect host and wildcard bind host with port
     switch (service) {
       case FUSE_WEB:
-        mConfiguration.set(PropertyKey.FUSE_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.FUSE_WEB_PORT, 20000);
         break;
       case JOB_MASTER_RAFT:
-        mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 20000);
         break;
       case MASTER_RAFT:
-        mConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 20000);
         break;
       case JOB_MASTER_RPC:
-        mConfiguration.set(PropertyKey.JOB_MASTER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_RPC_PORT, 20000);
         break;
       case JOB_MASTER_WEB:
-        mConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT, 20000);
         break;
       case JOB_WORKER_RPC:
-        mConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, 20000);
         break;
       case JOB_WORKER_WEB:
-        mConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, 20000);
         break;
       case MASTER_RPC:
-        mConfiguration.set(PropertyKey.MASTER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_RPC_PORT, 20000);
         break;
       case MASTER_WEB:
-        mConfiguration.set(PropertyKey.MASTER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_WEB_PORT, 20000);
         break;
       case PROXY_WEB:
-        mConfiguration.set(PropertyKey.PROXY_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.PROXY_WEB_PORT, 20000);
         break;
       case WORKER_RPC:
-        mConfiguration.set(PropertyKey.WORKER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.WORKER_RPC_PORT, 20000);
         break;
       case WORKER_WEB:
-        mConfiguration.set(PropertyKey.WORKER_WEB_PORT, "20000");
-        break;
-      case HUB_AGENT_RPC:
-        mConfiguration.set(PropertyKey.HUB_AGENT_RPC_PORT, "20000");
-        break;
-      case HUB_MANAGER_RPC:
-        mConfiguration.set(PropertyKey.HUB_MANAGER_RPC_PORT, "20000");
-        break;
-      case HUB_HOSTED_RPC:
-        mConfiguration.set(PropertyKey.HUB_HOSTED_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.WORKER_WEB_PORT, 20000);
         break;
       default:
         Assert.fail("Unrecognized service type: " + service.toString());

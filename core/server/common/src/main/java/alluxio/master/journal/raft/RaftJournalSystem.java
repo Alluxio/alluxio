@@ -372,10 +372,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
-    long snapshotAutoTriggerThreshold =
-        ServerConfiguration.global().getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    int snapshotAutoTriggerThreshold =
+        ServerConfiguration.global().getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
+
+    if (ServerConfiguration.global().getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+      // purges log files after taking a snapshot successfully
+      RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
+      // leaves no gap between log file purges: all log files included in a newly installed
+      // snapshot are purged right away
+      RaftServerConfigKeys.Log.setPurgeGap(properties, 1);
+    }
 
     RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
         properties, false);
@@ -721,18 +729,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         }
         // avoid excessive retries when server is not ready
         Thread.sleep(waitBeforeRetry);
-        continue;
-      }
-
-      try {
-        CommonUtils.waitFor("term start entry " + gainPrimacySN
-            + " to be applied to state machine", () ->
-            stateMachine.getLastPrimaryStartSequenceNumber() == gainPrimacySN,
-            WaitForOptions.defaults()
-                .setInterval(Constants.SECOND_MS)
-                .setTimeoutMs(5 * Constants.SECOND_MS));
-      } catch (TimeoutException e) {
-        LOG.info(e.toString());
         continue;
       }
 

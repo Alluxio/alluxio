@@ -37,7 +37,7 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
    * @param conf Alluxio configuration
    */
   public SpecificHostPolicy(AlluxioConfiguration conf) {
-    this(conf.get(PropertyKey.WORKER_HOSTNAME));
+    this(conf.getString(PropertyKey.WORKER_HOSTNAME));
   }
 
   /**

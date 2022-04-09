@@ -62,22 +62,21 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
     Set<String> propertyNames = new HashSet<>();
     if (masters.isEmpty()) {
       msg.append(String.format("No master nodes specified in %s/masters file. ",
-              mConf.get(PropertyKey.CONF_DIR)));
+              mConf.getString(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the master node hostnames. ",
-              mConf.get(PropertyKey.CONF_DIR)));
+              mConf.getString(PropertyKey.CONF_DIR)));
       return new ValidationTaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());
     }
     if (workers.isEmpty()) {
       msg.append(String.format("No worker nodes specified in %s/workers file. ",
-              mConf.get(PropertyKey.CONF_DIR)));
+              mConf.getString(PropertyKey.CONF_DIR)));
       advice.append(String.format("Please configure %s to contain the worker node hostnames. ",
-              mConf.get(PropertyKey.CONF_DIR)));
+              mConf.getString(PropertyKey.CONF_DIR)));
       return new ValidationTaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());
     }
     ValidationUtils.State state = ValidationUtils.State.OK;
-    Exception ex = null;
     for (String node : nodes) {
       try {
         Properties props = getNodeConf(node);
@@ -88,10 +87,8 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         msg.append(String.format("Unable to retrieve configuration for %s: %s.",
                 node, e.getMessage()));
         advice.append(String.format("Please check the connection from node %s. ", node));
-        ex = e;
         state = ValidationUtils.State.FAILED;
         // Check all nodes before returning
-        continue;
       }
     }
     for (String propertyName : propertyNames) {
@@ -164,7 +161,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   }
 
   private Properties getNodeConf(String node) throws IOException {
-    String homeDir = mConf.get(PropertyKey.HOME);
+    String homeDir = mConf.getString(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio getConf", homeDir);
     String localCommand = String.format(
