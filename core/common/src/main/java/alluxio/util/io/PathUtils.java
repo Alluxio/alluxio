@@ -309,7 +309,7 @@ public final class PathUtils {
         // Include cases like `prefix=/a/b/, path=/a/b/c/`
         || prefix.endsWith("/")
         // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
-        || (path.charAt(prefix.length()) == '/');
+        || path.charAt(prefix.length()) == '/';
   }
 
   /**
