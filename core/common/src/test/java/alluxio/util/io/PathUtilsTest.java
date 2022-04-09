@@ -363,6 +363,7 @@ public final class PathUtilsTest {
     assertTrue(PathUtils.hasPrefix("/", "/"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/"));
     assertTrue(PathUtils.hasPrefix("/a", "/a"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/", "/a/b/c"));
     assertTrue(PathUtils.hasPrefix("/a", "/a/"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));

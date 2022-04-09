@@ -294,23 +294,21 @@ public final class PathUtils {
     if (prefix.isEmpty() || path.isEmpty()) {
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(""));
     }
-
     if (prefix.equals("/")) {
       return true;
     }
-
     // If prefix is "/a/" and path is "/a", make path "/a/"
     if (prefix.endsWith("/") && !path.endsWith("/")) {
       path = normalizePath(path, "/");
     }
-    if (path.startsWith(prefix)) {
-      return path.length() == prefix.length()  // path == prefix
-          // Include cases like `prefix=/a/b/, path=/a/b/c/`
-          || prefix.endsWith("/")
-          // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
-          || (path.charAt(prefix.length()) == '/');
+    if (!path.startsWith(prefix)) {
+      return false;
     }
-    return false;
+    return path.length() == prefix.length()  // path == prefix
+        // Include cases like `prefix=/a/b/, path=/a/b/c/`
+        || prefix.endsWith("/")
+        // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
+        || (path.charAt(prefix.length()) == '/');
   }
 
   /**
