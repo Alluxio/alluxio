@@ -95,7 +95,7 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-          new CreateBlockOptions("", request.getMediumType(), FILE_BUFFER_SIZE));
+          new CreateBlockOptions(null, request.getMediumType(), FILE_BUFFER_SIZE));
     }
     return context;
   }

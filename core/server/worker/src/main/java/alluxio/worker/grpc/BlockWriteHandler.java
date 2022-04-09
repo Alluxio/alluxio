@@ -72,7 +72,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, bytesToReserve);
     BlockWriteRequest request = context.getRequest();
     mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-        new CreateBlockOptions("", request.getMediumType(), bytesToReserve));
+        new CreateBlockOptions(null, request.getMediumType(), bytesToReserve));
     if (mDomainSocketEnabled) {
       context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
       context.setMeter(MetricsSystem.meter(

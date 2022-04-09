@@ -290,7 +290,7 @@ public class CacheRequestManager {
       throws IOException, AlluxioException {
     try {
       mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
-          new CreateBlockOptions("", "", blockSize));
+          new CreateBlockOptions(null, "", blockSize));
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       LOG.debug("block already cached: {}", blockId);

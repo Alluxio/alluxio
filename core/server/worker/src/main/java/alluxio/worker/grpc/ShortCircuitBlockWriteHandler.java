@@ -90,7 +90,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
             mSessionId = IdUtils.createSessionId();
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
                 request.getTier(),
-                new CreateBlockOptions("", request.getMediumType(), request.getSpaceToReserve()));
+                new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
             CreateLocalBlockResponse response =
                 CreateLocalBlockResponse.newBuilder().setPath(path).build();
             return response;
