@@ -31,6 +31,7 @@ import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
+import alluxio.client.file.cache.ShadowCacheType;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.exception.ExceptionMessage;
 import alluxio.executor.RpcExecutorType;
@@ -4856,7 +4857,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "a past time window, and measure the hit ratio if the working set fits the cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_TYPE =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_TYPE).setDefaultValue("CLOCK_CUCKOO_FILTER")
+      enumBuilder(Name.USER_CLIENT_CACHE_SHADOW_TYPE, ShadowCacheType.class)
+          .setDefaultValue("CLOCK_CUCKOO_FILTER")
           .setDescription("The type of shadow cache to be used. "
               + "Valid options are `MULTIPLE_BLOOM_FILTER` (which uses a chain of bloom filters), "
               +    "`CLOCK_CUCKOO_FILTER` (which uses cuckoo filter with extended field).")
@@ -4884,21 +4886,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The number of bloom filters used for tracking. Each tracks a segment of window")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS).setDefaultValue(6)
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS)
+          .setDefaultValue(6)
           .setDescription(
                   "The number of bits of each item's clock field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS).setDefaultValue(20)
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS)
+          .setDefaultValue(20)
           .setDescription(
                   "The number of bits of each item's size field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS).setDefaultValue(8)
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS)
+          .setDefaultValue(8)
           .setDescription(
                   "The number of bits of each item's scope field.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
