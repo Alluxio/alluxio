@@ -2166,6 +2166,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Inodes that are not safe for recursive deletes
     // Issues#15266: This can be replaced by a Trie<Long> using prefix matching
     Set<Long> unsafeInodes = new HashSet<>();
+    // Unsafe parents due to containing a child which cannot be deleted
+    // are initially contained in a separate set, allowing their children
+    // to be deleted for which the user has permissions
+    Set<Long> unsafeParentInodes = new HashSet<>();
     // Alluxio URIs (and the reason for failure) which could not be deleted
     List<Pair<String, String>> failedUris = new ArrayList<>();
 
@@ -2189,16 +2193,17 @@ public class DefaultFileSystemMaster extends CoreMaster
             mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
             inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
           } catch (AccessControlException e) {
-            // If we do not have permission to delete the inode, then
+            // If we do not have permission to delete the inode, then add to unsafe set
             Inode inodeToDelete = childPath.getInode();
             unsafeInodes.add(inodeToDelete.getId());
             // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
-            unsafeInodes.add(inodeToDelete.getParentId());
+            unsafeParentInodes.add(inodeToDelete.getParentId());
             // All this node's children will be skipped in the failure message
             failedUris.add(new Pair<>(childPath.toString(), e.getMessage()));
           }
         }
       }
+      unsafeInodes.addAll(unsafeParentInodes);
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
       if (!deleteContext.getOptions().getAlluxioOnly()) {
