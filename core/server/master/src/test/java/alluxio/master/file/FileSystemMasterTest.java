@@ -656,7 +656,8 @@ public final class FileSystemMasterTest {
       assertTrue(e.getMessage().contains("/nested/nested (Directory not empty)"));
       assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
     }
-    // The existing files/dirs will be: /, /nested/, /nested/nested/, /nested/nested/test/, /nested/test/file
+    // The existing files/dirs will be: /, /nested/, /nested/nested/,
+    // /nested/nested/test/, /nested/test/file
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
