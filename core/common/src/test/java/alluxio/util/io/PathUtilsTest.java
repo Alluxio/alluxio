@@ -137,6 +137,28 @@ public final class PathUtilsTest {
     assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
+    paths.add(new AlluxioURI("/"));
+    paths.add(new AlluxioURI("/a/b/c/d"));
+    paths.add(new AlluxioURI("/a/b/c/d/e/f"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a"));
+    paths.add(new AlluxioURI("/a/b"));
+    paths.add(new AlluxioURI("/aaa/b"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/"));
+    assertEquals("/a/b", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/c"));
+    paths.add(new AlluxioURI("/a"));
+    paths.add(new AlluxioURI("/a/b/c/d"));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
     paths.add(new AlluxioURI("/a"));
     assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
 
@@ -339,11 +361,16 @@ public final class PathUtilsTest {
   @Test
   public void hasPrefix() throws InvalidPathException {
     assertTrue(PathUtils.hasPrefix("/", "/"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/"));
     assertTrue(PathUtils.hasPrefix("/a", "/a"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/", "/a/b/c"));
     assertTrue(PathUtils.hasPrefix("/a", "/a/"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
     assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/d/e", "/a/b/"));
+    assertTrue(PathUtils.hasPrefix("/a/b/./c/../d", "/a/../a/b/d"));
+    assertFalse(PathUtils.hasPrefix("/a/b/../c", "/a/b"));
     assertFalse(PathUtils.hasPrefix("/", "/a"));
     assertFalse(PathUtils.hasPrefix("/", "/a/b/c"));
     assertFalse(PathUtils.hasPrefix("/a", "/a/b/c"));

@@ -33,7 +33,7 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConf =
-      new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false",
+      new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false,
           ServerConfiguration.global());
 
   public MultiProcessCluster mCluster;

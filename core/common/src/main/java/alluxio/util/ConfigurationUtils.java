@@ -107,7 +107,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) {
     PropertyKey property = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
     if (conf.isSet(property)) {
-      return parseInetSocketAddresses(conf.getList(property, ","));
+      return parseInetSocketAddresses(conf.getList(property));
     }
     // Fall back on master_hostname:master_raft_port
     return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RAFT, conf));
@@ -121,7 +121,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) {
     PropertyKey jobMasterProperty = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
     if (conf.isSet(jobMasterProperty)) {
-      return parseInetSocketAddresses(conf.getList(jobMasterProperty, ","));
+      return parseInetSocketAddresses(conf.getList(jobMasterProperty));
     }
     // Fall back on using the master embedded journal addresses, with the job master port.
     PropertyKey masterProperty = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
@@ -142,7 +142,7 @@ public final class ConfigurationUtils {
   public static List<InetSocketAddress> getMasterRpcAddresses(AlluxioConfiguration conf) {
     // First check whether rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
-      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES));
     }
 
     // Fall back on server-side journal configuration.
@@ -160,7 +160,7 @@ public final class ConfigurationUtils {
     // First check whether job rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
-          conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
+          conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES));
     }
 
     int jobRpcPort =
@@ -168,7 +168,7 @@ public final class ConfigurationUtils {
     // Fall back on explicitly configured regular master rpc addresses.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
       List<InetSocketAddress> addrs =
-          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES));
       return overridePort(addrs, jobRpcPort);
     }
 
@@ -256,7 +256,7 @@ public final class ConfigurationUtils {
    */
   @Nullable
   public static String searchPropertiesFile(String propertiesFile,
-      String[] confPathList) {
+      List<String> confPathList) {
     if (propertiesFile == null || confPathList == null) {
       return null;
     }
@@ -323,12 +323,12 @@ public final class ConfigurationUtils {
    * @return the property value
    */
   public static float checkRatio(AlluxioConfiguration conf, PropertyKey key) {
-    float value = conf.getFloat(key);
+    double value = conf.getDouble(key);
     Preconditions.checkState(value <= 1.0, "Property %s must not exceed 1, but it is set to %s",
         key.getName(), value);
     Preconditions.checkState(value >= 0.0, "Property %s must be non-negative, but it is set to %s",
         key.getName(), value);
-    return value;
+    return (float) value;
   }
 
   /**
@@ -373,7 +373,7 @@ public final class ConfigurationUtils {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
           .setSource(conf.getSource(key).toString());
       if (conf.isSet(key)) {
-        configProp.setValue(conf.get(key, useRawDisplayValue));
+        configProp.setValue(String.valueOf(conf.get(key, useRawDisplayValue)));
       }
       configs.add(configProp.build());
     }
@@ -415,7 +415,7 @@ public final class ConfigurationUtils {
    * @param key the property key to retrieve
    * @return the value configured for this property key
    */
-  public static String getPropertyValue(PropertyKey key) {
+  public static Object getPropertyValue(PropertyKey key) {
     if (sDefaultProperties == null) {
       return defaults().get(key);
     } else {
@@ -451,8 +451,7 @@ public final class ConfigurationUtils {
       }
 
       // we are not in test mode, load site properties
-      String confPaths = conf.get(PropertyKey.SITE_CONF_DIR);
-      String[] confPathList = confPaths.split(",");
+      List<String> confPathList = conf.getList(PropertyKey.SITE_CONF_DIR);
       String sitePropertyFile = ConfigurationUtils
           .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       Properties siteProps = null;
@@ -572,7 +571,7 @@ public final class ConfigurationUtils {
    */
   public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
       AlluxioConfiguration conf, Scope scope) {
-    String clientVersion = conf.get(PropertyKey.VERSION);
+    String clientVersion = conf.getString(PropertyKey.VERSION);
     LOG.debug("Alluxio {} (version {}) is trying to load cluster level configurations",
         scope, clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
@@ -606,7 +605,7 @@ public final class ConfigurationUtils {
    */
   public static PathConfiguration getPathConf(GetConfigurationPResponse response,
       AlluxioConfiguration clusterConf) {
-    String clientVersion = clusterConf.get(PropertyKey.VERSION);
+    String clientVersion = clusterConf.getString(PropertyKey.VERSION);
     LOG.debug("Alluxio client (version {}) is trying to load path level configurations",
         clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
@@ -661,7 +660,7 @@ public final class ConfigurationUtils {
    */
   @Nullable
   private static Set<String> readNodeList(String fileName, AlluxioConfiguration conf) {
-    String confDir = conf.get(PropertyKey.CONF_DIR);
+    String confDir = conf.getString(PropertyKey.CONF_DIR);
     return CommandUtils.readNodeList(confDir, fileName);
   }
 

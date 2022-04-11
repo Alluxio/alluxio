@@ -111,6 +111,8 @@ spec:
                 fieldPath: status.hostIP
           - name: FUSE_ALLUXIO_PATH
             value: {{ .Values.fuse.alluxioPath }}
+          - name: MOUNT_POINT
+            value: {{ .Values.fuse.mountPath }}
           {{- range $key, $value := .Values.fuse.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
@@ -123,7 +125,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "{{ .Values.fuse.mountPath }}"]
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "-f", "{{ .Values.fuse.mountPath }}"]
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config

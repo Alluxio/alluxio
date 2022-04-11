@@ -14,6 +14,8 @@ package alluxio.master;
 import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.executor.RpcExecutorType;
+import alluxio.executor.ThreadPoolExecutorQueueType;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,8 +36,8 @@ public class ExecutorServiceBuilderTest {
 
   @Test
   public void startZeroParallelism() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "FJP");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, "0");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.FJP);
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, 0);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         "Cannot start Alluxio master gRPC thread pool with "
@@ -46,8 +48,8 @@ public class ExecutorServiceBuilderTest {
 
   @Test
   public void startNegativeParallelism() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "FJP");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, "-1");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.FJP);
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, -1);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         "Cannot start Alluxio master gRPC thread pool with"
@@ -80,22 +82,22 @@ public class ExecutorServiceBuilderTest {
 
   @Test
   public void createTpeExecutor() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "TPE");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.TPE);
     ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
   }
 
   @Test
   public void createTpeExecutorWithCoreThreadsTimeout() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "TPE");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.TPE);
     ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT, true);
     ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
   }
 
   @Test
   public void createTpeExecutorWithCustomQueues() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "TPE");
-    for (ExecutorServiceBuilder.ThreadPoolExecutorQueueType queueType:
-        ExecutorServiceBuilder.ThreadPoolExecutorQueueType.values()) {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, RpcExecutorType.TPE);
+    for (ThreadPoolExecutorQueueType queueType:
+        ThreadPoolExecutorQueueType.values()) {
       ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE, queueType);
       ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
     }

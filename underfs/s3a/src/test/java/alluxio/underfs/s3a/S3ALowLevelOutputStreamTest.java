@@ -77,7 +77,7 @@ public class S3ALowLevelOutputStreamTest {
     sConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
     mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor,
         sConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE),
-        sConf.getList(PropertyKey.TMP_DIRS, ","),
+        sConf.getList(PropertyKey.TMP_DIRS),
         sConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 

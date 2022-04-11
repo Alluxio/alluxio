@@ -56,7 +56,7 @@ public class InodeStoreBench {
     Logger.getRootLogger().addAppender(new ConsoleAppender(layout));
 
     System.out.printf("Running benchmarks for rocks inode store%n");
-    sStore = new RocksInodeStore(ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR));
+    sStore = new RocksInodeStore(ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR));
     runBenchmarks();
 
     System.out.printf("%nRunning benchmarks for heap inode store%n");

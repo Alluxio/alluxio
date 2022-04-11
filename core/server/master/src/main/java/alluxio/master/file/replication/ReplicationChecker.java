@@ -336,7 +336,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas > maxReplicas) {
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    currentReplicas - maxReplicas));
+                    maxReplicas));
               }
               break;
             case REPLICATE:
@@ -351,7 +351,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    minReplicas - currentReplicas));
+                    minReplicas));
               }
               break;
             default:
@@ -369,11 +369,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         try {
           long jobId;
           switch (mode) {
-            case EVICT:
-              jobId = handler.evict(uri, blockId, numReplicas);
-              break;
+            case EVICT :
             case REPLICATE:
-              jobId = handler.replicate(uri, blockId, numReplicas);
+              jobId = handler.setReplica(uri, blockId, numReplicas);
               break;
             default:
               throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));

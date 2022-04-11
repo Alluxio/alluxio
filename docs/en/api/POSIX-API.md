@@ -85,8 +85,10 @@ can further simplify the setup.
 
 - Install JDK 1.8 or newer
 - Install libfuse
-    - On Linux, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been
-reported to also work - with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
+    - On Linux, we support libfuse both version 2 and 3
+        - To use with libfuse2, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
+        - To use with libfuse3, install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3 fuse3-devel`
+        - See [Select which libfuse version to use](#select-which-libfuse-version-to-use) to learn more about libfuse version used by alluxio
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
 ## Basic Setup
@@ -118,13 +120,19 @@ $ chmod 755 /mnt/people
 $ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
 
-When `<alluxio_path>` is not given, the value defaults to the root (`/`).
+When `<mount_point>` or `<alluxio_path>` is not provided, the values of alluxio configuration
+`alluxio.fuse.mount.point` (default to local path `/mnt/alluxio-fuse`)
+and `alluxio.fuse.mount.alluxio.path` (default to alluxio root `/`) will be used.
+
 Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy
 and that the user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point
 and have read and write permissions on it.
 Multiple Alluxio FUSE mount points can be created in the same node.
 All the `AlluxioFuse` processes share the same log output at `${ALLUXIO_HOME}/logs/fuse.log`, which is
 useful for troubleshooting when errors happen on operations under the filesystem.
+
+See [alluxio fuse options](#configure-alluxio-fuse-options) and [mount point options](#configure-mount-point-options)
+for more advanced mount configuration.
 
 ### Unmount Alluxio from FUSE
 
@@ -143,11 +151,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
-By default, the `unmount` operation will wait for 120 seconds for any in-progress read/write operations to finish. If read/write operations haven't finished after 120 seconds, the fuse process will be forcibly killed which may cause read/write operations to fail. You can add `-s` to avoid the fuse process being killed if there are remaining in-progress read/write operations after the timeout. For example,
-
-```console
-$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people
-```
+See [alluxio fuse umount options](#configure-alluxio-unmount-options) for more advanced umount settings.
 
 ### Check the Alluxio POSIX API mounting status
 
@@ -169,6 +173,26 @@ pid mount_point alluxio_path
 
 ## Advanced Setup
 
+### Select which libfuse version to use
+
+Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production. Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
+
+If only one version of libfuse is installed, that version is used. In most distros, libfuse2 and libfuse3 can coexist. If both versions are installed, **libfuse2** will be used by default (for backward compatibility). 
+
+To set the version explicitly, add the following configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties`. 
+
+```
+alluxio.fuse.jnifuse.libfuse.version=3
+```
+
+Valid values are `2` (use libfuse2 only), `3` (use libfuse3 only) or other integer value (load libfuse2 first, and if failed, load libfuse3). 
+
+See `logs/fuse.out` for which version is used.
+
+```
+INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
+```
+
 ### Fuse on worker process
 
 Unlike standalone Fuse which you can mount at any time without Alluxio worker involves,
@@ -187,9 +211,9 @@ By default, Fuse on worker will mount the Alluxio root path `/` to default local
 You can change the alluxio path, mount point, and mount options through Alluxio configuration:
 
 ```
-alluxio.worker.fuse.mount.alluxio.path=<alluxio_path>
-alluxio.worker.fuse.mount.point=<mount_point>
-alluxio.worker.fuse.mount.options=<list of mount options separated by comma>
+alluxio.fuse.mount.alluxio.path=<alluxio_path>
+alluxio.fuse.mount.point=<mount_point>
+alluxio.fuse.mount.options=<list of mount options separated by comma>
 ```
 
 For example, one can mount Alluxio path `/people` to local path `/mnt/people`
@@ -197,10 +221,12 @@ with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when star
 
 ```
 alluxio.worker.fuse.enabled=true
-alluxio.worker.fuse.mount.alluxio.path=/people
-alluxio.worker.fuse.mount.point=/mnt/people
-alluxio.worker.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
+alluxio.fuse.mount.alluxio.path=/people
+alluxio.fuse.mount.point=/mnt/people
+alluxio.fuse.mount.options=kernel_cache,entry_timeout=7200,attr_timeout=7200
 ```
+
+Fuse on worker also uses `alluxio.fuse.jnifuse.libfuse.version` configuration to determine which libfuse version to use. 
 
 ### Configure Alluxio fuse options
 
@@ -232,8 +258,10 @@ and the set up process may be different depending on the platform.
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
-  -o [comma separated mount options] mount_point [alluxio_path]
+  -o [comma separated mount options] [mount_point] [alluxio_path]
 ```
+
+If no mount option is provided, the value of alluxio configuration `alluxio.fuse.mount.options` (default: no mount options) will be used.
 
 {% accordion mount %}
   {% collapsible Tuning mount options %}
@@ -273,7 +301,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
         <td>big_writes</td>
         <td></td>
         <td>Set</td>
-        <td>Stop Fuse from splitting I/O into small chunks and speed up write.</td>
+        <td>Stop Fuse from splitting I/O into small chunks and speed up write. [Not supported in libfuse3](https://github.com/libfuse/libfuse/blob/master/ChangeLog.rst#libfuse-300-2016-12-08). Will be ignored if libfuse3 is used.</td>
     </tr>
     <tr>
         <td>entry_timeout=N</td>
@@ -336,6 +364,31 @@ $ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_pat
 Note that only one of the `allow_other` or `allow_root` could be set.
   {% endcollapsible %}
 {% endaccordion %}
+
+### Configure Alluxio unmount options
+
+Alluxio fuse has two kinds of unmount operation, soft unmount and hard umount.
+
+The unmount operation is soft unmount by default.
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -w 200 mount_point
+```
+
+You can use `-w [unmount_wait_timeout_in_seconds]` to set the unmount wait time in seconds.
+The unmount operation will kill the Fuse process and waiting up to `[unmount_wait_timeout_in_seconds]` for the Fuse process to be killed.
+However, if the Fuse process is still alive after the wait timeout, the unmount operation will error out.
+
+In Alluxio Fuse implementation, `alluxio.fuse.umount.timeout` defines the maximum timeout to wait for all in-progress read/write operations to finish.
+If there are still in-progress read/write operations left after timeout, the `alluxio-fuse umount <mount>` operation is a no-op.
+Alluxio Fuse process is still running, and fuse mount point is still functioning.
+Note that when `alluxio.fuse.umount.timeout=0`, umount operations will not wait for in-progress read/write operations.
+
+Recommend to set `-w [unmount_wait_timeout_in_seconds]` to a value that is slightly larger than `alluxio.fuse.umount.timeout`.
+
+Hard umount will always kill the fuse process and umount fuse mount point immediately.
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -f mount_point
+```
 
 ## Assumptions and Limitations
 

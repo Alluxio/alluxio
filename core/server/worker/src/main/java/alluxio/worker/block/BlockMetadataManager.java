@@ -92,7 +92,7 @@ public final class BlockMetadataManager {
       if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
         LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-        String evictorType = ServerConfiguration.get(PropertyKey.WORKER_EVICTOR_CLASS);
+        String evictorType = ServerConfiguration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
         switch (evictorType) {
           case DEPRECATED_LRU_EVICTOR:
           case DEPRECATED_PARTIAL_LRUEVICTOR:
@@ -184,30 +184,6 @@ public final class BlockMetadataManager {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
-  }
-
-  /**
-   * Swaps location of two blocks in metadata.
-   *
-   * @param blockMeta1 the first block meta
-   * @param blockMeta2 the second block meta
-   * @throws BlockDoesNotExistException
-   * @throws BlockAlreadyExistsException
-   * @throws WorkerOutOfSpaceException
-   */
-  public void swapBlocks(BlockMeta blockMeta1, BlockMeta blockMeta2)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
-    StorageDir blockDir1 = blockMeta1.getParentDir();
-    StorageDir blockDir2 = blockMeta2.getParentDir();
-    // Remove existing metas from dirs.
-    blockDir1.removeBlockMeta(blockMeta1);
-    blockDir2.removeBlockMeta(blockMeta2);
-
-    // Add new block metas with new block id and sizes.
-    blockDir1.addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(),
-        blockMeta2.getBlockSize(), blockDir1));
-    blockDir2.addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(),
-        blockMeta1.getBlockSize(), blockDir2));
   }
 
   /**

@@ -162,7 +162,7 @@ public class DefaultStorageTierTest {
             Constants.MEDIUM_MEM);
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
-            2000);
+            "2000");
     mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());

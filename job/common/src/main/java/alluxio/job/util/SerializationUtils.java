@@ -32,6 +32,11 @@ public final class SerializationUtils {
   private SerializationUtils() {} // prevent instantiation
 
   /**
+   * The identifier represents the starting position of the benchmark result.
+   */
+  public static final String BENCHMARK_RESULT_TAG = "BENCHMARK RESULT:";
+
+  /**
    * Serializes an object into a byte array. When the object is null, returns null.
    *
    * @param obj the object to serialize
@@ -110,5 +115,29 @@ public final class SerializationUtils {
   public static <S, T extends Serializable> Map<S, ArrayList<T>> makeValuesSerializable(
       Map<S, Collection<T>> map) {
     return Maps.transformValues(map, ArrayList::new);
+  }
+
+  /**
+   * Parse the actual JSON result from the benchmark output. Output might contain interference logs
+   * (for example, some warn level logs indicating that the listing file time is too long).
+   * @param result the output of benchmark
+   * @return the actual result in JSON format
+   */
+  public static String parseBenchmarkResult(String result) {
+    String[] taskResults = result.split("\n");
+    boolean isActualResultStart = false;
+    StringBuilder actualResult = new StringBuilder();
+
+    for (int i = 0; i < taskResults.length; i++) {
+      if (isActualResultStart) {
+        actualResult.append(taskResults[i]);
+      }
+      if (taskResults[i].startsWith(BENCHMARK_RESULT_TAG)) {
+        isActualResultStart = true;
+        // We need to take account of the cluster mode.
+        actualResult = new StringBuilder();
+      }
+    }
+    return actualResult.toString();
   }
 }
