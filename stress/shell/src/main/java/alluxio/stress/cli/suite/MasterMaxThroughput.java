@@ -14,151 +14,100 @@ package alluxio.stress.cli.suite;
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.job.util.SerializationUtils;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
-import alluxio.stress.master.MasterBenchParameters;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.master.MasterBenchSummary;
-import alluxio.stress.master.MaxThroughputSummary;
+import alluxio.stress.master.MasterBenchTaskResult;
+import alluxio.stress.master.MasterMaxThroughputSummary;
 import alluxio.stress.master.Operation;
-import alluxio.util.CommonUtils;
+import alluxio.stress.master.MasterBenchParameters;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.JsonSerializable;
 import alluxio.worker.job.JobMasterClientContext;
 
-import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * A max throughput suite.
+ * A max throughput suite for master.
  */
-public class MaxThroughput extends Suite<MaxThroughputSummary> {
-  private static final Logger LOG = LoggerFactory.getLogger(MaxThroughput.class);
-
-  /** Reuse the existing parameters. */
-  @ParametersDelegate
-  private MasterBenchParameters mParameters = new MasterBenchParameters();
+public class MasterMaxThroughput extends
+    AbstractMaxThroughput<MasterBenchTaskResult, MasterMaxThroughputSummary,
+        GeneralBenchSummary<MasterBenchTaskResult>, MasterBenchParameters> {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterMaxThroughput.class);
 
   private int mNumWorkers = 0;
+
+  /**
+   * Command-line args passed by user. Don't modify it.
+   */
+  private final List<String> mBaseArgs = Lists.newArrayList();
 
   /**
    * @param args the command-line args
    */
   public static void main(String[] args) {
-    mainInternal(args, new MaxThroughput());
+    mainInternal(args, new MasterMaxThroughput());
   }
 
-  private MaxThroughput() {
+  private MasterMaxThroughput() {
   }
 
   @Override
-  public MaxThroughputSummary runSuite(String[] args) throws Exception {
+  public void initParameters(List<String> baseArgs) {
+    mParameters = new MasterBenchParameters();
+    mBaseArgs.addAll(baseArgs);
+  }
+
+  @Override
+  public void prepare() throws Exception {
+    mMaxThroughputResult = new MasterMaxThroughputSummary();
+    mMaxThroughputResult.setParameters(mParameters);
+    mInitialThroughput = mParameters.mTargetThroughput;
+    if (!mParameters.mSkipPrepare) {
+      prepareBeforeAllTests(mBaseArgs);
+    }
     try (JobMasterClient client = JobMasterClient.Factory.create(
         JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
             ConfigurationUtils.defaults()))).build())) {
       mNumWorkers = client.getAllWorkerHealth().size();
     }
-    if (mNumWorkers <= 0) {
-      throw new IllegalStateException("No workers available for testing!");
-    }
-
-    MaxThroughputSummary summary = new MaxThroughputSummary();
-    summary.setParameters(mParameters);
-
-    List<String> baseArgs = new ArrayList<>(Arrays.asList(args));
-
-    if (!mParameters.mSkipPrepare) {
-      prepareBeforeAllTests(baseArgs);
-    }
-
-    int lower = 0;
-    int upper = Integer.MAX_VALUE;
-    // use the input target throughput as the starting point
-    int next = mParameters.mTargetThroughput;
-    int best = 0;
-
-    while (true) {
-      int perWorkerThroughput = next / mNumWorkers;
-      int requestedThroughput = perWorkerThroughput * mNumWorkers;
-
-      if (perWorkerThroughput == 0) {
-        // Cannot run with a target of 0
-        break;
-      }
-
-      List<String> newArgs = new ArrayList<>(baseArgs);
-      updateArgValue(newArgs, "--target-throughput", Integer.toString(perWorkerThroughput));
-
-      long runSec = (FormatUtils.parseTimeSize(mParameters.mDuration) + FormatUtils
-          .parseTimeSize(mParameters.mWarmup)) / 1000;
-      // the expected number of paths required for the test to complete successfully
-      long requiredCount = next * runSec;
-
-      MasterBenchSummary mbr = runSingleTest(requiredCount, newArgs);
-
-      int current = next;
-      final float actualThroughput = mbr.getThroughput();
-      if ((actualThroughput > requestedThroughput)
-          || ((requestedThroughput - actualThroughput) / (float) requestedThroughput) < 0.02) {
-        // the throughput was achieved. increase.
-        summary.addPassedRun(current, mbr);
-
-        best = current;
-        // update the lower bound.
-        lower = current;
-
-        if (upper == Integer.MAX_VALUE) {
-          next *= 2;
-        } else {
-          next = (next + upper) / 2;
-        }
-      } else {
-        // Failed to achieve the target throughput. update the upper bound.
-        summary.addFailedRun(current, mbr);
-
-        upper = current;
-        // throughput was not achieved. decrease.
-        next = (lower + next) / 2;
-      }
-      LOG.info(
-          "target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower + " "
-              + next + " " + upper + "]");
-
-      for (String error : mbr.collectErrorsFromAllNodes()) {
-        LOG.error("{}", error);
-      }
-
-      if (Math.abs(current - next) / (float) current <= 0.02) {
-        break;
-      }
-    }
-    LOG.info("max throughput: " + best);
-
-    summary.setEndTimeMs(CommonUtils.getCurrentMs());
-    summary.setMaxThroughput(best);
-
-    return summary;
   }
 
-  private void updateArgValue(List<String> args, String argName, String argValue) {
-    int index = args.indexOf(argName);
-    if (index == -1) {
-      // arg not found
-      args.add(argName);
-      args.add(argValue);
-      return;
-    }
-    if (index + 1 < args.size()) {
-      // arg found and next index is valid
-      args.set(index + 1, argValue);
-    } else {
-      // the next index is out of bounds
-    }
+  @Override
+  protected MasterBenchSummary runSingleTest(List<String> args,
+      int targetThroughput) throws Exception {
+    long runSec = (FormatUtils.parseTimeSize(mParameters.mDuration) + FormatUtils
+        .parseTimeSize(mParameters.mWarmup)) / 1000;
+    // the expected number of paths required for the test to complete successfully
+    long requiredCount = targetThroughput * runSec;
+    prepareBeforeSingleTest(requiredCount, args);
+    Benchmark b = new StressMasterBench();
+    String result = b.run(args.toArray(new String[0]));
+    return JsonSerializable.fromJson(
+        SerializationUtils.parseBenchmarkResult(result), new MasterBenchSummary[0]);
+  }
+
+  @Override
+  public String getBenchDescription() {
+    return String.join("\n", ImmutableList.of(
+        "",
+        "A benchmarking tool to measure the master max throughput of Alluxio.",
+        "Example:",
+        "# this would continuously run `ListDir` opeartion and record the throughput after "
+            + "5s warmup.",
+        "$ bin/alluxio runClass alluxio.stress.cli.suite.MasterMaxThroughput \\",
+        "--operation ListDir --warmup 5s",
+        ""
+    ));
   }
 
   /**
@@ -177,7 +126,8 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
 
     Benchmark b = new StressMasterBench();
     String result = b.run(newArgs.toArray(new String[0]));
-    MasterBenchSummary summary = JsonSerializable.fromJson(result, new MasterBenchSummary[0]);
+    MasterBenchSummary summary = JsonSerializable.fromJson(
+        SerializationUtils.parseBenchmarkResult(result), new MasterBenchSummary[0]);
     if (!summary.collectErrorsFromAllNodes().isEmpty()) {
       throw new IllegalStateException(String
           .format("Could not create files for operation (%s). error: %s",
@@ -226,18 +176,5 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
       default:
         break;
     }
-  }
-
-  /**
-   * @param requiredCount the number of operations that may happen for a successful run
-   * @param args the args
-   * @return the results
-   */
-  private MasterBenchSummary runSingleTest(long requiredCount, List<String> args) throws Exception {
-    prepareBeforeSingleTest(requiredCount, args);
-
-    Benchmark b = new StressMasterBench();
-    String result = b.run(args.toArray(new String[0]));
-    return JsonSerializable.fromJson(result, new MasterBenchSummary[0]);
   }
 }

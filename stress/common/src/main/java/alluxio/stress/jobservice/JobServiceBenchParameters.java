@@ -11,7 +11,7 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.stress.common.GeneralParameters;
+import alluxio.stress.Parameters;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class JobServiceBenchParameters extends GeneralParameters {
+public final class JobServiceBenchParameters extends Parameters {
   @Parameter(names = {"--operation"},
       description = "the operation to perform.",
       converter = OperationConverter.class,

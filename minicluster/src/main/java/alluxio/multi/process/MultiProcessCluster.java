@@ -42,7 +42,6 @@ import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
-import alluxio.network.PortUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -55,6 +54,8 @@ import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +94,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MultiProcessCluster {
-  public static final String ALLUXIO_USE_FIXED_TEST_PORTS = "ALLUXIO_USE_FIXED_TEST_PORTS";
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
 
@@ -137,13 +137,13 @@ public final class MultiProcessCluster {
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
       String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
-    if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
-      Preconditions.checkState(
-          ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
-          "We require %s ports per master and %s ports per worker, but there are %s masters, "
-              + "%s workers, and %s ports",
-          PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
-    }
+    LogManager.getLogger(MultiProcessCluster.class).setLevel(Level.DEBUG);
+
+    Preconditions.checkState(
+        ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
+        "We require %s ports per master and %s ports per worker, but there are %s masters, "
+            + "%s workers, and %s ports",
+        PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
     mProperties = properties;
     mMasterProperties = masterProperties;
     mWorkerProperties = workerProperties;
@@ -799,9 +799,6 @@ public final class MultiProcessCluster {
   }
 
   private int getNewPort() throws IOException {
-    if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) == null) {
-      return PortUtils.getFreePort();
-    }
     Preconditions.checkState(!mPorts.isEmpty(), "Out of ports to reserve");
     return mPorts.remove(mPorts.size() - 1).getPort();
   }
