@@ -389,7 +389,8 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatusPartial}.
+   * Performs a specific action on each {@code URIStatus} in the result of
+   * {@link #listStatusPartial}.
    * This method is preferred when iterating over directories with a large number of files or
    * sub-directories inside. The caller can proceed with partial result without waiting for all
    * result returned.

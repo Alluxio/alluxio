@@ -1366,7 +1366,8 @@ public final class FileSystemMasterTest {
         .setRecursive(recursive).setStartAfter(startAfter));
   }
 
-  private ListStatusContext genListStatusPrefixStartAfter(String prefix, String startAfter, boolean recursive) {
+  private ListStatusContext genListStatusPrefixStartAfter(
+      String prefix, String startAfter, boolean recursive) {
     return ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.NEVER)
         .setPrefix(prefix)
@@ -1479,13 +1480,15 @@ public final class FileSystemMasterTest {
 
     // list without recursion, and start after "/file",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusStartAfter(ROOT_FILE_URI.getPath(), false));
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusStartAfter(
+        ROOT_FILE_URI.getPath(), false));
     assertEquals(1, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
 
     // list with recursion, and start after "/file",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusStartAfter(ROOT_FILE_URI.getPath(), true));
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusStartAfter(
+        ROOT_FILE_URI.getPath(), true));
     assertEquals(6, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
     assertEquals(NESTED_URI.toString(), infos.get(1).getPath());
@@ -1650,7 +1653,6 @@ public final class FileSystemMasterTest {
     infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
         1, offset, true, NESTED_BASE_URI.getPath(), "/nested/test/d"));
     assertEquals(0, infos.size());
-
   }
 
   @Test
@@ -1665,27 +1667,32 @@ public final class FileSystemMasterTest {
 
     // list one at a time without recursion, and prefix "/file",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPrefix(ROOT_FILE_URI.getPath(), false));
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPrefix(
+        ROOT_FILE_URI.getPath(), false));
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.toString(), infos.get(0).getPath());
 
     // list without recursion, with a prefix that is longer than the result
-    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, genListStatusPrefix(NESTED_FILE_URI.getPath(), true));
+    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, genListStatusPrefix(
+        NESTED_FILE_URI.getPath(), true));
     assertEquals(0, infos.size());
 
     // list one at a time without recursion, and prefix "/nested",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPrefix(NESTED_BASE_URI.getPath(), false));
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPrefix(
+        NESTED_BASE_URI.getPath(), false));
     assertEquals(1, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
 
     // start listing without recursion from "/nested", with a prefix of "/test/file"
-    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI, genListStatusPrefix("/test/file", false));
+    infos = mFileSystemMaster.listStatus(NESTED_BASE_URI,
+        genListStatusPrefix("/test/file", false));
     assertEquals(0, infos.size());
 
     // list one at a time with recursion, and prefix "/nested",
     // the results should be sorted by name
-    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPrefix(NESTED_BASE_URI.getPath(), true));
+    infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPrefix(
+        NESTED_BASE_URI.getPath(), true));
     assertEquals(5, infos.size());
     assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
     assertEquals(NESTED_URI.toString(), infos.get(1).getPath());
@@ -1783,7 +1790,8 @@ public final class FileSystemMasterTest {
 
     // give an invalid nested prefix during the partial listing
     long finalOffset = offset;
-    assertThrows(InvalidPathException.class, () -> mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
+    assertThrows(InvalidPathException.class, () ->
+        mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
             1, finalOffset, true, ROOT_FILE_URI.getPath(), "")));
 
     infos = mFileSystemMaster.listStatus(ROOT_URI, genListStatusPartial(
@@ -1833,7 +1841,6 @@ public final class FileSystemMasterTest {
         1, offset, true, NESTED_FILE_URI.getPath(), ""));
     assertEquals(0, infos.size());
   }
-
 
   @Test
   public void listStatusPartialNested() throws Exception {
@@ -3980,11 +3987,10 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Asserts that the map is null or empty
+   * Asserts that the map is null or empty.
    * @param m the map to check
    */
   private static void assertNullOrEmpty(Map m) {
     assertTrue(m == null || m.isEmpty());
   }
-
 }

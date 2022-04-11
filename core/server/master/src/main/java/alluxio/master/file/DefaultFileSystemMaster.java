@@ -1218,7 +1218,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     // compute where to start from in each depth
-    List<String> partialPath = pathNames.stream().skip(rootInodes.size()).collect(Collectors.toList());
+    List<String> partialPath = pathNames.stream().skip(rootInodes.size())
+        .collect(Collectors.toList());
     if (partialPath.size() > 0) {
       return partialPath;
     }

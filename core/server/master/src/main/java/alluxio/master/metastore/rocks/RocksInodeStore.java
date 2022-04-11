@@ -221,7 +221,6 @@ public class RocksInodeStore implements InodeStore {
     }
   }
 
-
   private RocksIterator createChildrenIterFrom(final long parentId, final String fromName) {
     RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
     iter.seek(Longs.toByteArray(parentId));
