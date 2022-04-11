@@ -183,6 +183,10 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return nil, err
 	}
 	if _, err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Create(fusePod); err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			glog.V(4).Infof("Fuse pod %s already exists.", fusePod.Name)
+			return &csi.NodeStageVolumeResponse{}, nil
+		}
 		return nil, status.Errorf(codes.Internal, "Failed to launch Fuse Pod at %v.\n%v", ns.nodeId, err.Error())
 	}
 	glog.V(4).Infoln("Successfully creating Fuse pod.")
