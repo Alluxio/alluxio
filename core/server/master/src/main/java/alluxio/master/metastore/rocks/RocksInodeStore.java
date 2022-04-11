@@ -198,14 +198,19 @@ public class RocksInodeStore implements InodeStore {
   static class RocksIter implements Iterator<Long> {
 
     final RocksIterator mIter;
+    boolean mStopped = false;
 
     RocksIter(RocksIterator rocksIterator) {
       mIter = rocksIterator;
     }
 
+    private void stop() {
+      mStopped = true;
+    }
+
     @Override
     public boolean hasNext() {
-      return mIter.isValid();
+      return mIter.isValid() && !mStopped;
     }
 
     @Override
@@ -216,12 +221,35 @@ public class RocksInodeStore implements InodeStore {
     }
   }
 
-  @Override
-  public CloseableIterator<? extends Inode> getChildrenFrom(
-      final long parentId, final String fromName, final ReadOption option) {
+
+  private RocksIterator createChildrenIterFrom(final long parentId, final String fromName) {
     RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
     iter.seek(Longs.toByteArray(parentId));
     iter.seek(RocksUtils.toByteArray(parentId, fromName));
+    return iter;
+  }
+
+  @Override
+  public CloseableIterator<? extends Inode> getChildrenPrefix(
+      final long parentId, final String prefix, final ReadOption option) {
+    RocksIterator iter = createChildrenIterFrom(parentId, prefix);
+    RocksIter rocksIter = new RocksIter(iter);
+    Iterator<? extends  Inode> inodeIterator = StreamSupport.stream(Spliterators
+        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false).map(id -> get(id, option)
+    ).filter(Optional::isPresent).map(Optional::get).filter((nxt) -> {
+      if (!nxt.getName().startsWith(prefix)) {
+        rocksIter.stop();
+        return false;
+      }
+      return true;
+    }).iterator();
+    return CloseableIterator.create(inodeIterator, (any) -> iter.close());
+  }
+
+  @Override
+  public CloseableIterator<? extends Inode> getChildrenFrom(
+      final long parentId, final String fromName, final ReadOption option) {
+    RocksIterator iter = createChildrenIterFrom(parentId, fromName);
     RocksIter rocksIter = new RocksIter(iter);
     Iterator<? extends  Inode> inodeIterator = StreamSupport.stream(Spliterators
         .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false).map(id -> get(id, option)

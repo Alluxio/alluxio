@@ -20,7 +20,6 @@ import alluxio.resource.CloseableIterator;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.Closeable;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -47,8 +46,8 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
-   * Returns a stream of the inodes sorted by filename of the children of the given directory
-   * that come after and including fromName.
+   * Returns a closeable stream of the inodes sorted by filename of the children of the given
+   *  directory that come after and including fromName.
    * @param parentId the inode id of the parent directory
    * @param fromName the inode from which to start listing
    * @param option the read options
@@ -60,6 +59,39 @@ public interface ReadOnlyInodeStore extends Closeable {
     return CloseableIterator.noopCloseable(StreamSupport.stream(children.spliterator(), false)
         .filter((inode) -> inode.getName().compareTo(fromName) >= 0)
         .iterator());
+  }
+
+  /**
+   * Returns a closeable stream of the inodes sorted by filename of the children of the given
+   *  directory that come after and including fromName.
+   * @param parentId the inode id of the parent directory
+   * @param prefix the prefix to match
+   * @param option the read options
+   * @return an iterator of the children starting from fromName
+   */
+  default CloseableIterator<? extends Inode> getChildrenPrefix(
+      final long parentId, final String prefix, final ReadOption option) {
+    Iterable<? extends Inode> children = getChildren(parentId, option);
+    return CloseableIterator.noopCloseable(StreamSupport.stream(children.spliterator(), false)
+        .filter((inode) -> inode.getName().startsWith(prefix))
+        .iterator());
+  }
+
+  /**
+   * Returns a closeable stream of the inodes sorted by filename of the children of the given
+   *  directory that come after and including fromName, and matching the prefix.
+   * @param parentId the inode id of the parent directory
+   * @param prefix the prefix to match
+   * @param fromName the inode from which to start listing
+   * @param option the read options
+   * @return an iterator of the children starting from fromName
+   */
+  default CloseableIterator<? extends Inode> getChildrenPrefixFrom(
+      final long parentId, final String prefix, final String fromName, final ReadOption option) {
+    Iterable<? extends Inode> children = getChildren(parentId, option);
+    return CloseableIterator.noopCloseable(StreamSupport.stream(children.spliterator(), false)
+        .filter((inode) -> inode.getName().compareTo(fromName) >= 0 && inode.getName()
+            .startsWith(prefix)).iterator());
   }
 
   /**

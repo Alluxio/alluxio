@@ -228,12 +228,16 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
-  // If a partial listing should be used
-  optional bool partialListing = 6;
-  // An offset to start listing after if included
-  optional int64 offset = 7;
+  // For when doing partial listings, an offset to start listing after if included
+  optional int64 offset = 6;
   // Batch size for partial listings
-  optional int32 batchSize = 8;
+  optional int32 batchSize = 7;
+  // For only matching files with a given prefix
+  optional string prefix = 8;
+  // If you want to start a listing from after a certain file
+  // if this option is set, and the offset for partial listing
+  // is also set, then this option will be ignored
+  optional string startAfter = 9;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */

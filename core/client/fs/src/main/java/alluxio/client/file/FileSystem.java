@@ -389,6 +389,43 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatusPartial}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param offset the InodeId to start the listing from
+   * @param batchSize the size of the batch of files to return
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  default void iterateStatusPartial(
+      AlluxioURI path, long offset, int batchSize, Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    iterateStatus(path, ListStatusPOptions.newBuilder()
+        .setOffset(offset)
+        .setBatchSize(batchSize)
+        .build(), action);
+  }
+
+  /**
+   * @param path the path to list information about
+   * @param offset the InodeId to start the listing from
+   * @param batchSize the size of the batch of files to return
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  default List<URIStatus> listStatusPartial(AlluxioURI path, long offset, int batchSize)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return listStatus(path, ListStatusPOptions.newBuilder()
+        .setOffset(offset)
+        .setBatchSize(batchSize)
+        .build());
+  }
+
+  /**
    * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
    * options.
    *

@@ -79,7 +79,7 @@ public class ListStatusContext
    * been listed, false otherwise
    */
   public boolean donePartialListing() {
-    return getOptions().getPartialListing() && getOptions().getBatchSize() <= mListedCount;
+    return getOptions().hasOffset() && getOptions().getBatchSize() <= mListedCount;
   }
 
   @Override

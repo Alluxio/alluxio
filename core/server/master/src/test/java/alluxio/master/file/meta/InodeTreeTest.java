@@ -572,7 +572,7 @@ public final class InodeTreeTest {
 
     // insert in reverse order so the inodes are created not in sorted order
     for (int i = files.size() - 1; i >= 0; i--) {
-      createPath(mTree, files.get(i), sNestedDirectoryContext);
+      createPath(mTree, files.get(i), sNestedFileContext);
     }
     return files;
   }
@@ -598,6 +598,98 @@ public final class InodeTreeTest {
         }
       }
       remain--;
+    }
+  }
+
+  @Test
+  public void getChildrenPrefix() throws Exception {
+    // Test a single file prefix
+    String prefix = "afile";
+    AlluxioURI file = new AlluxioURI("/" + prefix);
+    createPath(mTree, file, sNestedDirectoryContext);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+      long parentId = inodePath.getInode().getParentId();
+      Inode[] childInodes;
+      try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
+          prefix, ReadOption.defaults())) {
+        childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
+      }
+      assertEquals(1, childInodes.length);
+      assertEquals(file, mTree.getPath(childInodes[0].getId()));
+    }
+
+    // Test multiple files with the prefix
+    prefix = "bfile";
+    List<AlluxioURI> files = new ArrayList<>(Arrays.asList(new AlluxioURI("/" + prefix),
+        new AlluxioURI("/" + prefix + "1"),
+        new AlluxioURI("/" + prefix + "2")));
+    // add the files out of order
+    for (int i = files.size() - 1; i >= 0; i--) {
+      createPath(mTree, files.get(i), sNestedFileContext);
+    }
+    // add a nested directory that matches the prefix
+    String nestedPath = "/" + prefix + "3";
+    createPath(mTree, new AlluxioURI(nestedPath + "/nested"), sNestedDirectoryContext);
+    files.add(new AlluxioURI(nestedPath));
+    // add a file that does not match the prefix
+    createPath(mTree, new AlluxioURI("/cfile"), sNestedFileContext);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+      long parentId = inodePath.getInode().getParentId();
+      Inode[] childInodes;
+      try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
+          prefix, ReadOption.defaults())) {
+        childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
+      }
+      assertEquals(files.size(), childInodes.length);
+      for (int i = 0; i < files.size(); i++) {
+        assertEquals(files.get(i), mTree.getPath(childInodes[i].getId()));
+      }
+    }
+  }
+
+  @Test
+  public void getChildrenPrefixAfter() throws Exception {
+    // Test a single file prefix
+    String prefix = "afile";
+    AlluxioURI file = new AlluxioURI("/" + prefix);
+    createPath(mTree, file, sNestedDirectoryContext);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+      long parentId = inodePath.getInode().getParentId();
+      Inode[] childInodes;
+      try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefixFrom(parentId,
+          prefix, "", ReadOption.defaults())) {
+        childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
+      }
+      assertEquals(1, childInodes.length);
+      assertEquals(file, mTree.getPath(childInodes[0].getId()));
+    }
+
+    // Test multiple files with the prefix
+    prefix = "bfile";
+    List<AlluxioURI> files = new ArrayList<>(Arrays.asList(new AlluxioURI("/" + prefix),
+        new AlluxioURI("/" + prefix + "1"),
+        new AlluxioURI("/" + prefix + "2")));
+    // add the files out of order
+    for (int i = files.size() - 1; i >= 0; i--) {
+      createPath(mTree, files.get(i), sNestedFileContext);
+    }
+    // add a nested directory that matches the prefix
+    String nestedPath = "/" + prefix + "3";
+    createPath(mTree, new AlluxioURI(nestedPath + "/nested"), sNestedDirectoryContext);
+    files.add(new AlluxioURI(nestedPath));
+    // add a file that does not match the prefix
+    createPath(mTree, new AlluxioURI("/cfile"), sNestedFileContext);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
+      long parentId = inodePath.getInode().getParentId();
+      Inode[] childInodes;
+      try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
+          prefix, ReadOption.defaults())) {
+        childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
+      }
+      assertEquals(files.size(), childInodes.length);
+      for (int i = 0; i < files.size(); i++) {
+        assertEquals(files.get(i), mTree.getPath(childInodes[i].getId()));
+      }
     }
   }
 
@@ -641,7 +733,7 @@ public final class InodeTreeTest {
     }
 
     for (AlluxioURI nxt : files) {
-      createPath(mTree, nxt, sNestedDirectoryContext);
+      createPath(mTree, nxt, sNestedFileContext);
     }
 
     // Go through each file and be sure there are the proper inodes following it in the listing

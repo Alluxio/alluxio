@@ -1023,13 +1023,22 @@ public class DefaultFileSystemMaster extends CoreMaster
       ResultStream<FileInfo> resultStream)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
+    List<String> prefixComponents;
+    if (!context.getOptions().getPrefix().equals("")) {
+      // compute the prefix as path components, removing the first empty string
+      prefixComponents = Arrays.stream(PathUtils.getPathComponents(
+          new AlluxioURI(
+              context.getOptions().getPrefix()).getPath())).skip(1).collect(Collectors.toList());
+    } else {
+      prefixComponents = Collections.emptyList();
+    }
     LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, false);
     boolean ufsAccessed = false;
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
-      boolean partialListing = context.getOptions().getPartialListing();
+      boolean partialListing = context.getOptions().hasOffset();
       long listOffset = context.getOptions().getOffset();
       // if doing a partial listing, only sync on the initial call
       boolean skipSyncOnPartialListing = partialListing && listOffset > 0;
@@ -1073,8 +1082,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           ufsAccessed = true;
         }
 
+        // null if we are not using a partial listing
         List<String> partialPathNames = null;
-        if (partialListing) {
+        if (partialListing && context.getOptions().getOffset() != 0) {
           // Before we take the locks we must compute the names to in the path at
           // where we should start the partial listing.
           try {
@@ -1141,11 +1151,13 @@ public class DefaultFileSystemMaster extends CoreMaster
             } catch (InvalidPathException e) {
               throw new FileDoesNotExistException(e.getMessage(), e);
             }
+            partialPathNames = computePartialListingPaths(context, partialPathNames, inodePath);
+            checkPrefixListingPaths(context, prefixComponents, partialPathNames);
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,
                 Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                     Metrics.UFSOps.GET_FILE_INFO),
-                    computePartialListingPaths(context, partialPathNames, inodePath));
+                partialPathNames, prefixComponents);
             if (!ufsAccessed) {
               Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                   Metrics.UFSOps.LIST_STATUS).inc();
@@ -1168,21 +1180,31 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * If this is a partial listing, this will compute whether the path given by pathNames
-   * exits in rootPath.
+   * exits in rootPath. This is used to verify that the partial listing start point
+   * is contained in root path.
    *
    * @param context the context of the operation
-   * @param pathNames the full path from where the partial listing is expected to start
+   * @param pathNames the full path from where the partial listing is expected to start,
+   *                  null if this is the first listing
    * @param rootPath the locked root path of the listing
-   * @return the nested components in root path from where to start the partial listing
+   * @return the nested components in root path from where to start the partial listing,
+   * or null if the listing should start from the beginning of the root path
    * @throws FileDoesNotExistException if the path in pathNames does not exist in rootPath
    */
-  private @Nullable Iterator<String> computePartialListingPaths(ListStatusContext context,
-                                                                List<String> pathNames, LockedInodePath rootPath)
-      throws FileDoesNotExistException {
-    if (!context.getOptions().getPartialListing() || context.getOptions().getOffset() == 0) {
-      // start from the beginning of the listing
+  private @Nullable List<String> computePartialListingPaths(
+      ListStatusContext context,
+      @Nullable List<String> pathNames, LockedInodePath rootPath)
+      throws FileDoesNotExistException, InvalidPathException {
+    if (pathNames == null) {
+      // use the start after option, since this is the first listing
+      if (!context.getOptions().getStartAfter().equals("")) {
+        return Arrays.stream(PathUtils.getPathComponents(
+            context.getOptions().getStartAfter())).skip(1).collect(Collectors.toList());
+      }
+      // otherwise, start from the beginning of the listing
       return null;
     }
+
     // See if the inode from where to start the listing is within the root listing path.
     List<InodeView> rootInodes = rootPath.getInodeViewList();
     if (rootInodes.size() > pathNames.size()) {
@@ -1196,7 +1218,42 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     // compute where to start from in each depth
-    return pathNames.stream().skip(rootInodes.size()).iterator();
+    List<String> partialPath = pathNames.stream().skip(rootInodes.size()).collect(Collectors.toList());
+    if (partialPath.size() > 0) {
+      return partialPath;
+    }
+    return null;
+  }
+
+  /**
+   * If listing using a prefix and a partial path, this will compute whether the prefix
+   * exits in the partial pah.
+   *
+   * @param prefixComponents the components of the prefix path
+   * @param partialPath the components of the partial pah
+   * @throws InvalidPathException if the path in prefixComponents does not exist in partialPath
+   */
+  private void checkPrefixListingPaths(
+      ListStatusContext context,
+      List<String> prefixComponents, @Nullable List<String> partialPath)
+      throws InvalidPathException {
+    // we only have to check the prefix if we are doing a partial listing,
+    // and we are not on the initial partial listing call
+    if (partialPath == null
+        || !(context.getOptions().hasOffset() && context.getOptions().getOffset() != 0)) {
+      return;
+    }
+    // for each component the prefix must be the same as the partial path component
+    // except at the last component where the prefix must be contained in the partial path component
+    for (int i = 0; i < Math.min(partialPath.size(), prefixComponents.size()); i++) {
+      if ((i < partialPath.size() - 1 && !partialPath.get(i).equals(prefixComponents.get(i)))
+          || (i == partialPath.size() - 1 && !partialPath.get(i).startsWith(
+          prefixComponents.get(i)))) {
+        throw new InvalidPathException(
+            ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH
+                .getMessage(prefixComponents.get(i), partialPath.get(i)));
+      }
+    }
   }
 
   /**
@@ -1212,23 +1269,44 @@ public class DefaultFileSystemMaster extends CoreMaster
    *        should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
-   * @param partialPath using during partial listings, indicating where to start listing
-   *                    at each depth
+   * @param partialPath used during partial listings, indicating where to start listing
+   *                    at each depth. If this is null then the start of the partial path
+   *                    has already been reached and the item should be listed. If a partial
+   *                    listing is not being done this will always be null.
+   * @param prefixComponents if filtering results by a prefix, the components of the prefix
+   *                         split by the / delimiter
    */
-  private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
-      LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
-      ResultStream<FileInfo> resultStream, int depth, Counter counter, @Nullable Iterator<String> partialPath)
+  private void listStatusInternal(
+      ListStatusContext context, RpcContext rpcContext, LockedInodePath currInodePath,
+      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
+      int depth, Counter counter, @Nullable List<String> partialPath,
+      List<String> prefixComponents)
       throws FileDoesNotExistException, UnavailableException,
       AccessControlException, InvalidPathException {
 
-    // the full partial path is the end of the previous partial listing,
-    // so we continue from the parent
-    if (partialPath != null && !partialPath.hasNext()) {
+    rpcContext.throwIfCancelled();
+    Inode inode = currInodePath.getInode();
+
+    if (context.donePartialListing()) {
       return;
     }
 
-    rpcContext.throwIfCancelled();
-    Inode inode = currInodePath.getInode();
+    // The item should be listed if:
+    // 1. We have reached the start of the partial listing (partialPath == nul)
+    // 2. We have reached the last path component of the partial listing,
+    //     and the item comes after this path component (in lexicographical sorted order)
+    if (partialPath == null
+        || (partialPath.size() == depth
+        && inode.getName().compareTo(partialPath.get(depth - 1)) > 0)) {
+      // Add the item to the results before adding any of its children.
+      // Listing a directory should not emit item for the directory itself (i.e. depth == 0).
+      // Furthermore, the item should not be added if there are still components to the prefix.
+      if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
+        resultStream.submit(getFileInfoInternal(currInodePath, counter));
+        context.listedItem();
+      }
+    }
+
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
         // TODO(david): Return the error message when we do not have permission
@@ -1236,16 +1314,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         if (descendantType == DescendantType.ALL) {
-          if (partialPath != null) {
-            // if we are on our initial partial path, and we do not have access,
-            // then we are done processing the partial path
-            // so consume the remaining elements
-            partialPath.forEachRemaining((nxt) -> { });
-          }
           return;
         } else {
           throw e;
         }
+      }
+      // if we have processed the full partial path, then we should list all children
+      if (partialPath != null && !(partialPath.size() > depth)) {
+        partialPath = null;
       }
       mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
           CommonUtils.getCurrentMs());
@@ -1253,7 +1329,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           ? DescendantType.ALL : DescendantType.NONE;
 
       try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
-          inode, partialPath, context)) {
+          inode, partialPath, prefixComponents, depth, context)) {
+        if (context.donePartialListing()) {
+          return;
+        }
         // This is to generate a parsed child path components to be passed to lockChildPath
         String[] childComponentsHint = null;
         while (childrenIterator.hasNext()) {
@@ -1271,44 +1350,59 @@ public class DefaultFileSystemMaster extends CoreMaster
                    currInodePath.lockChildByName(
                        childName, LockPattern.READ, childComponentsHint)) {
             listStatusInternal(context, rpcContext, childInodePath, auditContext,
-                nextDescendantType, resultStream, depth + 1, counter, partialPath);
+                nextDescendantType, resultStream, depth + 1, counter,
+                partialPath, prefixComponents);
           } catch (InvalidPathException | FileDoesNotExistException e) {
             if (LOG.isDebugEnabled()) {
               LOG.debug("Path \"{}\" is invalid, has been ignored.",
                   PathUtils.concatPath("/", (Object) childComponentsHint));
             }
           }
-          if (context.donePartialListing()) {
-            return;
-          }
-          // ensure that the listing of any new directories starts from the
+          // ensure that the listing of any new subdirectories starts from the
           // beginning of the children list
           partialPath = null;
         }
       }
     }
-    // Listing a directory should not emit item for the directory itself.
-    if (depth != 0 || inode.isFile()) {
-      resultStream.submit(getFileInfoInternal(currInodePath, counter));
-      context.listedItem();
-    }
   }
 
   private CloseableIterator<? extends Inode> getChildrenIterator(
-      Inode inode, @Nullable Iterator<String> partialPath, ListStatusContext context) {
-    // Check if we should process all children, or just the partial listing
-    // The partial listing iterator is sorted.
-    if (context.getOptions().getPartialListing()) {
+      Inode inode, @Nullable List<String> partialPath, List<String> prefixComponents,
+      int depth, ListStatusContext context) throws InvalidPathException {
+
+    // Check if we should process all children, or just the partial listing, or just a prefix
+    String prefix = null;
+    if (prefixComponents.size() > depth) {
+      prefix = prefixComponents.get(depth);
+    }
+    if (context.getOptions().hasOffset() || context.getOptions().hasStartAfter()) {
       // If we have already processed the first entry in the partial path
-      // then we just process from the start of the children
+      // then we just process from the start of the children, so we list from the empty string
       String listFrom = "";
-      if (partialPath != null && partialPath.hasNext()) {
-        listFrom = partialPath.next();
+      if (partialPath != null && partialPath.size() > depth) {
+        listFrom = partialPath.get(depth);
+        if (prefix != null) {
+          // the prefix must have the same components as the start point in the partial listing
+          // because the node must have matched the prefix in the previous call to the listing
+          if ((prefixComponents.size() > depth + 1 && !prefix.equals(listFrom))) {
+              //|| (!(prefixComponents.size() > depth + 1) && !listFrom.startsWith(prefix))) {
+            throw new InvalidPathException(ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH.getMessage(
+                prefix, listFrom));
+          }
+        }
       }
-      return mInodeStore.getChildrenFrom(inode.getId(), listFrom,
+      if (prefix != null) {
+        return mInodeStore.getChildrenPrefixFrom(inode.getId(), prefix, listFrom,
+            ReadOption.defaults());
+      } else {
+        return mInodeStore.getChildrenFrom(inode.getId(), listFrom,
+            ReadOption.defaults());
+      }
+    } else if (prefix != null) {
+      return mInodeStore.getChildrenPrefix(inode.getId(), prefix,
           ReadOption.defaults());
     } else {
-      // Perform a full listing of all children unsorted.
+      // Perform a full listing of all children sorted by name.
       return CloseableIterator.noopCloseable(
           mInodeStore.getChildren(inode.asDirectory()).iterator());
     }

@@ -138,6 +138,7 @@ public enum ExceptionMessage {
   INODE_DOES_NOT_EXIST("inodeId {0,number,#} does not exist"),
   INODE_DOES_NOT_EXIST_RETRIES("inodeId {0,number,#} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
+  PREFIX_DOES_NOT_MATCH_PATH("Prefix component {0} does not match path component {1}"),
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
   PATH_INVALID_CONCURRENT_RENAME("Path is no longer valid, possibly due to a concurrent rename."),
