@@ -164,7 +164,8 @@ public class SnapshotReplicationManager {
       return RaftJournalUtils.completeExceptionally(
           new IllegalStateException("State is not IDLE when starting a snapshot installation"));
     }
-    try (RaftJournalServiceClient client = getJournalServiceClient()) {
+    try {
+      RaftJournalServiceClient client = createJournalServiceClient();
       String address = String.valueOf(client.getAddress());
       SnapshotDownloader<DownloadSnapshotPRequest, DownloadSnapshotPResponse> observer =
           SnapshotDownloader.forFollower(mStorage, address);
@@ -190,6 +191,7 @@ public class SnapshotReplicationManager {
         if (throwable != null) {
           LOG.error("Unexpected exception downloading snapshot from leader {}.", address,
               throwable);
+          client.close();
           transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
         }
       });
@@ -213,20 +215,23 @@ public class SnapshotReplicationManager {
     if (snapshot == null) {
       throw new NotFoundException("No snapshot available");
     }
-    StreamObserver<UploadSnapshotPResponse> responseObserver =
+
+    SnapshotUploader<UploadSnapshotPRequest, UploadSnapshotPResponse> snapshotUploader =
         SnapshotUploader.forFollower(mStorage, snapshot);
-    try (RaftJournalServiceClient client = getJournalServiceClient()) {
-      LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
-          snapshot.getTermIndex());
-      StreamObserver<UploadSnapshotPRequest> requestObserver =
-          client.uploadSnapshot(responseObserver);
-      requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
-          .setData(SnapshotData.newBuilder()
-              .setSnapshotTerm(snapshot.getTerm())
-              .setSnapshotIndex(snapshot.getIndex())
-              .setOffset(0))
-          .build());
-    }
+    RaftJournalServiceClient client = createJournalServiceClient();
+    LOG.info("Sending stream request to {} for snapshot {}", client.getAddress(),
+        snapshot.getTermIndex());
+    StreamObserver<UploadSnapshotPRequest> requestObserver =
+        client.uploadSnapshot(snapshotUploader);
+    requestObserver.onNext(UploadSnapshotPRequest.newBuilder()
+        .setData(SnapshotData.newBuilder()
+            .setSnapshotTerm(snapshot.getTerm())
+            .setSnapshotIndex(snapshot.getIndex())
+            .setOffset(0))
+        .build());
+    snapshotUploader.getCompletionFuture().whenComplete((info, t) -> {
+      client.close();
+    });
   }
 
   /**
@@ -519,7 +524,7 @@ public class SnapshotReplicationManager {
   }
 
   @VisibleForTesting
-  synchronized RaftJournalServiceClient getJournalServiceClient()
+  synchronized RaftJournalServiceClient createJournalServiceClient()
       throws AlluxioStatusException {
     RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
