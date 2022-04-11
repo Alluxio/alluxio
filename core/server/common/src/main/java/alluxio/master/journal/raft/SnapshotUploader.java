@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
@@ -56,6 +57,7 @@ public class SnapshotUploader<S, R>
   private final SnapshotInfo mSnapshotInfo;
   private long mOffset = 0;
   private StreamObserver<S> mStream;
+  private final CompletableFuture<SnapshotInfo> mCompletionFuture = new CompletableFuture<>();
 
   /**
    * Builds a stream for leader to upload a snapshot.
@@ -151,16 +153,22 @@ public class SnapshotUploader<S, R>
   @Override
   public void onError(Throwable t) {
     LOG.error("Error sending snapshot {} at {}", mSnapshotFile, mOffset, t);
-    // propagates error to SnapshpotReplicationManager#receiveSnapshotFromFollower ->
-    // observer.getFuture().exceptionally(). This allows leader to request other followers for a
-    // snapshot.
     mStream.onError(t);
+    mCompletionFuture.completeExceptionally(t);
   }
 
   @Override
   public void onCompleted() {
-    LOG.debug("Received onComplete");
+    LOG.debug("Received onComplete for {}", mSnapshotInfo);
     mStream.onCompleted();
+    mCompletionFuture.complete(mSnapshotInfo);
+  }
+
+  /**
+   * @return a future used to propagate completion status to {@link SnapshotReplicationManager}
+   */
+  public CompletableFuture<SnapshotInfo> getCompletionFuture() {
+    return mCompletionFuture;
   }
 
   @Override

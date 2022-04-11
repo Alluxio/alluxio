@@ -22,7 +22,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.SessionIdUtils;
+import alluxio.util.IdUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -67,7 +67,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
     long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
     BlockWorker blockWorker = context.getProcessLocalWorker();
     Preconditions.checkNotNull(blockWorker, "blockWorker");
-    long sessionId = SessionIdUtils.createSessionId();
+    long sessionId = IdUtils.createSessionId();
     try {
       blockWorker.createBlock(sessionId, blockId, options.getWriteTier(), options.getMediumType(),
           reservedBytes);
