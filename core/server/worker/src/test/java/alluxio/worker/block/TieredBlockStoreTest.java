@@ -382,7 +382,7 @@ public final class TieredBlockStoreTest {
       runnables.add(() -> {
         try {
           mBlockStore.freeSpace(SESSION_ID1, 0, 0,
-              new BlockStoreLocation(Constants.MEDIUM_MEM, 0, BlockStoreLocation.ANY_MEDIUM));
+              new BlockStoreLocation(Constants.MEDIUM_MEM, 0));
         } catch (Exception e) {
           fail();
         }

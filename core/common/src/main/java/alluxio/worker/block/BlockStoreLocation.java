@@ -31,10 +31,10 @@ public final class BlockStoreLocation {
   public static final String ANY_TIER = "";
 
   /** Special value to indicate any dir. */
-  public static final int ANY_DIR = -1;
+  private static final int ANY_DIR = -1;
 
   /** Special value to indicate any medium type. */
-  public static final String ANY_MEDIUM = "";
+  private static final String ANY_MEDIUM = "";
 
   private static final BlockStoreLocation ANY_TIER_LOCATION =
       new BlockStoreLocation(ANY_TIER, ANY_DIR, ANY_MEDIUM);
@@ -113,12 +113,21 @@ public final class BlockStoreLocation {
   }
 
   /**
+   * Check whether the location has no restriction, i.e., {@link #ANY_TIER_LOCATION}.
+   *
+   * @return true if location is equal to {@link #ANY_TIER_LOCATION}
+   */
+  public boolean hasNoRestriction() {
+    return this.equals(ANY_TIER_LOCATION);
+  }
+
+  /**
    * Check whether the location is {@link #ANY_TIER}.
    *
    * @return true if location is {@link #ANY_TIER}
    */
   public boolean isAnyTier() {
-    return tierAlias().equals(ANY_TIER);
+    return tierAlias().isEmpty();
   }
 
   /**
@@ -140,6 +149,15 @@ public final class BlockStoreLocation {
   }
 
   /**
+   * Check whether the location is {@link #ANY_DIR} within the specified tier.
+   *
+   * @return true if location is {@link #ANY_DIR} within the specified tier
+   */
+  public boolean isAnyDirWithTier() {
+    return isAnyDir() && !isAnyTier();
+  }
+
+  /**
    * Gets the medium type of the location.
    *
    * @return the medium type of the location
@@ -154,7 +172,7 @@ public final class BlockStoreLocation {
    * @return true if location is {@link #ANY_MEDIUM}
    */
   public boolean isAnyMedium() {
-    return mediumType().equals(ANY_MEDIUM);
+    return mediumType().isEmpty();
   }
 
   /**
