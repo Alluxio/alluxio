@@ -35,6 +35,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -81,6 +82,7 @@ public class AlluxioJniFuseFileSystemTest {
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
 
   private AlluxioJniFuseFileSystem mFuseFs;
+  private FileSystemContext mFileSystemContext;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
@@ -94,10 +96,10 @@ public class AlluxioJniFuseFileSystemTest {
   public void before() throws Exception {
     FuseMountConfig opts =
         FuseMountConfig.create("/doesnt/matter", TEST_ROOT_PATH, ImmutableList.of(), mConf);
-
+    mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioJniFuseFileSystem(mFileSystem, opts, mConf);
+      mFuseFs = new AlluxioJniFuseFileSystem(mFileSystemContext, mFileSystem, opts, mConf);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

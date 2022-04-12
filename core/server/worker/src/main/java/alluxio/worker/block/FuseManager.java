@@ -58,7 +58,7 @@ public class FuseManager implements Closeable {
       // TODO(lu) consider launching fuse in a separate thread as blocking operation
       // so that we can know about the fuse application status
       FileSystem fileSystem = mResourceCloser.register(FileSystem.Factory.create(mFsContext));
-      mFuseUmountable = AlluxioFuse.launchFuse(fileSystem, conf, config, false);
+      mFuseUmountable = AlluxioFuse.launchFuse(mFsContext, fileSystem, conf, config, false);
     } catch (Throwable throwable) {
       // TODO(lu) for already mounted application, unmount first and then remount
       LOG.error("Failed to launch worker internal Fuse application", throwable);
