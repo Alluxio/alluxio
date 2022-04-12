@@ -24,6 +24,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -384,6 +385,20 @@ public final class S3RestServiceHandler {
           throw S3RestUtils.toBucketS3Exception(e, bucketPath);
         }
         return Response.Status.OK;
+      }
+
+      // Silently swallow CreateBucket calls on existing buckets
+      // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
+      //   calling HeadBucket to ensure that the bucket exists
+      try {
+        URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
+        if (status.isFolder()) { return Response.Status.OK; }
+        throw new InvalidPathException(
+            String.format("Bucket %s is not a valid Alluxio directory.", bucketPath));
+      } catch (FileDoesNotExistException e) {
+        // do nothing, we will create the directory below
+      } catch (Exception e) {
+        throw S3RestUtils.toBucketS3Exception(e, bucketPath);
       }
 
       // Create the bucket.
