@@ -31,6 +31,7 @@ import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierEvictorView;
 import alluxio.worker.block.meta.StorageTierView;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -229,8 +230,8 @@ public final class BlockMetadataViewTest {
       StorageTierEvictorView tierView2) {
     assertEquals(tierView1.getTierViewAlias(), tierView2.getTierViewAlias());
     assertEquals(tierView1.getTierViewOrdinal(), tierView2.getTierViewOrdinal());
-    List<StorageDirView> dirViews1 = tierView1.getDirViews();
-    List<StorageDirView> dirViews2 = tierView2.getDirViews();
+    List<StorageDirView> dirViews1 = ImmutableList.copyOf(tierView1.getDirViews());
+    List<StorageDirView> dirViews2 = ImmutableList.copyOf(tierView2.getDirViews());
     assertEquals(dirViews1.size(), dirViews2.size());
     for (int i = 0; i < dirViews1.size(); i++) {
       StorageDirEvictorView dirView1 = (StorageDirEvictorView) dirViews1.get(i);

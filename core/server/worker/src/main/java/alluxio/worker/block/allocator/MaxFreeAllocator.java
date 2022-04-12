@@ -45,24 +45,23 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
+  public StorageDirView allocateBlockWithView(long blockSize,
       BlockStoreLocation location, BlockMetadataView metadataView, boolean skipReview) {
     mMetadataView = Preconditions.checkNotNull(metadataView, "view");
-    return allocateBlock(sessionId, blockSize, location, skipReview);
+    return allocateBlock(blockSize, location, skipReview);
   }
 
   /**
    * Allocates a block from the given block store location. The location can be a specific location,
    * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
    *
-   * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @param skipReview whether the review should be skipped
    * @return a {@link StorageDirView} in which to create the temp block meta if success,
    *         null otherwise
    */
-  private StorageDirView allocateBlock(long sessionId, long blockSize,
+  private StorageDirView allocateBlock(long blockSize,
       BlockStoreLocation location, boolean skipReview) {
     Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
