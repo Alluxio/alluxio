@@ -101,6 +101,10 @@ function formatWorkerIfSpecified {
 }
 
 function mountAlluxioRootFSWithFuseOption {
+  if [[ -n ${FUSE_ALLUXIO_PATH} ]] && [[ -z ${MOUNT_POINT} ]]; then
+    echo "Environment variable MOUNT_POINT must be set for using FUSE_ALLUXIO_PATH."
+    exit 1
+  fi
   local mountOptions=""
   if [[ -n ${OPTIONS} ]]; then
     if [[ ! ${OPTIONS} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${OPTIONS#*=} ]]; then
