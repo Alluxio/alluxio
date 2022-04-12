@@ -191,9 +191,9 @@ public class SnapshotReplicationManager {
         if (throwable != null) {
           LOG.error("Unexpected exception downloading snapshot from leader {}.", address,
               throwable);
-          client.close();
           transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
         }
+        client.close();
       });
     } catch (Exception e) {
       transitionState(DownloadState.STREAM_DATA, DownloadState.IDLE);
