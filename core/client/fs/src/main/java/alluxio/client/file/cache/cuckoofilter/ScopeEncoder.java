@@ -57,7 +57,9 @@ public class ScopeEncoder {
           int id = mNextId;
           Preconditions.checkArgument(id < mMaxNumScopes, "too many scopes in shadow cache");
           mNextId++;
-          mScopeToId.put(scopeInfo, id);
+          mScopeToId.putIfAbsent(scopeInfo, id);
+          // if we use mScopeToID.put() here,
+          // we will get the findBug's error: the hashmap may not be atomic.
         }
       }
     }
