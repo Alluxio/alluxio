@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * - GetBucketTagging, GetObjectTagging, PutBucketTagging, PutObjectTagging
  */
 @JacksonXmlRootElement(localName = "Tagging")
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"tagMap"})
 public class TaggingData {
   private static final XmlMapper MAPPER = new XmlMapper();
 
