@@ -781,8 +781,7 @@ public final class TieredBlockStoreTest {
         mBlockIterator);
     BlockStoreMeta oldMeta = mBlockStore.getBlockStoreMeta();
     FileUtils.deletePathRecursively(mTestDir2.getDirPath());
-    assertTrue("check storage should fail if one of the directory is not accessible",
-        mBlockStore.checkStorage());
+    mBlockStore.removeInaccessibleStorage();
     BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
     long usedByteInDir = mTestDir2.getCapacityBytes() - mTestDir2.getAvailableBytes();
     assertFalse("failed storage path should be removed",
