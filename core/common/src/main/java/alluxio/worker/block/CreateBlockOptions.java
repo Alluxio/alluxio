@@ -36,7 +36,8 @@ public final class CreateBlockOptions {
    * @param medium the medium
    * @param initialBytes the initialBytes
    */
-  public CreateBlockOptions(String alluxioPath, String medium, long initialBytes) {
+  public CreateBlockOptions(@Nullable String alluxioPath, @Nullable String medium,
+      long initialBytes) {
     mAlluxioPath = alluxioPath;
     mMedium = medium;
     mInitialBytes = initialBytes;
@@ -124,3 +125,4 @@ public final class CreateBlockOptions {
         .toString();
   }
 }
+
