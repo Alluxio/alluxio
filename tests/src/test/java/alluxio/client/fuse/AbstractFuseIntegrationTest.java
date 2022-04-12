@@ -113,7 +113,6 @@ public abstract class AbstractFuseIntegrationTest {
     IntegrationTestUtils.reserveMasterPorts();
     ServerConfiguration.global().validate();
     mAlluxioCluster.start();
-    // TODO(lu) how to get FileSystemContext
     mFileSystemContext = FileSystemContext.create(ServerConfiguration.global());
     mFileSystem = mAlluxioCluster.getClient(mFileSystemContext);
     mountFuse(mFileSystemContext, mFileSystem, mMountPoint, ALLUXIO_ROOT);
