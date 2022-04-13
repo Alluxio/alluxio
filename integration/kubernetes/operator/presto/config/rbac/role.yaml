@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - alluxio.com
+  resources:
+  - prestoclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - alluxio.com
+  resources:
+  - prestoclusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - alluxio.com
+  resources:
+  - prestoclusters/status
+  verbs:
+  - get
+  - patch
+  - update

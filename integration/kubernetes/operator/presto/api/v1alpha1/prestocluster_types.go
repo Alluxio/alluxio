@@ -28,14 +28,13 @@ type PrestoClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of PrestoCluster. Edit prestocluster_types.go to remove/update
+	// WorkerNum is the number of presto workers in the presto cluster.
 	WorkerNum int32 `json:"size"`
 }
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
 type PrestoClusterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Nodes is a list of the status of the presto workers
 	Nodes []string `json:"nodes"`
 }
 
