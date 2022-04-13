@@ -12,6 +12,7 @@
 package alluxio.client.fuse;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -42,12 +43,13 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   @Override
-  public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+  public void mountFuse(FileSystemContext context,
+      FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     InstancedConfiguration conf = ServerConfiguration.global();
     FuseMountConfig options =
         FuseMountConfig.create(mountPoint, alluxioRoot, ImmutableList.of(), conf);
     mFuseFileSystem =
-        new AlluxioJniFuseFileSystem(fileSystem, options, conf);
+        new AlluxioJniFuseFileSystem(context, fileSystem, options, conf);
     mFuseFileSystem.mount(false, false, new String[] {});
   }
 

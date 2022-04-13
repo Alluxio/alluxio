@@ -5707,6 +5707,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey FUSE_STAT_CACHE_REFRESH_INTERVAL =
+      durationBuilder(Name.FUSE_STAT_CACHE_REFRESH_INTERVAL)
+          .setDefaultValue("5min")
+          .setDescription("The fuse filesystem statistics (e.g. Alluxio capacity information) "
+              + "will be refreshed after being cached for this time period. "
+              + "If the refresh time is too big, operations on the FUSE may fail because of "
+              + "the stale filesystem statistics. If it is too small, "
+              + "continuously fetching filesystem statistics create "
+              + "a large amount of master RPC calls and lower the overall performance of "
+              + "the Fuse application. A value small than or equal to zero "
+              + "means no statistics cache on the Fuse side.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       durationBuilder(Name.FUSE_UMOUNT_TIMEOUT)
           .setDefaultValue("1min")
@@ -7369,6 +7383,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.mount.options";
     public static final String FUSE_MOUNT_POINT =
         "alluxio.fuse.mount.point";
+    public static final String FUSE_STAT_CACHE_REFRESH_INTERVAL =
+        "alluxio.fuse.stat.cache.refresh.interval";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
