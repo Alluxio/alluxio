@@ -230,43 +230,43 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
 
   /**
    * Best efforts to drops metadata cache of a given uri,
-   * all its parents and all its children.
+   * all its ancestors and descendants.
    *
    * @param uri the uri need to drop metadata cache
    */
   public void dropMetadataCache(AlluxioURI uri) {
-    dropMetadataCacheChildren(uri.getPath());
-    dropMetadataCacheParent(uri);
+    dropMetadataCacheDescendants(uri.getPath());
+    dropMetadataCacheAncestors(uri);
   }
 
   /**
    * Best efforts to drop metadata cache of a given uri
-   * and all its parents.
+   * and all its ancestors.
    *
    * @param uri the uri need to drop metadata cache
    */
-  private void dropMetadataCacheParent(AlluxioURI uri) {
+  private void dropMetadataCacheAncestors(AlluxioURI uri) {
     mMetadataCache.invalidate(uri);
     LOG.debug("Invalidated metadata cache for path {}", uri);
     if (!uri.isRoot()) {
       AlluxioURI parentUri = uri.getParent();
       if (parentUri != null) {
-        dropMetadataCacheParent(parentUri);
+        dropMetadataCacheAncestors(parentUri);
       }
     }
   }
 
   /**
    * Best efforts to drop metadata cache of a given uri
-   * and all its children.
+   * and all its descendants.
    *
    * @param path the path need to drop metadata cache
    */
-  private void dropMetadataCacheChildren(String path) {
+  private void dropMetadataCacheDescendants(String path) {
     List<URIStatus> children = mMetadataCache.listStatus(path);
     if (children != null) {
       for (URIStatus child : children) {
-        dropMetadataCacheChildren(child.getPath());
+        dropMetadataCacheDescendants(child.getPath());
       }
     }
     mMetadataCache.invalidate(path);
