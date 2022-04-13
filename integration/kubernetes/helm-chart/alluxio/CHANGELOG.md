@@ -261,4 +261,6 @@
 
 0.6.41
 
-- Require non-empty values for fuse mountPath and alluxioPath, passing in as args instead of env variables
+- Rename mountPath to mountPoint in fuse
+- Require non-empty values for fuse mountPoint
+- Passing fuse mountPoint and alluxioPath into containers as args instead of env variables

@@ -441,11 +441,10 @@ fuse:
   fsGroup: 0
   # Default fuse mount options separated by commas, shared by all fuse containers
   mountOptions: allow_other
-  # Default fuse mount path inside fuse container, shared by all fuse containers.
+  # Default fuse mount point inside fuse container, shared by all fuse containers.
   # Non-empty value is required.
-  mountPath: /mnt/alluxio-fuse
+  mountPoint: /mnt/alluxio-fuse
   # Default alluxio path to be mounted, shared by all fuse containers.
-  # Non-empty value is required.
   alluxioPath: /
   resources:
     requests:

@@ -105,11 +105,13 @@ spec:
             {{- if .Values.fuse.mountOptions }}
             - --fuse-opts={{ .Values.fuse.mountOptions }}
             {{- end }}
-            {{- if or (not .Values.fuse.mountPath) (not .Values.fuse.alluxioPath }}
-            {{- fail "mountPath and alluxioPath must be set to launch Alluxio Fuse." }}
+            {{- if not .Values.fuse.mountPoint }}
+            {{- fail "mountPoing must be set to launch Alluxio Fuse." }}
             {{- end }}
-            - {{ .Values.fuse.mountPath }}
+            - {{ .Values.fuse.mountPoint }}
+            {{- if .Values.fuse.alluxioPath }}
             - {{ .Values.fuse.alluxioPath }}
+            {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
@@ -127,7 +129,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "-f", "{{ .Values.fuse.mountPath }}"]
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "-f", "{{ .Values.fuse.mountPoint }}"]
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -135,7 +137,7 @@ spec:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
             - name: alluxio-fuse-mount
-              mountPath: {{ .Values.fuse.mountPath | dir }}
+              mountPath: {{ .Values.fuse.mountPoint | dir }}
               mountPropagation: Bidirectional
             {{- if $shortCircuitEnabled}}
               {{- if eq .Values.shortCircuit.policy "uuid" }}
@@ -154,7 +156,7 @@ spec:
             type: CharDevice
         - name: alluxio-fuse-mount
           hostPath:
-            path: {{ .Values.fuse.mountPath | dir }}
+            path: {{ .Values.fuse.mountPoint | dir }}
             type: DirectoryOrCreate
         {{- if $shortCircuitEnabled}}
           {{- if eq .Values.shortCircuit.policy "uuid" }}
