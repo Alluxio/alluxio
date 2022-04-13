@@ -105,12 +105,11 @@ spec:
             {{- if .Values.fuse.mountOptions }}
             - --fuse-opts={{ .Values.fuse.mountOptions }}
             {{- end }}
-            {{- if .Values.fuse.mountPath }}
+            {{- if or (not .Values.fuse.mountPath) (not .Values.fuse.alluxioPath }}
+            {{- fail "mountPath and alluxioPath must be set to launch Alluxio Fuse." }}
+            {{- end }}
             - {{ .Values.fuse.mountPath }}
-            {{- end }}
-            {{- if .Values.fuse.alluxioPath }}
             - {{ .Values.fuse.alluxioPath }}
-            {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
