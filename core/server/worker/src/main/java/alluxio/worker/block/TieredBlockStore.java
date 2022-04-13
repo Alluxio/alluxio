@@ -116,11 +116,8 @@ public class TieredBlockStore implements BlockStore {
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
-  /** Used to get iterators per locations. */
-  private BlockIterator mBlockIterator;
-
   /** Management task coordinator. */
-  private ManagementTaskCoordinator mTaskCoordinator;
+  private final ManagementTaskCoordinator mTaskCoordinator;
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -141,14 +138,14 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = metaManager;
     mLockManager = lockManager;
 
-    mBlockIterator = mMetaManager.getBlockIterator();
+    BlockIterator blockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
-    for (BlockStoreEventListener listener : mBlockIterator.getListeners()) {
+    for (BlockStoreEventListener listener : blockIterator.getListeners()) {
       registerBlockStoreEventListener(listener);
     }
 
     BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
-        Collections.<Long>emptySet(), Collections.<Long>emptySet());
+        Collections.emptySet(), Collections.emptySet());
     mAllocator = Allocator.Factory.create(initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
@@ -642,7 +639,7 @@ public class TieredBlockStore implements BlockStore {
     while (true) {
       if (options.isForceLocation()) {
         // Try allocating from given location. Skip the review because the location is forced.
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocator.allocateBlockWithView(options.getSize(),
             options.getLocation(), allocatorView, true);
         if (dirView != null) {
           return dirView;
@@ -652,7 +649,7 @@ public class TieredBlockStore implements BlockStore {
                   options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
           // Block expansion are forcing the location. We do not want the review's opinion.
-          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          dirView = mAllocator.allocateBlockWithView(options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Allocation after freeing space for block expansion, {}", dirView == null
@@ -672,14 +669,14 @@ public class TieredBlockStore implements BlockStore {
         }
       } else {
         // Try allocating from given location. This may be rejected by the review logic.
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocator.allocateBlockWithView(options.getSize(),
             options.getLocation(), allocatorView, false);
         if (dirView != null) {
           return dirView;
         }
         LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
                 options.getLocation());
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocator.allocateBlockWithView(options.getSize(),
             BlockStoreLocation.anyTier(), allocatorView, false);
         if (dirView != null) {
           return dirView;
@@ -694,7 +691,7 @@ public class TieredBlockStore implements BlockStore {
           freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
           // Skip the review as we want the allocation to be in the place we just freed
-          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          dirView = mAllocator.allocateBlockWithView(options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Allocation after freeing space for block creation, {} ", dirView == null
@@ -792,7 +789,8 @@ public class TieredBlockStore implements BlockStore {
     // List of all dirs that belong to the given location.
     List<StorageDirView> dirViews = evictorView.getDirs(location);
 
-    Iterator<Long> evictionCandidates = mBlockIterator.getIterator(location, BlockOrder.NATURAL);
+    Iterator<Long> evictionCandidates = mMetaManager.getBlockIterator()
+        .getIterator(location, BlockOrder.NATURAL);
     while (true) {
       // Check if minContiguousBytes is satisfied.
       if (!contiguousSpaceFound) {

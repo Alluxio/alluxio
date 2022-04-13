@@ -26,6 +26,7 @@ spec:
     volumeHandle: alluxio
     volumeAttributes:
       alluxioPath: {{ .Values.csi.alluxioPath }}
+      mountInPod: "{{ .Values.csi.mountInPod }}"
       javaOptions: {{ .Values.csi.javaOptions }}
   mountOptions:
   {{- range .Values.csi.mountOptions }}

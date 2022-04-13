@@ -147,7 +147,7 @@ public final class AlluxioFuse {
     }
     startJvmMonitorProcess();
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
-      FuseUmountable fuseUmountable = launchFuse(fs, conf, config, true);
+      FuseUmountable fuseUmountable = launchFuse(fsContext, fs, conf, config, true);
     } catch (IOException e) {
       LOG.error("Failed to launch FUSE", e);
       System.exit(-1);
@@ -157,14 +157,15 @@ public final class AlluxioFuse {
   /**
    * Launches Fuse application.
    *
+   * @param fsContext file system context for Fuse client to communicate to servers
    * @param fs file system for Fuse client to communicate to servers
    * @param conf the alluxio configuration to create Fuse file system
    * @param mountConfig the fuse mount configuration
    * @param blocking whether the Fuse application is blocking or not
    * @return the Fuse application handler for future Fuse umount operation
    */
-  public static FuseUmountable launchFuse(FileSystem fs, AlluxioConfiguration conf,
-      FuseMountConfig mountConfig, boolean blocking) throws IOException {
+  public static FuseUmountable launchFuse(FileSystemContext fsContext, FileSystem fs,
+      AlluxioConfiguration conf, FuseMountConfig mountConfig, boolean blocking) throws IOException {
     Preconditions.checkNotNull(mountConfig,
         "Fuse mount configuration should not be null to launch a Fuse application");
 
@@ -186,7 +187,8 @@ public final class AlluxioFuse {
 
       final List<String> fuseOpts = mountConfig.getFuseMountOptions();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
-        final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, mountConfig, conf);
+        final AlluxioJniFuseFileSystem fuseFs
+            = new AlluxioJniFuseFileSystem(fsContext, fs, mountConfig, conf);
 
         FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
         Signal.handle(new Signal("TERM"), fuseSignalHandler);

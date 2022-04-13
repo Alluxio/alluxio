@@ -261,6 +261,11 @@
 
 0.6.41
 
+- Add property to enable launching Fuse process in a separate pod in CSI
+- Fix default CSI accessMode
+
+0.6.42
+
 - Rename mountPath to mountPoint in fuse
 - Require non-empty values for fuse mountPoint
 - Passing fuse mountPoint and alluxioPath into containers as args instead of env variables
