@@ -1,0 +1,20 @@
+# permissions for end users to view prestoclusters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prestocluster-viewer-role
+rules:
+- apiGroups:
+  - alluxio.com
+  resources:
+  - prestoclusters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - alluxio.com
+  resources:
+  - prestoclusters/status
+  verbs:
+  - get

@@ -8,4 +8,4 @@ webhook:
   port: 9443
 leaderElection:
   leaderElect: true
-  resourceName: dc034c25.alluxio.com
+  resourceName: 768ae07c.alluxio.com

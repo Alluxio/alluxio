@@ -5,5 +5,14 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: presto
-repo: github.com/Alluxio/alluxio
+repo: github.com/Alluxio/alluxio/integration/kubernetes/operator/presto
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: alluxio.com
+  kind: PrestoCluster
+  path: github.com/Alluxio/alluxio/integration/kubernetes/operator/presto/api/v1alpha1
+  version: v1alpha1
 version: "3"
