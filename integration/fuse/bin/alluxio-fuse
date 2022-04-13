@@ -165,7 +165,7 @@ Run \"alluxio-fuse umount -f <mount_point>\" if needed to forcibly kill the allu
     err "Failed to umount fuse mount point ${mount_point}"
     return 1
   else
-    echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid}).]"
+    echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})"
     return 0
   fi
 }
