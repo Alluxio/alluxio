@@ -100,19 +100,22 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          {{- if .Values.fuse.args }}
           args:
-{{ toYaml .Values.fuse.args | trim | indent 12 }}
-          {{- end }}
+            - fuse
+            {{- if .Values.fuse.mountOptions }}
+            - --fuse-opts={{ .Values.fuse.mountOptions }}
+            {{- end }}
+            {{- if .Values.fuse.mountPath }}
+            - {{ .Values.fuse.mountPath }}
+            {{- end }}
+            {{- if .Values.fuse.alluxioPath }}
+            - {{ .Values.fuse.alluxioPath }}
+            {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: FUSE_ALLUXIO_PATH
-            value: {{ .Values.fuse.alluxioPath }}
-          - name: MOUNT_POINT
-            value: {{ .Values.fuse.mountPath }}
           {{- range $key, $value := .Values.fuse.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
