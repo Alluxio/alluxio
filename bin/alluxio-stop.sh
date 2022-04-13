@@ -23,8 +23,6 @@ Where component is one of:
   master              \tStop local primary master.
   secondary_master    \tStop local secondary master.
   masters             \tStop masters on master nodes.
-  hub_agent           \tStop the local hub agent.
-  hub_manager         \tStop the local hub manager.
   proxy               \tStop local proxy.
   proxies             \tStop proxies on master and worker nodes.
   worker  [-c cache]  \tStop local worker.
@@ -102,14 +100,6 @@ stop_master() {
 stop_masters() {
   generate_cluster_kill_command "master" "master"
   ${LAUNCHER} "${KILL_COMMAND[@]}"
-}
-
-stop_hub_agent() {
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.hub.agent.process.AgentProcess"
-}
-
-stop_hub_manager() {
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.hub.manager.process.ManagerProcess"
 }
 
 stop_proxy() {
@@ -251,12 +241,6 @@ case "${WHAT}" in
     ;;
   masters)
     stop_masters
-    ;;
-  hub_agent)
-    stop_hub_agent
-    ;;
-  hub_manager)
-    stop_hub_manager
     ;;
   proxy)
     stop_proxy

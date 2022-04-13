@@ -50,13 +50,10 @@ class JniFuseFileSystem {
  public:
   static JniFuseFileSystem *getInstance();
   static void init(JNIEnv *env, jobject obj);
-  JNIEnv *getEnv();
-  JavaVM *getJVM();
   jobject getFSObj();
 
  private:
   static JniFuseFileSystem *instance;
-  JavaVM *jvm;
   jobject fs;
 
  public:

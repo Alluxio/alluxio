@@ -37,7 +37,8 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
    * */
   public CollectAlluxioInfoCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mAlluxioPath = Paths.get(fsContext.getClusterConf().get(PropertyKey.WORK_DIR), "bin/alluxio")
+    mAlluxioPath = Paths.get(fsContext.getClusterConf().getString(PropertyKey.WORK_DIR),
+            "bin/alluxio")
             .toAbsolutePath().toString();
     registerCommands();
   }
@@ -88,7 +89,7 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
    * TODO(jiacheng): phase 2 support smarter detection
    * */
   private ShellCommand getListJournalCommand() {
-    String journalPath = mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String journalPath = mFsContext.getClusterConf().getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (journalPath.startsWith("hdfs:")) {
       return new ShellCommand(new String[]{"hdfs", "dfs", "-ls", "-R", journalPath});
     } else {

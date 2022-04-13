@@ -375,7 +375,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
       } catch (Throwable t) {
-        LOG.warn("Failed to get backup-leader address. {}. Error:{}. Attempt:{}", t.toString(),
+        LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t.toString(),
             infiniteRetryPolicy.getAttemptCount());
         continue;
       }

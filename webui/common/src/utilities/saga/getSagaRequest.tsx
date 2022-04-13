@@ -13,6 +13,7 @@ import { AxiosResponse } from 'axios';
 import { call, put, Effect } from 'redux-saga/effects';
 import { SagaIterator } from 'redux-saga';
 import { ActionType } from 'typesafe-actions';
+import { createEncodedQueryString, IParsedQueryString } from '../index';
 
 const performRequest = (axiosMethod: Function, endpoint: string, payload: {}): Function =>
   axiosMethod(endpoint, payload)
@@ -27,21 +28,15 @@ export const getSagaRequest = (
 ) =>
   function*(params: {}): SagaIterator {
     let apiEndpoint = endpoint;
-    const payload = (params as { payload: { pathSuffix: string; queryString: { [key: string]: string } } }).payload;
+    const payload = (params as { payload: { pathSuffix: string; queryString: IParsedQueryString } }).payload;
     if (params && payload) {
       if (payload.pathSuffix) {
         apiEndpoint += `/${payload.pathSuffix}`;
       }
-
       if (payload.queryString) {
-        const queryString = Object.keys(payload.queryString)
-          .filter(key => payload.queryString[key] !== undefined)
-          .map(key => key + '=' + encodeURIComponent(payload.queryString[key]))
-          .join('&');
-        apiEndpoint += queryString.length ? `?${queryString}` : '';
+        apiEndpoint += createEncodedQueryString(payload.queryString);
       }
     }
-
     try {
       const response = yield call(performRequest, AxiosFunction, apiEndpoint, payload || {});
       if (response.error) {

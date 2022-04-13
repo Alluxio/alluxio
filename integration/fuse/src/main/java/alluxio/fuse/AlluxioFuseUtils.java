@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -24,6 +25,8 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.utils.Environment;
+import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -62,6 +65,28 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Gets the libjnifuse version preference set by user.
+   *
+   * @param conf the configuration object
+   * @return the version preference
+   */
+  public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
+    if (Environment.isMac()) {
+      LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
+      return VersionPreference.VERSION_2;
+    }
+
+    final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
+    if (val == 2) {
+      return VersionPreference.VERSION_2;
+    } else if (val == 3) {
+      return VersionPreference.VERSION_3;
+    } else {
+      return VersionPreference.NO;
+    }
+  }
 
   /**
    * Retrieves the uid of the given user.
@@ -299,21 +324,35 @@ public final class AlluxioFuseUtils {
    */
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    logger.debug("Enter: {}({})", methodName, debugDesc);
-    long startMs = System.currentTimeMillis();
-    int ret = callable.call();
-    long durationMs = System.currentTimeMillis() - startMs;
-    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
-    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
-    MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
-        .update(durationMs, TimeUnit.MILLISECONDS);
-    if (ret < 0) {
-      MetricsSystem.counter(methodName + "Failures").inc();
-    }
-    if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
-          String.format(description, args), ret, durationMs, THRESHOLD);
+    int ret = -1;
+    try {
+      String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+      logger.debug("Enter: {}({})", methodName, debugDesc);
+      long startMs = System.currentTimeMillis();
+      ret = callable.call();
+      long durationMs = System.currentTimeMillis() - startMs;
+      logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+      MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
+      MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
+          .update(durationMs, TimeUnit.MILLISECONDS);
+      if (ret < 0) {
+        MetricsSystem.counter(methodName + "Failures").inc();
+      }
+      if (durationMs >= THRESHOLD) {
+        logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+            String.format(description, args), ret, durationMs, THRESHOLD);
+      }
+    } catch (Throwable t) {
+      // native code cannot deal with any throwable
+      // wrap all the logics in try catch
+      String errorMessage = "";
+      try {
+        errorMessage = String.format(description, args);
+      } catch (Throwable inner) {
+        errorMessage = "";
+      }
+      LOG.error("Failed to {}({}) with unexpected throwable: ", methodName, errorMessage, t);
+      return -ErrorCodes.EIO();
     }
     return ret;
   }

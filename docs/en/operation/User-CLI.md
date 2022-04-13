@@ -416,7 +416,7 @@ $ ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
 $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
-  -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key> \
+  -Ds3a.accessKeyId=<access_key> -Ds3a.secretKey=<secret_key> \
   -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
@@ -813,7 +813,7 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service.
+using the job service. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -823,6 +823,7 @@ Later jobs must wait until some earlier jobs to finish. The default value is `30
 A lower value means slower execution but also being nicer to the other users of the job service.
 * `--overwrite`: Whether to overwrite the destination. Default is true.
 * `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
+* `--wait`: true or false specifies whether to wait for command execution to finish. If not explicitly shown then default to wait (true).
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ```
@@ -830,7 +831,7 @@ $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ### distributedLoad
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
-across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -852,6 +853,7 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
 * `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
+* `--wait`: true or false specifies whether to wait for command execution to finish. If not explicitly shown then default to wait (true).
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
@@ -1158,8 +1160,8 @@ For example, `mount` can be used to make data in another storage system availabl
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId> \
-  --option aws.secretKey=<secretKey> \
+  --option s3a.accessKeyId=<accessKeyId> \
+  --option s3a.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
 ```
 
@@ -1498,20 +1500,20 @@ option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{s3a://bucket1}.aws.accessKeyId=abc \
-  -o udb-hive.mount.option.{s3a://bucket2}.aws.accessKeyId=123
+  -o udb-hive.mount.option.{s3a://bucket1}.s3a.accessKeyId=abc \
+  -o udb-hive.mount.option.{s3a://bucket2}.s3a.accessKeyId=123
 ```
 
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
-When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
-and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+When paths are mounted for `s3a://bucket1`, the mount option `s3a.accessKeyId=abc` will be used,
+and when paths are mounted for `s3a://bucket2`, the mount option `s3a.accessKeyId=123` will be used.
 
 Or using regex expression if the options are same the two buckets.
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
+  -o udb-hive.mount.option.{regex:s3a://bucket.*}.s3a.accessKeyId=abc
 ```
 
 Besides mount options, there are some additional properties with the `-o` options:

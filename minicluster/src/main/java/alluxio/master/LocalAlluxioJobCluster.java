@@ -36,7 +36,7 @@ public final class LocalAlluxioJobCluster {
   private AlluxioJobMasterProcess mMaster;
   private JobWorkerProcess mWorker;
 
-  private Map<PropertyKey, String> mConfiguration = new HashMap<>();
+  private Map<PropertyKey, Object> mConfiguration = new HashMap<>();
 
   private String mHostname;
 
@@ -131,11 +131,11 @@ public final class LocalAlluxioJobCluster {
     ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, mHostname);
     ServerConfiguration.set(PropertyKey.JOB_MASTER_WEB_BIND_HOST, mHostname);
     ServerConfiguration.set(PropertyKey.JOB_WORKER_BIND_HOST, mHostname);
-    ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(0));
-    ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, Integer.toString(0));
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, 0);
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_BIND_HOST, mHostname);
 
-    for (Map.Entry<PropertyKey, String> e : mConfiguration.entrySet()) {
+    for (Map.Entry<PropertyKey, Object> e : mConfiguration.entrySet()) {
       ServerConfiguration.set(e.getKey(), e.getValue());
     }
   }
@@ -160,7 +160,7 @@ public final class LocalAlluxioJobCluster {
     mMaster = AlluxioJobMasterProcess.Factory.create();
 
     ServerConfiguration
-        .set(PropertyKey.JOB_MASTER_RPC_PORT, String.valueOf(mMaster.getRpcAddress().getPort()));
+        .set(PropertyKey.JOB_MASTER_RPC_PORT, mMaster.getRpcAddress().getPort());
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {

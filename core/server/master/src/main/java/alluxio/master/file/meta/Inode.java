@@ -21,10 +21,10 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
@@ -144,7 +144,7 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
-  public Set<String> getMediumTypes() {
+  public ImmutableSet<String> getMediumTypes() {
     return mDelegate.getMediumTypes();
   }
 

@@ -107,7 +107,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
         "# 256 requests would be sent concurrently to job master",
         "# Each request contains 1000 files with file size 1k",
         "$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --file-size 1k \\"
-            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad",
+            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad --cluster",
         ""));
   }
 
@@ -267,6 +267,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           long deleteEnd = CommonUtils.getCurrentMs();
           LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
           int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+          mResult.setRecordStartMs(mContext.getStartMs());
           createFiles(fileSystem, mParameters.mNumFilesPerDir, dirPath, fileSize);
           long createEnd = CommonUtils.getCurrentMs();
           LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
@@ -316,19 +317,20 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
             new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
             new HashSet<>(), new HashSet<>(), false, false);
       } finally {
-        mResult.incrementNumSuccess((long) cmd.getCompletedCount() * mParameters.mBatchSize);
+        mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
     }
-  }
 
-  private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
-      throws IOException, AlluxioException {
-    CreateFilePOptions options =
-        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(WritePType.THROUGH).build();
+    private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
+        throws IOException, AlluxioException {
+      CreateFilePOptions options = CreateFilePOptions.newBuilder()
+          .setRecursive(true).setWriteType(WritePType.THROUGH).build();
 
-    for (int fileId = 0; fileId < numFiles; fileId++) {
-      String filePath = String.format("%s/%d", dirPath, fileId);
-      createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
+      for (int fileId = 0; fileId < numFiles; fileId++) {
+        String filePath = String.format("%s/%d", dirPath, fileId);
+        createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
+      }
+      mResult.incrementNumSuccess(numFiles);
     }
   }
 

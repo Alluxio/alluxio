@@ -20,12 +20,12 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -163,7 +163,7 @@ public class DefaultBlockIterator implements BlockIterator {
 
   @Override
   public List<BlockStoreEventListener> getListeners() {
-    return Arrays.asList(new BlockStoreEventListener[] {mListener});
+    return ImmutableList.of(mListener);
   }
 
   @Override

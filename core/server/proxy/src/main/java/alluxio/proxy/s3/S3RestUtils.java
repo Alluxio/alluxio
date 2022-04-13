@@ -160,7 +160,7 @@ public final class S3RestUtils {
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
-        ServerConfiguration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+        ServerConfiguration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
     return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 
@@ -190,7 +190,7 @@ public final class S3RestUtils {
    * @param bucketPath bucket path
    * @return bucket path after format
    */
-  public static String parsePath(String bucketPath) throws S3Exception {
+  public static String parsePath(String bucketPath) {
     String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
     return normalizedBucket;
   }
@@ -206,6 +206,7 @@ public final class S3RestUtils {
     try {
       throw exception;
     } catch (S3Exception e) {
+      e.setResource(resource);
       return e;
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.BUCKET_NOT_EMPTY);
@@ -231,6 +232,7 @@ public final class S3RestUtils {
     try {
       throw exception;
     } catch (S3Exception e) {
+      e.setResource(resource);
       return e;
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);

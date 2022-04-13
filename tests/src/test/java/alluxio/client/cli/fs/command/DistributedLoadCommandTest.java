@@ -25,6 +25,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -37,7 +38,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Test for {@link DistributedLoadCommand}.
@@ -55,8 +58,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
           .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Long.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
           .build();
@@ -249,5 +251,64 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
       URIStatus status = fs.getStatus(uri);
       Assert.assertEquals(100, status.getInMemoryPercentage());
     }
+  }
+
+  @Test
+  public void loadDirWithCorrectCount() throws IOException, AlluxioException {
+    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystem fs = sResource.get().getClient();
+    int fileSize = 66;
+    int cmdCount = 1;
+    for (int i = 0; i < fileSize; i++) {
+      FileSystemTestUtils.createByteFile(fs, "/testCount/testBatchFile" + i, WritePType.THROUGH,
+          10);
+      AlluxioURI uri = new AlluxioURI("/testCount/testBatchFile" + i);
+      URIStatus status = fs.getStatus(uri);
+      Assert.assertNotEquals(100, status.getInMemoryPercentage());
+    }
+    fsShell.run("distributedLoad", "/testCount", "--batch-size", "3");
+    String[] output = mOutput.toString().split("\n");
+    Assert.assertEquals(String.format("Completed command count is %s,Failed count is 0.", cmdCount),
+        output[output.length - 1]);
+  }
+
+  @Test
+  public void loadDirWithFailure() throws IOException, AlluxioException {
+    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystem fs = sResource.get().getClient();
+    int fileSize = 20;
+    List<String> failures = new ArrayList<>();
+    for (int i = 0; i < fileSize; i++) {
+      String pathStr = "/testFailure/testBatchFile" + i;
+      FileSystemTestUtils.createByteFile(fs, pathStr, WritePType.THROUGH, 10);
+      if (i % 2 == 0) {
+        AlluxioURI uri = new AlluxioURI(pathStr);
+        URIStatus fileInfo = fs.getStatus(uri);
+        String path = fileInfo.getFileInfo().getUfsPath();
+        boolean result = new File(path).delete();
+        Assert.assertTrue(result);
+        failures.add(pathStr);
+      }
+    }
+    fsShell.run("distributedLoad", "/testFailure");
+    Set<String> failedPathsFromJobMasterLog = sJobMaster.getAllFailedPaths();
+    System.out.println(failedPathsFromJobMasterLog);
+
+    Assert.assertEquals(failedPathsFromJobMasterLog.size(), fileSize / 2);
+    Assert.assertTrue(CollectionUtils.isEqualCollection(failures, failedPathsFromJobMasterLog));
+  }
+
+  @Test
+  public void testWaitIsFalseForLoad() throws IOException {
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+            10);
+    FileSystemTestUtils
+            .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+    sFsShell.run("distributedLoad", "--wait", "false", "/testRoot");
+
+    String[] output = mOutput.toString().split("\n");
+    Assert.assertFalse(Arrays.toString(output).contains("Waiting for the command to finish ..."));
+    Assert.assertFalse(Arrays.toString(output).contains("Completed command count is"));
   }
 }

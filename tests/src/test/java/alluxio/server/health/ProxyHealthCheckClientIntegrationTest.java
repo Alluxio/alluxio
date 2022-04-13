@@ -29,7 +29,7 @@ public class ProxyHealthCheckClientIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-          new LocalAlluxioClusterResource.Builder().build();
+          new LocalAlluxioClusterResource.Builder().setIncludeProxy(true).build();
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private HealthCheckClient mHealthCheckClient;

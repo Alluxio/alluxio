@@ -105,14 +105,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to create
    * @param tier the tier to place the new block in
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
-   * @param medium the name of the medium to place the new block in
-   * @param initialBytes the initial amount of bytes to be allocated
+   * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  String createBlock(long sessionId, long blockId, int tier, String medium, long initialBytes)
+  String createBlock(long sessionId, long blockId, int tier,
+      CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**

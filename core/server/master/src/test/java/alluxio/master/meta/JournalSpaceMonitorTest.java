@@ -37,8 +37,8 @@ import java.util.List;
 public class JournalSpaceMonitorTest {
 
   private static final String CMD_RETURN_MOCK =
-      "Filesystem     1024-blocks      Used Available Capacity Mounted on\n"
-          + "/dev/nvme0n1p2   959863856 145802864 765232784      17% /";
+      "Filesystem  Type  1024-blocks      Used Available Capacity Mounted on\n"
+          + "/dev/nvme0n1p2  ext4  959863856 145802864 765232784      17% /";
 
   @Rule
   public TestLoggerRule mLogger = new TestLoggerRule();

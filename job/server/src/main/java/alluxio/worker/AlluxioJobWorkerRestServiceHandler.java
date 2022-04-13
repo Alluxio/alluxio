@@ -112,10 +112,10 @@ public final class  AlluxioJobWorkerRestServiceHandler {
             ServerConfiguration.global());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, String>> properties = ServerConfiguration.toMap().entrySet();
-    SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<String, String> entry : properties) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
+    Set<Map.Entry<String, Object>> properties = ServerConfiguration.toMap().entrySet();
+    SortedMap<String, Object> configuration = new TreeMap<>();
+    for (Map.Entry<String, Object> entry : properties) {
       String key = entry.getKey();
       if (PropertyKey.isValid(key)) {
         if (raw) {
