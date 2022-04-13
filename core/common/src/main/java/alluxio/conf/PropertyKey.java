@@ -7671,8 +7671,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     // puts property creators in a nested class to avoid NPE in enum static initialization
     private static class PropertyCreators {
-      private static final BiFunction<String, PropertyKey, PropertyKey> DEFAULT_PROPERTY_CREATOR =
-          fromBuilder(stringBuilder(""));
       private static final BiFunction<String, PropertyKey, PropertyKey>
           NESTED_UFS_PROPERTY_CREATOR =
           createNestedPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
@@ -7706,8 +7704,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final PropertyType mType;
     private final Optional<Class<? extends Enum>> mEnumType;
     private final Optional<String> mDelimiter;
-    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
-        PropertyCreators.DEFAULT_PROPERTY_CREATOR;
+    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator;
 
     Template(String format, String re) {
       this(format, re, PropertyType.STRING);
@@ -7730,6 +7727,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mType = type;
       mDelimiter = delimiter;
       mEnumType = Optional.empty();
+      mPropertyCreator = PropertyCreators.fromBuilder(new Builder("", type));
     }
 
     /**
@@ -7745,6 +7743,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mType = PropertyType.ENUM;
       mEnumType = Optional.of(enumType);
       mDelimiter = Optional.empty();
+      mPropertyCreator = PropertyCreators.fromBuilder(enumBuilder("", enumType));
     }
 
     /**
