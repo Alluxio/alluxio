@@ -15,6 +15,7 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -41,22 +42,23 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
+  public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
     return mDelegate.getChildIds(inodeId, option);
   }
 
   @Override
-  public Iterable<Long> getChildIds(InodeDirectoryView inode, ReadOption option) {
+  public CloseableIterator<Long> getChildIds(InodeDirectoryView inode, ReadOption option) {
     return mDelegate.getChildIds(inode, option);
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
+  public CloseableIterator<? extends Inode> getChildren(Long inodeId, ReadOption option) {
     return mDelegate.getChildren(inodeId, option);
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(InodeDirectoryView inode, ReadOption option) {
+  public CloseableIterator<? extends Inode> getChildren(
+      InodeDirectoryView inode, ReadOption option) {
     return mDelegate.getChildren(inode, option);
   }
 

@@ -122,7 +122,6 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
-import alluxio.master.metastore.ReadOption;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -211,6 +210,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.Spliterators;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -223,6 +223,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -1393,19 +1394,15 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
       if (prefix != null) {
-        return mInodeStore.getChildrenPrefixFrom(inode.getId(), prefix, listFrom,
-            ReadOption.defaults());
+        return mInodeStore.getChildrenPrefixFrom(inode.getId(), prefix, listFrom);
       } else {
-        return mInodeStore.getChildrenFrom(inode.getId(), listFrom,
-            ReadOption.defaults());
+        return mInodeStore.getChildrenFrom(inode.getId(), listFrom);
       }
     } else if (prefix != null) {
-      return mInodeStore.getChildrenPrefix(inode.getId(), prefix,
-          ReadOption.defaults());
+      return mInodeStore.getChildrenPrefix(inode.getId(), prefix);
     } else {
       // Perform a full listing of all children sorted by name.
-      return CloseableIterator.noopCloseable(
-          mInodeStore.getChildren(inode.asDirectory()).iterator());
+      return mInodeStore.getChildren(inode.asDirectory());
     }
   }
 
@@ -1429,10 +1426,13 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (!inode.isDirectChildrenLoaded()) {
       return false;
     }
-    for (Inode child : mInodeStore.getChildren(inode)) {
-      if (child.isDirectory()) {
-        if (!areDescendantsLoaded(child.asDirectory())) {
-          return false;
+    try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode)) {
+      while (it.hasNext()) {
+        Inode child = it.next();
+        if (child.isDirectory()) {
+          if (!areDescendantsLoaded(child.asDirectory())) {
+            return false;
+          }
         }
       }
     }
@@ -1581,7 +1581,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       if (inode.isDirectory()) {
         InodeDirectory inodeDir = inode.asDirectory();
-        Iterable<? extends Inode> children = mInodeStore.getChildren(inodeDir);
+        CloseableIterator<? extends Inode> childrenIter = mInodeStore.getChildren(inodeDir);
+        Iterable<Inode> children = StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+            childrenIter, 0), false).collect(Collectors.toList());
         for (Inode child : children) {
           try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
             checkConsistencyRecursive(childPath, inconsistentUris, assertInconsistent,
@@ -2456,12 +2458,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     } else {
       // This inode is a directory.
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-          getInAlluxioFilesInternal(childPath, files);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
-          continue;
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
+            getInAlluxioFilesInternal(childPath, files);
+          } catch (InvalidPathException e) {
+            // Inode is no longer a child, continue.
+          }
         }
       }
     }
@@ -2487,12 +2491,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     } else {
       // This inode is a directory.
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
-          getInMemoryFilesInternal(childPath, files);
-        } catch (InvalidPathException e) {
-          // Inode is no longer a child, continue.
-          continue;
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath childPath = inodePath.lockChild(child, LockPattern.READ)) {
+            getInMemoryFilesInternal(childPath, files);
+          } catch (InvalidPathException e) {
+            // Inode is no longer a child, continue.
+          }
         }
       }
     }

@@ -45,7 +45,6 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
@@ -586,7 +585,7 @@ public final class InodeTreeTest {
         Inode childInode = inodePath.getInode();
         Inode[] childInodes;
         try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenFrom(parentId,
-            childInode.getName(), ReadOption.defaults())) {
+            childInode.getName())) {
           childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
         }
         assertEquals(remain, childInodes.length);
@@ -611,7 +610,7 @@ public final class InodeTreeTest {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
-          prefix, ReadOption.defaults())) {
+          prefix)) {
         childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
       }
       assertEquals(1, childInodes.length);
@@ -637,7 +636,7 @@ public final class InodeTreeTest {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
-          prefix, ReadOption.defaults())) {
+          prefix)) {
         childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
       }
       assertEquals(files.size(), childInodes.length);
@@ -657,7 +656,7 @@ public final class InodeTreeTest {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
       try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefixFrom(parentId,
-          prefix, "", ReadOption.defaults())) {
+          prefix, "afile")) {
         childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
       }
       assertEquals(1, childInodes.length);
@@ -682,19 +681,20 @@ public final class InodeTreeTest {
     try (LockedInodePath inodePath = mTree.lockFullInodePath(file, LockPattern.READ)) {
       long parentId = inodePath.getInode().getParentId();
       Inode[] childInodes;
-      try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefix(parentId,
-          prefix, ReadOption.defaults())) {
+      // read from "bfile1" with prefix
+      try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenPrefixFrom(parentId,
+          prefix, prefix + "1")) {
         childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
       }
-      assertEquals(files.size(), childInodes.length);
-      for (int i = 0; i < files.size(); i++) {
-        assertEquals(files.get(i), mTree.getPath(childInodes[i].getId()));
+      assertEquals(files.size() - 1, childInodes.length);
+      for (int i = 1; i < files.size(); i++) {
+        assertEquals(files.get(i), mTree.getPath(childInodes[i - 1].getId()));
       }
     }
   }
 
   @Test
-  public void getChildrenAfter() throws Exception {
+  public void getChildrenAfterId() throws Exception {
     int fileCount = 10;
     String parent = "/nxt";
     List<AlluxioURI> files = setupBaseFiles(fileCount, parent);
@@ -707,7 +707,7 @@ public final class InodeTreeTest {
   }
 
   @Test
-  public void getChildAfterDeleted() throws Exception {
+  public void getChildAfterIdDeleted() throws Exception {
     int fileCount = 10;
     String parent = "/nxt";
     List<AlluxioURI> files = setupBaseFiles(fileCount, parent);
@@ -720,7 +720,7 @@ public final class InodeTreeTest {
   }
 
   @Test
-  public void getChildrenAfterNested() throws Exception {
+  public void getChildrenAfterIdNested() throws Exception {
     int fileCount = 10;
     int nestDepth = 10;
     String parent = "";
@@ -752,7 +752,7 @@ public final class InodeTreeTest {
           Inode childInode = inodePath.getInode();
           Inode[] childInodes;
           try (CloseableIterator<? extends Inode> fromIter = mInodeStore.getChildrenFrom(parentId,
-              childInode.getName(), ReadOption.defaults())) {
+              childInode.getName())) {
             childInodes = iteratorToStream(fromIter).toArray(Inode[]::new);
           }
           for (int k = 0; k < remain; k++) {

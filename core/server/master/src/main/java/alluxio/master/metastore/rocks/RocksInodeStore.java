@@ -31,7 +31,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.HashLinkedListMemTableConfig;
+import org.rocksdb.HashSkipListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -52,7 +51,9 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -91,7 +92,7 @@ public class RocksInodeStore implements InodeStore {
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     mColumnFamilyOpts = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
+        .setMemTableConfig(new HashSkipListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
@@ -169,16 +170,13 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
-    List<Long> ids = new ArrayList<>();
-    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
-      iter.seek(Longs.toByteArray(inodeId));
-      while (iter.isValid()) {
-        ids.add(Longs.fromByteArray(iter.value()));
-        iter.next();
-      }
-    }
-    return ids;
+  public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
+    RocksIterator iter = createChildrenIterFrom(inodeId, option.getReadFrom(), option.getPrefix());
+    RocksIter rocksIter = new RocksIter(iter, option.getPrefix());
+    Stream<Long> idStream = StreamSupport.stream(Spliterators
+        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false);
+
+    return CloseableIterator.create(idStream.iterator(), (any) -> iter.close());
   }
 
   @Override
@@ -199,13 +197,36 @@ public class RocksInodeStore implements InodeStore {
 
     final RocksIterator mIter;
     boolean mStopped = false;
+    final byte[] mPrefix;
 
-    RocksIter(RocksIterator rocksIterator) {
+    RocksIter(RocksIterator rocksIterator, @Nullable String prefix) {
       mIter = rocksIterator;
+      if (prefix != null && prefix.length() > 0) {
+        mPrefix = prefix.getBytes();
+      } else {
+        mPrefix = null;
+      }
+      checkPrefix();
     }
 
     private void stop() {
       mStopped = true;
+    }
+
+    private void checkPrefix() {
+      if (mIter.isValid() && mPrefix != null) {
+        byte[] key = mIter.key();
+        if (key.length + Longs.BYTES < mPrefix.length) {
+          mStopped = true;
+          return;
+        }
+        for (int i = 0; i < mPrefix.length; i++) {
+          if (mPrefix[i] != key[i + Longs.BYTES]) {
+            mStopped = true;
+            return;
+          }
+        }
+      }
     }
 
     @Override
@@ -217,43 +238,35 @@ public class RocksInodeStore implements InodeStore {
     public Long next() {
       Long l = Longs.fromByteArray(mIter.value());
       mIter.next();
+      checkPrefix();
       return l;
     }
   }
 
-  private RocksIterator createChildrenIterFrom(final long parentId, final String fromName) {
+  private RocksIterator createChildrenIterFrom(
+      final long parentId, @Nullable final String fromName, @Nullable final String prefix) {
     RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart);
+
+    // first seek to the correct bucket
     iter.seek(Longs.toByteArray(parentId));
-    iter.seek(RocksUtils.toByteArray(parentId, fromName));
-    return iter;
-  }
 
-  @Override
-  public CloseableIterator<? extends Inode> getChildrenPrefix(
-      final long parentId, final String prefix, final ReadOption option) {
-    RocksIterator iter = createChildrenIterFrom(parentId, prefix);
-    RocksIter rocksIter = new RocksIter(iter);
-    Iterator<? extends  Inode> inodeIterator = StreamSupport.stream(Spliterators
-        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false).map(id -> get(id, option)
-    ).filter(Optional::isPresent).map(Optional::get).filter((nxt) -> {
-      if (!nxt.getName().startsWith(prefix)) {
-        rocksIter.stop();
-        return false;
+    // now seek to a specific file if needed
+    String seekTo = null;
+    if (fromName != null && prefix != null) {
+      if (fromName.compareTo(prefix) > 0) {
+        seekTo = fromName;
+      } else {
+        seekTo = prefix;
       }
-      return true;
-    }).iterator();
-    return CloseableIterator.create(inodeIterator, (any) -> iter.close());
-  }
-
-  @Override
-  public CloseableIterator<? extends Inode> getChildrenFrom(
-      final long parentId, final String fromName, final ReadOption option) {
-    RocksIterator iter = createChildrenIterFrom(parentId, fromName);
-    RocksIter rocksIter = new RocksIter(iter);
-    Iterator<? extends  Inode> inodeIterator = StreamSupport.stream(Spliterators
-        .spliteratorUnknownSize(rocksIter, Spliterator.ORDERED), false).map(id -> get(id, option)
-    ).filter(Optional::isPresent).map(Optional::get).iterator();
-    return CloseableIterator.create(inodeIterator, (any) -> iter.close());
+    } else if (fromName != null) {
+      seekTo = fromName;
+    } else {
+      seekTo = prefix;
+    }
+    if (seekTo != null && seekTo.length() > 0) {
+      iter.seek(RocksUtils.toByteArray(parentId, seekTo));
+    }
+    return iter;
   }
 
   @Override
@@ -422,7 +435,8 @@ public class RocksInodeStore implements InodeStore {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-        sb.append("Inode " + Longs.fromByteArray(inodeIter.key()) + ": " + inode + "\n");
+        sb.append("Inode ").append(Longs.fromByteArray(inodeIter.key()))
+            .append(": ").append(inode).append("\n");
         inodeIter.next();
       }
     }

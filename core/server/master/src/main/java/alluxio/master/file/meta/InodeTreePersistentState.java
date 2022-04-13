@@ -398,12 +398,15 @@ public class InodeTreePersistentState implements Journaled {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.removeInodeAndParentEdge(inode);
         mInodeCounter.decrement();
-        for (Inode child : mInodeStore.getChildren(dir)) {
-          if (child.isDirectory()) {
-            dirsToDelete.add(child.asDirectory());
-          } else {
-            mInodeStore.removeInodeAndParentEdge(inode);
-            mInodeCounter.decrement();
+        try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(dir)) {
+          while (it.hasNext()) {
+            Inode child = it.next();
+            if (child.isDirectory()) {
+              dirsToDelete.add(child.asDirectory());
+            } else {
+              mInodeStore.removeInodeAndParentEdge(inode);
+              mInodeCounter.decrement();
+            }
           }
         }
       }
