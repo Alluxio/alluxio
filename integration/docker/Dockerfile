@@ -18,6 +18,13 @@ COPY ./csi /alluxio-csi
 RUN cd /alluxio-csi && \
     CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
 
+# We have to do an ADD to put the tarball into extractor, then do a COPY with chown into final
+# ADD then chown in two steps will double the image size
+#   See - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
+#       - https://github.com/moby/moby/issues/5505
+#       - https://github.com/moby/moby/issues/6119
+# ADD with chown doesn't chown the files inside tarball
+#   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.8.0-SNAPSHOT/alluxio-2.8.0-SNAPSHOT-bin.tar.gz
@@ -25,7 +32,7 @@ ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.8.0-SNAPSHOT/a
 ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
-# If the tarball was remote, it needs to be untarred
+# Remote tarball needs to be untarred. Local tarball is untarred automatically.
 # Use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
@@ -74,7 +81,7 @@ RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 
-# Disable JVM DNS cache
+# Disable JVM DNS cache (https://github.com/Alluxio/alluxio/pull/9452)
 RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
 
 # Add the following for native libraries needed by rocksdb
