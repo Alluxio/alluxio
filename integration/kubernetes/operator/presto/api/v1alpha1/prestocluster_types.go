@@ -29,13 +29,14 @@ type PrestoClusterSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of PrestoCluster. Edit prestocluster_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	WorkerNum int32 `json:"size"`
 }
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
 type PrestoClusterStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Nodes []string `json:"nodes"`
 }
 
 //+kubebuilder:object:root=true
