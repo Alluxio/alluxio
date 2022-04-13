@@ -31,7 +31,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.HashLinkedListMemTableConfig;
+import org.rocksdb.HashSkipListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -87,7 +87,7 @@ public class RocksInodeStore implements InodeStore {
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     mColumnFamilyOpts = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
+        .setMemTableConfig(new HashSkipListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
@@ -165,7 +165,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
+  public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
     List<Long> ids = new ArrayList<>();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inodeId));
@@ -174,7 +174,7 @@ public class RocksInodeStore implements InodeStore {
         iter.next();
       }
     }
-    return ids;
+    return CloseableIterator.noopCloseable(ids.iterator());
   }
 
   @Override
@@ -355,7 +355,8 @@ public class RocksInodeStore implements InodeStore {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-        sb.append("Inode " + Longs.fromByteArray(inodeIter.key()) + ": " + inode + "\n");
+        sb.append("Inode ").append(Longs.fromByteArray(inodeIter.key()))
+            .append(": ").append(inode).append("\n");
         inodeIter.next();
       }
     }

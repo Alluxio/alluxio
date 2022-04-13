@@ -19,6 +19,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -26,7 +27,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +89,10 @@ public final class UfsSyncChecker {
         .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
         .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
-    Inode[] alluxioChildren = Iterables.toArray(mInodeStore.getChildren(inode), Inode.class);
+    Inode[] alluxioChildren;
+    try (CloseableIterator<? extends Inode> childrenIter = mInodeStore.getChildren(inode)) {
+      alluxioChildren = Iterators.toArray(childrenIter, Inode.class);
+    }
     Arrays.sort(alluxioChildren);
     int ufsPos = 0;
     for (Inode alluxioInode : alluxioChildren) {
