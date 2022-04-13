@@ -1,0 +1,4 @@
+## Append samples you want in your CSV to this file as resources ##
+resources:
+- presto_v1alpha1_prestocluster.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

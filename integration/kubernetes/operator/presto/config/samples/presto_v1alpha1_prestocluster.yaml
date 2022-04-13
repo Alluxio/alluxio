@@ -1,0 +1,6 @@
+apiVersion: presto.alluxio.com/v1alpha1
+kind: PrestoCluster
+metadata:
+  name: prestocluster-sample
+spec:
+  # TODO(user): Add fields here
