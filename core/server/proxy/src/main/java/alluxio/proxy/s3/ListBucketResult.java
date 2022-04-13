@@ -54,6 +54,7 @@ public class ListBucketResult {
   private int mKeyCount;
 
   // The maximum number of keys returned in the response body.
+  @JsonInclude(JsonInclude.Include.ALWAYS)
   private int mMaxKeys;
 
   private boolean mIsTruncated;
@@ -65,6 +66,7 @@ public class ListBucketResult {
   private String mNextMarker;
 
   // Prefix is included in the response if it was sent with the request.
+  @JsonInclude(JsonInclude.Include.ALWAYS)
   private String mPrefix;
 
   // List of files.
@@ -246,6 +248,7 @@ public class ListBucketResult {
    * @return the number of keys included in the response
    */
   @JacksonXmlProperty(localName = "MaxKeys")
+  @JsonInclude(JsonInclude.Include.ALWAYS)
   public int getMaxKeys() {
     return mMaxKeys;
   }
@@ -261,6 +264,7 @@ public class ListBucketResult {
   /**
    * @return the prefix
    */
+  @JsonInclude(JsonInclude.Include.ALWAYS)
   @JacksonXmlProperty(localName = "Prefix")
   public String getPrefix() {
     return mPrefix;
