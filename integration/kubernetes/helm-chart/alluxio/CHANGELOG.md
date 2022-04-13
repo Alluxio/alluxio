@@ -258,3 +258,7 @@
 0.6.40
 
 - Fix incorrect directory when mounting & formatting master journal volume
+
+0.6.41
+
+- Require non-empty values for fuse mountPath and alluxioPath, passing in as args instead of env variables
