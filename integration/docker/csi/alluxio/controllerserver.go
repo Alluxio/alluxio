@@ -30,6 +30,10 @@ type controllerServer struct {
 	*csicommon.DefaultControllerServer
 }
 
+/*
+ * If dynamic provisioning, CreateVolume() is called when the pvc is created and matches one of the storageclass.
+ */
+
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	volumeID := sanitizeVolumeID(req.GetName())
 
@@ -122,7 +126,6 @@ func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 		glog.V(3).Infof("Invalid delete volume req: %v", req)
 		return nil, err
 	}
-	glog.V(4).Infof("Deleting volume %s", volumeID)
 
 	return &csi.DeleteVolumeResponse{}, nil
 }

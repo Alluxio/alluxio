@@ -233,10 +233,18 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
+    return new Options()
+        .addOption(REPLICATION_OPTION)
+        .addOption(ACTIVE_JOB_COUNT_OPTION)
         .addOption(INDEX_FILE)
         .addOption(HOSTS_OPTION)
         .addOption(HOST_FILE_OPTION)
+        .addOption(EXCLUDED_HOSTS_OPTION)
+        .addOption(EXCLUDED_HOST_FILE_OPTION)
+        .addOption(LOCALITY_OPTION)
+        .addOption(LOCALITY_FILE_OPTION)
+        .addOption(EXCLUDED_LOCALITY_OPTION)
+        .addOption(EXCLUDED_LOCALITY_FILE_OPTION)
         .addOption(PASSIVE_CACHE_OPTION)
         .addOption(DIRECT_CACHE_OPTION)
         .addOption(BATCH_SIZE_OPTION)

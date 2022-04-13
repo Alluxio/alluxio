@@ -25,8 +25,8 @@ import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -187,9 +187,8 @@ public class EmulatingBlockIterator implements BlockIterator {
   @Override
   public List<BlockStoreEventListener> getListeners() {
     if (mEvictor instanceof BlockStoreEventListener) {
-      return Arrays.asList(new BlockStoreEventListener[] {(BlockStoreEventListener) mEvictor});
-    } else {
-      return Collections.emptyList();
+      return ImmutableList.of((BlockStoreEventListener) mEvictor);
     }
+    return ImmutableList.of();
   }
 }

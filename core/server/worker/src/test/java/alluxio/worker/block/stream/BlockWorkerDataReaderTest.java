@@ -45,6 +45,7 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
@@ -127,7 +128,8 @@ public class BlockWorkerDataReaderTest {
 
   @Test
   public void create() throws Exception {
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID, true);
     DataReader dataReader = mDataReaderFactory.create(100, 200);
     assertEquals(100, dataReader.pos());
@@ -138,7 +140,8 @@ public class BlockWorkerDataReaderTest {
   public void createAndCloseManyReader() throws Exception {
     for (int i = 0; i < LOCK_NUM * 10; i++) {
       long blockId = i;
-      mBlockWorker.createBlock(SESSION_ID, blockId, 0, Constants.MEDIUM_MEM, 1);
+      mBlockWorker.createBlock(SESSION_ID, blockId, 0,
+          new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
       mBlockWorker.commitBlock(SESSION_ID, blockId, true);
       InStreamOptions inStreamOptions = new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(blockId))),
@@ -182,7 +185,8 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void readChunkFullFile() throws Exception {
     int len = CHUNK_SIZE * 2;
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }
@@ -198,7 +202,8 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void readChunkPartial() throws Exception {
     int len = CHUNK_SIZE * 5;
-    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0, Constants.MEDIUM_MEM, 1);
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
+        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }

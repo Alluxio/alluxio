@@ -5707,6 +5707,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey FUSE_STAT_CACHE_REFRESH_INTERVAL =
+      durationBuilder(Name.FUSE_STAT_CACHE_REFRESH_INTERVAL)
+          .setDefaultValue("5min")
+          .setDescription("The fuse filesystem statistics (e.g. Alluxio capacity information) "
+              + "will be refreshed after being cached for this time period. "
+              + "If the refresh time is too big, operations on the FUSE may fail because of "
+              + "the stale filesystem statistics. If it is too small, "
+              + "continuously fetching filesystem statistics create "
+              + "a large amount of master RPC calls and lower the overall performance of "
+              + "the Fuse application. A value small than or equal to zero "
+              + "means no statistics cache on the Fuse side.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       durationBuilder(Name.FUSE_UMOUNT_TIMEOUT)
           .setDefaultValue("1min")
@@ -7369,6 +7383,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.mount.options";
     public static final String FUSE_MOUNT_POINT =
         "alluxio.fuse.mount.point";
+    public static final String FUSE_STAT_CACHE_REFRESH_INTERVAL =
+        "alluxio.fuse.stat.cache.refresh.interval";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
@@ -7671,8 +7687,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     // puts property creators in a nested class to avoid NPE in enum static initialization
     private static class PropertyCreators {
-      private static final BiFunction<String, PropertyKey, PropertyKey> DEFAULT_PROPERTY_CREATOR =
-          fromBuilder(stringBuilder(""));
       private static final BiFunction<String, PropertyKey, PropertyKey>
           NESTED_UFS_PROPERTY_CREATOR =
           createNestedPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
@@ -7706,8 +7720,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final PropertyType mType;
     private final Optional<Class<? extends Enum>> mEnumType;
     private final Optional<String> mDelimiter;
-    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator =
-        PropertyCreators.DEFAULT_PROPERTY_CREATOR;
+    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator;
 
     Template(String format, String re) {
       this(format, re, PropertyType.STRING);
@@ -7730,6 +7743,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mType = type;
       mDelimiter = delimiter;
       mEnumType = Optional.empty();
+      mPropertyCreator = PropertyCreators.fromBuilder(new Builder("", type));
     }
 
     /**
@@ -7745,6 +7759,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       mType = PropertyType.ENUM;
       mEnumType = Optional.of(enumType);
       mDelimiter = Optional.empty();
+      mPropertyCreator = PropertyCreators.fromBuilder(enumBuilder("", enumType));
     }
 
     /**

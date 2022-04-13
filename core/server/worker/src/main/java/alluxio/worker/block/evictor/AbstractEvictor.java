@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
@@ -150,7 +149,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           }
           StorageDirEvictorView nextDirView
               = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
-                  Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
+              block.getBlockSize(),
                   BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()),
                   mMetadataView, true);
           if (nextDirView == null) {

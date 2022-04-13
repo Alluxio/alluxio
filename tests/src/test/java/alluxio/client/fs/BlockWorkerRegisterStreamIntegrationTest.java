@@ -63,6 +63,7 @@ import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.RegisterStreamer;
 import alluxio.worker.block.TieredBlockStore;
@@ -529,7 +530,8 @@ public class BlockWorkerRegisterStreamIntegrationTest {
       BlockStoreLocation loc = entry.getKey();
       int tierIndex = mTierToIndex.get(loc.tierAlias());
       for (long blockId : entry.getValue()) {
-        mBlockWorker.createBlock(1L, blockId, tierIndex, loc.tierAlias(), 1);
+        mBlockWorker.createBlock(1L, blockId, tierIndex,
+            new CreateBlockOptions(null, loc.tierAlias(), 1));
         mBlockWorker.commitBlock(1L, blockId, false);
       }
     }

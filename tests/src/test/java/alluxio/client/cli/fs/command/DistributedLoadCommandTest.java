@@ -77,12 +77,12 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   @Test
   public void loadDir() throws IOException, AlluxioException {
     FileSystem fs = sResource.get().getClient();
-    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileLoadDirA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
-    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
-    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
+        .createByteFile(fs, "/testRoot/testFileLoadDirB", WritePType.MUST_CACHE, 10);
+    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileLoadDirA");
+    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileLoadDirB");
 
     URIStatus statusA = fs.getStatus(uriA);
     URIStatus statusB = fs.getStatus(uriB);
@@ -301,10 +301,10 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   @Test
   public void testWaitIsFalseForLoad() throws IOException {
     FileSystem fs = sResource.get().getClient();
-    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileWaitA", WritePType.THROUGH,
             10);
     FileSystemTestUtils
-            .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+            .createByteFile(fs, "/testRoot/testFileWaitB", WritePType.MUST_CACHE, 10);
     sFsShell.run("distributedLoad", "--wait", "false", "/testRoot");
 
     String[] output = mOutput.toString().split("\n");
