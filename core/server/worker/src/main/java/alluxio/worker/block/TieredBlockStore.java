@@ -834,7 +834,6 @@ public class TieredBlockStore implements BlockStore {
           spaceFreed += blockMeta.getBlockSize();
         } catch (BlockDoesNotExistException e) {
           LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
-          continue;
         }
       }
     }
