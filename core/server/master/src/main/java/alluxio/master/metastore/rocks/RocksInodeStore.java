@@ -31,6 +31,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.HashSkipListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -73,7 +74,8 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
-  private final ColumnFamilyOptions mColumnFamilyOpts;
+  private final ColumnFamilyOptions mColumnFamilyOptsInode;
+  private final ColumnFamilyOptions mColumnFamilyOptsEdge;
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
@@ -91,13 +93,17 @@ public class RocksInodeStore implements InodeStore {
         ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
-    mColumnFamilyOpts = new ColumnFamilyOptions()
+    mColumnFamilyOptsInode = new ColumnFamilyOptions()
+        .setMemTableConfig(new HashLinkedListMemTableConfig())
+        .setCompressionType(CompressionType.NO_COMPRESSION)
+        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
+    mColumnFamilyOptsEdge = new ColumnFamilyOptions()
         .setMemTableConfig(new HashSkipListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mColumnFamilyOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mColumnFamilyOpts));
+        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mColumnFamilyOptsInode),
+        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mColumnFamilyOptsEdge));
     mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
   }
