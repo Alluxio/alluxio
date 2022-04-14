@@ -439,18 +439,12 @@ fuse:
   user: 0
   group: 0
   fsGroup: 0
-  # fuse args specific to each standalone fuse
-  args:
-    - fuse
-    - --fuse-opts=allow_other
-  # Default fuse mount options shared by all fuse applications
-  # Overwrite by entrypoint.sh fuse --fuse-opts <fuse_mount_options>
+  # Default fuse mount options separated by commas, shared by all fuse containers
   mountOptions: allow_other
-  # Default fuse mount path shared by all fuse applications
-  # Overwrite by envrionment variable MOUNT_POINT in each fuse daemonset yaml file
-  mountPath: /mnt/alluxio-fuse
-  # Default fuse mount alluxio path shared by all fuse applications
-  # Overwrite by envrionment variable FUSE_ALLUXIO_PATH in each fuse daemonset yaml file
+  # Default fuse mount point inside fuse container, shared by all fuse containers.
+  # Non-empty value is required.
+  mountPoint: /mnt/alluxio-fuse
+  # Default alluxio path to be mounted, shared by all fuse containers.
   alluxioPath: /
   resources:
     requests:
