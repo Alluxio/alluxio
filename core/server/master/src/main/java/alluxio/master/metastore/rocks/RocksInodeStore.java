@@ -71,6 +71,11 @@ public class RocksInodeStore implements InodeStore {
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
+  // This iterator option is only used when traversing the entire map.
+  // It is set to have a long read ahead size, and has TotalOrderSeek
+  // set to true which is needed when traversing multiple buckets when
+  // using a fixed length prefix extractor.
+  // See https://github.com/facebook/rocksdb/wiki/Prefix-Seek
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
@@ -90,7 +95,8 @@ public class RocksInodeStore implements InodeStore {
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
+        .setTotalOrderSeek(true);
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     mColumnFamilyOptsInode = new ColumnFamilyOptions()
@@ -215,10 +221,6 @@ public class RocksInodeStore implements InodeStore {
       checkPrefix();
     }
 
-    private void stop() {
-      mStopped = true;
-    }
-
     private void checkPrefix() {
       if (mIter.isValid() && mPrefix != null) {
         byte[] key = mIter.key();
@@ -299,7 +301,7 @@ public class RocksInodeStore implements InodeStore {
   public Set<EdgeEntry> allEdges() {
     Set<EdgeEntry> edges = new HashSet<>();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(),
-        new ReadOptions().setTotalOrderSeek(true))) {
+        mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
         long parentId = RocksUtils.readLong(iter.key(), 0);
@@ -316,7 +318,7 @@ public class RocksInodeStore implements InodeStore {
   public Set<MutableInode<?>> allInodes() {
     Set<MutableInode<?>> inodes = new HashSet<>();
     try (RocksIterator iter = db().newIterator(mInodesColumn.get(),
-        new ReadOptions().setTotalOrderSeek(true))) {
+        mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
