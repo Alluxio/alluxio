@@ -63,6 +63,7 @@ mount_fuse() {
     mount_point="$1"
     mount_alluxio_path="$2"
   elif [[ $# -eq 1 ]]; then
+    echo "Only argument mount_point is provided. Alluxio path will use the value of property alluxio.fuse.mount.alluxio.path."
     mount_point="$1"
     mount_alluxio_path=$(${BIN}/alluxio getConf ${ALLUXIO_FUSE_JAVA_OPTS} alluxio.fuse.mount.alluxio.path)
   else
