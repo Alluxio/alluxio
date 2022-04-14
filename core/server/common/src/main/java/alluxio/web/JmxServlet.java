@@ -185,25 +185,21 @@ public class JmxServlet extends HttpServlet {
         } catch (AttributeNotFoundException e) {
           // If the modelerType attribute was not found, the class name is used
           // instead.
-          LOG.error("getting attribute " + prs + " of " + oname
-              + " threw an exception", e);
+          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
         } catch (MBeanException e) {
           // The code inside the attribute getter threw an exception so log it,
           // and fall back on the class name
-          LOG.error("getting attribute " + prs + " of " + oname
-              + " threw an exception", e);
+          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
         } catch (RuntimeException e) {
           // For some reason even with an MBeanException available to them
           // Runtime exceptionscan still find their way through, so treat them
           // the same as MBeanException
-          LOG.error("getting attribute " + prs + " of " + oname
-              + " threw an exception", e);
+          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
         } catch (ReflectionException e) {
           // This happens when the code inside the JMX bean (setter?? from the
           // java docs) threw an exception, so log it and fall back on the
           // class name
-          LOG.error("getting attribute " + prs + " of " + oname
-              + " threw an exception", e);
+          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
         }
       } catch (InstanceNotFoundException e) {
         // Ignored for some reason the bean was not found so don't output it
@@ -211,14 +207,12 @@ public class JmxServlet extends HttpServlet {
       } catch (IntrospectionException e) {
         // This is an internal error, something odd happened with reflection so
         // log it and don't output the bean.
-        LOG.error("Problem while trying to process JMX query: " + qry
-            + " with MBean " + oname, e);
+        LOG.error("Problem while trying to process JMX query: {} with MBean {}", qry, oname, e);
         continue;
       } catch (ReflectionException e) {
         // This happens when the code inside the JMX bean threw an exception, so
         // log it and don't output the bean.
-        LOG.error("Problem while trying to process JMX query: " + qry
-            + " with MBean " + oname, e);
+        LOG.error("Problem while trying to process JMX query: {} with MBean {}", qry, oname, e);
         continue;
       }
 
@@ -270,9 +264,9 @@ public class JmxServlet extends HttpServlet {
       // UnsupportedOperationExceptions happen in the normal course of business,
       // so no need to log them as errors all the time.
       if (e.getCause() instanceof UnsupportedOperationException) {
-        LOG.debug("getting attribute " + attName + " of " + oname + " threw an exception", e);
+        LOG.debug("getting attribute {} of {} threw an exception", attName, oname, e);
       } else {
-        LOG.error("getting attribute " + attName + " of " + oname + " threw an exception", e);
+        LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
       }
       return;
     } catch (RuntimeErrorException e) {
@@ -287,17 +281,17 @@ public class JmxServlet extends HttpServlet {
     } catch (MBeanException e) {
       // The code inside the attribute getter threw an exception so log it, and
       // skip outputting the attribute
-      LOG.error("getting attribute " + attName + " of " + oname + " threw an exception", e);
+      LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
       return;
     } catch (RuntimeException e) {
       // For some reason even with an MBeanException available to them Runtime exceptions
       // can still find their way through, so treat them the same as MBeanException
-      LOG.error("getting attribute " + attName + " of " + oname + " threw an exception", e);
+      LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
       return;
     } catch (ReflectionException e) {
       // This happens when the code inside the JMX bean (setter?? from the java docs)
       // threw an exception, so log it and skip outputting the attribute
-      LOG.error("getting attribute " + attName + " of " + oname + " threw an exception", e);
+      LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
       return;
     } catch (InstanceNotFoundException e) {
       // Ignored the mbean itself was not found, which should never happen because we
