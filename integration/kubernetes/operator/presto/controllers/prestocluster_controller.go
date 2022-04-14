@@ -19,6 +19,10 @@ package controllers
 import (
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -48,10 +52,71 @@ type PrestoClusterReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 	prestoCluster := &alluxiocomv1alpha1.PrestoCluster{}
-	_ = r.Get(ctx, req.NamespacedName, prestoCluster)
+	err := r.Get(ctx, req.NamespacedName, prestoCluster)
+	if err != nil {
+		logger.Error(err, "Failed to get Presto Cluster")
+	}
+	// Check if the deployment already exists, if not create a new one
+	found := &appsv1.Deployment{}
+	err = r.Get(ctx, types.NamespacedName{Name: prestoCluster.Name, Namespace: prestoCluster.Namespace}, found)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Define a new deployment
+			dep := r.deploymentForPrestoCluster(prestoCluster)
+			logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+			err = r.Create(ctx, dep)
+			if err != nil {
+				logger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+				return ctrl.Result{}, err
+			}
+			// Deployment created successfully - return and requeue
+			return ctrl.Result{Requeue: true}, nil
+		} else {
+			logger.Error(err, "Failed to get Deployment")
+			return ctrl.Result{}, err
+		}
+	}
 	return ctrl.Result{Requeue: true}, nil
+}
+
+// deploymentForMemcached returns a memcached Deployment object
+func (r *PrestoClusterReconciler) deploymentForPrestoCluster(m *alluxiocomv1alpha1.PrestoCluster) *appsv1.Deployment {
+	labels := map[string]string{"app": "presto", "presto_cr": m.Name}
+	replicas := m.Spec.WorkerNum
+
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      m.Name,
+			Namespace: m.Namespace,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image:   "memcached:1.4.36-alpine",
+						Name:    "memcached",
+						Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: 11211,
+							Name:          "memcached",
+						}},
+					}},
+				},
+			},
+		},
+	}
+	// Set Memcached instance as the owner and controller
+	ctrl.SetControllerReference(m, dep, r.Scheme)
+	return dep
 }
 
 // SetupWithManager sets up the controller with the Manager.
