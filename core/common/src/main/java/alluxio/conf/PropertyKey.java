@@ -7720,30 +7720,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final PropertyType mType;
     private final Optional<Class<? extends Enum>> mEnumType;
     private final Optional<String> mDelimiter;
-    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator;
+    private final BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator;
 
     Template(String format, String re) {
       this(format, re, PropertyType.STRING);
     }
 
-    /**
-     * Constructs a property key format.
-     *
-     * @param format String of this property as formatted string
-     * @param re String of this property as regexp
-     * @param type type of this property
-     */
     Template(String format, String re, PropertyType type) {
       this(format, re, type, Optional.empty());
     }
 
     Template(String format, String re, PropertyType type, Optional<String> delimiter) {
-      mFormat = format;
-      mPattern = Pattern.compile(re);
-      mType = type;
-      mDelimiter = delimiter;
-      mEnumType = Optional.empty();
-      mPropertyCreator = PropertyCreators.fromBuilder(new Builder("", type));
+      this(format, re, type, Optional.empty(), delimiter,
+          PropertyCreators.fromBuilder(new Builder("", type)));
+    }
+
+    Template(String format, String re, Class<? extends Enum> enumType) {
+      this(format, re, PropertyType.ENUM, Optional.of(enumType), Optional.empty(),
+          PropertyCreators.fromBuilder(enumBuilder("", enumType)));
+    }
+
+    Template(String format, String re,
+        BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
+      this(format, re, PropertyType.STRING, Optional.empty(), Optional.empty(), propertyCreator);
     }
 
     /**
@@ -7752,28 +7751,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param format String of this property as formatted string
      * @param re String of this property as regexp
      * @param enumType enum class of an enum property
+     * @param delimiter delimiter of this property
+     * @param propertyCreator a function that creates property key given name and base property key
      */
-    Template(String format, String re, Class<? extends Enum> enumType) {
+    Template(String format, String re, PropertyType type, Optional<Class<? extends Enum>> enumType,
+        Optional<String> delimiter, BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
       mFormat = format;
       mPattern = Pattern.compile(re);
-      mType = PropertyType.ENUM;
-      mEnumType = Optional.of(enumType);
-      mDelimiter = Optional.empty();
-      mPropertyCreator = PropertyCreators.fromBuilder(enumBuilder("", enumType));
-    }
-
-    /**
-     * Constructs a nested property key format with a function to construct property key given
-     * base property key.
-     *
-     * @param format String of this property as formatted string
-     * @param re String of this property as regexp
-     * @param propertyCreator a function that creates property key given name and base property key
-     *                        (for nested properties only, will be null otherwise)
-     */
-    Template(String format, String re,
-        BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
-      this(format, re);
+      mType = type;
+      mDelimiter = delimiter;
+      mEnumType = enumType;
       mPropertyCreator = propertyCreator;
     }
 
