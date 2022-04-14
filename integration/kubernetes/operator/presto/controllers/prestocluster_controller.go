@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	appsv1 "k8s.io/api/apps/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -48,15 +49,15 @@ type PrestoClusterReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-
-	// TODO(user): your logic here
-
-	return ctrl.Result{}, nil
+	prestoCluster := &alluxiocomv1alpha1.PrestoCluster{}
+	_ = r.Get(ctx, req.NamespacedName, prestoCluster)
+	return ctrl.Result{Requeue: true}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PrestoClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&alluxiocomv1alpha1.PrestoCluster{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }

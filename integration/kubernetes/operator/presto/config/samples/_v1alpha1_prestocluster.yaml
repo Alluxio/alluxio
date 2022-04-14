@@ -3,4 +3,4 @@ kind: PrestoCluster
 metadata:
   name: prestocluster-sample
 spec:
-  # TODO(user): Add fields here
+  size: 3
