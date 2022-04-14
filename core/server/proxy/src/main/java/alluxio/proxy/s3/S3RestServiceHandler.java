@@ -214,17 +214,19 @@ public final class S3RestServiceHandler {
                             @QueryParam("prefix") final String prefixParam,
                             @QueryParam("delimiter") final String delimiterParam,
                             @QueryParam("encoding-type") final String encodingTypeParam,
-                            @QueryParam("max-keys") final int maxKeysParam,
+                            @QueryParam("max-keys") final String maxKeysParam,
                             @QueryParam("list-type") final int listTypeParam,
                             @QueryParam("continuation-token") final String continuationTokenParam,
                             @QueryParam("start-after") final String startAfterParam,
                             @QueryParam("tagging") final String tagging) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+      // TODO(czhu): move parameter validation into constructor for ListBucketOptions
       String marker = markerParam == null ? "" : markerParam;
       String prefix = prefixParam == null ? "" : prefixParam;
       String encodingType = encodingTypeParam == null ? "url" : encodingTypeParam;
-      int maxKeys = maxKeysParam <= 0 ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
+      int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS
+          : Math.max(Integer.parseInt(maxKeysParam), 0);
       String continuationToken = continuationTokenParam == null ? "" : continuationTokenParam;
       String startAfter = startAfterParam == null ? "" : startAfterParam;
       ListBucketOptions listBucketOptions = ListBucketOptions.defaults()

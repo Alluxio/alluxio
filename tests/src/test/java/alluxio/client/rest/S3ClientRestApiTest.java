@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -192,7 +193,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals("folder0/file0", expected.getContents().get(3).getKey());
     assertEquals("folder0/file1", expected.getContents().get(4).getKey());
     assertEquals("folder1/", expected.getContents().get(5).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     //parameters with delimiter="/"
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"));
@@ -233,7 +234,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals("folder0/file0", expected.getContents().get(1).getKey());
     assertEquals("folder0/file1", expected.getContents().get(2).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     //parameters with list-type=2 start-after="folder0/file0"
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
@@ -256,7 +257,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals("folder0/file0", expected.getContents().get(2).getKey());
     assertEquals("folder0/file1", expected.getContents().get(3).getKey());
     assertEquals("folder1/", expected.getContents().get(4).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
   }
 
   @Test
@@ -279,7 +280,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1));
     String nextMarker = expected.getNextMarker();
-    assertEquals("/bucket/file0", nextMarker);
+    assertEquals("file0", nextMarker);
 
     final Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "1");
@@ -290,7 +291,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
 
     assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.put("marker", nextMarker);
 
@@ -306,7 +307,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
 
     assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.put("marker", nextMarker);
 
@@ -320,13 +321,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
 
     assertEquals("folder0/", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     //parameters with list-type=2 and max-key=1
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1).setListType(2));
     String nextContinuationToken = expected.getNextContinuationToken();
-    assertEquals(ListBucketResult.encodeToken("/bucket/file0"), nextContinuationToken);
+    assertEquals(ListBucketResult.encodeToken("file0"), nextContinuationToken);
 
     parameters.remove("marker");
     parameters.put("list-type", "2");
@@ -337,7 +338,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
 
     assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.put("continuation-token", nextContinuationToken);
 
@@ -345,7 +346,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         ListBucketOptions.defaults().setMaxKeys(1)
             .setListType(2).setContinuationToken(nextContinuationToken));
     nextContinuationToken = expected.getNextContinuationToken();
-    assertEquals(ListBucketResult.encodeToken("/bucket/file1"), nextContinuationToken);
+    assertEquals(ListBucketResult.encodeToken("file1"), nextContinuationToken);
 
     assertEquals(1, expected.getContents().size());
 
@@ -355,7 +356,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
 
     assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.put("continuation-token", nextContinuationToken);
 
@@ -363,7 +364,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         ListBucketOptions.defaults().setMaxKeys(1)
             .setListType(2).setContinuationToken(nextContinuationToken));
     nextContinuationToken = expected.getNextContinuationToken();
-    assertEquals(ListBucketResult.encodeToken("/bucket/folder0"), nextContinuationToken);
+    assertEquals(ListBucketResult.encodeToken("folder0"), nextContinuationToken);
 
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
@@ -371,7 +372,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         .runAndCheckResult(expected);
 
     assertEquals("folder0/", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
   }
 
   @Test
