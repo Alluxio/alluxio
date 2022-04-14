@@ -525,7 +525,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws BlockDoesNotExistException, IOException {
     try {
       openUfsBlock(sessionId, blockId, options);
-      BlockReader reader = mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset,
+      BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options.getUser());
       return new DelegatingBlockReader(reader, () -> {
         try {
