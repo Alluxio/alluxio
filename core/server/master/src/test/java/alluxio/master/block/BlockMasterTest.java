@@ -266,25 +266,25 @@ public class BlockMasterTest {
 
     // New and clean(the Tier is clean without any Blocks) worker registration
     // New Worker will be report a IdUtils.EMPTY_CLUSTER_ID
-    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response1 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 0);
-    assertRegisterInfo(exceptInfo1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
+    assertRegisterInfo(response1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will force clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response2 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 1);
-    assertRegisterInfo(exceptInfo2, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
+    assertRegisterInfo(response2, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     // New and dirty(has BLock in the Tier) worker registration,
     // and master will not force clean dirty worker
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response3 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, IdUtils.EMPTY_CLUSTER_ID, 1);
-    assertRegisterInfo(exceptInfo3, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
+    assertRegisterInfo(response3, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 
@@ -292,14 +292,14 @@ public class BlockMasterTest {
   public void restartedWorkerRegisterWithMaster() throws IOException {
     // Worker ( clusterId has been persisted) restarts normally
     // The restarted worker will report the same id as the current cluster
-    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response1 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, mCurrentClusterId, 1);
-    assertRegisterInfo(exceptInfo1, RegisterCommandType.ACK_REGISTER,
+    assertRegisterInfo(response1, RegisterCommandType.ACK_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
-    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response2 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, mCurrentClusterId, 0);
-    assertRegisterInfo(exceptInfo2, RegisterCommandType.ACK_REGISTER,
+    assertRegisterInfo(response2, RegisterCommandType.ACK_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 
@@ -310,21 +310,21 @@ public class BlockMasterTest {
     // different with the current cluster
     String otherClusterId = UUID.randomUUID().toString();
 
-    GetWorkerIdPResponse exceptInfo1 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response1 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, otherClusterId, 0);
-    assertRegisterInfo(exceptInfo1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
+    assertRegisterInfo(response1, RegisterCommandType.REGISTER_PERSIST_CLUSTERID,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, false);
-    GetWorkerIdPResponse exceptInfo2 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response2 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, otherClusterId, 1);
-    assertRegisterInfo(exceptInfo2, RegisterCommandType.REJECT_REGISTER,
+    assertRegisterInfo(response2, RegisterCommandType.REJECT_REGISTER,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
 
     ServerConfiguration.set(PropertyKey.MASTER_CLEAN_DIRTY_WORKER, true);
-    GetWorkerIdPResponse exceptInfo3 = mBlockMaster.getWorkerId(
+    GetWorkerIdPResponse response3 = mBlockMaster.getWorkerId(
         NET_ADDRESS_1, otherClusterId, 1);
-    assertRegisterInfo(exceptInfo3, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
+    assertRegisterInfo(response3, RegisterCommandType.REGISTER_CLEAN_BLOCKS,
         mCurrentClusterId, mBlockMaster.getWorkerId(NET_ADDRESS_1));
   }
 

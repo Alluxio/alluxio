@@ -161,9 +161,15 @@ public class BlockMasterClient extends AbstractMasterClient {
       // For compatibility,  If Register information is included,
       // the Master will set hasExtendedRegisterInfo
       if (response.hasClusterId()) {
+        LOG.debug("getCluster from master, response: clusterId={}, command={}",
+            response.getClusterId(), response.getRegisterCommandType());
         return response;
       } else {
-        // just set WorkerId
+        // The master's response has no clusterId,
+        // maybe the response is from an older version of the master
+        // For compatibility, some information needs to be set manually
+        LOG.debug("getCluster master, response: clusterId={}, with empty command ",
+            response.getClusterId());
         return GetWorkerIdPResponse.newBuilder()
             .setWorkerId(response.getWorkerId())
             .setClusterId(IdUtils.EMPTY_CLUSTER_ID)

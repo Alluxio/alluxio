@@ -251,7 +251,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Start serving RPC, this will block
     BlockWorker blockWorker = mRegistry.get(BlockWorker.class);
     LOG.info("Alluxio worker started. clusterId={}, workerId={}, bindHost={}, "
-            + "connectHost={}, rpcPort={}, webPort={}",
+        + "connectHost={}, rpcPort={}, webPort={}",
         blockWorker.getClusterId().get(), blockWorker.getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
@@ -319,7 +319,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       if (mRegistry.get(BlockWorker.class).getClusterId().get()
           .equals(IdUtils.EMPTY_CLUSTER_ID)) {
         LOG.warn("Worker has an empty cluster ID! "
-                + "Please check if the worker has permission to persist cluster ID in {}/{}",
+            + "Please check if the worker has permission to persist cluster ID in {}/{}",
             ServerConfiguration.get(PropertyKey.WORKER_METASTORE_PATH), CLUSTERID_FILE);
       }
       return true;

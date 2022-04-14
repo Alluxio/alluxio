@@ -459,7 +459,7 @@ public class DefaultBlockWorkerTest {
   @Test
   public void setAndGetClusterId() throws IOException {
     String mClusterID = java.util.UUID.randomUUID().toString();
-    mBlockWorker.setClusterId(mClusterID);
+    mBlockWorker.setClusterIdInternal(mClusterID);
     assertEquals(mClusterID,
         mBlockWorker.getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
   }

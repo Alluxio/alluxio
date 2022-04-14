@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static alluxio.cli.Format.format;
+
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
@@ -18,9 +20,12 @@ import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.cli.Format;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
@@ -51,6 +56,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.retry.TimeoutRetry;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.IdUtils;
 import alluxio.wire.BlockReadRequest;
@@ -240,30 +246,27 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @VisibleForTesting
-  void setClusterId(String clusterId) throws IOException {
+  void setClusterIdInternal(String clusterId) throws IOException {
     mWorkerMetaStore.set(CLUSTER_ID_KEY, clusterId);
   }
 
-  private void SetClusterIdAllowFails(String clusterId) {
+  private void setClusterIdAllowFails(String clusterId) {
     try {
-      setClusterId(clusterId);
+      setClusterIdInternal(clusterId);
     } catch (IOException e) {
       if (ServerConfiguration.getBoolean(PropertyKey.WORKER_MUST_PRESIST_CLUSTERID)) {
         throw new RuntimeException("setClusterId fails", e);
       } else {
-        LOG.error("setClusterId fails %s", e);
+        LOG.error("Failed to persist clusterId", e);
       }
     }
   }
 
   private void cleanBlocks()
-      throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
-    BlockStoreMeta storeMeta = mLocalBlockStore.getBlockStoreMetaFull();
-    for (List<Long> blockIds : storeMeta.getBlockList().values()) {
-      for (long blockId : blockIds) {
-        removeBlock(Sessions.createInternalSessionId(), blockId);
-      }
-    }
+      throws IOException {
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    Format.Mode mode = Format.Mode.WORKER;
+    format(mode, conf);
   }
 
   @VisibleForTesting
@@ -271,7 +274,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     cleanBlocks();
     clearMetrics();
-    mHeartbeatReporter.ClearReport();
+    mHeartbeatReporter.clearReport();
     mWorkerMetaStore.reset();
   }
 
@@ -287,12 +290,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       case ACK_REGISTER:
         break;
       case REGISTER_PERSIST_CLUSTERID:
-        SetClusterIdAllowFails(response.getClusterId());
+        setClusterIdAllowFails(response.getClusterId());
         break;
       case REGISTER_CLEAN_BLOCKS:
         LOG.warn("Master Command {}", response);
         reset();
-        SetClusterIdAllowFails(response.getClusterId());
+        setClusterIdAllowFails(response.getClusterId());
         break;
       case REJECT_REGISTER:
         throw new RuntimeException("Master reject to register");
@@ -303,7 +306,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWorkerId.set(response.getWorkerId());
   }
 
-  private void getIdWithMaster(WorkerNetAddress address) {
+  private void acquireWorkerId(WorkerNetAddress address) {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     final AtomicReference<GetWorkerIdPResponse> response =
         new AtomicReference<>(GetWorkerIdPResponse.newBuilder()
@@ -338,7 +341,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mAddress = address;
     mClusterId.set(getOrDefaultClusterIdFromMetaStore(IdUtils.EMPTY_CLUSTER_ID).get());
 
-    getIdWithMaster(mAddress);
+    acquireWorkerId(mAddress);
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mClusterId, "mWorkerId");
