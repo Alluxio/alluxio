@@ -417,7 +417,8 @@ public class RocksInodeStore implements InodeStore {
   public void close() {
     LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
-    mColumnFamilyOpts.close();
+    mColumnFamilyOptsInode.close();
+    mColumnFamilyOptsEdge.close();
     LOG.info("RocksInodeStore closed");
   }
 
