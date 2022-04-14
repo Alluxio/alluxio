@@ -5723,7 +5723,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       durationBuilder(Name.FUSE_UMOUNT_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("0s")
           .setDescription("The timeout to wait for all in progress file read and write to finish "
               + "before unmounting the Fuse filesystem when SIGTERM signal is received. "
               + "A value smaller than or equal to zero means no umount wait time. ")
