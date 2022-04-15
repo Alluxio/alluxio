@@ -248,7 +248,7 @@ public class ListBucketResult {
           }
           return false; // the key is dropped because it is consumed by the common prefix
         })
-        .limit(mMaxKeys + 1)
+        .limit(mMaxKeys + 1) // limit to +1 in order to check if we have exactly MaxKeys or not
         .filter(content -> {
           // Filter out the common prefixes from the keys
           String path = content.getKey();

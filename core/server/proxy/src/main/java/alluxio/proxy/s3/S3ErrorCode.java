@@ -59,7 +59,7 @@ public class S3ErrorCode {
       Response.Status.CONFLICT);
   public static final S3ErrorCode INVALID_ARGUMENT = new S3ErrorCode(
       Name.INVALID_ARGUMENT,
-      "The request was invalid.", // this message should be overridden by the throw-er
+      "The request was invalid.", // this message should be overwritten by the throw-er
       Response.Status.BAD_REQUEST);
   public static final S3ErrorCode INVALID_BUCKET_NAME = new S3ErrorCode(
       Name.INVALID_BUCKET_NAME,
