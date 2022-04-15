@@ -166,15 +166,15 @@ public class ListBucketResult {
       return;
     }
     // contains both ends of "/" character
-    final String mNamePrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
-    filterKeysAndBuildResults(mNamePrefix, children);
+    final String mBucketPrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
+    buildListBucketResult(mBucketPrefix, children);
   }
 
   /**
    * Filter {@link URIStatus} use marker/continuation-token, prefix, delimiter, and max-keys.
    * @param children a list of {@link URIStatus}, representing the objects and common prefixes
    */
-  private void filterKeysAndBuildResults(
+  private void buildListBucketResult(
       String bucketPrefix, List<URIStatus> children) throws S3Exception {
     final String marker;
     if (isVersion2()) {
@@ -192,29 +192,33 @@ public class ListBucketResult {
 
     //sort use uri path
     children.sort(Comparator.comparing(URIStatus::getPath));
-    List<String[]> keys = children.stream()
-        .map(status -> new String[]{
-            status.isFolder() ? status.getPath() + AlluxioURI.SEPARATOR : status.getPath(),
-            String.valueOf(status.getLastModificationTimeMs()),
-            status.isFolder() ? "0" : String.valueOf(status.getLength())
+    mContents = children.stream()
+        .map(status -> {
+          String path = status.getPath().substring(bucketPrefix.length());
+          return new Content(
+              status.isFolder() ? path + AlluxioURI.SEPARATOR : path,
+              S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
+              status.isFolder() ? "0" : String.valueOf(status.getLength())
+          );
         })
         //marker filter
-        .filter(uriData -> {
-          String path = uriData[0];
-          return (path.startsWith(bucketPrefix + mPrefix) //prefix filter
-              && (marker.isEmpty() || path.compareTo(bucketPrefix + marker) > 0) //marker filter
+        .filter(content -> {
+          String path = content.getKey();
+          return (path.startsWith(mPrefix) //prefix filter
+              && path.compareTo(marker) > 0 //marker filter
               //startAfter filter for listObjectV2
               && (!isVersion2() || mStartAfter == null
-                || path.compareTo(bucketPrefix + mStartAfter) > 0));
+                || path.compareTo(mStartAfter) > 0));
         })
-        .filter(uriData -> {
-          String path = uriData[0];
+        .filter(content -> {
+          String path = content.getKey();
           if (mDelimiter == null) {
+            mNextMarker = path;
             return true;
           }
-          int delimiterIndex = path.substring(bucketPrefix.length() + mPrefix.length())
-              .indexOf(mDelimiter);
+          int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
           if (delimiterIndex == -1) { // no matching delimiter
+            mNextMarker = path;
             return true;
           }
           /*
@@ -226,71 +230,45 @@ public class ListBucketResult {
            * These rolled-up keys are not returned elsewhere in the response.
            * Each rolled-up result counts as only one return against the MaxKeys value.
            */
-          String commonPrefix = path.substring(bucketPrefix.length(),
-              bucketPrefix.length() + mPrefix.length() + delimiterIndex + mDelimiter.length());
+          String commonPrefix = path.substring(0, mPrefix.length() + delimiterIndex
+              + mDelimiter.length());
           if (commonPrefix.equals(marker)) {
             return false; // skip if the marker was this common prefix
           }
           if (commonPrefixes.add(commonPrefix)) {
             mCommonPrefixes.add(new CommonPrefix(commonPrefix));
+            mNextMarker = commonPrefix;
             return true; // we will add the common prefix to the key stream for processing purposes
           }
           return false; // the key is dropped because it is consumed by the common prefix
         })
-        .limit(mMaxKeys + 1) // leave 1 extra entry in order to check if we have exactly MaxKeys
+        .limit(mMaxKeys)
+        .filter(content -> {
+          // Filter out the common prefixes from the keys
+          String path = content.getKey();
+          if (mDelimiter == null) {
+            return true;
+          }
+          int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
+          if (delimiterIndex == -1) { // no matching delimiter
+            return true; // include keys which are not common prefixes
+          }
+          String commonPrefix = path.substring(0, mPrefix.length() + delimiterIndex
+              + mDelimiter.length());
+          return !commonPrefixes.contains(commonPrefix); // filter out common prefixes
+        })
         .collect(Collectors.toList());
-    if (keys.size() == mMaxKeys + 1) {
-      // remove the extra key used to check for truncation
-      // - also need to check if it was a Common Prefix
-      String[] uriData = keys.remove(keys.size() - 1);
-      if (commonPrefixes.contains(uriData[0].substring(bucketPrefix.length()))) {
-        mCommonPrefixes.remove(mCommonPrefixes.size() - 1);
-      }
+
+    if (isVersion2()) {
+      mKeyCount = mContents.size() + (mCommonPrefixes == null ? 0 : mCommonPrefixes.size());
+      mNextContinuationToken = encodeToken(mNextMarker);
+    }
+    if (mContents.size() + (mCommonPrefixes == null ? 0 : mCommonPrefixes.size()) == mMaxKeys) {
+      // TODO(czhu): handle edge-case where we have exactly MaxKeys before the limit()
       mIsTruncated = true;
-      // NextMarker is just the last processed Key/Common Prefix
-      mNextMarker = keys.get(keys.size() - 1)[0].substring(bucketPrefix.length());
-      if (isVersion2()) {
-        mNextContinuationToken = encodeToken(mNextMarker);
-        mNextMarker = null;
-      }
-    }
-    int totalKeys = keys.size();
-
-    keys = keys.stream().filter(uriData -> {
-      // Filter out the common prefixes from the keys
-      String path = uriData[0];
-      if (mDelimiter == null) {
-        return true;
-      }
-      int delimiterIndex = path.substring(bucketPrefix.length() + mPrefix.length())
-          .indexOf(mDelimiter);
-      if (delimiterIndex == -1) { // no matching delimiter
-        return true; // include keys which are not common prefixes
-      }
-      String commonPrefix = path.substring(bucketPrefix.length(),
-          bucketPrefix.length() + mPrefix.length() + delimiterIndex + mDelimiter.length());
-      return !commonPrefixes.contains(commonPrefix); // filter out common prefixes
-    }).filter(uriData -> {
-      // Populate the Contents with the remaining keys
-      mContents.add(new Content(
-          uriData[0].substring(bucketPrefix.length()),
-          S3RestUtils.toS3Date(Long.parseLong(uriData[1])),
-          uriData[2]
-      ));
-      return true;
-    }).collect(Collectors.toList());
-
-    // Validate that the total key count was not broken from filtering out Common Prefixes
-    if (totalKeys != mContents.size()
-        + (mCommonPrefixes != null ? mCommonPrefixes.size() : 0)) {
-      throw new S3Exception(new S3ErrorCode(
-          S3ErrorCode.INTERNAL_ERROR.getCode(),
-          "Failed to filter keys for ListBucketResults.",
-          S3ErrorCode.INTERNAL_ERROR.getStatus()
-      ));
-    }
-    if (isVersion2()) { // KeyCount is only defined as part of ListObjectsV2
-      mKeyCount = totalKeys;
+    } else {
+      mNextMarker = null;
+      mNextContinuationToken = null;
     }
   }
 
