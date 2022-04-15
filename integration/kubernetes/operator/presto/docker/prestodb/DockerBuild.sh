@@ -1,0 +1,1 @@
+docker build --build-arg PRESTO_VERSION=0.272 . -t beinan6666/prestodb:latest

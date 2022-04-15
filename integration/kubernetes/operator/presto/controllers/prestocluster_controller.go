@@ -102,12 +102,11 @@ func (r *PrestoClusterReconciler) deploymentForPrestoCluster(m *alluxiocomv1alph
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image:   "memcached:1.4.36-alpine",
-						Name:    "memcached",
-						Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
+						Image: "beinan6666/prestodb",
+						Name:  "presto",
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 11211,
-							Name:          "memcached",
+							ContainerPort: 8080,
+							Name:          "presto",
 						}},
 					}},
 				},
