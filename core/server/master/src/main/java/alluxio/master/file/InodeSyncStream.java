@@ -442,8 +442,18 @@ public class InodeSyncStream {
     }
     mStatusCache.cancelAllPrefetch();
     mSyncPathJobs.forEach(f -> f.cancel(true));
-    DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_CANCEL.inc(
-        mPendingPaths.size() + mSyncPathJobs.size());
+    if (!mPendingPaths.isEmpty() || !mSyncPathJobs.isEmpty()) {
+      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SYNC_PATHS_CANCEL.inc(
+          mPendingPaths.size() + mSyncPathJobs.size());
+    }
+    if (!mSyncPathJobs.isEmpty()) {
+      DefaultFileSystemMaster.Metrics
+          .INODE_SYNC_STREAM_ACTIVE_PATHS_TOTAL.dec(mSyncPathJobs.size());
+    }
+    if (!mPendingPaths.isEmpty()) {
+      DefaultFileSystemMaster.Metrics
+          .INODE_SYNC_STREAM_PENDING_PATHS_TOTAL.dec(mPendingPaths.size());
+    }
 
     // Update metrics at the end of operation
     updateMetrics(success, startTime, syncPathCount, failedSyncPathCount);
