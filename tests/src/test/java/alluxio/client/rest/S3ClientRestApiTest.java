@@ -452,6 +452,113 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void listBucketExactlyMaxKeys() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+    ListStatusPOptions options  = ListStatusPOptions.newBuilder().setRecursive(true).build();
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
+
+    // ListObjects v1
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter()); // only used in V2 API
+    assertNull(expected.getContinuationToken()); // only used in V2 API
+    assertNull(expected.getNextContinuationToken()); // only used in V2 API
+    assertEquals("", expected.getMarker());
+    assertNull(expected.getNextMarker());
+    assertNull(expected.getKeyCount()); // only used in V2 API
+    assertEquals(2, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("max-keys", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // ListObjectsV2
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(2).setListType(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter());
+    assertNull(expected.getContinuationToken());
+    assertNull(expected.getNextContinuationToken());
+    assertNull(expected.getMarker()); // only used in V1 API
+    assertNull(expected.getNextMarker()); // only used in V1 API
+    assertEquals(2, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+    parameters.remove("list-type");
+
+    // Create a directory to test with common prefixes
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
+    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
+
+    // ListObjects v1
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(3).setDelimiter(AlluxioURI.SEPARATOR));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter()); // only used in V2 API
+    assertNull(expected.getContinuationToken()); // only used in V2 API
+    assertNull(expected.getNextContinuationToken()); // only used in V2 API
+    assertEquals("", expected.getMarker());
+    assertNull(expected.getNextMarker());
+    assertNull(expected.getKeyCount()); // only used in V2 API
+    assertEquals(AlluxioURI.SEPARATOR, expected.getDelimiter());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
+
+    parameters.put("max-keys", "3");
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // ListObjectsV2
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(3).setDelimiter(AlluxioURI.SEPARATOR)
+            .setListType(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter());
+    assertNull(expected.getContinuationToken());
+    assertNull(expected.getNextContinuationToken());
+    assertNull(expected.getMarker()); // only used in V1 API
+    assertNull(expected.getNextMarker()); // only used in V1 API
+    assertEquals(3, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
+
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+  }
+
+  @Test
   public void putBucket() throws Exception {
     final String bucket = "bucket";
     createBucketRestCall(bucket);
