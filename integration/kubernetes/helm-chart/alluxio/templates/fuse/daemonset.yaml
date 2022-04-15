@@ -129,7 +129,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "-f", "{{ .Values.fuse.mountPoint }}"]
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "{{ .Values.fuse.mountPoint }}"]
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
