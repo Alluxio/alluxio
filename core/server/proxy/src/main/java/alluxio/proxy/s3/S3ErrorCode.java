@@ -26,6 +26,7 @@ public class S3ErrorCode {
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
+    public static final String INVALID_ARGUMENT = "InvalidArgument";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
     public static final String MALFORMED_XML = "MalformedXML";
     public static final String METADATA_TOO_LARGE = "MetadataTooLarge";
@@ -56,6 +57,10 @@ public class S3ErrorCode {
       Name.BUCKET_NOT_EMPTY,
       "The bucket you tried to delete is not empty",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode INVALID_ARGUMENT = new S3ErrorCode(
+      Name.INVALID_ARGUMENT,
+      "The request was invalid.", // this message should be overridden by the throw-er
+      Response.Status.BAD_REQUEST);
   public static final S3ErrorCode INVALID_BUCKET_NAME = new S3ErrorCode(
       Name.INVALID_BUCKET_NAME,
       "The specified bucket name is invalid",
