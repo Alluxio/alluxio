@@ -214,30 +214,23 @@ public final class S3RestServiceHandler {
                             @QueryParam("prefix") final String prefixParam,
                             @QueryParam("delimiter") final String delimiterParam,
                             @QueryParam("encoding-type") final String encodingTypeParam,
-                            @QueryParam("max-keys") final String maxKeysParam,
-                            @QueryParam("list-type") final int listTypeParam,
+                            @QueryParam("max-keys") final Integer maxKeysParam,
+                            @QueryParam("list-type") final Integer listTypeParam,
                             @QueryParam("continuation-token") final String continuationTokenParam,
                             @QueryParam("start-after") final String startAfterParam,
                             @QueryParam("tagging") final String tagging) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
-      // TODO(czhu): move parameter validation into constructor for ListBucketOptions
-      String marker = markerParam == null ? "" : markerParam;
-      String prefix = prefixParam == null ? "" : prefixParam;
-      String encodingType = encodingTypeParam == null ? "url" : encodingTypeParam;
-      int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS
-          : Math.max(Integer.parseInt(maxKeysParam), 0);
-      String continuationToken = continuationTokenParam == null ? "" : continuationTokenParam;
-      String startAfter = startAfterParam == null ? "" : startAfterParam;
+      int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
       ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
-          .setMarker(marker)
-          .setPrefix(prefix)
+          .setMarker(markerParam)
+          .setPrefix(prefixParam)
           .setMaxKeys(maxKeys)
           .setDelimiter(delimiterParam)
-          .setEncodingType(encodingType)
+          .setEncodingType(encodingTypeParam)
           .setListType(listTypeParam)
-          .setContinuationToken(continuationToken)
-          .setStartAfter(startAfter);
+          .setContinuationToken(continuationTokenParam)
+          .setStartAfter(startAfterParam);
 
       String path = S3RestUtils.parsePath(String.format("%s%s", AlluxioURI.SEPARATOR, bucket));
       final FileSystem fs = getFileSystem(authorization);
@@ -258,7 +251,11 @@ public final class S3RestServiceHandler {
       try {
         // only list the direct children if delimiter is not null
         if (delimiterParam != null) {
-          path = parsePath(path, prefix, delimiterParam);
+          if (prefixParam == null) {
+            path = parsePath(path, "", delimiterParam);
+          } else {
+            path = parsePath(path, prefixParam, delimiterParam);
+          }
           children = fs.listStatus(new AlluxioURI(path));
         } else {
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();

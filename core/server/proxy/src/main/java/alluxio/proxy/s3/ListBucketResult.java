@@ -32,6 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Get bucket result defined in https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
@@ -50,7 +52,8 @@ public class ListBucketResult {
    * Returns the number of keys included in the response. The value is always less than or equal
    * to the mMaxKeys value.
    */
-  private int mKeyCount;
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private Integer mKeyCount;
 
   // The maximum number of keys returned in the response body.
   // @JsonInclude: Adding the ALWAYS annotation to overwrite Class-level NON_EMPTY
@@ -65,6 +68,7 @@ public class ListBucketResult {
   // Marker is included in the response if it was sent with the request.
   // Otherwise it is set to be an empty string.
   // Note that the Marker does not include the bucket path.
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String mMarker;
 
   // If only partial results are returned, this value is set as the nextMarker.
@@ -83,6 +87,7 @@ public class ListBucketResult {
   private List<Content> mContents;
 
   // List of common prefixes (aka. folders)
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private List<CommonPrefix> mCommonPrefixes;
 
   // Delimiter string used to group paths by common prefixes
@@ -92,9 +97,11 @@ public class ListBucketResult {
   private String mEncodingType;
 
   //support listObjectV2
+  @XmlTransient
   private Integer mListType;
 
   // ContinuationToken is included in the response if it was sent with the request.
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String mContinuationToken;
 
   /*
@@ -104,6 +111,7 @@ public class ListBucketResult {
   private String mNextContinuationToken;
 
   // StartAfter is included in the response if it was sent with the request.
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String mStartAfter;
 
   /**
@@ -121,122 +129,168 @@ public class ListBucketResult {
   public ListBucketResult(
       String bucketName, List<URIStatus> children, ListBucketOptions options) throws S3Exception {
     mName = bucketName;
-    mPrefix = options.getPrefix();
-    mMarker = options.getMarker();
-    mMaxKeys = options.getMaxKeys();
-    mDelimiter = options.getDelimiter();
-    mEncodingType = options.getEncodingType();
-
-    mListType = options.getListType();
-    mContinuationToken = options.getContinuationToken();
-    mStartAfter = options.getStartAfter();
-
-    mKeyCount = 0; // explicitly set the starting value of 0
+    if (mName == null || mName.isEmpty()) {
+      throw new S3Exception(S3ErrorCode.INVALID_BUCKET_NAME);
+    }
+    mPrefix = options.getPrefix() == null ? "" : options.getPrefix();
+    mContents = new ArrayList<>();
     mIsTruncated = false; // explicitly set the starting value of false
-    mNextMarker = null; // explicitly set the starting value of null
-
+    mMaxKeys = options.getMaxKeys();
+    if (mMaxKeys < 0) {
+      throw new S3Exception(new S3ErrorCode(
+          S3ErrorCode.INVALID_ARGUMENT.getCode(),
+          "MaxKeys may not be negative",
+          S3ErrorCode.INVALID_ARGUMENT.getStatus()));
+    }
+    mDelimiter = options.getDelimiter();
     if (mDelimiter != null) {
       mCommonPrefixes = new ArrayList<>();
+    } // otherwise, mCommonPrefixes is null
+    mEncodingType = options.getEncodingType() == null ? ListBucketOptions.DEFAULT_ENCODING_TYPE
+        : options.getEncodingType();
+
+    mListType = options.getListType();
+    if (mListType == null) { // ListObjects v1
+      // Providing a null Marker still results in an empty value being returned,
+      // so we set the default value to an empty string
+      mMarker = options.getMarker() == null ? "" : options.getMarker();
+      mNextMarker = null; // explicitly set the starting value of null
+    } else { // ListObjectsV2
+      mKeyCount = null; // explicitly set the starting value of null
+      mContinuationToken = options.getContinuationToken();
+      mNextContinuationToken = null; // explicitly set the starting value of null
+      mStartAfter = options.getStartAfter();
     }
 
-    // Handle edge-case independently
     if (mMaxKeys == 0) {
-      mContents = new ArrayList<>();
       return;
     }
     // contains both ends of "/" character
     final String mNamePrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
-    final List<URIStatus> keys = filterKeysAndBuildCommonPrefixes(mNamePrefix, children);
-    buildContents(mNamePrefix, keys);
+    filterKeysAndBuildResults(mNamePrefix, children);
   }
 
   /**
    * Filter {@link URIStatus} use marker/continuation-token, prefix, delimiter, and max-keys.
    * @param children a list of {@link URIStatus}, representing the objects and common prefixes
-   * @return A list of {@link URIStatus} after filtering
    */
-  private List<URIStatus> filterKeysAndBuildCommonPrefixes(
+  private void filterKeysAndBuildResults(
       String bucketPrefix, List<URIStatus> children) throws S3Exception {
     final String marker;
     if (isVersion2()) {
-      marker = decodeToken(mContinuationToken);
+      if (mContinuationToken != null) {
+        marker = decodeToken(mContinuationToken);
+      } else {
+        marker = "";
+      }
     } else {
       marker = mMarker;
     }
-    //sort use uri path
-    children.sort(Comparator.comparing(URIStatus::getPath));
+
     //group by common prefix if delimiter is provided
     Set<String> commonPrefixes = new HashSet<>();
 
-    List<URIStatus> keys = new ArrayList<>(Math.min(children.size(), mMaxKeys));
-    for (URIStatus status : children) {
-      String path = status.isFolder() ? status.getPath() + AlluxioURI.SEPARATOR : status.getPath();
-      if (path.startsWith(bucketPrefix + mPrefix) //prefix filter
-          && path.substring(bucketPrefix.length()).compareTo(marker) > 0 //marker filter
-          //startAfter filter for listObjectV2
-          && (!isVersion2() || path.compareTo(bucketPrefix + mStartAfter) > 0)) {
-        if (mDelimiter == null) {
-          if (mKeyCount == mMaxKeys) {
-            mIsTruncated = true;
-            break;
+    //sort use uri path
+    children.sort(Comparator.comparing(URIStatus::getPath));
+    List<String[]> keys = children.stream()
+        .map(status -> new String[]{
+            status.isFolder() ? status.getPath() + AlluxioURI.SEPARATOR : status.getPath(),
+            String.valueOf(status.getLastModificationTimeMs()),
+            status.isFolder() ? "0" : String.valueOf(status.getLength())
+        })
+        //marker filter
+        .filter(uriData -> {
+          String path = uriData[0];
+          return (path.startsWith(bucketPrefix + mPrefix) //prefix filter
+              && (marker.isEmpty() || path.compareTo(bucketPrefix + marker) > 0) //marker filter
+              //startAfter filter for listObjectV2
+              && (!isVersion2() || mStartAfter == null
+                || path.compareTo(bucketPrefix + mStartAfter) > 0));
+        })
+        .filter(uriData -> {
+          String path = uriData[0];
+          if (mDelimiter == null) {
+            return true;
           }
-          mKeyCount += 1;
-          keys.add(status);
-          continue;
-        }
-        int delimiterIndex = path.substring(bucketPrefix.length() + mPrefix.length())
-            .indexOf(mDelimiter);
-        if (delimiterIndex == -1) { // no matching delimiter
-          if (mKeyCount == mMaxKeys) {
-            mIsTruncated = true;
-            break;
+          int delimiterIndex = path.substring(bucketPrefix.length() + mPrefix.length())
+              .indexOf(mDelimiter);
+          if (delimiterIndex == -1) { // no matching delimiter
+            return true;
           }
-          mKeyCount += 1;
-          keys.add(status);
-          continue;
-        }
-        /*
-         * Delimiter mean:
-         * https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
-         * Causes keys that contain the same string between the prefix and the
-         * first occurrence of the delimiter to be rolled up into a single
-         * result element in the CommonPrefixes collection.
-         * These rolled-up keys are not returned elsewhere in the response.
-         * Each rolled-up result counts as only one return against the MaxKeys value.
-         */
-        String commonPrefix = path.substring(bucketPrefix.length(),
-            bucketPrefix.length() + mPrefix.length() + delimiterIndex + mDelimiter.length());
-        if (commonPrefixes.add(commonPrefix)) {
-          if (mKeyCount == mMaxKeys) {
-            mIsTruncated = true;
-            break;
+          /*
+           * Delimiter mean:
+           * https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
+           * Causes keys that contain the same string between the prefix and the
+           * first occurrence of the delimiter to be rolled up into a single
+           * result element in the CommonPrefixes collection.
+           * These rolled-up keys are not returned elsewhere in the response.
+           * Each rolled-up result counts as only one return against the MaxKeys value.
+           */
+          String commonPrefix = path.substring(bucketPrefix.length(),
+              bucketPrefix.length() + mPrefix.length() + delimiterIndex + mDelimiter.length());
+          if (commonPrefix.equals(marker)) {
+            return false; // skip if the marker was this common prefix
           }
-          mKeyCount += 1; // only increment on new common prefixes
-          // NextMarker is not updated on common prefixes
-          mCommonPrefixes.add(new CommonPrefix(commonPrefix));
-        }
+          if (commonPrefixes.add(commonPrefix)) {
+            mCommonPrefixes.add(new CommonPrefix(commonPrefix));
+            return true; // we will add the common prefix to the key stream for processing purposes
+          }
+          return false; // the key is dropped because it is consumed by the common prefix
+        })
+        .limit(mMaxKeys + 1) // leave 1 extra entry in order to check if we have exactly MaxKeys
+        .collect(Collectors.toList());
+    if (keys.size() == mMaxKeys + 1) {
+      // remove the extra key used to check for truncation
+      // - also need to check if it was a Common Prefix
+      String[] uriData = keys.remove(keys.size() - 1);
+      if (commonPrefixes.contains(uriData[0].substring(bucketPrefix.length()))) {
+        mCommonPrefixes.remove(mCommonPrefixes.size() - 1);
       }
-    }
-    if (mIsTruncated) {
-      // NextMarker is just the last processed Key in the Contents
-      mNextMarker = keys.get(keys.size() - 1).getPath().substring(bucketPrefix.length());
+      mIsTruncated = true;
+      // NextMarker is just the last processed Key/Common Prefix
+      mNextMarker = keys.get(keys.size() - 1)[0].substring(bucketPrefix.length());
       if (isVersion2()) {
         mNextContinuationToken = encodeToken(mNextMarker);
-        mNextMarker = "";
+        mNextMarker = null;
       }
     }
-    return keys;
-  }
+    int totalKeys = keys.size();
 
-  private void buildContents(String bucketPrefix, List<URIStatus> keys) {
-    mContents = new ArrayList<>();
-    for (URIStatus status : keys) {
+    keys = keys.stream().filter(uriData -> {
+      // Filter out the common prefixes from the keys
+      String path = uriData[0];
+      if (mDelimiter == null) {
+        return true;
+      }
+      int delimiterIndex = path.substring(bucketPrefix.length() + mPrefix.length())
+          .indexOf(mDelimiter);
+      if (delimiterIndex == -1) { // no matching delimiter
+        return true; // include keys which are not common prefixes
+      }
+      String commonPrefix = path.substring(bucketPrefix.length(),
+          bucketPrefix.length() + mPrefix.length() + delimiterIndex + mDelimiter.length());
+      return !commonPrefixes.contains(commonPrefix); // filter out common prefixes
+    }).filter(uriData -> {
+      // Populate the Contents with the remaining keys
       mContents.add(new Content(
-          status.isFolder() ? status.getPath().substring(bucketPrefix.length())
-              + AlluxioURI.SEPARATOR : status.getPath().substring(bucketPrefix.length()),
-          S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
-          status.isFolder() ? "0" : String.valueOf(status.getLength())
+          uriData[0].substring(bucketPrefix.length()),
+          S3RestUtils.toS3Date(Long.parseLong(uriData[1])),
+          uriData[2]
       ));
+      return true;
+    }).collect(Collectors.toList());
+
+    // Validate that the total key count was not broken from filtering out Common Prefixes
+    if (totalKeys != mContents.size()
+        + (mCommonPrefixes != null ? mCommonPrefixes.size() : 0)) {
+      throw new S3Exception(new S3ErrorCode(
+          S3ErrorCode.INTERNAL_ERROR.getCode(),
+          "Failed to filter keys for ListBucketResults.",
+          S3ErrorCode.INTERNAL_ERROR.getStatus()
+      ));
+    }
+    if (isVersion2()) { // KeyCount is only defined as part of ListObjectsV2
+      mKeyCount = totalKeys;
     }
   }
 
@@ -258,16 +312,17 @@ public class ListBucketResult {
   /**
    * @return the number of keys included in the response
    */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JacksonXmlProperty(localName = "KeyCount")
-  public int getKeyCount() {
+  public Integer getKeyCount() {
     return mKeyCount;
   }
 
   /**
    * @return the number of keys included in the response
    */
-  @JacksonXmlProperty(localName = "MaxKeys")
   @JsonInclude(JsonInclude.Include.ALWAYS)
+  @JacksonXmlProperty(localName = "MaxKeys")
   public int getMaxKeys() {
     return mMaxKeys;
   }
@@ -308,6 +363,7 @@ public class ListBucketResult {
   /**
    * @return the marker
    */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JacksonXmlProperty(localName = "Marker")
   public String getMarker() {
     return mMarker;
@@ -324,6 +380,7 @@ public class ListBucketResult {
   /**
    * @return the continuationToken
    */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JacksonXmlProperty(localName = "ContinuationToken")
   public String getContinuationToken() {
     return mContinuationToken;
@@ -340,6 +397,7 @@ public class ListBucketResult {
   /**
    * @return the startAfter
    */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JacksonXmlProperty(localName = "StartAfter")
   public String getStartAfter() {
     return mStartAfter;
@@ -357,6 +415,7 @@ public class ListBucketResult {
   /**
    * @return the common prefixes
    */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @JacksonXmlProperty(localName = "CommonPrefixes")
   @JacksonXmlElementWrapper(useWrapping = false)
   public List<CommonPrefix> getCommonPrefixes() {
@@ -388,6 +447,7 @@ public class ListBucketResult {
    * @throws S3Exception
    */
   public static String decodeToken(String token) throws S3Exception {
+    // TODO(czhu): make Continuation token session/client-based (i.e: not reusable)
     if (token != null && token.length() > 0) {
       int indexSeparator = token.indexOf(CONTINUATION_TOKEN_SEPARATOR);
       if (indexSeparator == -1) {
