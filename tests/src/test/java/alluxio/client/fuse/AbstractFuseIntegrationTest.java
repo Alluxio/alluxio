@@ -50,6 +50,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -210,7 +211,7 @@ public abstract class AbstractFuseIntegrationTest {
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       is.read(read);
     }
-    assertEquals(content, new String(read, "UTF8"));
+    assertEquals(content, new String(read, StandardCharsets.UTF_8));
   }
 
   @Test
