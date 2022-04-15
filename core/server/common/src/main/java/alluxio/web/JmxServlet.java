@@ -104,55 +104,42 @@ public class JmxServlet extends HttpServlet {
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) {
-    try {
-      JsonGenerator jg = null;
-      PrintWriter writer = null;
-      try {
-        writer = response.getWriter();
-        response.setContentType("application/json; charset=utf8");
-        response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, "GET");
-        response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+    try (PrintWriter writer = response.getWriter();
+         JsonGenerator jg = mJsonFactory.createGenerator(writer)) {
+      response.setContentType("application/json; charset=utf8");
+      response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, "GET");
+      response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 
-        jg = mJsonFactory.createGenerator(writer);
-        jg.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-        jg.useDefaultPrettyPrinter();
-        jg.writeStartObject();
-
-        // Query per mbean attribute
-        String getmethod = request.getParameter("get");
-        if (getmethod != null) {
-          String[] splitStrings = getmethod.split("\\:\\:");
-          if (splitStrings.length != 2) {
-            jg.writeStringField("result", "ERROR");
-            jg.writeStringField("message", "query format is not as expected.");
-            jg.flush();
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-          }
-          listBeans(jg, new ObjectName(splitStrings[0]), splitStrings[1],
-              response);
+      jg.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
+      jg.useDefaultPrettyPrinter();
+      jg.writeStartObject();
+      // Query per mbean attribute
+      String getmethod = request.getParameter("get");
+      if (getmethod != null) {
+        String[] splitStrings = getmethod.split("\\:\\:");
+        if (splitStrings.length != 2) {
+          jg.writeStringField("result", "ERROR");
+          jg.writeStringField("message", "query format is not as expected.");
+          jg.flush();
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           return;
         }
-
-        // Query per mbean
-        String qry = request.getParameter("qry");
-        if (qry == null) {
-          qry = "*:*";
-        }
-        listBeans(jg, new ObjectName(qry), null, response);
-      } finally {
-        if (jg != null) {
-          jg.close();
-        }
-        if (writer != null) {
-          writer.close();
-        }
+        listBeans(jg, new ObjectName(splitStrings[0]), splitStrings[1],
+            response);
+        return;
       }
+
+      // Query per mbean
+      String qry = request.getParameter("qry");
+      if (qry == null) {
+        qry = "*:*";
+      }
+      listBeans(jg, new ObjectName(qry), null, response);
     } catch (IOException e) {
-      LOG.error("Caught an exception while processing JMX request", e);
+      LOG.error("Caught an exception while processing JMX request: {}", request, e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (MalformedObjectNameException e) {
-      LOG.error("Caught an exception while processing JMX request", e);
+      LOG.error("Caught an exception while processing JMX request: {}", request, e);
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
   }
@@ -185,21 +172,21 @@ public class JmxServlet extends HttpServlet {
         } catch (AttributeNotFoundException e) {
           // If the modelerType attribute was not found, the class name is used
           // instead.
-          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
+          LOG.error("Failed to get attribute {} of {}: ", prs, oname, e);
         } catch (MBeanException e) {
           // The code inside the attribute getter threw an exception so log it,
           // and fall back on the class name
-          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
+          LOG.error("Failed to get attribute {} of {}: ", prs, oname, e);
         } catch (RuntimeException e) {
           // For some reason even with an MBeanException available to them
           // Runtime exceptionscan still find their way through, so treat them
           // the same as MBeanException
-          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
+          LOG.error("Failed to get attribute {} of {}: ", prs, oname, e);
         } catch (ReflectionException e) {
           // This happens when the code inside the JMX bean (setter?? from the
           // java docs) threw an exception, so log it and fall back on the
           // class name
-          LOG.error("getting attribute {} of {} threw an exception", prs, oname, e);
+          LOG.error("Failed to get attribute {} of {}: ", prs, oname, e);
         }
       } catch (InstanceNotFoundException e) {
         // Ignored for some reason the bean was not found so don't output it
@@ -264,13 +251,13 @@ public class JmxServlet extends HttpServlet {
       // UnsupportedOperationExceptions happen in the normal course of business,
       // so no need to log them as errors all the time.
       if (e.getCause() instanceof UnsupportedOperationException) {
-        LOG.debug("getting attribute {} of {} threw an exception", attName, oname, e);
+        LOG.debug("Failed to get attribute {} of {}: ", attName, oname, e);
       } else {
-        LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
+        LOG.error("Failed to get attribute {} of {}: ", attName, oname, e);
       }
       return;
     } catch (RuntimeErrorException e) {
-      LOG.error("getting attribute {} of {} threw an exception",
+      LOG.error("Failed to get attribute {} of {}: ",
           attName, oname, e);
       return;
     } catch (AttributeNotFoundException e) {
@@ -281,17 +268,17 @@ public class JmxServlet extends HttpServlet {
     } catch (MBeanException e) {
       // The code inside the attribute getter threw an exception so log it, and
       // skip outputting the attribute
-      LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
+      LOG.error("Failed to get attribute {} of {}: ", attName, oname, e);
       return;
     } catch (RuntimeException e) {
       // For some reason even with an MBeanException available to them Runtime exceptions
       // can still find their way through, so treat them the same as MBeanException
-      LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
+      LOG.error("Failed to get attribute {} of {}: ", attName, oname, e);
       return;
     } catch (ReflectionException e) {
       // This happens when the code inside the JMX bean (setter?? from the java docs)
       // threw an exception, so log it and skip outputting the attribute
-      LOG.error("getting attribute {} of {} threw an exception", attName, oname, e);
+      LOG.error("Failed to get attribute {} of {}: ", attName, oname, e);
       return;
     } catch (InstanceNotFoundException e) {
       // Ignored the mbean itself was not found, which should never happen because we
