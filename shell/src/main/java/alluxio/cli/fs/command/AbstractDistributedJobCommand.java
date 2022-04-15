@@ -167,11 +167,9 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       try {
         getDetailedCmdStatus(jobControlId);
       } catch (IOException e) {
-//        System.out.println(String.format("Unable to get detailed command status for %s,"
-//                + "the files may already be loaded in Alluxio,"
-//                + " please retry using `getCmdStatus` to check command detailed status,"
-//                + " or using `fs ls` command to check if the files are already loaded."
-//                + "%n", jobControlId));
+        System.out.println(String.format("Unable to get detailed command status for %s,"
+                + "the files may already be loaded in Alluxio"
+                + "%n", jobControlId));
       }
     }
   }
