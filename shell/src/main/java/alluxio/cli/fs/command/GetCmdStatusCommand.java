@@ -63,12 +63,14 @@ public class GetCmdStatusCommand extends AbstractDistributedJobCommand {
 
     CmdStatusBlock cmdStatus = mClient.getCmdStatusDetailed(jobControlId);
     if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Unable to get command status for jobControlId=%s, please retry.%n",
+      System.out.format("Unable to get command status for jobControlId=%s, please retry"
+          + " or use `fs ls` command to check if files are already loaded in Alluxio.%n",
               jobControlId);
     } else {
       System.out.format("Get command status information below: %n");
       cmdStatus.getJobStatusBlock().forEach(block -> {
-        System.out.format("Job Id = %s, Status = %s %n", block.getJobId(), block.getStatus());
+        System.out.format("Job Id = %s, Status = %s, filePath = %s %n",
+                block.getJobId(), block.getStatus(), block.getFilePath());
       });
     }
     return 0;

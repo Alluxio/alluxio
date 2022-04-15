@@ -91,7 +91,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(ACTIVE_JOB_COUNT_OPTION).addOption(OVERWRITE_OPTION)
-        .addOption(BATCH_SIZE_OPTION).addOption(WAIT_OPTION);
+        .addOption(BATCH_SIZE_OPTION).addOption(NOT_WAIT_OPTION);
   }
 
   @Override
@@ -114,7 +114,10 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
-    boolean wait = FileSystemShellUtils.getBoolArg(cl, WAIT_OPTION, true);
+    boolean notWait = cl.hasOption(NOT_WAIT_OPTION.getLongOpt());
+    if (notWait) {
+      System.out.println("Entering async submission mode. ");
+    }
 
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
@@ -131,12 +134,14 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     Long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
-    if (wait) {
-      System.out.format("Waiting for the command to finish ...%n");
+    if (!notWait) {
+      System.out.format("Submitted successfully, jobControlId = %s%n"
+              + "Waiting for the command to finish ...%n", jobControlId.toString());
       waitForCmd(jobControlId);
+    } else {
+      System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
+              jobControlId.toString());
     }
-    System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
-            jobControlId.toString());
     return 0;
   }
 

@@ -69,14 +69,18 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
             10);
     FileSystemTestUtils
-            .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+            .createByteFile(fs, "/testRoot/testFileB", WritePType.THROUGH, 10);
     sFsShell.run("distributedLoad", "/testRoot");
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[2].split("=\\s+")[1];
+    String jobControlId = output[0].split("=\\s+")[1];
+    Assert.assertTrue(mOutput.toString().contains(
+            "Total completed file count is 2, failed file count is 0"));
+
     sFsShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
-    Assert.assertTrue(mOutput.toString().contains("Status = COMPLETED"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Status = COMPLETED, filePath = /testRoot/testFileA,/testRoot/testFileB"));
   }
 
   @Test
@@ -89,7 +93,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", String.valueOf(batch));
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[1].split("=\\s+")[1];
+    String jobControlId = output[0].split("=\\s+")[1];
     sFsShell.run("getCmdStatus", jobControlId);
     output = mOutput.toString().split("\n");
     Assert.assertTrue(output[output.length - batch].contains("Status = COMPLETED"));

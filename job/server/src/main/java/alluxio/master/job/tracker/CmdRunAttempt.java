@@ -18,12 +18,12 @@ import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.retry.RetryPolicy;
 
+import com.beust.jcommander.internal.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,7 +42,8 @@ public class CmdRunAttempt {
   private JobConfig mJobConfig;
   private long mFileCount;
   private long mFileSize;
-  private Set<String> mFailedFiles = new HashSet<>(); // FAILED files
+  private Set<String> mFailedFiles = Sets.newHashSet(); // FAILED files
+  private String mFilePathString;
 
   protected CmdRunAttempt(RetryPolicy retryPolicy, JobMaster jobMaster) {
     mRetryPolicy = retryPolicy;
@@ -75,6 +76,14 @@ public class CmdRunAttempt {
   }
 
   /**
+   * Set file path.
+   * @param filePath
+   */
+  public void setFilePath(String filePath) {
+    mFilePathString = filePath;
+  }
+
+  /**
    * Get job config.
    * @return job config
    */
@@ -96,6 +105,14 @@ public class CmdRunAttempt {
    */
   public long getFileSize() {
     return mFileSize;
+  }
+
+  /**
+   * Set file path.
+   * @return the file path string
+   */
+  public String getFilePath() {
+    return mFilePathString;
   }
 
   /**
@@ -189,6 +206,6 @@ public class CmdRunAttempt {
    * @return failed files
    */
   public Set<String> getFailedFiles() {
-    return new HashSet<>(mFailedFiles);
+    return mFailedFiles;
   }
 }

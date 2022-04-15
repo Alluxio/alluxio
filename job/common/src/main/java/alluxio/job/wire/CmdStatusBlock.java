@@ -78,6 +78,8 @@ public class CmdStatusBlock {
                       .newBuilder()
                       .setJobId(block.getJobId())
                       .setJobStatus(block.getStatus().toProto())
+                      .setFilePath(block.getFilePath())
+                      .setFilePathFailed(block.getFilesPathFailed())
                       .build();
       jobStatusBlockList.add(protoBlock);
     });

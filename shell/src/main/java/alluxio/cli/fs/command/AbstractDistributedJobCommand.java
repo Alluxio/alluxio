@@ -16,15 +16,24 @@ import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.job.CmdConfig;
+import alluxio.job.wire.CmdStatusBlock;
+import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.cli.Option;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashSet;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,15 +45,15 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCommand {
   protected static final int DEFAULT_ACTIVE_JOBS = 3000;
-  protected static final Option WAIT_OPTION =
+  private static final int DEFAULT_FAILURE_LIMIT = 20;
+  protected static final Option NOT_WAIT_OPTION =
           Option.builder()
-                  .longOpt("wait")
+                  .longOpt("not-wait")
                   .required(false)
-                  .hasArg(true)
-                  .numberOfArgs(1)
-                  .type(Boolean.class)
-                  .argName("wait")
-                  .desc("Wait for the command to finish")
+                  .hasArg(false)
+                  .argName("not-wait")
+                  .desc("Use not-wait to submit the command"
+                          + " asynchronously and not wait for command to finish")
                   .build();
 
   protected List<JobAttempt> mSubmittedJobAttempts;
@@ -125,6 +134,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
    * Waits for command to complete.
    */
   protected void waitForCmd(long jobControlId) {
+    boolean error = false;
     while (true) {
       try {
         Status check = mClient.getCmdStatus(jobControlId);
@@ -140,11 +150,114 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
           break;
         }
       } catch (IOException e) {
-        System.out.println(String.format("Unable to get job status for %s,"
-                + " please retry using getCmdStatus %n", jobControlId));
+        error = true;
+        System.out.println(String.format("Unable to get command status for %s,"
+                + "the files may already be loaded in Alluxio,"
+                + " please retry using `getCmdStatus` to check command detailed status,"
+                + " or using `fs ls` command to check if the files are already loaded."
+                + "%n", jobControlId));
         break;
       }
       CommonUtils.sleepMs(5);
+    }
+
+    if (!error) {
+      System.out.format("Finished running the command, jobControlId = %s%n",
+              jobControlId);
+      try {
+        getDetailedCmdStatus(jobControlId);
+      } catch (IOException e) {
+//        System.out.println(String.format("Unable to get detailed command status for %s,"
+//                + "the files may already be loaded in Alluxio,"
+//                + " please retry using `getCmdStatus` to check command detailed status,"
+//                + " or using `fs ls` command to check if the files are already loaded."
+//                + "%n", jobControlId));
+      }
+    }
+  }
+
+  /**
+   * Get detailed information about a command.
+   * @param jobControlId
+   */
+  protected void getDetailedCmdStatus(long jobControlId) throws IOException {
+    CmdStatusBlock cmdStatus = mClient.getCmdStatusDetailed(jobControlId);
+    List<SimpleJobStatusBlock> blockList = cmdStatus.getJobStatusBlock();
+
+    List<SimpleJobStatusBlock> failedBlocks = blockList.stream()
+            .filter(block -> {
+              String failed = block.getFilesPathFailed();
+              if (failed.equals("") || failed == null) {
+                return false;
+              }
+              return true;
+            }).collect(Collectors.toList());
+
+    failedBlocks.forEach(block -> {
+      String[] files = block.getFilesPathFailed().split(",");
+      mFailedFiles.addAll(Arrays.asList(files));
+    });
+
+    mFailedCount = mFailedFiles.size();
+
+    List<SimpleJobStatusBlock> nonEmptyPathBlocks = blockList.stream()
+            .filter(block -> {
+              String path = block.getFilePath();
+              if (path.equals("") || path == null) {
+                return false;
+              }
+              return true;
+            }).collect(Collectors.toList());
+
+    List<String> completedFiles = Lists.newArrayList();
+
+    nonEmptyPathBlocks.stream().forEach(block -> {
+      String[] paths = block.getFilePath().split(",");
+      for (String path: paths) {
+        if (!mFailedFiles.contains(path)) {
+          completedFiles.add(path);
+        }
+      }
+    });
+
+    mCompletedCount = completedFiles.size();
+
+    if (cmdStatus.getJobStatusBlock().isEmpty()) {
+      System.out.format("Unable to get command status for jobControlId=%s, please retry"
+                + " or use `fs ls` command to check if files are already loaded in Alluxio.%n",
+              jobControlId);
+    } else {
+      System.out.format("Get command status information below: %n");
+
+      completedFiles.forEach(file -> {
+        System.out.format("Successfully loaded path %s%n", file);
+      });
+
+      System.out.format("Total completed file count is %s, failed file count is %s%n",
+              mCompletedCount, mFailedCount);
+    }
+  }
+
+  protected void processFailures(String arg, Set<String> failures, String logFileLocation) {
+    String path = String.join("_", StringUtils.split(arg, "/"));
+    String failurePath = String.format(logFileLocation, path);
+    StringBuilder output = new StringBuilder();
+    output.append("Here are failed files: \n");
+    Iterator<String> iterator = failures.iterator();
+    for (int i = 0; i < Math.min(DEFAULT_FAILURE_LIMIT, failures.size()); i++) {
+      String failure = iterator.next();
+      output.append(failure);
+      output.append(",\n");
+    }
+    output.append(String.format("Check out %s for full list of failed files.", failurePath));
+    System.out.print(output);
+    try (FileOutputStream writer = FileUtils.openOutputStream(new File(failurePath))) {
+      for (String failure : failures) {
+        writer.write(String.format("%s%n", failure).getBytes(StandardCharsets.UTF_8));
+      }
+    } catch (Exception e) {
+      System.out.println("Exception writing failure files:");
+      System.out.println(e.getMessage());
     }
   }
 
@@ -154,6 +267,14 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
    */
   public int getCompletedCount() {
     return mCompletedCount;
+  }
+
+  /**
+   * Gets the number of failed jobs.
+   * @return number of failed jobs
+   */
+  public int getFailedCount() {
+    return mFailedCount;
   }
 
   /**
