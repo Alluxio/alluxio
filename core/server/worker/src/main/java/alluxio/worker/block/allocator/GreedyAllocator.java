@@ -65,12 +65,14 @@ public final class GreedyAllocator implements Allocator {
   private StorageDirView allocateBlock(long blockSize,
       BlockStoreLocation location, boolean skipReview) {
     Preconditions.checkNotNull(location, "location");
-    if (location.equals(BlockStoreLocation.anyTier())) {
+    if (location.isAnyTier() && location.isAnyDir()) {
       // When any tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getAvailableBytes() >= blockSize) {
+          if ((location.isAnyMedium()
+              || dirView.getMediumType().equals(location.mediumType()))
+              && dirView.getAvailableBytes() >= blockSize) {
             if (skipReview || mReviewer.acceptAllocation(dirView)) {
               return dirView;
             } else {
@@ -83,29 +85,9 @@ public final class GreedyAllocator implements Allocator {
       return null;
     }
 
-    String mediumType = location.mediumType();
-    if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-        && location.equals(BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType))) {
-      for (StorageTierView tierView : mMetadataView.getTierViews()) {
-        for (StorageDirView dirView : tierView.getDirViews()) {
-          if (dirView.getMediumType().equals(mediumType)
-              && dirView.getAvailableBytes() >= blockSize) {
-            if (skipReview || mReviewer.acceptAllocation(dirView)) {
-              return dirView;
-            } else {
-              // Try the next dir
-              LOG.debug("Allocation rejected for anyDirInTierWithMedium: {}",
-                      dirView.toBlockStoreLocation());
-            }
-          }
-        }
-      }
-      return null;
-    }
-
     String tierAlias = location.tierAlias();
     StorageTierView tierView = mMetadataView.getTierView(tierAlias);
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+    if (location.isAnyDirWithTier()) {
       // Loop over all dir views in the given tier
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {
