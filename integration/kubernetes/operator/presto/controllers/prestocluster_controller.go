@@ -22,11 +22,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	alluxiocomv1alpha1 "github.com/Alluxio/alluxio/integration/kubernetes/operator/presto/api/v1alpha1"
@@ -58,13 +59,22 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if err != nil {
 		logger.Error(err, "Failed to get Presto Cluster")
 	}
+
+	isConfigChanged, err := r.ensureLatestConfigMap(ctx, prestoCluster)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if isConfigChanged {
+		logger.Info("Config changed")
+	}
+
 	// Check if the deployment already exists, if not create a new one
 	found := &appsv1.Deployment{}
-	err = r.Get(ctx, types.NamespacedName{Name: prestoCluster.Name, Namespace: prestoCluster.Namespace}, found)
+	err = r.Get(ctx, types.NamespacedName{Name: prestoCluster.Name + "-coordinator", Namespace: prestoCluster.Namespace}, found)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Define a new deployment
-			dep := r.deploymentForPrestoCluster(prestoCluster)
+			dep := r.deploymentForPrestoCoordinator(prestoCluster)
 			logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 			err = r.Create(ctx, dep)
 			if err != nil {
@@ -81,18 +91,63 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{Requeue: true}, nil
 }
 
+func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
+	labels := map[string]string{
+		"app": cr.Name,
+	}
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Name + "-coordinator-config",
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Data: map[string]string{
+			"jvm.config":        "-server\n-Xmx2G\n-XX:+UseG1GC",
+			"config.properties": "node.id=ffffffff-ffff-ffff-ffff-ffffffffffff\nnode.environment=test\nhttp-server.http.port=8080\n\ndiscovery-server.enabled=true\ndiscovery.uri=http://localhost:8080",
+		},
+	}
+}
+
+func (r *PrestoClusterReconciler) ensureLatestConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (bool, error) {
+	configMap := newConfigMap(instance)
+
+	// Set presto instance as the owner and controller
+	if err := controllerutil.SetControllerReference(instance, configMap, r.Scheme); err != nil {
+		return false, err
+	}
+
+	// Check if this ConfigMap already exists
+	foundMap := &corev1.ConfigMap{}
+	err := r.Get(ctx, types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, foundMap)
+	if err != nil && errors.IsNotFound(err) {
+		err = r.Create(ctx, configMap)
+		if err != nil {
+			return false, err
+		}
+	} else if err != nil {
+		return false, err
+	}
+
+	if reflect.DeepEqual(foundMap, configMap) {
+		err = r.Update(ctx, configMap)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
 // deploymentForMemcached returns a memcached Deployment object
-func (r *PrestoClusterReconciler) deploymentForPrestoCluster(m *alluxiocomv1alpha1.PrestoCluster) *appsv1.Deployment {
+func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster) *appsv1.Deployment {
 	labels := map[string]string{"app": "presto", "presto_cr": m.Name}
-	replicas := m.Spec.WorkerNum
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name,
+			Name:      m.Name + "-coordinator",
 			Namespace: m.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
@@ -108,12 +163,29 @@ func (r *PrestoClusterReconciler) deploymentForPrestoCluster(m *alluxiocomv1alph
 							ContainerPort: 8080,
 							Name:          "presto",
 						}},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      m.Name + "-coordinator-config-volume",
+								ReadOnly:  true,
+								MountPath: "/opt/presto/etc",
+							},
+						},
+					}},
+					Volumes: []corev1.Volume{{
+						Name: m.Name + "-coordinator-config-volume",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: m.Name + "-coordinator-config",
+								},
+							},
+						},
 					}},
 				},
 			},
 		},
 	}
-	// Set Memcached instance as the owner and controller
+	// Set presto instance as the owner and controller
 	ctrl.SetControllerReference(m, dep, r.Scheme)
 	return dep
 }
