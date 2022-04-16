@@ -17,29 +17,29 @@ package alluxio.proxy.s3.signature;
  * Required to create stringToSign and token.
  */
 public class SignatureInfo {
-  private Version mVersion;
+  private final Version mVersion;
 
   /**
    * Information comes from the credential (Date only).
    */
-  private String mDate;
+  private final String mDate;
 
   /**
    * Information comes from header/query param (full timestamp).
    */
-  private String mDateTime;
+  private final String mDateTime;
 
-  private String mAwsAccessId;
+  private final String mAwsAccessId;
 
-  private String mSignature;
+  private final String mSignature;
 
-  private String mSignedHeaders;
+  private final String mSignedHeaders;
 
-  private String mCredentialScope;
+  private final String mCredentialScope;
 
-  private String mAlgorithm;
+  private final String mAlgorithm;
 
-  private boolean mSignPayload = true;
+  private final boolean mSignPayload;
 
   /**
    * Constructs a new {@link SignatureInfo}.

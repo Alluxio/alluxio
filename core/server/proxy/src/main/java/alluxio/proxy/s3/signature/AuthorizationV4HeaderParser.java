@@ -33,9 +33,9 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
   private static final String SIGNEDHEADERS = "SignedHeaders=";
   private static final String SIGNATURE = "Signature=";
 
-  private String mAuthHeader;
+  private final String mAuthHeader;
 
-  private String mDateHeader;
+  private final String mDateHeader;
 
   /**
    * @param authHeader authorization header
