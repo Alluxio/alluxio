@@ -93,7 +93,7 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
 
     String algorithm = mAuthHeader.substring(0, algorithmPos);
     validateAlgorithm(algorithm);
-    AWSCredential credentialObj = parseCredentials(split[0]);
+    AwsCredential credentialObj = parseCredentials(split[0]);
     String signedHeaders = parseSignedHeaders(split[1]);
     String signature = parseSignature(split[2]);
     return new SignatureInfo(
@@ -135,13 +135,13 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
   /**
    * Validate credentials.
   */
-  private AWSCredential parseCredentials(String credential) throws S3Exception {
-    AWSCredential credentialObj = null;
+  private AwsCredential parseCredentials(String credential) throws S3Exception {
+    AwsCredential credentialObj = null;
     if (StringUtils.isNotEmpty(credential) && credential.startsWith(CREDENTIAL)) {
       credential = credential.substring(CREDENTIAL.length());
       // Parse credential. Other parts of header are not validated yet. When
       // security comes, it needs to be completed.
-      credentialObj = new AWSCredential(credential);
+      credentialObj = new AwsCredential(credential);
     } else {
       throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }

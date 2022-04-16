@@ -13,7 +13,7 @@ package alluxio.proxy.s3.signature;
 
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
-import alluxio.proxy.s3.auth.AWSAuthInfo;
+import alluxio.proxy.s3.auth.AwsAuthInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,19 +33,19 @@ import java.util.Set;
  * .amazon.com/general/latest/gr/sigv4-create-canonical-request.html.
  **/
 
-public class AWSSignatureProcessor {
+public class AwsSignatureProcessor {
 
   private static final Logger LOG =
-            LoggerFactory.getLogger(AWSSignatureProcessor.class);
+            LoggerFactory.getLogger(AwsSignatureProcessor.class);
 
   private ContainerRequestContext mContext;
 
   /**
-   * Create a new {@link AWSSignatureProcessor}.
+   * Create a new {@link AwsSignatureProcessor}.
    *
    * @param context ContainerRequestContext
    */
-  public AWSSignatureProcessor(ContainerRequestContext context) {
+  public AwsSignatureProcessor(ContainerRequestContext context) {
     mContext = context;
   }
 
@@ -79,7 +79,7 @@ public class AWSSignatureProcessor {
     return signatureInfo;
   }
   
-  public AWSAuthInfo getAuthInfo() throws S3Exception {
+  public AwsAuthInfo getAuthInfo() throws S3Exception {
     try {
       SignatureInfo signatureInfo = parseSignature();
       String stringToSign = "";
@@ -94,7 +94,7 @@ public class AWSSignatureProcessor {
         throw new S3Exception("awsAccessID is empty", S3ErrorCode.ACCESS_DENIED_ERROR);
       }
 
-      return new AWSAuthInfo(stringToSign,
+      return new AwsAuthInfo(stringToSign,
               signatureInfo.getSignature(),
               awsAccessId);
     } catch (S3Exception ex) {

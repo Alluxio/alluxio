@@ -56,5 +56,5 @@ public interface Authenticator {
    * @return ture, if validate success
    * @throws alluxio.proxy.s3.S3Exception
    */
-  boolean isValid(AWSAuthInfo authInfo) throws S3Exception;
+  boolean isValid(AwsAuthInfo authInfo) throws S3Exception;
 }

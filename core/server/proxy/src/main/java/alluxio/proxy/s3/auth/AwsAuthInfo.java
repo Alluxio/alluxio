@@ -16,7 +16,7 @@ import com.google.common.base.MoreObjects;
 /**
  * AWSAuthInfo wraps the data needed for AWS authentication.
  */
-public class AWSAuthInfo {
+public class AwsAuthInfo {
   private final String mStringToSign;
   private final String mSignature;
   private final String mAccessID;
@@ -27,7 +27,7 @@ public class AWSAuthInfo {
    * @param signature signature
    * @param accessID accessID
    */
-  public AWSAuthInfo(String stringToSign, String signature, String accessID) {
+  public AwsAuthInfo(String stringToSign, String signature, String accessID) {
     mAccessID = accessID;
     mStringToSign = stringToSign;
     mSignature = signature;

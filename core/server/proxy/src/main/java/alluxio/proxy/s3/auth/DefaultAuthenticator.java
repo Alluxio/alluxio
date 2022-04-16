@@ -31,7 +31,7 @@ import alluxio.proxy.s3.S3Exception;
  */
 public class DefaultAuthenticator implements Authenticator {
   @Override
-  public boolean isValid(AWSAuthInfo authInfo) throws S3Exception {
+  public boolean isValid(AwsAuthInfo authInfo) throws S3Exception {
     return true;
   }
 }

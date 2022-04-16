@@ -28,9 +28,9 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.proxy.s3.auth.AWSAuthInfo;
+import alluxio.proxy.s3.auth.AwsAuthInfo;
 import alluxio.proxy.s3.auth.Authenticator;
-import alluxio.proxy.s3.signature.AWSSignatureProcessor;
+import alluxio.proxy.s3.signature.AwsSignatureProcessor;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
@@ -92,7 +92,7 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
-  private AWSSignatureProcessor mSignatureProcessor;
+  private AwsSignatureProcessor mSignatureProcessor;
   private Authenticator mAuthenticator;
 
   @Context
@@ -119,7 +119,7 @@ public final class S3RestServiceHandler {
    */
   public String getUser(String authorization) throws S3Exception {
     if (S3RestUtils.isAuthenticationEnabled(mSConf)) {
-      mSignatureProcessor = new AWSSignatureProcessor(mRequestContext);
+      mSignatureProcessor = new AwsSignatureProcessor(mRequestContext);
       mAuthenticator = Authenticator.Factory.create(mSConf);
       return getUserFromSignature();
     } else {
@@ -134,7 +134,7 @@ public final class S3RestServiceHandler {
    * @throws S3Exception
    */
   public String getUserFromSignature() throws S3Exception {
-    AWSAuthInfo signedInfo = mSignatureProcessor.getAuthInfo();
+    AwsAuthInfo signedInfo = mSignatureProcessor.getAuthInfo();
     if (!validateAuth(signedInfo)) {
       throw new S3Exception(signedInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
     }
@@ -148,7 +148,7 @@ public final class S3RestServiceHandler {
    * @return whether or not validate success
    * @throws S3Exception
    */
-  public boolean validateAuth(AWSAuthInfo authInfo) throws S3Exception {
+  public boolean validateAuth(AwsAuthInfo authInfo) throws S3Exception {
     return mAuthenticator.isValid(authInfo);
   }
 

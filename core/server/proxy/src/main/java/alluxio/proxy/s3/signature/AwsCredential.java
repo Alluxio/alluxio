@@ -26,8 +26,8 @@ import java.time.temporal.ChronoUnit;
  * sigv4-auth-using-authorization-header.html
  *
  */
-public class AWSCredential {
-  private static final Logger LOG = LoggerFactory.getLogger(AWSCredential.class);
+public class AwsCredential {
+  private static final Logger LOG = LoggerFactory.getLogger(AwsCredential.class);
 
   private String mAccessKeyID;
   private String mDate;
@@ -40,7 +40,7 @@ public class AWSCredential {
    * Construct Credential Object.
    * @param cred
    */
-  AWSCredential(String cred) throws S3Exception {
+  AwsCredential(String cred) throws S3Exception {
     mCredential = cred;
     parseCredential();
     validateCredential();

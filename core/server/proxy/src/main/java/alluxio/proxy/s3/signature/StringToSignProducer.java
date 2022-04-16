@@ -18,7 +18,7 @@ import static alluxio.proxy.s3.signature.SignerConstants.UNSIGNED_PAYLOAD;
 
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
-import alluxio.proxy.s3.signature.AWSSignatureProcessor.LowerCaseKeyStringMap;
+import alluxio.proxy.s3.signature.AwsSignatureProcessor.LowerCaseKeyStringMap;
 
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;

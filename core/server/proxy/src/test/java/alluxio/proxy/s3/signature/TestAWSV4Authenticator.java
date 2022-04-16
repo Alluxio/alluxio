@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.auth.Authenticator;
-import alluxio.proxy.s3.auth.AWSAuthInfo;
+import alluxio.proxy.s3.auth.AwsAuthInfo;
 
 import org.junit.Test;
 
@@ -24,7 +24,7 @@ public class TestAWSV4Authenticator {
   public static class DummyAWSAuthenticator implements Authenticator {
 
     @Override
-    public boolean isValid(AWSAuthInfo authInfo) throws S3Exception {
+    public boolean isValid(AwsAuthInfo authInfo) throws S3Exception {
       return AuthorizationV4Validator.validateRequest(
               authInfo.getStringTosSign(),
               authInfo.getSignature(),
@@ -46,7 +46,7 @@ public class TestAWSV4Authenticator {
     String signature = "e21cc9301f70ff9ffe7ff0e940221da9bf1b7a2d4a586696aed3c7437254eb9f";
     String accessKeyId = "testuser";
 
-    AWSAuthInfo authInfo = new AWSAuthInfo(stringToSign, signature, accessKeyId);
+    AwsAuthInfo authInfo = new AwsAuthInfo(stringToSign, signature, accessKeyId);
     DummyAWSAuthenticator authenticator = new DummyAWSAuthenticator();
     assertTrue(authenticator.isValid(authInfo));
   }

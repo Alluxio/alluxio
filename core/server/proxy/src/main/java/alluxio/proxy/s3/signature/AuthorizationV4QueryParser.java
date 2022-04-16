@@ -51,9 +51,9 @@ public class AuthorizationV4QueryParser implements SignatureParser {
     validateDateAndExpires();
     final String rawCredential = mQueryParameters.get(SignerConstants.X_AMZ_CREDENTIAL);
 
-    AWSCredential credential = null;
+    AwsCredential credential = null;
     try {
-      credential = new AWSCredential(URLDecoder.decode(rawCredential, "UTF-8"));
+      credential = new AwsCredential(URLDecoder.decode(rawCredential, "UTF-8"));
     } catch (UnsupportedEncodingException e) {
       throw new IllegalArgumentException(
                     "X-Amz-Credential is not proper URL encoded");
