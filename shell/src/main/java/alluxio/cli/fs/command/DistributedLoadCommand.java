@@ -326,6 +326,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       readItemsFromOptionString(excludedLocalityIds, argOption);
     }
 
+    System.out.println("Please wait for command submission to finish..");
+
     Long jobControlId;
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);

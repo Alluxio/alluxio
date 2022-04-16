@@ -133,6 +133,8 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     mWriteType = conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
+    System.out.println("Please wait for command submission to finish..");
+
     Long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
     if (!notWait) {
       System.out.format("Submitted successfully, jobControlId = %s%n"
