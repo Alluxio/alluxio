@@ -252,8 +252,8 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 		strings.Join([]string{os.Getenv("ALLUXIO_FUSE_JAVA_OPTS"), req.GetVolumeContext()["javaOptions"]}, " ")
 	alluxioFuseJavaOptsEnv := v1.EnvVar{Name: "ALLUXIO_FUSE_JAVA_OPTS", Value: alluxioCSIFuseJavaOpts}
 	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, alluxioFuseJavaOptsEnv)
-        csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, targetPath)
 	csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, req.GetStagingTargetPath())
+        csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, targetPath)
 	return csiFusePodObj, nil
 }
 
