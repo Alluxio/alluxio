@@ -138,7 +138,8 @@ public class AWSSignatureProcessor {
           String headerKey = headerEntry.getKey();
           if (headers.containsKey(headerKey)) {
             //multiple headers from the same type are combined
-            headers.put(headerKey, headers.get(headerKey) + "," + headerEntry.getValue().get(0));
+            headers.put(headerKey,
+                    String.format("%s,%s", headers.get(headerKey), headerEntry.getValue().get(0)));
           } else {
             headers.put(headerKey, headerEntry.getValue().get(0));
           }

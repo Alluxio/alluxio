@@ -67,7 +67,7 @@ public class AWSCredential {
         return;
       case 6:
         // Access id is kerberos principal.
-        mAccessKeyID = split[0] + "/" + split[1];
+        mAccessKeyID = String.format("%s/%s",split[0], split[1]);
         mDate = split[2].trim();
         mAwsRegion = split[3].trim();
         mAwsService = split[4].trim();

@@ -78,7 +78,7 @@ public class AuthorizationV4Validator {
     String dateStamp = signData[0];
     String regionName = signData[1];
     String serviceName = signData[2];
-    byte[] kDate = sign(("AWS4" + key)
+    byte[] kDate = sign(String.format("%s%s","AWS4", key)
                 .getBytes(StandardCharsets.UTF_8), dateStamp);
     byte[] kRegion = sign(kDate, regionName);
     byte[] kService = sign(kRegion, serviceName);

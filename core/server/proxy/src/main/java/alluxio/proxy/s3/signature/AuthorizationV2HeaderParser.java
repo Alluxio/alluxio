@@ -35,7 +35,7 @@ public class AuthorizationV2HeaderParser implements SignatureParser {
    */
   @Override
   public SignatureInfo parseSignature() throws S3Exception {
-    if (mAuthHeader == null || !mAuthHeader.startsWith(SignerConstants.IDENTIFIER + " ")) {
+    if (mAuthHeader == null || !mAuthHeader.startsWith(String.format("%s ", SignerConstants.IDENTIFIER))) {
       return null;
     }
     String[] split = mAuthHeader.split(" ");

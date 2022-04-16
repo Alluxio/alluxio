@@ -205,8 +205,8 @@ public final class StringToSignProducer {
         // Set for testing purpose only to skip date and host validation.
         validateSignedHeader(schema, header, headerValue);
       } else {
-        throw new RuntimeException("Header " + header + " not present in "
-                + "request but requested to be signed.");
+        throw new RuntimeException(String.format("%s %s %s", "Header", header,
+                "not present in request but requested to be signed."));
       }
     }
 
