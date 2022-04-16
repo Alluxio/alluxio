@@ -33,7 +33,7 @@ import java.util.Set;
  * .amazon.com/general/latest/gr/sigv4-create-canonical-request.html.
  **/
 
-public class AWSSignatureProcessor implements SignatureProcessor {
+public class AWSSignatureProcessor {
 
   private static final Logger LOG =
             LoggerFactory.getLogger(AWSSignatureProcessor.class);
@@ -49,7 +49,6 @@ public class AWSSignatureProcessor implements SignatureProcessor {
     mContext = context;
   }
 
-  @Override
   public SignatureInfo parseSignature() throws S3Exception {
     LowerCaseKeyStringMap headers =
         LowerCaseKeyStringMap.fromHeaderMap(mContext.getHeaders());
@@ -79,8 +78,7 @@ public class AWSSignatureProcessor implements SignatureProcessor {
     }
     return signatureInfo;
   }
-
-  @Override
+  
   public AWSAuthInfo getAuthInfo() throws S3Exception {
     try {
       SignatureInfo signatureInfo = parseSignature();

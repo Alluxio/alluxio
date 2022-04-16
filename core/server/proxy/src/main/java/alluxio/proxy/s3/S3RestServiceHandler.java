@@ -31,7 +31,6 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.proxy.s3.auth.AWSAuthInfo;
 import alluxio.proxy.s3.auth.Authenticator;
 import alluxio.proxy.s3.signature.AWSSignatureProcessor;
-import alluxio.proxy.s3.signature.SignatureProcessor;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
@@ -93,7 +92,7 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
-  private SignatureProcessor mSignatureProcessor;
+  private AWSSignatureProcessor mSignatureProcessor;
   private Authenticator mAuthenticator;
 
   @Context
