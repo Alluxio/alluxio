@@ -80,7 +80,7 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Nullable
   @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
     return null;
   }
 

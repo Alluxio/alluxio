@@ -100,7 +100,7 @@ public final class UnderFileSystemBlockReaderTest {
   }
 
   private void checkTempBlock(long start, long length) throws Exception {
-    Assert.assertNotNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertTrue(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
     mAlluxioBlockStore.commitBlock(SESSION_ID, BLOCK_ID, false);
     long lockId = mAlluxioBlockStore.lockBlock(SESSION_ID, BLOCK_ID);
     BlockReader reader = mAlluxioBlockStore.getBlockReader(SESSION_ID, BLOCK_ID, lockId);
@@ -128,7 +128,7 @@ public final class UnderFileSystemBlockReaderTest {
     assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE - 1, buffer));
     mReader.close();
     // partial block should not be cached
-    Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertFalse(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -140,7 +140,7 @@ public final class UnderFileSystemBlockReaderTest {
         .equalIncreasingByteBuffer(2, (int) TEST_BLOCK_SIZE - 2, buffer));
     mReader.close();
     // partial block should not be cached
-    Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertFalse(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -168,7 +168,7 @@ public final class UnderFileSystemBlockReaderTest {
     // read should succeed even if error is thrown when caching
     assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
-    Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertFalse(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -182,7 +182,7 @@ public final class UnderFileSystemBlockReaderTest {
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
-    Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertFalse(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -195,7 +195,7 @@ public final class UnderFileSystemBlockReaderTest {
     ByteBuffer buffer = mReader.read(0, TEST_BLOCK_SIZE);
     assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
     mReader.close();
-    Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertFalse(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -232,7 +232,7 @@ public final class UnderFileSystemBlockReaderTest {
       buf.release();
     }
     // partial block should not be cached
-    Assert.assertNull(mAlluxioBlockStore.getTempBlockMeta(SESSION_ID, BLOCK_ID));
+    Assert.assertFalse(mAlluxioBlockStore.hasTempBlockMeta(BLOCK_ID));
   }
 
   @Test
