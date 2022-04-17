@@ -18,11 +18,6 @@ import java.time.format.DateTimeFormatter;
  * constant key for sign.
  */
 public final class SignerConstants {
-  public static final String IDENTIFIER = "AWS";
-  public static final String LINE_SEPARATOR = "\n";
-  public static final String SIGN_SEPARATOR = "/";
-  public static final String AWS4_TERMINATOR = "aws4_request";
-  public static final String AWS4_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256";
   public static final String X_AMZ_CREDENTIAL = "X-Amz-Credential";
   public static final String X_AMZ_DATE = "X-Amz-Date";
   public static final String X_AMZ_EXPIRES = "X-Amz-Expires";
@@ -30,9 +25,6 @@ public final class SignerConstants {
   public static final String X_AMZ_CONTENT_SHA256 = "x-Amz-Content-SHA256";
   public static final String X_AMZ_SIGNATURE = "X-Amz-Signature";
   public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
-  public static final String AUTHORIZATION = "Authorization";
-  public static final String HOST = "host";
-  public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
   public static final DateTimeFormatter DATE_FORMATTER
           = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneOffset.UTC);
   public static final DateTimeFormatter TIME_FORMATTER

@@ -11,6 +11,8 @@
 
 package alluxio.proxy.s3.signature;
 
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
+
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
@@ -34,9 +36,9 @@ import java.util.Set;
  **/
 
 public class AwsSignatureProcessor {
-
   private static final Logger LOG =
             LoggerFactory.getLogger(AwsSignatureProcessor.class);
+  private static final String AUTHORIZATION = "Authorization";
 
   private ContainerRequestContext mContext;
 
@@ -49,15 +51,20 @@ public class AwsSignatureProcessor {
     mContext = context;
   }
 
+  /**
+   * Extract signature info from request.
+   * @return SignatureInfo
+   * @throws S3Exception
+   */
   public SignatureInfo parseSignature() throws S3Exception {
     LowerCaseKeyStringMap headers =
         LowerCaseKeyStringMap.fromHeaderMap(mContext.getHeaders());
 
-    String authHeader = headers.get(SignerConstants.AUTHORIZATION);
+    String authHeader = headers.get(AUTHORIZATION);
 
     List<SignatureParser> signatureParsers = new ArrayList<>();
     signatureParsers.add(new AuthorizationV4HeaderParser(authHeader,
-                headers.get(SignerConstants.X_AMZ_DATE)));
+                headers.get(X_AMZ_DATE)));
     signatureParsers.add(new AuthorizationV4QueryParser(
         StringToSignProducer.fromMultiValueToSingleValueMap(
                 mContext.getUriInfo().getQueryParameters())));
@@ -78,7 +85,12 @@ public class AwsSignatureProcessor {
     }
     return signatureInfo;
   }
-  
+
+  /**
+   * Convert SignatureInfo to AwsAuthInfo.
+   * @return AwsAuthInfo
+   * @throws S3Exception
+   */
   public AwsAuthInfo getAuthInfo() throws S3Exception {
     try {
       SignatureInfo signatureInfo = parseSignature();

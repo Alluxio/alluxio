@@ -29,9 +29,12 @@ import java.security.GeneralSecurityException;
  * sigv4-create-canonical-request.html.
  **/
 public class AuthorizationV4Validator {
-
   private static final Logger LOG =
             LoggerFactory.getLogger(AuthorizationV4Validator.class);
+
+  private static final String LINE_SEPARATOR = "\n";
+  private static final String SIGN_SEPARATOR = "/";
+  private static final String AWS4_TERMINATOR = "aws4_request";
 
   private AuthorizationV4Validator() {
   }
@@ -73,16 +76,16 @@ public class AuthorizationV4Validator {
   private static byte[] getSignedKey(String key, String strToSign) {
     LOG.debug("strToSign:{}", strToSign);
     String[] signData = StringUtils.split(StringUtils.split(strToSign,
-            SignerConstants.LINE_SEPARATOR)[2],
-            SignerConstants.SIGN_SEPARATOR);
+            LINE_SEPARATOR)[2],
+            SIGN_SEPARATOR);
     String dateStamp = signData[0];
     String regionName = signData[1];
     String serviceName = signData[2];
-    byte[] kDate = sign(String.format("%s%s","AWS4", key)
+    byte[] kDate = sign(String.format("%s%s", "AWS4", key)
                 .getBytes(StandardCharsets.UTF_8), dateStamp);
     byte[] kRegion = sign(kDate, regionName);
     byte[] kService = sign(kRegion, serviceName);
-    byte[] kSigning = sign(kService, SignerConstants.AWS4_TERMINATOR);
+    byte[] kSigning = sign(kService, AWS4_TERMINATOR);
     LOG.info(Hex.encode(kSigning));
     return kSigning;
   }

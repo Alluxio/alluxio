@@ -32,6 +32,7 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
   private static final String CREDENTIAL = "Credential=";
   private static final String SIGNEDHEADERS = "SignedHeaders=";
   private static final String SIGNATURE = "Signature=";
+  private static final String AWS4_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256";
 
   private final String mAuthHeader;
 
@@ -150,7 +151,7 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
    */
   private void validateAlgorithm(String algorithm) throws S3Exception {
     if (StringUtils.isEmpty(algorithm)
-            || !algorithm.equals(SignerConstants.AWS4_SIGNING_ALGORITHM)) {
+            || !algorithm.equals(AWS4_SIGNING_ALGORITHM)) {
       LOG.error("Unexpected hash algorithm. Algo:{}", algorithm);
       throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }

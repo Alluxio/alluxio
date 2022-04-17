@@ -11,6 +11,14 @@
 
 package alluxio.proxy.s3.signature;
 
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_SIGNATURE;
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_CREDENTIAL;
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_SIGNED_HEADER;
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_ALGORITHM;
+import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_EXPIRES;
+import static alluxio.proxy.s3.signature.SignerConstants.TIME_FORMATTER;
+
 import alluxio.proxy.s3.S3Exception;
 
 import org.slf4j.Logger;
@@ -29,7 +37,6 @@ import java.time.temporal.ChronoUnit;
  * .com/AmazonS3/latest/API/sigv4-query-string-auth.html
  */
 public class AuthorizationV4QueryParser implements SignatureParser {
-
   private static final Logger LOG =
             LoggerFactory.getLogger(AuthorizationV4QueryParser.class);
 
@@ -45,11 +52,11 @@ public class AuthorizationV4QueryParser implements SignatureParser {
 
   @Override
   public SignatureInfo parseSignature() throws S3Exception {
-    if (!mQueryParameters.containsKey(SignerConstants.X_AMZ_SIGNATURE)) {
+    if (!mQueryParameters.containsKey(X_AMZ_SIGNATURE)) {
       return null;
     }
     validateDateAndExpires();
-    final String rawCredential = mQueryParameters.get(SignerConstants.X_AMZ_CREDENTIAL);
+    final String rawCredential = mQueryParameters.get(X_AMZ_CREDENTIAL);
 
     AwsCredential credential = null;
     try {
@@ -62,23 +69,23 @@ public class AuthorizationV4QueryParser implements SignatureParser {
     return new SignatureInfo(
                 SignatureInfo.Version.V4,
                 credential.getDate(),
-                mQueryParameters.get(SignerConstants.X_AMZ_DATE),
+                mQueryParameters.get(X_AMZ_DATE),
                 credential.getAccessKeyID(),
-                mQueryParameters.get(SignerConstants.X_AMZ_SIGNATURE),
-                mQueryParameters.get(SignerConstants.X_AMZ_SIGNED_HEADER),
+                mQueryParameters.get(X_AMZ_SIGNATURE),
+                mQueryParameters.get(X_AMZ_SIGNED_HEADER),
                 credential.createScope(),
-                mQueryParameters.get(SignerConstants.X_AMZ_ALGORITHM),
+                mQueryParameters.get(X_AMZ_ALGORITHM),
                 false
         );
   }
 
   protected void validateDateAndExpires() {
-    final String dateString = mQueryParameters.get(SignerConstants.X_AMZ_DATE);
-    final String expiresString = mQueryParameters.get(SignerConstants.X_AMZ_EXPIRES);
+    final String dateString = mQueryParameters.get(X_AMZ_DATE);
+    final String expiresString = mQueryParameters.get(X_AMZ_EXPIRES);
     if (expiresString != null && expiresString.length() > 0) {
       final Long expires = Long.valueOf(expiresString);
 
-      if (ZonedDateTime.parse(dateString, SignerConstants.TIME_FORMATTER)
+      if (ZonedDateTime.parse(dateString, TIME_FORMATTER)
             .plus(expires, ChronoUnit.SECONDS).isBefore(ZonedDateTime.now())) {
         throw new IllegalArgumentException("Pre-signed S3 url is expired");
       }

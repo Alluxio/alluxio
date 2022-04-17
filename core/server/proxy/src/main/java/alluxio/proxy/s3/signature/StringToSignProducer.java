@@ -11,10 +11,9 @@
 
 package alluxio.proxy.s3.signature;
 
+import static alluxio.proxy.s3.signature.SignerConstants.TIME_FORMATTER;
 import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_CONTENT_SHA256;
 import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
-import static alluxio.proxy.s3.signature.SignerConstants.HOST;
-import static alluxio.proxy.s3.signature.SignerConstants.UNSIGNED_PAYLOAD;
 
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
@@ -54,6 +53,8 @@ public final class StringToSignProducer {
   private static final Logger LOG = LoggerFactory.getLogger(StringToSignProducer.class);
   private static final Charset UTF_8 = StandardCharsets.UTF_8;
   private static final String NEWLINE = "\n";
+  private static final String HOST = "host";
+  private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
   /**
    * Seconds in a week, which is the max expiration time Sig-v4 accepts.
    */
@@ -306,7 +307,7 @@ public final class StringToSignProducer {
         }
         break;
       case X_AMZ_DATE:
-        LocalDate date = LocalDate.parse(headerValue, SignerConstants.TIME_FORMATTER);
+        LocalDate date = LocalDate.parse(headerValue, TIME_FORMATTER);
         LocalDate now = LocalDate.now();
         if (date.isBefore(now.minus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))
              || date.isAfter(now.plus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))) {

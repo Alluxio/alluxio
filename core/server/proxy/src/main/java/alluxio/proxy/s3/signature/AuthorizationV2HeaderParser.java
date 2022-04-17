@@ -21,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class AuthorizationV2HeaderParser implements SignatureParser {
 
+  private static final String IDENTIFIER = "AWS ";
+
   private final String mAuthHeader;
 
   /**
@@ -35,7 +37,7 @@ public class AuthorizationV2HeaderParser implements SignatureParser {
    */
   @Override
   public SignatureInfo parseSignature() throws S3Exception {
-    if (mAuthHeader == null || !mAuthHeader.startsWith(String.format("%s ", SignerConstants.IDENTIFIER))) {
+    if (mAuthHeader == null || !mAuthHeader.startsWith(IDENTIFIER)) {
       return null;
     }
     String[] split = mAuthHeader.split(" ");
