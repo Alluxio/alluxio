@@ -136,16 +136,13 @@ public class AuthorizationV4HeaderParser implements SignatureParser {
    * Validate credentials.
   */
   private AwsCredential parseCredentials(String credential) throws S3Exception {
-    AwsCredential credentialObj = null;
     if (StringUtils.isNotEmpty(credential) && credential.startsWith(CREDENTIAL)) {
       credential = credential.substring(CREDENTIAL.length());
       // Parse credential. Other parts of header are not validated yet. When
       // security comes, it needs to be completed.
-      credentialObj = new AwsCredential(credential);
-    } else {
-      throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+      return AwsCredential.Factory.create(credential);
     }
-    return credentialObj;
+    throw new S3Exception(mAuthHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
   }
 
   /**

@@ -53,7 +53,7 @@ public class AuthorizationV4QueryParser implements SignatureParser {
 
     AwsCredential credential = null;
     try {
-      credential = new AwsCredential(URLDecoder.decode(rawCredential, "UTF-8"));
+      credential = AwsCredential.Factory.create(URLDecoder.decode(rawCredential, "UTF-8"));
     } catch (UnsupportedEncodingException e) {
       throw new IllegalArgumentException(
                     "X-Amz-Credential is not proper URL encoded");

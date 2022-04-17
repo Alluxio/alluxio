@@ -94,9 +94,9 @@ public class AwsSignatureProcessor {
         throw new S3Exception("awsAccessID is empty", S3ErrorCode.ACCESS_DENIED_ERROR);
       }
 
-      return new AwsAuthInfo(stringToSign,
+      return new AwsAuthInfo(awsAccessId,
               signatureInfo.getSignature(),
-              awsAccessId);
+              stringToSign);
     } catch (S3Exception ex) {
       LOG.debug("Error during signature parsing: ", ex);
       throw ex;
