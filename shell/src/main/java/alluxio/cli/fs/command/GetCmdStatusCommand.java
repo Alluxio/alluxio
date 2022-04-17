@@ -16,7 +16,6 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.wire.CmdStatusBlock;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -60,19 +59,7 @@ public class GetCmdStatusCommand extends AbstractDistributedJobCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     long jobControlId = Long.parseLong(args[0]);
-
-    CmdStatusBlock cmdStatus = mClient.getCmdStatusDetailed(jobControlId);
-    if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Unable to get command status for jobControlId=%s, please retry"
-          + " or use `fs ls` command to check if files are already loaded in Alluxio.%n",
-              jobControlId);
-    } else {
-      System.out.format("Get command status information below: %n");
-      cmdStatus.getJobStatusBlock().forEach(block -> {
-        System.out.format("Job Id = %s, Status = %s, filePath = %s %n",
-                block.getJobId(), block.getStatus(), block.getFilePath());
-      });
-    }
+    getDetailedCmdStatus(jobControlId);
     return 0;
   }
 }

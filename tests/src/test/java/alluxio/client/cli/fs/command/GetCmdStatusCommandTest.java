@@ -73,14 +73,17 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     sFsShell.run("distributedLoad", "/testRoot");
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[0].split("=\\s+")[1];
-    Assert.assertTrue(mOutput.toString().contains(
-            "Total completed file count is 2, failed file count is 0"));
+    String jobControlId = output[1].split("=\\s+")[1];
 
+    mOutput.reset();
     sFsShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
     Assert.assertTrue(mOutput.toString().contains(
-            "Status = COMPLETED, filePath = /testRoot/testFileA,/testRoot/testFileB"));
+            "Successfully loaded path /testRoot/testFileA\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testRoot/testFileB\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Total completed file count is 2, failed file count is 0"));
   }
 
   @Test
@@ -93,10 +96,16 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", String.valueOf(batch));
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[0].split("=\\s+")[1];
+    String jobControlId = output[1].split("=\\s+")[1];
+    mOutput.reset();
     sFsShell.run("getCmdStatus", jobControlId);
-    output = mOutput.toString().split("\n");
-    Assert.assertTrue(output[output.length - batch].contains("Status = COMPLETED"));
-    Assert.assertTrue(output[output.length - batch + 1].contains("Status = COMPLETED"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testBatchRoot/testBatchFileA\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testBatchRoot/testBatchFileB\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testBatchRoot/testBatchFileC\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Total completed file count is 3, failed file count is 0"));
   }
 }

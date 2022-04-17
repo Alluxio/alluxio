@@ -132,8 +132,9 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
 
   /**
    * Waits for command to complete.
+   * @param jobControlId
    */
-  protected void waitForCmd(long jobControlId) {
+  public void waitForCmd(long jobControlId) {
     boolean error = false;
     while (true) {
       try {
