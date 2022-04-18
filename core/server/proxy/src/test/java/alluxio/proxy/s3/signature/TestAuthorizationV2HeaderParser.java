@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.proxy.s3.S3Exception;
+import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,8 +28,7 @@ public class TestAuthorizationV2HeaderParser {
   public void testAuthHeaderV2() throws S3Exception {
     try {
       String auth = "AWS accessKey:signature";
-      AuthorizationV2HeaderParser v2 = new AuthorizationV2HeaderParser(auth);
-      final SignatureInfo signatureInfo = v2.parseSignature();
+      final SignatureInfo signatureInfo = AwsAuthV2HeaderParserUtils.parseSignature(auth);
       assertEquals(signatureInfo.getAwsAccessId(), "accessKey");
       assertEquals(signatureInfo.getSignature(), "signature");
     } catch (S3Exception ex) {
@@ -39,7 +39,6 @@ public class TestAuthorizationV2HeaderParser {
   @Test
   public void testIncorrectHeader() throws S3Exception {
     String auth = "ASW accessKey:signature";
-    AuthorizationV2HeaderParser v2 = new AuthorizationV2HeaderParser(auth);
-    Assert.assertNull(v2.parseSignature());
+    Assert.assertNull(AwsAuthV2HeaderParserUtils.parseSignature(auth));
   }
 }

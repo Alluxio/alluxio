@@ -16,13 +16,15 @@ import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
+import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
+import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
+import alluxio.proxy.s3.signature.utils.AwsAuthV4QueryParserUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -61,29 +63,24 @@ public class AwsSignatureProcessor {
         LowerCaseKeyStringMap.fromHeaderMap(mContext.getHeaders());
 
     String authHeader = headers.get(AUTHORIZATION);
-
-    List<SignatureParser> signatureParsers = new ArrayList<>();
-    signatureParsers.add(new AuthorizationV4HeaderParser(authHeader,
-                headers.get(X_AMZ_DATE)));
-    signatureParsers.add(new AuthorizationV4QueryParser(
-        StringToSignProducer.fromMultiValueToSingleValueMap(
-                mContext.getUriInfo().getQueryParameters())));
-    signatureParsers.add(new AuthorizationV2HeaderParser(authHeader));
+    String dateHeader = headers.get(X_AMZ_DATE);
+    Map<String, String> queryParameters = StringToSignProducer.fromMultiValueToSingleValueMap(
+            mContext.getUriInfo().getQueryParameters());
 
     SignatureInfo signatureInfo = null;
-    for (SignatureParser parser : signatureParsers) {
-      signatureInfo = parser.parseSignature();
-      if (signatureInfo != null) {
-        break;
-      }
-    }
-    if (signatureInfo == null) {
-      signatureInfo = new SignatureInfo(
-             SignatureInfo.Version.NONE,
-             "", "", "", "", "", "", "", false
+    if ((signatureInfo =
+            AwsAuthV2HeaderParserUtils.parseSignature(authHeader)) != null
+        || (signatureInfo =
+            AwsAuthV4HeaderParserUtils.parseSignature(authHeader, dateHeader)) != null
+        || (signatureInfo =
+            AwsAuthV4QueryParserUtils.parseSignature(queryParameters)) != null) {
+      return signatureInfo;
+    } else {
+      return new SignatureInfo(
+              SignatureInfo.Version.NONE,
+              "", "", "", "", "", "", "", false
       );
     }
-    return signatureInfo;
   }
 
   /**
@@ -107,8 +104,9 @@ public class AwsSignatureProcessor {
       }
 
       return new AwsAuthInfo(awsAccessId,
-              signatureInfo.getSignature(),
-              stringToSign);
+              stringToSign,
+              signatureInfo.getSignature()
+              );
     } catch (S3Exception ex) {
       LOG.debug("Error during signature parsing: ", ex);
       throw ex;

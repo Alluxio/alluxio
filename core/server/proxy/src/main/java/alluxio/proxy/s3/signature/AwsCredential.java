@@ -99,13 +99,18 @@ public class AwsCredential {
        getAwsRequest());
   }
 
-  static class Factory {
+  /**
+   * Factory to create a {@link AwsCredential} instance.
+   */
+  public static class Factory {
     /**
      * Parse credential value.
      *
      * Sample credential value:
      * Credential=testuser/20220316/us-east-1/s3/aws4_request
      *
+     * @param credential credential string
+     * @return AwsCredential instance
      * @throws S3Exception
      */
     public static AwsCredential create(String credential) throws S3Exception {
@@ -124,16 +129,29 @@ public class AwsCredential {
       throw new S3Exception(credential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
 
+    /**
+     * To check credential format.
+     * @param credential credential string
+     * @return return true if credential is valid
+     */
     private static boolean isValidCredential(String credential) {
-      return credential.matches("(/\\S+){5,6}");
+      return credential.matches("\\S+(/\\S+){4,5}");
     }
 
+    /**
+     * To check if contain kerberos principal.
+     * @param credential credential string
+     * @return return true if contain kerberos principal
+     */
     private static boolean isKerberosPrincipal(String credential) {
-      return credential.matches("(/\\S+){6}");
+      return credential.matches("\\S+(/\\S+){5}");
     }
 
     /**
      * validate credential info.
+     *
+     * @param credential credential string
+     * @param dateString date string
      * @throws S3Exception
      */
     public static void validateDateRange(String credential, String dateString) throws S3Exception {

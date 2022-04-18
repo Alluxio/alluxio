@@ -46,7 +46,7 @@ public class TestAWSV4Authenticator {
     String signature = "e21cc9301f70ff9ffe7ff0e940221da9bf1b7a2d4a586696aed3c7437254eb9f";
     String accessKeyId = "testuser";
 
-    AwsAuthInfo authInfo = new AwsAuthInfo(signature, accessKeyId, stringToSign);
+    AwsAuthInfo authInfo = new AwsAuthInfo(accessKeyId, stringToSign, signature);
     DummyAWSAuthenticator authenticator = new DummyAWSAuthenticator();
     assertTrue(authenticator.isValid(authInfo));
   }

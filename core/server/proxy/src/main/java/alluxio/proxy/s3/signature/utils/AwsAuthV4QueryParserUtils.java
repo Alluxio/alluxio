@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature;
+package alluxio.proxy.s3.signature.utils;
 
 import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
 import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_SIGNATURE;
@@ -20,73 +20,65 @@ import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_EXPIRES;
 import static alluxio.proxy.s3.signature.SignerConstants.TIME_FORMATTER;
 
 import alluxio.proxy.s3.S3Exception;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.proxy.s3.signature.AwsCredential;
+import alluxio.proxy.s3.signature.SignatureInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 /**
- * Parser for getting auth info from query parameters.
+ * Util for getting auth info from query parameters.
  * <p>
  * See: https://docs.aws.amazon
  * .com/AmazonS3/latest/API/sigv4-query-string-auth.html
  */
-public class AuthorizationV4QueryParser implements SignatureParser {
-  private static final Logger LOG =
-            LoggerFactory.getLogger(AuthorizationV4QueryParser.class);
-
-  private final Map<String, String> mQueryParameters;
+public final class AwsAuthV4QueryParserUtils {
 
   /**
-   * Constructs a new {@link AuthorizationV4QueryParser}.
+   * Function to parse signature.
    * @param queryParameters
+   * @return SignatureInfo instance
+   * @throws S3Exception
    */
-  public AuthorizationV4QueryParser(Map<String, String> queryParameters) {
-    mQueryParameters = queryParameters;
-  }
-
-  @Override
-  public SignatureInfo parseSignature() throws S3Exception {
-    if (!mQueryParameters.containsKey(X_AMZ_SIGNATURE)) {
+  public static SignatureInfo parseSignature(Map<String, String> queryParameters)
+          throws S3Exception {
+    if (!queryParameters.containsKey(X_AMZ_SIGNATURE)) {
       return null;
     }
-    validateDateAndExpires();
-    final String rawCredential = mQueryParameters.get(X_AMZ_CREDENTIAL);
+    validateDateAndExpires(queryParameters);
+    final String rawCredential = queryParameters.get(X_AMZ_CREDENTIAL);
 
     AwsCredential credential = null;
     try {
       credential = AwsCredential.Factory.create(URLDecoder.decode(rawCredential, "UTF-8"));
     } catch (UnsupportedEncodingException e) {
-      throw new IllegalArgumentException(
-                    "X-Amz-Credential is not proper URL encoded");
+      throw new IllegalArgumentException("X-Amz-Credential is not proper URL encoded");
     }
 
     return new SignatureInfo(
-                SignatureInfo.Version.V4,
-                credential.getDate(),
-                mQueryParameters.get(X_AMZ_DATE),
-                credential.getAccessKeyID(),
-                mQueryParameters.get(X_AMZ_SIGNATURE),
-                mQueryParameters.get(X_AMZ_SIGNED_HEADER),
-                credential.createScope(),
-                mQueryParameters.get(X_AMZ_ALGORITHM),
-                false
-        );
+            SignatureInfo.Version.V4,
+            credential.getDate(),
+            queryParameters.get(X_AMZ_DATE),
+            credential.getAccessKeyID(),
+            queryParameters.get(X_AMZ_SIGNATURE),
+            queryParameters.get(X_AMZ_SIGNED_HEADER),
+            credential.createScope(),
+            queryParameters.get(X_AMZ_ALGORITHM),
+            false
+    );
   }
 
-  protected void validateDateAndExpires() {
-    final String dateString = mQueryParameters.get(X_AMZ_DATE);
-    final String expiresString = mQueryParameters.get(X_AMZ_EXPIRES);
+  protected static void validateDateAndExpires(Map<String, String> queryParameters) {
+    final String dateString = queryParameters.get(X_AMZ_DATE);
+    final String expiresString = queryParameters.get(X_AMZ_EXPIRES);
     if (expiresString != null && expiresString.length() > 0) {
       final Long expires = Long.valueOf(expiresString);
 
       if (ZonedDateTime.parse(dateString, TIME_FORMATTER)
-            .plus(expires, ChronoUnit.SECONDS).isBefore(ZonedDateTime.now())) {
+                  .plus(expires, ChronoUnit.SECONDS).isBefore(ZonedDateTime.now())) {
         throw new IllegalArgumentException("Pre-signed S3 url is expired");
       }
     }
