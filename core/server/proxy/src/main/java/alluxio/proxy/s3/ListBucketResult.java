@@ -191,6 +191,7 @@ public class ListBucketResult {
     Set<String> commonPrefixes = new HashSet<>();
     // used when handling truncating
     String[] priorNextMarker = new String[1];
+    int[] keyCount = {0}; // must use an array to have a mutable variable during sequential stream
 
     //sort use uri path
     children.sort(Comparator.comparing(URIStatus::getPath));
@@ -215,16 +216,26 @@ public class ListBucketResult {
         .filter(content -> {
           String path = content.getKey();
           if (mDelimiter == null) {
-            priorNextMarker[0] = mNextMarker;
+            if (keyCount[0] == mMaxKeys) {
+              mIsTruncated = true;
+              return false;
+            }
             mNextMarker = path;
+            keyCount[0]++;
             return true;
           }
           int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
           if (delimiterIndex == -1) { // no matching delimiter
-            priorNextMarker[0] = mNextMarker;
+            if (keyCount[0] == mMaxKeys) {
+              mIsTruncated = true;
+              return false;
+            }
             mNextMarker = path;
+            keyCount[0]++;
             return true;
-          }
+          } // else, this key is (a part of) a common prefix
+          // We set the field mIsCommonPrefix in order to later filter out this key from mContents
+          content.mIsCommonPrefix = true;
           /*
            * Delimiter mean:
            * https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
@@ -239,47 +250,49 @@ public class ListBucketResult {
           if (commonPrefix.equals(marker)) {
             return false; // skip if the marker was this common prefix
           }
-          if (commonPrefixes.add(commonPrefix)) {
-            mCommonPrefixes.add(new CommonPrefix(commonPrefix));
-            priorNextMarker[0] = mNextMarker;
-            mNextMarker = commonPrefix;
-            content.mIsCommonPrefix = true;
-            return true; // we will add the common prefix to the key stream for processing purposes
+          if (commonPrefixes.contains(commonPrefix)) {
+            return false; // the key is dropped because it is consumed by a prior common prefix
           }
-          return false; // the key is dropped because it is consumed by the common prefix
+          // This is a new common prefix, so we return it as a "key" in this stream
+          // so that it is accounted for in the call to `limit()`
+          if (keyCount[0] == mMaxKeys) {
+            mIsTruncated = true;
+            return false;
+          }
+          commonPrefixes.add(commonPrefix);
+          mCommonPrefixes.add(new CommonPrefix(commonPrefix));
+          mNextMarker = commonPrefix;
+          keyCount[0]++;
+          return true;
         })
         .limit(mMaxKeys + 1) // limit to +1 in order to check if we have exactly MaxKeys or not
         .filter(content -> !content.mIsCommonPrefix)
         .collect(Collectors.toList());
 
-    // Check and populate truncation fields
-    if (mContents.size() + (mCommonPrefixes == null ? 0 : mCommonPrefixes.size()) == mMaxKeys + 1) {
-      mIsTruncated = true;
-      // Handle edge-case for truncating vs having <= MaxKeys
-      if (mContents.get(mContents.size() - 1).getKey().equals(mNextMarker)) {
-        mContents.remove(mContents.size() - 1);
-      } else if (mCommonPrefixes != null
-          && mCommonPrefixes.get(mCommonPrefixes.size() - 1).getPrefix().equals(mNextMarker)) {
-        mCommonPrefixes.remove(mCommonPrefixes.size() - 1);
-      } else {
-        throw new S3Exception(new S3ErrorCode(
-            S3ErrorCode.INTERNAL_ERROR.getCode(),
-            "Failed to populate ListBucketResult",
-            S3ErrorCode.INTERNAL_ERROR.getStatus()
-        ));
-      }
-
-      mNextMarker = priorNextMarker[0]; // nullable
-      if (isVersion2() && mNextMarker != null) {
-        mNextContinuationToken = encodeToken(mNextMarker);
-        mNextMarker = null;
-      }
-    } else {
-      mNextContinuationToken = null;
-      mNextMarker = null;
+    // Sanity-check the number of keys being returned
+    if (mContents.size() + (mCommonPrefixes == null ? 0 : mCommonPrefixes.size()) != keyCount[0]) {
+      throw new S3Exception(new S3ErrorCode(
+          S3ErrorCode.INTERNAL_ERROR.getCode(),
+          "Failed to populate ListBucketResult",
+          S3ErrorCode.INTERNAL_ERROR.getStatus()
+      ));
     }
     if (isVersion2()) {
-      mKeyCount = mContents.size() + (mCommonPrefixes == null ? 0 : mCommonPrefixes.size());
+      mKeyCount = keyCount[0];
+    }
+
+    // Populate the NextMarker/NextContinuationToken fields
+    if (mIsTruncated) {
+      mNextContinuationToken = null;
+      if (isVersion2()) {
+        if (mNextMarker != null) {
+          mNextContinuationToken = encodeToken(mNextMarker);
+        }
+        mNextMarker = null;
+      }
+    } else { // no NextMarker/NextContinuationToken if not truncated
+      mNextContinuationToken = null;
+      mNextMarker = null;
     }
   }
 
