@@ -624,7 +624,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     try {
-      mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
+      mUnderFileSystemBlockStore.close(sessionId, blockId);
       if (mLocalBlockStore.hasTempBlockMeta(blockId)) {
         try {
           commitBlock(sessionId, blockId, false);

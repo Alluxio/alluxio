@@ -23,7 +23,6 @@ import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
@@ -151,7 +150,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the session ID
    * @param blockId the block ID
    */
-  public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
+  public void close(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = mBlocks.get(new Key(sessionId, blockId));
@@ -161,7 +160,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         return;
       }
     }
-    blockInfo.closeReaderOrWriter();
+    blockInfo.close();
   }
 
   /**
@@ -218,7 +217,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Local block store because they will be cleanup by the session cleaner in the
         // Local block store.
-        closeReaderOrWriter(sessionId, blockId);
+        close(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
@@ -402,11 +401,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   private static class BlockInfo {
     private final UnderFileSystemBlockMeta mMeta;
 
-    // A correct client implementation should never access the following reader/writer
-    // concurrently. But just to avoid crashing the server thread with runtime exception when
-    // the client is mis-behaving, we access them with locks acquired.
     private BlockReader mBlockReader;
-    private BlockWriter mBlockWriter;
 
     /**
      * Creates an instance of {@link BlockInfo}.
@@ -442,30 +437,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
 
     /**
-     * @return the block writer
-     */
-    public synchronized BlockWriter getBlockWriter() {
-      return mBlockWriter;
-    }
-
-    /**
-     * @param blockWriter the block writer to be set
-     */
-    public synchronized void setBlockWriter(BlockWriter blockWriter) {
-      mBlockWriter = blockWriter;
-    }
-
-    /**
      * Closes the block reader or writer.
      */
-    public synchronized void closeReaderOrWriter() throws IOException {
+    public synchronized void close() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
         mBlockReader = null;
-      }
-      if (mBlockWriter != null) {
-        mBlockWriter.close();
-        mBlockWriter = null;
       }
     }
   }
