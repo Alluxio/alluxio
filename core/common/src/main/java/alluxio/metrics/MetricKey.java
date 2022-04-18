@@ -1921,6 +1921,30 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_FILE_SYSTEM_MASTER_CLIENT_COUNT =
+      new Builder("Client.FileSystemMasterClientCount")
+          .setDescription("Number of FileSystemMasterClient instances.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_MASTER_CLIENT_COUNT =
+      new Builder("Client.BlockMasterClientCount")
+          .setDescription("Number of BlockMasterClient instances.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_WORKER_CLIENT_COUNT =
+      new Builder("Client.BlockWorkerClientCount")
+          .setDescription("Number of BlockWorkerClient instances.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_DEFAULT_HIVE_CLIENT_COUNT =
+      new Builder("Client.DefaultHiveClientCount")
+          .setDescription("Number of DefaultHiveClient instances.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
