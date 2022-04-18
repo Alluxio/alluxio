@@ -944,12 +944,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && !isRoot(dir)
+    if (objs != null
         && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // Do not recreate the breadcrumb if it already exists
       String folderName = convertToFolderName(dir);
-      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled && !isRoot(dir)
           && Arrays.stream(objs.getObjectStatuses()).noneMatch(
               x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
         mkdirsInternal(dir);

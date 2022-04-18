@@ -605,6 +605,17 @@ public final class UnderFileSystemCommonOperations {
   }
 
   /**
+   * Test for listing status of the root directory of the UFS.
+   */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
+  public void listStatusRootTest() throws IOException {
+    UfsStatus[] rootList = mUfs.listStatus("/");
+    if (rootList == null || rootList.length == 0) {
+      throw new IOException("Unable to list UFS root path");
+    }
+  }
+
+  /**
    * Test for listing status.
    */
   @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
