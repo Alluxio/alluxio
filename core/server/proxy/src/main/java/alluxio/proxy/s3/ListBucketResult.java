@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -191,7 +190,7 @@ public class ListBucketResult {
     //group by common prefix if delimiter is provided
     Set<String> commonPrefixes = new HashSet<>();
     // used when handling truncating
-    AtomicReference<String> priorNextMarker = new AtomicReference<>();
+    String[] priorNextMarker = new String[1];
 
     //sort use uri path
     children.sort(Comparator.comparing(URIStatus::getPath));
@@ -216,13 +215,13 @@ public class ListBucketResult {
         .filter(content -> {
           String path = content.getKey();
           if (mDelimiter == null) {
-            priorNextMarker.set(mNextMarker);
+            priorNextMarker[0] = mNextMarker;
             mNextMarker = path;
             return true;
           }
           int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
           if (delimiterIndex == -1) { // no matching delimiter
-            priorNextMarker.set(mNextMarker);
+            priorNextMarker[0] = mNextMarker;
             mNextMarker = path;
             return true;
           }
@@ -242,27 +241,15 @@ public class ListBucketResult {
           }
           if (commonPrefixes.add(commonPrefix)) {
             mCommonPrefixes.add(new CommonPrefix(commonPrefix));
-            priorNextMarker.set(mNextMarker);
+            priorNextMarker[0] = mNextMarker;
             mNextMarker = commonPrefix;
+            content.mIsCommonPrefix = true;
             return true; // we will add the common prefix to the key stream for processing purposes
           }
           return false; // the key is dropped because it is consumed by the common prefix
         })
         .limit(mMaxKeys + 1) // limit to +1 in order to check if we have exactly MaxKeys or not
-        .filter(content -> {
-          // Filter out the common prefixes from the keys
-          String path = content.getKey();
-          if (mDelimiter == null) {
-            return true;
-          }
-          int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
-          if (delimiterIndex == -1) { // no matching delimiter
-            return true; // include keys which are not common prefixes
-          }
-          String commonPrefix = path.substring(0, mPrefix.length() + delimiterIndex
-              + mDelimiter.length());
-          return !commonPrefixes.contains(commonPrefix); // filter out common prefixes
-        })
+        .filter(content -> !content.mIsCommonPrefix)
         .collect(Collectors.toList());
 
     // Check and populate truncation fields
@@ -282,7 +269,7 @@ public class ListBucketResult {
         ));
       }
 
-      mNextMarker = priorNextMarker.get(); // nullable
+      mNextMarker = priorNextMarker[0]; // nullable
       if (isVersion2() && mNextMarker != null) {
         mNextContinuationToken = encodeToken(mNextMarker);
         mNextMarker = null;
@@ -518,6 +505,8 @@ public class ListBucketResult {
     private final String mLastModified;
     /* Size in bytes of the object. */
     private final String mSize;
+    /* Helper variable used during processing to determine if a Key is a Common Prefix */
+    private boolean mIsCommonPrefix;
 
     /**
      * Constructs a new {@link Content}.
@@ -527,9 +516,22 @@ public class ListBucketResult {
      * @param size size in bytes of the object
      */
     public Content(String key, String lastModified, String size) {
+      this(key, lastModified, size, false);
+    }
+
+    /**
+     * Constructs a new {@link Content}.
+     *
+     * @param key the object key
+     * @param lastModified the data and time in string format the object was last modified
+     * @param size size in bytes of the object
+     * @param isCommonPrefix whether this key is a Common Prefix
+     */
+    public Content(String key, String lastModified, String size, boolean isCommonPrefix) {
       mKey = key;
       mLastModified = lastModified;
       mSize = size;
+      mIsCommonPrefix = isCommonPrefix;
     }
 
     /**
