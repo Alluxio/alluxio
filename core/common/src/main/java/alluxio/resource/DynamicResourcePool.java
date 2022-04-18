@@ -13,7 +13,6 @@ package alluxio.resource;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
-import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;

@@ -1904,15 +1904,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_TOTAL_RPC_CLIENTS =
-      new Builder("Client.TotalRPCClients")
-          .setDescription("The total number of RPC clients exist that is using to "
-              + "or can be used to connect to master or worker for operations. "
-              + "The sum of the sizes of FileSystemMasterClientPool, "
-              + "BlockMasterClientPool, and BlockWorkerClientPool.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
@@ -1923,25 +1914,25 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLIENT_FILE_SYSTEM_MASTER_CLIENT_COUNT =
       new Builder("Client.FileSystemMasterClientCount")
-          .setDescription("Number of FileSystemMasterClient instances.")
+          .setDescription("Number of instances in the FileSystemMasterClientPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_BLOCK_MASTER_CLIENT_COUNT =
       new Builder("Client.BlockMasterClientCount")
-          .setDescription("Number of BlockMasterClient instances.")
+          .setDescription("Number of instances in the BlockMasterClientPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_BLOCK_WORKER_CLIENT_COUNT =
       new Builder("Client.BlockWorkerClientCount")
-          .setDescription("Number of BlockWorkerClient instances.")
+          .setDescription("Number of instances in the BlockWorkerClientPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_DEFAULT_HIVE_CLIENT_COUNT =
       new Builder("Client.DefaultHiveClientCount")
-          .setDescription("Number of DefaultHiveClient instances.")
+          .setDescription("Number of instances in the DefaultHiveClientPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
