@@ -86,16 +86,14 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
     mPool.allowCoreThreadTimeOut(true);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
-        mCache::size);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
-        () -> mCache.stats().missCount());
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
-        () -> mCache.stats().hitCount());
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
+        mCache::size, 2, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
+        () -> mCache.stats().missCount(), 2, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
+        () -> mCache.stats().hitCount(), 2, TimeUnit.SECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricKey.MASTER_UFS_ABSENT_PATH_CACHE_SIZE.getName(), mCache::size, 2, TimeUnit.SECONDS);
-    MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricKey.MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE.getName(),
+        MetricKey.MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE.getName(),
         () -> mPool.getQueue().size(), 2, TimeUnit.SECONDS);
   }
 
