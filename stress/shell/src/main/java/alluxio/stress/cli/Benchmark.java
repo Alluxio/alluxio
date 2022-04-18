@@ -17,7 +17,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.plan.PlanConfig;
-import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -90,7 +89,6 @@ public abstract class Benchmark<T extends TaskResult> {
     int exitCode = 0;
     try {
       String result = benchmark.run(args);
-      System.out.println(SerializationUtils.BENCHMARK_RESULT_TAG);
       System.out.println(result);
     } catch (Exception e) {
       e.printStackTrace();
