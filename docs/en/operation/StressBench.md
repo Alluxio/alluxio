@@ -51,7 +51,7 @@ To benchmark Alluxio FUSE performance
 $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench
 ```
 
-To benchamrk job service
+To benchmark job service
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench
 ```
@@ -602,7 +602,7 @@ THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write t
     <tr>
         <td>skip-prepare</td>
         <td>false</td>
-        <td>If true, skip the prepare.</td>
+        <td>If true, skip the preparation phase.</td>
     </tr>
 </table>
 
@@ -616,7 +616,7 @@ Run the test with the operation you want to test.
 $ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir ...
 ```
 
-For example, this would continuously run `ListDir` opeartion for 30s and record the throughput after 5s warmup.
+For example, this would continuously run `ListDir` operation for 30s and record the throughput after 5s warmup.
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir --warmup 5s --duration 30s 
 ```
@@ -971,7 +971,7 @@ These common parameters are available to all RPC benchmarks:
     <tr>
         <td>concurrency</td>
         <td>2</td>
-        <td>The number of simulated clients on each node. Typically benchmarks use 1 thread for 1 
+        <td>The number of simulated clients on each node. Typically, benchmarks use 1 thread for 1 
         simulated client.</td>
     </tr>
     <tr>
