@@ -162,7 +162,11 @@ public class ListBucketResult {
       mStartAfter = options.getStartAfter();
     }
 
-    if (mMaxKeys == 0) {
+    if (mMaxKeys == 0) { // explicitly handle the zero MaxKeys edge-case separately
+      mContents = new ArrayList<>();
+      if (isVersion2()) {
+        mKeyCount = 0;
+      }
       return;
     }
     // contains both ends of "/" character
@@ -190,7 +194,6 @@ public class ListBucketResult {
     //group by common prefix if delimiter is provided
     Set<String> commonPrefixes = new HashSet<>();
     // used when handling truncating
-    String[] priorNextMarker = new String[1];
     int[] keyCount = {0}; // must use an array to have a mutable variable during sequential stream
 
     //sort use uri path

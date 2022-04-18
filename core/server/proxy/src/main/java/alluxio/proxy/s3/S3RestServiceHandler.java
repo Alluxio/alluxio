@@ -249,6 +249,8 @@ public final class S3RestServiceHandler {
 
       List<URIStatus> children;
       try {
+        // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to determine
+        //             what directory to list the contents of
         // only list the direct children if delimiter is not null
         if (delimiterParam != null) {
           if (prefixParam == null) {
@@ -1129,6 +1131,7 @@ public final class S3RestServiceHandler {
   }
 
   private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
+    // TODO(czhu): allow non-"/" delimiters
     // Alluxio only support use / as delimiter
     if (!delimiter.equals(AlluxioURI.SEPARATOR)) {
       throw new S3Exception(bucketPath, new S3ErrorCode(
