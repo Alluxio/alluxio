@@ -20,7 +20,6 @@ import alluxio.util.CommonUtils;
  * Interface to authenticate.
  */
 public interface Authenticator {
-
   /**
    * Factory to create {@link Authenticator}.
    */
@@ -51,10 +50,10 @@ public interface Authenticator {
   }
 
   /**
-   * Check if the AWSAuthParams is legal.
+   * Check if the AwsAuthInfo is legal.
    * @param authInfo info for authentication
-   * @return ture, if validate success
+   * @return ture if this service should be accessed with authentication
    * @throws alluxio.proxy.s3.S3Exception
    */
-  boolean isValid(AwsAuthInfo authInfo) throws S3Exception;
+  boolean isAuthenticated(AwsAuthInfo authInfo) throws S3Exception;
 }

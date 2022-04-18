@@ -152,7 +152,7 @@ public final class AwsAuthV4HeaderParserUtils {
   private static void validateAlgorithm(String authHeader, String algorithm) throws S3Exception {
     if (StringUtils.isEmpty(algorithm)
             || !algorithm.equals(AWS4_SIGNING_ALGORITHM)) {
-      LOG.error("Unexpected hash algorithm. Algo:{}", algorithm);
+      LOG.error("Unexpected hash algorithm. Algorithm:{}", algorithm);
       throw new S3Exception(authHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
   }

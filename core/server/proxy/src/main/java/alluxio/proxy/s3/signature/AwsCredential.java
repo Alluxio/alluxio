@@ -132,7 +132,7 @@ public class AwsCredential {
     /**
      * To check credential format.
      * @param credential credential string
-     * @return return true if credential is valid
+     * @return true if credential is valid
      */
     private static boolean isValidCredential(String credential) {
       return credential.matches("\\S+(/\\S+){4,5}");
@@ -141,7 +141,7 @@ public class AwsCredential {
     /**
      * To check if contain kerberos principal.
      * @param credential credential string
-     * @return return true if contain kerberos principal
+     * @return true if contain kerberos principal
      */
     private static boolean isKerberosPrincipal(String credential) {
       return credential.matches("\\S+(/\\S+){5}");

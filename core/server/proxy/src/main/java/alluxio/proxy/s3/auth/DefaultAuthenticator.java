@@ -14,7 +14,7 @@ package alluxio.proxy.s3.auth;
 import alluxio.proxy.s3.S3Exception;
 
 /**
- * Default implementation of {@link Authenticator}. The method {@link #isValid}
+ * Default implementation of {@link Authenticator}. The method {@link #isAuthenticated}
  * returns true by default.
  *
  * When defining how to obtain secret, the following method can be called for
@@ -23,15 +23,10 @@ import alluxio.proxy.s3.S3Exception;
  *                 signedInfo.getStringTosSign(),
  *                 signedInfo.getSignature(),
  *                 secret);
- *
- * Todo:
- *   1) define how to get secret
- *   2) use 'AuthorizationV4Validator.validateRequest' to check signature
- *
  */
 public class DefaultAuthenticator implements Authenticator {
   @Override
-  public boolean isValid(AwsAuthInfo authInfo) throws S3Exception {
+  public boolean isAuthenticated(AwsAuthInfo authInfo) throws S3Exception {
     return true;
   }
 }

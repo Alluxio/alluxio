@@ -134,22 +134,11 @@ public final class S3RestServiceHandler {
    * @throws S3Exception
    */
   public String getUserFromSignature() throws S3Exception {
-    AwsAuthInfo signedInfo = mSignatureProcessor.getAuthInfo();
-    if (!validateAuth(signedInfo)) {
-      throw new S3Exception(signedInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
+    AwsAuthInfo authInfo = mSignatureProcessor.getAuthInfo();
+    if (mAuthenticator.isAuthenticated(authInfo)) {
+      return authInfo.getAccessID();
     }
-    return signedInfo.getAccessID();
-  }
-
-  /**
-   * validate s3 authorization info.
-   *
-   * @param authInfo info to compute signature
-   * @return whether or not validate success
-   * @throws S3Exception
-   */
-  public boolean validateAuth(AwsAuthInfo authInfo) throws S3Exception {
-    return mAuthenticator.isValid(authInfo);
+    throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
   }
 
   /**

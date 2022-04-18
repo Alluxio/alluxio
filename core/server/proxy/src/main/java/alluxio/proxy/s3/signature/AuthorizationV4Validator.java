@@ -61,7 +61,7 @@ public class AuthorizationV4Validator {
   }
 
   /**
-   * Returns signing key.
+   * Returns signed key.
    *
    * @param key
    * @param strToSign

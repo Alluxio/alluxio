@@ -20,6 +20,7 @@ import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4QueryParserUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +99,7 @@ public class AwsSignatureProcessor {
       }
       String awsAccessId = signatureInfo.getAwsAccessId();
       // ONLY validate aws access id when needed.
-      if (awsAccessId == null || awsAccessId.equals("")) {
+      if (StringUtils.isEmpty(awsAccessId)) {
         LOG.debug("Malformed s3 header. awsAccessID is empty");
         throw new S3Exception("awsAccessID is empty", S3ErrorCode.ACCESS_DENIED_ERROR);
       }

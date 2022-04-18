@@ -24,7 +24,7 @@ public class TestAWSV4Authenticator {
   public static class DummyAWSAuthenticator implements Authenticator {
 
     @Override
-    public boolean isValid(AwsAuthInfo authInfo) throws S3Exception {
+    public boolean isAuthenticated(AwsAuthInfo authInfo) throws S3Exception {
       return AuthorizationV4Validator.validateRequest(
               authInfo.getStringTosSign(),
               authInfo.getSignature(),
@@ -48,6 +48,6 @@ public class TestAWSV4Authenticator {
 
     AwsAuthInfo authInfo = new AwsAuthInfo(accessKeyId, stringToSign, signature);
     DummyAWSAuthenticator authenticator = new DummyAWSAuthenticator();
-    assertTrue(authenticator.isValid(authInfo));
+    assertTrue(authenticator.isAuthenticated(authInfo));
   }
 }
