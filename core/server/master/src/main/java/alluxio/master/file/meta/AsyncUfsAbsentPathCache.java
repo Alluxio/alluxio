@@ -79,7 +79,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
     mMountTable = mountTable;
     mCurrentPaths = new ConcurrentHashMap<>(8, 0.95f, 8);
-    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
+    mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).recordStats().build();
     mThreads = numThreads;
 
     mPool = new ThreadPoolExecutor(mThreads, mThreads, THREAD_KEEP_ALIVE_SECONDS,
@@ -89,9 +89,9 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
         mCache::size);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
-        mCache.stats()::missCount);
+        () -> mCache.stats().missCount());
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
-        mCache.stats()::hitCount);
+        () -> mCache.stats().hitCount());
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_UFS_ABSENT_PATH_CACHE_SIZE.getName(), mCache::size, 2, TimeUnit.SECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(
