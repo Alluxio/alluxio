@@ -271,7 +271,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     String[] output = mOutput.toString().split("\n");
     Assert.assertEquals(String.format(
             "Total completed file count is %s, failed file count is 0", fileSize),
-        output[output.length - 1]);
+        output[output.length - 2]);
   }
 
   @Test
