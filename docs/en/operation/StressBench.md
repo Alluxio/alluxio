@@ -623,12 +623,13 @@ $ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir 
 #### MaxThroughput test
 MaxThroughput test is the recommended way to test the master throughput for certain operation.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateFile ...
+$ bin/alluxio runClass alluxio.stress.cli.suite.MaxThroughput --operation CreateFile ...
 ```
 
 For example, we are trying to get max throughput of CreateFile operation using hadoop compatible client.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateFile --warmup 5s --duration 30s --client-type AlluxioHDFS
+$ bin/alluxio runClass alluxio.stress.cli.suite.MaxThroughput --operation CreateFile --warmup 5s 
+--duration 30s --client-type AlluxioHDFS
 ```
 
 
