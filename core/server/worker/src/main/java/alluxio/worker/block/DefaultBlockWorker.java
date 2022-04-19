@@ -508,7 +508,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
     try {
-      openUfsBlock(sessionId, blockId, options);
+      if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
+        // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
+        // flag.
+        UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
+        options = options.toBuilder()
+            .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
+      }
+      mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options.getUser());
       return new DelegatingBlockReader(reader, () -> {
@@ -575,37 +582,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
-  }
-
-  /**
-   * Opens a UFS block. It registers the block metadata information to the UFS block store. It
-   * returns false if the number of concurrent readers on this block exceeds a threshold.
-   *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @param options the options
-   * @return whether the UFS block is successfully opened
-   * @throws BlockAlreadyExistsException if the UFS block already exists in the
-   *         UFS block store
-   */
-  @VisibleForTesting
-  public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException {
-    if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
-      // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock flag.
-      UfsManager.UfsClient ufsClient;
-      try {
-        ufsClient = mUfsManager.get(options.getMountId());
-      } catch (alluxio.exception.status.NotFoundException
-          | alluxio.exception.status.UnavailableException e) {
-        LOG.warn("Can not open UFS block: mount id {} not found {}",
-            options.getMountId(), e.toString());
-        return false;
-      }
-      options = options.toBuilder().setUfsPath(
-          alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
-    }
-    return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
 
   /**
