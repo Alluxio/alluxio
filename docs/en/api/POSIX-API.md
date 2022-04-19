@@ -314,7 +314,7 @@ If the value is too small, FUSE may frequently create and destroy threads which 
 Note that, libfuse introduce this mount option in 3.2 while Alluxio FUSE supports libfuse 2.9.X which does not have this mount option.
 
 The Alluxio docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
-enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
+enables this property by modifying the [libfuse source code](https://github.com/Alluxio/libfuse/tree/fuse_2_9_5_customize_multi_threads).
 
 In alluxio docker image, the default value for `MAX_IDLE_THREADS` is 64. If you want to use another value in your container,
 you could set it via environment variable at container start time:
@@ -544,9 +544,10 @@ The check can be disabled by setting
 ```config
 alluxio.master.periodic.block.integrity.check.interval=-1
 ```
-- Enlarge master replication check interval
-If data is loaded to alluxio once, no need to 
+- Enlarge master replication check interval when data is written once and never be replicated.
+```config
 alluxio.master.replication.check.interval=1hr
+```
 
 ### Large number of small files training
 
