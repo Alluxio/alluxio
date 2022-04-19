@@ -59,6 +59,13 @@ to a specified number of other workers.
 The job service also supports data transformation. More details can be found at 
 [Data Transformations]({{ '/en/core-services/Transformation.html' | relativize_url }})
 
+### Async Submission
+
+The job service now supports async submission mode for distributedLoad and distributedCp commands.
+After the submission is completed, user will get a JobControlId from the terminal for their command.
+User can check command status using `getCmdStatus` command.
+More details can be found at [User Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})
+
 ## Inspection Commands
 
 The job service provides a number of inspection commands.

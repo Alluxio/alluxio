@@ -16,11 +16,9 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.fs.command.DistributedLoadCommand;
-import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
@@ -311,11 +309,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     private void runDistributedLoad(String dirPath) throws AlluxioException, IOException {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
-      List<URIStatus> pool = new ArrayList<>(1);
       try {
-        DistributedLoadUtils.distributedLoad(cmd, pool, mParameters.mBatchSize,
-            new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
-            new HashSet<>(), new HashSet<>(), false, false);
+        long jobControlId = cmd.runDistLoad(new AlluxioURI(dirPath),
+                numReplication, mParameters.mBatchSize,
+                new HashSet<>(), new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), false);
+        cmd.waitForCmd(jobControlId);
       } finally {
         mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
