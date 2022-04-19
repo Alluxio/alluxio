@@ -100,9 +100,12 @@ public class UfsStatusCache {
               path.getName(), status.getName()));
     }
     mAbsentCache.processExisting(path);
-    // Update global counters for all InodeSyncStream
-    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.inc();
-    return mStatuses.put(path, status);
+    UfsStatus previousStatus = mStatuses.put(path, status);
+    if (previousStatus == null) {
+      // Update global counters for all InodeSyncStream
+      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.inc();
+    }
+    return previousStatus;
   }
 
   /**
@@ -120,9 +123,12 @@ public class UfsStatusCache {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
     });
-    // Update global counters for all InodeSyncStream
-    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
-    return mChildren.put(path, children);
+    Collection<UfsStatus> previousStatuses = mChildren.put(path, children);
+    if (previousStatuses == null) {
+      // Update global counters for all InodeSyncStream
+      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
+    }
+    return previousStatuses;
   }
 
   /**
@@ -137,9 +143,11 @@ public class UfsStatusCache {
   public UfsStatus remove(AlluxioURI path) {
     Preconditions.checkNotNull(path, "can't remove null status cache path");
     UfsStatus removed = mStatuses.remove(path);
+    if (removed != null) {
+      // Update global counters for all InodeSyncStream
+      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
+    }
     int childrenCnt = mChildren.containsKey(path) ? mChildren.get(path).size() : 0;
-    // Update global counters for all InodeSyncStream
-    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(childrenCnt);
     mChildren.remove(path); // ok if there aren't any children
     return removed;
