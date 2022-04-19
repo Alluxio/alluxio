@@ -28,6 +28,7 @@ import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -111,6 +112,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @return whether an access token is acquired
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    */
+  @VisibleForTesting
   public boolean acquireAccess(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
@@ -213,13 +215,22 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
    * @param positionShort whether the client op is a positioned read to a small buffer
-   * @param user the user that requests the block reader
+   * @param options the open ufs options
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
-      boolean positionShort, String user) throws BlockDoesNotExistException, IOException {
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws BlockDoesNotExistException, IOException, BlockAlreadyExistsException {
+    if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
+      // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
+      // flag.mUnderFileSystemBlockStore
+      UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
+      options = options.toBuilder()
+          .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
+    }
+    acquireAccess(sessionId, blockId, options);
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
@@ -230,7 +241,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
     UfsManager.UfsClient ufsClient = mUfsManager.get(blockInfo.getMeta().getMountId());
     Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
-        new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), user),
+        new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), options.getUser()),
         key -> key.mUser == null
             ? MetricsSystem.counterWithTags(
                 MetricKey.WORKER_BYTES_READ_UFS.getName(),

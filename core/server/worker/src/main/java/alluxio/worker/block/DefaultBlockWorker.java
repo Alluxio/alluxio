@@ -508,16 +508,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
     try {
-      if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
-        // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
-        // flag.mUnderFileSystemBlockStore
-        UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
-        options = options.toBuilder()
-            .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
-      }
-      mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
+
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
-          positionShort, options.getUser());
+          positionShort, options);
       return new DelegatingBlockReader(reader, () -> {
         try {
           closeUfsBlock(sessionId, blockId);
