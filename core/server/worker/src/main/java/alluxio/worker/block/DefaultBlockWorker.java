@@ -136,7 +136,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FileSystemContext mFsContext;
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
-  private final UfsManager mUfsManager;
 
   private WorkerNetAddress mAddress;
 
@@ -175,7 +174,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWorkerId = new AtomicReference<>(-1L);
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    mUfsManager = ufsManager;
     mFsContext = mResourceCloser.register(
         FileSystemContext.create(null, ServerConfiguration.global(), this));
     mCacheManager = new CacheRequestManager(
@@ -508,7 +506,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
     try {
-
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
       return new DelegatingBlockReader(reader, () -> {
