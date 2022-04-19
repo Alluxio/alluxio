@@ -102,18 +102,6 @@ public class RaftJournalConfiguration {
   }
 
   /**
-   * @return proxy address of this Raft cluster node
-   */
-  public InetSocketAddress getProxyAddress() {
-    if (ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)) {
-      return InetSocketAddress.createUnresolved(
-          ServerConfiguration.getString(PropertyKey.MASTER_EMBEDDED_JOURNAL_PROXY_HOST),
-          getLocalAddress().getPort());
-    }
-    return null;
-  }
-
-  /**
    * @return max log file size
    */
   public long getMaxLogSize() {

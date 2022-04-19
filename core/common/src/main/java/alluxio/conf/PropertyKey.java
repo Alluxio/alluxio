@@ -1993,15 +1993,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
-      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
-          .setDescription(format(
-              "Used to bind embedded journal servers to a proxied host."
-                  + "Proxy hostname will still make use of %s for bind port.",
-              Name.MASTER_EMBEDDED_JOURNAL_PORT))
-          // No default value for proxy-host. Server will bind to "alluxio.master.hostname"
-          // as default.
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       listBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
