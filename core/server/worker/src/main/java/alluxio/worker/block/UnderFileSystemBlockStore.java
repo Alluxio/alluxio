@@ -72,9 +72,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** Maps from the session ID to the block IDs. */
   @GuardedBy("mLock")
   private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
-  /** Maps from the block ID to the session IDs. */
-  @GuardedBy("mLock")
-  private final Map<Long, Set<Long>> mBlockIdToSessionIds = new HashMap<>();
 
   private final ConcurrentMap<BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
       new ConcurrentHashMap<>();
@@ -123,18 +120,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
             blockId, blockMeta.getUnderFileSystemPath(), sessionId);
       }
-      Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
-      if (sessionIds != null && sessionIds.size() >= options.getMaxUfsReadConcurrency()) {
-        return false;
-      }
-      if (sessionIds == null) {
-        sessionIds = new HashSet<>();
-        mBlockIdToSessionIds.put(blockId, sessionIds);
-      }
-      sessionIds.add(sessionId);
-
       mBlocks.put(key, new BlockInfo(blockMeta));
-
       Set<Long> blockIds = mSessionIdToBlockIds.computeIfAbsent(sessionId, k -> new HashSet<>());
       blockIds.add(blockId);
     }
@@ -184,13 +170,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         blockIds.remove(blockId);
         if (blockIds.isEmpty()) {
           mSessionIdToBlockIds.remove(sessionId);
-        }
-      }
-      Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
-      if (sessionIds != null) {
-        sessionIds.remove(sessionId);
-        if (sessionIds.isEmpty()) {
-          mBlockIdToSessionIds.remove(blockId);
         }
       }
     }
