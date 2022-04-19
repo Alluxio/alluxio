@@ -27,7 +27,7 @@ public final class UnderFileSystemBlockStoreTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private static final long BLOCK_ID = 2;
 
-  private BlockStore mAlluxioBlockStore;
+  private LocalBlockStore mAlluxioBlockStore;
   private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private UfsManager mUfsManager;
 
@@ -36,7 +36,7 @@ public final class UnderFileSystemBlockStoreTest {
 
   @Before
   public void before() throws Exception {
-    mAlluxioBlockStore = Mockito.mock(BlockStore.class);
+    mAlluxioBlockStore = Mockito.mock(LocalBlockStore.class);
     mUfsManager = Mockito.mock(UfsManager.class);
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(5)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE)

@@ -120,7 +120,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   /** Session metadata, used to keep track of session heartbeats. */
   private final Sessions mSessions;
   /** Block Store manager. */
-  private final BlockStore mLocalBlockStore;
+  private final LocalBlockStore mLocalBlockStore;
   /** List of paths to always keep in memory. */
   private final PrefixList mWhitelist;
 
@@ -163,7 +163,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   @VisibleForTesting
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, LocalBlockStore blockStore,
       UfsManager ufsManager) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);

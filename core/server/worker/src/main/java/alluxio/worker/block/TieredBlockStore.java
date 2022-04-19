@@ -86,7 +86,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </ul>
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public class TieredBlockStore implements BlockStore {
+public class TieredBlockStore implements LocalBlockStore
+{
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private static final long FREE_AHEAD_BYTETS =

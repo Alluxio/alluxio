@@ -31,7 +31,8 @@ import javax.annotation.Nullable;
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-public interface BlockStore extends SessionCleanable, Closeable {
+public interface LocalBlockStore
+    extends SessionCleanable, Closeable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
