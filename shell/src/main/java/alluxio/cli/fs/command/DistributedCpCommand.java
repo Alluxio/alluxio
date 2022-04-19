@@ -94,7 +94,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(ACTIVE_JOB_COUNT_OPTION).addOption(OVERWRITE_OPTION)
-        .addOption(BATCH_SIZE_OPTION).addOption(NOT_WAIT_OPTION);
+        .addOption(BATCH_SIZE_OPTION).addOption(ASYNC_OPTION);
   }
 
   @Override
@@ -117,8 +117,8 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
-    boolean notWait = cl.hasOption(NOT_WAIT_OPTION.getLongOpt());
-    if (notWait) {
+    boolean async = cl.hasOption(ASYNC_OPTION.getLongOpt());
+    if (async) {
       System.out.println("Entering async submission mode. ");
     }
 
@@ -139,7 +139,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     System.out.println("Please wait for command submission to finish..");
 
     Long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
-    if (!notWait) {
+    if (!async) {
       System.out.format("Submitted successfully, jobControlId = %s%n"
               + "Waiting for the command to finish ...%n", jobControlId.toString());
       waitForCmd(jobControlId);

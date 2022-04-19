@@ -312,14 +312,14 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   }
 
   @Test
-  public void testNotWaitForLoad() throws IOException {
+  public void testAsyncForLoad() throws IOException {
     FileSystem fs = sResource.get().getClient();
-    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileWaitA", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileAsyncA", WritePType.THROUGH,
             10);
     FileSystemTestUtils
-            .createByteFile(fs, "/testRoot/testFileWaitB", WritePType.MUST_CACHE, 10);
+            .createByteFile(fs, "/testRoot/testFileAsyncB", WritePType.MUST_CACHE, 10);
 
-    sFsShell.run("distributedLoad", "--not-wait", "/testRoot");
+    sFsShell.run("distributedLoad", "--async", "/testRoot");
 
     String[] output = mOutput.toString().split("\n");
     Assert.assertTrue(Arrays.toString(output).contains("Entering async submission mode"));

@@ -250,7 +250,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         .addOption(PASSIVE_CACHE_OPTION)
         .addOption(DIRECT_CACHE_OPTION)
         .addOption(BATCH_SIZE_OPTION)
-        .addOption(NOT_WAIT_OPTION);
+        .addOption(ASYNC_OPTION);
   }
 
   @Override
@@ -288,8 +288,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt()) && cl.hasOption(
         DIRECT_CACHE_OPTION.getLongOpt());
-    boolean notWait = cl.hasOption(NOT_WAIT_OPTION.getLongOpt());
-    if (notWait) {
+    boolean async = cl.hasOption(ASYNC_OPTION.getLongOpt());
+    if (async) {
       System.out.println("Entering async submission mode. ");
     }
 
@@ -333,7 +333,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       AlluxioURI path = new AlluxioURI(args[0]);
       jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
               localityIds, excludedLocalityIds, directCache);
-      if (!notWait) {
+      if (!async) {
         System.out.format("Submitted successfully, jobControlId = %s%n"
                 + "Waiting for the command to finish ...%n", jobControlId.toString());
         waitForCmd(jobControlId);
@@ -347,7 +347,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           AlluxioURI path = new AlluxioURI(filename);
           jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
                   localityIds, excludedLocalityIds, directCache);
-          if (!notWait) {
+          if (!async) {
             System.out.format("Submitted successfully, jobControlId = %s%n"
                     + "Waiting for the command to finish ...%n", jobControlId.toString());
             waitForCmd(jobControlId);

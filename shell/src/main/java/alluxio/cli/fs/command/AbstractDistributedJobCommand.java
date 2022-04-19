@@ -47,13 +47,13 @@ import java.util.stream.Collectors;
 public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCommand {
   protected static final int DEFAULT_ACTIVE_JOBS = 3000;
   private static final int DEFAULT_FAILURE_LIMIT = 20;
-  protected static final Option NOT_WAIT_OPTION =
+  protected static final Option ASYNC_OPTION =
           Option.builder()
-                  .longOpt("not-wait")
+                  .longOpt("async")
                   .required(false)
                   .hasArg(false)
-                  .argName("not-wait")
-                  .desc("Use not-wait to submit the command"
+                  .argName("async")
+                  .desc("Use async to submit the command"
                           + " asynchronously and not wait for command to finish")
                   .build();
 
