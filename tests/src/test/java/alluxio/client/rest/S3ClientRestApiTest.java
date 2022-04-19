@@ -65,6 +65,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1227,6 +1228,109 @@ public final class S3ClientRestApiTest extends RestApiTest {
         "foo", "bar",
         "baz", ""
     ));
+  }
+
+  @Test
+  public void testCopyObjectTagsHeader() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = "text data";
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData)
+            .setContentType(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=bar&baz"));
+
+    TaggingData newTags = getTagsRestCall(objectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ), newTags.getTagMap());
+
+    // metadata directive = COPY, tagging directive = COPY
+    String copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "copyMeta_copyTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)).runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ), newTags.getTagMap());
+    HttpURLConnection connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+
+    // metadata directive = REPLACE, tagging directive = COPY
+    copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "replaceMeta_copyTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)
+            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE))
+        .runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ), newTags.getTagMap());
+    connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+
+    // metadata directive = COPY, tagging directive = REPLACE
+    copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "copyMeta_replaceTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)
+            .addHeader(S3Constants.S3_TAGGING_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=new"))
+        .runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "new"
+    ), newTags.getTagMap());
+    connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+
+    // metadata directive = REPLACE, tagging directive = REPLACE
+    copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "replaceMeta_replaceTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)
+            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .addHeader(S3Constants.S3_TAGGING_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=new"))
+        .runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "new"
+    ), newTags.getTagMap());
+    connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
   }
 
   @Test
