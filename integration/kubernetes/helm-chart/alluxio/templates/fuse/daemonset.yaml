@@ -106,7 +106,7 @@ spec:
             - --fuse-opts={{ .Values.fuse.mountOptions }}
             {{- end }}
             {{- if not .Values.fuse.mountPoint }}
-            {{- fail "mountPoing must be set to launch Alluxio Fuse." }}
+            {{- fail "mountPoint must be set to launch Alluxio Fuse." }}
             {{- end }}
             - {{ .Values.fuse.mountPoint }}
             {{- if .Values.fuse.alluxioPath }}
