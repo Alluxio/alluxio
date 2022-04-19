@@ -118,7 +118,6 @@ public class DefaultBlockWorkerTest {
     for (; sessionId < 11; sessionId++) {
       assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
     }
-    assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   @Test
