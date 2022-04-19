@@ -246,14 +246,14 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	// Set fuse mount options
 	fuseOptsStr := strings.Join(req.GetVolumeCapability().GetMount().GetMountFlags(), ",")
 	csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, "--fuse-opts=" + fuseOptsStr)
+        csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, req.GetStagingTargetPath())
+        csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, targetPath)
 
 	// Update ALLUXIO_FUSE_JAVA_OPTS to include csi client java options
 	alluxioCSIFuseJavaOpts :=
 		strings.Join([]string{os.Getenv("ALLUXIO_FUSE_JAVA_OPTS"), req.GetVolumeContext()["javaOptions"]}, " ")
 	alluxioFuseJavaOptsEnv := v1.EnvVar{Name: "ALLUXIO_FUSE_JAVA_OPTS", Value: alluxioCSIFuseJavaOpts}
 	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, alluxioFuseJavaOptsEnv)
-	csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, req.GetStagingTargetPath())
-        csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, targetPath)
 	return csiFusePodObj, nil
 }
 
