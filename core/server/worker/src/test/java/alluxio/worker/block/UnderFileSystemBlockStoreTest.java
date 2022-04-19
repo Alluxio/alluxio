@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.proto.dataserver.Protocol;
