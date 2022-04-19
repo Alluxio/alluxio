@@ -161,11 +161,7 @@ public class TieredBlockStore implements LocalBlockStore
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (hasBlock) {
+    if (hasBlockMeta(blockId)) {
       return lockId;
     }
 

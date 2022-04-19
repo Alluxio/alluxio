@@ -44,13 +44,10 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
-import alluxio.retry.TimeoutRetry;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.wire.BlockReadRequest;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -178,10 +175,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mUfsManager = ufsManager;
     mFsContext = mResourceCloser.register(
         FileSystemContext.create(null, ServerConfiguration.global(), this));
+    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
     mCacheManager = new CacheRequestManager(
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
-    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
@@ -506,7 +503,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     try {
       openUfsBlock(sessionId, blockId, options);
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
@@ -524,9 +521,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      throw new IOException(String.format("Failed to read from UFS, sessionId=%d, "
+      throw new UnavailableException(String.format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
-          sessionId, blockId, offset, positionShort, options, e.toString()), e);
+          sessionId, blockId, offset, positionShort, options, e), e);
     }
   }
 
@@ -653,40 +650,25 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader createBlockReader(BlockReadRequest request) throws
-      BlockDoesNotExistException, IOException {
-    long sessionId = request.getSessionId();
-    long blockId = request.getId();
-    RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, Constants.SECOND_MS);
-    while (retryPolicy.attempt()) {
-      try {
-        BlockReader reader = createLocalBlockReader(sessionId, blockId, request.getStart());
-        Metrics.WORKER_ACTIVE_CLIENTS.inc();
-        return reader;
-      } catch (BlockDoesNotExistException e) {
-        boolean checkUfs =
-            request.isPersisted() || (request.getOpenUfsBlockOptions() != null && request
-                .getOpenUfsBlockOptions().hasBlockInUfsTier() && request.getOpenUfsBlockOptions()
-                .getBlockInUfsTier());
-        if (!checkUfs) {
-          throw e;
-        }
-      }
-      // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      try {
-        BlockReader reader = createUfsBlockReader(request.getSessionId(),
-            request.getId(), request.getStart(),
-            request.isPositionShort(), request.getOpenUfsBlockOptions());
-        Metrics.WORKER_ACTIVE_CLIENTS.inc();
-        return reader;
-      } catch (Exception e) {
-        throw new UnavailableException(
-            String.format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
-                request.getId(), e.toString()));
+  public BlockReader createBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws BlockDoesNotExistException, IOException {
+    try {
+      BlockReader reader = createLocalBlockReader(sessionId, blockId, offset);
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return reader;
+    }
+    catch (BlockDoesNotExistException e) {
+      boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
+      if (!checkUfs) {
+        throw e;
       }
     }
-    throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
-        .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
+    // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
+    BlockReader reader = createUfsBlockReader(sessionId, blockId, offset,
+        positionShort, options);
+    Metrics.WORKER_ACTIVE_CLIENTS.inc();
+    return reader;
   }
 
   @Override
@@ -704,7 +686,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     Configuration.Builder builder = Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {
-      Set<PropertyKey> keys = ServerConfiguration.keySet();
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);

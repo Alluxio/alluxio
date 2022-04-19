@@ -36,9 +36,11 @@ public final class BlockReadRequest {
    * Creates an instance of {@link BlockReadRequest}.
    *
    * @param request the block read request
+   * @return a BlockReadRequest object
    */
-  public BlockReadRequest(alluxio.grpc.ReadRequest request) {
-    this(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
+  public static BlockReadRequest from(alluxio.grpc.ReadRequest request) {
+    return new BlockReadRequest(request.getBlockId(), request.getOffset(),
+        request.getOffset() + request.getLength(),
         request.getChunkSize(), request.getPromote(), request.getPositionShort(),
         request.hasOpenUfsBlockOptions() ? request.getOpenUfsBlockOptions() : null);
   }
@@ -54,7 +56,7 @@ public final class BlockReadRequest {
    * @param positionShort whether this is a short read
    * @param openUfsBlockOptions options to read file from UFS
    */
-  public BlockReadRequest(long id, long start, long end, long chunkSize, boolean promote,
+  private BlockReadRequest(long id, long start, long end, long chunkSize, boolean promote,
       boolean positionShort, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     mId = id;
     mStart = start;
@@ -120,13 +122,6 @@ public final class BlockReadRequest {
    */
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions() {
     return mOpenUfsBlockOptions;
-  }
-
-  /**
-   * @return true if the block is persisted in UFS
-   */
-  public boolean isPersisted() {
-    return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
   }
 
   @Override

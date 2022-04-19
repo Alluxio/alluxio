@@ -39,9 +39,9 @@ public abstract class AbstractBlockManagementTask implements BlockManagementTask
    * @param loadTracker the load tracker
    * @param executor the executor to use for task execution
    */
-  public AbstractBlockManagementTask(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
-      BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
-      ExecutorService executor) {
+  public AbstractBlockManagementTask(LocalBlockStore blockStore,
+      BlockMetadataManager metadataManager, BlockMetadataEvictorView evictorView,
+      StoreLoadTracker loadTracker, ExecutorService executor) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mEvictorView = evictorView;

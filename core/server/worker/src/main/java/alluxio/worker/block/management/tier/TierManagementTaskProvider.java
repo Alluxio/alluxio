@@ -70,9 +70,9 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
    * @param loadTracker the load tracker
    * @param executor the executor
    */
-  public TierManagementTaskProvider(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
-      Supplier<BlockMetadataEvictorView> evictorViewSupplier, StoreLoadTracker loadTracker,
-      ExecutorService executor) {
+  public TierManagementTaskProvider(LocalBlockStore blockStore,
+      BlockMetadataManager metadataManager, Supplier<BlockMetadataEvictorView> evictorViewSupplier,
+      StoreLoadTracker loadTracker, ExecutorService executor) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mEvictorViewSupplier = evictorViewSupplier;
