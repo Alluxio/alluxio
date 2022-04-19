@@ -21,6 +21,7 @@ import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -83,6 +84,7 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
         mClient.heartbeat(JobHeartbeatPRequest.newBuilder()
             .setJobWorkerHealth(jobWorkerHealth.toProto()).addAllTaskInfos(taskInfoList).build())
             .getCommandsList(),
-        RPC_LOG, "Heartbeat", "jobWorkerHealth=%s,taskInfoList=%s", jobWorkerHealth, taskInfoList);
+        RPC_LOG, "Heartbeat", "jobWorkerHealth=%s,taskInfoList=%s", jobWorkerHealth,
+            CommonUtils.summarizeCollection(taskInfoList));
   }
 }
