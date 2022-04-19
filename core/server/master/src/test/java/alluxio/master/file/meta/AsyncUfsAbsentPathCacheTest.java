@@ -11,20 +11,27 @@
 
 package alluxio.master.file.meta;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 
+import com.codahale.metrics.Gauge;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,12 +53,20 @@ public class AsyncUfsAbsentPathCacheTest {
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
+  @Rule
+  public ConfigurationRule mMaxPathRule = new ConfigurationRule(
+      PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY,
+      3,
+      ServerConfiguration.global()
+  );
 
   /**
    * Sets up a new {@link AsyncUfsAbsentPathCache} before a test runs.
    */
   @Before
   public void before() throws Exception {
+    MetricsSystem.resetCountersAndGauges();
+
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
@@ -234,6 +249,44 @@ public class AsyncUfsAbsentPathCacheTest {
         UfsAbsentPathCache.ALWAYS));
     assertFalse(mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/"),
         UfsAbsentPathCache.ALWAYS));
+  }
+
+  @Test
+  public void metricCacheSize() throws Exception {
+    Gauge<Long> cacheSize = (Gauge<Long>) MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName());
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/1"));
+    assertEquals(1, (long) cacheSize.getValue());
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/2"));
+    assertEquals(2, (long) cacheSize.getValue());
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/3"));
+    assertEquals(3, (long) cacheSize.getValue());
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/4"));
+    assertEquals(3, (long) cacheSize.getValue());
+  }
+
+  @Test
+  public void metricCacheHitsAndMisses() throws Exception {
+    Gauge<Long> cacheHits = (Gauge<Long>) MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricKey.MASTER_ABSENT_CACHE_HITS.getName());
+    Gauge<Long> cacheMisses = (Gauge<Long>) MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName());
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/1"));
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/2"));
+    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/3"));
+
+    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/1"), 0);
+    assertEquals(1, (long) cacheHits.getValue());
+    assertEquals(0, (long) cacheMisses.getValue());
+    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/2"), 0);
+    assertEquals(2, (long) cacheHits.getValue());
+    assertEquals(0, (long) cacheMisses.getValue());
+    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/1/1"), 0);
+    assertEquals(3, (long) cacheHits.getValue());
+    assertEquals(1, (long) cacheMisses.getValue());
+    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/4"), 0);
+    assertEquals(3, (long) cacheHits.getValue());
+    assertEquals(2, (long) cacheMisses.getValue());
   }
 
   private void process(AlluxioURI path) throws Exception {
