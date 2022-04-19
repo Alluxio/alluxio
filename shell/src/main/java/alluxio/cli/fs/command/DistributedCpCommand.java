@@ -31,6 +31,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
+  private static final String DEFAULT_FAILURE_FILE_PATH =
+          "./logs/user/distributedCp_%s_failures.csv";
   private WriteType mWriteType;
 
   private static final Option ACTIVE_JOB_COUNT_OPTION =
@@ -144,6 +147,12 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
               jobControlId.toString());
     }
+
+    Set<String> failures = getFailedFiles();
+    if (failures.size() > 0) {
+      processFailures(args[0], failures, DEFAULT_FAILURE_FILE_PATH);
+    }
+
     return 0;
   }
 

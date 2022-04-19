@@ -20,6 +20,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,6 +61,11 @@ public class GetCmdStatusCommand extends AbstractDistributedJobCommand {
     String[] args = cl.getArgs();
     long jobControlId = Long.parseLong(args[0]);
     getDetailedCmdStatus(jobControlId);
+    Set<String> failures = getFailedFiles();
+    if (!failures.isEmpty()) {
+      System.out.println("Failed files are:");
+      failures.forEach(System.out::println);
+    }
     return 0;
   }
 }

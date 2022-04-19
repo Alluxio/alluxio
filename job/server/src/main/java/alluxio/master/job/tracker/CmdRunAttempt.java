@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
  */
 public class CmdRunAttempt {
   private static final Logger LOG = LoggerFactory.getLogger(CmdRunAttempt.class);
+  private static final String DISTLOAD_PATH_PREFIX = "FilePath=";
+  private static final String DISTCP_PATH_PREFIX = "source=";
 
   protected final RetryPolicy mRetryPolicy;
   protected final JobMaster mJobMaster;
@@ -182,10 +184,11 @@ public class CmdRunAttempt {
 
     if (finished) {
       if (jobInfo.getStatus().equals(Status.FAILED)) {
+        String prefix = getPrefix(jobInfo);
         Set<JobInfo> failed = jobInfo.getChildren().stream()
                 .filter(child -> child.getStatus() == Status.FAILED).collect(Collectors.toSet());
         for (JobInfo task : failed) {
-          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), "FilePath=", ","));
+          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), prefix, ","));
         }
       }
       return jobInfo.getStatus();
@@ -207,5 +210,15 @@ public class CmdRunAttempt {
    */
   public Set<String> getFailedFiles() {
     return mFailedFiles;
+  }
+
+  private String getPrefix(JobInfo jobInfo) {
+    if (jobInfo.getDescription().contains(DISTLOAD_PATH_PREFIX)) {
+      return DISTLOAD_PATH_PREFIX; //try to return DISTLOAD_PATH_PREFIX first
+    }  if (jobInfo.getDescription().contains(DISTCP_PATH_PREFIX)) {
+      return DISTCP_PATH_PREFIX; //then try to return DISTCP_PATH_PREFIX
+    } else {
+      return "FilePath="; //return other possible prefix, need to follow other command config
+    }
   }
 }

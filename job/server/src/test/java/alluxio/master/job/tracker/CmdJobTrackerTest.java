@@ -301,7 +301,7 @@ public final class CmdJobTrackerTest {
   public void testGetCmdStatusBlock() throws Exception {
     CmdInfo cmdInfo = new CmdInfo(mMigrateJobId, OperationType.DIST_CP,
             JobSource.CLI, System.currentTimeMillis(), Lists.newArrayList());
-    CmdStatusBlock expectedStatusBlock = new CmdStatusBlock(mMigrateJobId);
+    CmdStatusBlock expectedStatusBlock = new CmdStatusBlock(mMigrateJobId, OperationType.DIST_CP);
 
     int completedCount = REPEATED_ATTEMPT_COUNT;
     int runningCount = REPEATED_ATTEMPT_COUNT;

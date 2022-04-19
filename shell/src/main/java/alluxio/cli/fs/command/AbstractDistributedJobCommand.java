@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.grpc.OperationType;
 import alluxio.job.CmdConfig;
 import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.SimpleJobStatusBlock;
@@ -152,9 +153,10 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
         }
       } catch (IOException e) {
         error = true;
-        System.out.println(String.format("Unable to get command status for %s,"
-                + "the files may already be loaded in Alluxio,"
-                + " please retry using `getCmdStatus` to check command detailed status,"
+        System.out.println(String.format("Unable to get command status for %s."
+                + "For distributedLoad, the files may already be loaded in Alluxio."
+                + "For distributedCp, please check file source contains files or not."
+                + " Please retry using `getCmdStatus` to check command detailed status,"
                 + " or using `fs ls` command to check if the files are already loaded."
                 + "%n", jobControlId));
         break;
@@ -169,8 +171,8 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
                 jobControlId);
       } catch (IOException e) {
         System.out.println(String.format("Unable to get detailed command status for %s,"
-                + "the files may already be loaded in Alluxio"
-                + "%n", jobControlId));
+            + "the files may already be loaded in Alluxio or file souce may not contain files"
+            + "%n", jobControlId));
       }
     }
   }
@@ -220,6 +222,15 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     });
 
     mCompletedCount = completedFiles.size();
+    OperationType operationType = cmdStatus.getOperationType();
+    String printKeyWord;
+    if (operationType.equals(OperationType.DIST_LOAD)) {
+      printKeyWord = "loaded";
+    } else if (operationType.equals(OperationType.DIST_CP)) {
+      printKeyWord = "copied";
+    } else {
+      printKeyWord = "processed";
+    }
 
     if (cmdStatus.getJobStatusBlock().isEmpty()) {
       System.out.format("Unable to get command status for jobControlId=%s, please retry"
@@ -229,7 +240,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       System.out.format("Get command status information below: %n");
 
       completedFiles.forEach(file -> {
-        System.out.format("Successfully loaded path %s%n", file);
+        System.out.format("Successfully %s path %s%n", printKeyWord, file);
       });
 
       System.out.format("Total completed file count is %s, failed file count is %s%n",
@@ -248,7 +259,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       output.append(failure);
       output.append(",\n");
     }
-    output.append(String.format("Check out %s for full list of failed files.", failurePath));
+    output.append(String.format("Check out %s for full list of failed files.%n", failurePath));
     System.out.print(output);
     try (FileOutputStream writer = FileUtils.openOutputStream(new File(failurePath))) {
       for (String failure : failures) {
@@ -259,6 +270,8 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       System.out.println(e.getMessage());
     }
   }
+
+  //private List<T>
 
   /**
    * Gets the number of completed jobs.

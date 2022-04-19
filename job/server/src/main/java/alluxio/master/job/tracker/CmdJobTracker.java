@@ -269,6 +269,6 @@ public class CmdJobTracker {
                     attempt.getFilePath(),
                     String.join(DELIMITER, attempt.getFailedFiles())))
             .collect(Collectors.toList());
-    return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList);
+    return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList, cmdInfo.getOperationType());
   }
 }

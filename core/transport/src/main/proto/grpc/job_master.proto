@@ -229,6 +229,7 @@ message JobStatusBlock {
 message CmdStatusBlock {
   optional int64 jobControlId = 1;
   repeated JobStatusBlock jobStatusBlock = 2;
+  optional OperationType operationType = 3;
 }
 message GetCmdStatusDetailedResponse {
   optional CmdStatusBlock cmdStatusBlock = 1;

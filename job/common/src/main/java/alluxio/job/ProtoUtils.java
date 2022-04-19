@@ -89,7 +89,8 @@ public class ProtoUtils {
                       block.getFilePath(),
                       block.getFilePathFailed()));
     }
-    return new CmdStatusBlock(cmdStatusBlock.getJobControlId(), simpleJobStatusBlockList);
+    return new CmdStatusBlock(cmdStatusBlock.getJobControlId(),
+            simpleJobStatusBlockList, cmdStatusBlock.getOperationType());
   }
 
   private ProtoUtils() {} // prevent instantiation
