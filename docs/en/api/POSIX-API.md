@@ -570,7 +570,7 @@ alluxio.master.metastore=ROCKS
 # for 120GB master max memory size
 alluxio.master.metastore.inode.cache.max.size=30000000
 ```
-For more details, please refer to [metastore]({{ '/en/operation/metastore.html' | relativize_url }}) documentation.
+For more details, please refer to [metastore]({{ '/en/operation/Metastore.html' | relativize_url }}) documentation.
 
 - Enlarge master RPC pool
 Large number of small files training can issue a large amount of metadata RPC requests to master.
