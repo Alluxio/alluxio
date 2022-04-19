@@ -813,9 +813,7 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service. User will get a job control ID after the command submission is successful in async mode.
-In sync mode, user will get a job control Id after the command submits successfully.
-User will be able to see the file copy status and statistics on completion/failure in sync mode.
+using the job service. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -825,7 +823,7 @@ Later jobs must wait until some earlier jobs to finish. The default value is `30
 A lower value means slower execution but also being nicer to the other users of the job service.
 * `--overwrite`: Whether to overwrite the destination. Default is true.
 * `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
-* `--not-wait`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to wait or run synchronously.
+* `--wait`: true or false specifies whether to wait for command execution to finish. If not explicitly shown then default to wait (true).
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ```
@@ -833,10 +831,7 @@ $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ### distributedLoad
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
-across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
-User will get a job control ID after the command submission is successful in async mode.
-In sync mode, user will get a job control Id after the command submits successfully.
-User will be able to see the file loading status and statistics on completion/failure in sync mode.
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -858,7 +853,7 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
 * `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
-* `--not-wait`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to wait or run synchronously.
+* `--wait`: true or false specifies whether to wait for command execution to finish. If not explicitly shown then default to wait (true).
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
@@ -887,8 +882,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
 # Include all workers except which's locality belong to the localities in the excluded locality file
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
-# Turn on async submission mode
-$ ./bin/alluxio fs distributedLoad /data/today --not-wait
 
 # Conflict cases
 # The `--hosts` and `--locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be included.
@@ -982,16 +975,6 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 ```console
 $ ./bin/alluxio fs getCapacityBytes
-```
-
-### getCmdStatus
-
-The `getCmdStatus` command returns the detailed distributed command status based on a given Job Control Id.
-
-For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
-
-```console
-$ ./bin/alluxio fs getCmdStatus $job_control_id
 ```
 
 ### getfacl
