@@ -37,8 +37,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.MockedStatic;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.Collections;
@@ -47,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Unit tests for {@link AsyncUfsAbsentPathCache}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({Clock.class})
 public class AsyncUfsAbsentPathCacheTest {
   private static final int THREADS = 4;
   private AsyncUfsAbsentPathCache mUfsAbsentPathCache;
@@ -258,11 +263,9 @@ public class AsyncUfsAbsentPathCacheTest {
     MetricsSystem.resetCountersAndGauges();
     ManualClock clock =
         new ManualClock(AsyncUfsAbsentPathCache.METRIC_CACHE_TIMEOUT_SEC + 1, TimeUnit.SECONDS);
-    AsyncUfsAbsentPathCache cache;
-    try (MockedStatic<Clock> mockedClock = Mockito.mockStatic(Clock.class)) {
-      mockedClock.when(Clock::defaultClock).thenReturn(clock);
-      cache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
-    }
+    PowerMockito.mockStatic(Clock.class);
+    Mockito.when(Clock.defaultClock()).thenReturn(clock);
+    AsyncUfsAbsentPathCache cache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     Gauge<Long> cacheSize = () -> {
       clock.nextEpoch();
@@ -285,11 +288,9 @@ public class AsyncUfsAbsentPathCacheTest {
     MetricsSystem.resetCountersAndGauges();
     ManualClock clock =
         new ManualClock(AsyncUfsAbsentPathCache.METRIC_CACHE_TIMEOUT_SEC + 1, TimeUnit.SECONDS);
-    AsyncUfsAbsentPathCache cache;
-    try (MockedStatic<Clock> mockedClock = Mockito.mockStatic(Clock.class)) {
-      mockedClock.when(Clock::defaultClock).thenReturn(clock);
-      cache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
-    }
+    PowerMockito.mockStatic(Clock.class);
+    Mockito.when(Clock.defaultClock()).thenReturn(clock);
+    AsyncUfsAbsentPathCache cache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
 
     Gauge<Long> cacheHits = () -> {
       clock.nextEpoch();
