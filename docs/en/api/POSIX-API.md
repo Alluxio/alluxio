@@ -73,11 +73,11 @@ For example, running the following commands from the `${ALLUXIO_HOME}` directory
 Alluxio path `/people` to the folder `/mnt/people` on the local file system.
 
 ```console
-$ ./bin/alluxio fs mkdir /people
+$ ${ALLUXIO_HOME}/bin/alluxio fs mkdir /people
 $ sudo mkdir -p /mnt/people
 $ sudo chown $(whoami) /mnt/people
 $ chmod 755 /mnt/people
-$ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
 
 When `<mount_point>` or `<alluxio_path>` is not provided, the values of alluxio configuration
@@ -93,6 +93,24 @@ useful for troubleshooting when errors happen on operations under the filesystem
 
 See [alluxio fuse options](#configure-alluxio-fuse-options) and [mount point options](#configure-mount-point-options)
 for more advanced mount configuration.
+
+### Check the Alluxio POSIX API Mounting Status
+
+To list the mount points; on the node where the file system is mounted run:
+
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse stat
+```
+
+This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUSE processes.
+
+For example, the output could be:
+
+```
+pid mount_point alluxio_path
+80846 /mnt/people /people
+80847 /mnt/sales  /sales
+```
 
 ### Unmount Alluxio from FUSE
 
@@ -112,24 +130,6 @@ Unmount fuse at /mnt/people (PID:97626).
 ```
 
 See [alluxio fuse umount options](#configure-alluxio-unmount-options) for more advanced umount settings.
-
-### Check the Alluxio POSIX API Mounting Status
-
-To list the mount points; on the node where the file system is mounted run:
-
-```console
-$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse stat
-```
-
-This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUSE processes.
-
-For example, the output could be:
-
-```
-pid mount_point alluxio_path
-80846 /mnt/people /people
-80847 /mnt/sales  /sales
-```
 
 ## Advanced Setup
 
@@ -185,14 +185,14 @@ If you want to modify your Fuse mount, change the configuration and restart the 
 
 Enable FUSE on worker by setting `alluxio.worker.fuse.enabled` to `true` in the `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
-```
+```config
 alluxio.worker.fuse.enabled=true
 ```
 
 By default, Fuse on worker will mount the Alluxio root path `/` to default local mount point `/mnt/alluxio-fuse` with no extra mount options.
 You can change the alluxio path, mount point, and mount options through Alluxio configuration:
 
-```
+```config
 alluxio.fuse.mount.alluxio.path=<alluxio_path>
 alluxio.fuse.mount.point=<mount_point>
 alluxio.fuse.mount.options=<list of mount options separated by comma>
@@ -201,7 +201,7 @@ alluxio.fuse.mount.options=<list of mount options separated by comma>
 For example, one can mount Alluxio path `/people` to local path `/mnt/people`
 with `kernel_cache,entry_timeout=7200,attr_timeout=7200` mount options when starting the Alluxio worker process:
 
-```
+```config
 alluxio.worker.fuse.enabled=true
 alluxio.fuse.mount.alluxio.path=/people
 alluxio.fuse.mount.point=/mnt/people
@@ -461,7 +461,7 @@ Different from analytics workloads, training workloads generally have higher con
 Likely that much more RPCs are issues between processes which results in a higher memory consumption and more intense GC activities.
 Enabling Java 11 + G1GC has been proved to improve GC activities in training workloads.
 For example, set the following java opts in `conf/alluxio-env.sh` before starting the processes
-```
+```config
 ALLUXIO_MASTER_JAVA_OPTS="-Xmx128G -Xms128G -XX:+UseG1GC"
 ALLUXIO_WORKER_JAVA_OPTS="-Xmx32G -Xms32G -XX:MaxDirectMemorySize=32G -XX:+UseG1GC"
 ALLUXIO_FUSE_JAVA_OPTS="-Xmx32G -Xms32G -XX:MaxDirectMemorySize=32G -XX:+UseG1GC"
