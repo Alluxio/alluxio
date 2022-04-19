@@ -31,14 +31,18 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.Gauge;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link AsyncUfsAbsentPathCache}.
@@ -65,8 +69,6 @@ public class AsyncUfsAbsentPathCacheTest {
    */
   @Before
   public void before() throws Exception {
-    MetricsSystem.resetCountersAndGauges();
-
     mLocalUfsPath = mTemp.getRoot().getAbsolutePath();
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, new MountInfo(new AlluxioURI("/"),
@@ -253,38 +255,67 @@ public class AsyncUfsAbsentPathCacheTest {
 
   @Test
   public void metricCacheSize() throws Exception {
-    Gauge<Long> cacheSize = (Gauge<Long>) MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName());
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/1"));
+    MetricsSystem.resetCountersAndGauges();
+    ManualClock clock =
+        new ManualClock(AsyncUfsAbsentPathCache.METRIC_CACHE_TIMEOUT_SEC + 1, TimeUnit.SECONDS);
+    AsyncUfsAbsentPathCache cache;
+    try (MockedStatic<Clock> mockedClock = Mockito.mockStatic(Clock.class)) {
+      mockedClock.when(Clock::defaultClock).thenReturn(clock);
+      cache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
+    }
+
+    Gauge<Long> cacheSize = () -> {
+      clock.nextEpoch();
+      return (long) MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName()).getValue();
+    };
+
+    cache.addSinglePath(new AlluxioURI("/mnt/1"));
     assertEquals(1, (long) cacheSize.getValue());
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/2"));
+    cache.addSinglePath(new AlluxioURI("/mnt/2"));
     assertEquals(2, (long) cacheSize.getValue());
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/3"));
+    cache.addSinglePath(new AlluxioURI("/mnt/3"));
     assertEquals(3, (long) cacheSize.getValue());
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/4"));
+    cache.addSinglePath(new AlluxioURI("/mnt/4"));
     assertEquals(3, (long) cacheSize.getValue());
   }
 
   @Test
   public void metricCacheHitsAndMisses() throws Exception {
-    Gauge<Long> cacheHits = (Gauge<Long>) MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricKey.MASTER_ABSENT_CACHE_HITS.getName());
-    Gauge<Long> cacheMisses = (Gauge<Long>) MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName());
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/1"));
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/2"));
-    mUfsAbsentPathCache.addSinglePath(new AlluxioURI("/mnt/3"));
+    MetricsSystem.resetCountersAndGauges();
+    ManualClock clock =
+        new ManualClock(AsyncUfsAbsentPathCache.METRIC_CACHE_TIMEOUT_SEC + 1, TimeUnit.SECONDS);
+    AsyncUfsAbsentPathCache cache;
+    try (MockedStatic<Clock> mockedClock = Mockito.mockStatic(Clock.class)) {
+      mockedClock.when(Clock::defaultClock).thenReturn(clock);
+      cache = new AsyncUfsAbsentPathCache(mMountTable, THREADS);
+    }
 
-    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/1"), 0);
+    Gauge<Long> cacheHits = () -> {
+      clock.nextEpoch();
+      return (long) MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_ABSENT_CACHE_HITS.getName()).getValue();
+    };
+    Gauge<Long> cacheMisses = () -> {
+      clock.nextEpoch();
+      return (long) MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName()).getValue();
+    };
+
+    cache.addSinglePath(new AlluxioURI("/mnt/1"));
+    cache.addSinglePath(new AlluxioURI("/mnt/2"));
+    cache.addSinglePath(new AlluxioURI("/mnt/3"));
+
+    cache.isAbsentSince(new AlluxioURI("/mnt/1"), 0);
     assertEquals(1, (long) cacheHits.getValue());
     assertEquals(0, (long) cacheMisses.getValue());
-    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/2"), 0);
+    cache.isAbsentSince(new AlluxioURI("/mnt/2"), 0);
     assertEquals(2, (long) cacheHits.getValue());
     assertEquals(0, (long) cacheMisses.getValue());
-    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/1/1"), 0);
+    cache.isAbsentSince(new AlluxioURI("/mnt/1/1"), 0);
     assertEquals(3, (long) cacheHits.getValue());
     assertEquals(1, (long) cacheMisses.getValue());
-    mUfsAbsentPathCache.isAbsentSince(new AlluxioURI("/mnt/4"), 0);
+    cache.isAbsentSince(new AlluxioURI("/mnt/4"), 0);
     assertEquals(3, (long) cacheHits.getValue());
     assertEquals(2, (long) cacheMisses.getValue());
   }
@@ -315,6 +346,25 @@ public class AsyncUfsAbsentPathCacheTest {
       assertFalse(existing.toString(), mUfsAbsentPathCache.isAbsentSince(existing,
           UfsAbsentPathCache.ALWAYS));
       existing = existing.getParent();
+    }
+  }
+
+  static class ManualClock extends Clock {
+    private long mNow;
+    private final long mStep;
+
+    public ManualClock(long step, TimeUnit timeUnit) {
+      mNow = 0;
+      mStep = timeUnit.toNanos(step);
+    }
+
+    public void nextEpoch() {
+      mNow += mStep;
+    }
+
+    @Override
+    public long getTick() {
+      return mNow;
     }
   }
 }

@@ -56,6 +56,8 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
       ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+  @VisibleForTesting
+  static final int METRIC_CACHE_TIMEOUT_SEC = 2;
 
   /** The mount table. */
   private final MountTable mMountTable;
@@ -87,14 +89,14 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
     mPool.allowCoreThreadTimeOut(true);
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
-        mCache::size, 2, TimeUnit.SECONDS);
+        mCache::size, METRIC_CACHE_TIMEOUT_SEC, TimeUnit.SECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
-        () -> mCache.stats().missCount(), 2, TimeUnit.SECONDS);
+        () -> mCache.stats().missCount(), METRIC_CACHE_TIMEOUT_SEC, TimeUnit.SECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
-        () -> mCache.stats().hitCount(), 2, TimeUnit.SECONDS);
+        () -> mCache.stats().hitCount(), METRIC_CACHE_TIMEOUT_SEC, TimeUnit.SECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE.getName(),
-        () -> mPool.getQueue().size(), 2, TimeUnit.SECONDS);
+        () -> mPool.getQueue().size(), METRIC_CACHE_TIMEOUT_SEC, TimeUnit.SECONDS);
   }
 
   @Override

@@ -113,6 +113,11 @@
       <artifactId>guava-testlib</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Internal test dependencies -->
     <dependency>
