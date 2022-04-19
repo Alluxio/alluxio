@@ -510,7 +510,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       if (!options.hasUfsPath() && options.hasBlockInUfsTier() && options.getBlockInUfsTier()) {
         // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
-        // flag.
+        // flag.mUnderFileSystemBlockStore
         UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
         options = options.toBuilder()
             .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
