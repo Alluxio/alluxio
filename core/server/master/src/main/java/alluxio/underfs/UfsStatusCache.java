@@ -124,10 +124,9 @@ public class UfsStatusCache {
       addStatus(childPath, child);
     });
     Collection<UfsStatus> previousStatuses = mChildren.put(path, children);
-    if (previousStatuses == null) {
-      // Update global counters for all InodeSyncStream
-      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
-    }
+    // Update global counters for all InodeSyncStream
+    int sizeChange = children.size() - (previousStatuses != null ? previousStatuses.size() : 0);
+    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(sizeChange);
     return previousStatuses;
   }
 
