@@ -23,6 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
@@ -94,6 +95,11 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{Requeue: true}, nil
 	}
 
+	err = r.createService(ctx, prestoCluster)
+	if err != nil {
+		logger.Error(err, "Failed to create service for presto coordinator")
+	}
+
 	return ctrl.Result{Requeue: true}, nil
 }
 
@@ -111,7 +117,7 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
 	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
 	for key, value := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
-		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s", key, value))
+		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, value))
 	}
 
 	return &corev1.ConfigMap{
@@ -157,6 +163,42 @@ func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.C
 	return false, nil
 }
 
+func (r *PrestoClusterReconciler) createService(ctx context.Context, m *alluxiocomv1alpha1.PrestoCluster) error {
+	serviceLables := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator_service"}
+	serviceName := m.Name + "-coordinator-service"
+	services := &corev1.ServiceList{}
+	err := r.List(ctx,
+		services,
+		&client.ListOptions{
+			Namespace:     m.Namespace,
+			LabelSelector: labels.SelectorFromSet(serviceLables),
+		})
+	if err != nil {
+		return err
+	}
+	if len(services.Items) > 0 {
+		return nil
+	}
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: m.Namespace,
+			Labels:    serviceLables,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Name: "http",
+					Port: m.Spec.CoordinatorSpec.HttpPort,
+				},
+			},
+			Selector: map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator"},
+		},
+	}
+	return r.Create(ctx, service)
+}
+
 func (r *PrestoClusterReconciler) getDeployment(ctx context.Context, name string, namespace string) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
 	err := r.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, deployment)
@@ -172,7 +214,7 @@ func (r *PrestoClusterReconciler) getDeployment(ctx context.Context, name string
 
 // deploymentForMemcached returns a memcached Deployment object
 func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster) *appsv1.Deployment {
-	labels := map[string]string{"app": "presto", "presto_cr": m.Name}
+	labels := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator"}
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -192,7 +234,7 @@ func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1
 						Image: "beinan6666/prestodb",
 						Name:  "presto",
 						Ports: []corev1.ContainerPort{{
-							ContainerPort: 8080,
+							ContainerPort: m.Spec.CoordinatorSpec.HttpPort,
 							Name:          "presto",
 						}},
 						VolumeMounts: []corev1.VolumeMount{
