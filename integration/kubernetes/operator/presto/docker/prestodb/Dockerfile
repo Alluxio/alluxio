@@ -1,4 +1,4 @@
-FROM openjdk:11-jre
+FROM openjdk:11-jdk
 
 # Presto version will be passed in at build time
 ARG PRESTO_VERSION

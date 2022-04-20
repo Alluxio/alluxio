@@ -56,12 +56,8 @@ spec:
                   memory:
                     type: string
                 required:
-                - AdditionalJvmOptions
-                - additionalConfigs
                 - cpuCores
-                - environment
                 - httpPort
-                - jvmXmx
                 - memory
                 type: object
               image:

@@ -105,11 +105,11 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	jvmConfigBuilder.WriteString("-server\n")
 	jvmConfigBuilder.WriteString("-XX:+UseG1GC\n")
 	jvmConfigBuilder.WriteString(fmt.Sprintf("-Xmx%s\n", "1G"))
+	jvmConfigBuilder.WriteString(cr.Spec.CoordinatorSpec.AdditionalJvmOptions)
 
 	var configPropsBuilder strings.Builder
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.CoordinatorSpec.Environment))
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
-	configPropsBuilder.WriteString(fmt.Sprintf("discovery-server=%v\n", true))
 	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=%s\n", "http://localhost:8080"))
 
 	return &corev1.ConfigMap{

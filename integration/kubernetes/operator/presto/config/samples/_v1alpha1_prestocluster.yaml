@@ -3,4 +3,10 @@ kind: PrestoCluster
 metadata:
   name: prestocluster-sample
 spec:
+  image: "beinan6666/prestodb"
+  coordinatorSpec:
+    memory: "2G"
+    cpuCores: 4
+    httpPort: 8080
+    AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
   size: 3

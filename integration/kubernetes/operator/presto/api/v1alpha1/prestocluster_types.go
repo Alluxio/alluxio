@@ -36,11 +36,11 @@ type PrestoClusterSpec struct {
 type CoordinatorSpec struct {
 	Memory               string            `json:"memory"`
 	CpuCores             int32             `json:"cpuCores"`
-	JvmXmx               string            `json:"jvmXmx"`
-	AdditionalJvmOptions string            `json:"AdditionalJvmOptions"`
+	JvmXmx               string            `json:"jvmXmx,omitempty"`
+	AdditionalJvmOptions string            `json:"AdditionalJvmOptions,omitempty"`
 	HttpPort             int32             `json:"httpPort"`
-	Environment          string            `json:"environment"`
-	AdditionalConfigs    map[string]string `json:"additionalConfigs"`
+	Environment          string            `json:"environment,omitempty"`
+	AdditionalConfigs    map[string]string `json:"additionalConfigs,omitempty"`
 }
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
