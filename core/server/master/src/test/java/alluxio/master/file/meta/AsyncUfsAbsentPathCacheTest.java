@@ -335,6 +335,9 @@ public class AsyncUfsAbsentPathCacheTest {
     }
   }
 
+  /**
+   * Class with customized gauge timeouts to facilitate metrics testing.
+   */
   static class TestAsyncUfsAbsentPathCache extends AsyncUfsAbsentPathCache {
     private final long mCacheTimeout;
 
