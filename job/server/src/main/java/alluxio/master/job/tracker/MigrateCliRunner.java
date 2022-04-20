@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A config runner for a MigrateCli job.
@@ -158,6 +159,9 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     JobConfig jobConfig;
     long fileCount = 0;
     long fileSize = 0;
+    String filePathString = filePath.stream().map(Pair::getFirst)
+            .collect(Collectors.joining(CmdJobTracker.DELIMITER));
+
     if (poolSize == 1) {
       Pair<String, String> pair = filePath.iterator().next();
       String source = pair.getFirst();
@@ -181,6 +185,7 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     attempt.setFileCount(fileCount);
     attempt.setFileSize(fileSize);
     attempt.setConfig(jobConfig);
+    attempt.setFilePath(filePathString);
   }
 
   private void createFolders(AlluxioURI srcPath, AlluxioURI dstPath, FileSystem fileSystem)

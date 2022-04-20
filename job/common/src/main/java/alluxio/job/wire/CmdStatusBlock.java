@@ -11,6 +11,8 @@
 
 package alluxio.job.wire;
 
+import alluxio.grpc.OperationType;
+
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -22,24 +24,29 @@ import java.util.List;
 public class CmdStatusBlock {
   private long mJobControlId;
   private List<SimpleJobStatusBlock> mJobStatusBlockList;
+  private OperationType mOperationType;
 
   /**
    * Constructor.
-   * @param jobControlId
+   * @param jobControlId command JobControlId
+   * @param type the operation type
    */
-  public CmdStatusBlock(long jobControlId) {
+  public CmdStatusBlock(long jobControlId, OperationType type) {
     mJobControlId = jobControlId;
     mJobStatusBlockList = Lists.newArrayList();
+    mOperationType = type;
   }
 
   /**
    * Constructor.
-   * @param jobControlId
-   * @param blocks
+   * @param jobControlId command JobControlId
+   * @param blocks SimpleJobStatusBlock list
+   * @param type operation type
    */
-  public CmdStatusBlock(long jobControlId, List<SimpleJobStatusBlock> blocks) {
+  public CmdStatusBlock(long jobControlId, List<SimpleJobStatusBlock> blocks, OperationType type) {
     mJobControlId = jobControlId;
     mJobStatusBlockList = blocks;
+    mOperationType = type;
   }
 
   /**
@@ -67,6 +74,14 @@ public class CmdStatusBlock {
   }
 
   /**
+   * Get OperationType.
+   * @return OperationType
+   */
+  public OperationType getOperationType() {
+    return mOperationType;
+  }
+
+  /**
    * Convert to proto type.
    * @return return proto type of CmdStatusBlock
    */
@@ -78,6 +93,8 @@ public class CmdStatusBlock {
                       .newBuilder()
                       .setJobId(block.getJobId())
                       .setJobStatus(block.getStatus().toProto())
+                      .setFilePath(block.getFilePath())
+                      .setFilePathFailed(block.getFilesPathFailed())
                       .build();
       jobStatusBlockList.add(protoBlock);
     });
@@ -85,6 +102,7 @@ public class CmdStatusBlock {
             .newBuilder()
             .setJobControlId(mJobControlId)
             .addAllJobStatusBlock(jobStatusBlockList)
+            .setOperationType(mOperationType)
             .build();
   }
 }
