@@ -30,6 +30,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.BlockDeletionContext;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.OperationContext;
@@ -55,6 +56,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -446,6 +448,91 @@ public class UfsStatusCacheTest {
     Mockito.verify(mUfs, times(1)).getStatus(any(String.class));
   }
 
+  @Test
+  public void testMetricCacheSizeTotal() throws Exception{
+
+    AlluxioURI path0 = new AlluxioURI("/abc/0");
+    UfsStatus stat0 = Mockito.mock(UfsStatus.class);
+    when(stat0.getName()).thenReturn("0");
+
+    AlluxioURI path1 = new AlluxioURI("/abc/1");
+    UfsStatus stat1 = Mockito.mock(UfsStatus.class);
+    when(stat1.getName()).thenReturn("1");
+
+    //a wrong path
+    AlluxioURI path2 = new AlluxioURI("/abc/0");
+    UfsStatus stat2 = Mockito.mock(UfsStatus.class);
+    when(stat2.getName()).thenReturn("1");
+
+    mCache.addStatus(path0, stat0);
+    mCache.addStatus(path1, stat1);
+    assertEquals(2,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    //repeatedly add
+    mCache.addStatus(path1, stat1);
+    assertEquals(2,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    try{
+      mCache.addStatus(path2, stat2);
+    }catch (Exception ignored){}
+    assertEquals(2,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+
+    mCache.remove(path0);
+    assertEquals(1,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+
+    mCache.remove(path1);
+    assertEquals(0,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+
+    //remove repeatedly
+    mCache.remove(path1);
+    assertEquals(0,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+
+    mCache.remove(path2);
+    assertEquals(0,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+  }
+
+  @Test
+  public void testMetricChildrenSizeTotal() throws Exception{
+    AlluxioURI path = new AlluxioURI("/abc");
+    UfsStatus stat = Mockito.mock(UfsStatus.class);
+    when(stat.getName()).thenReturn("abc");
+    mCache.addStatus(path, stat);
+
+    //a children list ['0','1','2']
+    ArrayList<UfsStatus> statusList0=new ArrayList<>();
+    for (int i=0;i<3;i++){
+      UfsStatus statChild = Mockito.mock(UfsStatus.class);
+      when(statChild.getName()).thenReturn(String.valueOf(i));
+      statusList0.add(statChild);
+    }
+    mCache.addChildren(path,statusList0);
+    assertEquals(4,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    assertEquals(3,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getCount());
+
+    //another children list ['1','2','3']
+    ArrayList<UfsStatus> statusList1=new ArrayList<>();
+    for (int i=1;i<4;i++){
+      UfsStatus statChild = Mockito.mock(UfsStatus.class);
+      when(statChild.getName()).thenReturn(String.valueOf(i));
+      statusList1.add(statChild);
+    }
+    mCache.addChildren(path,statusList1);
+    assertEquals(5,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    assertEquals(3,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getCount());
+
+    mCache.remove(path);
+    assertEquals(4,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    assertEquals(0,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getCount());
+
+    //remove repeatedly
+    mCache.remove(path);
+    assertEquals(4,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    assertEquals(0,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getCount());
+
+    //remove a wrong path
+    path = new AlluxioURI("/abcd");
+    mCache.remove(path);
+    assertEquals(4,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.getCount());
+    assertEquals(0,DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.getCount());
+  }
   /**
    * Recreates the mount table with the local UFS as a spy'd mockito object.
    */
