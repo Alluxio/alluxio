@@ -102,7 +102,7 @@ function formatWorkerIfSpecified {
 }
 
 function mountAlluxioFSWithFuseOption {
-  if [[ -n ${FUSE_ALLUXIO_PATH } || -n ${MOUNT_POINT} ]]; then
+  if [[ -n ${FUSE_ALLUXIO_PATH} || -n ${MOUNT_POINT} ]]; then
     echo "Use of environment variables FUSE_ALLUXIO_PATH and MOUNT_POINT for Alluxio Fuse are deprecated."
     printUsage
     exit 1

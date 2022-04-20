@@ -215,14 +215,14 @@ public final class BlockMetadataManager {
   public long getAvailableBytes(BlockStoreLocation location) {
     long spaceAvailable = 0;
 
-    if (location.equals(BlockStoreLocation.anyTier())) {
+    if (location.hasNoRestriction()) {
       for (StorageTier tier : mTiers) {
         spaceAvailable += tier.getAvailableBytes();
       }
       return spaceAvailable;
-    } else if (!location.mediumType().isEmpty()
-        && location.equals(
-        BlockStoreLocation.anyDirInAnyTierWithMedium(location.mediumType()))) {
+    }
+
+    if (!location.isAnyMedium() && location.isAnyDir() && location.isAnyTier()) {
       for (StorageTier tier : mTiers) {
         for (StorageDir dir : tier.getStorageDirs()) {
           if (dir.getDirMedium().equals(location.mediumType())) {
@@ -236,7 +236,7 @@ public final class BlockMetadataManager {
     String tierAlias = location.tierAlias();
     StorageTier tier = getTier(tierAlias);
     // TODO(calvin): This should probably be max of the capacity bytes in the dirs?
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+    if (location.isAnyDir()) {
       return tier.getAvailableBytes();
     }
 
@@ -308,8 +308,7 @@ public final class BlockMetadataManager {
    * @return the {@link StorageDir} object
    */
   public StorageDir getDir(BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())
-        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+    if (location.isAnyTier() || location.isAnyDir()) {
       throw new IllegalArgumentException(
           ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     }
@@ -324,21 +323,6 @@ public final class BlockMetadataManager {
    * @throws BlockDoesNotExistException when block id can not be found
    */
   public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
-    TempBlockMeta blockMeta = getTempBlockMetaOrNull(blockId);
-    if (blockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
-    }
-    return blockMeta;
-  }
-
-  /**
-   * Gets the metadata of a temp block.
-   *
-   * @param blockId the id of the temp block
-   * @return metadata of the block or null
-   */
-  @Nullable
-  public TempBlockMeta getTempBlockMetaOrNull(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
@@ -346,7 +330,7 @@ public final class BlockMetadataManager {
         }
       }
     }
-    return null;
+    throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
   }
 
   /**
@@ -457,59 +441,6 @@ public final class BlockMetadataManager {
         new DefaultBlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
     dstDir.removeTempBlockMeta(tempBlockMeta);
     dstDir.addBlockMeta(newBlockMeta);
-    return newBlockMeta;
-  }
-
-  /**
-   * Moves the metadata of an existing block to another location or throws IOExceptions. Throws an
-   * {@link IllegalArgumentException} if the newLocation is not in the tiered storage.
-   *
-   * @param blockMeta the metadata of the block to move
-   * @param newLocation new location of the block
-   * @return the new block metadata if success, absent otherwise
-   * @throws BlockDoesNotExistException when the block to move is not found
-   * @throws BlockAlreadyExistsException when the block to move already exists in the destination
-   * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
-   *         move
-   * @deprecated As of version 0.8. Use {@link #moveBlockMeta(BlockMeta, TempBlockMeta)} instead.
-   */
-  @Deprecated
-  public BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException,
-             WorkerOutOfSpaceException {
-    // If existing location belongs to the target location, simply return the current block meta.
-    BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
-    if (oldLocation.belongsTo(newLocation)) {
-      LOG.info("moveBlockMeta: moving {} to {} is a noop", oldLocation, newLocation);
-      return blockMeta;
-    }
-
-    long blockSize = blockMeta.getBlockSize();
-    String newTierAlias = newLocation.tierAlias();
-    StorageTier newTier = getTier(newTierAlias);
-    StorageDir newDir = null;
-    if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {
-      for (StorageDir dir : newTier.getStorageDirs()) {
-        if (dir.getAvailableBytes() >= blockSize) {
-          newDir = dir;
-          break;
-        }
-      }
-    } else {
-      StorageDir dir = newTier.getDir(newLocation.dir());
-      if (dir != null && dir.getAvailableBytes() >= blockSize) {
-        newDir = dir;
-      }
-    }
-
-    if (newDir == null) {
-      throw new WorkerOutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
-          + " does not have enough space for " + blockSize + " bytes");
-    }
-    StorageDir oldDir = blockMeta.getParentDir();
-    oldDir.removeBlockMeta(blockMeta);
-    BlockMeta newBlockMeta = new DefaultBlockMeta(blockMeta.getBlockId(), blockSize, newDir);
-    newDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
   }
 

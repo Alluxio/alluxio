@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -80,8 +81,8 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
 
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
     // StorageDirView
-    StorageDirEvictorView candidateDirView = (StorageDirEvictorView)
-        EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mMetadataView);
+    StorageDirEvictorView candidateDirView = selectDirWithRequestedSpace(
+        bytesToBeAvailable, location, mMetadataView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
@@ -225,5 +226,44 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
   protected BlockStoreLocation updateBlockStoreLocation(long bytesToBeAvailable,
       BlockStoreLocation location) {
     return location;
+  }
+
+  /**
+   * Finds a directory in the given location range with capacity upwards of the given bound.
+   *
+   * @param bytesToBeAvailable the capacity bound
+   * @param location the location range
+   * @param mManagerView the storage manager view
+   * @return a {@link StorageDirEvictorView} in the range of location that already
+   *         has availableBytes larger than bytesToBeAvailable, otherwise null
+   */
+  @Nullable
+  private static StorageDirEvictorView selectDirWithRequestedSpace(long bytesToBeAvailable,
+      BlockStoreLocation location, BlockMetadataEvictorView mManagerView) {
+    if (location.hasNoRestriction()) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
+            return (StorageDirEvictorView) dirView;
+          }
+        }
+      }
+      return null;
+    }
+
+    String tierAlias = location.tierAlias();
+    StorageTierView tierView = mManagerView.getTierView(tierAlias);
+    if (location.isAnyDir() && location.isAnyMedium()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
+          return (StorageDirEvictorView) dirView;
+        }
+      }
+      return null;
+    }
+
+    StorageDirView dirView = tierView.getDirView(location.dir());
+    return (dirView != null && dirView.getAvailableBytes() >= bytesToBeAvailable)
+        ? (StorageDirEvictorView) dirView : null;
   }
 }

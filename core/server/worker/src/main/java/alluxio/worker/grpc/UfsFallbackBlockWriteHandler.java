@@ -13,7 +13,6 @@ package alluxio.worker.grpc;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricInfo;
@@ -270,10 +269,7 @@ public final class UfsFallbackBlockWriteHandler
 
     long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getTempBlockMeta(sessionId, blockId);
-    if (block == null) {
-      throw new NotFoundException("block " + blockId + " not found");
-    }
+    TempBlockMeta block = mWorker.getTempBlockMeta(blockId);
     Preconditions.checkState(Files.copy(Paths.get(block.getPath()), ufsOutputStream) == pos);
   }
 }

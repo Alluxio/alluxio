@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import static alluxio.worker.block.BlockWorker.INVALID_LOCK_ID;
 import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -143,7 +142,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.abortBlock(sessionId, blockId);
-    assertNull(mBlockWorker.getTempBlockMeta(sessionId, blockId));
+    assertThrows(BlockDoesNotExistException.class, () -> mBlockWorker.getTempBlockMeta(blockId));
   }
 
   @Test
@@ -207,7 +206,7 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
       blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
-      TempBlockMeta meta = mBlockWorker.getTempBlockMeta(sessionId, blockId);
+      TempBlockMeta meta = mBlockWorker.getTempBlockMeta(blockId);
       assertEquals(Constants.MEDIUM_MEM, meta.getBlockLocation().mediumType());
     }
     mBlockWorker.abortBlock(sessionId, blockId);
@@ -308,7 +307,8 @@ public class DefaultBlockWorkerTest {
   public void lockBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    assertEquals(INVALID_LOCK_ID, mBlockWorker.lockBlock(sessionId, blockId));
+    assertThrows(BlockDoesNotExistException.class,
+        () -> mBlockWorker.lockBlock(sessionId, blockId));
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
@@ -349,7 +349,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", initialBytes));
     mBlockWorker.requestSpace(sessionId, blockId, additionalBytes);
     assertEquals(initialBytes + additionalBytes,
-        mBlockWorker.getTempBlockMeta(sessionId, blockId).getBlockSize());
+        mBlockWorker.getTempBlockMeta(blockId).getBlockSize());
   }
 
   @Test

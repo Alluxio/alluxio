@@ -32,11 +32,6 @@ public final class SerializationUtils {
   private SerializationUtils() {} // prevent instantiation
 
   /**
-   * The identifier represents the starting position of the benchmark result.
-   */
-  public static final String BENCHMARK_RESULT_TAG = "BENCHMARK RESULT:";
-
-  /**
    * Serializes an object into a byte array. When the object is null, returns null.
    *
    * @param obj the object to serialize
@@ -128,14 +123,13 @@ public final class SerializationUtils {
     boolean isActualResultStart = false;
     StringBuilder actualResult = new StringBuilder();
 
-    for (int i = 0; i < taskResults.length; i++) {
+    for (String taskResult : taskResults) {
       if (isActualResultStart) {
-        actualResult.append(taskResults[i]);
-      }
-      if (taskResults[i].startsWith(BENCHMARK_RESULT_TAG)) {
+        actualResult.append(taskResult);
+      } else if (taskResult.trim().equals("{")) {
         isActualResultStart = true;
-        // We need to take account of the cluster mode.
-        actualResult = new StringBuilder();
+        // We found the start of the JSON output
+        actualResult.append(taskResult);
       }
     }
     return actualResult.toString();

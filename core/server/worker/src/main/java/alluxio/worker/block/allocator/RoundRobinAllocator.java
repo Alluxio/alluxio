@@ -78,16 +78,14 @@ public final class RoundRobinAllocator implements Allocator {
   private StorageDirView allocateBlock(long blockSize,
       BlockStoreLocation location, boolean skipReview) {
     Preconditions.checkNotNull(location, "location");
-    if (!location.isAnyTier() && location.isAnyDir()) {
+    if (location.isAnyDirWithTier()) {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       // The review logic is handled in getNextAvailDirInTier
-      return getNextAvailDirInTier(tierView, blockSize,
-          location.mediumType(), skipReview);
+      return getNextAvailDirInTier(tierView, blockSize, location, skipReview);
     } else if (location.isAnyTier() && location.isAnyDir()) {
       for (StorageTierView tierView : mMetadataView.getTierViews()) {
         // The review logic is handled in getNextAvailDirInTier
-        StorageDirView dir = getNextAvailDirInTier(tierView, blockSize,
-            location.mediumType(), skipReview);
+        StorageDirView dir = getNextAvailDirInTier(tierView, blockSize, location, skipReview);
         if (dir != null) {
           return dir;
         }
@@ -110,11 +108,11 @@ public final class RoundRobinAllocator implements Allocator {
    *
    * @param tierView the tier to find a dir
    * @param blockSize the requested block size
-   * @param mediumType the medium type to find a dir
+   * @param location the block store location
    * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
   private StorageDirView getNextAvailDirInTier(StorageTierView tierView, long blockSize,
-      String mediumType, boolean skipReview) {
+      BlockStoreLocation location, boolean skipReview) {
     Iterator<StorageDirView> iterator = mTierAliasToDirIteratorMap.get(tierView.getTierViewAlias());
     int processed = 0;
     while (processed < tierView.getDirViews().size()) {
@@ -123,8 +121,8 @@ public final class RoundRobinAllocator implements Allocator {
         mTierAliasToDirIteratorMap.put(tierView.getTierViewAlias(), iterator);
       }
       StorageDirView dir = iterator.next();
-      if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || dir.getMediumType().equals(mediumType))
+      if ((location.isAnyMedium()
+          || dir.getMediumType().equals(location.mediumType()))
           && dir.getAvailableBytes() >= blockSize) {
         if (skipReview || mReviewer.acceptAllocation(dir)) {
           return dir;

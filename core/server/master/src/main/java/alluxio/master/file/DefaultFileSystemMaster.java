@@ -2086,9 +2086,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private String buildDeleteFailureMessage(List<Pair<String, String>> failedUris) {
+//    DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
     StringBuilder errorReport = new StringBuilder(
-        ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths: "));
+        ExceptionMessage.DELETE_FAILED_UFS.getMessage(failedUris.size() + " paths"));
     boolean trim = !LOG.isDebugEnabled() && failedUris.size() > 20;
+    errorReport.append(": ");
     for (int i = 0; i < (trim ? 20 : failedUris.size()); i++) {
       if (i > 0) {
         errorReport.append(", ");

@@ -1993,15 +1993,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
-      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
-          .setDescription(format(
-              "Used to bind embedded journal servers to a proxied host."
-                  + "Proxy hostname will still make use of %s for bind port.",
-              Name.MASTER_EMBEDDED_JOURNAL_PORT))
-          // No default value for proxy-host. Server will bind to "alluxio.master.hostname"
-          // as default.
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       listBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
@@ -5723,7 +5714,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       durationBuilder(Name.FUSE_UMOUNT_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("0s")
           .setDescription("The timeout to wait for all in progress file read and write to finish "
               + "before unmounting the Fuse filesystem when SIGTERM signal is received. "
               + "A value smaller than or equal to zero means no umount wait time. ")
@@ -7720,30 +7711,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final PropertyType mType;
     private final Optional<Class<? extends Enum>> mEnumType;
     private final Optional<String> mDelimiter;
-    private BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator;
+    private final BiFunction<String, PropertyKey, PropertyKey> mPropertyCreator;
 
     Template(String format, String re) {
       this(format, re, PropertyType.STRING);
     }
 
-    /**
-     * Constructs a property key format.
-     *
-     * @param format String of this property as formatted string
-     * @param re String of this property as regexp
-     * @param type type of this property
-     */
     Template(String format, String re, PropertyType type) {
       this(format, re, type, Optional.empty());
     }
 
     Template(String format, String re, PropertyType type, Optional<String> delimiter) {
-      mFormat = format;
-      mPattern = Pattern.compile(re);
-      mType = type;
-      mDelimiter = delimiter;
-      mEnumType = Optional.empty();
-      mPropertyCreator = PropertyCreators.fromBuilder(new Builder("", type));
+      this(format, re, type, Optional.empty(), delimiter,
+          PropertyCreators.fromBuilder(new Builder("", type)));
+    }
+
+    Template(String format, String re, Class<? extends Enum> enumType) {
+      this(format, re, PropertyType.ENUM, Optional.of(enumType), Optional.empty(),
+          PropertyCreators.fromBuilder(enumBuilder("", enumType)));
+    }
+
+    Template(String format, String re,
+        BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
+      this(format, re, PropertyType.STRING, Optional.empty(), Optional.empty(), propertyCreator);
     }
 
     /**
@@ -7752,28 +7742,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param format String of this property as formatted string
      * @param re String of this property as regexp
      * @param enumType enum class of an enum property
+     * @param delimiter delimiter of this property
+     * @param propertyCreator a function that creates property key given name and base property key
      */
-    Template(String format, String re, Class<? extends Enum> enumType) {
+    Template(String format, String re, PropertyType type, Optional<Class<? extends Enum>> enumType,
+        Optional<String> delimiter, BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
       mFormat = format;
       mPattern = Pattern.compile(re);
-      mType = PropertyType.ENUM;
-      mEnumType = Optional.of(enumType);
-      mDelimiter = Optional.empty();
-      mPropertyCreator = PropertyCreators.fromBuilder(enumBuilder("", enumType));
-    }
-
-    /**
-     * Constructs a nested property key format with a function to construct property key given
-     * base property key.
-     *
-     * @param format String of this property as formatted string
-     * @param re String of this property as regexp
-     * @param propertyCreator a function that creates property key given name and base property key
-     *                        (for nested properties only, will be null otherwise)
-     */
-    Template(String format, String re,
-        BiFunction<String, PropertyKey, PropertyKey> propertyCreator) {
-      this(format, re);
+      mType = type;
+      mDelimiter = delimiter;
+      mEnumType = enumType;
       mPropertyCreator = propertyCreator;
     }
 
