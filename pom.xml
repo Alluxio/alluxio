@@ -1338,7 +1338,7 @@
     <profile>
       <id>hadoop-3</id>
       <properties>
-        <hadoop.version>3.3.0</hadoop.version>
+        <hadoop.version>3.3.1</hadoop.version>
       </properties>
     </profile>
 
@@ -1386,7 +1386,7 @@
       <modules>
       </modules>
       <properties>
-        <hadoop.version>3.3.0</hadoop.version>
+        <hadoop.version>3.3.1</hadoop.version>
       </properties>
     </profile>
 

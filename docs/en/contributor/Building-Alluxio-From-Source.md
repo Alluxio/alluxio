@@ -145,7 +145,7 @@ For example,
 $ mvn clean install -pl underfs/hdfs/ \
   -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
-  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
+  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 
 If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
@@ -168,7 +168,7 @@ All main builds are from Apache so all Apache releases can be used directly
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.0
 -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0
--Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
+-Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 
   {% endcollapsible %}
