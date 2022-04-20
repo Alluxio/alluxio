@@ -137,7 +137,6 @@ public final class GrpcDataServer implements DataServer {
         .executor(mRPCExecutor);
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
-    // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     int workerThreadCount =
         ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
     String dataServerEventLoopNamePrefix =
