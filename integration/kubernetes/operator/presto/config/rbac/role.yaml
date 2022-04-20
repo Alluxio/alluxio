@@ -6,12 +6,8 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - ""
-  - apps
   - alluxio.com
   resources:
-  - deployments
-  - pods
   - prestoclusters
   verbs:
   - create

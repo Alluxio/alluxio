@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 
 	alluxiocomv1alpha1 "github.com/Alluxio/alluxio/integration/kubernetes/operator/presto/api/v1alpha1"
 )
@@ -99,6 +101,17 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	labels := map[string]string{
 		"app": cr.Name,
 	}
+	var jvmConfigBuilder strings.Builder
+	jvmConfigBuilder.WriteString("-server\n")
+	jvmConfigBuilder.WriteString("-XX:+UseG1GC\n")
+	jvmConfigBuilder.WriteString(fmt.Sprintf("-Xmx%s\n", "1G"))
+
+	var configPropsBuilder strings.Builder
+	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.CoordinatorSpec.Environment))
+	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
+	configPropsBuilder.WriteString(fmt.Sprintf("discovery-server=%v\n", true))
+	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=%s\n", "http://localhost:8080"))
+
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-coordinator-config",
@@ -106,8 +119,8 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 			Labels:    labels,
 		},
 		Data: map[string]string{
-			"jvm.config":        "-server\n-Xmx2G\n-XX:+UseG1GC",
-			"config.properties": "node.environment=test\nhttp-server.http.port=8080\n\ndiscovery-server.enabled=true\ndiscovery.uri=http://localhost:8080",
+			"jvm.config":        jvmConfigBuilder.String(),
+			"config.properties": configPropsBuilder.String(),
 		},
 	}
 }

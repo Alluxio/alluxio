@@ -27,9 +27,20 @@ import (
 type PrestoClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
+	Image           string          `json:"image"`
+	CoordinatorSpec CoordinatorSpec `json:"coordinatorSpec"`
 	// WorkerNum is the number of presto workers in the presto cluster.
 	WorkerNum int32 `json:"size"`
+}
+
+type CoordinatorSpec struct {
+	Memory               string            `json:"memory"`
+	CpuCores             int32             `json:"cpuCores"`
+	JvmXmx               string            `json:"jvmXmx"`
+	AdditionalJvmOptions string            `json:"AdditionalJvmOptions"`
+	HttpPort             int32             `json:"httpPort"`
+	Environment          string            `json:"environment"`
+	AdditionalConfigs    map[string]string `json:"additionalConfigs"`
 }
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
