@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Tests {@link CliRunnerTest}.
@@ -161,6 +162,8 @@ public final class CliRunnerTest {
     int fileNameLength = 5;
     List<URIStatus>  filePath = createURIStatuses(fileCountLimit, fileNameLength);
     long expectedFileSize = filePath.size() * DEFAULT_FILE_SIZE;
+    String expectedFilePath = filePath.stream()
+            .map(URIStatus::getPath).collect(Collectors.joining(","));
 
     CmdRunAttempt attempt = new CmdRunAttempt(new CountingRetry(3), mJobMaster);
     mockStatic(DistributedCmdMetrics.class);
@@ -170,6 +173,7 @@ public final class CliRunnerTest {
     mLoadRunner.setJobConfigAndFileMetrics(filePath, 1, Collections.EMPTY_SET,
             Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, false, attempt);
     Assert.assertEquals(attempt.getFileSize(), expectedFileSize);
+    Assert.assertEquals(attempt.getFilePath(), expectedFilePath);
   }
 
   @Test
@@ -227,6 +231,8 @@ public final class CliRunnerTest {
     int fileNameLength = 5;
     List<Pair<String, String>> filePath = createFilePaths(fileCountLimit, fileNameLength);
     long expectedFileSize = filePath.size() * DEFAULT_FILE_SIZE;
+    String expectedFilePath = filePath.stream()
+            .map(Pair::getFirst).collect(Collectors.joining(","));
 
     CmdRunAttempt attempt = new CmdRunAttempt(new CountingRetry(3), mJobMaster);
     mockStatic(DistributedCmdMetrics.class);
@@ -235,6 +241,7 @@ public final class CliRunnerTest {
             .thenReturn(DEFAULT_FILE_SIZE);
     mMigrateRunner.setJobConfigAndFileMetrics(filePath, false, WriteType.THROUGH, attempt);
     Assert.assertEquals(attempt.getFileSize(), expectedFileSize);
+    Assert.assertEquals(attempt.getFilePath(), expectedFilePath);
   }
 
   private List<Pair<String, String>> createFilePaths(int fileCountLimit, int nameLength) {

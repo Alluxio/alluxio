@@ -76,16 +76,21 @@ public class ProtoUtils {
    * @return {@link CmdStatusBlock}
    * @throws IOException if result can't be deserialized
    */
-  public static CmdStatusBlock convertToCmdStatusBlock(
+  public static CmdStatusBlock protoToCmdStatusBlock(
           alluxio.grpc.CmdStatusBlock cmdStatusBlock) throws IOException {
     List<SimpleJobStatusBlock> simpleJobStatusBlockList = Lists.newArrayList();
     List<alluxio.grpc.JobStatusBlock> blocks = cmdStatusBlock
             .getJobStatusBlockList();
     for (JobStatusBlock block : blocks) {
       simpleJobStatusBlockList
-              .add(new SimpleJobStatusBlock(block.getJobId(), fromProto(block.getJobStatus())));
+              .add(new SimpleJobStatusBlock(
+                      block.getJobId(),
+                      fromProto(block.getJobStatus()),
+                      block.getFilePath(),
+                      block.getFilePathFailed()));
     }
-    return new CmdStatusBlock(cmdStatusBlock.getJobControlId(), simpleJobStatusBlockList);
+    return new CmdStatusBlock(cmdStatusBlock.getJobControlId(),
+            simpleJobStatusBlockList, cmdStatusBlock.getOperationType());
   }
 
   private ProtoUtils() {} // prevent instantiation

@@ -301,12 +301,15 @@ public final class CmdJobTrackerTest {
   public void testGetCmdStatusBlock() throws Exception {
     CmdInfo cmdInfo = new CmdInfo(mMigrateJobId, OperationType.DIST_CP,
             JobSource.CLI, System.currentTimeMillis(), Lists.newArrayList());
-    CmdStatusBlock expectedStatusBlock = new CmdStatusBlock(mMigrateJobId);
+    CmdStatusBlock expectedStatusBlock = new CmdStatusBlock(mMigrateJobId, OperationType.DIST_CP);
 
-    addJobStatusBlockWithStatus(Status.COMPLETED, cmdInfo, REPEATED_ATTEMPT_COUNT,
-            expectedStatusBlock);
-    addJobStatusBlockWithStatus(Status.RUNNING, cmdInfo, REPEATED_ATTEMPT_COUNT,
-            expectedStatusBlock);
+    int completedCount = REPEATED_ATTEMPT_COUNT;
+    int runningCount = REPEATED_ATTEMPT_COUNT;
+    int offset = completedCount;
+    addJobStatusBlockWithStatus(Status.COMPLETED, cmdInfo, completedCount,
+            expectedStatusBlock, 0);
+    addJobStatusBlockWithStatus(Status.RUNNING, cmdInfo, runningCount,
+            expectedStatusBlock, offset);
 
     prepareDistCpTest(cmdInfo, mMigrate, mMigrateJobId);
 
@@ -424,14 +427,16 @@ public final class CmdJobTrackerTest {
   }
 
   private void addJobStatusBlockWithStatus(
-          Status status, CmdInfo cmdInfo, int number, CmdStatusBlock cmdStatusBlock) {
+          Status status, CmdInfo cmdInfo, int number, CmdStatusBlock cmdStatusBlock, int offset) {
     for (int i = 0; i < number; i++) {
       CmdRunAttempt attempt = mock(CmdRunAttempt.class);
-      long jobId = (long) i;
-      when(attempt.getJobId()).thenReturn(jobId); //sequential job ids.
+      String filePath = String.format("filePath-%s", i + offset);
+      when(attempt.getJobId()).thenReturn((long) (i + offset)); //sequential job ids.
       when(attempt.checkJobStatus()).thenReturn(status);
+      when(attempt.getFilePath()).thenReturn(filePath);
       cmdInfo.addCmdRunAttempt(attempt);
-      cmdStatusBlock.addJobStatusBlock(new SimpleJobStatusBlock(jobId, status));
+      cmdStatusBlock.addJobStatusBlock(new SimpleJobStatusBlock(
+              (long) (i + offset), status, filePath, ""));
     }
   }
 }
