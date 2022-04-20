@@ -63,8 +63,8 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		logger.Error(err, "Failed to get Presto Cluster")
 	}
 
-	isCoordinatorConfigChanged, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
-	logger.Info("Checking config", "isConfigChanged", isCoordinatorConfigChanged)
+	latestConfigVersion, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
+	logger.Info("Checking config", "latestConfigVersion", latestConfigVersion)
 	if err != nil {
 		logger.Error(err, "Failed to get ConfigMap of the coordinator")
 		return ctrl.Result{}, err
@@ -76,8 +76,9 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 	if coordinatorDeployment == nil {
-		dep := r.deploymentForPrestoCoordinator(prestoCluster)
-		logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+		dep := r.deploymentForPrestoCoordinator(prestoCluster, latestConfigVersion)
+		logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace,
+			"Deployment.Name", dep.Name, "Config version", latestConfigVersion)
 		err = r.Create(ctx, dep)
 		if err != nil {
 			logger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
@@ -85,8 +86,10 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 		// Deployment created successfully - return and requeue
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-	} else if isCoordinatorConfigChanged {
-		logger.Info("The config of coordinator changed, deleting the old coordinator")
+	} else if latestConfigVersion != coordinatorDeployment.Annotations["config_version"] {
+		logger.Info("The config of coordinator changed, deleting the old coordinator",
+			"new config version", latestConfigVersion,
+			"old config version", coordinatorDeployment.Annotations["config_version"])
 		err := r.Delete(ctx, coordinatorDeployment)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -132,34 +135,35 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	}
 }
 
-func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (bool, error) {
+func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (string, error) {
 	configMap := newConfigMap(instance)
 
 	// Set presto instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, configMap, r.Scheme); err != nil {
-		return false, err
+		return "", err
 	}
 
 	// Check if this ConfigMap already exists
-	foundMap := &corev1.ConfigMap{}
-	err := r.Get(ctx, types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, foundMap)
+	existingMap := &corev1.ConfigMap{}
+	err := r.Get(ctx, types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, existingMap)
 	if err != nil && errors.IsNotFound(err) {
 		err = r.Create(ctx, configMap)
 		if err != nil {
-			return false, err
+			return "", err
 		}
+		return configMap.ResourceVersion, nil
 	} else if err != nil {
-		return false, err
+		return "", err
 	}
 
-	if !reflect.DeepEqual(foundMap.Data, configMap.Data) {
+	if !reflect.DeepEqual(existingMap.Data, configMap.Data) {
 		err = r.Update(ctx, configMap)
 		if err != nil {
-			return false, err
+			return "", err
 		}
-		return true, nil
+		return configMap.ResourceVersion, nil
 	}
-	return false, nil
+	return existingMap.ResourceVersion, nil
 }
 
 func (r *PrestoClusterReconciler) createService(ctx context.Context, m *alluxiocomv1alpha1.PrestoCluster) error {
@@ -212,13 +216,14 @@ func (r *PrestoClusterReconciler) getDeployment(ctx context.Context, name string
 }
 
 // deploymentForMemcached returns a memcached Deployment object
-func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster) *appsv1.Deployment {
+func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster, latestConfigVersion string) *appsv1.Deployment {
 	labels := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator"}
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name + "-coordinator",
-			Namespace: m.Namespace,
+			Name:        m.Name + "-coordinator",
+			Namespace:   m.Namespace,
+			Annotations: map[string]string{"config_version": latestConfigVersion},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
