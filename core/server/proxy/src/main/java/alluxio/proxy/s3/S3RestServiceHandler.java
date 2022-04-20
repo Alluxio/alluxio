@@ -632,7 +632,6 @@ public final class S3RestServiceHandler {
         }
       }
       if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
-        // TODO(czhu): URL-decode the tagging header
         // Header user-metadata size limit validation (<= 2 KB)
         // - https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html
         if (mMaxHeaderMetadataSize > 0
@@ -739,7 +738,6 @@ public final class S3RestServiceHandler {
           throw S3RestUtils.toObjectS3Exception(e, objectPath);
         }
       } else { // CopyObject
-        // TODO(czhu): URL-decode the copy source path
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
             ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
         URIStatus status = null;
