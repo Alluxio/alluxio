@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
+	"time"
 )
 
 // PrestoClusterReconciler reconciles a PrestoCluster object
@@ -63,6 +64,7 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	isCoordinatorConfigChanged, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
+	logger.Info("Checking config", "isConfigChanged", isCoordinatorConfigChanged)
 	if err != nil {
 		logger.Error(err, "Failed to get ConfigMap of the coordinator")
 		return ctrl.Result{}, err
@@ -82,16 +84,15 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			return ctrl.Result{}, err
 		}
 		// Deployment created successfully - return and requeue
-		return ctrl.Result{}, nil
-	}
-
-	if isCoordinatorConfigChanged {
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	} else if isCoordinatorConfigChanged {
 		logger.Info("The config of coordinator changed, deleting the old coordinator")
 		err := r.Delete(ctx, coordinatorDeployment)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, nil
+		// Deployment deleted successfully - return and requeue
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 	}
 
 	err = r.createService(ctx, prestoCluster)
@@ -267,5 +268,6 @@ func (r *PrestoClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&alluxiocomv1alpha1.PrestoCluster{}).
 		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.ConfigMap{}).
 		Complete(r)
 }
