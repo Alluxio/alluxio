@@ -457,10 +457,10 @@ public class UfsStatusCacheTest {
     final Counter cacheSizeTotal = DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL;
 
     AlluxioURI path0 = new AlluxioURI("/dir/0");
-    UfsStatus stat0 = mockUfsStatusWithName("0");
+    UfsStatus stat0 = createUfsStatusWithName("0");
 
     AlluxioURI path1 = new AlluxioURI("/dir/1");
-    UfsStatus stat1 = mockUfsStatusWithName("1");
+    UfsStatus stat1 = createUfsStatusWithName("1");
 
     AlluxioURI path2 = new AlluxioURI("/dir/2");
 
@@ -499,13 +499,13 @@ public class UfsStatusCacheTest {
         DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL;
 
     AlluxioURI path = new AlluxioURI("/dir");
-    UfsStatus status = mockUfsStatusWithName("dir");
+    UfsStatus status = createUfsStatusWithName("dir");
     mCache.addStatus(path, status);
 
     // add a 3-children list
     List<UfsStatus> statusList = ImmutableList.of("1", "2", "3")
         .stream()
-        .map(UfsStatusCacheTest::mockUfsStatusWithName)
+        .map(UfsStatusCacheTest::createUfsStatusWithName)
         .collect(Collectors.toList());
     mCache.addChildren(path, statusList);
     assertEquals(4, cacheSizeTotal.getCount());
@@ -514,7 +514,7 @@ public class UfsStatusCacheTest {
     // replace with a 4-children list
     statusList = ImmutableList.of("1", "2", "3", "4")
         .stream()
-        .map(UfsStatusCacheTest::mockUfsStatusWithName)
+        .map(UfsStatusCacheTest::createUfsStatusWithName)
         .collect(Collectors.toList());
     mCache.addChildren(path, statusList);
     assertEquals(5, cacheSizeTotal.getCount());
@@ -530,10 +530,8 @@ public class UfsStatusCacheTest {
     assertEquals(0, cacheChildrenSizeTotal.getCount());
   }
 
-  private static UfsStatus mockUfsStatusWithName(String name) {
-    UfsStatus status = Mockito.mock(UfsStatus.class);
-    when(status.getName()).thenReturn(name);
-    return status;
+  private static UfsStatus createUfsStatusWithName(String name) {
+    return new UfsFileStatus(name, "hash", 0, 0L, "owner", "group", (short) 0, null, 0);
   }
 
   /**
