@@ -13,12 +13,10 @@ package alluxio.cli.fs.command;
 
 import alluxio.ClientContext;
 import alluxio.cli.fs.command.job.JobAttempt;
+import alluxio.cli.util.DistributedCommandUtil;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.grpc.OperationType;
 import alluxio.job.CmdConfig;
-import alluxio.job.wire.CmdStatusBlock;
-import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 import alluxio.worker.job.JobMasterClientContext;
@@ -32,7 +30,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -136,7 +133,6 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
    * @param jobControlId
    */
   public void waitForCmd(long jobControlId) {
-    boolean error = false;
     while (true) {
       try {
         Status check = mClient.getCmdStatus(jobControlId);
@@ -152,99 +148,36 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
           break;
         }
       } catch (IOException e) {
-        error = true;
-        System.out.println(String.format("Unable to get command status for %s."
-                + "For distributedLoad, the files may already be loaded in Alluxio."
-                + "For distributedCp, please check file source contains files or not."
+        System.out.println(String.format("Unable to get running status for command %s."
+                + " For distributedLoad, the files may already be loaded in Alluxio."
+                + " For distributedCp, please check file source contains files or not."
                 + " Please retry using `getCmdStatus` to check command detailed status,"
-                + " or using `fs ls` command to check if the files are already loaded."
-                + "%n", jobControlId));
+                + " or using `fs ls` command to check if the files are already loaded.",
+                jobControlId));
         break;
       }
       CommonUtils.sleepMs(5);
     }
-
-    if (!error) {
-      try {
-        getDetailedCmdStatus(jobControlId);
-        System.out.format("Finished running the command, jobControlId = %s%n",
-                jobControlId);
-      } catch (IOException e) {
-        System.out.println(String.format("Unable to get detailed command status for %s,"
-            + "the files may already be loaded in Alluxio or file souce may not contain files"
-            + "%n", jobControlId));
-      }
-    }
   }
 
   /**
-   * Get detailed information about a command.
+   * Do post-processing on the command information, including printing
+   * file paths and statistics.
    * @param jobControlId
    */
-  protected void getDetailedCmdStatus(long jobControlId) throws IOException {
-    CmdStatusBlock cmdStatus = mClient.getCmdStatusDetailed(jobControlId);
-    List<SimpleJobStatusBlock> blockList = cmdStatus.getJobStatusBlock();
-
-    List<SimpleJobStatusBlock> failedBlocks = blockList.stream()
-            .filter(block -> {
-              String failed = block.getFilesPathFailed();
-              if (failed.equals("") || failed == null) {
-                return false;
-              }
-              return true;
-            }).collect(Collectors.toList());
-
-    failedBlocks.forEach(block -> {
-      String[] files = block.getFilesPathFailed().split(",");
-      mFailedFiles.addAll(Arrays.asList(files));
-    });
-
-    mFailedCount = mFailedFiles.size();
-
-    List<SimpleJobStatusBlock> nonEmptyPathBlocks = blockList.stream()
-            .filter(block -> {
-              String path = block.getFilePath();
-              if (path.equals("") || path == null) {
-                return false;
-              }
-              return true;
-            }).collect(Collectors.toList());
-
+  public void postProcessing(long jobControlId) {
     List<String> completedFiles = Lists.newArrayList();
-
-    nonEmptyPathBlocks.stream().forEach(block -> {
-      String[] paths = block.getFilePath().split(",");
-      for (String path: paths) {
-        if (!mFailedFiles.contains(path)) {
-          completedFiles.add(path);
-        }
-      }
-    });
-
-    mCompletedCount = completedFiles.size();
-    OperationType operationType = cmdStatus.getOperationType();
-    String printKeyWord;
-    if (operationType.equals(OperationType.DIST_LOAD)) {
-      printKeyWord = "loaded";
-    } else if (operationType.equals(OperationType.DIST_CP)) {
-      printKeyWord = "copied";
-    } else {
-      printKeyWord = "processed";
-    }
-
-    if (cmdStatus.getJobStatusBlock().isEmpty()) {
-      System.out.format("Unable to get command status for jobControlId=%s, please retry"
-                + " or use `fs ls` command to check if files are already loaded in Alluxio.%n",
+    try {
+      DistributedCommandUtil
+              .getDetailedCmdStatus(jobControlId, mClient, mFailedFiles, completedFiles);
+      mCompletedCount = completedFiles.size();
+      mFailedCount = mFailedFiles.size();
+      System.out.format("Finished running the command, jobControlId = %s%n",
               jobControlId);
-    } else {
-      System.out.format("Get command status information below: %n");
-
-      completedFiles.forEach(file -> {
-        System.out.format("Successfully %s path %s%n", printKeyWord, file);
-      });
-
-      System.out.format("Total completed file count is %s, failed file count is %s%n",
-              mCompletedCount, mFailedCount);
+    } catch (IOException e) {
+      System.out.println(String.format("Unable to get detailed command information for command %s,"
+              + " the files may already be loaded in Alluxio or file souce may not contain files"
+              + "%n", jobControlId));
     }
   }
 
@@ -270,8 +203,6 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       System.out.println(e.getMessage());
     }
   }
-
-  //private List<T>
 
   /**
    * Gets the number of completed jobs.

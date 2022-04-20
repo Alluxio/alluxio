@@ -143,6 +143,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       System.out.format("Submitted successfully, jobControlId = %s%n"
               + "Waiting for the command to finish ...%n", jobControlId.toString());
       waitForCmd(jobControlId);
+      postProcessing(jobControlId);
     } else {
       System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
               jobControlId.toString());

@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.cli.fs.command;
+package alluxio.client.cli.job;
 
 import alluxio.cli.fs.FileSystemShell;
+import alluxio.cli.job.command.GetCmdStatusCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -32,7 +33,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 
 /**
- * Tests for getting cmd status {@link alluxio.cli.fs.command.GetCmdStatusCommand}.
+ * Tests for getting cmd status {@link GetCmdStatusCommand}.
  */
 public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
   @Rule
@@ -76,7 +77,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String jobControlId = output[1].split("=\\s+")[1];
 
     mOutput.reset();
-    sFsShell.run("getCmdStatus", jobControlId);
+    sJobShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testRoot/testFileA\n"));
@@ -98,7 +99,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String[] output = mOutput.toString().split("\n");
     String jobControlId = output[1].split("=\\s+")[1];
     mOutput.reset();
-    sFsShell.run("getCmdStatus", jobControlId);
+    sJobShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testBatchRoot/testBatchFileA\n"));
     Assert.assertTrue(mOutput.toString().contains(

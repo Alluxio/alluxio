@@ -337,6 +337,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         System.out.format("Submitted successfully, jobControlId = %s%n"
                 + "Waiting for the command to finish ...%n", jobControlId.toString());
         waitForCmd(jobControlId);
+        postProcessing(jobControlId);
       } else {
         System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
                 jobControlId.toString());
@@ -351,6 +352,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
             System.out.format("Submitted successfully, jobControlId = %s%n"
                     + "Waiting for the command to finish ...%n", jobControlId.toString());
             waitForCmd(jobControlId);
+            postProcessing(jobControlId);
           } else {
             System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
                     jobControlId.toString());

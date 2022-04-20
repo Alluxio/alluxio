@@ -253,8 +253,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           mResult.setRecordStartMs(mContext.getStartMs());
           long startNs = System.nanoTime();
           // send distributed load task to job service and wait for result
-          runDistributedLoad(dirPath);
-          long endNs = System.nanoTime();
+          long endNs = runDistributedLoad(dirPath);
           // record response times
           recordResponseTimeInfo(startNs, endNs);
           break;
@@ -306,18 +305,22 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private void runDistributedLoad(String dirPath) throws AlluxioException, IOException {
+    private long runDistributedLoad(String dirPath) throws AlluxioException, IOException {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
+      long stopTime;
       try {
         long jobControlId = cmd.runDistLoad(new AlluxioURI(dirPath),
                 numReplication, mParameters.mBatchSize,
                 new HashSet<>(), new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), false);
         cmd.waitForCmd(jobControlId);
+        stopTime = System.nanoTime();
+        cmd.postProcessing(jobControlId);
       } finally {
         mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
+      return stopTime;
     }
 
     private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
