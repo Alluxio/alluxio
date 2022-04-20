@@ -66,10 +66,50 @@ public final class NetworkAddressUtils {
   private NetworkAddressUtils() {}
 
   /**
+   * An interface to get service attributes.
+   */
+  public interface ServiceAttributeProvider {
+    /**
+     * Gets service name.
+     *
+     * @return service name
+     */
+    String getServiceName();
+
+    /**
+     * Gets the key of connect hostname.
+     *
+     * @return key of connect hostname
+     */
+    PropertyKey getHostNameKey();
+
+    /**
+     * Gets the key of bind hostname.
+     *
+     * @return key of bind hostname
+     */
+    PropertyKey getBindHostKey();
+
+    /**
+     * Gets the key of service port.
+     *
+     * @return key of service port
+     */
+    PropertyKey getPortKey();
+
+    /**
+     * Gets the default port number on service.
+     *
+     * @return default port
+     */
+    int getDefaultPort();
+  }
+
+  /**
    * Different types of services that client uses to connect. These types also indicate the service
    * bind address.
    */
-  public enum ServiceType {
+  public enum ServiceType implements ServiceAttributeProvider {
     /**
      * FUSE web service (Jetty).
      */
@@ -238,8 +278,8 @@ public final class NetworkAddressUtils {
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
-  public static InetSocketAddress getConnectAddress(ServiceType service,
-      AlluxioConfiguration conf) {
+  public static InetSocketAddress getConnectAddress(ServiceAttributeProvider service,
+                                                    AlluxioConfiguration conf) {
     return InetSocketAddress.createUnresolved(getConnectHost(service, conf),
         getPort(service, conf));
   }
@@ -298,15 +338,15 @@ public final class NetworkAddressUtils {
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service, AlluxioConfiguration conf) {
-    if (conf.isSet(service.mHostNameKey)) {
-      String connectHost = conf.getString(service.mHostNameKey);
+  public static String getConnectHost(ServiceAttributeProvider service, AlluxioConfiguration conf) {
+    if (conf.isSet(service.getHostNameKey())) {
+      String connectHost = conf.getString(service.getHostNameKey());
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (conf.isSet(service.mBindHostKey)) {
-      String bindHost = conf.getString(service.mBindHostKey);
+    if (conf.isSet(service.getBindHostKey())) {
+      String bindHost = conf.getString(service.getBindHostKey());
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
@@ -325,8 +365,8 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the service port number
    */
-  public static int getPort(ServiceType service, AlluxioConfiguration conf) {
-    return conf.getInt(service.mPortKey);
+  public static int getPort(ServiceAttributeProvider service, AlluxioConfiguration conf) {
+    return conf.getInt(service.getPortKey());
   }
 
   /**
@@ -336,7 +376,8 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the InetSocketAddress the service will bind to
    */
-  public static InetSocketAddress getBindAddress(ServiceType service, AlluxioConfiguration conf) {
+  public static InetSocketAddress getBindAddress(ServiceAttributeProvider service,
+                                                 AlluxioConfiguration conf) {
     int port = getPort(service, conf);
     assertValidPort(port);
     return new InetSocketAddress(getBindHost(service, conf), getPort(service, conf));
@@ -356,9 +397,10 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the bind hostname
    */
-  public static String getBindHost(ServiceType service, AlluxioConfiguration conf) {
-    if (conf.isSet(service.mBindHostKey) && !conf.getString(service.mBindHostKey).isEmpty()) {
-      return conf.getString(service.mBindHostKey);
+  public static String getBindHost(ServiceAttributeProvider service, AlluxioConfiguration conf) {
+    if (conf.isSet(service.getBindHostKey())
+            && !conf.getString(service.getBindHostKey()).isEmpty()) {
+      return conf.getString(service.getBindHostKey());
     } else {
       return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
