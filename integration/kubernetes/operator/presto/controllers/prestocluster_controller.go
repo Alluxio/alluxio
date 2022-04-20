@@ -108,9 +108,8 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	jvmConfigBuilder.WriteString(cr.Spec.CoordinatorSpec.AdditionalJvmOptions)
 
 	var configPropsBuilder strings.Builder
-	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.CoordinatorSpec.Environment))
-	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
-	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=%s\n", "http://localhost:8080"))
+	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
+	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

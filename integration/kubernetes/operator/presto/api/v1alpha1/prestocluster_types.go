@@ -28,6 +28,7 @@ type PrestoClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Image           string          `json:"image"`
+	Environment     string          `json:"environment,omitempty"`
 	CoordinatorSpec CoordinatorSpec `json:"coordinatorSpec"`
 	// WorkerNum is the number of presto workers in the presto cluster.
 	WorkerNum int32 `json:"size"`
@@ -39,7 +40,6 @@ type CoordinatorSpec struct {
 	JvmXmx               string            `json:"jvmXmx,omitempty"`
 	AdditionalJvmOptions string            `json:"AdditionalJvmOptions,omitempty"`
 	HttpPort             int32             `json:"httpPort"`
-	Environment          string            `json:"environment,omitempty"`
 	AdditionalConfigs    map[string]string `json:"additionalConfigs,omitempty"`
 }
 

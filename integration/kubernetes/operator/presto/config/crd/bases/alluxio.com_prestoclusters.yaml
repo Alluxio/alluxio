@@ -46,8 +46,6 @@ spec:
                   cpuCores:
                     format: int32
                     type: integer
-                  environment:
-                    type: string
                   httpPort:
                     format: int32
                     type: integer
@@ -60,6 +58,8 @@ spec:
                 - httpPort
                 - memory
                 type: object
+              environment:
+                type: string
               image:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
