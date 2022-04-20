@@ -65,7 +65,7 @@ $ ./bin/alluxio fs mkdir /ml-100k
 $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
 
-View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
+View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive
 creates:
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png' | relativize_url }})
@@ -124,7 +124,7 @@ And you can see the query results from console:
 
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
-In this example, we assume a HDFS cluster is mounted as the under storage of
+In this example, we assume an HDFS cluster is mounted as the under storage of
 Alluxio root directory (i.e., property `alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
 [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }})
@@ -259,7 +259,8 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
 please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
 
-If Hive is set up by adding the above HA mode configuration, one can write URIs using the "`alluxio://`" scheme:
+If the master RPC addresses are specified in one of the configuration files listed above,
+you can omit the authority part in Alluxio URIs:
 
 ```
 hive> alter table u_user set location "alluxio:///ml-100k";
@@ -268,11 +269,11 @@ hive> alter table u_user set location "alluxio:///ml-100k";
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
 See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
-### Experimental: Use Alluxio as the Default Filesystem
+### Experimental: Use Alluxio as the Default File System
 
 This section talks about how to use Alluxio as the default file system for Hive.
 Apache Hive can also use Alluxio through a generic file system interface to replace the
-Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
+Hadoop file system. In this way, Hive uses Alluxio as the default file system and its internal
 metadata and intermediate results will be stored in Alluxio by default.
 
 #### Configure Hive
@@ -288,7 +289,7 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 
 #### Using Alluxio with Hive
 
-Create Directories in Alluxio for Hive:
+Create directories in Alluxio for Hive:
 
 ```console
 $ ./bin/alluxio fs mkdir /tmp
@@ -322,7 +323,7 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
+View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive
 creates:
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png' | relativize_url }})
