@@ -99,6 +99,11 @@ public class UfsStatusCache {
           String.format("path name %s does not match ufs status name %s",
               path.getName(), status.getName()));
     }
+    return addStatusUnchecked(path, status);
+  }
+
+  // unchecked: path and status must have the same name
+  private UfsStatus addStatusUnchecked(AlluxioURI path, UfsStatus status) {
     mAbsentCache.processExisting(path);
     UfsStatus previousStatus = mStatuses.put(path, status);
     if (previousStatus == null) {
@@ -121,7 +126,8 @@ public class UfsStatusCache {
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
-      addStatus(childPath, child);
+      // childPath is derived from its UFS status, therefore has the same name
+      addStatusUnchecked(childPath, child);
     });
     Collection<UfsStatus> previousStatuses = mChildren.put(path, children);
     // Update global counters for all InodeSyncStream
@@ -146,9 +152,12 @@ public class UfsStatusCache {
       // Update global counters for all InodeSyncStream
       DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec();
     }
-    int childrenCnt = mChildren.containsKey(path) ? mChildren.get(path).size() : 0;
-    DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(childrenCnt);
-    mChildren.remove(path); // ok if there aren't any children
+    Collection<UfsStatus> removedChildren = mChildren.remove(path);
+    if (removedChildren != null) {
+      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec(removedChildren.size());
+      DefaultFileSystemMaster.Metrics
+          .UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(removedChildren.size());
+    }
     return removed;
   }
 
