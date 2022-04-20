@@ -813,10 +813,12 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service. In sync mode which is the default mode, user will get a JOB_CONTROL_ID after the command submits successfully.
-User need to wait for the command to finish. When the command finishes, user will be able to see the file copy status and statistics on completion/failure in sync mode.
-In async mode user will get a JOB_CONTROL_ID after the command submission is successful. The command execution happens asynchronously on the Job Master side.
-User can use `getCmdStatus` to check detailed status information on the JOB_CONTROL_ID.
+using the job service. By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files copied and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish. 
+Users can use the [`getCmdStatus`](#getCmdStatus) [`getCmdStatus`]({{ '/en/operation/User-CLI.html' | relativize_url }}#getCmdStatus)
+command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -854,10 +856,12 @@ Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
 across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
-In sync mode which is the default mode, user will get a JOB_CONTROL_ID after the command submits successfully.
-User need to wait for the command to finish. When the command finishes, user will be able to see the file loading status and statistics on completion/failure in sync mode.
-In async mode user will get a JOB_CONTROL_ID after the command submission is successful. The command execution happens asynchronously on the Job Master side.
-User can use `getCmdStatus` to check detailed status information on the JOB_CONTROL_ID.
+By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files loaded and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish.
+Users can use the [`getCmdStatus`](#getCmdStatus) [`getCmdStatus`]({{ '/en/operation/User-CLI.html' | relativize_url }}#getCmdStatus)
+command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
