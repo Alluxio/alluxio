@@ -813,7 +813,11 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
+using the job service. By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files copied and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish. 
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -823,15 +827,39 @@ Later jobs must wait until some earlier jobs to finish. The default value is `30
 A lower value means slower execution but also being nicer to the other users of the job service.
 * `--overwrite`: Whether to overwrite the destination. Default is true.
 * `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
-* `--wait`: true or false specifies whether to wait for command execution to finish. If not explicitly shown then default to wait (true).
+* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_1
+Waiting for the command to finish ...
+Get command status information below:
+Successfully copied path /data/1023/$FILE_PATH_1
+Successfully copied path /data/1023/$FILE_PATH_2
+Successfully copied path /data/1023/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_1
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedCp /data/1023 /data/1025 --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
 ```
 
 ### distributedLoad
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
-across workers using the job service. The job is a no-op if the file is already loaded into Alluxio. User will get a job control ID after the command submission is successful in async mode. In sync mode, user will get a job control Id after the command finishes.
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
+By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files loaded and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish.
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -853,10 +881,29 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
 * `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
-* `--wait`: true or false specifies whether to wait for command execution to finish. If not explicitly shown then default to wait (true).
+* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_3
+Waiting for the command to finish ...
+Get command status information below:
+Successfully loaded path /data/today/$FILE_PATH_1
+Successfully loaded path /data/today/$FILE_PATH_2
+Successfully loaded path /data/today/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_3
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedLoad /data/today --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted distLoad job successfully, jobControlId = JOB_CONTROL_ID_4
 ```
 
 Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
@@ -975,6 +1022,25 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 ```console
 $ ./bin/alluxio fs getCapacityBytes
+```
+
+### getCmdStatus
+
+The `getCmdStatus` command returns the detailed distributed command status based on a given JOB_CONTROL_ID.
+The detailed status includes:
+1. Successfully loaded or copied file paths.
+2. Statistics on the number of successful and failed file paths.
+3. Failed file paths, logged in a separate csv file.
+
+For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
+
+```console
+$ ./bin/alluxio job getCmdStatus $JOB_CONTROL_ID
+Sample Output:
+Get command status information below:
+Successfully loaded path $FILE_PATH_1
+Successfully loaded path $FILE_PATH_2
+Total completed file count is 2, failed file count is 0
 ```
 
 ### getfacl
