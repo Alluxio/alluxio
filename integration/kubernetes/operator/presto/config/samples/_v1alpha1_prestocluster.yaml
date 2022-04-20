@@ -10,4 +10,7 @@ spec:
     cpuCores: 4
     httpPort: 8080
     AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
+    additionalConfigs:
+      "discovery-server.enabled" : "true"
+      "discovery.uri" : "http://localhost:8080"
   size: 3

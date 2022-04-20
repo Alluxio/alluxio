@@ -110,6 +110,9 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	var configPropsBuilder strings.Builder
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
 	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
+	for key, value := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
+		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s", key, value))
+	}
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
