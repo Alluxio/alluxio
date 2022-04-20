@@ -348,6 +348,10 @@ public class LocalCacheManager implements CacheManager {
             PageInfo pageInfo = mMetaStore.getPageInfo(pageId);
             //file info contains the latest lastModificationTime of this file
             FileInfo fileInfo = mMetaStore.getFile(pageId.getFileId());
+            if (fileInfo == null) {
+              LOG.debug("file {} is not found, likely due to a benign race", pageId.getFileId());
+              return PutResult.BENIGN_RACING;
+            }
             // the client puts a newer page
             // or there has been newer pages of this file in cache
             if (isStale(cacheContext, pageInfo, fileInfo)) {
@@ -365,6 +369,9 @@ public class LocalCacheManager implements CacheManager {
             cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
           newPageInfo = addPageToMetaStore(pageId, page, cacheContext);
+          if (newPageInfo == null) {
+            return PutResult.BENIGN_RACING;
+          }
         } else {
           if (mQuotaEnabled) {
             victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
@@ -423,6 +430,9 @@ public class LocalCacheManager implements CacheManager {
             cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
           newPageInfo = addPageToMetaStore(pageId, page, cacheContext);
+          if (newPageInfo == null) {
+            return PutResult.BENIGN_RACING;
+          }
         }
       }
       // phase2: remove victim and add new page in pagestore
@@ -470,6 +480,9 @@ public class LocalCacheManager implements CacheManager {
     FileInfo fileInfo;
     if (mMetaStore.hasFile(pageId.getFileId())) {
       fileInfo = mMetaStore.getFile(pageId.getFileId());
+      if (fileInfo == null) {
+        return null;
+      }
       //if the expected timestamp in cacheContext is newer than the timestamp we stored in metastore
       //replace the file info in metastore.
       //else if the expected timestamp is older than the timestamp we stored,
@@ -523,6 +536,10 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
         pageInfo = mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
         fileInfo = mMetaStore.getFile(pageId.getFileId());
+        if (fileInfo == null) {
+          LOG.debug("get file {} fails due to file not found", pageId.getFileId());
+          return 0;
+        }
       } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
@@ -532,6 +549,10 @@ public class LocalCacheManager implements CacheManager {
         try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
           pageInfo = mMetaStore.getPageInfo(pageId);
           fileInfo = mMetaStore.getFile(pageId.getFileId());
+          if (fileInfo == null) {
+            LOG.debug("file {} not found.", pageId.getFileId());
+            return 0;
+          }
           if (isStale(cacheContext, pageInfo, fileInfo)) {
             mMetaStore.removePage(pageId);
           }

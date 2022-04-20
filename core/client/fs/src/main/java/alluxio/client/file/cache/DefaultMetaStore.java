@@ -80,7 +80,7 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   public FileInfo getFile(String fileId) {
-    return Preconditions.checkNotNull(mFileMap.get(fileId));
+    return mFileMap.get(fileId);
   }
 
   @Override
