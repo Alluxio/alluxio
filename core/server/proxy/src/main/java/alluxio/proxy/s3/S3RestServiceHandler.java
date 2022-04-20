@@ -205,6 +205,8 @@ public final class S3RestServiceHandler {
    * @param startAfterParam  the optional startAfter param for listObjectV2
    * @param tagging query string to indicate if this is for GetBucketTagging
    * @param acl query string to indicate if this is for GetBucketAcl
+   * @param policy query string to indicate if this is for GetBucketPolicy
+   * @param policyStatus query string to indicate if this is for GetBucketPolicyStatus
    * @return the response object
    */
   @GET
@@ -220,11 +222,29 @@ public final class S3RestServiceHandler {
                             @QueryParam("continuation-token") final String continuationTokenParam,
                             @QueryParam("start-after") final String startAfterParam,
                             @QueryParam("tagging") final String tagging,
-                            @QueryParam("acl") final String acl) {
+                            @QueryParam("acl") final String acl,
+                            @QueryParam("policy") final String policy,
+                            @QueryParam("policyStatus") final String policyStatus) {
     return S3RestUtils.call(bucket, () -> {
-      Preconditions.checkArgument(acl == null,
-          "GetBucketAcl is not currently supported.");
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+      if (acl != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "GetBucketAcl is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
+      if (policy != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "GetBucketPolicy is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
+      if (policyStatus != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "GetBucketpolicyStatus is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
       int maxKeys = maxKeysParam == null ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
       ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
           .setMarker(markerParam)
@@ -354,6 +374,7 @@ public final class S3RestServiceHandler {
    * @param bucket the bucket name
    * @param tagging query string to indicate if this is for PutBucketTagging or not
    * @param acl query string to indicate if this is for PutBucketAcl
+   * @param policy query string to indicate if this is for PutBucketPolicy
    * @param is the request body
    * @return the response object
    */
@@ -364,11 +385,22 @@ public final class S3RestServiceHandler {
                                @PathParam("bucket") final String bucket,
                                @QueryParam("tagging") final String tagging,
                                @QueryParam("acl") final String acl,
+                               @QueryParam("policy") final String policy,
                                final InputStream is) {
     return S3RestUtils.call(bucket, () -> {
-      Preconditions.checkArgument(acl == null,
-          "PutBucketAcl is not currently supported.");
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+      if (acl != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "PutBucketAcl is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
+      if (policy != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "PutBucketPolicy is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
       final FileSystem fs = getFileSystem(authorization);
       String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
           AlluxioURI.SEPARATOR, bucket));
@@ -426,16 +458,24 @@ public final class S3RestServiceHandler {
    * Deletes a bucket, or deletes all tags from an existing bucket.
    * @param authorization header parameter authorization
    * @param bucket the bucket name
-   * @param tagging query string to indicate if this is for PutObjectTagging or not
+   * @param tagging query string to indicate if this is for DeleteBucketTagging or not
+   * @param policy query string to indicate if this is for DeleteBucketPolicy or not
    * @return the response object
    */
   @DELETE
   @Path(BUCKET_PARAM)
   public Response deleteBucket(@HeaderParam("Authorization") String authorization,
                                @PathParam("bucket") final String bucket,
-                               @QueryParam("tagging") final String tagging) {
+                               @QueryParam("tagging") final String tagging,
+                               @QueryParam("policy") final String policy) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+      if (policy != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "DeleteBucketPolicy is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
       final FileSystem fs = getFileSystem(authorization);
       String bucketPath = S3RestUtils.parsePath(String.format("%s%s",
           AlluxioURI.SEPARATOR, bucket));
@@ -516,10 +556,14 @@ public final class S3RestServiceHandler {
                                            @QueryParam("acl") final String acl,
                                            final InputStream is) {
     return S3RestUtils.call(bucket, () -> {
-      Preconditions.checkArgument(acl == null,
-          "PutObjectAcl is not currently supported.");
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
       Preconditions.checkNotNull(object, "required 'object' parameter is missing");
+      if (acl != null) {
+        throw new S3Exception(object, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "PutObjectAcl is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
       Preconditions.checkArgument((partNumber == null && uploadId == null)
           || (partNumber != null && uploadId != null),
           "'partNumber' and 'uploadId' parameter should appear together or be "
@@ -769,7 +813,7 @@ public final class S3RestServiceHandler {
    * @param uploads the query parameter specifying that this request is to initiate a multipart
    *                upload instead of uploading an object through HTTP multipart forms
    * @param uploadId the ID of the multipart upload to be completed
-   * @param taggingHeader URL encoded metadata tags passed in the header
+   * @param taggingHeader the URL-encoded metadata tags passed in the header
    * @return the response object
    */
   @POST
@@ -784,13 +828,19 @@ public final class S3RestServiceHandler {
       @QueryParam("uploads") final String uploads,
       @QueryParam("uploadId") final Long uploadId,
       @HeaderParam(S3Constants.S3_TAGGING_HEADER) final String taggingHeader) {
-    Preconditions.checkArgument(taggingHeader == null,
-        "Tagging in multipart uploads is not currently supported.");
     Preconditions.checkArgument(uploads != null || uploadId != null,
         "parameter 'uploads' or 'uploadId' should exist");
     final FileSystem fileSystem = getFileSystem(authorization);
     if (uploads != null) {
       return initiateMultipartUpload(fileSystem, bucket, object);
+    } else if (taggingHeader != null) {
+      return S3RestUtils.call(bucket, () -> {
+        throw new S3Exception(object, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "Tagging in multipart uploads is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()
+        ));
+      });
     } else {
       return completeMultipartUpload(fileSystem, bucket, object, uploadId);
     }
@@ -946,8 +996,6 @@ public final class S3RestServiceHandler {
                                        @QueryParam("uploadId") final Long uploadId,
                                        @QueryParam("tagging") final String tagging,
                                        @QueryParam("acl") final String acl) {
-    Preconditions.checkArgument(acl == null,
-        "GetObjectAcl is not currently supported.");
     Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
     Preconditions.checkNotNull(object, "required 'object' parameter is missing");
     Preconditions.checkArgument(!(uploadId != null && tagging != null),
@@ -959,6 +1007,14 @@ public final class S3RestServiceHandler {
       return listParts(fs, bucket, object, uploadId);
     } else if (tagging != null) {
       return getObjectTags(fs, bucket, object);
+    } if (acl != null) {
+      return S3RestUtils.call(bucket, () -> {
+        throw new S3Exception(object, new S3ErrorCode(
+            S3ErrorCode.INTERNAL_ERROR.getCode(),
+            "GetObjectAcl is not currently supported.",
+            S3ErrorCode.INTERNAL_ERROR.getStatus()
+        ));
+      });
     } else {
       return getObject(fs, bucket, object, range);
     }
@@ -1092,7 +1148,7 @@ public final class S3RestServiceHandler {
    * @param authorization header parameter authorization
    * @param bucket the bucket name
    * @param object the object name
-   * @param tagging query string to indicate if this is for PutObjectTagging or not
+   * @param tagging query string to indicate if this is for DeleteObjectTagging or not
    * @param uploadId the upload ID which identifies the incomplete multipart upload to be aborted
    * @return the response object
    */
