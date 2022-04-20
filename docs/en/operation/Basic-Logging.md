@@ -31,8 +31,7 @@ Files suffixed with `.out` like `master.out` or `worker.out` are the redirection
 `stdout` and `stderr` of the corresponding process. 
 Fatal error messages (e.g., killed by the OS), will most likely go to these files.  
 
-The log location can be customized by setting environment variable `ALLUXIO_LOGS_DIR`
-or appending `alluxio.logs.dir` property through JVM properties (e.g. `ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=/foo"`)
+The log location can be customized by setting environment variable `ALLUXIO_LOGS_DIR`.
 See the
 [configuration settings page]({{ '/en/operation/Configuration.html' | relativize_url }}#environment-variables)
 for more information.
