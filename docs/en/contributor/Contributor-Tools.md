@@ -14,9 +14,6 @@ priority: 3
 We recommend using IntelliJ IDEA to contribute to Alluxio. Eclipse can also be used.
 Instructions for setting up both IDEs can be found below.
 
-> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
-You will need to mark the directory as a source folder for Eclipse to resolve the source files.
-
 ### IntelliJ IDEA
 
 To use IntelliJ IDEA to contribute to Alluxio, simply open IntelliJ and select "Import existing project".
@@ -177,6 +174,9 @@ You may also have to add the classpath variable `M2_REPO` by running:
 ```shell
 $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 ```
+
+> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
+You will need to mark the directory as a source folder for Eclipse to resolve the source files.
 
 ## Maven Targets and Plugins
 
