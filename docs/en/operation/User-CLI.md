@@ -817,8 +817,7 @@ using the job service. By default, the command runs synchronously and the user w
 The command will wait until the job is complete, at which point the user will see the list of files copied and statistics on which files completed or failed.
 The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
 The difference is that the command will not wait for the job to finish. 
-Users can use the [`getCmdStatus`](#getCmdStatus) [`getCmdStatus`]({{ '/en/operation/User-CLI.html' | relativize_url }}#getCmdStatus)
-command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -860,8 +859,7 @@ By default, the command runs synchronously and the user will get a `JOB_CONTROL_
 The command will wait until the job is complete, at which point the user will see the list of files loaded and statistics on which files completed or failed.
 The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
 The difference is that the command will not wait for the job to finish.
-Users can use the [`getCmdStatus`](#getCmdStatus) [`getCmdStatus`]({{ '/en/operation/User-CLI.html' | relativize_url }}#getCmdStatus)
-command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
