@@ -148,6 +148,10 @@ $ mvn clean install -pl underfs/hdfs/ \
   -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
 ```
 
+To enable active sync be sure to build using the `hdfsActiveSync` property.
+Please visit [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }})
+for more information on using active sync.
+
 If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
 
 Checkout the flags for different HDFS distributions.

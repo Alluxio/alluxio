@@ -312,6 +312,9 @@ You may need to change the value for `alluxio.underfs.version` in your configura
 Please refer to
 [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of
 supported Hdfs versions.
+If building Alluxio from source, please refer to
+[HDFS prerequisites]({{ '/en/ufs/HDFS.html#prerequisites | relativize_url}}) for instructions
+on how to build Alluxio with active sync enabled.
 
 To enable active sync on a directory, issue the following Alluxio command.
 
