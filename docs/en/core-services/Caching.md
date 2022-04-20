@@ -323,10 +323,10 @@ blocks around tiers based on block annotation policies.
 Below configuration is honoured by each individual tier management task:
 - `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. 
   (Default: the maximum value of `4` and `CPU core count`.
-  Check the up-to-date [reference]({{ 'en/reference/Properties-List.html#alluxio.worker.management.task.thread.count' | relativize_url }}).)
+  Check the up-to-date [reference]({{ '/en/reference/Properties-List.html#alluxio.worker.management.task.thread.count' | relativize_url }}).)
 - `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. 
   (Default: the maximum value of  `2` and `CPU core count / 2`. 
-  Check the up-to-date [reference]({{ 'en/reference/Properties-List.html#alluxio.worker.management.block.transfer.concurrency.limit' | relativize_url }}).)
+  Check the up-to-date [reference]({{ '/en/reference/Properties-List.html#alluxio.worker.management.block.transfer.concurrency.limit' | relativize_url }}).)
 
 #### Block Aligning (Dynamic Block Placement)
 
