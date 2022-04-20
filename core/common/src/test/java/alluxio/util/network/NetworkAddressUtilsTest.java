@@ -21,7 +21,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
-import alluxio.util.network.NetworkAddressUtils.IServiceType;
+import alluxio.util.network.NetworkAddressUtils.ServiceAttributeProvider;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
@@ -101,7 +101,8 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the
-   * {@link NetworkAddressUtils#getConnectAddress(IServiceType, alluxio.conf.AlluxioConfiguration)}
+   * {@link NetworkAddressUtils#getConnectAddress(ServiceAttributeProvider,
+   *                                              alluxio.conf.AlluxioConfiguration)}
    * method.
    */
   @Test
@@ -117,7 +118,8 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the
-   * {@link NetworkAddressUtils#getConnectAddress(IServiceType, alluxio.conf.AlluxioConfiguration)}
+   * {@link NetworkAddressUtils#getConnectAddress(ServiceAttributeProvider,
+   *                                              alluxio.conf.AlluxioConfiguration)}
    * method
    * for specific
    * service under different conditions.
@@ -188,7 +190,8 @@ public class NetworkAddressUtilsTest {
 
    /**
     * Tests the
-    * {@link NetworkAddressUtils#getBindAddress(IServiceType, alluxio.conf.AlluxioConfiguration)}
+    * {@link NetworkAddressUtils#getBindAddress(ServiceAttributeProvider,
+  *                                             alluxio.conf.AlluxioConfiguration)}
     * method.
    */
   @Test
@@ -203,7 +206,7 @@ public class NetworkAddressUtilsTest {
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getBindAddress(IServiceType,
+   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceAttributeProvider,
    * alluxio.conf.AlluxioConfiguration)} method for specific service under different conditions.
    *
    * @param service the service name used to connect

@@ -68,7 +68,7 @@ public final class NetworkAddressUtils {
   /**
    * An interface to get service attributes.
    */
-  public interface IServiceType {
+  public interface ServiceAttributeProvider {
     /**
      * Gets service name.
      *
@@ -109,7 +109,7 @@ public final class NetworkAddressUtils {
    * Different types of services that client uses to connect. These types also indicate the service
    * bind address.
    */
-  public enum ServiceType implements IServiceType {
+  public enum ServiceType implements ServiceAttributeProvider {
     /**
      * FUSE web service (Jetty).
      */
@@ -278,8 +278,8 @@ public final class NetworkAddressUtils {
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
-  public static InetSocketAddress getConnectAddress(IServiceType service,
-      AlluxioConfiguration conf) {
+  public static InetSocketAddress getConnectAddress(ServiceAttributeProvider service,
+                                                    AlluxioConfiguration conf) {
     return InetSocketAddress.createUnresolved(getConnectHost(service, conf),
         getPort(service, conf));
   }
@@ -338,7 +338,7 @@ public final class NetworkAddressUtils {
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(IServiceType service, AlluxioConfiguration conf) {
+  public static String getConnectHost(ServiceAttributeProvider service, AlluxioConfiguration conf) {
     if (conf.isSet(service.getHostNameKey())) {
       String connectHost = conf.getString(service.getHostNameKey());
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
@@ -365,7 +365,7 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the service port number
    */
-  public static int getPort(IServiceType service, AlluxioConfiguration conf) {
+  public static int getPort(ServiceAttributeProvider service, AlluxioConfiguration conf) {
     return conf.getInt(service.getPortKey());
   }
 
@@ -376,7 +376,8 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the InetSocketAddress the service will bind to
    */
-  public static InetSocketAddress getBindAddress(IServiceType service, AlluxioConfiguration conf) {
+  public static InetSocketAddress getBindAddress(ServiceAttributeProvider service,
+                                                 AlluxioConfiguration conf) {
     int port = getPort(service, conf);
     assertValidPort(port);
     return new InetSocketAddress(getBindHost(service, conf), getPort(service, conf));
@@ -396,7 +397,7 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the bind hostname
    */
-  public static String getBindHost(IServiceType service, AlluxioConfiguration conf) {
+  public static String getBindHost(ServiceAttributeProvider service, AlluxioConfiguration conf) {
     if (conf.isSet(service.getBindHostKey())
             && !conf.getString(service.getBindHostKey()).isEmpty()) {
       return conf.getString(service.getBindHostKey());
