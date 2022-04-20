@@ -576,9 +576,10 @@ public final class S3RestServiceHandler {
       Preconditions.checkArgument(!(copySourceParam != null && tagging != null),
           String.format("Only one of '%s' and 'tagging' can be set.",
               S3Constants.S3_COPY_SOURCE_HEADER));
-      Preconditions.checkArgument(!(copySourceParam != null && acl != null),
-          String.format("Must use the header \"%s\" to provide ACL for CopyObject.",
-              S3Constants.S3_ACL_HEADER));
+      // Uncomment the following check when supporting ACLs
+      // Preconditions.checkArgument(!(copySourceParam != null && acl != null),
+      //     String.format("Must use the header \"%s\" to provide ACL for CopyObject.",
+      //         S3Constants.S3_ACL_HEADER));
       String contentType = contentTypeParam == null ? MediaType.APPLICATION_OCTET_STREAM
           : contentTypeParam;
 
@@ -750,9 +751,7 @@ public final class S3RestServiceHandler {
               filePOptions.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
         } else { // defaults to COPY
           try {
-            if (status == null) {
-              status = fs.getStatus(new AlluxioURI(copySource));
-            }
+            status = fs.getStatus(new AlluxioURI(copySource));
             if (status.getFileInfo().getXAttr() != null) {
               copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
                   ByteString.copyFrom(status.getFileInfo().getXAttr().getOrDefault(
