@@ -14,7 +14,7 @@ Alluxio.
 
 > Note: this doc is not intended to be the full list of Alluxio questions.
 Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
-developers, or post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
+developers, or post questions on [Github issues](https://github.com/Alluxio/alluxio/issues).
 
 ## Where are the Alluxio logs?
 
@@ -26,7 +26,7 @@ stdout and stderr of the corresponding process.
 
 The master and worker logs are useful to understand what the Alluxio Master and
 Workers are doing, especially when running into any issues. If you do not understand the error messages,
-search for them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
+search for them in the [Github issues](https://github.com/Alluxio/alluxio/issues),
 in the case the problem has been discussed before. 
 You can also join our [Slack channel](https://slackin.alluxio.io/) and seek help there.
 You can find more details about the Alluxio server logs [here]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}).
@@ -51,10 +51,11 @@ will need to set the JVM remote debugging parameters before starting the process
 the remote debugging parameters; you can export the following configuration properties in shell or `conf/alluxio-env.sh`:
 
 ```shell
-# Java 5 through 8
+# Java 8
 export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
 export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
-# Java 9 and up
+# Java 11
+
 export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60001"
 export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60002"
 ```
@@ -70,13 +71,13 @@ After completing this setup, learn how [to attach](#to-attach).
 
 ### Debugging shell commands
 
-If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set the `ALLUXIO_USER_DEBUG_JAVA_OPTS` in
+If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set the `ALLUXIO_USER_ATTACH_OPTS` in
 `conf/alluxio-env.sh` as above:
 
 ```shell
-# Java 5 through 8
+# Java 8
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
-# Java 9 and up
+# Java 11
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
 ```
 
@@ -151,7 +152,7 @@ This will be done multiple times to see if the JVMs are making progress.
 This runs system troubleshooting commands like `env`, `hostname`, `top`, `ps` etc.
 
 > WARNING: If you stored credential fields in environment variables like AWS_ACCESS_KEY or in process start parameters
-like -Daws.access.key=XXX, DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
+like `-Daws.access.key=XXX`, DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect all information mentioned above
 `all` will run all the sub-commands above.
@@ -474,7 +475,10 @@ Please make sure the Alluxio version being deployed is update-to-date and suppor
 
 ## Posting Questions
 
-When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users)
+It is highly recommended searching if your questions have been answered and problem have been resolved already.
+Past Github issues and Slack chat histories are both very good sources. 
+
+When posting questions on the [Github issues](https://github.com/Alluxio/alluxio/issues)
 or [Slack channel](https://alluxio.io/slack), please attach the full environment information, including
 - Alluxio version
 - OS version
