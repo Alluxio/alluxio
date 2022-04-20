@@ -829,6 +829,25 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_1
+Waiting for the command to finish ...
+Get command status information below:
+Successfully copied path /data/1023/$FILE_PATH_1
+Successfully copied path /data/1023/$FILE_PATH_2
+Successfully copied path /data/1023/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_1
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedCp /data/1023 /data/1025 --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
 ```
 
 ### distributedLoad
@@ -864,6 +883,25 @@ A lower value means slower execution but also being nicer to the other users of 
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_3
+Waiting for the command to finish ...
+Get command status information below:
+Successfully loaded path /data/today/$FILE_PATH_1
+Successfully loaded path /data/today/$FILE_PATH_2
+Successfully loaded path /data/today/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_3
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedLoad /data/today --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted distLoad job successfully, jobControlId = JOB_CONTROL_ID_4
 ```
 
 Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
@@ -889,8 +927,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
 # Include all workers except which's locality belong to the localities in the excluded locality file
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
-# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use `getCmdStatus` to check command detailed status.
-$ ./bin/alluxio fs distributedLoad /data/today --async
 
 # Conflict cases
 # The `--hosts` and `--locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be included.
@@ -997,7 +1033,7 @@ The detailed status includes:
 For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
 
 ```console
-$ ./bin/alluxio fs getCmdStatus $JOB_CONTROL_ID
+$ ./bin/alluxio job getCmdStatus $JOB_CONTROL_ID
 Sample Output:
 Get command status information below:
 Successfully loaded path $FILE_PATH_1
