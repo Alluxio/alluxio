@@ -232,8 +232,8 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 ```
 
 #### Using Mount Command-line
-When using the mount Alluxio shell command, one can pass through the mount option `alluxio.
-underfs.version` to specify which version of HDFS to mount. If no such a version is specified, 
+When using the mount Alluxio shell command, one can pass through the mount option
+`alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, 
 by default Alluxio treats it as Apache HDFS 3.3.
 
 For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs22` and `/mnt/hdfs27`.
