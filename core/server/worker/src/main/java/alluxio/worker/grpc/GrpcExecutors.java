@@ -71,21 +71,21 @@ public final class GrpcExecutors {
           new ImpersonateThreadPoolExecutor(BLOCK_WRITE_THREAD_POOL_EXECUTOR);
 
   static {
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_ACTIVE_COUNT.getName()),
-        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getActiveCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getActiveCount, 5, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_CURRENT_COUNT.getName()),
-        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getPoolSize);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getPoolSize, 5, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
-        CACHE_MANAGER_THREAD_POOL_EXECUTOR.getQueue()::size);
+        CACHE_MANAGER_THREAD_POOL_EXECUTOR.getQueue()::size, 5, TimeUnit.SECONDS);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_MAX_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT.getName()),
-        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getCompletedTaskCount, 5, TimeUnit.SECONDS);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT.getName()),

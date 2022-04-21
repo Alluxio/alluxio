@@ -1341,20 +1341,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CACHE_MANAGER_THREAD_ACTIVE_COUNT =
-      new Builder("Worker.CacheMangerThreadActiveCount")
+      new Builder("Worker.CacheManagerThreadActiveCount")
           .setDescription("The approximate number of block cache "
-              + "threads that are actively executing tasks in the cache manger thread pool")
+              + "threads that are actively executing tasks in the cache manager thread pool")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CACHE_MANAGER_THREAD_CURRENT_COUNT =
-      new Builder("Worker.CacheMangerThreadCurrentCount")
-          .setDescription("The current number of cache threads in the cache manger thread pool")
+      new Builder("Worker.CacheManagerThreadCurrentCount")
+          .setDescription("The current number of cache threads in the cache manager thread pool")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT =
-      new Builder("Worker.CacheMangerThreadQueueWaitingTaskCount")
+      new Builder("Worker.CacheManagerThreadQueueWaitingTaskCount")
           .setDescription("The current number of tasks waiting in the work queue "
               + "in the cache manager thread pool, bounded by "
               + PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
@@ -1362,14 +1362,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CACHE_MANAGER_THREAD_MAX_COUNT =
-      new Builder("Worker.CacheMangerThreadMaxCount")
+      new Builder("Worker.CacheManagerThreadMaxCount")
           .setDescription("The maximum allowed number of block cache "
-              + "thread in the cache manger thread pool")
+              + "thread in the cache manager thread pool")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT =
-      new Builder("Worker.CacheMangerCompleteTaskCount")
+      new Builder("Worker.CacheManagerCompleteTaskCount")
           .setDescription("The approximate total number of block cache tasks "
               + "that have completed execution")
           .setMetricType(MetricType.GAUGE)

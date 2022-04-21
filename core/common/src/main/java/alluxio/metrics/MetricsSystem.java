@@ -615,15 +615,29 @@ public final class MetricsSystem {
   }
 
   /**
-   * Registers a cached gauge if it has not been registered.
+   * Registers a cached gauge and the timeout is 10 minutes if it has not been registered.
    *
    * @param name the gauge name
    * @param metric the gauge
    * @param <T> the type
    */
   public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric) {
+    registerCachedGaugeIfAbsent(name, metric, 10, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Registers a cached gauge with the given timeout period if it has not been registered.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param timeout the timeout
+   * @param timeoutUnit the unit of {@code timeout}
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric,
+      long timeout, TimeUnit timeoutUnit) {
     if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
-      METRIC_REGISTRY.register(name, new CachedGauge<T>(10, TimeUnit.MINUTES) {
+      METRIC_REGISTRY.register(name, new CachedGauge<T>(timeout, timeoutUnit) {
         @Override
         protected T loadValue() {
           return metric.getValue();
