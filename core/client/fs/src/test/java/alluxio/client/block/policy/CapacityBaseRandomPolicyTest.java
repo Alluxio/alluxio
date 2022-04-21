@@ -13,12 +13,16 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Optional;
 
 public class CapacityBaseRandomPolicyTest {
@@ -108,11 +112,53 @@ public class CapacityBaseRandomPolicyTest {
     Assert.assertEquals(Optional.empty(), buildPolicyWithTarget(1009).getWorker(getWorkerOptions));
   }
 
+  @Test
+  public void getWorkerWithCache() {
+    GetWorkerOptions getWorkerOptions = mockOptions();
+    CapacityBaseRandomPolicy policy =
+        new CapacityBaseRandomPolicy(1, 10000, Duration.ofMinutes(10));
+    Set<WorkerNetAddress> addressSet = new HashSet<>();
+    for (int i = 0; i < 100; i++) {
+      policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
+    }
+    Assert.assertEquals(1, addressSet.size());
+  }
+
+  @Test
+  public void getWorkerWithoutCache() {
+    GetWorkerOptions getWorkerOptions = mockOptions();
+    CapacityBaseRandomPolicy policy =
+        new CapacityBaseRandomPolicy(-1, 10000, Duration.ofMinutes(10));
+    Set<WorkerNetAddress> addressSet = new HashSet<>();
+    for (int i = 0; i < 1000; i++) {
+      policy.getWorker(getWorkerOptions).ifPresent(addressSet::add);
+    }
+    Assert.assertTrue(addressSet.size() > 1);
+  }
+
+  private GetWorkerOptions mockOptions() {
+    GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults();
+    getWorkerOptions.setBlockWorkerInfos(mockWorkerList());
+    getWorkerOptions.setBlockInfo(new BlockInfo().setBlockId(1L));
+    return getWorkerOptions;
+  }
+
+  private ArrayList<BlockWorkerInfo> mockWorkerList() {
+    ArrayList<BlockWorkerInfo> blockWorkerInfos = new ArrayList<>();
+    WorkerNetAddress netAddress1 = new WorkerNetAddress().setHost("1");
+    WorkerNetAddress netAddress2 = new WorkerNetAddress().setHost("2");
+    WorkerNetAddress netAddress3 = new WorkerNetAddress().setHost("3");
+    blockWorkerInfos.add(new BlockWorkerInfo(netAddress1, 10, 0));
+    blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 100, 0));
+    blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 1000, 0));
+    return blockWorkerInfos;
+  }
+
   /**
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(null) {
+    return new CapacityBaseRandomPolicy(-1, 10000, Duration.ofMinutes(10)) {
       @Override
       protected long randomInCapacity(long totalCapacity) {
         return targetValue;
