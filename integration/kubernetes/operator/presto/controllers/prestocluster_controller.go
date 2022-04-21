@@ -32,8 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sort"
-	"strings"
 	"time"
 )
 
@@ -112,44 +110,8 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	var jvmConfigBuilder strings.Builder
-	jvmConfigBuilder.WriteString("-server\n")
-	jvmConfigBuilder.WriteString("-XX:+UseG1GC\n")
-	jvmConfigBuilder.WriteString(fmt.Sprintf("-Xmx%s\n", "1G"))
-	jvmConfigBuilder.WriteString(cr.Spec.CoordinatorSpec.AdditionalJvmOptions)
-
-	var configPropsBuilder strings.Builder
-	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
-	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
-
-	var keys []string
-	for key, _ := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, cr.Spec.CoordinatorSpec.AdditionalConfigs[key]))
-	}
-
-	return &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-coordinator-config",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Data: map[string]string{
-			"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
-			"config.properties": strings.TrimSpace(configPropsBuilder.String()),
-		},
-	}
-}
-
 func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (uint32, error) {
-	configMap := newConfigMap(instance)
+	configMap := newCoordinatorConfigMap(instance)
 
 	// Set presto instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, configMap, r.Scheme); err != nil {

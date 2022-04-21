@@ -17,9 +17,50 @@ limitations under the License.
 package controllers
 
 import (
+	"fmt"
+	alluxiocomv1alpha1 "github.com/Alluxio/alluxio/integration/kubernetes/operator/presto/api/v1alpha1"
 	"hash/fnv"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sort"
 	"strings"
 )
+
+func newCoordinatorConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
+	labels := map[string]string{
+		"app": cr.Name,
+	}
+	var jvmConfigBuilder strings.Builder
+	jvmConfigBuilder.WriteString("-server\n")
+	jvmConfigBuilder.WriteString("-XX:+UseG1GC\n")
+	jvmConfigBuilder.WriteString(fmt.Sprintf("-Xmx%s\n", "1G"))
+	jvmConfigBuilder.WriteString(cr.Spec.CoordinatorSpec.AdditionalJvmOptions)
+
+	var configPropsBuilder strings.Builder
+	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
+	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
+
+	var keys []string
+	for key, _ := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, cr.Spec.CoordinatorSpec.AdditionalConfigs[key]))
+	}
+
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Name + "-coordinator-config",
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Data: map[string]string{
+			"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
+			"config.properties": strings.TrimSpace(configPropsBuilder.String()),
+		},
+	}
+}
 
 func ConfigDataHash(config map[string]string) uint32 {
 	var hashcode uint32 = 0
