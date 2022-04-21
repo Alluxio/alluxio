@@ -30,8 +30,9 @@ type PrestoClusterSpec struct {
 	Image           string          `json:"image"`
 	Environment     string          `json:"environment,omitempty"`
 	CoordinatorSpec CoordinatorSpec `json:"coordinatorSpec"`
+	WorkerSpec      WorkerSpec      `json:"workerSpec"`
 	// WorkerNum is the number of presto workers in the presto cluster.
-	WorkerNum int32 `json:"size"`
+
 }
 
 type CoordinatorSpec struct {
@@ -39,7 +40,16 @@ type CoordinatorSpec struct {
 	CpuCores             int32             `json:"cpuCores"`
 	JvmXmx               string            `json:"jvmXmx,omitempty"`
 	AdditionalJvmOptions string            `json:"AdditionalJvmOptions,omitempty"`
+	AdditionalConfigs    map[string]string `json:"additionalConfigs,omitempty"`
+}
+
+type WorkerSpec struct {
+	Count                int32             `json:"count"`
+	Memory               string            `json:"memory"`
+	CpuCores             int32             `json:"cpuCores"`
+	JvmXmx               string            `json:"jvmXmx,omitempty"`
 	HttpPort             int32             `json:"httpPort"`
+	AdditionalJvmOptions string            `json:"AdditionalJvmOptions,omitempty"`
 	AdditionalConfigs    map[string]string `json:"additionalConfigs,omitempty"`
 }
 
