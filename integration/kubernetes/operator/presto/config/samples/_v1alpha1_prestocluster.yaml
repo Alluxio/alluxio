@@ -16,4 +16,7 @@ spec:
     cpuCores: 4
     httpPort: 8080
     AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
-
+  catalogs:
+    - name: "hive"
+      configs:
+        "connector-name": "hive-hadoop2"

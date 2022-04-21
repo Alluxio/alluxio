@@ -31,6 +31,7 @@ type PrestoClusterSpec struct {
 	Environment     string          `json:"environment,omitempty"`
 	CoordinatorSpec CoordinatorSpec `json:"coordinatorSpec"`
 	WorkerSpec      WorkerSpec      `json:"workerSpec"`
+	Catalogs        []CatalogSpec   `json:"catalogs"`
 	// WorkerNum is the number of presto workers in the presto cluster.
 
 }
@@ -52,6 +53,11 @@ type WorkerSpec struct {
 	HttpPort             int32             `json:"httpPort"`
 	AdditionalJvmOptions string            `json:"AdditionalJvmOptions,omitempty"`
 	AdditionalConfigs    map[string]string `json:"additionalConfigs,omitempty"`
+}
+
+type CatalogSpec struct {
+	Name    string            `json:"name"`
+	Configs map[string]string `json:"configs,omitempty"`
 }
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
