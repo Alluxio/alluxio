@@ -304,9 +304,9 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ### updateConf
 
-The `updateConf` command provides a way to update config for current running services if  `alluxio.conf.dynamic.update.enabled` is true.
-The request is sent to alluxio master directly,
-but the other services like worker, fuse, s3 proxy or some other clients can also aware the config changed and sync the config.
+The `updateConf` command provides a way to update config for current running services if `alluxio.conf.dynamic.update.enabled` is set to true.
+The request is sent to Alluxio master directly,
+but the configuration change is also propagated to other services such as worker, fuse, and proxy.
 
 ```shell
 $ ./bin/alluxio fsadmin updateConf key1=val1 key2=val2
