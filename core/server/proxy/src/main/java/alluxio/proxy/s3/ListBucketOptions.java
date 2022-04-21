@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 public final class ListBucketOptions {
   // Default number of MaxKeys when it is not specified
   public static final int DEFAULT_MAX_KEYS = 1000;
+  // Default EncodingType when it is not specified
+  public static final String DEFAULT_ENCODING_TYPE = "url";
 
   private String mMarker;
   private String mPrefix;
@@ -44,18 +46,17 @@ public final class ListBucketOptions {
    * Constructs a new {@link ListBucketOptions}.
    */
   private ListBucketOptions() {
-
     // common parameter
     mPrefix = "";
     mMaxKeys = DEFAULT_MAX_KEYS;
     mDelimiter = null;
-    mEncodingType = "url";
+    mEncodingType = DEFAULT_ENCODING_TYPE;
     // listObject parameter
-    mMarker = "";
+    mMarker = null;
     // listObjectV2 parameter
     mListType = null;
-    mContinuationToken = "";
-    mStartAfter = "";
+    mContinuationToken = null;
+    mStartAfter = null;
   }
 
   /**
