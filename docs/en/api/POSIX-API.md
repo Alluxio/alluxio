@@ -48,7 +48,7 @@ can further simplify the setup.
     - On Linux, we support libfuse both version 2 and 3
         - To use with libfuse2, install [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work with some warnings). For example on a Redhat, run `yum install fuse fuse-devel`
         - To use with libfuse3, install [libfuse](https://github.com/libfuse/libfuse) 3.2.6 or newer (We are currently testing against 3.2.6). For example on a Redhat, run `yum install fuse3 fuse3-devel`
-        - See [Select which libfuse version to use](#select-which-libfuse-version-to-use) to learn more about libfuse version used by alluxio
+        - See [Select which libfuse version to use](#select-libfuse-version) to learn more about libfuse version used by alluxio
     - On MacOS, install [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer. For example, run `brew install osxfuse`
 
 ## Basic Setup
@@ -63,10 +63,10 @@ where you want to create the mount point:
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
-  <mount_point> [<alluxio_path>]
+  [<mount_point>] [<alluxio_path>]
 ```
 
-This will spawn a background user-space java process (`alluxio-fuse`) that will mount the Alluxio
+This will spawn a background user-space java process (`AlluxioFuse`) that will mount the Alluxio
 path specified at `<alluxio_path>` to the local file system on the specified `<mount_point>`.
 
 For example, running the following commands from the `${ALLUXIO_HOME}` directory will mount the
@@ -582,24 +582,24 @@ alluxio.master.rpc.executor.core.pool.size=256
   {% endcollapsible %}
   {% collapsible Worker %}
 - Enlarge the worker block locks.
-```console
+```config
 alluxio.worker.tieredstore.block.locks=10000
 ```
 - Enlarge the worker RPC clients to communicate to master
-```console
+```config
 alluxio.worker.block.master.client.pool.size=256
 ```
   {% endcollapsible %}
   {% collapsible Job Worker %}
 - When running [alluxio fs distributedLoad command]({{ '/en/operation/User-CLI.html' | relativize_url }}#distributedLoad), enlarge the Job Worker threadpool size to speed up the data loading for small files.
-```console
+```config
 alluxio.job.worker.threadpool.size=64
 ```
   {% endcollapsible %}
   {% collapsible Fuse %}
 - Enable metadata cache in small file read training.
 Small file read training is usually metadata heavy and master RPC heavy, enabling metadata cache can help reduce the master RPCs and improve performance.
-```console
+```config
 alluxio.user.metadata.cache.enabled=true
 alluxio.user.metadata.cache.expiration.time=2h
 alluxio.user.metadata.cache.max.size=2000000
