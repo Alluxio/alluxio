@@ -110,12 +110,11 @@ read/write access to the HDFS directory mounted to Alluxio. By default,
 the login user is the current user of the host OS. To change the user, set the value of
 `alluxio.security.login.username` in `conf/alluxio-site.properties` to the desired username.
 
-After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
+After this succeeds, you can visit HDFS web UI at [http://localhost:9870](http://localhost:9870)
+([http://localhost:50070](http://localhost:50070) if you are running HDFS 2.x)
 to verify the files and directories created by Alluxio exist. For this test, you should see
 files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
-[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
-
-(The default port of HDFS web UI is 9870 in the version over 3.0.0. See [this tutorial](https://hadoop.apache.org/docs/r3.2.0/hadoop-project-dist/hadoop-common/ClusterSetup.html) for more details.)
+[http://localhost:9870/explorer.html](http://localhost:9870/explorer.html)
 
 Stop Alluxio by running:
 
@@ -144,15 +143,16 @@ set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.co
 Make sure this configuration is set on all servers running Alluxio.
 
 ```
-alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
 ### HDFS Namenode HA Mode
 
 To configure Alluxio to work with HDFS namenodes in HA mode, first configure Alluxio servers to [access HDFS with the proper configuration files](#specify-hdfs-configuration-location).
 
-In addition, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
-service already configured in `core-site.xml`). To mount an HDFS subdirectory to Alluxio instead
+In addition, set the under storage address to `hdfs://nameservice/` (`nameservice` is 
+the [HDFS nameservice](https://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html#Configuration_details)
+already configured in `hdfs-site.xml`). To mount an HDFS subdirectory to Alluxio instead
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
 
@@ -168,11 +168,11 @@ HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is 
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
 **is required** to be either:
 
-1. [HDFS super user](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
+1. [HDFS super user](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
 Namely, use the same user that starts HDFS namenode process to also start Alluxio master and
 worker processes.
 
-2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters).
+2. A member of [HDFS superuser group](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters).
 Edit HDFS configuration file `hdfs-site.xml` and check the value of configuration property
 `dfs.permissions.superusergroup`. If this property is set with a group (e.g., "hdfs"), add the
 user to start Alluxio process (e.g., "alluxio") to this group ("hdfs"); if this property is not
@@ -232,7 +232,9 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 ```
 
 #### Using Mount Command-line
-When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, by default Alluxio treats it as Apache HDFS 2.7.
+When using the mount Alluxio shell command, one can pass through the mount option
+`alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specified, 
+by default Alluxio treats it as Apache HDFS 3.3.
 
 For example, the following commands mount two HDFS deployments—one is HDFS 2.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs22` and `/mnt/hdfs27`.
 

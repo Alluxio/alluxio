@@ -54,6 +54,8 @@ public final class DropCommand extends AbstractMetadataCacheSubCommand {
 
   @Override
   public String getDescription() {
-    return "Clear the specific fuse path metadata cache.";
+    return "Clear the metadata cache of a path and its parents."
+        + "If the given path is a directory, "
+        + "clear the metadata cache of all it's children recursively";
   }
 }

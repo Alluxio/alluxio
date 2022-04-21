@@ -11,21 +11,29 @@
 
 package alluxio.job.wire;
 
+import com.google.common.base.Objects;
+
 /**
  * Class for simple job status information.
  */
 public class SimpleJobStatusBlock {
-  private long mJobId;
-  private Status mStatus;
+  private final long mJobId;
+  private final Status mStatus;
+  private final String mFilesPathString;
+  private final String mFilesPathFailed;
 
   /**
    * Constructor.
    * @param jobId
    * @param status
+   * @param filePath
+   * @param fileFailed
    */
-  public SimpleJobStatusBlock(long jobId, Status status) {
+  public SimpleJobStatusBlock(long jobId, Status status, String filePath, String fileFailed) {
     mJobId = jobId;
     mStatus = status;
+    mFilesPathString = filePath;
+    mFilesPathFailed = fileFailed;
   }
 
   /**
@@ -42,5 +50,44 @@ public class SimpleJobStatusBlock {
    */
   public Status getStatus() {
     return mStatus;
+  }
+
+  /**
+   * Get file path of the job.
+   * @return file path s tring
+   */
+  public String getFilePath() {
+    return mFilesPathString;
+  }
+
+  /**
+   * Get failed file path of the job.
+   * @return file path s tring
+   */
+  public String getFilesPathFailed() {
+    return mFilesPathFailed;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleJobStatusBlock)) {
+      return false;
+    }
+    SimpleJobStatusBlock that = (SimpleJobStatusBlock) o;
+    return Objects.equal(mJobId, that.mJobId)
+            && Objects.equal(mStatus, that.mStatus)
+            && Objects.equal(mFilesPathString, that.mFilesPathString)
+            && Objects.equal(mFilesPathFailed, that.mFilesPathFailed);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mJobId, mStatus, mFilesPathString, mFilesPathFailed);
   }
 }

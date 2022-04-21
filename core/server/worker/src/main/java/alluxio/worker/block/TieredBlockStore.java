@@ -48,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -174,31 +173,9 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public long lockBlockNoException(long sessionId, long blockId) {
-    LOG.debug("lockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (hasBlock) {
-      return lockId;
-    }
-
-    mLockManager.unlockBlockNoException(lockId);
-    return BlockWorker.INVALID_LOCK_ID;
-  }
-
-  @Override
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     LOG.debug("unlockBlock: lockId={}", lockId);
     mLockManager.unlockBlock(lockId);
-  }
-
-  @Override
-  public boolean unlockBlock(long sessionId, long blockId) {
-    LOG.debug("unlockBlock: sessionId={}, blockId={}", sessionId, blockId);
-    return mLockManager.unlockBlock(sessionId, blockId);
   }
 
   @Override
@@ -264,10 +241,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-    LOG.debug("getTempBlockMeta: sessionId={}, blockId={}", sessionId, blockId);
+  public TempBlockMeta getTempBlockMeta(long blockId)
+      throws BlockDoesNotExistException {
+    LOG.debug("getTempBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      return mMetaManager.getTempBlockMetaOrNull(blockId);
+      return mMetaManager.getTempBlockMeta(blockId);
     }
   }
 
@@ -482,6 +460,14 @@ public class TieredBlockStore implements BlockStore {
     LOG.debug("hasBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.hasBlockMeta(blockId);
+    }
+  }
+
+  @Override
+  public boolean hasTempBlockMeta(long blockId) {
+    LOG.debug("hasBlockMeta: blockId={}", blockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.hasTempBlockMeta(blockId);
     }
   }
 
@@ -1008,20 +994,17 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean checkStorage() {
+  public void removeInaccessibleStorage() {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
-      List<StorageDir> dirsToRemove = new ArrayList<>();
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           String path = dir.getDirPath();
           if (!FileUtils.isStorageDirAccessible(path)) {
             LOG.error("Storage check failed for path {}. The directory will be excluded.", path);
-            dirsToRemove.add(dir);
+            removeDir(dir);
           }
         }
       }
-      dirsToRemove.forEach(this::removeDir);
-      return !dirsToRemove.isEmpty();
     }
   }
 

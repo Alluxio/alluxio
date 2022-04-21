@@ -673,6 +673,7 @@ public final class CommonUtils {
     JOB_WORKER,
     CLIENT,
     MASTER,
+    PLUGIN,
     PROXY,
     WORKER;
   }

@@ -42,6 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
+  private static final String DEFAULT_FAILURE_FILE_PATH =
+          "./logs/user/distributedLoad_%s_failures.csv";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -248,7 +250,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         .addOption(PASSIVE_CACHE_OPTION)
         .addOption(DIRECT_CACHE_OPTION)
         .addOption(BATCH_SIZE_OPTION)
-        .addOption(WAIT_OPTION);
+        .addOption(ASYNC_OPTION);
   }
 
   @Override
@@ -286,7 +288,11 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt()) && cl.hasOption(
         DIRECT_CACHE_OPTION.getLongOpt());
-    boolean wait = FileSystemShellUtils.getBoolArg(cl, WAIT_OPTION, true);
+    boolean async = cl.hasOption(ASYNC_OPTION.getLongOpt());
+    if (async) {
+      System.out.println("Entering async submission mode. ");
+    }
+
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
@@ -320,35 +326,44 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       readItemsFromOptionString(excludedLocalityIds, argOption);
     }
 
+    System.out.println("Please wait for command submission to finish..");
+
     Long jobControlId;
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
       jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
               localityIds, excludedLocalityIds, directCache);
-      if (wait) {
-        System.out.format("Waiting for the command to finish ...%n");
+      if (!async) {
+        System.out.format("Submitted successfully, jobControlId = %s%n"
+                + "Waiting for the command to finish ...%n", jobControlId.toString());
         waitForCmd(jobControlId);
+        postProcessing(jobControlId);
+      } else {
+        System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
+                jobControlId.toString());
       }
-      System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
-              jobControlId.toString());
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null;) {
           AlluxioURI path = new AlluxioURI(filename);
           jobControlId = runDistLoad(path, replication, batchSize, workerSet, excludedWorkerSet,
                   localityIds, excludedLocalityIds, directCache);
-          if (wait) {
-            System.out.format("Waiting for the command to finish ...%n");
+          if (!async) {
+            System.out.format("Submitted successfully, jobControlId = %s%n"
+                    + "Waiting for the command to finish ...%n", jobControlId.toString());
             waitForCmd(jobControlId);
+            postProcessing(jobControlId);
+          } else {
+            System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
+                    jobControlId.toString());
           }
-          System.out.format("Submitted distLoad job successfully, jobControlId = %s%n",
-                  jobControlId.toString());
         }
       }
     }
-    if (wait) {
-      System.out.println(String.format("Completed command count is %d,Failed count is %d.",
-              getCompletedCmdCount(), getFailedCmdCount()));
+
+    Set<String> failures = getFailedFiles();
+    if (failures.size() > 0) {
+      processFailures(args[0], failures, DEFAULT_FAILURE_FILE_PATH);
     }
     return 0;
   }
