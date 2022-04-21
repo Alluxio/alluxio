@@ -64,15 +64,37 @@ spec:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
                 type: string
-              size:
-                description: WorkerNum is the number of presto workers in the presto
-                  cluster.
-                format: int32
-                type: integer
+              workerSpec:
+                properties:
+                  AdditionalJvmOptions:
+                    type: string
+                  additionalConfigs:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  count:
+                    format: int32
+                    type: integer
+                  cpuCores:
+                    format: int32
+                    type: integer
+                  httpPort:
+                    format: int32
+                    type: integer
+                  jvmXmx:
+                    type: string
+                  memory:
+                    type: string
+                required:
+                - count
+                - cpuCores
+                - httpPort
+                - memory
+                type: object
             required:
             - coordinatorSpec
             - image
-            - size
+            - workerSpec
             type: object
           status:
             description: PrestoClusterStatus defines the observed state of PrestoCluster

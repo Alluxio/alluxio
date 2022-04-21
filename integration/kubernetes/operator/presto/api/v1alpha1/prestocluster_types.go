@@ -39,6 +39,7 @@ type CoordinatorSpec struct {
 	Memory               string            `json:"memory"`
 	CpuCores             int32             `json:"cpuCores"`
 	JvmXmx               string            `json:"jvmXmx,omitempty"`
+	HttpPort             int32             `json:"httpPort"`
 	AdditionalJvmOptions string            `json:"AdditionalJvmOptions,omitempty"`
 	AdditionalConfigs    map[string]string `json:"additionalConfigs,omitempty"`
 }
