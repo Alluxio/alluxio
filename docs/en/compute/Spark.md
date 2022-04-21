@@ -233,7 +233,7 @@ Storing Spark DataFrames in Alluxio memory is as simple as saving the DataFrame 
 file to Alluxio.
 DataFrames are commonly written as parquet files, with `df.write.parquet()`.
 After the parquet is written to Alluxio, it can be read from memory by using
-`spark.read.parquet()`.
+`spark.read.parquet()` (or `sqlContext.read.parquet()` for older versions of Spark).
 
 ```scala
 df.write.parquet("alluxio://localhost:19998/data.parquet")
@@ -272,6 +272,7 @@ Start the Spark Worker in each slave node with slave-hostname:
 ```console
 $ ${SPARK_HOME}/sbin/start-worker.sh -h <slave-hostname> <spark master uri>
 ```
+Note for older versions of Spark the script is called `start-slave.sh`.
 
 For example:
 
