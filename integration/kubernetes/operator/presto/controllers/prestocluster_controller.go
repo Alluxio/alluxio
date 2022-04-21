@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sort"
 	"strings"
 	"time"
 )
@@ -41,6 +42,11 @@ type PrestoClusterReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
+
+const (
+	ConfigHashAnnotationName        = "config_hash"
+	AllZeroHash              uint32 = 0
+)
 
 //+kubebuilder:rbac:groups=alluxio.com,resources=prestoclusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=alluxio.com,resources=prestoclusters/status,verbs=get;update;patch
@@ -63,8 +69,8 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		logger.Error(err, "Failed to get Presto Cluster")
 	}
 
-	latestConfigVersion, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
-	logger.Info("Checking config", "latestConfigVersion", latestConfigVersion)
+	latestConfigHash, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
+	logger.Info("Checking config", "latestConfigVersion", latestConfigHash)
 	if err != nil {
 		logger.Error(err, "Failed to get ConfigMap of the coordinator")
 		return ctrl.Result{}, err
@@ -75,10 +81,11 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		logger.Error(err, "Failed to get Deployment of the coordinator")
 		return ctrl.Result{}, err
 	}
+
 	if coordinatorDeployment == nil {
-		dep := r.deploymentForPrestoCoordinator(prestoCluster, latestConfigVersion)
+		dep := r.deploymentForPrestoCoordinator(prestoCluster, latestConfigHash)
 		logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace,
-			"Deployment.Name", dep.Name, "Config version", latestConfigVersion)
+			"Deployment.Name", dep.Name, "Config version", latestConfigHash)
 		err = r.Create(ctx, dep)
 		if err != nil {
 			logger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
@@ -86,10 +93,10 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 		// Deployment created successfully - return and requeue
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-	} else if latestConfigVersion != coordinatorDeployment.Annotations["config_version"] {
+	} else if fmt.Sprint(latestConfigHash) != coordinatorDeployment.Annotations[ConfigHashAnnotationName] {
 		logger.Info("The config of coordinator changed, deleting the old coordinator",
-			"new config version", latestConfigVersion,
-			"old config version", coordinatorDeployment.Annotations["config_version"])
+			"new config version", latestConfigHash,
+			"old config version", coordinatorDeployment.Annotations[ConfigHashAnnotationName])
 		err := r.Delete(ctx, coordinatorDeployment)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -118,8 +125,14 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 	var configPropsBuilder strings.Builder
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
 	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
-	for key, value := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
-		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, value))
+
+	var keys []string
+	for key, _ := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, cr.Spec.CoordinatorSpec.AdditionalConfigs[key]))
 	}
 
 	return &corev1.ConfigMap{
@@ -129,18 +142,18 @@ func newConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
 			Labels:    labels,
 		},
 		Data: map[string]string{
-			"jvm.config":        jvmConfigBuilder.String(),
-			"config.properties": configPropsBuilder.String(),
+			"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
+			"config.properties": strings.TrimSpace(configPropsBuilder.String()),
 		},
 	}
 }
 
-func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (string, error) {
+func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (uint32, error) {
 	configMap := newConfigMap(instance)
 
 	// Set presto instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, configMap, r.Scheme); err != nil {
-		return "", err
+		return AllZeroHash, err
 	}
 
 	// Check if this ConfigMap already exists
@@ -149,21 +162,23 @@ func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.C
 	if err != nil && errors.IsNotFound(err) {
 		err = r.Create(ctx, configMap)
 		if err != nil {
-			return "", err
+			return AllZeroHash, err
 		}
-		return configMap.ResourceVersion, nil
+		return ConfigDataHash(configMap.Data), nil
 	} else if err != nil {
-		return "", err
+		return AllZeroHash, err
 	}
-
+	//fmt.Printf("existing map %v %v \n\n", ConfigDataHash(existingMap.Data), existingMap.Data)
+	//fmt.Printf("new map %v %v \n\n", ConfigDataHash(configMap.Data), configMap.Data)
+	//fmt.Printf("config changed? %v \n\n", !reflect.DeepEqual(existingMap.Data, configMap.Data))
 	if !reflect.DeepEqual(existingMap.Data, configMap.Data) {
 		err = r.Update(ctx, configMap)
 		if err != nil {
-			return "", err
+			return AllZeroHash, err
 		}
-		return configMap.ResourceVersion, nil
+		return ConfigDataHash(configMap.Data), nil
 	}
-	return existingMap.ResourceVersion, nil
+	return ConfigDataHash(existingMap.Data), nil
 }
 
 func (r *PrestoClusterReconciler) createService(ctx context.Context, m *alluxiocomv1alpha1.PrestoCluster) error {
@@ -216,14 +231,14 @@ func (r *PrestoClusterReconciler) getDeployment(ctx context.Context, name string
 }
 
 // deploymentForMemcached returns a memcached Deployment object
-func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster, latestConfigVersion string) *appsv1.Deployment {
+func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster, latestConfigVersion uint32) *appsv1.Deployment {
 	labels := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator"}
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        m.Name + "-coordinator",
 			Namespace:   m.Namespace,
-			Annotations: map[string]string{"config_version": latestConfigVersion},
+			Annotations: map[string]string{ConfigHashAnnotationName: fmt.Sprint(latestConfigVersion)},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
