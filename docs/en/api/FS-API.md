@@ -288,7 +288,7 @@ this policy preference exists only for local workers, not remote workers; remote
 blocks to the highest tier.
 
 By default, data is written to the top tier. Users can modify the default setting through the
-`alluxio.user.file.write.tier.default` [property]({{ '/en/reference/Properties-List.html' | relativize_url }})
+`alluxio.user.file.write.tier.default` [property]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.write.tier.default)
 or override it through an option to the 
 [`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
 API call.
