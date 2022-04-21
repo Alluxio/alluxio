@@ -147,7 +147,7 @@ public class ChannelAuthenticator {
         return ChannelAuthenticationScheme.CUSTOM;
       default:
         throw new UnauthenticatedException(String.format(
-            "Configured authentication type is not supported: %s", authType.getAuthName()));
+            "Configured authentication type is not supported: %s", authType));
     }
   }
 

@@ -59,7 +59,7 @@ public class FileSystemMasterMetricsTest {
   public void testMetricsUfsCapacity() throws Exception {
     UfsManager.UfsClient client = Mockito.mock(UfsManager.UfsClient.class);
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsDataFolder = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL)).thenReturn(1000L);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(200L);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(800L);

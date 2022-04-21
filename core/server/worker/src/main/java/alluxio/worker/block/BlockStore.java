@@ -44,33 +44,12 @@ public interface BlockStore extends SessionCleanable, Closeable {
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
-   * {@link BlockWorker#INVALID_LOCK_ID}.
-   *
-   * @param sessionId the id of the session to lock this block
-   * @param blockId the id of the block to lock
-   * @return the lock id (non-negative) that uniquely identifies the lock obtained or
-   *         {@link BlockWorker#INVALID_LOCK_ID} if it failed to lock
-   */
-  long lockBlockNoException(long sessionId, long blockId);
-
-  /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
    *
    * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
    * @throws BlockDoesNotExistException if lockId can not be found
    */
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
-
-  /**
-   * Releases an acquired block lock based on a session id and block id.
-   * TODO(calvin): temporary, will be removed after changing client side code.
-   *
-   * @param sessionId the id of the session to lock this block
-   * @param blockId the id of the block to lock
-   * @return false if it fails to unlock due to the lock is not found
-   */
-  boolean unlockBlock(long sessionId, long blockId);
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
@@ -126,12 +105,12 @@ public interface BlockStore extends SessionCleanable, Closeable {
   /**
    * Gets the temp metadata of a specific block from local storage.
    *
-   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
-   * @return metadata of the block or null if the temp block does not exist
+   * @return metadata of the block if the temp block exists
+   * @throws BlockDoesNotExistException if the block id cannot be found
    */
   @Nullable
-  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+  TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -287,8 +266,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @throws DeadlineExceededException if locking takes longer than timeout
    */
   void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, DeadlineExceededException,
-      IOException;
+      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -326,6 +304,14 @@ public interface BlockStore extends SessionCleanable, Closeable {
   boolean hasBlockMeta(long blockId);
 
   /**
+   * Checks if the storage has a given temp block.
+   *
+   * @param blockId the temp block id
+   * @return true if the block is contained, false otherwise
+   */
+  boolean hasTempBlockMeta(long blockId);
+
+  /**
    * Cleans up the data associated with a specific session (typically a dead session). Clean up
    * entails unlocking the block locks of this session, reclaiming space of temp blocks created by
    * this session, and deleting the session temporary folder.
@@ -350,9 +336,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
   void updatePinnedInodes(Set<Long> inodes);
 
   /**
-   * Checks storage health.
-   *
-   * @return true if at least one storage path failed check and is removed, false otherwise
+   * Remove Storage directories that are no longer accessible.
    */
-  boolean checkStorage();
+  void removeInaccessibleStorage();
 }

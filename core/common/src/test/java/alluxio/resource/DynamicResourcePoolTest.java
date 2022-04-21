@@ -17,8 +17,10 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ public final class DynamicResourcePoolTest {
     }
 
     /**
-     * Sets the the number representing current capacity of Resource and returns Resource Object.
+     * Sets the number representing current capacity of Resource and returns Resource Object.
      *
      * @param i the value of member variable represents the current capacity of Resource
      * @return the Resource object
@@ -93,6 +95,11 @@ public final class DynamicResourcePoolTest {
      */
     public TestPool(Options options) {
       super(options.setGcExecutor(GC_EXECUTOR));
+    }
+
+    @Override
+    protected Counter getMetricCounter() {
+      return MetricsSystem.counter("Test.DynamicResourcePoolResourceCount");
     }
 
     @Override

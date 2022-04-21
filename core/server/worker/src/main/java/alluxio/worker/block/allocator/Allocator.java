@@ -64,7 +64,6 @@ public interface Allocator {
    * and do not want it to be affected by the reviewer.
    * E.g. We just freed up some space in Alluxio and want the allocation to use the freed space.
    *
-   * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @param view of the block metadata
@@ -72,6 +71,6 @@ public interface Allocator {
    * @return a {@link StorageDirView} in which to create the temp block meta if success, null
    *         otherwise
    */
-  StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
+  StorageDirView allocateBlockWithView(long blockSize, BlockStoreLocation location,
       BlockMetadataView view, boolean skipReview);
 }

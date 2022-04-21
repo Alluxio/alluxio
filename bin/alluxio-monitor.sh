@@ -29,8 +29,6 @@ Where ACTION is one of:
   job_masters        \tStart monitors for all job_master nodes.
   job_worker         \tStart a job_worker monitor on this node.
   job_workers        \tStart monitors for all job_worker nodes.
-  hub_agent          \tStart the hub agent monitor on this node.
-  hub_manager        \tStart the hub manager monitor on this node.
   proxy              \tStart the proxy monitor on this node.
   proxies            \tStart monitors for all proxies nodes.
 
@@ -56,10 +54,11 @@ get_env() {
 
   # Remove the remote debug configuration to avoid the error: "transport error 20: bind failed: Address already in use."
   # See https://github.com/Alluxio/alluxio/issues/10958
-  ALLUXIO_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
-  ALLUXIO_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
-  ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
-  ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
+  # See https://github.com/Alluxio/alluxio/issues/15168
+  ALLUXIO_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//' | sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
+  ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//'| sed 's/-Dcom.sun.management.jmxremote.port=[0-9]*//')
 }
 
 prepare_monitor() {
@@ -109,14 +108,6 @@ run_monitor() {
     job_worker)
       monitor_exec=alluxio.worker.job.AlluxioJobWorkerMonitor
       alluxio_config="${alluxio_config} ${ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS}"
-      ;;
-    hub_agent)
-      CLASSPATH="${ALLUXIO_SERVER_CLASSPATH}"
-      monitor_exec=alluxio.hub.agent.process.AgentProcessMonitor
-      ;;
-    hub_manager)
-      CLASSPATH="${ALLUXIO_SERVER_CLASSPATH}"
-      monitor_exec=alluxio.hub.manager.process.ManagerProcessMonitor
       ;;
     proxy)
       monitor_exec=alluxio.proxy.AlluxioProxyMonitor
@@ -312,14 +303,6 @@ main() {
     job_workers)
       prepare_monitor "Starting to monitor all Alluxio ${CYAN}job workers${NC}."
       run_monitors "job_worker" "${HOSTS}"
-      ;;
-    hub_agent)
-      CLASSPATH="${ALLUXIO_SERVER_CLASSPATH}"
-      monitor_exec=alluxio.hub.agent.process.AgentProcessMonitor
-      ;;
-    hub_manager)
-      CLASSPATH="${ALLUXIO_SERVER_CLASSPATH}"
-      monitor_exec=alluxio.hub.manager.process.ManagerProcessMonitor
       ;;
     proxy)
       run_monitor "proxy" "${MODE}"

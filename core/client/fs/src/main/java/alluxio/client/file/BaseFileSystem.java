@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
@@ -93,7 +93,7 @@ public class BaseFileSystem implements FileSystem {
   /** Used to manage closeable resources. */
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
-  protected final AlluxioBlockStore mBlockStore;
+  protected final BlockStoreClient mBlockStore;
 
   protected volatile boolean mClosed = false;
 
@@ -104,7 +104,7 @@ public class BaseFileSystem implements FileSystem {
    */
   public BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
-    mBlockStore = AlluxioBlockStore.create(fsContext);
+    mBlockStore = BlockStoreClient.create(fsContext);
     mCloser.register(mFsContext);
   }
 

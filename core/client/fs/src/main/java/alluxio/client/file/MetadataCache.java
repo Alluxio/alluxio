@@ -142,7 +142,16 @@ public final class MetadataCache {
    */
   @Nullable
   public List<URIStatus> listStatus(AlluxioURI dir) {
-    CachedItem item = mCache.getIfPresent(dir.getPath());
+    return listStatus(dir.getPath());
+  }
+
+  /**
+   * @param dir the directory
+   * @return the cached list status results or null
+   */
+  @Nullable
+  public List<URIStatus> listStatus(String dir) {
+    CachedItem item = mCache.getIfPresent(dir);
     if (item != null && item.getDirStatuses() != null) {
       return item.getDirStatuses();
     }
@@ -155,7 +164,16 @@ public final class MetadataCache {
    * @param path the path
    */
   public void invalidate(AlluxioURI path) {
-    mCache.invalidate(path.getPath());
+    invalidate(path.getPath());
+  }
+
+  /**
+   * Invalidates the cache of path.
+   *
+   * @param path the path
+   */
+  public void invalidate(String path) {
+    mCache.invalidate(path);
   }
 
   /**

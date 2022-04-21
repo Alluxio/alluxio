@@ -382,7 +382,7 @@ public final class TieredBlockStoreTest {
       runnables.add(() -> {
         try {
           mBlockStore.freeSpace(SESSION_ID1, 0, 0,
-              new BlockStoreLocation(Constants.MEDIUM_MEM, 0, BlockStoreLocation.ANY_MEDIUM));
+              new BlockStoreLocation(Constants.MEDIUM_MEM, 0));
         } catch (Exception e) {
           fail();
         }
@@ -781,8 +781,7 @@ public final class TieredBlockStoreTest {
         mBlockIterator);
     BlockStoreMeta oldMeta = mBlockStore.getBlockStoreMeta();
     FileUtils.deletePathRecursively(mTestDir2.getDirPath());
-    assertTrue("check storage should fail if one of the directory is not accessible",
-        mBlockStore.checkStorage());
+    mBlockStore.removeInaccessibleStorage();
     BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
     long usedByteInDir = mTestDir2.getCapacityBytes() - mTestDir2.getAvailableBytes();
     assertFalse("failed storage path should be removed",

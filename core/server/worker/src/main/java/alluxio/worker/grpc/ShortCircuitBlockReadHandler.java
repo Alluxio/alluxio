@@ -84,10 +84,6 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             }
           }
           mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
-          if (mLockId == BlockWorker.INVALID_LOCK_ID) {
-            throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND,
-                mRequest.getBlockId());
-          }
           mWorker.accessBlock(mSessionId, mRequest.getBlockId());
         } else {
           LOG.warn("Lock block {} without releasing previous block lock {}.",

@@ -20,8 +20,6 @@ import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -52,8 +50,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private static final long serialVersionUID = -1207227692436086387L;
-
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioURI.class);
 
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";

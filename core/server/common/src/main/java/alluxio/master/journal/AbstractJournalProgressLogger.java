@@ -36,10 +36,10 @@ public abstract class AbstractJournalProgressLogger {
   /**
    * Creates a new instance of {@link AbstractJournalProgressLogger}.
    *
-   * @param endComitIdx the final commit index in the journal. Used to estimate completion time
+   * @param endCommitIdx the final commit index in the journal. Used to estimate completion time
    */
-  public AbstractJournalProgressLogger(OptionalLong endComitIdx) {
-    mEndCommitIdx = endComitIdx;
+  public AbstractJournalProgressLogger(OptionalLong endCommitIdx) {
+    mEndCommitIdx = endCommitIdx;
     mLastMeasuredTime = System.currentTimeMillis();
     mLastCommitIdx = 0L;
     mLogCount = 0;

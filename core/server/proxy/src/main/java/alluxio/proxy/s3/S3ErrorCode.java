@@ -26,12 +26,16 @@ public class S3ErrorCode {
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
+    public static final String INVALID_ARGUMENT = "InvalidArgument";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
+    public static final String MALFORMED_XML = "MalformedXML";
+    public static final String METADATA_TOO_LARGE = "MetadataTooLarge";
     public static final String NO_SUCH_BUCKET = "NoSuchBucket";
     public static final String NO_SUCH_KEY = "NoSuchKey";
     public static final String NO_SUCH_UPLOAD = "NoSuchUpload";
     public static final String PRECONDITION_FAILED = "PreconditionFailed";
     public static final String INVALID_CONTINUATION_TOKEN = "InvalidContinuationToken";
+    public static final String INVALID_TAG = "InvalidTag";
     public static final String UPLOAD_ALREADY_EXISTS = "UploadAlreadyExists";
 
     private Name() {
@@ -53,6 +57,10 @@ public class S3ErrorCode {
       Name.BUCKET_NOT_EMPTY,
       "The bucket you tried to delete is not empty",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode INVALID_ARGUMENT = new S3ErrorCode(
+      Name.INVALID_ARGUMENT,
+      "The request was invalid.", // this message should be overwritten by the throw-er
+      Response.Status.BAD_REQUEST);
   public static final S3ErrorCode INVALID_BUCKET_NAME = new S3ErrorCode(
       Name.INVALID_BUCKET_NAME,
       "The specified bucket name is invalid",
@@ -87,6 +95,21 @@ public class S3ErrorCode {
       Name.UPLOAD_ALREADY_EXISTS,
       "The specified multipart upload already exits",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode INVALID_TAG = new S3ErrorCode(
+      Name.INVALID_TAG,
+      "Your request contains tag input that is not valid. "
+          + "For example, your request might contain duplicate keys, "
+          + "keys or values that are too long, or system tags.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode MALFORMED_XML = new S3ErrorCode(
+      Name.MALFORMED_XML,
+      "The XML provided was not well formed or did not validate "
+          + "against our published schema. Check the service documentation and try again.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode METADATA_TOO_LARGE = new S3ErrorCode(
+      Name.METADATA_TOO_LARGE,
+      "Your metadata headers exceed the maximum allowed metadata size.",
+      Response.Status.BAD_REQUEST);
 
   //
   // Customized error codes.

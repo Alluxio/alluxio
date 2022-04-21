@@ -66,10 +66,50 @@ public final class NetworkAddressUtils {
   private NetworkAddressUtils() {}
 
   /**
+   * An interface to get service attributes.
+   */
+  public interface ServiceAttributeProvider {
+    /**
+     * Gets service name.
+     *
+     * @return service name
+     */
+    String getServiceName();
+
+    /**
+     * Gets the key of connect hostname.
+     *
+     * @return key of connect hostname
+     */
+    PropertyKey getHostNameKey();
+
+    /**
+     * Gets the key of bind hostname.
+     *
+     * @return key of bind hostname
+     */
+    PropertyKey getBindHostKey();
+
+    /**
+     * Gets the key of service port.
+     *
+     * @return key of service port
+     */
+    PropertyKey getPortKey();
+
+    /**
+     * Gets the default port number on service.
+     *
+     * @return default port
+     */
+    int getDefaultPort();
+  }
+
+  /**
    * Different types of services that client uses to connect. These types also indicate the service
    * bind address.
    */
-  public enum ServiceType {
+  public enum ServiceType implements ServiceAttributeProvider {
     /**
      * FUSE web service (Jetty).
      */
@@ -142,24 +182,6 @@ public final class NetworkAddressUtils {
      */
     PROXY_WEB("Alluxio Proxy Web service", PropertyKey.PROXY_WEB_HOSTNAME,
         PropertyKey.PROXY_WEB_BIND_HOST, PropertyKey.PROXY_WEB_PORT),
-
-    /**
-     * Hub Agent RPC service (gRPC).
-     */
-    HUB_AGENT_RPC("Alluxio Hub Agent RPC service", PropertyKey.HUB_AGENT_RPC_HOSTNAME,
-            PropertyKey.HUB_AGENT_RPC_BIND_HOST, PropertyKey.HUB_AGENT_RPC_PORT),
-
-    /**
-     * Hub Manager RPC service (gRPC).
-     */
-    HUB_MANAGER_RPC("Alluxio Hub Manager RPC service", PropertyKey.HUB_MANAGER_RPC_HOSTNAME,
-            PropertyKey.HUB_MANAGER_RPC_BIND_HOST, PropertyKey.HUB_MANAGER_RPC_PORT),
-
-    /**
-     * Hub Hosted RPC service (gRPC).
-     */
-    HUB_HOSTED_RPC("Alluxio Hub Hosted RPC service", PropertyKey.HUB_HOSTED_RPC_HOSTNAME,
-            PropertyKey.HUB_HOSTED_RPC_BIND_HOST, PropertyKey.HUB_HOSTED_RPC_PORT),
     ;
 
     // service name
@@ -224,7 +246,7 @@ public final class NetworkAddressUtils {
      * @return default port
      */
     public int getDefaultPort() {
-      return Integer.parseInt(mPortKey.getDefaultValue());
+      return (int) mPortKey.getDefaultValue();
     }
   }
 
@@ -256,8 +278,8 @@ public final class NetworkAddressUtils {
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
-  public static InetSocketAddress getConnectAddress(ServiceType service,
-      AlluxioConfiguration conf) {
+  public static InetSocketAddress getConnectAddress(ServiceAttributeProvider service,
+                                                    AlluxioConfiguration conf) {
     return InetSocketAddress.createUnresolved(getConnectHost(service, conf),
         getPort(service, conf));
   }
@@ -316,15 +338,15 @@ public final class NetworkAddressUtils {
    * @return the externally resolvable hostname that the client can use to communicate with the
    *         service.
    */
-  public static String getConnectHost(ServiceType service, AlluxioConfiguration conf) {
-    if (conf.isSet(service.mHostNameKey)) {
-      String connectHost = conf.get(service.mHostNameKey);
+  public static String getConnectHost(ServiceAttributeProvider service, AlluxioConfiguration conf) {
+    if (conf.isSet(service.getHostNameKey())) {
+      String connectHost = conf.getString(service.getHostNameKey());
       if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
         return connectHost;
       }
     }
-    if (conf.isSet(service.mBindHostKey)) {
-      String bindHost = conf.get(service.mBindHostKey);
+    if (conf.isSet(service.getBindHostKey())) {
+      String bindHost = conf.getString(service.getBindHostKey());
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
@@ -343,8 +365,8 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the service port number
    */
-  public static int getPort(ServiceType service, AlluxioConfiguration conf) {
-    return conf.getInt(service.mPortKey);
+  public static int getPort(ServiceAttributeProvider service, AlluxioConfiguration conf) {
+    return conf.getInt(service.getPortKey());
   }
 
   /**
@@ -354,7 +376,8 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the InetSocketAddress the service will bind to
    */
-  public static InetSocketAddress getBindAddress(ServiceType service, AlluxioConfiguration conf) {
+  public static InetSocketAddress getBindAddress(ServiceAttributeProvider service,
+                                                 AlluxioConfiguration conf) {
     int port = getPort(service, conf);
     assertValidPort(port);
     return new InetSocketAddress(getBindHost(service, conf), getPort(service, conf));
@@ -374,10 +397,10 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @return the bind hostname
    */
-  public static String getBindHost(ServiceType service, AlluxioConfiguration conf) {
-    if (conf.isSet(service.mBindHostKey) && !conf.get(service.mBindHostKey)
-        .isEmpty()) {
-      return conf.get(service.mBindHostKey);
+  public static String getBindHost(ServiceAttributeProvider service, AlluxioConfiguration conf) {
+    if (conf.isSet(service.getBindHostKey())
+            && !conf.getString(service.getBindHostKey()).isEmpty()) {
+      return conf.getString(service.getBindHostKey());
     } else {
       return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
@@ -392,10 +415,10 @@ public final class NetworkAddressUtils {
    */
   public static String getClientHostName(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-      return conf.get(PropertyKey.USER_HOSTNAME);
+      return conf.getString(PropertyKey.USER_HOSTNAME);
     }
     if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+      return conf.getString(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -410,34 +433,34 @@ public final class NetworkAddressUtils {
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case JOB_MASTER:
         if (conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
-          return conf.get(PropertyKey.JOB_MASTER_HOSTNAME);
+          return conf.getString(PropertyKey.JOB_MASTER_HOSTNAME);
         }
         break;
       case JOB_WORKER:
         if (conf.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
-          return conf.get(PropertyKey.JOB_WORKER_HOSTNAME);
+          return conf.getString(PropertyKey.JOB_WORKER_HOSTNAME);
         }
         break;
       case CLIENT:
         if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-          return conf.get(PropertyKey.USER_HOSTNAME);
+          return conf.getString(PropertyKey.USER_HOSTNAME);
         }
         break;
       case MASTER:
         if (conf.isSet(PropertyKey.MASTER_HOSTNAME)) {
-          return conf.get(PropertyKey.MASTER_HOSTNAME);
+          return conf.getString(PropertyKey.MASTER_HOSTNAME);
         }
         break;
       case WORKER:
         if (conf.isSet(PropertyKey.WORKER_HOSTNAME)) {
-          return conf.get(PropertyKey.WORKER_HOSTNAME);
+          return conf.getString(PropertyKey.WORKER_HOSTNAME);
         }
         break;
       default:
         break;
     }
     if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+      return conf.getString(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -553,6 +576,17 @@ public final class NetworkAddressUtils {
     } catch (IOException e) {
       return false;
     }
+  }
+
+  /**
+   * @param targetAddress the target address, hostname or IP
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local host is
+   *        reachable
+   * @return  true if the target address is the local address, false otherwise
+   */
+  public static boolean isLocalAddress(String targetAddress, int timeoutMs) {
+    return getLocalHostName(timeoutMs).equals(targetAddress)
+        || getLocalIpAddress(timeoutMs).equals(targetAddress);
   }
 
   /**

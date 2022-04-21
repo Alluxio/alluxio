@@ -241,3 +241,31 @@
 0.6.36
 
 - Fix volumeMounts indentations in master statefulset
+
+0.6.37
+
+- Fix jobMaster.env indentations in master statefulset
+
+0.6.38
+
+- Fix MOUNT_POINT env in fuse daemonset
+
+0.6.39
+
+- Fix CSI controller rbac rule not specifying namespace.
+- Fix CSI driver compatibility issue under kubernetes 18+ version.
+
+0.6.40
+
+- Fix incorrect directory when mounting & formatting master journal volume
+
+0.6.41
+
+- Add property to enable launching Fuse process in a separate pod in CSI
+- Fix default CSI accessMode
+
+0.6.42
+
+- Rename mountPath to mountPoint in fuse
+- Require non-empty values for fuse mountPoint
+- Passing fuse mountPoint and alluxioPath into containers as args instead of env variables
