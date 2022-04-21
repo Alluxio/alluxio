@@ -38,6 +38,7 @@ func newCoordinatorConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.Confi
 
 	var configPropsBuilder strings.Builder
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
+	configPropsBuilder.WriteString(fmt.Sprintf("coordinator=true\n"))
 	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
 	configPropsBuilder.WriteString(fmt.Sprintf("discovery-server.enabled=%v\n", true))
 	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=%v\n", "http://localhost:8080"))

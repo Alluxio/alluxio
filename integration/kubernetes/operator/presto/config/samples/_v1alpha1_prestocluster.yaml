@@ -10,6 +10,9 @@ spec:
     cpuCores: 4
     httpPort: 8080
     AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
+    additionalConfigs:
+      "node-scheduler.include-coordinator": "false"
+      "query.max-memory": "1GB"
   workerSpec:
     count: 2
     memory: "2G"
