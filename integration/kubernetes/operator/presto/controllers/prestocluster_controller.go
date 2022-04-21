@@ -168,9 +168,7 @@ func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.C
 	} else if err != nil {
 		return AllZeroHash, err
 	}
-	//fmt.Printf("existing map %v %v \n\n", ConfigDataHash(existingMap.Data), existingMap.Data)
-	//fmt.Printf("new map %v %v \n\n", ConfigDataHash(configMap.Data), configMap.Data)
-	//fmt.Printf("config changed? %v \n\n", !reflect.DeepEqual(existingMap.Data, configMap.Data))
+
 	if !reflect.DeepEqual(existingMap.Data, configMap.Data) {
 		err = r.Update(ctx, configMap)
 		if err != nil {
