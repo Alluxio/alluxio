@@ -16,7 +16,6 @@ import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -103,7 +102,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -410,7 +408,7 @@ public final class AlluxioMasterRestServiceHandler {
         long fileId = mFileSystemMaster.getFileId(currentPath);
         FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
         UIFileInfo currentFileInfo = new UIFileInfo(fileInfo, ServerConfiguration.global(),
-            new MasterStorageTierAssoc().getOrderedStorageAliases());
+            mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
         if (currentFileInfo.getAbsolutePath() == null) {
           throw new FileDoesNotExistException(currentPath.toString());
         }
@@ -492,14 +490,14 @@ public final class AlluxioMasterRestServiceHandler {
           fileId = mFileSystemMaster.getFileId(currentPath);
           pathInfos[0] =
               new UIFileInfo(mFileSystemMaster.getFileInfo(fileId), ServerConfiguration.global(),
-                  new MasterStorageTierAssoc().getOrderedStorageAliases());
+                  mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
           AlluxioURI breadcrumb = new AlluxioURI(AlluxioURI.SEPARATOR);
           for (int i = 1; i < splitPath.length - 1; i++) {
             breadcrumb = breadcrumb.join(splitPath[i]);
             fileId = mFileSystemMaster.getFileId(breadcrumb);
             pathInfos[i] =
                 new UIFileInfo(mFileSystemMaster.getFileInfo(fileId), ServerConfiguration.global(),
-                    new MasterStorageTierAssoc().getOrderedStorageAliases());
+                    mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
           }
           response.setPathInfos(pathInfos);
         }
@@ -527,7 +525,7 @@ public final class AlluxioMasterRestServiceHandler {
       List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
       for (FileInfo fileInfo : filesInfo) {
         UIFileInfo toAdd = new UIFileInfo(fileInfo, ServerConfiguration.global(),
-            new MasterStorageTierAssoc().getOrderedStorageAliases());
+            mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
         try {
           if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
             FileBlockInfo blockInfo =
@@ -620,7 +618,7 @@ public final class AlluxioMasterRestServiceHandler {
           FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
           if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
             fileInfos.add(new UIFileInfo(fileInfo, ServerConfiguration.global(),
-                new MasterStorageTierAssoc().getOrderedStorageAliases()));
+                mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases()));
           }
         } catch (FileDoesNotExistException e) {
           response.setFatalError("Error: File does not exist " + e.getLocalizedMessage());
@@ -701,7 +699,7 @@ public final class AlluxioMasterRestServiceHandler {
                 new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
                     UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
                     logFile.isDirectory()), ServerConfiguration.global(),
-                new MasterStorageTierAssoc().getOrderedStorageAliases()));
+                mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
         fileInfos.sort(UIFileInfo.PATH_STRING_COMPARE);
@@ -1119,19 +1117,6 @@ public final class AlluxioMasterRestServiceHandler {
 
       return response;
     }, ServerConfiguration.global());
-  }
-
-  private Comparator<String> getTierAliasComparator() {
-    return new Comparator<String>() {
-      private MasterStorageTierAssoc mTierAssoc = new MasterStorageTierAssoc();
-
-      @Override
-      public int compare(String tier1, String tier2) {
-        int ordinal1 = mTierAssoc.getOrdinal(tier1);
-        int ordinal2 = mTierAssoc.getOrdinal(tier2);
-        return Integer.compare(ordinal1, ordinal2);
-      }
-    };
   }
 
   private Capacity getCapacityInternal() {

@@ -16,19 +16,18 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Unit tests for {@link AbstractStorageTierAssoc}.
+ * Unit tests for {@link DefaultStorageTierAssoc}.
  */
-public final class AbstractStorageTierAssocTest {
+public final class DefaultStorageTierAssocTest
+{
 
   private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
       PropertyKey.Template template) {
@@ -48,28 +47,7 @@ public final class AbstractStorageTierAssocTest {
   }
 
   /**
-   * Tests the constructors of the {@link MasterStorageTierAssoc} and {@link WorkerStorageTierAssoc}
-   * classes with a {@link ServerConfiguration}.
-   */
-  @Test
-  public void masterWorkerConfConstructor() throws Exception {
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3,
-        PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2), "BOTTOM",
-        PropertyKey.WORKER_TIERED_STORE_LEVELS, 2,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "BOTTOM"),
-        ServerConfiguration.global())
-        .toResource()) {
-      checkStorageTierAssoc(new MasterStorageTierAssoc(),
-          PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
-          PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
-      checkStorageTierAssoc(new WorkerStorageTierAssoc(), PropertyKey.WORKER_TIERED_STORE_LEVELS,
-          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
-    }
-  }
-
-  /**
-   * Tests the constructors of the {@link MasterStorageTierAssoc} and {@link WorkerStorageTierAssoc}
+   * Tests the constructors of the {@link DefaultStorageTierAssoc}
    * classes with different storage alias.
    */
   @Test
@@ -77,8 +55,8 @@ public final class AbstractStorageTierAssocTest {
     List<String> orderedAliases = Arrays.asList(Constants.MEDIUM_MEM,
         Constants.MEDIUM_HDD, "SOMETHINGELSE", Constants.MEDIUM_SSD);
 
-    MasterStorageTierAssoc masterAssoc = new MasterStorageTierAssoc(orderedAliases);
-    WorkerStorageTierAssoc workerAssoc = new WorkerStorageTierAssoc(orderedAliases);
+    StorageTierAssoc masterAssoc = new DefaultStorageTierAssoc(orderedAliases);
+    StorageTierAssoc workerAssoc = new DefaultStorageTierAssoc(orderedAliases);
 
     Assert.assertEquals(orderedAliases.size(), masterAssoc.size());
     Assert.assertEquals(orderedAliases.size(), workerAssoc.size());
@@ -112,26 +90,32 @@ public final class AbstractStorageTierAssocTest {
 
   @Test
   public void interpretTier() throws Exception {
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(0, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(1, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(2, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-1, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-2, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-3, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 1));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 1));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(0, 1));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(1, 1));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(2, 1));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(-1, 1));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(-2, 1));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(-3, 1));
+    Assert.assertEquals(0,
+        DefaultStorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 1));
+    Assert.assertEquals(0,
+        DefaultStorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 1));
+    Assert.assertEquals(0,
+        DefaultStorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 1));
 
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(0, 10));
-    Assert.assertEquals(8, AbstractStorageTierAssoc.interpretOrdinal(8, 10));
-    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(9, 10));
-    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(10, 10));
-    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(-1, 10));
-    Assert.assertEquals(1, AbstractStorageTierAssoc.interpretOrdinal(-9, 10));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-10, 10));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(-11, 10));
-    Assert.assertEquals(0, AbstractStorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 10));
-    Assert.assertEquals(1, AbstractStorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 10));
-    Assert.assertEquals(9, AbstractStorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 10));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(0, 10));
+    Assert.assertEquals(8, DefaultStorageTierAssoc.interpretOrdinal(8, 10));
+    Assert.assertEquals(9, DefaultStorageTierAssoc.interpretOrdinal(9, 10));
+    Assert.assertEquals(9, DefaultStorageTierAssoc.interpretOrdinal(10, 10));
+    Assert.assertEquals(9, DefaultStorageTierAssoc.interpretOrdinal(-1, 10));
+    Assert.assertEquals(1, DefaultStorageTierAssoc.interpretOrdinal(-9, 10));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(-10, 10));
+    Assert.assertEquals(0, DefaultStorageTierAssoc.interpretOrdinal(-11, 10));
+    Assert.assertEquals(0,
+        DefaultStorageTierAssoc.interpretOrdinal(Constants.FIRST_TIER, 10));
+    Assert.assertEquals(1,
+        DefaultStorageTierAssoc.interpretOrdinal(Constants.SECOND_TIER, 10));
+    Assert.assertEquals(9,
+        DefaultStorageTierAssoc.interpretOrdinal(Constants.LAST_TIER, 10));
   }
 }

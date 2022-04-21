@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -57,8 +57,6 @@ public final class UnderFileSystemBlockReader extends BlockReader {
 
   private final Counter mUfsBytesRead;
   private final Meter mUfsBytesReadThroughput;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /** The initial size of the block allocated in Alluxio storage when the block is cached. */
   private final long mInitialBlockSize;
@@ -358,7 +356,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
-        BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
+        BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(
+            WORKER_STORAGE_TIER_ASSOC.getAlias(0));
         mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
             AllocateOptions.forCreate(mInitialBlockSize, loc));
         mBlockWriter = mLocalBlockStore.getBlockWriter(
