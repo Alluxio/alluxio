@@ -231,10 +231,10 @@ func (r *PrestoClusterReconciler) getDeployment(ctx context.Context, name string
 // deploymentForMemcached returns a memcached Deployment object
 func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster, latestConfigVersion uint32) *appsv1.Deployment {
 	labels := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator"}
-
+	name := m.Name + "-coordinator"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        m.Name + "-coordinator",
+			Name:        name,
 			Namespace:   m.Namespace,
 			Annotations: map[string]string{ConfigHashAnnotationName: fmt.Sprint(latestConfigVersion)},
 		},
@@ -248,8 +248,8 @@ func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image: "beinan6666/prestodb",
-						Name:  "presto",
+						Image: m.Spec.Image,
+						Name:  name,
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: m.Spec.CoordinatorSpec.HttpPort,
 							Name:          "presto",
