@@ -563,7 +563,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
         }
       }
-      BlockReader reader = mWorker.createBlockReader(request);
+      BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
+          request.getStart(), request.isPositionShort(), request.getOpenUfsBlockOptions());
       context.setBlockReader(reader);
     }
 

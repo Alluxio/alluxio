@@ -17,7 +17,7 @@ import alluxio.collections.Pair;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -58,7 +58,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
    * @param loadTracker the load tracker
    * @param executor the executor
    */
-  public SwapRestoreTask(BlockStore blockStore, BlockMetadataManager metadataManager,
+  public SwapRestoreTask(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
       BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
       ExecutorService executor) {
     super(blockStore, metadataManager, evictorView, loadTracker, executor);
