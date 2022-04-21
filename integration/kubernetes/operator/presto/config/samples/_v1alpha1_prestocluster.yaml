@@ -11,7 +11,7 @@ spec:
     httpPort: 8080
     AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
   workerSpec:
-    count: 3
+    count: 2
     memory: "2G"
     cpuCores: 4
     httpPort: 8080

@@ -77,7 +77,7 @@ func newWorkerConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap 
 	var configPropsBuilder strings.Builder
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
 	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.WorkerSpec.HttpPort))
-	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=http://%v:%d\n", cr.Name + "-coordinator-service", cr.Spec.WorkerSpec.HttpPort))
+	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=http://%v:%d\n", cr.Name+"-coordinator-service", cr.Spec.WorkerSpec.HttpPort))
 
 	var keys []string
 	for key, _ := range cr.Spec.WorkerSpec.AdditionalConfigs {

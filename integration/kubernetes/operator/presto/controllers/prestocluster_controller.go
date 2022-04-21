@@ -67,8 +67,8 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		logger.Error(err, "Failed to get Presto Cluster")
 	}
 
-	latestConfigHash, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
-	logger.Info("Checking config", "latestCoordinatorConfigHash", latestConfigHash)
+	latestCoordinatorConfigHash, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
+	logger.Info("Checking coordiantor config", "latestCoordinatorConfigHash", latestCoordinatorConfigHash)
 	if err != nil {
 		logger.Error(err, "Failed to get ConfigMap of the coordinator")
 		return ctrl.Result{}, err
@@ -81,9 +81,9 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	if coordinatorDeployment == nil {
-		dep := r.deploymentForPrestoCoordinator(prestoCluster, latestConfigHash)
+		dep := r.deploymentForPrestoCoordinator(prestoCluster, latestCoordinatorConfigHash)
 		logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace,
-			"Deployment.Name", dep.Name, "Config version", latestConfigHash)
+			"Deployment.Name", dep.Name, "Config version", latestCoordinatorConfigHash)
 		err = r.Create(ctx, dep)
 		if err != nil {
 			logger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
@@ -91,11 +91,47 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 		// Deployment created successfully - return and requeue
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-	} else if fmt.Sprint(latestConfigHash) != coordinatorDeployment.Annotations[ConfigHashAnnotationName] {
+	} else if fmt.Sprint(latestCoordinatorConfigHash) != coordinatorDeployment.Annotations[ConfigHashAnnotationName] {
 		logger.Info("The config of coordinator changed, deleting the old coordinator",
-			"new config version", latestConfigHash,
+			"new config version", latestCoordinatorConfigHash,
 			"old config version", coordinatorDeployment.Annotations[ConfigHashAnnotationName])
 		err := r.Delete(ctx, coordinatorDeployment)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		// Deployment deleted successfully - return and requeue
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	latestWorkerConfigHash, err := r.ensureLatestWorkerConfigMap(ctx, prestoCluster)
+	logger.Info("Checking worker config", "latestWorkerConfigHash", latestWorkerConfigHash)
+	if err != nil {
+		logger.Error(err, "Failed to get ConfigMap of the worker")
+		return ctrl.Result{}, err
+	}
+
+	workerDeployment, err := r.getDeployment(ctx, prestoCluster.Name+"-worker", prestoCluster.Namespace)
+	if err != nil {
+		logger.Error(err, "Failed to get Deployment of the worker")
+		return ctrl.Result{}, err
+	}
+
+	if workerDeployment == nil {
+		dep := r.deploymentForPrestoWorker(prestoCluster, latestWorkerConfigHash)
+		logger.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace,
+			"Deployment.Name", dep.Name, "Config version", latestWorkerConfigHash)
+		err = r.Create(ctx, dep)
+		if err != nil {
+			logger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+			return ctrl.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	} else if fmt.Sprint(latestWorkerConfigHash) != workerDeployment.Annotations[ConfigHashAnnotationName] {
+		logger.Info("The config of workers changed, deleting the old workers",
+			"new config version", latestWorkerConfigHash,
+			"old config version", workerDeployment.Annotations[ConfigHashAnnotationName])
+		err := r.Delete(ctx, workerDeployment)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -221,7 +257,6 @@ func (r *PrestoClusterReconciler) getDeployment(ctx context.Context, name string
 	return deployment, nil
 }
 
-// deploymentForMemcached returns a memcached Deployment object
 func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1alpha1.PrestoCluster, latestConfigVersion uint32) *appsv1.Deployment {
 	labels := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "coordinator"}
 	name := m.Name + "-coordinator"
@@ -261,6 +296,59 @@ func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1
 							ConfigMap: &corev1.ConfigMapVolumeSource{
 								LocalObjectReference: corev1.LocalObjectReference{
 									Name: m.Name + "-coordinator-config",
+								},
+							},
+						},
+					}},
+				},
+			},
+		},
+	}
+	// Set presto instance as the owner and controller
+	ctrl.SetControllerReference(m, dep, r.Scheme)
+	return dep
+}
+
+func (r *PrestoClusterReconciler) deploymentForPrestoWorker(m *alluxiocomv1alpha1.PrestoCluster, latestConfigVersion uint32) *appsv1.Deployment {
+	labels := map[string]string{"app": "presto", "presto_cr": m.Name, "role": "worker"}
+	name := m.Name + "-worker"
+	dep := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   m.Namespace,
+			Annotations: map[string]string{ConfigHashAnnotationName: fmt.Sprint(latestConfigVersion)},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &m.Spec.WorkerSpec.Count,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image: m.Spec.Image,
+						Name:  name,
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: m.Spec.WorkerSpec.HttpPort,
+							Name:          "presto",
+						}},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      m.Name + "-worker-config-volume",
+								ReadOnly:  true,
+								MountPath: "/opt/presto/etc",
+							},
+						},
+					}},
+					Volumes: []corev1.Volume{{
+						Name: m.Name + "-worker-config-volume",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: m.Name + "-worker-config",
 								},
 							},
 						},
