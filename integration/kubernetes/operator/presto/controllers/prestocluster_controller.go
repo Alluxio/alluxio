@@ -68,7 +68,7 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	latestConfigHash, err := r.ensureLatestCoordinatorConfigMap(ctx, prestoCluster)
-	logger.Info("Checking config", "latestConfigVersion", latestConfigHash)
+	logger.Info("Checking config", "latestCoordinatorConfigHash", latestConfigHash)
 	if err != nil {
 		logger.Error(err, "Failed to get ConfigMap of the coordinator")
 		return ctrl.Result{}, err
@@ -112,6 +112,37 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 func (r *PrestoClusterReconciler) ensureLatestCoordinatorConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (uint32, error) {
 	configMap := newCoordinatorConfigMap(instance)
+
+	// Set presto instance as the owner and controller
+	if err := controllerutil.SetControllerReference(instance, configMap, r.Scheme); err != nil {
+		return AllZeroHash, err
+	}
+
+	// Check if this ConfigMap already exists
+	existingMap := &corev1.ConfigMap{}
+	err := r.Get(ctx, types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, existingMap)
+	if err != nil && errors.IsNotFound(err) {
+		err = r.Create(ctx, configMap)
+		if err != nil {
+			return AllZeroHash, err
+		}
+		return ConfigDataHash(configMap.Data), nil
+	} else if err != nil {
+		return AllZeroHash, err
+	}
+
+	if !reflect.DeepEqual(existingMap.Data, configMap.Data) {
+		err = r.Update(ctx, configMap)
+		if err != nil {
+			return AllZeroHash, err
+		}
+		return ConfigDataHash(configMap.Data), nil
+	}
+	return ConfigDataHash(existingMap.Data), nil
+}
+
+func (r *PrestoClusterReconciler) ensureLatestWorkerConfigMap(ctx context.Context, instance *alluxiocomv1alpha1.PrestoCluster) (uint32, error) {
+	configMap := newWorkerConfigMap(instance)
 
 	// Set presto instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, configMap, r.Scheme); err != nil {

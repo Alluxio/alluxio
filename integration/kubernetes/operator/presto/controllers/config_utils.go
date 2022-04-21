@@ -39,6 +39,8 @@ func newCoordinatorConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.Confi
 	var configPropsBuilder strings.Builder
 	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
 	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.CoordinatorSpec.HttpPort))
+	configPropsBuilder.WriteString(fmt.Sprintf("discovery-server.enabled=%v\n", true))
+	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=%v\n", "http://localhost:8080"))
 
 	var keys []string
 	for key, _ := range cr.Spec.CoordinatorSpec.AdditionalConfigs {
@@ -52,6 +54,43 @@ func newCoordinatorConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.Confi
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-coordinator-config",
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Data: map[string]string{
+			"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
+			"config.properties": strings.TrimSpace(configPropsBuilder.String()),
+		},
+	}
+}
+
+func newWorkerConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap {
+	labels := map[string]string{
+		"app": cr.Name,
+	}
+	var jvmConfigBuilder strings.Builder
+	jvmConfigBuilder.WriteString("-server\n")
+	jvmConfigBuilder.WriteString("-XX:+UseG1GC\n")
+	jvmConfigBuilder.WriteString(fmt.Sprintf("-Xmx%s\n", "1G"))
+	jvmConfigBuilder.WriteString(cr.Spec.WorkerSpec.AdditionalJvmOptions)
+
+	var configPropsBuilder strings.Builder
+	configPropsBuilder.WriteString(fmt.Sprintf("node.environment=%s\n", cr.Spec.Environment))
+	configPropsBuilder.WriteString(fmt.Sprintf("http-server.http.port=%d\n", cr.Spec.WorkerSpec.HttpPort))
+	configPropsBuilder.WriteString(fmt.Sprintf("discovery.uri=http://%v:%d\n", cr.Name + "-coordinator-service", cr.Spec.WorkerSpec.HttpPort))
+
+	var keys []string
+	for key, _ := range cr.Spec.WorkerSpec.AdditionalConfigs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, cr.Spec.WorkerSpec.AdditionalConfigs[key]))
+	}
+
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Name + "-worker-config",
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
