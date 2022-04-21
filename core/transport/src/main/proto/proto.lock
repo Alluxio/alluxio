@@ -4431,6 +4431,16 @@
                 "id": 2,
                 "name": "jobStatus",
                 "type": "Status"
+              },
+              {
+                "id": 3,
+                "name": "filePath",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "filePathFailed",
+                "type": "string"
               }
             ]
           },
@@ -4447,6 +4457,11 @@
                 "name": "jobStatusBlock",
                 "type": "JobStatusBlock",
                 "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "operationType",
+                "type": "OperationType"
               }
             ]
           },
