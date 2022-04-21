@@ -9,7 +9,7 @@ spec:
     memory: "2G"
     cpuCores: 4
     httpPort: 8080
-    AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
+    additionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
     additionalConfigs:
       "node-scheduler.include-coordinator": "false"
       "query.max-memory": "1GB"
