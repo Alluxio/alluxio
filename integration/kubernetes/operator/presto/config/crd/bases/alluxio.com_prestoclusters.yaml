@@ -35,6 +35,19 @@ spec:
           spec:
             description: PrestoClusterSpec defines the desired state of PrestoCluster
             properties:
+              catalogs:
+                items:
+                  properties:
+                    configs:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    name:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               coordinatorSpec:
                 properties:
                   AdditionalJvmOptions:
@@ -92,6 +105,7 @@ spec:
                 - memory
                 type: object
             required:
+            - catalogs
             - coordinatorSpec
             - image
             - workerSpec

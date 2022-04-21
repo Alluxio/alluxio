@@ -17,6 +17,6 @@ spec:
     httpPort: 8080
     AdditionalJvmOptions: "-Djdk.attach.allowAttachSelf=true"
   catalogs:
-    - name: "hive"
+    - name: "tpcds"
       configs:
-        "connector-name": "hive-hadoop2"
+        "connector.name": "tpcds"

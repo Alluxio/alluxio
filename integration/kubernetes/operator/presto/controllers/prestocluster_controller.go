@@ -297,6 +297,7 @@ func (r *PrestoClusterReconciler) deploymentForPrestoCoordinator(m *alluxiocomv1
 								LocalObjectReference: corev1.LocalObjectReference{
 									Name: m.Name + "-coordinator-config",
 								},
+								Items: createConfigMountItems(m),
 							},
 						},
 					}},
@@ -350,6 +351,7 @@ func (r *PrestoClusterReconciler) deploymentForPrestoWorker(m *alluxiocomv1alpha
 								LocalObjectReference: corev1.LocalObjectReference{
 									Name: m.Name + "-worker-config",
 								},
+								Items: createConfigMountItems(m),
 							},
 						},
 					}},

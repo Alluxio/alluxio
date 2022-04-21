@@ -50,17 +50,18 @@ func newCoordinatorConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.Confi
 	for _, key := range keys {
 		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, cr.Spec.CoordinatorSpec.AdditionalConfigs[key]))
 	}
-
+	data := map[string]string{
+		"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
+		"config.properties": strings.TrimSpace(configPropsBuilder.String()),
+	}
+	attacheCatalogConfig(data, cr.Spec.Catalogs)
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-coordinator-config",
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
-		Data: map[string]string{
-			"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
-			"config.properties": strings.TrimSpace(configPropsBuilder.String()),
-		},
+		Data: data,
 	}
 }
 
@@ -87,17 +88,33 @@ func newWorkerConfigMap(cr *alluxiocomv1alpha1.PrestoCluster) *corev1.ConfigMap 
 	for _, key := range keys {
 		configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, cr.Spec.WorkerSpec.AdditionalConfigs[key]))
 	}
-
+	data := map[string]string{
+		"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
+		"config.properties": strings.TrimSpace(configPropsBuilder.String()),
+	}
+	attacheCatalogConfig(data, cr.Spec.Catalogs)
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-worker-config",
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
-		Data: map[string]string{
-			"jvm.config":        strings.TrimSpace(jvmConfigBuilder.String()),
-			"config.properties": strings.TrimSpace(configPropsBuilder.String()),
-		},
+		Data: data,
+	}
+}
+
+func attacheCatalogConfig(data map[string]string, catalogs []alluxiocomv1alpha1.CatalogSpec) {
+	for _, catalog := range catalogs {
+		var configPropsBuilder strings.Builder
+		var keys []string
+		for key, _ := range catalog.Configs {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			configPropsBuilder.WriteString(fmt.Sprintf("%s=%s\n", key, catalog.Configs[key]))
+		}
+		data[catalog.Name] = configPropsBuilder.String()
 	}
 }
 
