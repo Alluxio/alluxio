@@ -11,15 +11,21 @@
 
 package alluxio.worker.block;
 
+import alluxio.client.file.cache.CacheManager;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.page.PagedLocalBlockStore;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,6 +39,22 @@ import java.util.Set;
  */
 public interface LocalBlockStore
     extends SessionCleanable, Closeable {
+  /**
+   * @return the instance of LocalBlockStore
+   * @param ufsManager
+   */
+  static LocalBlockStore create(UfsManager ufsManager) {
+    if(ServerConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+      try {
+        CacheManager cacheManager = CacheManager.Factory.get(ServerConfiguration.global());
+        return new PagedLocalBlockStore(cacheManager, ufsManager, ServerConfiguration.global());
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
+      }
+    } else {
+      return new TieredBlockStore();
+    }
+  }
 
   /**
    * Pins the block indicating subsequent access.
@@ -182,6 +204,20 @@ public interface LocalBlockStore
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException;
+
+  /**
+   * Creates a reader of an existing block to read data from this block.
+   * <p>
+   * The block reader will fetch the data from UFS when the data is not cached by the worker
+   *
+   * @param sessionId the id of the session to get the reader
+   * @param blockId the id of an existing block
+   * @param options the options for UFS fall-back
+   * @return a {@link BlockReader} instance on this block
+   */
+  default BlockReader getBlockReader(long sessionId, long blockId,  Protocol.OpenUfsBlockOptions options) {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Moves an existing block to a new location.
