@@ -15,10 +15,10 @@ import static alluxio.Constants.LOST_WORKER_STATE;
 
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.AlluxioException;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * todo.
+ * Delete a worker from the cluster.
  */
 public class DeleteWorker extends AbstractFsAdminCommand {
   private static final Option HELP_OPTION =
@@ -45,7 +45,7 @@ public class DeleteWorker extends AbstractFsAdminCommand {
           .required(false)
           .hasArg(false)
           .longOpt("force")
-          .desc("print help information.")
+          .desc("force a worker to be deleted even if the worker is not a lost worker.")
           .build();
 
   @Override
@@ -56,7 +56,6 @@ public class DeleteWorker extends AbstractFsAdminCommand {
   }
 
   /**
-   * todo.
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
@@ -70,55 +69,77 @@ public class DeleteWorker extends AbstractFsAdminCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws IOException {
     if (cl.hasOption(HELP_OPTION.getLongOpt())) {
       System.out.println(getUsage());
     }
 
     String[] args = cl.getArgs();
-    if (args.length != 1) { // todo 1
+    if (args.length != 1) {
       System.out.println(getUsage());
       return 0;
     }
     boolean force = cl.hasOption(FORCE_FLAG.getLongOpt());
     String address = args[0];
-    GetWorkerReportOptions options = getOptions(new HashSet<>(Arrays.asList(address.split(","))));
-    List<WorkerInfo> workerInfoList = mBlockClient.getWorkerReport(options);
-    // TODO issues#11172: If the worker is in a container, use the container hostname
-    for (WorkerInfo workerInfo: workerInfoList) {
+    GetWorkerReportOptions options =
+        getReportOptions(new HashSet<>(Arrays.asList(address.split(","))));
+    List<WorkerInfo> workerInfoList = null;
+    try {
+      workerInfoList = mBlockClient.getWorkerReport(options);
+      if (workerInfoList.size() == 0) {
+        System.out.println(address + " is not a valid worker name");
+      }
+      WorkerInfo workerInfo = workerInfoList.get(0);
       if (force || workerInfo.getState().equals(LOST_WORKER_STATE)) {
         mBlockClient.deleteWorker(workerInfo.getId());
+        System.out.println(workerInfo.getAddress().getHost() + "has been deleted");
       } else {
-        System.out.println(workerInfo.getAddress().getHost() + " " + workerInfo.getState());
+        System.out.println(workerInfo.getAddress().getHost()
+            + " is not a LOST Worker, Worker status: " + workerInfo.getState());
       }
+    } catch (IOException e) {
+      System.out.println("getWorker " + address + "failed");
+      return -1;
     }
-
     return 0;
   }
 
-  private GetWorkerReportOptions getOptions(Set<String> addresses) throws IOException {
+  private GetWorkerReportOptions getReportOptions(Set<String> addresses) throws IOException {
     GetWorkerReportOptions workerOptions = GetWorkerReportOptions.defaults();
 
     Set<WorkerInfoField> fieldRange = new HashSet<>();
     fieldRange.add(WorkerInfoField.ADDRESS);
     fieldRange.add(WorkerInfoField.ID);
     fieldRange.add(WorkerInfoField.STATE);
-    /*todo comments*/
+
+    /*
+    These two fields are required because in the definition of WorkerInfo's protobuf,
+    these two fields are not optional
+    */
     fieldRange.add(WorkerInfoField.WORKER_USED_BYTES_ON_TIERS);
     fieldRange.add(WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS);
+
     workerOptions.setFieldRange(fieldRange);
     workerOptions.setWorkerRange(GetWorkerReportOptions.WorkerRange.SPECIFIED);
     workerOptions.setAddresses(addresses);
     return workerOptions;
   }
 
+  /**
+   * @return the description for the command
+   */
+  @VisibleForTesting
+  public static String usage() {
+    return "deleteWorker [Worker Name]";
+  }
+
   @Override
   public String getUsage() {
-    return "deleteWorker [path]";
+    return usage();
   }
 
   @Override
   public String getDescription() {
-    return "statelock returns all waiters and holders of the state lock.";
+    return "Delete a worker from the cluster. The data in the worker will not be deleted";
   }
 }
