@@ -51,7 +51,7 @@ To benchmark Alluxio FUSE performance
 $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench
 ```
 
-To benchamrk job service
+To benchmark job service
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench
 ```
@@ -398,6 +398,12 @@ The parameters for the Client IO Stress Bench are (other than common parameters 
         <td>The cache mechanism during read. Options are [NONE, CACHE, CACHE_PROMOTE]</td>
     </tr>
     <tr>
+        <td>write-type</td>
+        <td>value of <code>alluxio.user.file.writetype.default</code></td>
+        <td>The write type to use when creating files. Options are [MUST_CACHE, CACHE_THROUGH, 
+THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write type.</td>
+    </tr>
+    <tr>
         <td>clients</td>
         <td>1</td>
         <td>The number of fs client instances to use</td>
@@ -578,6 +584,12 @@ The parameters for the Master Stress Bench(including MaxThroughput) are (other t
         <td>The length of time to warmup before recording measurements. (1m, 10m, 60s, 10000ms, etc.)</td>
     </tr>
     <tr>
+        <td>write-type</td>
+        <td>value of <code>alluxio.user.file.writetype.default</code></td>
+        <td>The write type to use when creating files. Options are [MUST_CACHE, CACHE_THROUGH, 
+THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write type.</td>
+    </tr>
+    <tr>
         <td>duration</td>
         <td>30s</td>
         <td>The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)</td>
@@ -590,7 +602,7 @@ The parameters for the Master Stress Bench(including MaxThroughput) are (other t
     <tr>
         <td>skip-prepare</td>
         <td>false</td>
-        <td>If true, skip the prepare.</td>
+        <td>If true, skip the preparation phase.</td>
     </tr>
 </table>
 
@@ -604,19 +616,20 @@ Run the test with the operation you want to test.
 $ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir ...
 ```
 
-For example, this would continuously run `ListDir` opeartion for 30s and record the throughput after 5s warmup.
+For example, this would continuously run `ListDir` operation for 30s and record the throughput after 5s warmup.
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir --warmup 5s --duration 30s 
 ```
 #### MaxThroughput test
 MaxThroughput test is the recommended way to test the master throughput for certain operation.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateFile ...
+$ bin/alluxio runClass alluxio.stress.cli.suite.MaxThroughput --operation CreateFile ...
 ```
 
 For example, we are trying to get max throughput of CreateFile operation using hadoop compatible client.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateFile --warmup 5s --duration 30s --client-type AlluxioHDFS
+$ bin/alluxio runClass alluxio.stress.cli.suite.MaxThroughput --operation CreateFile --warmup 5s 
+--duration 30s --client-type AlluxioHDFS
 ```
 
 
@@ -695,6 +708,12 @@ The parameters for the Worker Stress Bench are (other than common parameters for
         <td>conf</td>
         <td>{}</td>
         <td>Any HDFS client configuration key=value. Can repeat to provide multiple configuration values.</td>
+    </tr>
+    <tr>
+        <td>write-type</td>
+        <td>value of <code>alluxio.user.file.writetype.default</code></td>
+        <td>The write type to use when creating files. Options are [MUST_CACHE, CACHE_THROUGH, 
+THROUGH, ASYNC_THROUGH, ALL]. ALL will make the benchmark run with every write type.</td>
     </tr>
 </table>
 
@@ -952,7 +971,7 @@ These common parameters are available to all RPC benchmarks:
     <tr>
         <td>concurrency</td>
         <td>2</td>
-        <td>The number of simulated clients on each node. Typically benchmarks use 1 thread for 1 
+        <td>The number of simulated clients on each node. Typically, benchmarks use 1 thread for 1 
         simulated client.</td>
     </tr>
     <tr>
@@ -1070,3 +1089,63 @@ See also: [RegisterWorkerBench](#registerworkerbench).
 Parameters:
 
 Same as [`RegisterWorkerBench`](#registerworkerbench).
+
+
+## Batch Tasks
+
+Many benchmarks support a number of different operations or modes. It can be repetitive to run the
+same benchmark many times, each time only with a different operation. Batch tasks are predefined
+combinations of common benchmark operations, and they allow you to easily test the 
+various aspects of performance of a system. 
+
+Batch tasks are simple wrappers around existing benchmarks. The following batch tasks are available:
+* `MasterComprehensiveFileBatchTask` - A preset combination of master file system operations.
+
+To run the batch tasks, run
+```console
+$ bin/alluxio runClass alluxio.stress.cli.BatchTaskRunner <TASK_NAME> 
+```
+
+### Master Comprehensive File Batch Task
+
+The `MasterComprehensiveFileBatchTask` is a task that simulates the common workflow that creates 
+a file, gets file status, opens file for reading, and finally deletes the file.
+It runs the following master bench operations in order:
+
+1. CreateFile
+2. ListDir
+3. ListDirLocated
+4. GetBlockLocations
+5. GetFileStatus
+6. OpenFile
+7. DeleteFile
+
+#### Parameters
+
+It supports all common parameters, and a subset of the master bench parameters:
+
+* `--base`
+* `--threads`
+* `--stop-count`
+* `--target-throughput`
+* `--warmup`
+* `--create-file-size`
+* `--write-type`
+* `--clients`
+* `--client-type`
+* `--read-type`
+* `--fixed-count`
+
+#### Example
+
+This example runs the master comprehensive file batch task which operates on 1000 files with 10 
+threads:
+
+```console
+bin/alluxio runClass alluxio.stress.cli.BatchTaskRunner MasterComprehensiveFileBatchTask \ 
+--num-files 1000 \
+--threads 10 \
+--create-file-size 1k \ 
+--base alluxio:///stress-master-base \
+--warmup 0s
+```

@@ -507,9 +507,17 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         mXAttr = xAttr;
         break;
       case UNION_REPLACE:
+        if (mXAttr == null) {
+          mXAttr = xAttr;
+          break;
+        }
         mXAttr.putAll(xAttr);
         break;
       case UNION_PRESERVE:
+        if (mXAttr == null) {
+          mXAttr = xAttr;
+          break;
+        }
         for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
           if (mXAttr.containsKey(entry.getKey())) {
             continue;
@@ -518,6 +526,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         }
         break;
       case DELETE_KEYS:
+        if (mXAttr == null) { break; }
         for (Map.Entry<String, byte[]> entry : xAttr.entrySet()) {
           mXAttr.remove(entry.getKey());
         }

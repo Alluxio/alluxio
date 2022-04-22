@@ -35,22 +35,22 @@ and allow Tensorflow applications to access the data through Alluxio POSIX API.
 
 Run the following command to install FUSE on Linux:
 
-```
+```shell
 $ yum install fuse fuse-devel
 ```
 
-On MacOS, download the [osxfuse dmg file](https://github.com/osxfuse/osxfuse/releases/download/osxfuse-3.8.3/osxfuse-3.8.3.dmg) instead and follow the installation instructions.
+On macOS, download the [osxfuse dmg file](https://github.com/osxfuse/osxfuse/releases/download/osxfuse-3.8.3/osxfuse-3.8.3.dmg) instead and follow the installation instructions.
 
 Create a folder at the root in Alluxio: 
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /training-data
 ```
 
 Create a folder `/mnt/fuse`, change its owner to the current user (`$(whoami)`), 
 and change its permissions to allow read and write:
 
-```console
+```shell
 $ sudo mkdir -p /mnt/fuse
 $ sudo chown $(whoami) /mnt/fuse
 $ chmod 755 /mnt/fuse
@@ -59,18 +59,18 @@ $ chmod 755 /mnt/fuse
 Run the Alluxio-FUSE shell to mount Alluxio folder `training-data` to the local empty folder
 just created:
 
-```console
+```shell
 $ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 The above CLI spawns a background user-space java process (`AlluxioFuse`) that mounts the Alluxio path specified at `/training-data` 
-to the local file system on the specified mount point `/mnt/alluxio`. 
+to the local file system on the specified mount point `/mnt/fuse`.
 Please refer to [POSIX API documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}) 
 for details about how to mount Alluxio-FUSE and set up fuse related options. 
 
 Check the status of the FUSE process with:
 
-```console
+```shell
 $ ./integration/fuse/bin/alluxio-fuse stat
 ```
 
@@ -82,12 +82,12 @@ This folder will be used for the Tensorflow training in the next section.
 ### Preparing training data
 
 If the training data is already in a remote data storage, you can mount it as a folder under the Alluxio `/training-data` directory. 
-Those data will be visible to the applications running on local `/mnt/fuse/`.
+This data will be visible to the applications running on local `/mnt/fuse/`.
 
 Suppose the MNIST data is stored in a S3 bucket `s3://alluxio-tensorflow-mnist/`.
 Run the following command to mount this S3 bucket to Alluxio path `/training-data/mnist`:
 
-```console
+```shell
 $ ./bin/alluxio fs mount /training-data/mnist/ s3://alluxio-tensorflow-mnist/ \
   --option s3a.accessKeyID=<ACCESS_KEY_ID> --option s3a.secretKey=<SECRET_KEY>
 ```
@@ -97,7 +97,7 @@ These credentials are associated with the mounting point so that the future acce
 
 If the data is not in a remote data storage, you can copy it to Alluxio namespace:
 
-```console
+```shell
 $ wget https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
 $ ./bin/alluxio fs mkdir /training-data/mnist 
 $ ./bin/alluxio fs copyFromLocal mnist.npz /training-data/mnist 
@@ -106,14 +106,14 @@ $ ./bin/alluxio fs copyFromLocal mnist.npz /training-data/mnist
 Suppose the MNIST data is stored in an S3 bucket `s3://alluxio-tensorflow-mnist/`, 
 the following three commands will show the exact same data after the two mount processes:
 
-```
-aws s3 ls s3://alluxio-tensorflow-mnist/
-# 2021-11-04 17:43:58    11490434 mnist.npz
-bin/alluxio fs ls /training-data/mnist/
-# -rwx---rwx ec2-user       ec2-user              11490434       PERSISTED 11-04-2021 17:45:41:000   0% mnist.npz
-ls -l /mnt/fuse/mnist/
-# total 0
-# -rwx---rwx 0 ec2-user ec2-user 11490434 Nov  4 17:45 mnist.npz
+```shell
+$ aws s3 ls s3://alluxio-tensorflow-mnist/
+2021-11-04 17:43:58    11490434 mnist.npz
+$ bin/alluxio fs ls /training-data/mnist/
+-rwx---rwx ec2-user       ec2-user              11490434       PERSISTED 11-04-2021 17:45:41:000   0% mnist.npz
+$ ls -l /mnt/fuse/mnist/
+total 0
+-rwx---rwx 0 ec2-user ec2-user 11490434 Nov  4 17:45 mnist.npz
 ```
 
 ### Run image recognition test
@@ -121,7 +121,7 @@ ls -l /mnt/fuse/mnist/
 Download the [image recognition script](https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py)
 and run it with the training data `/mnt/fuse/mnist.npz`.
 
-```console
+```shell
 $ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py?raw=true
 $ python3 mnist_test.py /mnt/fuse/mnist.npz
 ```
@@ -145,21 +145,21 @@ Running Tensorflow on top of HDFS, S3, and other under storages could require di
 difficult to manage and integrate Tensorflow applications with different under storages. 
 Through Alluxio POSIX API, users only need to mount under storages to Alluxio once and mount the parent folder of those 
 under storages that contain training data to the local filesystem.
-After the initial mounting, the data becomes immediately available through the Alluxio fuse mount point and can be 
+After the initial mounting, the data becomes immediately available through the Alluxio FUSE mount point and can be
 transparently accessed in Tensorflow applications.
-If a Tensorflow application has the data location parameter set, we only need to pass the data location inside fuse mount 
+If a Tensorflow application has the data location parameter set, we only need to pass the data location inside the FUSE mount
 point to the Tensorflow application without modifying it.
 This greatly simplifies the application development, which otherwise would require different integration setups and 
 credential configurations for each under storage.
 
 ### Co-locating Tensorflow with Alluxio worker
 
-By co-locating Tensorflow applications with Alluxio worker, Alluxio caches the remote data locally for future access, 
+By co-locating Tensorflow applications with an Alluxio Worker, Alluxio caches the remote data locally for future access,
 providing data locality. 
 Without Alluxio, slow remote storage may result in bottleneck on I/O and leave GPU resources underutilized. 
 When concurrently writing or reading big files, Alluxio POSIX API can provide significantly better performance when 
-running on Alluxio worker node. 
-Setting up a worker node with memory space to host all the training data can allow the Alluxio POSIX API to provide 
+running on an Alluxio Worker node.
+Setting up a Worker node with memory space to host all the training data can allow the Alluxio POSIX API to provide
 nearly 2X performance improvement.
 
 ### Configure Alluxio write type and read type
@@ -172,7 +172,7 @@ With Alluxio -- a cache layer between the Tensorflow applications and remote sto
 persistent work and speed up the write/read time.
 
 With `alluxio.user.file.writetype.default` set to `MUST_CACHE`, we can write to the top tier (usually it is the memory 
-tier) of Alluxio worker storage. 
+tier) of Alluxio Worker storage.
 With `alluxio.user.file.readtype.default` set to `CACHE_PROMOTE`, we can cache the read data in Alluxio for future access. 
 This will accelerate our Tensorflow workflow by writing to and reading from memory. 
 If the remote storages are cloud storages like S3, the advantages will be more obvious.

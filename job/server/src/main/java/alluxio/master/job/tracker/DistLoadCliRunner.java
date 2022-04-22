@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 
 /**
  * A config runner for a DistLoadCli job.
@@ -176,6 +177,8 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
     JobConfig jobConfig;
     long fileCount = 0;
     long fileSize = 0;
+    String filePathString = filePath.stream().map(URIStatus::getPath)
+            .collect(Collectors.joining(CmdJobTracker.DELIMITER));
 
     if (filePath.size() == 1) {
       URIStatus status = filePath.iterator().next();
@@ -201,6 +204,7 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
     attempt.setFileCount(fileCount);
     attempt.setFileSize(fileSize);
     attempt.setConfig(jobConfig);
+    attempt.setFilePath(filePathString);
   }
 }
 

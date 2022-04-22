@@ -32,10 +32,10 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.grpc.ReadRequest;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
-import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -382,9 +382,8 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
-    BlockReadRequest request = new BlockReadRequest(
-        ReadRequest.newBuilder().setBlockId(blockId).setOffset(0).setLength(10).build());
-    BlockReader reader = mBlockWorker.createBlockReader(request);
+    BlockReader reader = mBlockWorker.createBlockReader(IdUtils.createSessionId(), blockId, 0,
+        false, Protocol.OpenUfsBlockOptions.newBuilder().build());
     // reader will hold the lock
     assertThrows(DeadlineExceededException.class,
         () -> mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10)

@@ -1993,15 +1993,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
-      stringBuilder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
-          .setDescription(format(
-              "Used to bind embedded journal servers to a proxied host."
-                  + "Proxy hostname will still make use of %s for bind port.",
-              Name.MASTER_EMBEDDED_JOURNAL_PORT))
-          // No default value for proxy-host. Server will bind to "alluxio.master.hostname"
-          // as default.
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       listBuilder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(format("A comma-separated list of journal addresses for all "
@@ -3682,11 +3673,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 2.
   public static final PropertyKey WORKER_NETWORK_NETTY_WORKER_THREADS =
       intBuilder(Name.WORKER_NETWORK_NETTY_WORKER_THREADS)
-          .setDefaultValue(0)
-          .setDescription("How many threads to use for processing requests. Zero defaults to "
-              + "#cpuCores * 2.")
+          .setDefaultSupplier(() -> Math.max(4, 2 * Runtime.getRuntime().availableProcessors()),
+              "2 * {CPU core count}")
+          .setDescription("Number of threads to use for processing requests in worker")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();

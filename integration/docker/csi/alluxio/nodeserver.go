@@ -227,18 +227,6 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	// Set node name for scheduling
 	csiFusePodObj.Spec.NodeName = nodeId
 
-	// Set Alluxio path to be mounted
-	targetPath := req.GetVolumeContext()["alluxioPath"]
-	if targetPath == "" {
-		targetPath = "/"
-	}
-	source := v1.EnvVar{Name: "FUSE_ALLUXIO_PATH", Value: targetPath}
-	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, source)
-
-	// Set mount path provided by CSI
-	mountPoint := v1.EnvVar{Name: "MOUNT_POINT", Value: req.GetStagingTargetPath()}
-	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, mountPoint)
-
 	// Set pre-stop command (umount) in pod lifecycle
 	lifecycle := &v1.Lifecycle {
 		PreStop: &v1.Handler {
@@ -253,12 +241,20 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 	fuseOptsStr := strings.Join(req.GetVolumeCapability().GetMount().GetMountFlags(), ",")
 	csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, "--fuse-opts=" + fuseOptsStr)
 
+	// Set fuse mount point
+	csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, req.GetStagingTargetPath())
+
+	// Set alluxio path to be mounted if set
+	alluxioPath := req.GetVolumeContext()["alluxioPath"]
+	if alluxioPath != "" {
+		csiFusePodObj.Spec.Containers[0].Args = append(csiFusePodObj.Spec.Containers[0].Args, alluxioPath)
+	}
+
 	// Update ALLUXIO_FUSE_JAVA_OPTS to include csi client java options
 	alluxioCSIFuseJavaOpts :=
 		strings.Join([]string{os.Getenv("ALLUXIO_FUSE_JAVA_OPTS"), req.GetVolumeContext()["javaOptions"]}, " ")
 	alluxioFuseJavaOptsEnv := v1.EnvVar{Name: "ALLUXIO_FUSE_JAVA_OPTS", Value: alluxioCSIFuseJavaOpts}
 	csiFusePodObj.Spec.Containers[0].Env = append(csiFusePodObj.Spec.Containers[0].Env, alluxioFuseJavaOptsEnv)
-
 	return csiFusePodObj, nil
 }
 
