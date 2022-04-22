@@ -82,7 +82,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       new ConcurrentHashMap<>();
 
   /** The Local block store. */
-  private final BlockStore mLocalBlockStore;
+  private final LocalBlockStore mLocalBlockStore;
 
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
@@ -96,7 +96,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param localBlockStore the local block store
    * @param ufsManager the file manager
    */
-  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
+  public UnderFileSystemBlockStore(LocalBlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
     mUfsManager = ufsManager;
     mUfsInstreamCache = new UfsInputStreamCache();
