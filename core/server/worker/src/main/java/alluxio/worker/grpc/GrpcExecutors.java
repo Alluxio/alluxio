@@ -80,9 +80,9 @@ public final class GrpcExecutors {
     MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR.getQueue()::size, 5, TimeUnit.SECONDS);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_MAX_COUNT.getName()),
-        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+        CACHE_MANAGER_THREAD_POOL_EXECUTOR::getMaximumPoolSize, 30, TimeUnit.MINUTES);
     MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR::getCompletedTaskCount, 5, TimeUnit.SECONDS);
