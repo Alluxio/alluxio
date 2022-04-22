@@ -4448,6 +4448,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Proxy related properties
   //
+  // Alluxio S3-compatible REST API proxy properties
   public static final PropertyKey PROXY_S3_WRITE_TYPE =
       enumBuilder(Name.PROXY_S3_WRITE_TYPE, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -4569,6 +4570,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_LIST_OBJECTS_RETURN_FOLDERS =
+      booleanBuilder(Name.PROXY_S3_LIST_OBJECTS_RETURN_FOLDERS)
+          .setDefaultValue(true)
+          .setDescription("Whether or not folders should be included in the ListBucketResult"
+              + "response for ListObjects and ListObjectsV2. Defaults to true.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  // Alluxio proxy process/web server properties
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -7437,6 +7447,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled";
     public static final String PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL =
         "alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval";
+    public static final String PROXY_S3_DELETE_EMPTY_FOLDERS_ENABLED =
+        "alluxio.proxy.s3.delete.empty.folders.enabled";
+    public static final String PROXY_S3_LIST_OBJECTS_RETURN_FOLDERS =
+        "alluxio.proxy.s3.list.objects.return.folders";
     public static final String PROXY_S3_HEADER_METADATA_MAX_SIZE =
         "alluxio.proxy.s3.header.metadata.max.size";
     public static final String PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED =

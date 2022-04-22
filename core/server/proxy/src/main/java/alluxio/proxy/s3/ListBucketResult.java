@@ -169,17 +169,20 @@ public class ListBucketResult {
       }
       return;
     }
-    // contains both ends of "/" character
-    final String bucketPrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
-    buildListBucketResult(bucketPrefix, children);
+    buildListBucketResult(bucketName, children, options.getIncludeFolders());
   }
 
   /**
    * Filter {@link URIStatus} use marker/continuation-token, prefix, delimiter, and max-keys.
+   * @param bucketName The bucket name
    * @param children a list of {@link URIStatus}, representing the objects and common prefixes
+   * @param includeFolders Whether to include folders in the response Content. Note that folders
+   *                       will be processed into any matching CommonPrefixes regardless.
    */
   private void buildListBucketResult(
-      String bucketPrefix, List<URIStatus> children) throws S3Exception {
+      String bucketName, List<URIStatus> children, boolean includeFolders) throws S3Exception {
+    // contains both ends of "/" character
+    final String bucketPrefix = AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR;
     final String marker;
     if (isVersion2()) {
       if (mContinuationToken != null) {
@@ -213,12 +216,16 @@ public class ListBucketResult {
           return new Content(
               status.isFolder() ? path + AlluxioURI.SEPARATOR : path,
               S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
-              status.isFolder() ? "0" : String.valueOf(status.getLength())
+              status.isFolder() ? "0" : String.valueOf(status.getLength()),
+              status.isFolder()
           );
         })
         .filter(content -> {
           String path = content.getKey();
           if (mDelimiter == null) {
+            if (!includeFolders && content.mIsFolder) {
+              return false;
+            }
             if (keyCount[0] == mMaxKeys) {
               mIsTruncated = true;
               return false;
@@ -226,9 +233,12 @@ public class ListBucketResult {
             mNextMarker = path;
             keyCount[0]++;
             return true;
-          }
-          int delimiterIndex = path.substring(mPrefix.length()).indexOf(mDelimiter);
-          if (delimiterIndex == -1) { // no matching delimiter
+          } // else try to match the Delimiter
+          String commonPrefix = buildCommonPrefix(path, mPrefix, mDelimiter);
+          if (commonPrefix == null) { // no matching delimiter
+            if (!includeFolders && content.mIsFolder) {
+              return false;
+            }
             if (keyCount[0] == mMaxKeys) {
               mIsTruncated = true;
               return false;
@@ -237,27 +247,16 @@ public class ListBucketResult {
             keyCount[0]++;
             return true;
           } // else, this key is (a part of) a common prefix
-          // We set the field mIsCommonPrefix in order to later filter out this key from mContents
-          content.mIsCommonPrefix = true;
-          /*
-           * Delimiter mean:
-           * https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
-           * Causes keys that contain the same string between the prefix and the
-           * first occurrence of the delimiter to be rolled up into a single
-           * result element in the CommonPrefixes collection.
-           * These rolled-up keys are not returned elsewhere in the response.
-           * Each rolled-up result counts as only one return against the MaxKeys value.
-           */
-          String commonPrefix = path.substring(0, mPrefix.length() + delimiterIndex
-              + mDelimiter.length());
-          if (commonPrefix.equals(marker)) {
-            return false; // skip if the marker was this common prefix
-          }
           if (commonPrefixes.contains(commonPrefix)) {
             return false; // the key is dropped because it is consumed by a prior common prefix
           }
-          // This is a new common prefix, so we return it as a "key" in this stream
-          // so that it is accounted for in the call to `limit()`
+          if (commonPrefix.equals(marker)) {
+            return false; // skip if the marker was this common prefix
+          }
+          // Otherwise, this is a new common prefix. We return it as a "key" in this stream
+          // so that it is accounted for in the call to `limit()`.
+          // We set the field mIsCommonPrefix in order to later filter out this key from mContents.
+          content.mIsCommonPrefix = true;
           if (keyCount[0] == mMaxKeys) {
             mIsTruncated = true;
             return false;
@@ -297,6 +296,31 @@ public class ListBucketResult {
       mNextContinuationToken = null;
       mNextMarker = null;
     }
+  }
+
+  /**
+   *
+   * @param path
+   * @param prefix
+   * @param delimiter
+   * @return
+   */
+  private String buildCommonPrefix(String path, String prefix, String delimiter) {
+    int delimiterIndex = path.substring(prefix.length()).indexOf(delimiter);
+    if (delimiterIndex == -1) { // no matching delimiter
+      return null;
+    } // else, this key is (a part of) a common prefix
+    /*
+     * Delimiter mean:
+     * https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
+     * Causes keys that contain the same string between the prefix and the
+     * first occurrence of the delimiter to be rolled up into a single
+     * result element in the CommonPrefixes collection.
+     * These rolled-up keys are not returned elsewhere in the response.
+     * Each rolled-up result counts as only one return against the MaxKeys value.
+     */
+    return path.substring(0, prefix.length() + delimiterIndex
+        + delimiter.length());
   }
 
   /**
@@ -521,6 +545,8 @@ public class ListBucketResult {
     private final String mLastModified;
     /* Size in bytes of the object. */
     private final String mSize;
+    /* Helper variable used during processing to determine if a Key is a Folder */
+    private boolean mIsFolder;
     /* Helper variable used during processing to determine if a Key is a Common Prefix */
     private boolean mIsCommonPrefix;
 
@@ -530,9 +556,10 @@ public class ListBucketResult {
      * @param key the object key
      * @param lastModified the data and time in string format the object was last modified
      * @param size size in bytes of the object
+     * @param isFolder whether this key is a Folder
      */
-    public Content(String key, String lastModified, String size) {
-      this(key, lastModified, size, false);
+    public Content(String key, String lastModified, String size, boolean isFolder) {
+      this(key, lastModified, size, isFolder, false);
     }
 
     /**
@@ -541,12 +568,15 @@ public class ListBucketResult {
      * @param key the object key
      * @param lastModified the data and time in string format the object was last modified
      * @param size size in bytes of the object
+     * @param isFolder whether this key is a Folder
      * @param isCommonPrefix whether this key is a Common Prefix
      */
-    public Content(String key, String lastModified, String size, boolean isCommonPrefix) {
+    public Content(String key, String lastModified, String size, boolean isFolder,
+                   boolean isCommonPrefix) {
       mKey = key;
       mLastModified = lastModified;
       mSize = size;
+      mIsFolder = isFolder;
       mIsCommonPrefix = isCommonPrefix;
     }
 

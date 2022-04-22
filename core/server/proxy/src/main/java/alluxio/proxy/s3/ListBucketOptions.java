@@ -23,15 +23,22 @@ public final class ListBucketOptions {
   // Default EncodingType when it is not specified
   public static final String DEFAULT_ENCODING_TYPE = "url";
 
-  private String mMarker;
+  // Fields which map directly to fields in ListBucketResult
   private String mPrefix;
   private int mMaxKeys;
   private String mDelimiter;
   private String mEncodingType;
 
+  // ListObjects
+  private String mMarker;
+
+  // ListObjectsV2
   private Integer mListType;
   private String mContinuationToken;
   private String mStartAfter;
+
+  // Auxiliary fields
+  private boolean mIncludeFolders;
 
   /**
    * Creates a default {@link ListBucketOptions}.
@@ -57,6 +64,7 @@ public final class ListBucketOptions {
     mListType = null;
     mContinuationToken = null;
     mStartAfter = null;
+    mIncludeFolders = true;
   }
 
   /**
@@ -114,6 +122,11 @@ public final class ListBucketOptions {
   public String getStartAfter() {
     return mStartAfter;
   }
+
+  /**
+   * @return whether to return folders in ListBucketResult Contents
+   */
+  public boolean getIncludeFolders() { return mIncludeFolders; }
 
   /**
    * @param marker the marker to set
@@ -187,6 +200,15 @@ public final class ListBucketOptions {
     return this;
   }
 
+  /**
+   * @param includeFolders whether to return folders in ListBucketResult Contents
+   * @return the updated object
+   */
+  public ListBucketOptions setIncludeFolders(boolean includeFolders) {
+    mIncludeFolders = includeFolders;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -204,13 +226,14 @@ public final class ListBucketOptions {
         && Objects.equal(mListType, that.mListType)
         && Objects.equal(mContinuationToken, that.mContinuationToken)
         && Objects.equal(mStartAfter, that.mStartAfter)
+        && Objects.equal(mIncludeFolders, that.mIncludeFolders)
         ;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMarker, mPrefix, mMaxKeys, mDelimiter, mEncodingType,
-        mListType, mContinuationToken, mStartAfter);
+        mListType, mContinuationToken, mStartAfter, mIncludeFolders);
   }
 
   @Override
@@ -224,6 +247,7 @@ public final class ListBucketOptions {
         .add("listType", mListType)
         .add("continuationToken", mContinuationToken)
         .add("startAfter", mStartAfter)
+        .add("includeFolders", mIncludeFolders)
         .toString();
   }
 }

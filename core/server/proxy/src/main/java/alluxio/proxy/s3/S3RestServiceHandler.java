@@ -341,21 +341,23 @@ public final class S3RestServiceHandler {
           .setEncodingType(encodingTypeParam)
           .setListType(listTypeParam)
           .setContinuationToken(continuationTokenParam)
-          .setStartAfter(startAfterParam);
+          .setStartAfter(startAfterParam)
+          .setIncludeFolders(Configuration.getBoolean(
+              PropertyKey.PROXY_S3_LIST_OBJECTS_RETURN_FOLDERS));
 
       List<URIStatus> children;
       try {
-        // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to determine
-        //             what directory to list the contents of
-        // only list the direct children if delimiter is not null
-        if (delimiterParam != null) {
+        // only list the direct children if delimiter exactly "/"
+        if (delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
           if (prefixParam == null) {
             path = parsePathWithDelimiter(path, "", delimiterParam);
           } else {
             path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
           }
           children = fs.listStatus(new AlluxioURI(path));
-        } else {
+        } else { // recursively list the path
+          // TODO(czhu): use path traversal to build list of returned children,
+          //  if a delimiter is found then you can stop traversing that sub-path
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
           children = fs.listStatus(new AlluxioURI(path), options);
         }
