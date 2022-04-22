@@ -170,11 +170,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     /**
      * The Property's value represents a time duration, stored as a Long in ms.
      */
-    DURATION(String.class),
+    DURATION(Long.class),
     /**
      * The Property's value represents a data size, stored as a Long in bytes.
      */
-    DATASIZE(String.class),
+    DATASIZE(Long.class),
     /**
      * The Property's value is of list type, stored as a delimiter separated string.
      */

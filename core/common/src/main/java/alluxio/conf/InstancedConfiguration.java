@@ -302,6 +302,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public long getLong(PropertyKey key)
+  {
+    checkArgument(key.getType() == PropertyKey.PropertyType.INTEGER);
+    return (int) get(key);
+  }
+
+  @Override
   public double getDouble(PropertyKey key) {
     checkArgument(key.getType() == PropertyKey.PropertyType.DOUBLE);
     return (double) get(key);
