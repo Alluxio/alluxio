@@ -342,8 +342,6 @@ public class DefaultBlockWorkerTest {
     long lockId = mBlockWorker.lockBlock(sessionId, blockId);
     assertNotNull(mBlockWorker.getVolatileBlockMeta(blockId));
     mBlockWorker.unlockBlock(lockId);
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getVolatileBlockMeta(blockId));
   }
 
   @Test
