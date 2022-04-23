@@ -171,24 +171,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the metadata of a specific block from local storage.
-   * <p>
-   * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
-   * previously acquired {@link #lockBlock(long, long)}.
-   *
-   * @param sessionId the id of the session to get this file
-   * @param blockId the id of the block
-   * @param lockId the id of the lock
-   * @return metadata of the block
-   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
-   *         lockId can not be found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
-   */
-  BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException;
-
-  /**
    * Checks if the storage has a given block.
    *
    * @param blockId the block id

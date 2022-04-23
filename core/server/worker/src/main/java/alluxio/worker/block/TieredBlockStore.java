@@ -213,16 +213,6 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    LOG.debug("getBlockMeta: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
-    mLockManager.validateLock(sessionId, blockId, lockId);
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      return mMetaManager.getBlockMeta(blockId);
-    }
-  }
-
-  @Override
   public TempBlockMeta getTempBlockMeta(long blockId)
       throws BlockDoesNotExistException {
     LOG.debug("getTempBlockMeta: blockId={}", blockId);

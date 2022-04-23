@@ -245,23 +245,10 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getBlockMetaNotFound() throws Exception {
-    long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
-    long lockId = mRandom.nextLong();
     assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getBlockMeta(sessionId, blockId, lockId)
+        () -> mBlockWorker.getVolatileBlockMeta(blockId)
     );
-  }
-
-  @Test
-  public void getBlockMeta() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long blockId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertEquals(blockId, mBlockWorker.getBlockMeta(sessionId, blockId, lockId).getBlockId());
   }
 
   @Test
@@ -353,10 +340,10 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertNotNull(mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
+    assertNotNull(mBlockWorker.getVolatileBlockMeta(blockId));
     mBlockWorker.unlockBlock(lockId);
     assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
+        () -> mBlockWorker.getVolatileBlockMeta(blockId));
   }
 
   @Test
