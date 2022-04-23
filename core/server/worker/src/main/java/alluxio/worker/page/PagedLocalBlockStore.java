@@ -25,6 +25,7 @@ import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -38,7 +39,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
   private AlluxioConfiguration mConf;
-
+  /** The cache for all ufs instream. */
+  private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
 
   public PagedLocalBlockStore(CacheManager cacheManager, UfsManager ufsManager,
                               AlluxioConfiguration conf) {
@@ -121,7 +123,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public BlockReader getBlockReader(long sessionId, long blockId,  Protocol.OpenUfsBlockOptions options) {
-    return new PagedBlockReader(mCacheManager, mUfsManager, mConf, blockId, options);
+    return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId, options);
   }
 
   @Override
