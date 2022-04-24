@@ -1291,7 +1291,7 @@ but the actual data may be deleted a while later.
 
 * Adding `-R` option deletes all contents of the directory and the directory itself.
 * Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
-before attempting to delete persisted directories.
+before attempting to delete persisted directories. We recommend always using the `-U` option.
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
@@ -1301,6 +1301,33 @@ $ ./bin/alluxio fs rm /tmp/unused-file
 # Remove a file from Alluxio space only
 $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 ```
+
+When deleting only from Alluxio but leaving the files in UFS, you can use `-U` and `-Dalluxio.user.file.metadata.sync.interval=-1`
+to skip the metadata sync and the UFS check. This will save time and memory consumption on the Alluxio master.
+```console
+$ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /path
+```
+
+When deleting a large directory (with millions of files) recursively both from Alluxio and UFS,
+the operation is expensive. 
+
+We recommend doing the deletion in the following way:
+1. Using the corresponding tool to check the UFS path directly and make sure everything can be deleted safely. 
+For example if the UFS is HDFS, use `hdfs dfs -ls -R /dir` to list the UFS files and check.
+Please do not sync the directory from Alluxio and check with `alluxio fs ls -R /dir`, because the loaded file metadata will
+be deleted anyway and the expensive metadata sync operation will essentially be wasted.
+2. Then issue the deletion from Alluxio and delete both in-Alluxio and in-UFS files:
+```console
+# Disable the sync and skip the UFS check, to reduce memory consumption on the master side
+$ bin/alluxio fs rm -R -U -Dalluxio.user.file.metadata.sync.interval=-1 /dir
+```
+
+If the metadata sync and UFS check are both disabled, deleting 1 million files from Alluxio will increase the JVM heap
+by around 2.5GB. If the UFS check is disabled by `-U`, deleting the files from UFS as well introduces around 10% extra overhead.
+Alluxio 2.8 introduced improvements to memory usage and reduced the JVM heap increase by around 20%.
+Metadata sync and UFS check will each add around 2GB extra overhead per 1 million files.
+So before issuing the recursive deletion command, measure the scale and estimate how much extra
+memory pressure this operation will add to the master.
 
 ### setfacl
 
