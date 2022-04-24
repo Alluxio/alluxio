@@ -1330,7 +1330,7 @@ We recommend doing the deletion in the following way:
 For example if the UFS is HDFS, use `hdfs dfs -ls -R /dir` to list the UFS files and check.
 Please do not sync the directory from Alluxio and check with `alluxio fs ls -R /dir`, because the loaded file metadata will
 be deleted anyway and the expensive metadata sync operation will essentially be wasted.
-2. Then issue the deletion from Alluxio and delete both in-Alluxio and in-UFS files:
+2. Issue the deletion from Alluxio to delete files from both Alluxio and the UFS:
 ```console
 # Disable the sync and skip the UFS check, to reduce memory consumption on the master side
 $ bin/alluxio fs rm -R -U -Dalluxio.user.file.metadata.sync.interval=-1 /dir
