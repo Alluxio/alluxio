@@ -1149,6 +1149,7 @@ Options:
 * `-d` option lists the directories as plain files. For example, `ls -d /` shows the attributes of root directory.
 * `-f` option forces loading metadata for immediate children in a directory.
 By default, it loads metadata only at the first time at which a directory is listed.
+`-f` is equivalent to `-Dalluxio.user.file.metadata.sync.interval=0`.
 * `-h` option displays file sizes in human-readable formats.
 * `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
@@ -1171,6 +1172,19 @@ $ ./bin/alluxio fs ls -f /s3/data
 # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
 $ aws s3 rm s3://data-bucket/somedata
 $ ./bin/alluxio fs ls -f /s3/data
+```
+
+Metadata sync is an expensive operation. A rough estimation is metadata sync
+on 1 million files will consume 2GB heap until the sync operation is complete.
+Therefore, we recommend not using forced sync to avoid accidental repeated sync operations.
+It is recommended to always specify a non-zero sync interval for metadata sync, so
+even if the sync is repeatedly triggered, the paths that have just been sync-ed can be identified and skipped. 
+```console
+# Should be avoided
+$ ./bin/alluxio fs ls -f -R /s3/data
+
+# Recommended. This will not sync files repeatedly in 1 minute.
+$ ./bin/alluxio fs ls -Dalluxio.user.file.metadata.sync.interval=1min -R /s3/data
 ```
 
 ### masterInfo
