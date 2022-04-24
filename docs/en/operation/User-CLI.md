@@ -1319,7 +1319,7 @@ $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 When deleting only from Alluxio but leaving the files in UFS, you can use `-U` and `-Dalluxio.user.file.metadata.sync.interval=-1`
 to skip the metadata sync and the UFS check. This will save time and memory consumption on the Alluxio master.
 ```console
-$ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /path
+$ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /dir
 ```
 
 When deleting a large directory (with millions of files) recursively both from Alluxio and UFS,
