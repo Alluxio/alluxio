@@ -1490,6 +1490,10 @@ data from that system.
 $ ./bin/alluxio fs unmount /s3/data
 ```
 
+If there are files under the mount point, the `unmount` operation will implicitly delete those files from Alluxio.
+See the [rm command]({{ '/en/operation/User-CLI.html#rm' | relativize_url }}) for how to estimate the memory consumption.
+It is recommended to remove those files in Alluxio first, before the `unmount`.
+
 ### unpin
 
 The `unpin` command unmarks a file or directory in Alluxio as pinned.
