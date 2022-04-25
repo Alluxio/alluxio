@@ -302,10 +302,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
-  public long getLong(PropertyKey key)
-  {
-    checkArgument(key.getType() == PropertyKey.PropertyType.INTEGER);
-    return (int) get(key);
+  public long getLong(PropertyKey key) {
+    checkArgument(key.getType() == PropertyKey.PropertyType.LONG
+        || key.getType() == PropertyKey.PropertyType.LONG);
+    return (long) get(key);
   }
 
   @Override

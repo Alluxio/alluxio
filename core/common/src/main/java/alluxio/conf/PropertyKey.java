@@ -19,6 +19,7 @@ import static alluxio.conf.PropertyKey.Builder.durationBuilder;
 import static alluxio.conf.PropertyKey.Builder.enumBuilder;
 import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static alluxio.conf.PropertyKey.Builder.listBuilder;
+import static alluxio.conf.PropertyKey.Builder.longBuilder;
 import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -160,6 +161,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     INTEGER(Integer.class),
     /**
+     * The Property's value is of long integer type, stored as a long.
+     */
+    LONG(Long.class),
+    /**
      * The Property's value is of double type, stored as a Double.
      */
     DOUBLE(Double.class),
@@ -243,6 +248,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public static Builder intBuilder(String name) {
       return new Builder(name, PropertyType.INTEGER);
+    }
+
+    /**
+     * @param name name of the property
+     * @return a Builder for int properties
+     */
+    public static Builder longBuilder(String name) {
+      return new Builder(name, PropertyType.LONG);
     }
 
     /**
@@ -2566,7 +2579,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
-      intBuilder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+      longBuilder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
           .setDefaultValue(2000000)
           .setDescription("The number of journal entries to write before creating a new "
               + "journal checkpoint.")
@@ -5949,7 +5962,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_FINISHED_JOB_PURGE_COUNT =
-      intBuilder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
+      longBuilder(Name.JOB_MASTER_FINISHED_JOB_PURGE_COUNT)
           .setDescription("The maximum amount of jobs to purge at any single time when the job "
               + "master reaches its maximum capacity. It is recommended to set this value when "
               + "setting the capacity of the job master to a large ( > 10M) value. Default is -1 "
@@ -5965,7 +5978,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
-      intBuilder(Name.JOB_MASTER_JOB_CAPACITY)
+      longBuilder(Name.JOB_MASTER_JOB_CAPACITY)
           .setDescription("The total possible number of available job statuses in the job master. "
               + "This value includes running and finished jobs which are have completed within "
               + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
@@ -7639,7 +7652,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyType.INTEGER),
     USER_NETWORK_MAX_CONNECTIONS("alluxio.user.network.%s.max.connections",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.connections",
-        PropertyType.INTEGER),
+        PropertyType.LONG),
     RPC_EXECUTOR_TYPE("alluxio.%s.rpc.executor.type",
         "alluxio\\.(\\w+)\\.rpc\\.executor\\.type",
         RpcExecutorType.class),
