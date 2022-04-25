@@ -20,8 +20,8 @@ For instance, if Alluxio was started locally, the master web interface
 can be viewed by visiting [localhost:19999](http://localhost:19999).
 
 When the cluster is running with High Availability, by default the standby masters
-do not serve the Web UI. From Alluxio 2.8 on, users can use `alluxio.standby.master.web.enabled=true`
-to enable the Web UI on the standby masters too.
+do not serve the Web UI. Set `alluxio.standby.master.web.enabled=true`
+to have the standby masters also serve the Web UI.
 
 The Alluxio master web interface contains several different pages, described below.
 
