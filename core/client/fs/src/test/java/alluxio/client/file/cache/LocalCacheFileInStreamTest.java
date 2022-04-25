@@ -725,7 +725,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+    public List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

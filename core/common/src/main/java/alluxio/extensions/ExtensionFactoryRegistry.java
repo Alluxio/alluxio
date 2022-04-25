@@ -13,6 +13,8 @@ package alluxio.extensions;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.recorder.Recorder;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.ExtensionUtils;
 import alluxio.util.io.PathUtils;
 
@@ -124,9 +126,10 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
    *
    * @param path path
    * @param conf configuration of the extension
+   * @param recorder configuration of the extension
    * @return list of factories that support the given path which may be an empty list
    */
-  public List<T> findAll(String path, S conf) {
+  public List<T> findAllWithRecorder(String path, S conf, Recorder recorder) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> factories = new ArrayList<>(mFactories);
@@ -137,16 +140,35 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
 
     List<T> eligibleFactories = new ArrayList<>();
     for (T factory : factories) {
+      recorder.record("check eligible of {} for {}", factory.getClass().getSimpleName(), path);
       if (factory.supportsPath(path, conf)) {
-        LOG.debug("Factory implementation {} is eligible for path {}", factory, path);
+        String message =
+            String.format("Factory implementation %s is eligible for path %s", factory, path);
+        recorder.record(message);
+        LOG.debug(message);
         eligibleFactories.add(factory);
+      } else {
+        recorder.record("Factory implementation %s isn't eligible for path %s", factory, path);
       }
     }
 
     if (eligibleFactories.isEmpty()) {
-      LOG.warn("No factory implementation supports the path {}", path);
+      String message = String.format("No factory implementation supports the path %s", path);
+      recorder.record(message);
+      LOG.warn(message);
     }
     return eligibleFactories;
+  }
+
+  /**
+   * Finds all the factories that support the given path.
+   *
+   * @param path path
+   * @param conf configuration of the extension
+   * @return list of factories that support the given path which may be an empty list
+   */
+  public List<T> findAll(String path, S conf) {
+    return findAllWithRecorder(path, conf, Recorder.create());
   }
 
   /**

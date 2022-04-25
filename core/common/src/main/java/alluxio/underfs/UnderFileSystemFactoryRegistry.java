@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -111,9 +112,11 @@ public final class UnderFileSystemFactoryRegistry {
       String configuredVersion = ufsConf.getString(PropertyKey.UNDERFS_VERSION);
       List<String> supportedVersions = getSupportedVersions(path, ufsConf);
       if (!supportedVersions.isEmpty()) {
-        LOG.warn("Versions [{}] are supported for path {} but you have configured version: {}",
+        String message = String.format(
+            "Versions [%s] are supported for path %s but you have configured version: %s",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
+        LOG.warn(message);
       }
       ufsConf.set(PropertyKey.UNDERFS_VERSION, configuredVersion);
     }

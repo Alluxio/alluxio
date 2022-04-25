@@ -13,14 +13,21 @@ package alluxio.master.file.contexts;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MountPOptions;
+import alluxio.recorder.Recorder;
 import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Used to merge and wrap {@link MountPOptions}.
  */
 public class MountContext extends OperationContext<MountPOptions.Builder, MountContext> {
+  private Recorder mRecorder;
+
+  // Used to record mount execution process
 
   /**
    * Creates context with given option data.
@@ -29,6 +36,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    */
   private MountContext(MountPOptions.Builder optionsBuilder) {
     super(optionsBuilder);
+    mRecorder = Recorder.create();
   }
 
   /**
@@ -57,6 +65,22 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    */
   public static MountContext defaults() {
     return create(FileSystemOptions.mountDefaults(ServerConfiguration.global()).toBuilder());
+  }
+
+  /**
+   * Record a message.
+   * @param message options builder
+   */
+  public void record(String message) {
+    mRecorder.record(message);
+  }
+
+  /**
+   * get a Recorder.
+   * @return  Recorder
+   */
+  public Recorder getRecord() {
+    return mRecorder;
   }
 
   @Override

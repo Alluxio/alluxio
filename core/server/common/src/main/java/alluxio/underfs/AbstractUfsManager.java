@@ -18,6 +18,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.recorder.Recorder;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -118,15 +120,20 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+    Recorder recorder = ufsConf.getRecorder();
     Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
+      recorder.record("{} UFS {} already exists in the cache, use cached UFS",
+          key.toString(), cachedFs.getClass().getSimpleName());
       return cachedFs;
     }
     // On cache miss, synchronize the creation to ensure ufs is only created once
     synchronized (mLock) {
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
+        recorder.record("{} UFS {} already exists in the cache, use cached UFS",
+            key.toString(), cachedFs.getClass().getSimpleName());
         return cachedFs;
       }
       UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
@@ -147,9 +154,13 @@ public abstract class AbstractUfsManager implements UfsManager {
       }
       mCloser.register(fs);
       try {
+        recorder.record("connect to UFS {}", ufsUri);
         connectUfs(fs);
       } catch (IOException e) {
-        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.toString());
+        String message = String.format(
+            "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
+        recorder.record(message);
+        LOG.warn(message);
       }
       return fs;
     }

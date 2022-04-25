@@ -17,6 +17,7 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
+import alluxio.recorder.Recorder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
+  private boolean mDetail;
+  private Recorder mRecorder;
 
   /**
    * @param alluxioConf Alluxio configuration
@@ -58,6 +61,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     super(props);
     mReadOnly = false;
     mShared = false;
+    mDetail = false;
   }
 
   /**
@@ -88,6 +92,20 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
+   * @return whether to record information about the detailed execution process
+   */
+  public boolean isDetail() {
+    return mDetail;
+  }
+
+  /**
+   * @return get a recorder to recode information about the detailed execution process
+   */
+  public Recorder getRecorder() {
+    return mRecorder;
+  }
+
+  /**
    * @param readOnly whether only read operations are permitted
    * @return the updated configuration object
    */
@@ -106,6 +124,24 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
+   * @param detail whether to record information about the detailed execution process
+   * @return the updated configuration object
+   */
+  public UnderFileSystemConfiguration setDetail(boolean detail) {
+    mDetail = detail;
+    return this;
+  }
+
+  /**
+   * @param recorder Used to record information about the detailed execution process
+   * @return the updated configuration object
+   */
+  public UnderFileSystemConfiguration setRecorder(Recorder recorder) {
+    mRecorder = recorder;
+    return this;
+  }
+
+  /**
    * Creates a new instance from the current configuration and adds in new properties.
    * @param mountConf the mount specific configuration map
    * @return the updated configuration object
@@ -116,6 +152,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
     ufsConf.mReadOnly = mReadOnly;
     ufsConf.mShared = mShared;
+    ufsConf.mDetail = mDetail;
     return ufsConf;
   }
 

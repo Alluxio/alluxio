@@ -197,7 +197,7 @@ public interface FileSystemMasterClient extends Client {
    * @param ufsPath the UFS path
    * @param options mount options
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+  List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException;
 
   /**

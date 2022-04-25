@@ -315,16 +315,16 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
+  public List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
       throws IOException, AlluxioException {
     checkUri(alluxioPath);
-    rpc(client -> {
+    return rpc(client -> {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       // TODO(calvin): Make this fail on the master side
-      client.mount(alluxioPath, ufsPath, mergedOptions);
+      List<String> mountDetailInfo = client.mount(alluxioPath, ufsPath, mergedOptions);
       LOG.debug("Mount {} to {}", ufsPath, alluxioPath.getPath());
-      return null;
+      return mountDetailInfo;
     });
   }
 

@@ -12,6 +12,7 @@
 package alluxio.conf;
 
 import alluxio.annotation.PublicApi;
+import alluxio.recorder.Recorder;
 
 import java.time.Duration;
 import java.util.List;

@@ -463,7 +463,7 @@ public interface FileSystem extends Closeable {
    * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+  List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException;
 
   /**

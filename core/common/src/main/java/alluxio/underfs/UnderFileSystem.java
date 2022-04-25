@@ -18,6 +18,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.recorder.Recorder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -87,6 +88,7 @@ public interface UnderFileSystem extends Closeable {
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+      Recorder recorder = ufsConf.getRecorder();
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
           UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
@@ -96,14 +98,22 @@ public interface UnderFileSystem extends Closeable {
 
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
+        recorder.record("Under File System Factory {} found for: {}",
+            factory.getClass().getSimpleName(), path);
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Reflection may be invoked during UFS creation on service loading which uses context
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
+          recorder.record("Load Under File System {} with ClassLoader {}",
+              factory.getClass().getSimpleName(),
+              factory.getClass().getClassLoader().getClass().getSimpleName());
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
+          UnderFileSystem underFileSystem =
+              new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
+          recorder.record("Load Under File System {} successfully");
+          return underFileSystem;
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
