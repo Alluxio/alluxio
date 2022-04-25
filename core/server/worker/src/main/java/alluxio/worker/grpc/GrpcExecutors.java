@@ -38,7 +38,7 @@ public final class GrpcExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
-  public static final ThreadPoolExecutor CACHE_MANAGER_THREAD_POOL_EXECUTOR =
+  private static final ThreadPoolExecutor CACHE_MANAGER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new UniqueBlockingQueue<>(
@@ -80,6 +80,8 @@ public final class GrpcExecutors {
     MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR.getQueue()::size, 5, TimeUnit.SECONDS);
+    // This value is not updated after the process starts,
+    // so it can be cached for a long time to reduce the number of queries
     MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_CACHE_MANAGER_THREAD_MAX_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR::getMaximumPoolSize, 30, TimeUnit.MINUTES);
