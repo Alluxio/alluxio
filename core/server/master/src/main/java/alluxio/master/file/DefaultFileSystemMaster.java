@@ -104,7 +104,6 @@ import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
@@ -1093,6 +1092,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           try {
             // See if the inode from where to start the listing exists.
             partialPathNames = mInodeTree.getPathInodeNames(context.getOptions().getOffset());
+            // Check that the Inode this inode exists in the listing path.
+            if (!PathUtils.hasPrefix(PathUtils.concatPath(
+                "/", partialPathNames.toArray()), path.getPath())) {
+              throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
+                  .getMessage(path));
+            }
           } catch (FileDoesNotExistException e) {
             throw new FileDoesNotExistException(
                 ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING.getMessage(e.getMessage()),
@@ -1182,22 +1187,20 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * If this is a partial listing, this will compute whether the path given by pathNames
-   * exits in rootPath. This is used to verify that the partial listing start point
-   * is contained in root path.
+   * If this is a partial listing, this will compute the path components from where to start
+   * the listing from that come after the root listing path.
    *
    * @param context the context of the operation
    * @param pathNames the full path from where the partial listing is expected to start,
    *                  null if this is the first listing
    * @param rootPath the locked root path of the listing
-   * @return the nested components in root path from where to start the partial listing,
+   * @return the path components after the root path from where to start the partial listing,
    * or null if the listing should start from the beginning of the root path
-   * @throws FileDoesNotExistException if the path in pathNames does not exist in rootPath
    */
   private @Nullable List<String> computePartialListingPaths(
       ListStatusContext context,
       @Nullable List<String> pathNames, LockedInodePath rootPath)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws InvalidPathException {
     if (pathNames == null) {
       // use the start after option, since this is the first listing
       if (!context.getOptions().getStartAfter().isEmpty()) {
@@ -1207,22 +1210,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       // otherwise, start from the beginning of the listing
       return null;
     }
-
-    // See if the inode from where to start the listing is within the root listing path.
-    List<InodeView> rootInodes = rootPath.getInodeViewList();
-    if (rootInodes.size() > pathNames.size()) {
-      throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_IN_PARTIAL_LISTING
-          .getMessage(rootPath.getUri()));
-    }
-    for (int i = 0; i < rootInodes.size(); i++) {
-      if (!rootInodes.get(i).getName().equals(pathNames.get(i))) {
-        throw new FileDoesNotExistException(ExceptionMessage.INODE_NOT_FOUND_PARTIAL_LISTING
-            .getMessage(rootPath.getUri()));
-      }
-    }
     // compute where to start from in each depth, we skip past the rootInodes, since that is
     // where we start the traversal from
-    List<String> partialPath = pathNames.stream().skip(rootInodes.size())
+    List<String> partialPath = pathNames.stream().skip(rootPath.size())
         .collect(Collectors.toList());
     if (partialPath.size() > 0) {
       return partialPath;
