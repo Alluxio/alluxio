@@ -1025,7 +1025,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     List<String> prefixComponents;
-    if (!context.getOptions().getPrefix().equals("")) {
+    if (!context.getOptions().getPrefix().isEmpty()) {
       // compute the prefix as path components, removing the first empty string
       prefixComponents = Arrays.stream(PathUtils.getPathComponents(
           new AlluxioURI(
@@ -1039,10 +1039,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         FileSystemMasterAuditContext auditContext =
             createAuditContext("listStatus", path, null, null)) {
 
-      boolean partialListing = context.getOptions().hasOffset();
+      boolean hasStartAfter = !context.getOptions().getStartAfter().isEmpty();
+      boolean partialListing = context.getOptions().hasOffset() || context.getOptions().hasBatchSize() || hasStartAfter;
       long listOffset = context.getOptions().getOffset();
       // if doing a partial listing, only sync on the initial call
-      boolean skipSyncOnPartialListing = partialListing && listOffset > 0;
+      boolean skipSyncOnPartialListing = partialListing && (listOffset > 0 || hasStartAfter);
 
       DescendantType descendantType =
           context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE;
@@ -1198,7 +1199,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException {
     if (pathNames == null) {
       // use the start after option, since this is the first listing
-      if (!context.getOptions().getStartAfter().equals("")) {
+      if (!context.getOptions().getStartAfter().isEmpty()) {
         return Arrays.stream(PathUtils.getPathComponents(
             context.getOptions().getStartAfter())).skip(1).collect(Collectors.toList());
       }
@@ -1229,7 +1230,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * If listing using a prefix and a partial path, this will compute whether the prefix
-   * exits in the partial pah.
+   * exits in the partial path.
    *
    * @param prefixComponents the components of the prefix path
    * @param partialPath the components of the partial pah
@@ -1306,6 +1307,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
         resultStream.submit(getFileInfoInternal(currInodePath, counter));
         context.listedItem();
+        if (context.donePartialListing()) {
+          return;
+        }
       }
     }
 
@@ -1332,12 +1336,12 @@ public class DefaultFileSystemMaster extends CoreMaster
 
       try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
           inode, partialPath, prefixComponents, depth, context)) {
-        if (context.donePartialListing()) {
-          return;
-        }
         // This is to generate a parsed child path components to be passed to lockChildPath
         String[] childComponentsHint = null;
         while (childrenIterator.hasNext()) {
+          if (context.donePartialListing()) {
+            return;
+          }
           String childName = childrenIterator.next().getName();
           if (childComponentsHint == null) {
             String[] parentComponents = PathUtils.getPathComponents(
