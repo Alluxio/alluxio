@@ -8231,7 +8231,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         case LONG:
           // Low-precision types can be implicitly converted to high-precision types
           // without loss of precision
-          if (!value.getClass().equals(Long.class) && !value.getClass().equals(Integer.class)) {
+          if (!value.getClass().equals(Integer.class) && !value.getClass().equals(Long.class)) {
             return false;
           }
           break;
