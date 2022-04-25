@@ -45,6 +45,8 @@ get_env() {
 
   ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
+  CLASSPATH=${CLASSPATH%:}
+  CLASSPATH=${CLASSPATH#:}
 }
 
 check_fuse_jar() {
