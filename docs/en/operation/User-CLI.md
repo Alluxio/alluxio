@@ -1340,8 +1340,7 @@ If the metadata sync and UFS check are both disabled, deleting 1 million files f
 by around 2.5GB. If the UFS check is disabled by `-U`, deleting the files from UFS as well introduces around 10% extra overhead.
 Alluxio 2.8 introduced improvements to memory usage and reduced the JVM heap increase by around 20%.
 Metadata sync and UFS check will each add around 2GB extra overhead per 1 million files.
-So before issuing the recursive deletion command, measure the scale and estimate how much extra
-memory pressure this operation will add to the master.
+Using this example as a guideline, estimate the total additional memory overhead as a proportion to the number of files to be deleted. Ensure that the leading master has sufficient available heap memory to perform the operation before issuing a large recursive delete command.
 
 ### setfacl
 
