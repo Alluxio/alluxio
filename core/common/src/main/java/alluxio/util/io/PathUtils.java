@@ -21,10 +21,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -137,18 +135,18 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    List<String> matchedComponents = null;
+    String[] matchedComponents = null;
     int matchedLen = 0;
     for (AlluxioURI path : paths) {
       String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
       if (matchedComponents == null) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedComponents = pathComp;
         matchedLen = pathComp.length;
         continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
-        if (!matchedComponents.get(i).equals(pathComp[i])) {
+        if (!matchedComponents[i].equals(pathComp[i])) {
           matchedLen = i;
           break;
         }
@@ -161,8 +159,9 @@ public final class PathUtils {
         matchedLen = pathComp.length;
       }
     }
+
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-        matchedComponents.subList(0, matchedLen).toArray()));
+            Arrays.copyOf(matchedComponents, matchedLen)));
   }
 
   /**
