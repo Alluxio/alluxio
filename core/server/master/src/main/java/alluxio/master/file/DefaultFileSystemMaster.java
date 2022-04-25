@@ -1040,7 +1040,8 @@ public class DefaultFileSystemMaster extends CoreMaster
             createAuditContext("listStatus", path, null, null)) {
 
       boolean hasStartAfter = !context.getOptions().getStartAfter().isEmpty();
-      boolean partialListing = context.getOptions().hasOffset() || context.getOptions().hasBatchSize() || hasStartAfter;
+      boolean partialListing = context.getOptions().hasOffset()
+          || context.getOptions().hasBatchSize() || hasStartAfter;
       long listOffset = context.getOptions().getOffset();
       // if doing a partial listing, only sync on the initial call
       boolean skipSyncOnPartialListing = partialListing && (listOffset > 0 || hasStartAfter);
@@ -1219,7 +1220,8 @@ public class DefaultFileSystemMaster extends CoreMaster
             .getMessage(rootPath.getUri()));
       }
     }
-    // compute where to start from in each depth
+    // compute where to start from in each depth, we skip past the rootInodes, since that is
+    // where we start the traversal from
     List<String> partialPath = pathNames.stream().skip(rootInodes.size())
         .collect(Collectors.toList());
     if (partialPath.size() > 0) {
@@ -1248,14 +1250,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     // for each component the prefix must be the same as the partial path component
     // except at the last component where the prefix must be contained in the partial path component
-    for (int i = 0; i < Math.min(partialPath.size(), prefixComponents.size()); i++) {
-      if ((i < partialPath.size() - 1 && !partialPath.get(i).equals(prefixComponents.get(i)))
-          || (i == partialPath.size() - 1 && !partialPath.get(i).startsWith(
-          prefixComponents.get(i)))) {
-        throw new InvalidPathException(
-            ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH
-                .getMessage(prefixComponents.get(i), partialPath.get(i)));
-      }
+    if (!PathUtils.hasPrefixComponentsCanBeLonger(partialPath, prefixComponents)) {
+      throw new InvalidPathException(
+          ExceptionMessage.PREFIX_DOES_NOT_MATCH_PATH
+              .getMessage(prefixComponents, partialPath));
     }
   }
 
