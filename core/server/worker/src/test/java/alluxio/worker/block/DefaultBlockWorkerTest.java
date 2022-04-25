@@ -108,33 +108,6 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void openUnderFileSystemBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
-
-    long sessionId = 1;
-    for (; sessionId < 11; sessionId++) {
-      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-    }
-    assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-  }
-
-  @Test
-  public void closeUnderFileSystemBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
-
-    long sessionId = 1;
-    for (; sessionId < 11; sessionId++) {
-      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-      mBlockWorker.closeUfsBlock(sessionId, blockId);
-    }
-    assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-  }
-
-  @Test
   public void abortBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
