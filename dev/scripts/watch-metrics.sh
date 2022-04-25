@@ -101,12 +101,6 @@ if [[ -z "${host}" || -z "${port}" || -z "${metrics_file_prefix}" || -z "${metri
     exit 1
 fi
 
-# check if command `nslookup` exists
-if ! command -v nslookup > /dev/null 2>&1; then
-  echo "ERROR: nslookup command not found"
-  exit 1
-fi
-
 # check if command `jq` exists
 if ! command -v jq > /dev/null 2>&1; then
   echo "ERROR: jq command not found"
