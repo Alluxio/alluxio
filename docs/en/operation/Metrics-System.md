@@ -24,8 +24,8 @@ The following instances are currently supported:
 * Client: Any process with the Alluxio client library.
 
 When the cluster is running with High Availability, by default the standby masters do not
-serve the metrics. From Alluxio 2.8 on, users can use `alluxio.standby.master.metrics.enabled=true`
-to enable the Web UI on the standby masters too.
+serve metrics. Set `alluxio.standby.master.metrics.enabled=true`
+to have the standby masters also serve metrics.
 
 ## Metric Types
 
