@@ -175,11 +175,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     /**
      * The Property's value represents a time duration, stored as a Long in ms.
      */
-    DURATION(Long.class),
+    DURATION(String.class),
     /**
      * The Property's value represents a data size, stored as a Long in bytes.
      */
-    DATASIZE(Long.class),
+    DATASIZE(String.class),
     /**
      * The Property's value is of list type, stored as a delimiter separated string.
      */
@@ -5407,7 +5407,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_MAX_CONNECTIONS =
-      intBuilder(Name.USER_NETWORK_RPC_MAX_CONNECTIONS)
+      longBuilder(Name.USER_NETWORK_RPC_MAX_CONNECTIONS)
           .setDefaultValue(1)
           .setDescription(
               "The maximum number of physical connections to be "
@@ -8228,6 +8228,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             return false;
           }
           break;
+        case LONG:
+          // Low-precision types can be implicitly converted to high-precision types
+          // without loss of precision
+          if (!value.getClass().equals(Long.class) && !value.getClass().equals(Integer.class)) {
+            return false;
+          }
+          break;
         case DOUBLE:
           if (!Number.class.isAssignableFrom(value.getClass())) {
             return false;
@@ -8278,6 +8285,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       Optional<Class<? extends Enum>> enumType, Optional<String> delimiter) {
     if (value instanceof Number) {
       switch (type) {
+        case LONG:
+          value = ((Number) value).longValue();
+          break;
         case DOUBLE:
           value = ((Number) value).doubleValue();
           break;
@@ -8330,6 +8340,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           return Boolean.parseBoolean(stringValue);
         case INTEGER:
           return Integer.parseInt(stringValue);
+        case LONG:
+          return Long.parseLong(stringValue);
         case DOUBLE:
           return Double.parseDouble(stringValue);
         case ENUM:
