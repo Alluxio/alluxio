@@ -101,12 +101,6 @@ if [[ -z "${host}" || -z "${port}" || -z "${metrics_file_prefix}" || -z "${metri
     exit 1
 fi
 
-# check if command `jq` exists
-if ! command -v jq > /dev/null 2>&1; then
-  echo "ERROR: jq command not found"
-  exit 1
-fi
-
 nslookup ${host} > /dev/null 2>&1
 if [[ ${?} -ne 0 ]]; then
     echo "ERROR: Unknown host ${host}"
