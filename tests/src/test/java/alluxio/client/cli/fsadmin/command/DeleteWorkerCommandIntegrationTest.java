@@ -52,7 +52,7 @@ public class DeleteWorkerCommandIntegrationTest  extends AbstractFsAdminShellTes
 
   @Test
   public void deleteLostWorker() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, 10);
+    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, 100);
     BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
         .getMasterProcess().getMaster(BlockMaster.class);
     String notDeletedWorker = mLocalAlluxioCluster.getWorkerAddress().getHost();
@@ -65,7 +65,7 @@ public class DeleteWorkerCommandIntegrationTest  extends AbstractFsAdminShellTes
     Assert.assertEquals(2, blockMaster.getWorkerCount());
 
     // Waiting for worker heartbeat timeout
-    Thread.sleep(11);
+    Thread.sleep(101);
     DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor lostWorkerDetector =
         ((DefaultBlockMaster) blockMaster).new LostWorkerDetectionHeartbeatExecutor();
     lostWorkerDetector.heartbeat();
