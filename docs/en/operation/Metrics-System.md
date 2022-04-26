@@ -23,6 +23,10 @@ The following instances are currently supported:
 * Worker: The Alluxio worker process.
 * Client: Any process with the Alluxio client library.
 
+When the cluster is running with High Availability, by default the standby masters do not
+serve metrics. Set `alluxio.standby.master.metrics.sink.enabled=true`
+to have the standby masters also serve metrics.
+
 ## Metric Types
 
 Each metric falls into one of the following metric types:
