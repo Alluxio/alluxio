@@ -152,7 +152,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         break;
       case SUMMARY:
         SummaryCommand summaryCommand = new SummaryCommand(
-            mMetaClient, mBlockClient, mConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN),
+            mMetaClient, mBlockClient, mConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN),
             mPrintStream);
         summaryCommand.run();
         break;
@@ -162,7 +162,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         break;
       case JOBSERVICE:
         JobServiceMetricsCommand jobmetricsCommand = new JobServiceMetricsCommand(
-            mJobMasterClient, mPrintStream, mConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+            mJobMasterClient, mPrintStream, mConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
         jobmetricsCommand.run();
         break;
       default:

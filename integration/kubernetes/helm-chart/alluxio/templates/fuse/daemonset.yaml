@@ -100,17 +100,23 @@ spec:
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          {{- if .Values.fuse.args }}
           args:
-{{ toYaml .Values.fuse.args | trim | indent 12 }}
-          {{- end }}
+            - fuse
+            {{- if .Values.fuse.mountOptions }}
+            - --fuse-opts={{ .Values.fuse.mountOptions }}
+            {{- end }}
+            {{- if not .Values.fuse.mountPoint }}
+            {{- fail "mountPoint must be set to launch Alluxio Fuse." }}
+            {{- end }}
+            - {{ .Values.fuse.mountPoint }}
+            {{- if .Values.fuse.alluxioPath }}
+            - {{ .Values.fuse.alluxioPath }}
+            {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: FUSE_ALLUXIO_PATH
-            value: {{ .Values.fuse.alluxioPath }}
           {{- range $key, $value := .Values.fuse.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
@@ -123,7 +129,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "{{ .Values.fuse.mountPath }}"]
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "{{ .Values.fuse.mountPoint }}"]
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -131,7 +137,7 @@ spec:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
             - name: alluxio-fuse-mount
-              mountPath: {{ .Values.fuse.mountPath | dir }}
+              mountPath: {{ .Values.fuse.mountPoint | dir }}
               mountPropagation: Bidirectional
             {{- if $shortCircuitEnabled}}
               {{- if eq .Values.shortCircuit.policy "uuid" }}
@@ -150,7 +156,7 @@ spec:
             type: CharDevice
         - name: alluxio-fuse-mount
           hostPath:
-            path: {{ .Values.fuse.mountPath | dir }}
+            path: {{ .Values.fuse.mountPoint | dir }}
             type: DirectoryOrCreate
         {{- if $shortCircuitEnabled}}
           {{- if eq .Values.shortCircuit.policy "uuid" }}

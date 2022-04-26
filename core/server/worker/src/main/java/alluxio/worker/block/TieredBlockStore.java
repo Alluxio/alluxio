@@ -29,6 +29,8 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
+import alluxio.worker.block.io.TimeBoundBlockReader;
+import alluxio.worker.block.io.TimeBoundBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
@@ -46,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -90,6 +91,11 @@ public class TieredBlockStore implements BlockStore {
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private static final long FREE_AHEAD_BYTETS =
       ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
+  private static final long TIMEOUT_DURATION =
+      ServerConfiguration.getMs(PropertyKey.WORKER_CACHE_IO_TIMEOUT_DURATION);
+  private static final int TIMEOUT_THREADS_MAX =
+      ServerConfiguration.getInt(PropertyKey.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX);
+
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -109,11 +115,8 @@ public class TieredBlockStore implements BlockStore {
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
-  /** Used to get iterators per locations. */
-  private BlockIterator mBlockIterator;
-
   /** Management task coordinator. */
-  private ManagementTaskCoordinator mTaskCoordinator;
+  private final ManagementTaskCoordinator mTaskCoordinator;
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -134,14 +137,14 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = metaManager;
     mLockManager = lockManager;
 
-    mBlockIterator = mMetaManager.getBlockIterator();
+    BlockIterator blockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
-    for (BlockStoreEventListener listener : mBlockIterator.getListeners()) {
+    for (BlockStoreEventListener listener : blockIterator.getListeners()) {
       registerBlockStoreEventListener(listener);
     }
 
     BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
-        Collections.<Long>emptySet(), Collections.<Long>emptySet());
+        Collections.emptySet(), Collections.emptySet());
     mAllocator = Allocator.Factory.create(initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
@@ -170,31 +173,9 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public long lockBlockNoException(long sessionId, long blockId) {
-    LOG.debug("lockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
-    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (hasBlock) {
-      return lockId;
-    }
-
-    mLockManager.unlockBlockNoException(lockId);
-    return BlockWorker.INVALID_LOCK_ID;
-  }
-
-  @Override
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     LOG.debug("unlockBlock: lockId={}", lockId);
     mLockManager.unlockBlock(lockId);
-  }
-
-  @Override
-  public boolean unlockBlock(long sessionId, long blockId) {
-    LOG.debug("unlockBlock: sessionId={}, blockId={}", sessionId, blockId);
-    return mLockManager.unlockBlock(sessionId, blockId);
   }
 
   @Override
@@ -208,7 +189,11 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      return new StoreBlockWriter(tempBlockMeta);
+      BlockWriter writer = new StoreBlockWriter(tempBlockMeta);
+      if (TIMEOUT_DURATION > 0) {
+        return new TimeBoundBlockWriter(writer, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
+      }
+      return writer;
     }
   }
 
@@ -219,7 +204,11 @@ public class TieredBlockStore implements BlockStore {
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      return new StoreBlockReader(sessionId, blockMeta);
+      BlockReader reader = new StoreBlockReader(sessionId, blockMeta);
+      if (TIMEOUT_DURATION > 0) {
+        return new TimeBoundBlockReader(reader, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
+      }
+      return reader;
     }
   }
 
@@ -252,10 +241,11 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-    LOG.debug("getTempBlockMeta: sessionId={}, blockId={}", sessionId, blockId);
+  public TempBlockMeta getTempBlockMeta(long blockId)
+      throws BlockDoesNotExistException {
+    LOG.debug("getTempBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      return mMetaManager.getTempBlockMetaOrNull(blockId);
+      return mMetaManager.getTempBlockMeta(blockId);
     }
   }
 
@@ -474,6 +464,14 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
+  public boolean hasTempBlockMeta(long blockId) {
+    LOG.debug("hasBlockMeta: blockId={}", blockId);
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.hasTempBlockMeta(blockId);
+    }
+  }
+
+  @Override
   public BlockStoreMeta getBlockStoreMeta() {
     // Removed DEBUG logging because this is very noisy
     // LOG.debug("getBlockStoreMeta:");
@@ -627,7 +625,7 @@ public class TieredBlockStore implements BlockStore {
     while (true) {
       if (options.isForceLocation()) {
         // Try allocating from given location. Skip the review because the location is forced.
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocator.allocateBlockWithView(options.getSize(),
             options.getLocation(), allocatorView, true);
         if (dirView != null) {
           return dirView;
@@ -637,7 +635,7 @@ public class TieredBlockStore implements BlockStore {
                   options.getSize(), options.getLocation());
           freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
           // Block expansion are forcing the location. We do not want the review's opinion.
-          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          dirView = mAllocator.allocateBlockWithView(options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Allocation after freeing space for block expansion, {}", dirView == null
@@ -657,14 +655,14 @@ public class TieredBlockStore implements BlockStore {
         }
       } else {
         // Try allocating from given location. This may be rejected by the review logic.
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocator.allocateBlockWithView(options.getSize(),
             options.getLocation(), allocatorView, false);
         if (dirView != null) {
           return dirView;
         }
         LOG.debug("Allocate to anyTier for {} bytes on {}", options.getSize(),
                 options.getLocation());
-        dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+        dirView = mAllocator.allocateBlockWithView(options.getSize(),
             BlockStoreLocation.anyTier(), allocatorView, false);
         if (dirView != null) {
           return dirView;
@@ -679,7 +677,7 @@ public class TieredBlockStore implements BlockStore {
           freeSpace(sessionId, options.getSize(), toFreeBytes,
               BlockStoreLocation.anyTier());
           // Skip the review as we want the allocation to be in the place we just freed
-          dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
+          dirView = mAllocator.allocateBlockWithView(options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
           if (LOG.isDebugEnabled()) {
             LOG.debug("Allocation after freeing space for block creation, {} ", dirView == null
@@ -777,7 +775,8 @@ public class TieredBlockStore implements BlockStore {
     // List of all dirs that belong to the given location.
     List<StorageDirView> dirViews = evictorView.getDirs(location);
 
-    Iterator<Long> evictionCandidates = mBlockIterator.getIterator(location, BlockOrder.NATURAL);
+    Iterator<Long> evictionCandidates = mMetaManager.getBlockIterator()
+        .getIterator(location, BlockOrder.NATURAL);
     while (true) {
       // Check if minContiguousBytes is satisfied.
       if (!contiguousSpaceFound) {
@@ -962,7 +961,7 @@ public class TieredBlockStore implements BlockStore {
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private static void createBlockFile(String blockPath) throws IOException {
     FileUtils.createBlockPath(blockPath,
-        ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);
@@ -995,20 +994,17 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public boolean checkStorage() {
+  public void removeInaccessibleStorage() {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
-      List<StorageDir> dirsToRemove = new ArrayList<>();
       for (StorageTier tier : mMetaManager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
           String path = dir.getDirPath();
           if (!FileUtils.isStorageDirAccessible(path)) {
             LOG.error("Storage check failed for path {}. The directory will be excluded.", path);
-            dirsToRemove.add(dir);
+            removeDir(dir);
           }
         }
       }
-      dirsToRemove.forEach(this::removeDir);
-      return !dirsToRemove.isEmpty();
     }
   }
 

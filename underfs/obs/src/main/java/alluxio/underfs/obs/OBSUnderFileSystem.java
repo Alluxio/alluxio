@@ -83,10 +83,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to OBS", PropertyKey.OBS_ENDPOINT);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_BUCKET_TYPE),
         "Property %s is required to connect to OBS", PropertyKey.OBS_BUCKET_TYPE);
-    String accessKey = conf.get(PropertyKey.OBS_ACCESS_KEY);
-    String secretKey = conf.get(PropertyKey.OBS_SECRET_KEY);
-    String endPoint = conf.get(PropertyKey.OBS_ENDPOINT);
-    String bucketType = conf.get(PropertyKey.OBS_BUCKET_TYPE);
+    String accessKey = conf.getString(PropertyKey.OBS_ACCESS_KEY);
+    String secretKey = conf.getString(PropertyKey.OBS_SECRET_KEY);
+    String endPoint = conf.getString(PropertyKey.OBS_ENDPOINT);
+    String bucketType = conf.getString(PropertyKey.OBS_BUCKET_TYPE);
 
     ObsClient obsClient = new ObsClient(accessKey, secretKey, endPoint);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
@@ -157,7 +157,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new OBSOutputStream(mBucketName, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 public final class FileSystemContextReinitIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI PATH_TO_UPDATE = new AlluxioURI("/path/to/update");
   private static final PropertyKey KEY_TO_UPDATE = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
-  private static final String UPDATED_VALUE = ReadType.NO_CACHE.toString();
+  private static final ReadType UPDATED_VALUE = ReadType.NO_CACHE;
 
   private FileSystemContext mContext;
   private String mClusterConfHash;
@@ -176,7 +176,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   private void updatePathConf() throws Exception {
     MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(mContext.getClientContext()).build());
-    client.setPathConfiguration(PATH_TO_UPDATE, KEY_TO_UPDATE, UPDATED_VALUE);
+    client.setPathConfiguration(PATH_TO_UPDATE, KEY_TO_UPDATE, UPDATED_VALUE.name());
   }
 
   private void checkClusterConfBeforeUpdate() {

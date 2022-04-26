@@ -372,13 +372,34 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
-    long snapshotAutoTriggerThreshold =
-        ServerConfiguration.global().getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    int snapshotAutoTriggerThreshold =
+        ServerConfiguration.global().getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
 
+    if (ServerConfiguration.global().getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+      // purges log files after taking a snapshot successfully
+      RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
+      // leaves no gap between log file purges: all log files included in a newly installed
+      // snapshot are purged right away
+      RaftServerConfigKeys.Log.setPurgeGap(properties, 1);
+    }
+
     RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
         properties, false);
+
+    // if left enabled, the System.exit() called by Ratis can deadlock with the AlluxioMaster
+    // process shutdown hook. Description:
+    // * The AlluxioMaster starts the RaftJournalSystem using RaftJournalSystem.startInternal().
+    //   It now holds a synchronized lock on RaftJournalSystem.
+    // * startInternal calls mServer.start() and fails for any reason, calling System.exit(int) -->
+    //   Runtime.getRuntime().exit(int) in Ratis.
+    // * Runtime.getRuntime().exit(int) calls the shutdown hooks, including the {@link ProcessUtils)
+    //   --> process.stop() --> RaftJournalSystem.stopInternal(), which cannot proceed because of
+    //   the synchronized lock on RaftJournalSystem.
+    // This line disables the System.exit(int) call in Ratis internally in favor of an
+    // Exception being thrown. This prevents the deadlock.
+    org.apache.ratis.util.ExitUtils.disableSystemExit();
 
     /*
      * Soft disable RPC level safety.
@@ -708,18 +729,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         }
         // avoid excessive retries when server is not ready
         Thread.sleep(waitBeforeRetry);
-        continue;
-      }
-
-      try {
-        CommonUtils.waitFor("term start entry " + gainPrimacySN
-            + " to be applied to state machine", () ->
-            stateMachine.getLastPrimaryStartSequenceNumber() == gainPrimacySN,
-            WaitForOptions.defaults()
-                .setInterval(Constants.SECOND_MS)
-                .setTimeoutMs(5 * Constants.SECOND_MS));
-      } catch (TimeoutException e) {
-        LOG.info(e.toString());
         continue;
       }
 

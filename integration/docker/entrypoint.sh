@@ -15,8 +15,6 @@ set -e
 ALLUXIO_HOME="/opt/alluxio"
 NO_FORMAT='--no-format'
 FUSE_OPTS='--fuse-opts'
-MOUNT_POINT="${MOUNT_POINT:-/mnt/alluxio-fuse}"
-ALLUXIO_PATH="${FUSE_ALLUXIO_PATH:-/}"
 ALLUXIO_USERNAME="${ALLUXIO_USERNAME:-root}"
 ALLUXIO_GROUP="${ALLUXIO_GROUP:-root}"
 ALLUXIO_UID="${ALLUXIO_UID:-0}"
@@ -45,18 +43,17 @@ function printUsage {
   echo "Usage: COMMAND [COMMAND_OPTIONS]"
   echo
   echo "COMMAND is one of:"
-  echo -e " master [--no-format]         \t Start Alluxio master. If --no-format is specified, do not format"
-  echo -e " master-only [--no-format]    \t Start Alluxio master w/o job master. If --no-format is specified, do not format"
-  echo -e " worker [--no-format]         \t Start Alluxio worker. If --no-format is specified, do not format"
-  echo -e " worker-only [--no-format]    \t Start Alluxio worker w/o job worker. If --no-format is specified, do not format"
-  echo -e " job-master                   \t Start Alluxio job master"
-  echo -e " job-worker                   \t Start Alluxio job worker"
-  echo -e " proxy                        \t Start Alluxio proxy"
-  echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
-  echo -e " logserver                    \t Start Alluxio log server"
-  echo -e " hub-manager                  \t Start Alluxio Hub manager"
-  echo -e " hub-agent                    \t Start Alluxio Hub agent"
-  echo -e " csiserver                    \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
+  echo -e " master [--no-format]      \t Start Alluxio master. If --no-format is specified, do not format"
+  echo -e " master-only [--no-format] \t Start Alluxio master w/o job master. If --no-format is specified, do not format"
+  echo -e " worker [--no-format]      \t Start Alluxio worker. If --no-format is specified, do not format"
+  echo -e " worker-only [--no-format] \t Start Alluxio worker w/o job worker. If --no-format is specified, do not format"
+  echo -e " job-master                \t Start Alluxio job master"
+  echo -e " job-worker                \t Start Alluxio job worker"
+  echo -e " proxy                     \t Start Alluxio proxy"
+  echo -e " fuse [--fuse-opts=opt1,...] [mount_point] [alluxio_path]"
+  echo -e "                           \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by commas"
+  echo -e " logserver                 \t Start Alluxio log server"
+  echo -e " csiserver                 \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
 }
 
 function writeConf {
@@ -104,21 +101,18 @@ function formatWorkerIfSpecified {
   fi
 }
 
-function mountAlluxioRootFSWithFuseOption {
-  local fuseOptions=""
-  if [[ -n ${OPTIONS} ]]; then
-    if [[ ! ${OPTIONS} =~ ${FUSE_OPTS}=* ]] || [[ ! -n ${OPTIONS#*=} ]]; then
-      printUsage
-      exit 1
-    fi
-    fuseOptions="-o ${OPTIONS#*=}"
+function mountAlluxioFSWithFuseOption {
+  if [[ -n ${FUSE_ALLUXIO_PATH} || -n ${MOUNT_POINT} ]]; then
+    echo "Use of environment variables FUSE_ALLUXIO_PATH and MOUNT_POINT for Alluxio Fuse are deprecated."
+    printUsage
+    exit 1
   fi
-
-  # Unmount first if cleanup failed and ignore error
-  ! mkdir -p ${MOUNT_POINT}
-  ! umount ${MOUNT_POINT}
-  #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
-  exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} ${ALLUXIO_PATH}
+  local mountOptions="$1"
+  if [[ "${mountOptions}" =~ ${FUSE_OPTS}=* ]]; then
+    exec integration/fuse/bin/alluxio-fuse mount -n -o "${mountOptions#*=}" "${@:2}"
+  else
+    exec integration/fuse/bin/alluxio-fuse mount -n "${@:1}"
+  fi
 }
 
 function startCsiServer {
@@ -272,16 +266,10 @@ function main {
       processes+=("proxy")
       ;;
     fuse)
-      mountAlluxioRootFSWithFuseOption
+      mountAlluxioFSWithFuseOption "${@:2}"
       ;;
     logserver)
       processes+=("logserver")
-      ;;
-    hub-manager)
-      processes+=("hub_manager")
-      ;;
-    hub-agent)
-      processes+=("hub_agent")
       ;;
     csiserver)
       startCsiServer "${@:2}"

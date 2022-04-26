@@ -13,7 +13,6 @@ package alluxio.worker.grpc;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricInfo;
@@ -27,6 +26,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.worker.BlockUtils;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -94,7 +94,7 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-          request.getMediumType(), FILE_BUFFER_SIZE);
+          new CreateBlockOptions(null, request.getMediumType(), FILE_BUFFER_SIZE));
     }
     return context;
   }
@@ -269,10 +269,7 @@ public final class UfsFallbackBlockWriteHandler
 
     long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getTempBlockMeta(sessionId, blockId);
-    if (block == null) {
-      throw new NotFoundException("block " + blockId + " not found");
-    }
+    TempBlockMeta block = mWorker.getTempBlockMeta(blockId);
     Preconditions.checkState(Files.copy(Paths.get(block.getPath()), ufsOutputStream) == pos);
   }
 }

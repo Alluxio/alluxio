@@ -14,6 +14,7 @@ package alluxio.fuse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -36,14 +37,15 @@ public class StackMain {
     }
     Path root = Paths.get(args[1]);
     Path mountPoint = Paths.get(args[0]);
+    AlluxioConfiguration conf = new InstancedConfiguration(
+        ConfigurationUtils.defaults());
+    LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
     StackFS fs = new StackFS(root, mountPoint);
     String[] fuseOpts = new String[args.length - 2];
     System.arraycopy(args, 2, fuseOpts, 0, args.length - 2);
     try {
-      AlluxioConfiguration conf = new InstancedConfiguration(
-          ConfigurationUtils.defaults());
       CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-      MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+      MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
       fs.mount(true, false, fuseOpts);
     } catch (Exception e) {
       e.printStackTrace();

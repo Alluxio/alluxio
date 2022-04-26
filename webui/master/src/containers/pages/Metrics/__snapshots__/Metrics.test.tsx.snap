@@ -123,6 +123,46 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
     className="col-12"
   >
     <h5>
+      Cache Hit and Miss
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Cache Hit Local Percentage
+          </th>
+          <td>
+            %
+          </td>
+          <th>
+            Cache Hit Remote Percentage
+          </th>
+          <td>
+            %
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Cache Miss Percentage
+          </th>
+          <td>
+            0.00
+            %
+          </td>
+          <th />
+          <td />
+        </tr>
+      </tbody>
+    </Table>
+  </div>
+  <div
+    className="col-12"
+  >
+    <h5>
       Mounted Under FileSystem Read
     </h5>
     <Table

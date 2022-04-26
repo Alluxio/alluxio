@@ -11,27 +11,8 @@ priority: 3
 
 ## IDE
 
-We recommend using either Eclipse or IntelliJ IDEA to contribute to Alluxio.
+We recommend using IntelliJ IDEA to contribute to Alluxio. Eclipse can also be used.
 Instructions for setting up both IDEs can be found below.
-
-### Eclipse
-
-You can generate an Eclipse configuration file by running:
-
-```console
-$ mvn clean -Pdeveloper install -DskipTests
-$ mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
-```
-
-Then import the folder into Eclipse.
-You may also have to add the classpath variable `M2_REPO` by running:
-
-```console
-$ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
-```
-
-> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
-You will need to mark the directory as a source folder for Eclipse to resolve the source files.
 
 ### IntelliJ IDEA
 
@@ -77,18 +58,17 @@ action from the `Navigate > Search Everywhere` dialog.
 1. Run `dev/intellij/install-runconfig.sh`
 2. Restart IntelliJ IDEA
 3. Edit `conf/alluxio-site.properties` to contain these configurations
-   ```console
+   ```properties
    alluxio.master.hostname=localhost
    alluxio.job.master.hostname=localhost
-   alluxio.master.journal.type=UFS
    ```
 4. Edit `conf/log4j.properties` to print log in console
    Replace the `log4j.rootLogger` configuration with
-    ```console
+    ```properties
     log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}, stdout
     ```
    and add the following configurations
-    ```console
+    ```properties
     log4j.threshold=ALL
     log4j.appender.stdout=org.apache.log4j.ConsoleAppender
     log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
@@ -100,14 +80,14 @@ action from the `Navigate > Search Everywhere` dialog.
 8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. Verify the Alluxio cluster is up as [Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }})
+11. [Verify the Alluxio cluster is up]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }}).
 
 ##### Start a High Availability (HA) Alluxio cluster
 1. Create journal directories for the masters 
-    ```console
-    mkdir -p /tmp/alluxio-tmp/alluxio-0/journal
-    mkdir -p /tmp/alluxio-tmp/alluxio-1/journal
-    mkdir -p /tmp/alluxio-tmp/alluxio-2/journal
+    ```shell
+    $ mkdir -p /tmp/alluxio-tmp/alluxio-0/journal
+    $ mkdir -p /tmp/alluxio-tmp/alluxio-1/journal
+    $ mkdir -p /tmp/alluxio-tmp/alluxio-2/journal
     ```
    These directories are defined in the run configurations, i.e. 
    `alluxio/dev/intellij/runConfigurations/AlluxioMaster_0.xml`.
@@ -116,7 +96,7 @@ action from the `Navigate > Search Everywhere` dialog.
 2. Run `dev/intellij/install-runconfig.sh`
 3. Restart IntelliJ IDEA
 4. Edit `conf/alluxio-site.properties` to contain these configurations
-    ```console
+    ```properties
     alluxio.master.hostname=localhost
     alluxio.job.master.hostname=localhost
     alluxio.master.embedded.journal.addresses=localhost:19200,localhost:19201,localhost:19202
@@ -124,14 +104,14 @@ action from the `Navigate > Search Everywhere` dialog.
     ```
    The ports are defined in the run configurations.
 5. In Intellij, start the Alluxio master processes by selecting `Run > Run > 
-   AlluxioMaster-0`, `AlluxioMaster-1`, and `AlluxioMaster-2`
+   AlluxioMaster-0`, `Run > Run > AlluxioMaster-1`, and `Run > Run > AlluxioMaster-2`
 6. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 7. In Intellij, start the Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 8. In Intellij, start the Alluxio job master process by selecting `Run > Run > AlluxioJobMaster`
 9. In Intellij, start the Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
 10. Verify the HA Alluxio cluster is up, by running 
     `bin/alluxio fsadmin journal quorum info -domain MASTER`, and you will see output like this:
-    ```console
+    ```shell
     Journal domain	: MASTER
     Quorum size	: 3
     Quorum leader	: localhost:19201
@@ -141,36 +121,62 @@ action from the `Navigate > Search Everywhere` dialog.
     AVAILABLE   | 0        | localhost:19201
     AVAILABLE   | 0        | localhost:19202
     ```
-In addition, you can also start a High Availability (HA) JobMaster process on this basis.
 
-11. Stop the Alluxio job master and worker processes from step 8 and 9 if they are running. 
-12. Edit `conf/alluxio-site.properties` and add these configurations
-    ```console
-    alluxio.job.master.rpc.addresses=localhost:20001,localhost:20011,localhost:20021
-    alluxio.job.master.embedded.journal.addresses=localhost:20003,localhost:20013,localhost:20023
-    ```
-12. In Intellij, start the Alluxio job master processes by selecting `Run > Run > 
-    AlluxioJobMaster-0`, `AlluxioJobMaster-1`, and `AlluxioJobMaster-2`
-13. In Intellij, start the Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-14. Verify the HA JobMaster cluster is up, by running `bin/alluxio job leader`, and you will 
-    see output like this:
-    ```console
-    localhost
-    ```
+**You can also start a High Availability (HA) Job Master process on this basis.**
+
+1. Stop the Alluxio job master and job worker processes from steps 8 and 9 if they are running. 
+2. Edit `conf/alluxio-site.properties` and add these configurations
+   ```properties
+   alluxio.job.master.rpc.addresses=localhost:20001,localhost:20011,localhost:20021
+   alluxio.job.master.embedded.journal.addresses=localhost:20003,localhost:20013,localhost:20023
+   ```
+3. In Intellij, start the Alluxio job master processes by selecting `Run > Run > 
+   AlluxioJobMaster-0`, `Run > Run > AlluxioJobMaster-1`, and `Run > Run > AlluxioJobMaster-2`
+4. In Intellij, start the Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
+5. Verify the HA JobMaster cluster is up, by running 
+`bin/alluxio fsadmin journal quorum info -domain JOB_MASTER`, and you will 
+   see output like this:
+   ```shell
+   Journal domain	: JOB_MASTER
+   Quorum size	: 3
+   Quorum leader	: localhost:20013
+    
+   STATE       | PRIORITY | SERVER ADDRESS
+   AVAILABLE   | 0        | localhost:20003
+   AVAILABLE   | 0        | localhost:20013
+   AVAILABLE   | 0        | localhost:20023
+   ```
 
 ##### Start an AlluxioFuse process
 
-1. Start a [single master Alluxio cluster](#start-a-single-master-alluxio-cluster), 
+1. Start a [single master Alluxio cluster](#start-a-single-master-alluxio-cluster) 
    or a [High Availability cluster](#start-a-high-availability-ha-alluxio-cluster) in Intellij.
 2. In Intellij, start AlluxioFuse process by selecting `Run > Run > AlluxioFuse`. 
    This creates a FUSE mount point at `/tmp/alluxio-fuse`.
 3. Verify the FUSE filesystem is working by running these commands:
-    ```console
+    ```shell
     $ touch /tmp/alluxio-fuse/tmp1
     $ ls /tmp/alluxio-fuse
     $ bin/alluxio fs ls /
     ```
    You should be able see the file is created and listed by both `ls` commands.
+
+##### Starting multiple processes in IntelliJ at once
+IntelliJ is capable of creating groups of processes that all be launched simultaneously. To do so go to 
+`Run > Edit Configurations > + > Compound`. From there you can create a group of processes that can be launched 
+together using a single `Run > Run > ` command. This can be useful when launching clusters from IntelliJ.
+
+### Eclipse
+
+Import the folder into Eclipse.
+You may also have to add the classpath variable `M2_REPO` by running:
+
+```shell
+$ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```
+
+> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
+You will need to mark the directory as a source folder for Eclipse to resolve the source files.
 
 ## Maven Targets and Plugins
 
@@ -180,7 +186,7 @@ your local machine to make sure your changes do not break existing behavior.
 For these maven commands we'll assume that your command terminal is located in the root directory
 of your local copy of the Alluxio repository.
 
-```console
+```shell
 $ cd ${ALLUXIO_HOME}
 ```
 
@@ -189,36 +195,34 @@ $ cd ${ALLUXIO_HOME}
 To make sure your code follows our style conventions you may run. Note that this is run any time
 you run targets such as `compile`, `install`, or `test`.
 
-```console
+```shell
 $ mvn checkstyle:checkstyle
 ```
 
-### FindBugs
+### SpotBugs
 
 Before submitting the pull-request, run the latest code against the
-[`findbugs`](http://findbugs.sourceforge.net/) Maven plugin to verify no new warnings are
+[`spotbugs`](https://spotbugs.github.io/) Maven plugin to verify no new warnings are
 introduced.
 
-```console
-$ mvn compile findbugs:findbugs
+```shell
+$ mvn spotbugs:spotbugs
 ```
 
 ### Compilation
 
 To simply compile the code you can run the following command:
 
-```console
+```shell
 $ mvn clean compile -DskipTests
 ```
 
-This will not execute any unit tests but _will_ execute maven plugins such as `checkstyle` and
-`findbugs`.
+This will not execute any unit tests but _will_ execute maven plugins such as `checkstyle` and `spotbugs`.
 
 To speed up compilation you may use the following command:
 
-```console
-$ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip \
-  -Dlicense.skip -pl '!webui'
+```shell
+$ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!webui'
 ```
 
 This command will skip many of our checks that are in place to help keep our code neat.
@@ -244,7 +248,7 @@ jars with the Maven `install` target.
 The first time Maven executes it will likely need to download many dependencies.
 Please be patient as the first build may take a while.
 
-```console
+```shell
 $ mvn -T 2C install -DskipTests
 ```
 
@@ -256,7 +260,7 @@ to start a local cluster.
 
 #### Run all unit and integration tests
 
-```console
+```shell
 $ cd ${ALLUXIO_HOME}
 $ mvn test
 ```
@@ -265,7 +269,7 @@ This will use the local filesystem as the under storage.
 
 #### Run a single unit test
 
-```console
+```shell
 $ mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
 ```
 
@@ -273,13 +277,13 @@ $ mvn -Dtest=<AlluxioTestClass>#<testMethod> -DfailIfNoTests=false test
 You can execute the `maven test` command targeting
 the desired submodule directory. For example, to run tests for HDFS UFS module you would run
 
-```console
+```shell
 $ mvn test -pl underfs/hdfs
 ```
 
 #### Run unit tests for HDFS UFS module with a different Hadoop version
 
-```console
+```shell
 # build and run test on HDFS under storage module for Hadoop 2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 
@@ -290,14 +294,14 @@ $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 The above unit tests will create a simulated HDFS service with a specific version.
 To run more comprehensive tests on HDFS under storage using a real and running HDFS deployment:
 
-```console
+```shell
 $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
 #### Redirect logs to STDOUT
 To have the logs output to STDOUT, append the following arguments to the `mvn` command
 
-```
+```shell
 -Dtest.output.redirect=false -Dalluxio.root.logger=DEBUG,CONSOLE
 ```
 
@@ -314,13 +318,13 @@ files defined in `core/transport/src/grpc/` are used to auto-generate Java code 
 RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
 a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
 
-```console
+```shell
 $ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
 ```
 
 ## Modifying a Protocol Buffer Message
 
-Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 3.12 to read and write journal entries.
+Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 3.19 to read and write journal entries.
 The `.proto` files defined in `core/transport/src/proto/` are used to auto-generate Java definitions for the protocol
 buffer messages.
 
@@ -330,7 +334,7 @@ to make sure your change will not break backwards compatibility.
 To regenerate Java code after changing a definition, you must rebuild `alluxio-core-transport` module with
 the `'generate'` maven profile.
 
-```console
+```shell
 $ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
 ```
 

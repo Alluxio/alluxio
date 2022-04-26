@@ -32,7 +32,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
-import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
@@ -46,7 +45,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 
-import com.codahale.metrics.CachedGauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -61,7 +59,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -94,8 +91,6 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
-  private static final String TOTAL_RPC_CLIENTS_METRICS_NAME
-      = MetricsSystem.getMetricName(MetricKey.CLIENT_TOTAL_RPC_CLIENTS.getName());
 
   /**
    * Unique ID for each FileSystemContext.
@@ -271,24 +266,13 @@ public class FileSystemContext implements Closeable {
         .setMasterInquireClient(masterInquireClient).build();
     mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
     if (mMetricsEnabled) {
-      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
+      MetricsSystem.startSinks(getClusterConf().getString(PropertyKey.METRICS_CONF_FILE));
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
-
-    MetricsSystem.registerGaugeIfAbsent(TOTAL_RPC_CLIENTS_METRICS_NAME,
-       new CachedGauge<Integer>(1, TimeUnit.MINUTES) {
-          @Override
-          protected Integer loadValue() {
-            int totalClients = mFileSystemMasterClientPool.size() + mBlockMasterClientPool.size();
-            totalClients += mBlockWorkerClientPoolMap.values()
-                .stream().mapToInt(DynamicResourcePool::size).sum();
-            return totalClients;
-          }
-        });
   }
 
   /**
@@ -313,7 +297,6 @@ public class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
-      MetricsSystem.removeMetrics(TOTAL_RPC_CLIENTS_METRICS_NAME);
       LOG.debug("Closing fs master client pool with current size: {} for id: {}",
           mFileSystemMasterClientPool.size(), mId);
       mFileSystemMasterClientPool.close();

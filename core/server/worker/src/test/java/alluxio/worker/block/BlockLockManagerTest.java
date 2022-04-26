@@ -365,6 +365,6 @@ public final class BlockLockManagerTest {
 
   private void setMaxLocks(int maxLocks) {
     ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS,
-        Integer.toString(maxLocks));
+        maxLocks);
   }
 }

@@ -39,11 +39,10 @@
       <artifactId>hadoop-client</artifactId>
       <scope>provided</scope>
     </dependency>
-    <!-- Have RocksDB dependency in provided scope by default to reduce client jar size -->
     <dependency>
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
-      <scope>provided</scope>
+      <scope>runtime</scope>
     </dependency>
     <!-- Runtime logging dependencies -->
     <dependency>
@@ -283,6 +282,8 @@
                     <exclude>org/w3c/dom/**/*</exclude>
                     <exclude>org/xml/sax/*</exclude>
                     <exclude>org/xml/sax/**/*</exclude>
+                    <!-- Exclude the rocksdb-jni package-->
+                    <exclude>org/rocksdb/**/*</exclude>
                   </excludes>
                 </relocation>
               </relocations>

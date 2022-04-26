@@ -13,7 +13,7 @@ To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argum
 $ docker build -t alluxio/alluxio --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
 ```
 
-Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in alluxio/alluxio image.
+Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in `alluxio/alluxio` image.
 
 ## Building docker image for development
 Starting from now, Alluxio has a separate image for development usage. Unlike the default Alluxio 
@@ -31,6 +31,15 @@ To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argum
 ```console
 $ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
 --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
+```
+
+Development image also has Java11 installed. To run Alluxio with Java11, build development image 
+with the `JAVA_VERSION` build argument specified.
+
+```console
+$ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
+--build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz \
+--build-arg JAVA_VERSION=11 .
 ```
 
 ## Running docker image

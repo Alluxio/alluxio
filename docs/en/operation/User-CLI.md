@@ -416,7 +416,7 @@ $ ./bin/alluxio runUfsTests --path /local/underfs/path
 
 # Run tests against S3
 $ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
-  -Daws.accessKeyId=<access_key> -Daws.secretKey=<secret_key> \
+  -Ds3a.accessKeyId=<access_key> -Ds3a.secretKey=<secret_key> \
   -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
 ```
 
@@ -813,7 +813,11 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service.
+using the job service. By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files copied and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish. 
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -823,14 +827,39 @@ Later jobs must wait until some earlier jobs to finish. The default value is `30
 A lower value means slower execution but also being nicer to the other users of the job service.
 * `--overwrite`: Whether to overwrite the destination. Default is true.
 * `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
+* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_1
+Waiting for the command to finish ...
+Get command status information below:
+Successfully copied path /data/1023/$FILE_PATH_1
+Successfully copied path /data/1023/$FILE_PATH_2
+Successfully copied path /data/1023/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_1
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedCp /data/1023 /data/1025 --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
 ```
 
 ### distributedLoad
 
 The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
 across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
+By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
+The command will wait until the job is complete, at which point the user will see the list of files loaded and statistics on which files completed or failed.
+The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
+The difference is that the command will not wait for the job to finish.
+Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -852,9 +881,29 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
 * `--index`: Specifies a file that lists all files to be loaded
 * `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
+* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
+Sample Output:
+Please wait for command submission to finish..
+Submitted successfully, jobControlId = JOB_CONTROL_ID_3
+Waiting for the command to finish ...
+Get command status information below:
+Successfully loaded path /data/today/$FILE_PATH_1
+Successfully loaded path /data/today/$FILE_PATH_2
+Successfully loaded path /data/today/$FILE_PATH_3
+Total completed file count is 3, failed file count is 0
+Finished running the command, jobControlId = JOB_CONTROL_ID_3
+```
+
+```console
+# Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status.
+$ ./bin/alluxio fs distributedLoad /data/today --async
+Sample Output:
+Entering async submission mode.
+Please wait for command submission to finish..
+Submitted distLoad job successfully, jobControlId = JOB_CONTROL_ID_4
 ```
 
 Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
@@ -973,6 +1022,25 @@ For example, `getCapacityBytes` can be used to verify if your cluster is set up 
 
 ```console
 $ ./bin/alluxio fs getCapacityBytes
+```
+
+### getCmdStatus
+
+The `getCmdStatus` command returns the detailed distributed command status based on a given JOB_CONTROL_ID.
+The detailed status includes:
+1. Successfully loaded or copied file paths.
+2. Statistics on the number of successful and failed file paths.
+3. Failed file paths, logged in a separate csv file.
+
+For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
+
+```console
+$ ./bin/alluxio job getCmdStatus $JOB_CONTROL_ID
+Sample Output:
+Get command status information below:
+Successfully loaded path $FILE_PATH_1
+Successfully loaded path $FILE_PATH_2
+Total completed file count is 2, failed file count is 0
 ```
 
 ### getfacl
@@ -1158,8 +1226,8 @@ For example, `mount` can be used to make data in another storage system availabl
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId> \
-  --option aws.secretKey=<secretKey> \
+  --option s3a.accessKeyId=<accessKeyId> \
+  --option s3a.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
 ```
 
@@ -1498,20 +1566,20 @@ option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{s3a://bucket1}.aws.accessKeyId=abc \
-  -o udb-hive.mount.option.{s3a://bucket2}.aws.accessKeyId=123
+  -o udb-hive.mount.option.{s3a://bucket1}.s3a.accessKeyId=abc \
+  -o udb-hive.mount.option.{s3a://bucket2}.s3a.accessKeyId=123
 ```
 
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
-When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
-and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+When paths are mounted for `s3a://bucket1`, the mount option `s3a.accessKeyId=abc` will be used,
+and when paths are mounted for `s3a://bucket2`, the mount option `s3a.accessKeyId=123` will be used.
 
 Or using regex expression if the options are same the two buckets.
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
+  -o udb-hive.mount.option.{regex:s3a://bucket.*}.s3a.accessKeyId=abc
 ```
 
 Besides mount options, there are some additional properties with the `-o` options:

@@ -19,6 +19,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -73,14 +74,14 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     }
 
     @Override
-    public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-      return mBlockStore.getTempBlockMeta(sessionId, blockId);
+    public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+      return mBlockStore.getTempBlockMeta(blockId);
     }
   }
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
         {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory(
@@ -89,7 +90,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
           put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("UfsFallbackBlockWriteHandlerTest-WorkerDataFolder")
               .getAbsolutePath());
-          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
+          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
         }
       }, ServerConfiguration.global());
 

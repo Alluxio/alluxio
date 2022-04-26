@@ -69,7 +69,7 @@ public final class DailyMetadataBackup {
   DailyMetadataBackup(MetaMaster metaMaster,
       ScheduledExecutorService service, UfsManager ufsManager) {
     mMetaMaster = metaMaster;
-    mBackupDir = ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+    mBackupDir = ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
     mRetainedFiles = ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = service;
     mUfsManager = ufsManager;
@@ -101,7 +101,7 @@ public final class DailyMetadataBackup {
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm");
     LocalTime backupTime = LocalTime.parse(ServerConfiguration
-        .get(PropertyKey.MASTER_DAILY_BACKUP_TIME), formatter);
+        .getString(PropertyKey.MASTER_DAILY_BACKUP_TIME), formatter);
     LocalDateTime nextBackupTime = now.withHour(backupTime.getHour())
         .withMinute(backupTime.getMinute());
     if (nextBackupTime.isBefore(now)) {
