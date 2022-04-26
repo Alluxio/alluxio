@@ -397,7 +397,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           Preconditions.checkState(chunkSize > 0);
         }
 
-        DataBuffer chunk = null;
+        DataBuffer chunk;
         try {
           // Once we get the data buffer, the lock on the block has been acquired.
           // If there are any stream errors during this time, we must unlock the block
@@ -563,7 +563,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
         }
       }
-      BlockReader reader = mWorker.createBlockReader(request);
+      BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
+          request.getStart(), request.isPositionShort(), request.getOpenUfsBlockOptions());
       context.setBlockReader(reader);
     }
 

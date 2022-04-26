@@ -37,7 +37,7 @@ alluxio.master.metastore=ROCKS
 ### Configuration Properties
 
 * `alluxio.master.metastore.dir`: A local directory for writing RocksDB data.
-Default: `${work_dir}/metastore`
+Default: `{alluxio.work.dir}/metastore`, e.g. `/opt/alluxio/metastore`
 * `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the number of entries in the on-heap inode cache.
 Increase this to improve performance if you have spare master memory. 
 The default value for this configuration is dynamically set to be (JVM Heap size / 4KB).
@@ -95,6 +95,7 @@ backup directory can be configured by setting `alluxio.master.backup.directory`
 
 Alternatively, you may use the `--local <DIRECTORY>` flag to
 specify a path to write the backup to on the local disk of the primary master.
+Note that backup directory paths must be absolute paths.
 For example:
 
 ```console

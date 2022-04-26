@@ -65,7 +65,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   /** The block metadata for the UFS block. */
   private final UnderFileSystemBlockMeta mBlockMeta;
   /** The Local block store. It is used to interact with Alluxio. */
-  private final BlockStore mLocalBlockStore;
+  private final LocalBlockStore mLocalBlockStore;
   /** The cache for all ufs instream. */
   private final UfsInputStreamCache mUfsInstreamCache;
   /** The ufs client resource. */
@@ -102,7 +102,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      boolean positionShort, BlockStore localBlockStore, UfsManager.UfsClient ufsClient,
+      boolean positionShort, LocalBlockStore localBlockStore, UfsManager.UfsClient ufsClient,
       UfsInputStreamCache ufsInStreamCache, Counter ufsBytesRead, Meter ufsBytesReadThroughput)
       throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
@@ -124,7 +124,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param ufsBytesReadThroughput meter metric to track bytes read throughput
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
-      BlockStore localBlockStore, UfsManager.UfsClient ufsClient,
+      LocalBlockStore localBlockStore, UfsManager.UfsClient ufsClient,
       UfsInputStreamCache ufsInStreamCache, Counter ufsBytesRead, Meter ufsBytesReadThroughput) {
     mInitialBlockSize = blockMeta.getBlockSize();
     mBlockMeta = blockMeta;

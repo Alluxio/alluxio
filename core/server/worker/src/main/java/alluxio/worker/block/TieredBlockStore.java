@@ -29,8 +29,6 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
-import alluxio.worker.block.io.TimeBoundBlockReader;
-import alluxio.worker.block.io.TimeBoundBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.meta.BlockMeta;
@@ -86,16 +84,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * </ul>
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public class TieredBlockStore implements BlockStore {
+public class TieredBlockStore implements LocalBlockStore
+{
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private static final long FREE_AHEAD_BYTETS =
       ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
-  private static final long TIMEOUT_DURATION =
-      ServerConfiguration.getMs(PropertyKey.WORKER_CACHE_IO_TIMEOUT_DURATION);
-  private static final int TIMEOUT_THREADS_MAX =
-      ServerConfiguration.getInt(PropertyKey.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX);
-
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -160,11 +154,7 @@ public class TieredBlockStore implements BlockStore {
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    boolean hasBlock;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      hasBlock = mMetaManager.hasBlockMeta(blockId);
-    }
-    if (hasBlock) {
+    if (hasBlockMeta(blockId)) {
       return lockId;
     }
 
@@ -189,11 +179,7 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       checkTempBlockOwnedBySession(sessionId, blockId);
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
-      BlockWriter writer = new StoreBlockWriter(tempBlockMeta);
-      if (TIMEOUT_DURATION > 0) {
-        return new TimeBoundBlockWriter(writer, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
-      }
-      return writer;
+      return new StoreBlockWriter(tempBlockMeta);
     }
   }
 
@@ -204,11 +190,7 @@ public class TieredBlockStore implements BlockStore {
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      BlockReader reader = new StoreBlockReader(sessionId, blockMeta);
-      if (TIMEOUT_DURATION > 0) {
-        return new TimeBoundBlockReader(reader, TIMEOUT_DURATION, TIMEOUT_THREADS_MAX);
-      }
-      return reader;
+      return new StoreBlockReader(sessionId, blockMeta);
     }
   }
 

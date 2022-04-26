@@ -3262,28 +3262,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_DURATION =
-      durationBuilder(Name.WORKER_CACHE_IO_TIMEOUT_DURATION)
-          .setDefaultValue("-1")
-          .setDescription("The timeout duration for worker cache I/O operations ("
-              + "reading/writing). When this property is a positive value,"
-              + "worker cache operations after timing out will fail and fallback to external "
-              + "file system but transparent to applications; "
-              + "when this property is a negative value, this feature is disabled.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey WORKER_CACHE_IO_TIMEOUT_THREADS_MAX =
-      intBuilder(Name.WORKER_CACHE_IO_TIMEOUT_THREADS_MAX)
-          .setDefaultValue(1024)
-          .setDescription("The number of threads to handle cache I/O operation timeout, "
-              + "when " + Name.WORKER_CACHE_IO_TIMEOUT_DURATION + " is positive. "
-              + "Suggest setting this value to the maximum of "
-              + Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX
-              + " and " + Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
       stringBuilder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
@@ -5944,7 +5922,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // TODO(ns) Fix default value to handle other UFS types
   public static final PropertyKey UNDERFS_VERSION =
       stringBuilder(Name.UNDERFS_VERSION)
-          .setDefaultValue("3.3.0")
+          .setDefaultValue("3.3.1")
           .setIsHidden(true)
           .build();
 
@@ -6897,10 +6875,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.heartbeat.interval";
     public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
         "alluxio.worker.block.heartbeat.timeout";
-    public static final String WORKER_CACHE_IO_TIMEOUT_DURATION =
-        "alluxio.worker.cache.io.timeout.duration";
-    public static final String WORKER_CACHE_IO_TIMEOUT_THREADS_MAX =
-        "alluxio.worker.cache.io.timeout.threads.max";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";

@@ -25,13 +25,13 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-public interface BlockStore extends SessionCleanable, Closeable {
+public interface LocalBlockStore
+    extends SessionCleanable, Closeable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
@@ -109,7 +109,6 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * @return metadata of the block if the temp block exists
    * @throws BlockDoesNotExistException if the block id cannot be found
    */
-  @Nullable
   TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
