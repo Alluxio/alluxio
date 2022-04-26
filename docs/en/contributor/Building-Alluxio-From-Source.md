@@ -145,7 +145,7 @@ For example,
 $ mvn clean install -pl underfs/hdfs/ \
   -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
-  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
+  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 
 To enable active sync be sure to build using the `hdfsActiveSync` property.
@@ -173,7 +173,7 @@ All main builds are from Apache so all Apache releases can be used directly
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.0
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.0
 -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0
--Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
+-Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 
   {% endcollapsible %}

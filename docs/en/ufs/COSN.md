@@ -69,7 +69,7 @@ Specify COS configuration information in order to access COS by modifying `conf/
 </property>
 ```
 
-The above is the most basic configuration. For more configuration please refer to [here](https://hadoop.apache.org/docs/r3.3.0/hadoop-cos/cloud-storage/index.html).
+The above is the most basic configuration. For more configuration please refer to [here](https://hadoop.apache.org/docs/r3.3.1/hadoop-cos/cloud-storage/index.html).
 After these changes, Alluxio should be configured to work with COSN as its under storage system and you can try [Running Alluxio Locally with COSN](#running-alluxio-locally-with-cosn).
 
 ### Nested Mount
