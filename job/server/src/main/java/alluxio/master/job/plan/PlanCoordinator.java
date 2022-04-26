@@ -265,6 +265,13 @@ public final class PlanCoordinator {
   }
 
   /**
+   * @return the job info for the job being coordinated
+   */
+  public synchronized PlanInfo getPlanInfo() {
+    return mPlanInfo;
+  }
+
+  /**
    * Updates the status of the job. When all the tasks are completed, run the join method in the
    * definition.
    */

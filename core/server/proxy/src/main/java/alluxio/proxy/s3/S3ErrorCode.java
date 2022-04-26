@@ -27,11 +27,14 @@ public class S3ErrorCode {
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
+    public static final String MALFORMED_XML = "MalformedXML";
+    public static final String METADATA_TOO_LARGE = "MetadataTooLarge";
     public static final String NO_SUCH_BUCKET = "NoSuchBucket";
     public static final String NO_SUCH_KEY = "NoSuchKey";
     public static final String NO_SUCH_UPLOAD = "NoSuchUpload";
     public static final String PRECONDITION_FAILED = "PreconditionFailed";
     public static final String INVALID_CONTINUATION_TOKEN = "InvalidContinuationToken";
+    public static final String INVALID_TAG = "InvalidTag";
     public static final String UPLOAD_ALREADY_EXISTS = "UploadAlreadyExists";
     public static final String AUTHORIZATION_HEADER_MALFORMED = "AuthorizationHeaderMalformed";
     public static final String AUTHINFO_CREATION_ERROR = "AuthInfoCreationError";
@@ -92,21 +95,36 @@ public class S3ErrorCode {
       "The specified multipart upload already exits",
       Response.Status.CONFLICT);
   public static final S3ErrorCode AUTHORIZATION_HEADER_MALFORMED = new S3ErrorCode(
-          Name.AUTHORIZATION_HEADER_MALFORMED,
-          "The authorization header provided is invalid.",
-          Response.Status.BAD_REQUEST);
+      Name.AUTHORIZATION_HEADER_MALFORMED,
+      "The authorization header provided is invalid.",
+      Response.Status.BAD_REQUEST);
   public static final S3ErrorCode AUTHINFO_CREATION_ERROR = new S3ErrorCode(
-          Name.AUTHINFO_CREATION_ERROR,
-          "Error creating s3 auth info",
-          Response.Status.BAD_REQUEST);
+      Name.AUTHINFO_CREATION_ERROR,
+      "Error creating s3 auth info",
+      Response.Status.BAD_REQUEST);
   public static final S3ErrorCode ACCESS_DENIED_ERROR = new S3ErrorCode(
-          Name.ACCESS_DENIED_ERROR,
-          "User doesn't have the right to access this resource",
-          Response.Status.FORBIDDEN);
+      Name.ACCESS_DENIED_ERROR,
+      "User doesn't have the right to access this resource",
+      Response.Status.FORBIDDEN);
   public static final S3ErrorCode INVALID_IDENTIFIER = new S3ErrorCode(
-          Name.INVALID_IDENTIFIER,
-          "Invalid S3 identifier",
-          Response.Status.FORBIDDEN);
+      Name.INVALID_IDENTIFIER,
+      "Invalid S3 identifier",
+      Response.Status.FORBIDDEN);
+  public static final S3ErrorCode INVALID_TAG = new S3ErrorCode(
+      Name.INVALID_TAG,
+      "Your request contains tag input that is not valid. "
+          + "For example, your request might contain duplicate keys, "
+          + "keys or values that are too long, or system tags.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode MALFORMED_XML = new S3ErrorCode(
+      Name.MALFORMED_XML,
+      "The XML provided was not well formed or did not validate "
+          + "against our published schema. Check the service documentation and try again.",
+      Response.Status.BAD_REQUEST);
+  public static final S3ErrorCode METADATA_TOO_LARGE = new S3ErrorCode(
+      Name.METADATA_TOO_LARGE,
+      "Your metadata headers exceed the maximum allowed metadata size.",
+      Response.Status.BAD_REQUEST);
 
   //
   // Customized error codes.

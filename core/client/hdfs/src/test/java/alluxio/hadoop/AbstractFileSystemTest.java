@@ -31,7 +31,7 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -78,7 +78,7 @@ import java.util.Map;
  * Unit tests for {@link AbstractFileSystem}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, FileSystemMasterClient.class,
+@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, FileSystemMasterClient.class,
     UserGroupInformation.class})
 /*
  * [ALLUXIO-1384] Tell PowerMock to defer the loading of javax.security classes to the system
@@ -693,9 +693,9 @@ public class AbstractFileSystemTest {
         .setFileBlockInfos(Arrays.asList(blockInfo));
     Path path = new Path("/dir/file");
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    AlluxioBlockStore blockStore = mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
+    BlockStoreClient blockStore = mock(BlockStoreClient.class);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(any(FileSystemContext.class)))
         .thenReturn(blockStore);
     FileSystemContext fsContext = mock(FileSystemContext.class);
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));

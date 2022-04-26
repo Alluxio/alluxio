@@ -12,13 +12,13 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -39,9 +39,9 @@ import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
-import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
@@ -49,6 +49,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -66,8 +67,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -80,6 +84,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
   private final FileSystem mFileSystem;
+  private final FileSystemContext mFileSystemContext;
   private final AlluxioConfiguration mConf;
   // base path within Alluxio namespace that is used for FUSE operations
   // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
@@ -88,6 +93,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final Path mAlluxioRootPath;
   private final String mMountPoint;
   private final String mFsName;
+  // Caches the filesystem statistics for Fuse.statfs
+  private final Supplier<BlockMasterInfo> mFsStatCache;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
@@ -120,11 +127,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
 
-  // Map for holding the async releasing entries for proper umount
-  private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
-  private final Map<Long, CreateFileEntry<FileOutStream>> mReleasingWriteEntries =
-      new ConcurrentHashMap<>();
-
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
   public static final int UNKNOWN_INODES = -1;
@@ -135,19 +137,25 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
    *
+   * @param fsContext the file system context
    * @param fs Alluxio file system
    * @param opts options
    * @param conf Alluxio configuration
    */
   public AlluxioJniFuseFileSystem(
-      FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
+      FileSystemContext fsContext, FileSystem fs, FuseMountConfig opts, AlluxioConfiguration conf) {
     super(Paths.get(opts.getMountPoint()));
     mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
+    mFileSystemContext = fsContext;
     mFileSystem = fs;
     mConf = conf;
-    mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    mAlluxioRootPath = Paths.get(opts.getMountAlluxioPath());
     mMountPoint = opts.getMountPoint();
     mFuseShell = new FuseShell(fs, conf);
+    long statCacheTimeout = conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
+    mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
+        this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
+        : this::acquireBlockMasterInfo;
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -623,23 +631,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // Remove earlier to try best effort to avoid write() - async release() - getAttr()
         // without waiting for file completed and return 0 bytes file size error
         mCreateFileEntries.remove(ce);
-        mReleasingWriteEntries.put(fd, ce);
-        try {
-          synchronized (ce) {
-            ce.close();
-          }
-        } finally {
-          mReleasingWriteEntries.remove(fd);
+        synchronized (ce) {
+          ce.close();
         }
       }
       if (is != null) {
-        mReleasingReadEntries.put(fd, is);
-        try {
-          synchronized (is) {
-            is.close();
-          }
-        } finally {
-          mReleasingReadEntries.remove(fd);
+        synchronized (is) {
+          is.close();
         }
       }
     } catch (Throwable e) {
@@ -967,43 +965,46 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
-    ClientContext ctx = ClientContext.create(mConf);
+    BlockMasterInfo info = mFsStatCache.get();
+    if (info == null) {
+      LOG.error("Failed to statfs {}: cannot get block master info", path);
+      return -ErrorCodes.EIO();
+    }
+    long blockSize = 16L * Constants.KB;
+    // fs block size
+    // The size in bytes of the minimum unit of allocation on this file system
+    stbuf.f_bsize.set(blockSize);
+    // The preferred length of I/O requests for files on this file system.
+    stbuf.f_frsize.set(blockSize);
+    // total data blocks in fs
+    stbuf.f_blocks.set(info.getCapacityBytes() / blockSize);
+    // free blocks in fs
+    long freeBlocks = info.getFreeBytes() / blockSize;
+    stbuf.f_bfree.set(freeBlocks);
+    stbuf.f_bavail.set(freeBlocks);
+    // inode info in fs
+    stbuf.f_files.set(UNKNOWN_INODES);
+    stbuf.f_ffree.set(UNKNOWN_INODES);
+    stbuf.f_favail.set(UNKNOWN_INODES);
+    // max file name length
+    stbuf.f_namemax.set(MAX_NAME_LENGTH);
+    return 0;
+  }
 
-    try (BlockMasterClient blockClient =
-             BlockMasterClient.Factory.create(
-                 MasterClientContext.newBuilder(ctx).build())) {
+  @Nullable
+  private BlockMasterInfo acquireBlockMasterInfo() {
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+             mFileSystemContext.acquireBlockMasterClientResource()) {
       Set<BlockMasterInfo.BlockMasterInfoField> blockMasterInfoFilter =
           new HashSet<>(Arrays.asList(
               BlockMasterInfo.BlockMasterInfoField.CAPACITY_BYTES,
               BlockMasterInfo.BlockMasterInfoField.FREE_BYTES,
               BlockMasterInfo.BlockMasterInfoField.USED_BYTES));
-      BlockMasterInfo blockMasterInfo = blockClient.getBlockMasterInfo(blockMasterInfoFilter);
-
-      // although user may set different block size for different files,
-      // small block size can result more accurate compute.
-      long blockSize = 4L * Constants.KB;
-      // fs block size
-      // The size in bytes of the minimum unit of allocation on this file system
-      stbuf.f_bsize.set(blockSize);
-      // The preferred length of I/O requests for files on this file system.
-      stbuf.f_frsize.set(blockSize);
-      // total data blocks in fs
-      stbuf.f_blocks.set(blockMasterInfo.getCapacityBytes() / blockSize);
-      // free blocks in fs
-      long freeBlocks = blockMasterInfo.getFreeBytes() / blockSize;
-      stbuf.f_bfree.set(freeBlocks);
-      stbuf.f_bavail.set(freeBlocks);
-      // inode info in fs
-      stbuf.f_files.set(UNKNOWN_INODES);
-      stbuf.f_ffree.set(UNKNOWN_INODES);
-      stbuf.f_favail.set(UNKNOWN_INODES);
-      // max file name length
-      stbuf.f_namemax.set(MAX_NAME_LENGTH);
-    } catch (IOException e) {
-      LOG.error("Failed to statfs {}", path, e);
-      return -ErrorCodes.EIO();
+      return masterClientResource.get().getBlockMasterInfo(blockMasterInfoFilter);
+    } catch (Throwable t) {
+      LOG.error("Failed to acquire block master information", t);
+      return null;
     }
-    return 0;
   }
 
   /**
@@ -1018,7 +1019,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
+    if (mMaxUmountWaitTime > 0 && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
@@ -1032,37 +1033,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             + "when unmounting {}. {} fileInStream remain unclosed. "
             + "{} fileOutStream remain unclosed.",
             mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
-      }
-    }
-
-    // Waiting for in progress async release to finish
-    if (!mReleasingReadEntries.isEmpty() || !mReleasingWriteEntries.isEmpty()) {
-      LOG.info("Unmounting {}. Waiting for all in progress file read/write closing to finish",
-          mMountPoint);
-      try {
-        CommonUtils.waitFor("all in progress file read/write closing to finish",
-            () -> mReleasingReadEntries.isEmpty() && mReleasingWriteEntries.isEmpty(),
-            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
-      } catch (InterruptedException e) {
-        LOG.error("Unmount {} interrupted", mMountPoint);
-        Thread.currentThread().interrupt();
-      } catch (TimeoutException e) {
-        LOG.error("Timeout when waiting in progress file read/write closing to finish "
-            + "when unmounting {}. {} fileInStream and {} fileOutStream "
-            + "are still in closing process.",
-            mMountPoint, mReleasingReadEntries.size(), mReleasingWriteEntries.size());
-      }
-    }
-
-    if (!(mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty())) {
-      // TODO(lu) consider the case that client application may not call release()
-      // for all open() or create(). Force closing those operations.
-      // TODO(lu,bin) properly prevent umount when device is busy
-      LOG.error("Unmounting {} when device is busy in reading/writing files. "
-          + "{} fileInStream and {} fileOutStream remain open.",
-          mMountPoint, mCreateFileEntries.size(), mOpenFileEntries.size());
-      if (!force) {
-        throw new FuseException("Timed out for umount due to device is busy.");
+        if (!force) {
+          throw new FuseException("Timed out for umount due to device is busy.");
+        }
       }
     }
     super.umount(force);

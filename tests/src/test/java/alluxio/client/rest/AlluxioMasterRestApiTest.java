@@ -74,21 +74,21 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         .getMaster(FileSystemMaster.class);
     mHostname = sResource.get().getHostname();
     mPort = sResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
-    mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
+    mBaseUri = String.format("%s/%s", mBaseUri, AlluxioMasterRestServiceHandler.SERVICE_PREFIX);
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
-    String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_INFO),
-            params, HttpMethod.GET, null).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioMasterRestServiceHandler.GET_INFO, params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
     AlluxioMasterInfo info = new ObjectMapper().readValue(result, AlluxioMasterInfo.class);
     return info;
   }
 
   private Map<String, String> getMetrics(Map<String, String> params) throws Exception {
-    String result =
-        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_METRICS),
-            params, HttpMethod.GET, null).call();
+    String result = new TestCase(mHostname, mPort, mBaseUri,
+        AlluxioMasterRestServiceHandler.WEBUI_METRICS, params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
     Map<String, String> info = new ObjectMapper().readValue(result, Map.class);
     return info;
   }

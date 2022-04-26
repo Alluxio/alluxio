@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
@@ -271,7 +271,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
-      AlluxioBlockStore store = AlluxioBlockStore.create(context);
+      BlockStoreClient store = BlockStoreClient.create(context);
       waitForWorkerRegistration(context, 1, 1 * Constants.MINUTE_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.
       long capacityFound = store.getCapacityBytes();

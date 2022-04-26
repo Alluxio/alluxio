@@ -23,6 +23,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -49,6 +50,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -63,6 +65,7 @@ public abstract class AbstractFuseIntegrationTest {
 
   private final LocalAlluxioCluster mAlluxioCluster = new LocalAlluxioCluster();
   private FileSystem mFileSystem;
+  private FileSystemContext mFileSystemContext;
   protected String mMountPoint;
 
   @Rule
@@ -76,11 +79,13 @@ public abstract class AbstractFuseIntegrationTest {
   /**
    * Mounts the Fuse application if needed.
    *
+   * @param fsContext the filesystem context
    * @param fileSystem  the filesystem to create the Fuse application
    * @param mountPoint  the Fuse mount point
    * @param alluxioRoot the Fuse mounted alluxio root
    */
-  public abstract void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot);
+  public abstract void mountFuse(FileSystemContext fsContext,
+      FileSystem fileSystem, String mountPoint, String alluxioRoot);
 
   /**
    * Run before cluster stops.
@@ -109,8 +114,9 @@ public abstract class AbstractFuseIntegrationTest {
     IntegrationTestUtils.reserveMasterPorts();
     ServerConfiguration.global().validate();
     mAlluxioCluster.start();
-    mFileSystem = mAlluxioCluster.getClient();
-    mountFuse(mFileSystem, mMountPoint, ALLUXIO_ROOT);
+    mFileSystemContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystem = mAlluxioCluster.getClient(mFileSystemContext);
+    mountFuse(mFileSystemContext, mFileSystem, mMountPoint, ALLUXIO_ROOT);
     if (!waitForFuseMounted()) {
       stop();
       fail("Could not setup FUSE mount point");
@@ -205,7 +211,7 @@ public abstract class AbstractFuseIntegrationTest {
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       is.read(read);
     }
-    assertEquals(content, new String(read, "UTF8"));
+    assertEquals(content, new String(read, StandardCharsets.UTF_8));
   }
 
   @Test

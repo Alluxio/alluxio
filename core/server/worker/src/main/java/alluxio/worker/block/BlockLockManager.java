@@ -263,10 +263,24 @@ public final class BlockLockManager {
    * @throws BlockDoesNotExistException if lock id cannot be found
    */
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
-    if (!unlockBlockNoException(lockId)) {
-      throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-          lockId);
+    Lock lock;
+    LockRecord record;
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
+      record = mLockIdToRecordMap.get(lockId);
+      if (record == null) {
+        throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
+            lockId);
+      }
+      long sessionId = record.getSessionId();
+      lock = record.getLock();
+      mLockIdToRecordMap.remove(lockId);
+      Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
+      sessionLockIds.remove(lockId);
+      if (sessionLockIds.isEmpty()) {
+        mSessionIdToLockIdsMap.remove(sessionId);
+      }
     }
+    unlock(lock, record.getBlockId());
   }
 
   /**

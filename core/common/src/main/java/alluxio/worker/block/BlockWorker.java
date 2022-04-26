@@ -105,24 +105,24 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to create
    * @param tier the tier to place the new block in
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
-   * @param medium the name of the medium to place the new block in
-   * @param initialBytes the initial amount of bytes to be allocated
+   * @param createBlockOptions the createBlockOptions
    * @return a string representing the path to the local file
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  String createBlock(long sessionId, long blockId, int tier, String medium, long initialBytes)
+  String createBlock(long sessionId, long blockId, int tier,
+      CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
    *
-   * @return metadata of the block or null if the temp block does not exist
+   * @return metadata of the block if the temp block exists
+   * @throws BlockDoesNotExistException if the block cannot be found
    */
   @Nullable
-  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+  TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
@@ -208,7 +208,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the lock id that uniquely identifies the lock obtained or
    *         {@link #INVALID_LOCK_ID} if it failed to lock
    */
-  long lockBlock(long sessionId, long blockId);
+  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
    * Moves a block from its current location to a target location, currently only tier level moves

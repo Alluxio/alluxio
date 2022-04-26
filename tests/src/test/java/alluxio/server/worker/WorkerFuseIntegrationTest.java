@@ -12,6 +12,7 @@
 package alluxio.server.worker;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -23,12 +24,13 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {
     ServerConfiguration.set(PropertyKey.WORKER_FUSE_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_POINT, mMountPoint);
-    ServerConfiguration.set(PropertyKey.WORKER_FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
+    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_POINT, mMountPoint);
+    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, ALLUXIO_ROOT);
   }
 
   @Override
-  public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+  public void mountFuse(FileSystemContext context,
+      FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     // Fuse application is mounted automatically by the worker
   }
 

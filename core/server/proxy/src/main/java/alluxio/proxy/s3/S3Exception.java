@@ -15,8 +15,19 @@ package alluxio.proxy.s3;
  * An exception thrown during processing S3 REST requests.
  */
 public class S3Exception extends Exception {
-  private final String mResource;
   private final S3ErrorCode mErrorCode;
+
+  private String mResource;
+
+  /**
+   * Constructs a new {@link S3Exception}.
+   *
+   * @param errorCode the error code
+   */
+  public S3Exception(S3ErrorCode errorCode) {
+    super(errorCode.getDescription());
+    mErrorCode = errorCode;
+  }
 
   /**
    * Constructs a new {@link S3Exception}.
@@ -25,6 +36,7 @@ public class S3Exception extends Exception {
    * @param errorCode the error code
    */
   public S3Exception(String resource, S3ErrorCode errorCode) {
+    super(errorCode.getDescription());
     mResource = resource;
     mErrorCode = errorCode;
   }
@@ -37,6 +49,7 @@ public class S3Exception extends Exception {
    * @param errorCode the error code
    */
   public S3Exception(Exception exception, String resource, S3ErrorCode errorCode) {
+    super(exception.getMessage(), exception);
     mResource = resource;
     mErrorCode = new S3ErrorCode(errorCode.getCode(), exception.getMessage(),
         errorCode.getStatus());
@@ -67,5 +80,12 @@ public class S3Exception extends Exception {
    */
   public String getResource() {
     return mResource;
+  }
+
+  /**
+   * @param resource the S3 resource string
+   */
+  public void setResource(String resource) {
+    mResource = resource;
   }
 }

@@ -19,6 +19,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -73,8 +74,8 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     }
 
     @Override
-    public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-      return mBlockStore.getTempBlockMeta(sessionId, blockId);
+    public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+      return mBlockStore.getTempBlockMeta(blockId);
     }
   }
 

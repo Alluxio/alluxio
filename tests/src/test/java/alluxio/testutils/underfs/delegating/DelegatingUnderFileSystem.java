@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsMode;
@@ -174,6 +175,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public String getFingerprint(String path) {
     return mUfs.getFingerprint(path);
+  }
+
+  @Override
+  public Fingerprint getParsedFingerprint(String path) {
+    return mUfs.getParsedFingerprint(path);
   }
 
   @Override

@@ -26,15 +26,11 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalIntegrationTestBase {
 
@@ -139,12 +135,15 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     mCluster.notifySuccess();
   }
 
-  @Ignore
   @Test
   public void replaceAll() throws Exception {
-    final int NUM_MASTERS = 5;
+    final int NUM_MASTERS = 3;
     final int NUM_WORKERS = 0;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_REPLACE_ALL)
+    // reusing ports
+    ArrayList<PortCoordination.ReservedPort> ports =
+        new ArrayList<>(PortCoordination.EMBEDDED_JOURNAL_REPLACE_ALL);
+    ports.addAll(PortCoordination.EMBEDDED_JOURNAL_REPLACE_ALL);
+    mCluster = MultiProcessCluster.newBuilder(ports)
         .setClusterName("EmbeddedJournalResizing_replaceAll")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
@@ -166,29 +165,13 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
       int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
       mCluster.stopAndRemoveMaster(masterIdx);
       waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
-      // remove said master from the Ratis quorum
-      NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
-      mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
-      waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
       // start a new master to replace the lost master
       mCluster.startNewMasters(1, false);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS);
+      waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 0);
       // verify that the cluster is still operational
       fs = mCluster.getFileSystemClient();
       assertTrue(fs.exists(testDir));
     }
-    Set<NetAddress> og = originalMasters.stream().map(this::masterEBJAddr2NetAddr)
-        .collect(Collectors.toSet());
-    Set<NetAddress> curr = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
-        .getServerInfoList().stream().map(QuorumServerInfo::getServerAddress)
-        .collect(Collectors.toSet());
-    Set<NetAddress> intersection = new HashSet<>(og);
-    intersection.retainAll(curr);
-    // assert that none of the current masters are part of the original
-    assertTrue(intersection.isEmpty());
-    // assert the quorum remained the same size as the start
-    assertEquals(NUM_MASTERS, curr.size());
 
     mCluster.notifySuccess();
   }
