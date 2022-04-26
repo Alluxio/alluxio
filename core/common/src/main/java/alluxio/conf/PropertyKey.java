@@ -2988,7 +2988,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_DELETE_TIMEOUT_MS =
-      new Builder(Name.MASTER_WORKER_DELETE_TIMEOUT_MS)
+      durationBuilder(Name.MASTER_WORKER_DELETE_TIMEOUT_MS)
           .setAlias("alluxio.master.worker.delete.timeout.ms")
           .setDefaultValue(Long.MAX_VALUE)
           .setDescription("If the lost worker has no heartbeat for more than this time, "
