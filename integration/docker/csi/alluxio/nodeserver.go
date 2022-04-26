@@ -246,7 +246,7 @@ func (ns *nodeServer) createFusePodIfNotExist(fusePod *v1.Pod) error {
 }
 
 func checkIfMountPointReady(mountPoint string) error {
-	command := exec.Command("bash", "-c", fmt.Sprintf("mount | grep %v | grep alluxio-fuse", mountPoint))
+	command := exec.Command("bash", "-c", fmt.Sprintf("cat /proc/mounts | grep %v | grep alluxio-fuse", mountPoint))
 	_, err := command.Output()
 	if err != nil {
 		glog.V(3).Infoln("Mount point is not ready, or error occurs while checking.", err.Error())
