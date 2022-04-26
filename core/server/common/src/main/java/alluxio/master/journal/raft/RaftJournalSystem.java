@@ -1132,6 +1132,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  @Override
+  public String toString() {
+    return "RaftJournalSystem{"
+        + "Journal Path=" + mConf.getPath()
+        + ", State=" + mPrimarySelector.getState()
+        + ", ClientId=" + mRawClientId
+        + ", RaftGroup=" + mRaftGroup
+        + '}';
+  }
+
   /**
    * @return a primary selector backed by leadership within the Raft cluster
    */
