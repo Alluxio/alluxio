@@ -352,12 +352,6 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
-  "runMesosTest")
-    CLASS="alluxio.cli.AlluxioFrameworkIntegrationTest"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
-  ;;
   "runUfsIOTest")
     CLASS="alluxio.stress.cli.UfsIOBench"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
