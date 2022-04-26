@@ -30,7 +30,14 @@ public class OzoneUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(Constants.HEADER_OZONE);
+    if (path != null) {
+      for (final String prefix : Constants.HEADER_OZONE.split(",")) {
+        if (path.startsWith(prefix)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override
