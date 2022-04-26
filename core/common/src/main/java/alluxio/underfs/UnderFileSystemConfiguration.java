@@ -62,6 +62,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     mReadOnly = false;
     mShared = false;
     mDetail = false;
+    mRecorder = Recorder.create();
   }
 
   /**
@@ -153,6 +154,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     ufsConf.mReadOnly = mReadOnly;
     ufsConf.mShared = mShared;
     ufsConf.mDetail = mDetail;
+    ufsConf.mRecorder = mRecorder;
     return ufsConf;
   }
 

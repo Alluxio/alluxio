@@ -18,9 +18,6 @@ import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Used to merge and wrap {@link MountPOptions}.
  */
@@ -72,14 +69,14 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    * @param message options builder
    */
   public void record(String message) {
-    mRecorder.record(message);
+    mRecorder.recordIfEnable(message);
   }
 
   /**
    * get a Recorder.
    * @return  Recorder
    */
-  public Recorder getRecord() {
+  public Recorder getRecorder() {
     return mRecorder;
   }
 

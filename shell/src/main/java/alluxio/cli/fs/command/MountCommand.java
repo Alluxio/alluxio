@@ -115,13 +115,13 @@ public final class MountCommand extends AbstractFileSystemCommand {
       Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
       optionsBuilder.putAllProperties(Maps.fromProperties(properties));
     }
-    if (cl.hasOption(VERBOSE_OPTION.getOpt())) { // todo check long
+    if (cl.hasOption(VERBOSE_OPTION.getOpt())) {
       optionsBuilder.setDetail(true);
     }
     List<String> mountDetailInfos = mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());
     if (cl.hasOption(VERBOSE_OPTION.getOpt())) {
       for (String mountDetailInfo: mountDetailInfos) {
-        System.out.println(mountDetailInfo);
+        System.out.println("detail:  " + mountDetailInfo);
       }
     }
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);

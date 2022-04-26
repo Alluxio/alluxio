@@ -3155,11 +3155,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     UnderFileSystemConfiguration configuration =
         UnderFileSystemConfiguration.defaults(ServerConfiguration.global());
-    configuration.setDetail(context.getOptions().getDetail());
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
         configuration
             .setReadOnly(context.getOptions().getReadOnly())
             .setShared(context.getOptions().getShared())
+            .setDetail(context.getOptions().getDetail())
+            .setRecorder(context.getRecorder())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     try {
       prepareForMount(ufsPath, mountId, context);

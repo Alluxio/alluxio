@@ -107,7 +107,8 @@ public final class UnderFileSystemFactoryRegistry {
    */
   public static List<UnderFileSystemFactory> findAll(String path,
       UnderFileSystemConfiguration ufsConf) {
-    List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf);
+    List<UnderFileSystemFactory> eligibleFactories =
+        sRegistryInstance.findAllWithRecorder(path, ufsConf, ufsConf.getRecorder());
     if (eligibleFactories.isEmpty() && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
       String configuredVersion = ufsConf.getString(PropertyKey.UNDERFS_VERSION);
       List<String> supportedVersions = getSupportedVersions(path, ufsConf);

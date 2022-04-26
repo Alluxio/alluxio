@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -124,7 +123,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
-      recorder.record("{} UFS {} already exists in the cache, use cached UFS",
+      recorder.recordIfEnable("{} UFS {} already exists in the cache, use cached UFS",
           key.toString(), cachedFs.getClass().getSimpleName());
       return cachedFs;
     }
@@ -132,7 +131,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     synchronized (mLock) {
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
-        recorder.record("{} UFS {} already exists in the cache, use cached UFS",
+        recorder.recordIfEnable("{} UFS {} already exists in the cache, use cached UFS",
             key.toString(), cachedFs.getClass().getSimpleName());
         return cachedFs;
       }
@@ -154,12 +153,13 @@ public abstract class AbstractUfsManager implements UfsManager {
       }
       mCloser.register(fs);
       try {
-        recorder.record("connect to UFS {}", ufsUri);
+        recorder.recordIfEnable("connect to UFS {}", ufsUri);
         connectUfs(fs);
+        recorder.recordIfEnable("connect to UFS {} successfully", ufsUri);
       } catch (IOException e) {
         String message = String.format(
             "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
-        recorder.record(message);
+        recorder.recordIfEnable(message);
         LOG.warn(message);
       }
       return fs;

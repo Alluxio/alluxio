@@ -15,7 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnknownException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -95,6 +97,7 @@ import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -270,11 +273,23 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
-          new AlluxioURI(request.getUfsPath()),
-          MountContext.create(request.getOptions().toBuilder())
-              .withTracker(new GrpcCallTracker(responseObserver)));
-      return MountPResponse.newBuilder().build();
+      MountContext mountContext = MountContext.create(request.getOptions().toBuilder())
+          .withTracker(new GrpcCallTracker(responseObserver));
+      if (request.getOptions().getDetail()) {
+        mountContext.getRecorder().setEnable();
+      }
+      try {
+        mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
+            new AlluxioURI(request.getUfsPath()), mountContext);
+      } catch (Exception e) {
+        if (request.getOptions().getDetail()) {
+          throw new AlluxioException(String.join("\n", mountContext.getRecorder().getRecord()), e);
+        } else {
+          throw e;
+        }
+      }
+      return MountPResponse.newBuilder()
+          .addAllMountDetailInfo(mountContext.getRecorder().getRecord()).build();
     }, "Mount", "request=%s", responseObserver, request);
   }
 

@@ -14,7 +14,6 @@ package alluxio.extensions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.recorder.Recorder;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.ExtensionUtils;
 import alluxio.util.io.PathUtils;
 
@@ -140,21 +139,21 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
 
     List<T> eligibleFactories = new ArrayList<>();
     for (T factory : factories) {
-      recorder.record("check eligible of {} for {}", factory.getClass().getSimpleName(), path);
+      recorder.recordIfEnable("Check eligible of {} for {}", factory.getClass().getSimpleName(), path);
       if (factory.supportsPath(path, conf)) {
         String message =
             String.format("Factory implementation %s is eligible for path %s", factory, path);
-        recorder.record(message);
+        recorder.recordIfEnable(message);
         LOG.debug(message);
         eligibleFactories.add(factory);
       } else {
-        recorder.record("Factory implementation %s isn't eligible for path %s", factory, path);
+        recorder.recordIfEnable("Factory implementation {} isn't eligible for path {}\n", factory, path);
       }
     }
 
     if (eligibleFactories.isEmpty()) {
       String message = String.format("No factory implementation supports the path %s", path);
-      recorder.record(message);
+      recorder.recordIfEnable(message);
       LOG.warn(message);
     }
     return eligibleFactories;
