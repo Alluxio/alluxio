@@ -2579,7 +2579,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
-      longBuilder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+      intBuilder(Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
           .setDefaultValue(2000000)
           .setDescription("The number of journal entries to write before creating a new "
               + "journal checkpoint.")

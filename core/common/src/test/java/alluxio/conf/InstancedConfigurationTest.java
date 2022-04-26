@@ -240,17 +240,24 @@ public class InstancedConfigurationTest {
   @Test
   public void getLong() {
     // bigger than MAX_INT
-    mConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "12345678910");
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 12345678910L);
     assertEquals(12345678910L,
-        mConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES));
+        mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+  }
+
+  @Test
+  public void getLongFromInt() {
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 1);
+    assertEquals(1L,
+        mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY));
   }
 
   @Test
   public void getMalformedLongThrowsException() {
-    mConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY,
         "999999999999999999999999999999999999"); // bigger than MAX_LONG
     mThrown.expect(RuntimeException.class);
-    mConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
   }
 
   @Test
