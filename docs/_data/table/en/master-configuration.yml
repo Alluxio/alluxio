@@ -46,8 +46,6 @@ alluxio.master.daily.backup.time:
   'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
 alluxio.master.embedded.journal.addresses:
   'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. When left unset, Alluxio uses ${alluxio.master.hostname}:${alluxio.master.embedded.journal.port} by default'
-alluxio.master.embedded.journal.bind.host:
-  'Used to bind embedded journal servers to a proxied host.Proxy hostname will still make use of alluxio.master.embedded.journal.port for bind port.'
 alluxio.master.embedded.journal.catchup.retry.wait:
   'Time for embedded journal leader to wait before retrying a catch up. This is added to avoid excessive retries when server is not ready.'
 alluxio.master.embedded.journal.election.timeout.max:
@@ -60,6 +58,10 @@ alluxio.master.embedded.journal.flush.size.max:
   'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
 alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.raft.client.request.interval:
+  'Base interval for retrying Raft client calls. The retry policy is ExponentialBackoffRetry'
+alluxio.master.embedded.journal.raft.client.request.timeout:
+  'Time after which calls made through the Raft client timeout.'
 alluxio.master.embedded.journal.retry.cache.expiry.time:
   'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
 alluxio.master.embedded.journal.snapshot.replication.chunk.size:
@@ -106,6 +108,8 @@ alluxio.master.journal.gc.threshold:
   'Minimum age for garbage collecting checkpoints.'
 alluxio.master.journal.init.from.backup:
   'A uri for a backup to initialize the journal from. When the master becomes primary, if it sees that its journal is freshly formatted, it will restore its state from the backup. When running multiple masters, this property must be configured on all masters since it isn''t known during startup which master will become the first primary.'
+alluxio.master.journal.local.log.compaction:
+  'Whether to employ a quorum level log compaction policy or a local (individual) log compaction policy.'
 alluxio.master.journal.log.concurrency.max:
   'Max concurrency for notifyTermIndexUpdated method, be sure it''s enough'
 alluxio.master.journal.log.size.bytes.max:
@@ -150,6 +154,8 @@ alluxio.master.metadata.sync.executor.pool.size:
   'The number of threads used to execute all metadata syncoperations'
 alluxio.master.metadata.sync.ufs.prefetch.pool.size:
   'The number of threads used to fetch UFS objects for all metadata syncoperations'
+alluxio.master.metadata.sync.ufs.prefetch.timeout:
+  'The timeout for a metadata fetch operation from the UFSes. Adjust this timeout according to the expected UFS worst-case response time.'
 alluxio.master.metastore:
   'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.'
 alluxio.master.metastore.dir:

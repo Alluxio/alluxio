@@ -4,6 +4,8 @@ Master.AbsentCacheMisses:
   'Number of cache misses on the absent cache'
 Master.AbsentCacheSize:
   'Size of the absent cache'
+Master.AbsentPathCacheQueueSize:
+  'Alluxio maintains a cache of absent UFS paths. This is the number of UFS paths being processed.'
 Master.AsyncPersistCancel:
   'The number of cancelled AsyncPersist operations'
 Master.AsyncPersistFail:
@@ -162,6 +164,44 @@ Master.LostBlockCount:
   'Count of lost unique blocks'
 Master.LostFileCount:
   'Count of lost files. This number is cached and may not be in sync with Master.LostBlockCount'
+Master.MetadataSyncActivePaths:
+  'The number of in-progress paths from all InodeSyncStream instances'
+Master.MetadataSyncExecutorQueueSize:
+  'The number of queuing sync tasks in the metadata sync thread pool controlled by alluxio.master.metadata.sync.executor.pool.size'
+Master.MetadataSyncFail:
+  'The number of InodeSyncStream that failed, either partially or fully'
+Master.MetadataSyncNoChange:
+  'The number of InodeSyncStream that finished with no change to inodes.'
+Master.MetadataSyncOpsCount:
+  'The number of metadata sync operations. Each sync operation corresponds to one InodeSyncStream instance.'
+Master.MetadataSyncPathsCancel:
+  'The number of pending paths from all InodeSyncStream instances that are ignored in the end instead of processed'
+Master.MetadataSyncPathsFail:
+  'The number of paths that failed during metadata sync from all InodeSyncStream instances'
+Master.MetadataSyncPathsSuccess:
+  'The number of paths sync-ed from all InodeSyncStream instances'
+Master.MetadataSyncPendingPaths:
+  'The number of pending paths from all active InodeSyncStream instances,waiting for metadata sync'
+Master.MetadataSyncPrefetchCancel:
+  'Number of cancelled prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchExecutorQueueSize:
+  'The number of queuing prefetch tasks in the metadata sync thread pool controlled by alluxio.master.metadata.sync.ufs.prefetch.pool.size'
+Master.MetadataSyncPrefetchFail:
+  'Number of failed prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchOpsCount:
+  'The number of prefetch operations handled by the prefetch thread pool'
+Master.MetadataSyncPrefetchPaths:
+  'Total number of UFS paths fetched by prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchRetries:
+  'Number of retries to get from prefetch jobs from metadata sync'
+Master.MetadataSyncPrefetchSuccess:
+  'Number of successful prefetch jobs from metadata sync'
+Master.MetadataSyncSkipped:
+  'The number of InodeSyncStream that are skipped because the Alluxio metadata is fresher than alluxio.user.file.metadata.sync.interval'
+Master.MetadataSyncSuccess:
+  'The number of InodeSyncStream that succeeded'
+Master.MetadataSyncTimeMs:
+  'The total time elapsed in all InodeSyncStream instances'
 Master.MigrateJobCancel:
   'The number of cancelled MigrateJob operations'
 Master.MigrateJobFail:
@@ -196,6 +236,8 @@ Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:
   'Total number of SetAttribute operations'
+Master.ToRemoveBlockCount:
+  'Count of block replicas to be removed from the workers. If 1 block is to be removed from 2 workers, 2 will be counted here.'
 Master.TotalPaths:
   'Total number of files and directory in Alluxio namespace'
 Master.TotalRpcs:
@@ -206,6 +248,10 @@ Master.UfsJournalFailureRecoverTimer:
   'The timer statistics of ufs journal failure recover'
 Master.UfsJournalInitialReplayTimeMs:
   'The process time of the ufs journal initial replay.Only valid when ufs journal is used. It records the time it took for the very first journal replay. Use this metric to monitor when your master boot-up time is high。'
+Master.UfsStatusCacheChildrenSize:
+  'Total number of UFS file metadata cached. The cache is used during metadata sync.'
+Master.UfsStatusCacheSize:
+  'Total number of Alluxio paths being processed by the metadata sync prefetch thread pool.'
 Master.UniqueBlocks:
   'Total number of unique blocks in Alluxio'
 Master.UnmountOps:
