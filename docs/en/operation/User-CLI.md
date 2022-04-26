@@ -1149,6 +1149,7 @@ Options:
 * `-d` option lists the directories as plain files. For example, `ls -d /` shows the attributes of root directory.
 * `-f` option forces loading metadata for immediate children in a directory.
 By default, it loads metadata only at the first time at which a directory is listed.
+`-f` is equivalent to `-Dalluxio.user.file.metadata.sync.interval=0`.
 * `-h` option displays file sizes in human-readable formats.
 * `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
@@ -1171,6 +1172,19 @@ $ ./bin/alluxio fs ls -f /s3/data
 # Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
 $ aws s3 rm s3://data-bucket/somedata
 $ ./bin/alluxio fs ls -f /s3/data
+```
+
+Metadata sync is an expensive operation. A rough estimation is metadata sync
+on 1 million files will consume 2GB heap until the sync operation is complete.
+Therefore, we recommend not using forced sync to avoid accidental repeated sync operations.
+It is recommended to always specify a non-zero sync interval for metadata sync, so
+even if the sync is repeatedly triggered, the paths that have just been sync-ed can be identified and skipped. 
+```console
+# Should be avoided
+$ ./bin/alluxio fs ls -f -R /s3/data
+
+# Recommended. This will not sync files repeatedly in 1 minute.
+$ ./bin/alluxio fs ls -Dalluxio.user.file.metadata.sync.interval=1min -R /s3/data
 ```
 
 ### masterInfo
@@ -1291,7 +1305,7 @@ but the actual data may be deleted a while later.
 
 * Adding `-R` option deletes all contents of the directory and the directory itself.
 * Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
-before attempting to delete persisted directories.
+before attempting to delete persisted directories. We recommend always using the `-U` option for the best performance and resource efficiency.
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
@@ -1301,6 +1315,39 @@ $ ./bin/alluxio fs rm /tmp/unused-file
 # Remove a file from Alluxio space only
 $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 ```
+
+When deleting only from Alluxio but leaving the files in UFS, we recommend using `-U` and `-Dalluxio.user.file.metadata.sync.interval=-1`
+to skip the metadata sync and the UFS check. This will save time and memory consumption on the Alluxio master.
+```console
+$ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /dir
+```
+
+When deleting a large directory (with millions of files) recursively both from Alluxio and UFS,
+the operation is expensive. 
+
+We recommend doing the deletion in the following way:
+1. Perform a direct sanity check against the UFS path with the corresponding file system API
+or CLI to make sure everything can be deleted safely. 
+For example if the UFS is HDFS, use `hdfs dfs -ls -R /dir` to list the UFS files and check.
+We do not recommend doing this sanity check from Alluxio using a command like `alluxio fs ls -R -f /dir`,
+because the loaded file metadata will be deleted anyway, and the expensive metadata sync operation
+will essentially be wasted.
+
+2. Issue the deletion from Alluxio to delete files from both Alluxio and the UFS:
+```console
+# Disable the sync and skip the UFS check, to reduce memory consumption on the master side
+$ bin/alluxio fs rm -R -U -Dalluxio.user.file.metadata.sync.interval=-1 /dir
+```
+
+Per 1 million files deleted, the memory overhead can be estimated as follows:
+* If both metadata sync and UFS check are disabled, recursively deleting from Alluxio only will hold 2GB JVM heap memory until the deletion completes.
+* If files are also deleted from UFS, there will not be extra heap consumption but the operation will take longer to complete.
+* If metadata sync is enabled, there will be another around 2GB overhead on the JVM heap until the operation completes.
+* If UFS check is enabled, there will another around 2GB overhead on the JVM heap until the operation completes.
+
+Using this example as a guideline, estimate the total additional memory overhead as a proportion to the number of files to be deleted. 
+Ensure that the leading master has sufficient available heap memory to perform the operation before issuing a large recursive delete command.
+A general good practice is to break deleting a large directory into deleting each individual children directories.
 
 ### setfacl
 
@@ -1462,6 +1509,10 @@ data from that system.
 ```console
 $ ./bin/alluxio fs unmount /s3/data
 ```
+
+If there are files under the mount point, the `unmount` operation will implicitly delete those files from Alluxio.
+See the [rm command]({{ '/en/operation/User-CLI.html#rm' | relativize_url }}) for how to estimate the memory consumption.
+It is recommended to remove those files in Alluxio first, before the `unmount`.
 
 ### unpin
 
