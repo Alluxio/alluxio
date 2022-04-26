@@ -33,42 +33,38 @@ public class DeleteWorkerCommandIntegrationTest  extends AbstractFsAdminShellTes
   static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress()
       .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82);
 
-//  @Test
-//  public void noArg() {
-//    int ret = mFsAdminShell.run("deleteWorker");
-//    Assert.assertEquals(0, ret);
-//    String output = mOutput.toString();
-//    Assert.assertTrue(output.contains(DeleteWorker.usage()));
-//  }
-//
-//  @Test
-//  public void notExistWorker() {
-//    String notExistWorkerName = "notExistWorkerId";
-//    int ret = mFsAdminShell.run("deleteWorker", notExistWorkerName);
-//    Assert.assertEquals(-1, ret);
-//    String output = mOutput.toString();
-//    Assert.assertTrue(output.contains("failed"));
-//  }
+  @Test
+  public void noArg() {
+    int ret = mFsAdminShell.run("deleteWorker");
+    Assert.assertEquals(0, ret);
+    String output = mOutput.toString();
+    Assert.assertTrue(output.contains(DeleteWorker.usage()));
+  }
+
+  @Test
+  public void notExistWorker() {
+    String notExistWorkerName = "notExistWorkerId";
+    int ret = mFsAdminShell.run("deleteWorker", notExistWorkerName);
+    Assert.assertEquals(-1, ret);
+    String output = mOutput.toString();
+    Assert.assertTrue(output.contains("failed"));
+  }
 
   @Test
   public void deleteLostWorker() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, 100);
-    BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
+    DefaultBlockMaster blockMaster =
+        (DefaultBlockMaster) mLocalAlluxioCluster.getLocalAlluxioMaster()
         .getMasterProcess().getMaster(BlockMaster.class);
     String notDeletedWorker = mLocalAlluxioCluster.getWorkerAddress().getHost();
-    // Register a fake worker, this worker will not have heartbeat, it will become a lost worker
+    // Register a fake worker, this worker will not have heartbeat,
+    // will not re-register, easy to test
     long workerId = blockMaster.getWorkerId(NET_ADDRESS_1);
     Assert.assertEquals(1, blockMaster.getWorkerCount());
     blockMaster.workerRegister(workerId, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
         Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
         RegisterWorkerPOptions.getDefaultInstance());
     Assert.assertEquals(2, blockMaster.getWorkerCount());
-
-    // Waiting for worker heartbeat timeout
-    Thread.sleep(101);
-    DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor lostWorkerDetector =
-        ((DefaultBlockMaster) blockMaster).new LostWorkerDetectionHeartbeatExecutor();
-    lostWorkerDetector.heartbeat();
+    blockMaster.forgetWorker(workerId);
     Assert.assertEquals(1, blockMaster.getLostWorkerCount());
 
     int ret = mFsAdminShell.run("deleteWorker", NET_ADDRESS_1.getHost());
@@ -81,51 +77,52 @@ public class DeleteWorkerCommandIntegrationTest  extends AbstractFsAdminShellTes
     Assert.assertTrue(output.contains("has been deleted"));
   }
 
-//  @Test
-//  public void deleteNotLostWorker() {
-//    // Without the --force flag with command, a non-lost worker will not be deleted
-//    BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
-//        .getMasterProcess().getMaster(BlockMaster.class);
-//
-//    int ret = mFsAdminShell.run("deleteWorker", mLocalAlluxioCluster.getWorkerAddress().getHost());
-//
-//    Assert.assertEquals(0, ret);
-//    Assert.assertEquals(1, blockMaster.getWorkerCount());
-//    String output = mOutput.toString();
-//    Assert.assertTrue(output.contains("is not a LOST Worker"));
-//  }
+  @Test
+  public void deleteNotLostWorker() {
+    // Without the --force flag with command, a non-lost worker will not be deleted
+    BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
+        .getMasterProcess().getMaster(BlockMaster.class);
 
-//  @Test
-//  public void forceDeleteNotLostWorker() throws Exception {
-//    // Prevent worker timeouts
-//    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, Constants.HOUR_MS);
-//    // If there is a force flag, a non-lost worker will be deleted
-//    BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
-//        .getMasterProcess().getMaster(BlockMaster.class);
-//    String notDeletedWorker = mLocalAlluxioCluster.getWorkerAddress().getHost();
-//    long workerId = blockMaster.getWorkerId(NET_ADDRESS_1);
-//    Assert.assertEquals(1, blockMaster.getWorkerCount());
-//
-//    // Register a fake worker, this worker has no real process,
-//    // which can prevent the worker from re-register to the master, which is convenient for testing
-//    blockMaster.workerRegister(workerId, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-//        Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-//        RegisterWorkerPOptions.getDefaultInstance());
-//    Assert.assertEquals(2, blockMaster.getWorkerCount());
-//    // Make sure the worker is on alive
-//    blockMaster.workerHeartbeat(workerId, null,
-//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(1L),
-//        ImmutableMap.of(), ImmutableMap.of(), Lists.newArrayList());
-//    Assert.assertEquals(2, blockMaster.getWorkerCount());
-//    Assert.assertEquals(0, blockMaster.getLostWorkerCount());
-//
-//    int ret = mFsAdminShell.run("deleteWorker", NET_ADDRESS_1.getHost(), "--force");
-//
-//    Assert.assertEquals(0, ret);
-//    Assert.assertEquals(1, blockMaster.getWorkerCount());
-//    Assert.assertEquals(0, blockMaster.getLostWorkerCount());
-//    Assert.assertEquals(notDeletedWorker, mLocalAlluxioCluster.getWorkerAddress().getHost());
-//    String output = mOutput.toString();
-//    Assert.assertTrue(output.contains("has been deleted"));
-//  }
+    int ret = mFsAdminShell.run("deleteWorker", mLocalAlluxioCluster.getWorkerAddress().getHost());
+
+    Assert.assertEquals(0, ret);
+    Assert.assertEquals(1, blockMaster.getWorkerCount());
+    String output = mOutput.toString();
+    Assert.assertTrue(output.contains("is not a LOST Worker"));
+  }
+
+  @Test
+  public void forceDeleteNotLostWorker() throws Exception {
+    // Prevent worker timeouts
+    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, Constants.HOUR_MS);
+    // If there is a force flag, a non-lost worker will be deleted
+    BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
+        .getMasterProcess().getMaster(BlockMaster.class);
+    String notDeletedWorker = mLocalAlluxioCluster.getWorkerAddress().getHost();
+    long workerId = blockMaster.getWorkerId(NET_ADDRESS_1);
+    Assert.assertEquals(1, blockMaster.getWorkerCount());
+
+    // Forcibly delete an active state worker, the worker will re-register to the Master
+    // So, register a fake worker, this worker has no real process,
+    // which can prevent the worker re-register to the master, easy for testing
+    blockMaster.workerRegister(workerId, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
+        Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+        RegisterWorkerPOptions.getDefaultInstance());
+    Assert.assertEquals(2, blockMaster.getWorkerCount());
+    // Make sure the worker is on alive
+    blockMaster.workerHeartbeat(workerId, null,
+        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(1L),
+        ImmutableMap.of(), ImmutableMap.of(), Lists.newArrayList());
+    Assert.assertEquals(2, blockMaster.getWorkerCount());
+    Assert.assertEquals(0, blockMaster.getLostWorkerCount());
+
+    int ret = mFsAdminShell.run("deleteWorker", NET_ADDRESS_1.getHost(), "--force");
+
+    Assert.assertEquals(0, ret);
+    Assert.assertEquals(1, blockMaster.getWorkerCount());
+    Assert.assertEquals(0, blockMaster.getLostWorkerCount());
+    Assert.assertEquals(notDeletedWorker, mLocalAlluxioCluster.getWorkerAddress().getHost());
+    String output = mOutput.toString();
+    Assert.assertTrue(output.contains("has been deleted"));
+  }
 }
