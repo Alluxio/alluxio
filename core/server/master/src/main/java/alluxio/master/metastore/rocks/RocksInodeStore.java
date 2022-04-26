@@ -31,7 +31,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
-import org.rocksdb.HashSkipListMemTableConfig;
+import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -87,7 +87,7 @@ public class RocksInodeStore implements InodeStore {
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     mColumnFamilyOpts = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashSkipListMemTableConfig())
+        .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
         .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     List<ColumnFamilyDescriptor> columns = Arrays.asList(
