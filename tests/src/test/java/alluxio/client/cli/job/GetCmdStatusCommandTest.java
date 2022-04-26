@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.cli.fs.command;
+package alluxio.client.cli.job;
 
 import alluxio.cli.fs.FileSystemShell;
+import alluxio.cli.job.command.GetCmdStatusCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -32,7 +33,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 
 /**
- * Tests for getting cmd status {@link alluxio.cli.fs.command.GetCmdStatusCommand}.
+ * Tests for getting cmd status {@link GetCmdStatusCommand}.
  */
 public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
   @Rule
@@ -69,14 +70,21 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
             10);
     FileSystemTestUtils
-            .createByteFile(fs, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+            .createByteFile(fs, "/testRoot/testFileB", WritePType.THROUGH, 10);
     sFsShell.run("distributedLoad", "/testRoot");
 
     String[] output = mOutput.toString().split("\n");
-    String jobControlId = output[2].split("=\\s+")[1];
-    sFsShell.run("getCmdStatus", jobControlId);
+    String jobControlId = output[1].split("=\\s+")[1];
+
+    mOutput.reset();
+    sJobShell.run("getCmdStatus", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below: "));
-    Assert.assertTrue(mOutput.toString().contains("Status = COMPLETED"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testRoot/testFileA\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testRoot/testFileB\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Total completed file count is 2, failed file count is 0"));
   }
 
   @Test
@@ -90,9 +98,15 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
 
     String[] output = mOutput.toString().split("\n");
     String jobControlId = output[1].split("=\\s+")[1];
-    sFsShell.run("getCmdStatus", jobControlId);
-    output = mOutput.toString().split("\n");
-    Assert.assertTrue(output[output.length - batch].contains("Status = COMPLETED"));
-    Assert.assertTrue(output[output.length - batch + 1].contains("Status = COMPLETED"));
+    mOutput.reset();
+    sJobShell.run("getCmdStatus", jobControlId);
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testBatchRoot/testBatchFileA\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testBatchRoot/testBatchFileB\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Successfully loaded path /testBatchRoot/testBatchFileC\n"));
+    Assert.assertTrue(mOutput.toString().contains(
+            "Total completed file count is 3, failed file count is 0"));
   }
 }

@@ -22,11 +22,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
-import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.NoopBlockWorker;
 import alluxio.worker.block.io.BlockReader;
@@ -87,8 +87,10 @@ public class BlockReadHandlerTest {
     mBlockReader = new LocalFileBlockReader(mFile.getPath());
     mBlockWorker = new NoopBlockWorker() {
       @Override
-      public BlockReader createBlockReader(BlockReadRequest request) throws IOException {
-        ((FileChannel) mBlockReader.getChannel()).position(request.getStart());
+      public BlockReader createBlockReader(long sessionId, long blockId, long offset,
+          boolean positionShort, Protocol.OpenUfsBlockOptions options)
+          throws IOException {
+        ((FileChannel) mBlockReader.getChannel()).position(offset);
         return mBlockReader;
       }
     };

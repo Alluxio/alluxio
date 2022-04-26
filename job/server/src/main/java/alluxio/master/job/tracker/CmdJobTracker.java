@@ -49,6 +49,7 @@ public class CmdJobTracker {
   private final MigrateCliRunner mMigrateCliRunner;
   private final PersistRunner mPersistRunner;
   protected FileSystemContext mFsContext;
+  public static final String DELIMITER = ",";
 
   /**
    * Create a new instance of {@link CmdJobTracker}.
@@ -264,7 +265,10 @@ public class CmdJobTracker {
 
     List<SimpleJobStatusBlock> blockList = cmdInfo.getCmdRunAttempt().stream()
             .map(attempt -> new SimpleJobStatusBlock(attempt.getJobId(),
-                    attempt.checkJobStatus())).collect(Collectors.toList());
-    return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList);
+                    attempt.checkJobStatus(),
+                    attempt.getFilePath(),
+                    String.join(DELIMITER, attempt.getFailedFiles())))
+            .collect(Collectors.toList());
+    return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList, cmdInfo.getOperationType());
   }
 }

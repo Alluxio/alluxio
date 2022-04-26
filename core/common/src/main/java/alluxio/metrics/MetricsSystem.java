@@ -288,8 +288,7 @@ public final class MetricsSystem {
    * @return metrics string
    */
   public static String getResourcePoolMetricName(Object obj) {
-    return MetricsSystem.getMetricName("ResourcePool." + obj.getClass().getName() + "."
-        + Integer.toHexString(System.identityHashCode(obj)));
+    return MetricsSystem.getMetricName("ResourcePool." + obj.getClass().getSimpleName());
   }
 
   /**

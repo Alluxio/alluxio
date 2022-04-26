@@ -246,6 +246,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Size of the absent cache")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE =
+      new Builder("Master.AbsentPathCacheQueueSize")
+          .setDescription("Alluxio maintains a cache of absent UFS paths. "
+              + "This is the number of UFS paths being processed.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Edge cache stats
   public static final MetricKey MASTER_EDGE_CACHE_EVICTIONS =
@@ -728,20 +735,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of UFS file metadata cached."
               + " The cache is used during metadata sync.")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths cached.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheQueueSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths being processed.")
-          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
@@ -1463,32 +1456,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_CACHE_READ_TIMEOUT =
-      new Builder("Worker.CacheReadTimeout")
-          .setDescription("Number of timeouts when writing to worker storage.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_READ_THREADS_REJECTED =
-      new Builder("Worker.CacheReadThreadsRejected")
-          .setDescription("Number of rejection of I/O threads on submitting tasks to thread pool, "
-              + "likely due to unresponsive local file system.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_WRITE_TIMEOUT =
-      new Builder("Worker.CacheWriteTimeout")
-          .setDescription("Number of timeouts when writing to worker storage.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_WRITE_THREADS_REJECTED =
-      new Builder("Worker.CacheWriteThreadsRejected")
-          .setDescription("Number of rejection of I/O threads on submitting tasks to thread pool, "
-              + "likely due to unresponsive local file system.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_CACHE_BLOCKS_SIZE =
       new Builder("Worker.CacheBlocksSize")
           .setDescription("Total number of bytes that being cached through cache requests")
@@ -1904,21 +1871,36 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_TOTAL_RPC_CLIENTS =
-      new Builder("Client.TotalRPCClients")
-          .setDescription("The total number of RPC clients exist that is using to "
-              + "or can be used to connect to master or worker for operations. "
-              + "The sum of the sizes of FileSystemMasterClientPool, "
-              + "BlockMasterClientPool, and BlockWorkerClientPool.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
               + "on the client-side. Only valid if the filesystem is "
               + "alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_FILE_SYSTEM_MASTER_CLIENT_COUNT =
+      new Builder("Client.FileSystemMasterClientCount")
+          .setDescription("Number of instances in the FileSystemMasterClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_MASTER_CLIENT_COUNT =
+      new Builder("Client.BlockMasterClientCount")
+          .setDescription("Number of instances in the BlockMasterClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_BLOCK_WORKER_CLIENT_COUNT =
+      new Builder("Client.BlockWorkerClientCount")
+          .setDescription("Number of instances in the BlockWorkerClientPool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_DEFAULT_HIVE_CLIENT_COUNT =
+      new Builder("Client.DefaultHiveClientCount")
+          .setDescription("Number of instances in the DefaultHiveClientPool.")
+          .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
 
