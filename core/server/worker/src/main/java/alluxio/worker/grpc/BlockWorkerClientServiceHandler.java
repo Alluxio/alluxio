@@ -11,6 +11,9 @@
 
 package alluxio.worker.grpc;
 
+import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
+
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
@@ -41,6 +44,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
@@ -63,7 +67,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private static final boolean ZERO_COPY_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
   private final WorkerProcess mWorkerProcess;
-  private final BlockWorker mBlockWorker;
+  private final DefaultBlockWorker mBlockWorker;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
@@ -77,7 +81,10 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
       boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
-    mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
+    BlockWorker blockWorker = mWorkerProcess.getWorker(BlockWorker.class);
+    checkState(blockWorker instanceof DefaultBlockWorker,
+        format("Expect DefaultBlockWorker, get %s", blockWorker.getClass().getName()));
+    mBlockWorker = (DefaultBlockWorker) blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -130,9 +137,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    ShortCircuitBlockReadHandler handler = new ShortCircuitBlockReadHandler(
-        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
-    return handler;
+    return new ShortCircuitBlockReadHandler(
+        mBlockWorker.getLocalBlockStore(), responseObserver, getAuthenticatedUserInfo());
   }
 
   @Override

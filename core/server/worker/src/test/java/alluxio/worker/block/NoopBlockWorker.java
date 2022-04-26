@@ -54,11 +54,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    // noop
-  }
-
-  @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
@@ -116,11 +111,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) {
-    return 0;
-  }
-
-  @Override
   public void moveBlock(long sessionId, long blockId, int tier)
       throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
@@ -150,11 +140,6 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    // noop
-  }
-
-  @Override
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     // noop
   }
 

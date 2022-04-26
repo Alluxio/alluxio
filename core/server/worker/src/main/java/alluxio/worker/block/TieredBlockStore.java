@@ -27,6 +27,7 @@ import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.DelegatingBlockReader;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
@@ -44,12 +45,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -146,26 +149,25 @@ public class TieredBlockStore implements LocalBlockStore
 
     // Initialize and start coordinator.
     mTaskCoordinator = new ManagementTaskCoordinator(this, mMetaManager,
-        new DefaultStoreLoadTracker(), () -> getUpdatedView());
+        new DefaultStoreLoadTracker(), this::getUpdatedView);
     mTaskCoordinator.start();
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
+  public OptionalLong pinBlock(long sessionId, long blockId) {
+    LOG.debug("pinBlock: sessionId={}, blockId={}", sessionId, blockId);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     if (hasBlockMeta(blockId)) {
-      return lockId;
+      return OptionalLong.of(lockId);
     }
-
     mLockManager.unlockBlock(lockId);
-    throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
+    return OptionalLong.empty();
   }
 
   @Override
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
-    LOG.debug("unlockBlock: lockId={}", lockId);
-    mLockManager.unlockBlock(lockId);
+  public void unpinBlock(long id) {
+    LOG.debug("unpinBlock: id={}", id);
+    mLockManager.unlockBlock(id);
   }
 
   @Override
@@ -184,13 +186,25 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public BlockReader getBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
-    LOG.debug("getBlockReader: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
-    mLockManager.validateLock(sessionId, blockId, lockId);
+  public BlockReader createBlockReader(long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
+    LOG.debug("createBlockReader: sessionId={}, blockId={}, offset={}",
+        sessionId, blockId, offset);
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
+    BlockMeta blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      return new StoreBlockReader(sessionId, blockMeta);
+      blockMeta = mMetaManager.getBlockMeta(blockId);
+      BlockReader reader = new StoreBlockReader(sessionId, blockMeta);
+      ((FileChannel) reader.getChannel()).position(offset);
+      accessBlock(sessionId, blockId);
+      return new DelegatingBlockReader(reader, () -> unpinBlock(lockId));
+    } catch (Exception e) {
+      unpinBlock(lockId);
+      if (e instanceof BlockDoesNotExistException) {
+        throw e;
+      }
+      throw new IOException(String.format("Failed to get local block reader, sessionId=%d, "
+          + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
     }
   }
 
@@ -342,9 +356,9 @@ public class TieredBlockStore implements LocalBlockStore
   @VisibleForTesting
   BlockMeta removeBlockInternal(long sessionId, long blockId, long timeoutMs)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
+    OptionalLong lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
         timeoutMs, TimeUnit.MILLISECONDS);
-    if (lockId == BlockWorker.INVALID_LOCK_ID) {
+    if (!lockId.isPresent()) {
       throw new DeadlineExceededException(
           String.format("Can not acquire lock to remove block %d for session %d after %d ms",
               blockId, sessionId, REMOVE_BLOCK_TIMEOUT_MS));
@@ -357,14 +371,14 @@ public class TieredBlockStore implements LocalBlockStore
 
       blockMeta = mMetaManager.getBlockMeta(blockId);
     } catch (Exception e) {
-      mLockManager.unlockBlock(lockId);
+      mLockManager.unlockBlock(lockId.getAsLong());
       throw e;
     }
 
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       removeBlockFileAndMeta(blockMeta);
     } finally {
-      mLockManager.unlockBlock(lockId);
+      mLockManager.unlockBlock(lockId.getAsLong());
     }
     return blockMeta;
   }
@@ -884,7 +898,6 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param blockMeta block metadata
    *
-   * @throws InvalidWorkerStateException if the block to remove is a temp block
    * @throws BlockDoesNotExistException if this block can not be found
    */
   private void removeBlockFileAndMeta(BlockMeta blockMeta)
