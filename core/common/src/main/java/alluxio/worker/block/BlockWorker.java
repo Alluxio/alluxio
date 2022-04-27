@@ -198,14 +198,12 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to move
    * @param tier the tier to move the block to
    * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
-   *         newLocation
    * @throws InvalidWorkerStateException if blockId has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
   void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
   /**
@@ -217,14 +215,12 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to move
    * @param mediumType the medium type to move to
    * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
-   *         newLocation
    * @throws InvalidWorkerStateException if blockId has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
   void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
   /**

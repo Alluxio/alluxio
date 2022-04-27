@@ -371,9 +371,9 @@ public class DefaultBlockWorkerTest {
         false, Protocol.OpenUfsBlockOptions.newBuilder().build());
     // reader will hold the lock
     assertThrows(DeadlineExceededException.class,
-        () -> mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10)
+        () -> mBlockStore.removeBlockInternal(sessionId, blockId, 10)
     );
     reader.close();
-    mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10);
+    mBlockStore.removeBlockInternal(sessionId, blockId, 10);
   }
 }

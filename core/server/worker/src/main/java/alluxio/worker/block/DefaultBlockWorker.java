@@ -416,7 +416,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
     // Because the move operation is expensive, we first check if the operation is necessary
@@ -437,7 +437,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType);
     BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
