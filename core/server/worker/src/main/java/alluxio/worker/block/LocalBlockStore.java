@@ -15,7 +15,6 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.exception.status.DeadlineExceededException;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -195,35 +194,13 @@ public interface LocalBlockStore
    * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
    * @throws BlockDoesNotExistException if block id can not be found
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
-   *         newLocation
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Moves an existing block to a new location.
-   *
-   * @param sessionId the id of the session to remove a block
-   * @param blockId the id of an existing block
-   * @param oldLocation the location of the source
-   * @param moveOptions the options for move
-   * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws BlockDoesNotExistException if block id can not be found
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
-   *         newLocation
-   * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      AllocateOptions moveOptions) throws BlockDoesNotExistException,
-      BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
-      IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
@@ -235,19 +212,6 @@ public interface LocalBlockStore
    */
   void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
       BlockDoesNotExistException, IOException;
-
-  /**
-   * Removes an existing block. If the block can not be found in this store.
-   *
-   * @param sessionId the id of the session to move a block
-   * @param blockId the id of an existing block
-   * @param location the location of the block
-   * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws BlockDoesNotExistException if block can not be found
-   * @throws DeadlineExceededException if locking takes longer than timeout
-   */
-  void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly

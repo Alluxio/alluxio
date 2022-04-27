@@ -122,14 +122,14 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // noop
   }
 
   @Override
   public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     // noop
   }

@@ -308,19 +308,11 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
-    moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), moveOptions);
-  }
-
-  @Override
-  public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      AllocateOptions moveOptions)
-          throws BlockDoesNotExistException, BlockAlreadyExistsException,
-          InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, options={}", sessionId,
-        blockId, oldLocation, moveOptions);
-    MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
+    LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
+        blockId, moveOptions);
+    MoveBlockResult result = moveBlockInternal(sessionId, blockId, moveOptions);
     if (result.getSuccess()) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
@@ -337,15 +329,8 @@ public class TieredBlockStore implements LocalBlockStore
   @Override
   public void removeBlock(long sessionId, long blockId)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    removeBlock(sessionId, blockId, BlockStoreLocation.anyTier());
-  }
-
-  @Override
-  public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
-    BlockMeta blockMeta = removeBlockInternal(sessionId, blockId, location,
-        REMOVE_BLOCK_TIMEOUT_MS);
+    LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
+    BlockMeta blockMeta = removeBlockInternal(sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
         listener.onRemoveBlockByClient(sessionId, blockId);
@@ -355,8 +340,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @VisibleForTesting
-  BlockMeta removeBlockInternal(long sessionId, long blockId, BlockStoreLocation location,
-      long timeoutMs)
+  BlockMeta removeBlockInternal(long sessionId, long blockId, long timeoutMs)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     long lockId = mLockManager.tryLockBlock(sessionId, blockId, BlockLockType.WRITE,
         timeoutMs, TimeUnit.MILLISECONDS);
@@ -372,11 +356,6 @@ public class TieredBlockStore implements LocalBlockStore
       }
 
       blockMeta = mMetaManager.getBlockMeta(blockId);
-
-      if (!blockMeta.getBlockLocation().belongsTo(location)) {
-        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
-            location);
-      }
     } catch (Exception e) {
       mLockManager.unlockBlock(lockId);
       throw e;
@@ -827,17 +806,14 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param sessionId session id
    * @param blockId block id
-   * @param oldLocation the source location of the block
    * @param moveOptions the allocate options for the move
    * @return the resulting information about the move operation
    * @throws BlockDoesNotExistException if block is not found
-   * @throws BlockAlreadyExistsException if a block with same id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, AllocateOptions moveOptions)
-          throws BlockDoesNotExistException, BlockAlreadyExistsException,
-          InvalidWorkerStateException, IOException {
+      AllocateOptions moveOptions)
+      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       long blockSize;
@@ -859,10 +835,6 @@ public class TieredBlockStore implements LocalBlockStore
         moveOptions.setSize(blockSize);
       }
 
-      if (!srcLocation.belongsTo(oldLocation)) {
-        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
-            oldLocation);
-      }
       if (srcLocation.belongsTo(moveOptions.getLocation())) {
         return new MoveBlockResult(true, blockSize, srcLocation, srcLocation);
       }
