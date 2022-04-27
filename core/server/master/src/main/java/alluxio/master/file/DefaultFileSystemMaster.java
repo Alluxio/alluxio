@@ -3139,8 +3139,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       recorder.recordIfEnable("Create mount directory {} successfully",
           inodePath.getUri().getPath());
     } finally {
-      recorder.recordIfEnable("Create mount directory {} failed", inodePath.getUri().getPath());
       if (!loadMetadataSucceeded) {
+        recorder.recordIfEnable("Create mount directory {} failed", inodePath.getUri().getPath());
         mMountTable.delete(rpcContext, inodePath.getUri(), true);
       }
     }
