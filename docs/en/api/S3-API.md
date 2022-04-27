@@ -23,61 +23,113 @@ Alluxio proxy, introducing an extra hop. For optimal performance, it is recommen
 server and an Alluxio worker on each compute node. It is also recommended to put all the proxy
 servers behind a load balancer.
 
-As described in the Aws s3 document [Aws PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html):  
+As described in the AWS S3 docs for [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html):
 > _Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written._  
 > _Amazon S3 does not provide object locking; if you need this, make sure to build it into your application layer or use versioning instead._  
 
-Alluxio s3 will overwrite the existing key and the temporary directory for multipart upload. 
+Alluxio S3 will overwrite the existing key and the temporary directory for multipart upload.
 
 
-## Features support
-The following table describes the support status for current Amazon S3 functional features:
+## Supported S3 API Actions
+
+Global request headers: **Insert table here -> Authorization**
+
+The following table describes the support status for current [S3 API Actions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_Operations.html):
 
 <table class="table table-striped">
-  <tr><th>S3 Feature</th><th>Status</th></tr>
+  <tr>
+    <th>S3 API Action</th>
+    <th>URI Endpoint</th>
+    <th>Supported Headers</th>
+    <th>Supported Query Parameters</th>
+  </tr>
 {% for item in site.data.table.s3-api-supported-operations %}
   <tr>
-    <td>{{ item.S3Feature }}</td>
-    <td>{{ item.Status }}</td>
+    <td>{{ item.action }}</td>
+    <td>{{ item.endpoint }}</td>
+    <td>
+      {% assign headers = item.headers | split: "|" %}
+      {% if headers.size == 0 %}
+      N/A
+      {% else %}
+      <ul style="list-style-type:none;margin:0;padding:0">
+      {% for header in headers %}
+      {% if forloop.last %}
+      <li>{{ header }}</li>
+      {% else %}
+      <li>{{ header }},</li>
+      {% endif %}
+      {% endfor %}
+      </ul>
+      {% endif %}
+    </td>
+    <td>
+      {% assign params = item.queryParams | split: "|" %}
+      {% if params.size == 0 %}
+      N/A
+      {% else %}
+      <ul style="list-style-type:none;margin:0;padding:0">
+      {% for param in params %}
+      {% if forloop.last %}
+      <li>{{ param }}</li>
+      {% else %}
+      <li>{{ param }},</li>
+      {% endif %}
+      {% endfor %}
+      </ul>
+      {% endif %}
+    </td>
   </tr>
 {% endfor %}
 </table>
 
-### Limitation
-In Alluxio, we use `/` as a reserved separator. Therefore, any S3 directory with an object named `/` (eg: `s3://example-bucket//`) will conflict and behave incorrectly.
-
-### Bucket
-Bucket must be a directory directly under a mount point.   
-If it is under a non-root mount point, the bucket separator must be used as the separator in the bucket name.   
-For example, mount:point:bucket represents Alluxio directory /mount/point/bucket.  
-
-## Language support
-Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, and Ruby.
-In this documentation, we use curl REST calls and python S3 client as usage examples.
+### Limitations
+- S3 API clients must construct their HTTP requests by specifying the bucket name as the first path of the URI
+  (i.e: `http://s3.amazonaws.com/{bucket}/{object}`) and not as a subdomain of the host server
+  (i.e: `http://{bucket}.s3.amazonaws.com/{object}`).
+- **Only top-level Alluxio directories are treated as buckets by the S3 API**.
+  - Hence the root directory of the Alluxio filesystem is not treated as an S3 bucket.
+    Any root-level objects (eg: `alluxio://file`) will be inaccessible through the Alluxio S3 API.
+  - To treat sub-directories as a bucket, the separator `:` must be used in the bucket name (eg: `s3://sub:directory:bucket/file`).
+    - **Note that this is purely a convenience feature and hence is not returned by API Actions such as ListBuckets.**
+- Alluxio uses `/` as a reserved separator. Therefore, any S3 object named `/` (eg: `s3://example-bucket//`) will be inaccessible.
+- By default, the user that is used to perform any operations is the user that was used to
+  launch the proxy process. A different user can be specified through the `Credential` field of the
+  [AWS Authorization Header](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 
 ## Example Usage
 
 ### REST API
+
 For example, you can run the following RESTful API calls to an Alluxio cluster running on localhost.
 The Alluxio proxy is listening at port 39999 by default.
 
 #### Authorization
 
-By default, the user that is used to do any FileSystem operations is the user that was used to
-launch the proxy process. This can be changed by providing the Authorization Header. The header
-format is [defined by the AWS S3 Rest API reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
+At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
+Therefore the 'Authorization' header is used purely to specify the intended user to perform a request.
 
 ```console
-$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/20211101/us-east-1/s3/aws4_request SignedHeaders=host;range;x-amz-date Signature=<sig>" \
-    -X PUT http://localhost:39999/api/v1/s3/testbucket0
+$ bin/alluxio fs ls /
+drwxr-xr-x  testuser                                    0       PERSISTED 03-01-2021 16:02:26:547  DIR /testbucket
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/... SignedHeaders=... Signature=..." \
+    -X PUT http://localhost:39999/api/v1/s3/testbucket
+
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:02:26 GMT
 Content-Length: 0
 Server: Jetty(9.4.31.v20200723)
 
-$ bin/alluxio fs ls /
-drwxr-xr-x  testuser                                    0       PERSISTED 03-01-2021 16:02:26:547  DIR /testbucket0
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+    -X PUT http://localhost:39999/api/v1/s3/testbucket
 
+HTTP/1.1 200 OK
+Date: Tue, 02 Mar 2021 00:02:26 GMT
+Content-Length: 0
+Server: Jetty(9.4.31.v20200723)
+
+<ListBucketResult><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 #### Create a bucket
@@ -96,14 +148,14 @@ Server: Jetty(9.2.z-SNAPSHOT)
 Authenticating as a user is necessary to have buckets returned by this operation.
 
 ```console
-$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/" -X GET http://localhost:39999/api/v1/s3
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." -X GET http://localhost:39999/api/v1/s3
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:06:43 GMT
 Content-Type: application/xml
 Content-Length: 109
 Server: Jetty(9.4.31.v20200723)
 
-<ListAllMyBucketsResult><Buckets><Bucket><Name>testbucket0</Name></Bucket></Buckets></ListAllMyBucketsResult>%
+<ListAllMyBucketsResult><Buckets><Bucket><Name>testbucket</Name></Bucket></Buckets></ListAllMyBucketsResult>
 ```
 
 #### Get the bucket (listing objects)
