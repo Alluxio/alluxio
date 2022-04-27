@@ -111,12 +111,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return null;
-  }
-
-  @Override
   public boolean hasBlockMeta(long blockId) {
     return false;
   }

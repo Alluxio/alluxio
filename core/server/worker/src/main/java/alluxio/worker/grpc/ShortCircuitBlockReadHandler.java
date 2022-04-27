@@ -92,7 +92,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
               ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
         }
         OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
-            .setPath(mWorker.getBlockMeta(mSessionId, mRequest.getBlockId(), mLockId).getPath())
+            .setPath(mWorker.getVolatileBlockMeta(mRequest.getBlockId()).getPath())
             .build();
         return response;
       }

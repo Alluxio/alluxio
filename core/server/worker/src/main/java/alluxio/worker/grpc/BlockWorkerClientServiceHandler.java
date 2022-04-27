@@ -13,7 +13,6 @@ package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.AsyncCacheRequest;
@@ -73,10 +72,9 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    * Creates a new implementation of gRPC BlockWorker interface.
    *
    * @param workerProcess the worker process
-   * @param fsContext context used to read blocks
    * @param domainSocketEnabled is using domain sockets
    */
-  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess, FileSystemContext fsContext,
+  public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
       boolean domainSocketEnabled) {
     mWorkerProcess = workerProcess;
     mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);

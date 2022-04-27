@@ -309,7 +309,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
+      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
       BlockStoreLocation loc = meta.getBlockLocation();
       String mediumType = loc.mediumType();
       Long length = meta.getBlockSize();
@@ -403,12 +403,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
-  }
-
-  @Override
   public boolean hasBlockMeta(long blockId) {
     return mLocalBlockStore.hasBlockMeta(blockId);
   }
@@ -430,7 +424,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         WORKER_STORAGE_TIER_ASSOC.getAlias(tier));
     long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
     try {
-      BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
+      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
       if (meta.getBlockLocation().belongsTo(dst)) {
         return;
       }
@@ -446,14 +440,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType);
-    long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
-    try {
-      BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
-      if (meta.getBlockLocation().belongsTo(dst)) {
-        return;
-      }
-    } finally {
-      mLocalBlockStore.unlockBlock(lockId);
+    BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
+    if (meta.getBlockLocation().belongsTo(dst)) {
+      return;
     }
     // Execute the block move if necessary
     mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
