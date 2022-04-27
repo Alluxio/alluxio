@@ -136,7 +136,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
-    assertNotNull(LocalCacheManager.create(mConf));
+    assertNotNull(LocalCacheManager.create(mConf, mMetaStore));
   }
 
   @Test
@@ -144,7 +144,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
-    assertNotNull(LocalCacheManager.create(mConf));
+    assertNotNull(LocalCacheManager.create(mConf, mMetaStore));
   }
 
   @Test
@@ -154,7 +154,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, root.getAbsolutePath());
     try {
       root.setWritable(false);
-      LocalCacheManager.create(mConf);
+      LocalCacheManager.create(mConf, mMetaStore);
       fail();
     } catch (Exception e) {
       // expected
@@ -170,7 +170,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, root.getAbsolutePath());
     try {
       root.setWritable(false);
-      mCacheManager = LocalCacheManager.create(mConf);
+      mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
       CommonUtils.waitFor("async restore completed",
           () -> mCacheManager.state() == CacheManager.State.NOT_IN_USE,
           WaitForOptions.defaults().setTimeoutMs(10000));

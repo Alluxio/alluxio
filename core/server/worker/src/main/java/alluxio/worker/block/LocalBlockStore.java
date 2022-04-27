@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -25,6 +26,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedLocalBlockStore;
 
 import java.io.Closeable;
@@ -46,8 +48,10 @@ public interface LocalBlockStore
   static LocalBlockStore create(UfsManager ufsManager) {
     if(ServerConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
       try {
-        CacheManager cacheManager = CacheManager.Factory.get(ServerConfiguration.global());
-        return new PagedLocalBlockStore(cacheManager, ufsManager, ServerConfiguration.global());
+        InstancedConfiguration conf = ServerConfiguration.global();
+        PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
+        CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+        return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
       } catch (IOException e) {
         throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
       }

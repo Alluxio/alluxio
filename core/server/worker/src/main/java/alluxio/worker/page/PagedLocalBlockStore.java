@@ -13,7 +13,6 @@ package alluxio.worker.page;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -32,30 +31,34 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 
 public class PagedLocalBlockStore implements LocalBlockStore {
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
+  private PagedBlockMetaStore mPagedBlockMetaStore;
   private AlluxioConfiguration mConf;
-  /** The cache for all ufs instream. */
   private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
 
   public PagedLocalBlockStore(CacheManager cacheManager, UfsManager ufsManager,
+                              PagedBlockMetaStore pagedBlockMetaStore,
                               AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
+    mPagedBlockMetaStore = pagedBlockMetaStore;
     mConf = conf;
   }
 
   @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    return 0;
+  public OptionalLong pinBlock(long sessionId, long blockId) {
+    return null;
   }
 
   @Override
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+  public void unpinBlock(long id) {
 
   }
 
@@ -66,13 +69,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
-    return null;
-  }
-
-  @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
+  public Optional<BlockMeta> getVolatileBlockMeta(long blockId)  {
     return null;
   }
 
@@ -116,9 +113,9 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public BlockReader getBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
-    throw new UnsupportedOperationException();
+  public BlockReader createBlockReader(long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException {
+    return null;
   }
 
   @Override
@@ -128,34 +125,20 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-
-  }
-
-  @Override
-  public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-                        AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-
-  }
-
-  @Override
-  public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-
+      throws InvalidWorkerStateException, IOException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-
+    throw new UnsupportedOperationException();
   }
 
   @Override
