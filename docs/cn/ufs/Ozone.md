@@ -30,7 +30,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 编辑`conf/alluxio-site.properties`文件把底层存储地址设置为Ozone桶和 
-想要挂载到Alluxio的Ozone目录。例如，如果要将整个存储桶挂载到Alluxio
+想要挂载到Alluxio的Ozone目录。
+Ozone 支持`o3fs`和`ofs`两种不同的 schema
+### o3fs
+例如，如果要将整个存储桶挂载到Alluxio
 底层存储的地址可以是`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/`
 ，或者是`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data`如果仅将`<OZONE_VOLUME>`的 `<OZONE_BUCKET>` ozone桶内的`/alluxio/data`目录映射到Alluxio。
 
@@ -38,6 +41,13 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ``` 
 
+### ofs
+如果要将整个存储桶挂载到Alluxio底层存储的地址可以是`ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/`
+如果仅将`<OZONE_VOLUME>`的 `<OZONE_BUCKET>` ozone桶内的`/alluxio/data`目录映射到Alluxio, 底层存储的地址可以是`ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/alluxio/data`
+
+```
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+``` 
 ## 示例:使用Ozone本地运行Alluxio
 
 启动Alluxio服务器:
