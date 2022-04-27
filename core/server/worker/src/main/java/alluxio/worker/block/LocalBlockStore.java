@@ -25,13 +25,13 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-public interface BlockStore extends SessionCleanable, Closeable {
+public interface LocalBlockStore
+    extends SessionCleanable, Closeable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
@@ -85,31 +85,12 @@ public interface BlockStore extends SessionCleanable, Closeable {
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Gets the metadata of a specific block from local storage.
-   * <p>
-   * This method requires the lock id returned by a previously acquired
-   * {@link #lockBlock(long, long)}.
-   *
-   * @param sessionId the id of the session to get this file
-   * @param blockId the id of the block
-   * @param lockId the id of the lock
-   * @return metadata of the block
-   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
-   *         lockId can not be found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
-   */
-  BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException;
-
-  /**
    * Gets the temp metadata of a specific block from local storage.
    *
    * @param blockId the id of the block
    * @return metadata of the block if the temp block exists
    * @throws BlockDoesNotExistException if the block id cannot be found
    */
-  @Nullable
   TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**

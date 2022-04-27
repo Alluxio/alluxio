@@ -82,7 +82,7 @@ public final class DefaultStorageDirTest {
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, Constants.MEDIUM_MEM,
         testDirPaths, testDirCapacity, testDirMediumType, null);
 
-    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     mDir = DefaultStorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         TEST_REVERSED_BYTES, mTestDirPath, Constants.MEDIUM_MEM);
     mBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);

@@ -73,7 +73,7 @@ public class DefaultStorageTierTest {
 
     mTestBlockDirPath1 = PathUtils.concatPath(mTestDirPath1,  TEST_WORKER_DATA_DIR);
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
-    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
@@ -149,7 +149,7 @@ public class DefaultStorageTierTest {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
     ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
-    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
@@ -163,7 +163,7 @@ public class DefaultStorageTierTest {
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
             "2000");
-    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());

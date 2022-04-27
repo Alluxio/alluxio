@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -57,15 +57,13 @@ public final class UnderFileSystemBlockReader extends BlockReader {
 
   private final Counter mUfsBytesRead;
   private final Meter mUfsBytesReadThroughput;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /** The initial size of the block allocated in Alluxio storage when the block is cached. */
   private final long mInitialBlockSize;
   /** The block metadata for the UFS block. */
   private final UnderFileSystemBlockMeta mBlockMeta;
   /** The Local block store. It is used to interact with Alluxio. */
-  private final BlockStore mLocalBlockStore;
+  private final LocalBlockStore mLocalBlockStore;
   /** The cache for all ufs instream. */
   private final UfsInputStreamCache mUfsInstreamCache;
   /** The ufs client resource. */
@@ -102,7 +100,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      boolean positionShort, BlockStore localBlockStore, UfsManager.UfsClient ufsClient,
+      boolean positionShort, LocalBlockStore localBlockStore, UfsManager.UfsClient ufsClient,
       UfsInputStreamCache ufsInStreamCache, Counter ufsBytesRead, Meter ufsBytesReadThroughput)
       throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
@@ -124,7 +122,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param ufsBytesReadThroughput meter metric to track bytes read throughput
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
-      BlockStore localBlockStore, UfsManager.UfsClient ufsClient,
+      LocalBlockStore localBlockStore, UfsManager.UfsClient ufsClient,
       UfsInputStreamCache ufsInStreamCache, Counter ufsBytesRead, Meter ufsBytesReadThroughput) {
     mInitialBlockSize = blockMeta.getBlockSize();
     mBlockMeta = blockMeta;
@@ -358,7 +356,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
-        BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
+        BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(
+            WORKER_STORAGE_TIER_ASSOC.getAlias(0));
         mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
             AllocateOptions.forCreate(mInitialBlockSize, loc));
         mBlockWriter = mLocalBlockStore.getBlockWriter(

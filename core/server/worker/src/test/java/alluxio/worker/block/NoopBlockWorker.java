@@ -22,7 +22,6 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.wire.BlockReadRequest;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -112,12 +111,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return null;
-  }
-
-  @Override
   public boolean hasBlockMeta(long blockId) {
     return false;
   }
@@ -144,7 +137,7 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     return null;
   }
 
@@ -186,8 +179,9 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader createBlockReader(BlockReadRequest request)
-      throws BlockDoesNotExistException, IOException {
+  public BlockReader createBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws IOException {
     return null;
   }
 

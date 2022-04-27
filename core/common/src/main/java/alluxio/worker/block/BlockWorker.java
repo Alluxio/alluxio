@@ -20,7 +20,6 @@ import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.wire.BlockReadRequest;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.worker.SessionCleanable;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Nullable;
 
 /**
  * A block worker in the Alluxio system.
@@ -121,7 +119,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return metadata of the block if the temp block exists
    * @throws BlockDoesNotExistException if the block cannot be found
    */
-  @Nullable
   TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
@@ -172,24 +169,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
    */
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
-
-  /**
-   * Gets the metadata of a specific block from local storage.
-   * <p>
-   * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
-   * previously acquired {@link #lockBlock(long, long)}.
-   *
-   * @param sessionId the id of the session to get this file
-   * @param blockId the id of the block
-   * @param lockId the id of the lock
-   * @return metadata of the block
-   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
-   *         lockId can not be found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
-   */
-  BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException;
 
   /**
    * Checks if the storage has a given block.
@@ -252,12 +231,17 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Creates the block reader to read from Alluxio block or UFS block.
    * Owner of this block reader must close it or lock will leak.
    *
-   * @param request the block read request
+   * @param sessionId the client session ID
+   * @param blockId the ID of the UFS block to read
+   * @param offset the offset within the block
+   * @param positionShort whether the operation is using positioned read to a small buffer size
+   * @param options the options
    * @return a block reader to read data from
    * @throws BlockDoesNotExistException if the requested block does not exist in this worker
    * @throws IOException if it fails to get block reader
    */
-  BlockReader createBlockReader(BlockReadRequest request)
+  BlockReader createBlockReader(long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException;
 
   /**
@@ -270,11 +254,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param positionShort whether the operation is using positioned read to a small buffer size
    * @param options the options
    * @return the block reader instance
-   * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
+   * @throws IOException if it fails to get block reader
    */
   BlockReader createUfsBlockReader(long sessionId, long blockId, long offset, boolean positionShort,
-      Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException;
+      Protocol.OpenUfsBlockOptions options) throws IOException;
 
   /**
    * Frees a block from Alluxio managed space.
@@ -314,7 +297,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param request the async cache request
    *
-   * @deprecated This method will be deprecated as of v3.0, use {@link cache}
+   * @deprecated This method will be deprecated as of v3.0, use {@link #cache}
    */
   @Deprecated
   void asyncCache(AsyncCacheRequest request);

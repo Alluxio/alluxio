@@ -32,11 +32,10 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
-import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -106,33 +105,6 @@ public class DefaultBlockWorkerTest {
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
         mSessions, mBlockStore, mUfsManager);
-  }
-
-  @Test
-  public void openUnderFileSystemBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
-
-    long sessionId = 1;
-    for (; sessionId < 11; sessionId++) {
-      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-    }
-    assertFalse(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-  }
-
-  @Test
-  public void closeUnderFileSystemBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
-
-    long sessionId = 1;
-    for (; sessionId < 11; sessionId++) {
-      assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
-      mBlockWorker.closeUfsBlock(sessionId, blockId);
-    }
-    assertTrue(mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions));
   }
 
   @Test
@@ -273,23 +245,10 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getBlockMetaNotFound() throws Exception {
-    long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
-    long lockId = mRandom.nextLong();
     assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getBlockMeta(sessionId, blockId, lockId)
+        () -> mBlockWorker.getVolatileBlockMeta(blockId)
     );
-  }
-
-  @Test
-  public void getBlockMeta() throws Exception {
-    long sessionId = mRandom.nextLong();
-    long blockId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertEquals(blockId, mBlockWorker.getBlockMeta(sessionId, blockId, lockId).getBlockId());
   }
 
   @Test
@@ -381,10 +340,8 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
     long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertNotNull(mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
+    assertNotNull(mBlockWorker.getVolatileBlockMeta(blockId));
     mBlockWorker.unlockBlock(lockId);
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getBlockMeta(sessionId, blockId, lockId));
   }
 
   @Test
@@ -410,9 +367,8 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.commitBlock(sessionId, blockId, true);
-    BlockReadRequest request = new BlockReadRequest(
-        ReadRequest.newBuilder().setBlockId(blockId).setOffset(0).setLength(10).build());
-    BlockReader reader = mBlockWorker.createBlockReader(request);
+    BlockReader reader = mBlockWorker.createBlockReader(IdUtils.createSessionId(), blockId, 0,
+        false, Protocol.OpenUfsBlockOptions.newBuilder().build());
     // reader will hold the lock
     assertThrows(DeadlineExceededException.class,
         () -> mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10)
