@@ -315,14 +315,29 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
       throws IOException, AlluxioException {
+    checkUri(alluxioPath);
+    rpc(client -> {
+      MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
+          mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
+      // TODO(calvin): Make this fail on the master side
+      client.mount(alluxioPath, ufsPath, mergedOptions);
+      LOG.debug("Mount {} to {}", ufsPath, alluxioPath.getPath());
+      return null;
+    });
+  }
+
+  @Override
+  public List<String> mountWithDetail(AlluxioURI alluxioPath,
+      AlluxioURI ufsPath, final MountPOptions options) throws IOException, AlluxioException {
     checkUri(alluxioPath);
     return rpc(client -> {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       // TODO(calvin): Make this fail on the master side
-      List<String> mountDetailInfo = client.mount(alluxioPath, ufsPath, mergedOptions);
+      List<String> mountDetailInfo =
+          client.mount(alluxioPath, ufsPath, mergedOptions).getMountDetailInfoList();
       LOG.debug("Mount {} to {}", ufsPath, alluxioPath.getPath());
       return mountDetailInfo;
     });

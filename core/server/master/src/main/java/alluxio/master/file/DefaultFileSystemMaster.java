@@ -135,6 +135,7 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.recorder.Recorder;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
@@ -3067,6 +3068,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
+    Recorder recorder = context.getRecorder();
+    recorder.recordIfEnable("alluxio fs mount {} {} option {}", alluxioPath, ufsPath, context);
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
             createAuditContext("mount", alluxioPath, null, null)) {
@@ -3120,6 +3123,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
     long mountId = IdUtils.createMountId();
+    Recorder recorder = context.getRecorder();
+    recorder.recordIfEnable("createMountId {}", mountId);
     mountInternal(rpcContext, inodePath, ufsPath, mountId, context);
     boolean loadMetadataSucceeded = false;
     try {
@@ -3131,7 +3136,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           mMountTable,
           this);
       loadMetadataSucceeded = true;
+      recorder.recordIfEnable("Create mount directory {} successfully",
+          inodePath.getUri().getPath());
     } finally {
+      recorder.recordIfEnable("Create mount directory {} failed", inodePath.getUri().getPath());
       if (!loadMetadataSucceeded) {
         mMountTable.delete(rpcContext, inodePath.getUri(), true);
       }
@@ -3162,6 +3170,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             .setDetail(context.getOptions().getDetail())
             .setRecorder(context.getRecorder())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
+    Recorder recorder = context.getRecorder();
     try {
       prepareForMount(ufsPath, mountId, context);
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
@@ -3179,6 +3188,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // mount.
       mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, context.getOptions().build());
     } catch (Exception e) {
+      recorder.recordIfEnable("Mount failed, {}", e.getMessage());
       mUfsManager.removeMount(mountId);
       throw e;
     }

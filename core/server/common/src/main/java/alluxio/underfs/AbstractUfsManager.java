@@ -153,9 +153,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       }
       mCloser.register(fs);
       try {
-        recorder.recordIfEnable("connect to UFS {}", ufsUri);
         connectUfs(fs);
-        recorder.recordIfEnable("connect to UFS {} successfully", ufsUri);
       } catch (IOException e) {
         String message = String.format(
             "Failed to perform initial connect to UFS %s: %s", ufsUri, e);

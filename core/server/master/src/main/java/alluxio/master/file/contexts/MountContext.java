@@ -22,7 +22,8 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link MountPOptions}.
  */
 public class MountContext extends OperationContext<MountPOptions.Builder, MountContext> {
-  private Recorder mRecorder;
+  // A Recorder used to record the execution process
+  private final Recorder mRecorder;
 
   // Used to record mount execution process
 
@@ -65,16 +66,8 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
   }
 
   /**
-   * Record a message.
-   * @param message options builder
-   */
-  public void record(String message) {
-    mRecorder.recordIfEnable(message);
-  }
-
-  /**
    * get a Recorder.
-   * @return  Recorder
+   * @return Recorder
    */
   public Recorder getRecorder() {
     return mRecorder;

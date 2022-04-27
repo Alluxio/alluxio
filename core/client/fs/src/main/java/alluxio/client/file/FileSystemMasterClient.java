@@ -27,6 +27,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
@@ -196,8 +197,9 @@ public interface FileSystemMasterClient extends Client {
    * @param alluxioPath the Alluxio path
    * @param ufsPath the UFS path
    * @param options mount options
+   * @return a MountPResponse {@link MountPResponse}
    */
-  List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+  MountPResponse mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException;
 
   /**

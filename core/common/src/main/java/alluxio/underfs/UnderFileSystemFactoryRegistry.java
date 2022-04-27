@@ -15,12 +15,12 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
+import alluxio.recorder.Recorder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -107,6 +107,7 @@ public final class UnderFileSystemFactoryRegistry {
    */
   public static List<UnderFileSystemFactory> findAll(String path,
       UnderFileSystemConfiguration ufsConf) {
+    Recorder recorder = ufsConf.getRecorder();
     List<UnderFileSystemFactory> eligibleFactories =
         sRegistryInstance.findAllWithRecorder(path, ufsConf, ufsConf.getRecorder());
     if (eligibleFactories.isEmpty() && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
@@ -117,6 +118,7 @@ public final class UnderFileSystemFactoryRegistry {
             "Versions [%s] are supported for path %s but you have configured version: %s",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
+        recorder.recordIfEnable(message);
         LOG.warn(message);
       }
       ufsConf.set(PropertyKey.UNDERFS_VERSION, configuredVersion);

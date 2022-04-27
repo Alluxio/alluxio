@@ -117,12 +117,13 @@ public final class MountCommand extends AbstractFileSystemCommand {
     }
     if (cl.hasOption(VERBOSE_OPTION.getOpt())) {
       optionsBuilder.setDetail(true);
-    }
-    List<String> mountDetailInfos = mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());
-    if (cl.hasOption(VERBOSE_OPTION.getOpt())) {
+      List<String> mountDetailInfos =
+          mFileSystem.mountWithDetail(alluxioPath, ufsPath, optionsBuilder.build());
       for (String mountDetailInfo: mountDetailInfos) {
         System.out.println("detail:  " + mountDetailInfo);
       }
+    } else {
+      mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());
     }
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
@@ -130,7 +131,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [-v/--verbose] [--option <key=val>] [--shared]"
+    return "mount [--readonly] [--shared] [-v/--verbose] [--option <key=val>]"
         + " <alluxioPath> <ufsURI>";
   }
 

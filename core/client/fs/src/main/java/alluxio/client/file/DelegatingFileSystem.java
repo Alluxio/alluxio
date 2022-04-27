@@ -139,9 +139,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException {
-    return mDelegatedFileSystem.mount(alluxioPath, ufsPath, options);
+    mDelegatedFileSystem.mount(alluxioPath, ufsPath, options);
   }
 
   @Override

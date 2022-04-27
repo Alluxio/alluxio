@@ -303,12 +303,12 @@ public class FileSystemCache {
     }
 
     @Override
-    public List<String> mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+    public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
         throws IOException, AlluxioException {
       if (mClosed) {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }
-      return super.mount(alluxioPath, ufsPath, options);
+      super.mount(alluxioPath, ufsPath, options);
     }
 
     @Override

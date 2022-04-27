@@ -98,8 +98,8 @@ public interface UnderFileSystem extends Closeable {
 
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
-        recorder.recordIfEnable("Under File System Factory {} found for: {}",
-            factory.getClass().getSimpleName(), path);
+        recorder.recordIfEnable("Under File System Factory {} version {} found for: {}",
+            factory.getClass().getSimpleName(), factory.getVersion(), path);
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Reflection may be invoked during UFS creation on service loading which uses context

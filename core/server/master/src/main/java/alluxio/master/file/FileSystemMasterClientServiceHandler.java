@@ -17,7 +17,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnknownException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -97,7 +96,6 @@ import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -283,6 +281,7 @@ public final class FileSystemMasterClientServiceHandler
             new AlluxioURI(request.getUfsPath()), mountContext);
       } catch (Exception e) {
         if (request.getOptions().getDetail()) {
+          // if throw Exception, returns the record of mount execution process by exception message
           throw new AlluxioException(String.join("\n", mountContext.getRecorder().getRecord()), e);
         } else {
           throw e;

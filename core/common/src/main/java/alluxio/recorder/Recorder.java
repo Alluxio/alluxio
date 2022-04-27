@@ -15,20 +15,30 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * A tool for recording information, which can be used to record the process of execution.
+ */
+@NotThreadSafe
 public class Recorder {
-  private final List<String> mRecorder;
-  private boolean mEnableRecorder;
+  private final List<String> mRecord;
+  private boolean mEnableRecord;
 
-  private Recorder(List<String> recorder, boolean enable) {
-    mRecorder = recorder;
-    mEnableRecorder = enable;
+  private Recorder(List<String> record, boolean enable) {
+    mRecord = record;
+    mEnableRecord = enable;
   }
 
   private Recorder(List<String> recorder) {
     this(recorder, false);
   }
 
+  /**
+   * Create a Recorder Object.
+   * By default, mEnableRecorder is false needs to be enabled by {@link Recorder#setEnable()}.
+   * @return A {@code Recorder} Object
+   */
   public static Recorder create() {
     return new Recorder(new LinkedList<>());
   }
@@ -38,11 +48,14 @@ public class Recorder {
    * @param message options builder
    */
   private void record(String message) {
-    mRecorder.add(message);
+    mRecord.add(message);
   }
 
+  /**
+   * Setting enable Record.
+   */
   public void setEnable() {
-    mEnableRecorder = true;
+    mEnableRecord = true;
   }
 
   /**
@@ -50,7 +63,7 @@ public class Recorder {
    * @param message options builder
    */
   public void recordIfEnable(String message) {
-    if (mEnableRecorder) {
+    if (mEnableRecord) {
       record(message);
     }
   }
@@ -61,12 +74,16 @@ public class Recorder {
    * @param arguments options builder
    */
   public void recordIfEnable(String format, Object... arguments) {
-    if (mEnableRecorder) {
+    if (mEnableRecord) {
       record(MessageFormatter.arrayFormat(format, arguments).getMessage());
     }
   }
 
+  /**
+   * Get a record.
+   * @return the record
+   */
   public List<String> getRecord() {
-    return mRecorder;
+    return mRecord;
   }
 }
