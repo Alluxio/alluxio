@@ -52,11 +52,11 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 ``` 
 
 `<OM_SERVICE_IDS>` can be found in `ozone-site.xml`
-Possible `ozone-site.xml` file, as known from the file, `<OM_SERVICE_IDS>` is `tdw`
+Possible `ozone-site.xml` file, as known from the file, `<OM_SERVICE_IDS>` is `omservice1`
 ```xml
 <property>
     <name>ozone.om.service.ids</name>
-    <value>tdw</value>
+    <value>omservice1</value>
 </property>
 ```
 

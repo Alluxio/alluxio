@@ -51,11 +51,11 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 ``` 
 
 `<OM_SERVICE_IDS>` 可以在`ozone-site.xml`中找到
-可能的 `ozone-site.xml` 文件, 从文件中可以知道, `<OM_SERVICE_IDS>` 为 `tdw`
+可能的 `ozone-site.xml` 文件, 从文件中可以知道, `<OM_SERVICE_IDS>` 为 `omservice1`
 ```xml
 <property>
     <name>ozone.om.service.ids</name>
-    <value>tdw</value>
+    <value>omservice1</value>
 </property>
 ```
 
