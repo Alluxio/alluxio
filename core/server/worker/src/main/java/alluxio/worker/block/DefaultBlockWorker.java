@@ -11,13 +11,13 @@
 
 package alluxio.worker.block;
 
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
 import alluxio.conf.ConfigurationValueOptions;
@@ -107,8 +107,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
-
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /** Block store delta reporter for master heartbeat. */
   private final BlockHeartbeatReporter mHeartbeatReporter;
@@ -345,8 +343,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
+    String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(tier);
     if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
-      loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
     } else {
       loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium());
     }
@@ -358,7 +357,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       LOG.error(
           "Failed to create block. SessionId: {}, BlockId: {}, "
               + "TierAlias:{}, Medium:{}, InitialBytes:{}, Error:{}",
-          sessionId, blockId, mStorageTierAssoc.getAlias(tier),
+          sessionId, blockId, tierAlias,
           createBlockOptions.getMedium(), createBlockOptions.getInitialBytes(), e);
 
       InetSocketAddress address =
@@ -427,7 +426,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       WorkerOutOfSpaceException, IOException {
     // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
     // Because the move operation is expensive, we first check if the operation is necessary
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
+    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(
+        WORKER_STORAGE_TIER_ASSOC.getAlias(tier));
     long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
@@ -705,9 +705,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
                       .getUsedBytes());
 
-      StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
-      for (int i = 0; i < assoc.size(); i++) {
-        String tier = assoc.getAlias(i);
+      for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
+        String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
