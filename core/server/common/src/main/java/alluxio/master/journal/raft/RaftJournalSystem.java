@@ -40,6 +40,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.io.FileUtils;
@@ -1134,12 +1135,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public String toString() {
-    return "RaftJournalSystem{"
-        + "Journal Path=" + mConf.getPath()
-        + ", State=" + mPrimarySelector.getState()
-        + ", ClientId=" + mRawClientId
-        + ", RaftGroup=" + mRaftGroup
-        + '}';
+    return MoreObjects.toStringHelper(this)
+        .add("Journal Path", mConf.getPath())
+        .add("State", mPrimarySelector.getState())
+        .add("ClientId", mRawClientId)
+        .add("RaftGroup", mRaftGroup)
+        .toString();
   }
 
   /**
