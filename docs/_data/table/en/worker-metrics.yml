@@ -60,8 +60,10 @@ Worker.BytesReadDomainThroughput:
   'Bytes read throughput from Alluxio storage via domain socket by this worker'
 Worker.BytesReadPerUfs:
   'Total number of bytes read from a specific Alluxio UFS by this worker'
-Worker.BytesReadRemote:
-  'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage via external RPC channel. This does not include short-circuit local reads and domain socket reads.'
+Worker.BytesReadRemoteUfs:
+  'Total number of bytes read from underlying UFS if data cannot be found in the Alluxio storage via external RPC channel. This does not include short-circuit local reads and domain socket reads.'
+Worker.BytesReadRemoteAlluxio:
+  'Total number of bytes read from Alluxio storage managed by this worker via external RPC channel. This does not include short-circuit local reads and domain socket reads.'
 Worker.BytesReadRemoteThroughput:
   'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage via external RPC channel. This does not include short-circuit local reads and domain socket reads.'
 Worker.BytesReadUfsThroughput:

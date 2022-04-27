@@ -30,7 +30,8 @@ Worker.BytesReadDirectThroughput,METER
 Worker.BytesReadDomain,COUNTER
 Worker.BytesReadDomainThroughput,METER
 Worker.BytesReadPerUfs,COUNTER
-Worker.BytesReadRemote,COUNTER
+Worker.BytesReadRemoteUfs,COUNTER
+Worker.BytesReadRemoteAlluxio,COUNTER
 Worker.BytesReadRemoteThroughput,METER
 Worker.BytesReadUfsThroughput,METER
 Worker.BytesWrittenDirect,COUNTER
