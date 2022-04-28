@@ -977,6 +977,168 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .build();
 
+  // Rocks Block metrics
+  public static final MetricKey MASTER_ROCKS_BLOCK_ACTUAL_DELAYED_WRITE_RATE =
+      new Builder("Master.RocksBlockActualDelayedWriteRate")
+          .setDescription("RocksDB block table. Actual delayed write rate.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS =
+      new Builder("Master.RocksBlockBackgroundErrors")
+          .setDescription("RocksDB block table. Background errors.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BASE_LEVEL =
+      new Builder("Master.RocksBlockBaseLevel")
+          .setDescription("RocksDB block table. Base level.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_CAPACITY =
+      new Builder("Master.RocksBlockBlockCacheCapacity")
+          .setDescription("RocksDB block table. Block cache capacity.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE =
+      new Builder("Master.RocksBlockBlockCachePinnedUsage")
+          .setDescription("RocksDB block table. Block cache pinned usage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_USAGE =
+      new Builder("Master.RocksBlockBlockCacheUsage")
+          .setDescription("RocksDB block table. Block cache usage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_COMPACTION_PENDING =
+      new Builder("Master.RocksBlockCompactionPending")
+          .setDescription("RocksDB block table. Compaction pending.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CUR_SIZE_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockCurSizeActiveMemTable")
+          .setDescription("RocksDB block table. Cur size active mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksBlockCurSizeAllMemTables")
+          .setDescription("RocksDB block table. Cur size all mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CURRENT_SUPER_VERSION_NUMBER =
+      new Builder("Master.RocksBlockCurrentSuperVersionNumber")
+          .setDescription("RocksDB block table. Current super version number.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_LIVE_DATA_SIZE =
+      new Builder("Master.RocksBlockEstimateLiveDataSize")
+          .setDescription("RocksDB block table. Estimate live data size.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_NUM_KEYS =
+      new Builder("Master.RocksBlockEstimateNumKeys")
+          .setDescription("RocksDB block table. Estimate num keys.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_PENDING_COMPACTION_BYTES =
+      new Builder("Master.RocksBlockEstimatePendingCompactionBytes")
+          .setDescription("RocksDB block table. Estimate pending compaction bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM =
+      new Builder("Master.RocksBlockEstimateTableReadersMem")
+          .setDescription("RocksDB block table. Estimate table readers mem.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_IS_FILE_DELETIONS_ENABLED =
+      new Builder("Master.RocksBlockIsFileDeletionsEnabled")
+          .setDescription("RocksDB block table. Is file deletions enabled.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_IS_WRITE_STOPPED =
+      new Builder("Master.RocksBlockIsWriteStopped")
+          .setDescription("RocksDB block table. Is write stopped.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_LIVE_SST_FILES_SIZE =
+      new Builder("Master.RocksBlockLiveSstFilesSize")
+          .setDescription("RocksDB block table. Live sst files size.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_MEM_TABLE_FLUSH_PENDING =
+      new Builder("Master.RocksBlockMemTableFlushPending")
+          .setDescription("RocksDB block table. Mem table flush pending.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_MIN_LOG_NUMBER_TO_KEEP =
+      new Builder("Master.RocksBlockMinLogNumberToKeep")
+          .setDescription("RocksDB block table. Min log number to keep.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_MIN_OBSOLETE_SST_NUMBER_TO_KEEP =
+      new Builder("Master.RocksBlockMinObsoleteSstNumberToKeep")
+          .setDescription("RocksDB block table. Min obsolete sst number to keep.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumDeletesActiveMemTable")
+          .setDescription("RocksDB block table. Num deletes active mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_IMM_MEM_TABLES =
+      new Builder("Master.RocksBlockNumDeletesImmMemTables")
+          .setDescription("RocksDB block table. Num deletes imm mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_ENTRIES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumEntriesActiveMemTable")
+          .setDescription("RocksDB block table. Num entries active mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_ENTRIES_IMM_MEM_TABLES =
+      new Builder("Master.RocksBlockNumEntriesImmMemTables")
+          .setDescription("RocksDB block table. Num entries imm mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_IMMUTABLE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumImmutableMemTable")
+          .setDescription("RocksDB block table. Num immutable mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_LIVE_VERSIONS =
+      new Builder("Master.RocksBlockNumLiveVersions")
+          .setDescription("RocksDB block table. Num live versions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_RUNNING_COMPACTIONS =
+      new Builder("Master.RocksBlockNumRunningCompactions")
+          .setDescription("RocksDB block table. Num running compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_RUNNING_FLUSHES =
+      new Builder("Master.RocksBlockNumRunningFlushes")
+          .setDescription("RocksDB block table. Num running flushes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_SNAPSHOTS =
+      new Builder("Master.RocksBlockNumSnapshots")
+          .setDescription("RocksDB block table. Num snapshots.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_OLDEST_SNAPSHOT_TIME =
+      new Builder("Master.RocksBlockOldestSnapshotTime")
+          .setDescription("RocksDB block table. Oldest snapshot time.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksBlockSizeAllMemTables")
+          .setDescription("RocksDB block table. Size all mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_TOTAL_SST_FILES_SIZE =
+      new Builder("Master.RocksBlockTotalSstFilesSize")
+          .setDescription("RocksDB block table. Total sst files size.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Cluster metrics
   public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
       new Builder("Cluster.ActiveRpcReadCount")
