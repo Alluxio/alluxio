@@ -251,14 +251,10 @@ public abstract class AbstractFuseIntegrationTest {
     String testFile = "/lsTestFile";
     createFileInFuse(testFile);
 
-    // Fuse getattr() will wait for file to be completed
-    // when fuse release returns but does not finish
     String out = ShellUtils.execCommand("ls", "-sh", mMountPoint + testFile);
     assertFalse(out.isEmpty());
     assertEquals("40K", out.split("\\s+")[0]);
-
     assertTrue(mFileSystem.exists(new AlluxioURI(testFile)));
-    assertEquals(40 * Constants.KB, mFileSystem.getStatus(new AlluxioURI(testFile)).getLength());
   }
 
   @Test
