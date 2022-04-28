@@ -252,19 +252,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       } else {
         status = mFileSystem.getStatus(uri);
       }
+
       long size = status.getLength();
-      if (!status.isCompleted()) {
-        if (mCreateFileEntries.contains(PATH_INDEX, path)) {
-          // Alluxio master will not update file length until file is completed
-          // get file length from the current output stream
-          CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
-          if (ce != null) {
-            FileOutStream os = ce.getOut();
-            size = os.getBytesWritten();
-          }
-        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          // Always block waiting for file to be completed except when the file is writing
-          // We do not want to block the writing process
+      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
+      if (ce != null) {
+        FileOutStream os = ce.getOut();
+        size = os.getBytesWritten();
+      } else if (!status.isCompleted()) {
+        if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           LOG.error("File {} is not completed", path);
         } else {
           // Update the file status after waiting
@@ -573,7 +568,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       final byte[] dest = new byte[sz];
       buf.get(dest, 0, sz);
-      os.write(dest);
+      synchronized (ce) {
+        os.write(dest);
+      }
     } catch (IOException e) {
       LOG.error("IOException while writing to {}.", path, e);
       return -ErrorCodes.EIO();
@@ -620,17 +617,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int releaseInternal(String path, long fd) {
+    FileInStream is = mOpenFileEntries.get(fd);
+    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     try {
-      FileInStream is = mOpenFileEntries.remove(fd);
-      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
       if (is == null && ce == null) {
         LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
         return -ErrorCodes.EBADFD();
       }
       if (ce != null) {
-        // Remove earlier to try best effort to avoid write() - async release() - getAttr()
-        // without waiting for file completed and return 0 bytes file size error
-        mCreateFileEntries.remove(ce);
         synchronized (ce) {
           ce.close();
         }
@@ -643,6 +637,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     } catch (Throwable e) {
       LOG.error("Failed to release {}", path, e);
       return -ErrorCodes.EIO();
+    } finally {
+      if (is != null) {
+        mOpenFileEntries.remove(fd);
+      }
+      if (ce != null) {
+        mCreateFileEntries.remove(ce);
+      }
     }
     return 0;
   }
