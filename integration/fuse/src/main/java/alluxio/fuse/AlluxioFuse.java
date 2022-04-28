@@ -194,7 +194,7 @@ public final class AlluxioFuse {
         Signal.handle(new Signal("TERM"), fuseSignalHandler);
 
         try {
-          String[] fuseOptsArray = fuseOpts.toArray(new String[fuseOpts.size()]);
+          String[] fuseOptsArray = fuseOpts.toArray(new String[0]);
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
               mountConfig.getMountPoint(), fuseOptsArray);
           fuseFs.mount(blocking, mountConfig.isDebug(), fuseOptsArray);
