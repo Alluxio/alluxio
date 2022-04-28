@@ -84,6 +84,7 @@ The following table describes the support status for current [S3 API Actions](ht
 </table>
 
 ### Limitations
+
 - S3 API clients must construct their HTTP requests by specifying the bucket name as the first path of the URI
   (i.e: `http://s3.amazonaws.com/{bucket}/{object}`) and not as a subdomain of the host server
   (i.e: `http://{bucket}.s3.amazonaws.com/{object}`).
@@ -96,6 +97,26 @@ The following table describes the support status for current [S3 API Actions](ht
 - By default, the user that is used to perform any operations is the user that was used to
   launch the proxy process. A different user can be specified through the `Credential` field of the
   [AWS Authorization Header](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
+- All sub-directories in Alluxio will be returned in ListObjects(V2) as 0-byte folders. This behavior is in accordance
+  with if you used the AWS S3 console to create all parent folders for each object.
+- User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions).
+- The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
+  See the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
+
+## Property Keys
+
+<table class="table table-striped">
+<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
+{% for item in site.data.table.common-configuration %}
+  {% if item.propertyName contains "alluxio.proxy.s3" %}
+  <tr>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
+  </tr>
+  {% endif %}
+{% endfor %}
+</table>
 
 ## Example Usage
 
