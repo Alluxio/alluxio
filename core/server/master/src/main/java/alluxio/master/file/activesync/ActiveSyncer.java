@@ -108,9 +108,9 @@ public class ActiveSyncer implements HeartbeatExecutor {
         // Journal the latest processed txId
         CompletableFuture<Void> syncTask =
             CompletableFuture.allOf(tasksPerSync)
-                .thenRunAsync(() -> mFileSystemMaster
-                        .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
-                    mSyncManager.getExecutor());
+            .thenRunAsync(() -> mFileSystemMaster
+                    .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
+                mSyncManager.getExecutor());
         int attempts = 0;
         while (!mSyncTasks.offer(syncTask)) {
           if (Thread.currentThread().isInterrupted()) {
