@@ -723,17 +723,6 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to remove a block which does not exist.
-   */
-  @Test
-  public void removeNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
-
-    mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);
-  }
-
-  /**
    * Tests that check storage fails when a directory is inaccessible.
    */
   @Test

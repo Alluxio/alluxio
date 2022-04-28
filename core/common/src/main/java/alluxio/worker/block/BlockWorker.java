@@ -26,8 +26,6 @@ import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.List;
@@ -100,14 +98,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * @param blockId the id of the block
-   *
-   * @return metadata of the block if the temp block exists
-   * @throws BlockDoesNotExistException if the block cannot be found
-   */
-  TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
-
-  /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
    * {@link #createBlock}.
    *
@@ -145,16 +135,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the full block store metadata
    */
   BlockStoreMeta getStoreMetaFull();
-
-  /**
-   * Gets the metadata of a block given its blockId or throws IOException. This method does not
-   * require a lock id so the block is possible to be moved or removed after it returns.
-   *
-   * @param blockId the block id
-   * @return metadata of the block
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
-   */
-  BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
    * Checks if the storage has a given block.

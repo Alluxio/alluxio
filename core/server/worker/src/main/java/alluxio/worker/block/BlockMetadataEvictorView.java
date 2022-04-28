@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.master.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
@@ -27,8 +26,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -174,19 +173,17 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
   }
 
   /**
-   * Returns null if block is pinned or currently being locked, otherwise returns
+   * Returns Optional.empty() if block is pinned or currently being locked, otherwise returns
    * {@link BlockMetadataManager#getBlockMeta(long)}.
    *
    * @param blockId the block id
    * @return metadata of the block or null
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
-  @Nullable
-  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public Optional<BlockMeta> getBlockMeta(long blockId) {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 }

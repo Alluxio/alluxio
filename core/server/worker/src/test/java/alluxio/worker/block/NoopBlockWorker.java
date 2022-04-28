@@ -27,15 +27,12 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Nullable;
 
 /**
  * A block worker mock for testing.
@@ -72,12 +69,6 @@ public class NoopBlockWorker implements BlockWorker {
     return null;
   }
 
-  @Nullable
-  @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
-    return null;
-  }
-
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
@@ -97,11 +88,6 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public BlockStoreMeta getStoreMetaFull() {
-    return null;
-  }
-
-  @Override
-  public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
     return null;
   }
 

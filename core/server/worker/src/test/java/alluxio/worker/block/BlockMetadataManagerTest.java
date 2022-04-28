@@ -202,7 +202,7 @@ public final class BlockMetadataManagerTest {
     assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     assertTrue(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get block
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
     assertEquals(TEST_TEMP_BLOCK_ID, blockMeta.getBlockId());
     // Remove block
     mMetaManager.removeBlockMeta(blockMeta);
@@ -211,14 +211,12 @@ public final class BlockMetadataManagerTest {
   }
 
   /**
-   * Tests that an exception is thrown in the {@link BlockMetadataManager#getBlockMeta(long)} method
-   * when trying to retrieve metadata of a block which does not exist.
+   * Tests that the {@link BlockMetadataManager#getBlockMeta(long)} method returns
+   * Optional.empty() when trying to retrieve metadata of a block which does not exist.
    */
   @Test
   public void getBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
-    mMetaManager.getBlockMeta(TEST_BLOCK_ID);
+    assertFalse(mMetaManager.getBlockMeta(TEST_BLOCK_ID).isPresent());
   }
 
   /**
@@ -249,7 +247,7 @@ public final class BlockMetadataManagerTest {
 
     // commit the first temp block meta
     mMetaManager.commitTempBlockMeta(tempBlockMeta1);
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
 
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
@@ -279,7 +277,7 @@ public final class BlockMetadataManagerTest {
 
     // commit the first temp block meta
     mMetaManager.commitTempBlockMeta(tempBlockMeta1);
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
 
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 

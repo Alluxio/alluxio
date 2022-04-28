@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -19,7 +18,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
@@ -137,10 +135,8 @@ public final class BlockMetadataViewTest {
    * method when the block does not exist.
    */
   @Test
-  public void getBlockMetaNotExisting() throws BlockDoesNotExistException {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
-    mMetadataView.getBlockMeta(TEST_BLOCK_ID);
+  public void getBlockMetaNotExisting() {
+    assertFalse(mMetadataView.getBlockMeta(TEST_BLOCK_ID).isPresent());
   }
 
   /**
@@ -165,25 +161,25 @@ public final class BlockMetadataViewTest {
     // Add one block to test dir, expect block meta found
     BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     dir.addBlockMeta(blockMeta);
-    assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID).get());
     assertTrue(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
 
     // Lock this block, expect null result
     when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
     when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
-    assertNull(mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.getBlockMeta(TEST_BLOCK_ID).isPresent());
     assertFalse(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
 
     // Pin this block, expect null result
     when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
     when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
-    assertNull(mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertFalse(mMetadataView.getBlockMeta(TEST_BLOCK_ID).isPresent());
     assertFalse(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
 
     // No Pin or lock on this block, expect block meta found
     when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
     when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
-    assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID));
+    assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID).get());
     assertTrue(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
   }
 
