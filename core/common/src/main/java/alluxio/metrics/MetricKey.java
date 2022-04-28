@@ -1139,6 +1139,168 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
 
+  // Rocks Inode metrics
+  public static final MetricKey MASTER_ROCKS_INODE_ACTUAL_DELAYED_WRITE_RATE =
+      new Builder("Master.RocksInodeActualDelayedWriteRate")
+          .setDescription("RocksDB inode table. Actual delayed write rate.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BACKGROUND_ERRORS =
+      new Builder("Master.RocksInodeBackgroundErrors")
+          .setDescription("RocksDB inode table. Background errors.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BASE_LEVEL =
+      new Builder("Master.RocksInodeBaseLevel")
+          .setDescription("RocksDB inode table. Base level.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_CAPACITY =
+      new Builder("Master.RocksInodeBlockCacheCapacity")
+          .setDescription("RocksDB inode table. Block cache capacity.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_PINNED_USAGE =
+      new Builder("Master.RocksInodeBlockCachePinnedUsage")
+          .setDescription("RocksDB inode table. Block cache pinned usage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_USAGE =
+      new Builder("Master.RocksInodeBlockCacheUsage")
+          .setDescription("RocksDB inode table. Block cache usage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_COMPACTION_PENDING =
+      new Builder("Master.RocksInodeCompactionPending")
+          .setDescription("RocksDB inode table. Compaction pending.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CUR_SIZE_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeCurSizeActiveMemTable")
+          .setDescription("RocksDB inode table. Cur size active mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CUR_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksInodeCurSizeAllMemTables")
+          .setDescription("RocksDB inode table. Cur size all mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CURRENT_SUPER_VERSION_NUMBER =
+      new Builder("Master.RocksInodeCurrentSuperVersionNumber")
+          .setDescription("RocksDB inode table. Current super version number.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_LIVE_DATA_SIZE =
+      new Builder("Master.RocksInodeEstimateLiveDataSize")
+          .setDescription("RocksDB inode table. Estimate live data size.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_NUM_KEYS =
+      new Builder("Master.RocksInodeEstimateNumKeys")
+          .setDescription("RocksDB inode table. Estimate num keys.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_PENDING_COMPACTION_BYTES =
+      new Builder("Master.RocksInodeEstimatePendingCompactionBytes")
+          .setDescription("RocksDB inode table. Estimate pending compaction bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_TABLE_READERS_MEM =
+      new Builder("Master.RocksInodeEstimateTableReadersMem")
+          .setDescription("RocksDB inode table. Estimate table readers mem.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_IS_FILE_DELETIONS_ENABLED =
+      new Builder("Master.RocksInodeIsFileDeletionsEnabled")
+          .setDescription("RocksDB inode table. Is file deletions enabled.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_IS_WRITE_STOPPED =
+      new Builder("Master.RocksInodeIsWriteStopped")
+          .setDescription("RocksDB inode table. Is write stopped.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_LIVE_SST_FILES_SIZE =
+      new Builder("Master.RocksInodeLiveSstFilesSize")
+          .setDescription("RocksDB inode table. Live sst files size.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_MEM_TABLE_FLUSH_PENDING =
+      new Builder("Master.RocksInodeMemTableFlushPending")
+          .setDescription("RocksDB inode table. Mem table flush pending.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_MIN_LOG_NUMBER_TO_KEEP =
+      new Builder("Master.RocksInodeMinLogNumberToKeep")
+          .setDescription("RocksDB inode table. Min log number to keep.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_MIN_OBSOLETE_SST_NUMBER_TO_KEEP =
+      new Builder("Master.RocksInodeMinObsoleteSstNumberToKeep")
+          .setDescription("RocksDB inode table. Min obsolete sst number to keep.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumDeletesActiveMemTable")
+          .setDescription("RocksDB inode table. Num deletes active mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_IMM_MEM_TABLES =
+      new Builder("Master.RocksInodeNumDeletesImmMemTables")
+          .setDescription("RocksDB inode table. Num deletes imm mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_ENTRIES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumEntriesActiveMemTable")
+          .setDescription("RocksDB inode table. Num entries active mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_ENTRIES_IMM_MEM_TABLES =
+      new Builder("Master.RocksInodeNumEntriesImmMemTables")
+          .setDescription("RocksDB inode table. Num entries imm mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_IMMUTABLE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumImmutableMemTable")
+          .setDescription("RocksDB inode table. Num immutable mem table.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_LIVE_VERSIONS =
+      new Builder("Master.RocksInodeNumLiveVersions")
+          .setDescription("RocksDB inode table. Num live versions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_COMPACTIONS =
+      new Builder("Master.RocksInodeNumRunningCompactions")
+          .setDescription("RocksDB inode table. Num running compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_FLUSHES =
+      new Builder("Master.RocksInodeNumRunningFlushes")
+          .setDescription("RocksDB inode table. Num running flushes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_SNAPSHOTS =
+      new Builder("Master.RocksInodeNumSnapshots")
+          .setDescription("RocksDB inode table. Num snapshots.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_OLDEST_SNAPSHOT_TIME =
+      new Builder("Master.RocksInodeOldestSnapshotTime")
+          .setDescription("RocksDB inode table. Oldest snapshot time.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksInodeSizeAllMemTables")
+          .setDescription("RocksDB inode table. Size all mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_TOTAL_SST_FILES_SIZE =
+      new Builder("Master.RocksInodeTotalSstFilesSize")
+          .setDescription("RocksDB inode table. Total sst files size.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Cluster metrics
   public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
       new Builder("Cluster.ActiveRpcReadCount")
