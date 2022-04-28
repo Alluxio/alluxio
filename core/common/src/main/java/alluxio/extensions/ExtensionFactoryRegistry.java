@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -152,7 +153,9 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     for (T factory : factories) {
       String version = "unknown";
       if (factory instanceof UnderFileSystemFactory) {
-        String factoryVersion = ((UnderFileSystemFactory) factory).getVersion();
+        // getVersion maybe return null
+        String factoryVersion =
+            Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("");
         version = factoryVersion.isEmpty() ? "unknown" : factoryVersion;
       }
       recorder.recordIfEnable("Check eligible of {} version {} for {}",

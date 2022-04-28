@@ -90,6 +90,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.recorder.Recorder;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -282,7 +283,9 @@ public final class FileSystemMasterClientServiceHandler
       } catch (Exception e) {
         if (request.getOptions().getDetail()) {
           // if throw Exception, returns the record of mount execution process by exception message
-          throw new AlluxioException(String.join("\n", mountContext.getRecorder().getRecord()), e);
+          Recorder recorder = mountContext.getRecorder();
+          recorder.recordIfEnable(e.getMessage());
+          throw new AlluxioException(String.join("\n", recorder.getRecord()), e);
         } else {
           throw e;
         }
