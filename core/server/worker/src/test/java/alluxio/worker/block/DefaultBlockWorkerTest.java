@@ -11,11 +11,8 @@
 
 package alluxio.worker.block;
 
-import static alluxio.worker.block.BlockWorker.INVALID_LOCK_ID;
-import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -115,17 +112,6 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.abortBlock(sessionId, blockId);
     assertThrows(BlockDoesNotExistException.class, () -> mBlockWorker.getTempBlockMeta(blockId));
-  }
-
-  @Test
-  public void accessBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    mBlockWorker.accessBlock(sessionId, blockId);
-    verify(mBlockStore).accessBlock(sessionId, blockId);
   }
 
   @Test
@@ -263,18 +249,6 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void lockBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.lockBlock(sessionId, blockId));
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    assertNotEquals(INVALID_LOCK_ID, mBlockWorker.lockBlock(sessionId, blockId));
-  }
-
-  @Test
   public void moveBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
@@ -330,18 +304,6 @@ public class DefaultBlockWorkerTest {
     assertThrows(WorkerOutOfSpaceException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
-  }
-
-  @Test
-  public void unlockBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-    assertNotNull(mBlockWorker.getVolatileBlockMeta(blockId));
-    mBlockWorker.unlockBlock(lockId);
   }
 
   @Test

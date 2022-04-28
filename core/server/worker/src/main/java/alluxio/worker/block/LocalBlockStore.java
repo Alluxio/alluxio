@@ -23,6 +23,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.OptionalLong;
 import java.util.Set;
 
 /**
@@ -33,22 +34,21 @@ public interface LocalBlockStore
     extends SessionCleanable, Closeable {
 
   /**
-   * Locks an existing block and guards subsequent reads on this block.
+   * Pins the block indicating subsequent access.
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return the lock id (non-negative) if the lock is acquired successfully
-   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   * @return a non-negative unique identifier to conveniently unpin the block later, or empty
+   * if the block does not exist
    */
-  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  OptionalLong pinBlock(long sessionId, long blockId);
 
   /**
-   * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
+   * Unpins an accessed block based on the id (returned by {@link #pinBlock(long, long)}).
    *
-   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
-   * @throws BlockDoesNotExistException if lockId can not be found
+   * @param id the id returned by {@link #pinBlock(long, long)}
    */
-  void unlockBlock(long lockId) throws BlockDoesNotExistException;
+  void unpinBlock(long id);
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
@@ -64,7 +64,6 @@ public interface LocalBlockStore
    * @param blockId the id of the block to create
    * @param options allocation options
    * @return metadata of the temp block created
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -173,18 +172,16 @@ public interface LocalBlockStore
    * Creates a reader of an existing block to read data from this block.
    * <p>
    * This operation requires the lock id returned by a previously acquired
-   * {@link #lockBlock(long, long)}.
+   * {@link #pinBlock(long, long)}.
    *
    * @param sessionId the id of the session to get the reader
    * @param blockId the id of an existing block
-   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
+   * @param offset the offset within the block
    * @return a {@link BlockReader} instance on this block
    * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
    */
-  BlockReader getBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  BlockReader createBlockReader(long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException;
 
   /**
    * Moves an existing block to a new location.

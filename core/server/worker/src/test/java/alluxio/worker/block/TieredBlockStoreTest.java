@@ -122,21 +122,21 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mBlockIterator);
 
-    long lockId1 = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
+    long lockId1 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
-    long lockId2 = mBlockStore.lockBlock(SESSION_ID2, BLOCK_ID2);
+    long lockId2 = mBlockStore.pinBlock(SESSION_ID2, BLOCK_ID2).getAsLong();
     assertNotEquals(lockId1, lockId2);
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1, BLOCK_ID2))
             .isEmpty());
 
-    mBlockStore.unlockBlock(lockId2);
+    mBlockStore.unpinBlock(lockId2);
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
-    mBlockStore.unlockBlock(lockId1);
+    mBlockStore.unpinBlock(lockId1);
     assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
@@ -150,11 +150,11 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
         mBlockIterator);
 
-    long lockId1 = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
+    long lockId1 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
     assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
-    long lockId2 = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID2);
+    long lockId2 = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID2).getAsLong();
     assertNotEquals(lockId1, lockId2);
   }
 
@@ -162,23 +162,8 @@ public final class TieredBlockStoreTest {
    * Tests that an exception is thrown when trying to lock a block which doesn't exist.
    */
   @Test
-  public void lockNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_BLOCK_ID_FOUND.getMessage(BLOCK_ID1));
-
-    mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
-  }
-
-  /**
-   * Tests that an exception is thrown when trying to unlock a block which doesn't exist.
-   */
-  @Test
-  public void unlockNonExistingLock() throws Exception {
-    long badLockId = 1003;
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
-
-    mBlockStore.unlockBlock(badLockId);
+  public void pinNonExistingBlock() {
+    assertFalse(mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).isPresent());
   }
 
   /**
@@ -438,14 +423,14 @@ public final class TieredBlockStoreTest {
         mBlockIterator);
 
     // session1 locks a block first
-    long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
+    long lockId = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
 
     // Create file that in dir1 that won't fit.
     TieredBlockStoreTestUtils.cache(SESSION_ID2, TEMP_BLOCK_ID, mTestDir1.getCapacityBytes(),
         mBlockStore, mTestDir1.toBlockStoreLocation(), false);
 
     // unlock the original block.
-    mBlockStore.unlockBlock(lockId);
+    mBlockStore.unpinBlock(lockId);
 
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir2.getCommittedBytes());
   }
@@ -500,7 +485,7 @@ public final class TieredBlockStoreTest {
         mTestDir2, mMetaManager, mBlockIterator);
 
     // session1 locks block2 first
-    long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID2);
+    long lockId = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID2).getAsLong();
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
@@ -511,7 +496,7 @@ public final class TieredBlockStoreTest {
         AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
 
     // Expect createBlockMeta to succeed after unlocking this block.
-    mBlockStore.unlockBlock(lockId);
+    mBlockStore.unpinBlock(lockId);
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
         AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
 
@@ -566,7 +551,7 @@ public final class TieredBlockStoreTest {
         mBlockIterator);
 
     // session1 locks a block first
-    long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
+    long lockId = mBlockStore.pinBlock(SESSION_ID1, BLOCK_ID1).getAsLong();
 
     // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
@@ -576,7 +561,7 @@ public final class TieredBlockStoreTest {
         mTestDir1.toBlockStoreLocation());
 
     // Expect freeSpace to succeed after unlock this block.
-    mBlockStore.unlockBlock(lockId);
+    mBlockStore.unpinBlock(lockId);
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(), mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());

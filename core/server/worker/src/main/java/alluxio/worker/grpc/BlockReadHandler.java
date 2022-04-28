@@ -30,7 +30,7 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
@@ -97,7 +97,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   /** A serializing executor for sending responses. */
   private Executor mSerializingExecutor;
   /** The Block Worker. */
-  private final BlockWorker mWorker;
+  private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
   private final AuthenticatedUserInfo mUserInfo;
@@ -120,7 +120,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
-      BlockWorker blockWorker,
+      DefaultBlockWorker blockWorker,
       StreamObserver<ReadResponse> responseObserver,
       AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {

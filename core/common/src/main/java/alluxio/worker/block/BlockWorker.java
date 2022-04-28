@@ -38,9 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * A block worker in the Alluxio system.
  */
 public interface BlockWorker extends Worker, SessionCleanable {
-  /** Invalid lock ID. */
-  long INVALID_LOCK_ID = -1;
-
   /**
    * @return the worker id
    */
@@ -57,17 +54,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       BlockDoesNotExistException, InvalidWorkerStateException, IOException;
-
-  /**
-   * Access the block for a given session. This should be called to update the evictor when
-   * necessary.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to access
-   * @throws BlockDoesNotExistException this exception is not thrown in the tiered block store
-   *         implementation
-   */
-  void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block will not be
@@ -179,17 +165,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean hasBlockMeta(long blockId);
 
   /**
-   * Obtains a read lock on a block. If lock is not acquired successfully, return
-   * {@link #INVALID_LOCK_ID}.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to be locked
-   * @return the lock id that uniquely identifies the lock obtained or
-   *         {@link #INVALID_LOCK_ID} if it failed to lock
-   */
-  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
-
-  /**
    * Moves a block from its current location to a target location, currently only tier level moves
    * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
    * tiered storage.
@@ -279,14 +254,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Releases the lock with the specified lock id.
-   *
-   * @param lockId the id of the lock to release
-   * @throws BlockDoesNotExistException if lock id cannot be found
-   */
-  void unlockBlock(long lockId) throws BlockDoesNotExistException;
 
   /**
    * Submits the async cache request to async cache manager to execute.
