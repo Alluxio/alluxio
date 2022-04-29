@@ -43,9 +43,9 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 
 ## Ozone HA Mode
 
-To configure Alluxio's OzoneManager for Ozone in HA mode, you should configure Alluxio's server to access Ozone. Please note that once set up, your application using the Alluxio client does not require any special configuration.
+To make Alluxio mount Ozone in HA mode, you should configure Alluxio's server so that it can find the OzoneManager. Please note that once set up, your application using the Alluxio client does not require any special configuration.
 In HA mode `alluxio.master.mount.table.root.ufs` needs to specify `<OM_SERVICE_IDS>`
-
+such as:
 ```properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
