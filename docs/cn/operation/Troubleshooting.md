@@ -26,10 +26,10 @@ Master和Worker日志对于理解Alluxio Master节点和Worker节点的运行过
 您也可以加入我们的 [Slack 频道](https://slackin.alluxio.io/) 并在那里寻求帮助。
 您可以在 [此处]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}) 找到有关 Alluxio 日志的更多详细信息。
 
-当 Alluxio 运行在客户端侧无法连接的服务器上时，客户端侧的日志会很有用。 Alluxio客户端通过log4j生成日志消息，因此日志的位置由使用Alluxio的应用程序的 log4j 配置确定。
+当 Alluxio 运行在客户端侧无法连接的服务器上时，客户端侧的日志会很有用。Alluxio客户端通过log4j生成日志消息，因此日志的位置由使用Alluxio的应用程序的 log4j 配置确定。
 您可以在 [此处]({{ '/en/operation/Basic-Logging.html#application-logs' | relativize_url }}) 找到有关客户端日志的更多详细信息。
 
-`${ALLUXIO_HOME}/logs/user/` 是 Alluxio shell 的日志。 每个用户都有单独的日志文件。
+`${ALLUXIO_HOME}/logs/user/` 是 Alluxio shell 的日志。每个用户都有单独的日志文件。
 
 有关日志记录的更多信息，请查看
 [本页]({{ '/en/operation/Basic-Logging.html' | relativize_url }})。
@@ -74,8 +74,8 @@ export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,sus
 
 参考 [关于如何在 IntelliJ 中 attaching 和 debug Java 进程的教程](https://www.jetbrains.com/help/idea/attaching-to-local-process.html)。
 
-启动需要调试的进程或shell命令，然后创建一个新的java远程配置， 设置调试服务器的主机和端口，并启动调试会话.
-如果您设置了可达的断点, IDE将进入调试模式. 您可以检查当前上下文中的变量、堆栈、线程列表和表达式
+启动需要调试的进程或shell命令，然后创建一个新的java远程配置，设置调试服务器的主机和端口，并启动调试会话。
+如果您设置了可达的断点，IDE将进入调试模式，您可以检查当前上下文中的变量、堆栈、线程列表和表达式。
 
 ## Alluxio collectInfo 命令
 
@@ -83,7 +83,7 @@ Alluxio 的 `collectInfo` 命令，用于收集 Alluxio 集群信息以对 Allux
 `collectInfo` 将运行一系列子命令，每个子命令负责收集一类系统信息，详情可见下文
 命令执行完毕后，所有收集到的信息将被打包到一个 tarball 中，其中包含大量有关您 Alluxio 集群的信息。
 tarball 大小主要取决于您的集群大小以及您有多少子命令被执行。
-例如，如果您有大量日志，“collectLog” 操作可能会很昂贵。通常其它命令不会生成大于 1MB 的文件。 tarball 中的信息将有助于您进行故障排除。
+例如，如果您有大量日志，“collectLog” 操作可能会很昂贵。通常其它命令不会生成大于 1MB 的文件。tarball 中的信息将有助于您进行故障排除。
 或者，您也可以与您信任的人共享 tarball，以帮助您排除 Alluxio 集群的故障。
 
 `collectInfo` 命令将通过 SSH 连接到每个节点并执行一组子命令。
@@ -103,7 +103,7 @@ tarball 大小主要取决于您的集群大小以及您有多少子命令被执
 ### 收集Alluxio配置文件
 `collectConfig` 将收集 `${alluxio.work.dir}/conf` 目录下的所有配置文件。
 从 Alluxio 2.4 开始 `collectAlluxioInfo` 将会运行 `alluxio getConf` 命令并打印所有配置属性，并且会隐藏证书相关字段,
-而不是拷贝 `alluxio-site.properties` 文件， 因为很多用户会将UFS的证书明文信息放在此文件中。
+而不是拷贝 `alluxio-site.properties` 文件，因为很多用户会将UFS的证书明文信息放在此文件中。
 
 [getConf 命令]({{ '/en/operation/User-CLI.html#getconf' | relativize_url }}) 将收集所有当前节点配置。
 
@@ -122,7 +122,7 @@ tarball 大小主要取决于您的集群大小以及您有多少子命令被执
 此命令将会执行多次以记录以检查程序执行进度。
 
 ### 收集JVM信息
-`collectJvmInfo` 将收集每个节点上现有的 JVM 信息。 这是通过在每个找到的 JVM 进程上执行 `jps` 命令和 `jstack` 命令实现的。
+`collectJvmInfo` 将收集每个节点上现有的 JVM 信息。这是通过在每个找到的 JVM 进程上执行 `jps` 命令和 `jstack` 命令实现的。
 此命令将执行多次以确认 JVM 是否正在运行。
 
 ### 收集系统信息
@@ -152,19 +152,19 @@ $ bin/alluxio collectInfo
     COMMAND <outputPath>
 ```
 
-`<outputPath>` 是 tarball 的输出目录
+`<outputPath>` 是 tarball 的输出目录。
 
 选项：
 1. `--max-threads threadNum` 选项用于配置用于收集信息和传输 tarball 的线程数。
-当集群有大量节点或大量日志文件时，用于传输 tarball 的网络流量可能会很大。 可以通过该参数来限制命令的资源消耗。
+当集群有大量节点或大量日志文件时，用于传输 tarball 的网络流量可能会很大。可以通过该参数来限制命令的资源消耗。
 
-1. `--local` 让 `collectInfo` 命令仅在当前节点上运行。 这意味着该命令将仅收集有关当前节点的信息。
+1. `--local` 让 `collectInfo` 命令仅在当前节点上运行。这意味着该命令将仅收集有关当前节点的信息。
 如果您的集群没有配置节点间的 SSH 免密，您需要在集群中的每个节点上通过指定 `--local` 选项来运行命令，并手动收集所有 tarball。
 如果您的集群有配置节点间的 SSH 免密，您可以不指定 `--local` 来运行命令，这将会把任务分发到每个节点并自动为您收集 tarball。
 
 1. `--help` 打印帮助信息并退出。
 
-1. `--additional-logs <filename-prefixes>` 指定要收集的额外日志文件名前缀。 默认情况下，`collectInfo` 命令只会收集 Alluxio 特定的日志文件。
+1. `--additional-logs <filename-prefixes>` 指定要收集的额外日志文件名前缀。默认情况下，`collectInfo` 命令只会收集 Alluxio 特定的日志文件。
 收集的日志文件包括：
 ```
 logs/master.log*, 
@@ -182,17 +182,15 @@ logs/task.log*,
 logs/task.out*, 
 logs/user/*
 ```
-注意，`--additional-logs` 优先级将低于 `--exclude-logs` 
-多个 `<filename-prefixes>` 以逗号分隔。
+注意，`--additional-logs`优先级将低于`--exclude-logs`，多个 `<filename-prefixes>` 以逗号分隔。
 
-1. `--exclude-logs <filename-prefixes>` 指定要从默认收集列表中排除的文件名前缀。
+1. `--exclude-logs <filename-prefixes>`指定要从默认收集列表中排除的文件名前缀。
 
-1. `--include-logs <filename-prefixes>` 指定仅收集以此前缀开头的日志文件。 该选项不可与 `--additional-logs` 或 `--exclude-logs` 同时使用。
+1. `--include-logs <filename-prefixes>`指定仅收集以此前缀开头的日志文件。该选项不可与 `--additional-logs` 或 `--exclude-logs` 同时使用。
 
-1. `--end-time <datetime>` 指定一个时间，此时间之后的日志将不会被收集。
-   日志文件前几行将被读取，以推断日志的生成时间
-   `<datetime>` 是一个时间格式的字符，例如 `2020-06-27T11:58:53`。
-   支持的格式包括：
+1. `--end-time <datetime>`指定一个时间，此时间之后的日志将不会被收集。
+日志文件前几行将被读取，以推断日志的生成时间`<datetime>`是一个时间格式的字符，例如`2020-06-27T11:58:53`。
+支持的格式包括：
 ```
 “2020-01-03 12:10:11,874”
 “2020-01-03 12:10:11”
@@ -216,7 +214,7 @@ LEAK: <>.close() was not called before resource is garbage-collected. See https:
 ```
 
 Alluxio 有一个内置的探测机制来识别潜在的资源泄漏问题。此消息意味着 Alluxio 代码中存在 BUG 导致资源泄漏。
-如果在集群操作期间出现此日志， 请 [创建一个 GitHub Issue](https://github.com/Alluxio/alluxio/issues/new/choose) 
+如果在集群操作期间出现此日志，请 [创建一个 GitHub Issue](https://github.com/Alluxio/alluxio/issues/new/choose) 
 报告并共享您的日志信息以及任何其它于此问题相关的信息。
 
 默认情况下，Alluxio 在检测这些泄漏时，会对部分资源进行采样跟踪，并记录每个被跟踪对象最近的访问信息。
@@ -233,23 +231,23 @@ Alluxio 有一个内置的探测机制来识别潜在的资源泄漏问题。此
 ### 问题: 在本地机器上初次安装使用Alluxio失败，应该怎么办？
 
 解决办法: 首先检查目录`{ALLUXIO_HOME}/logs`下是否存在master和worker日志，然后按照日志提示的错误信息进行操作。
-否则，再次检查是否遗漏了[本地运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})里的配置步骤
+否则，再次检查是否遗漏了[本地运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})里的配置步骤。
 
 典型问题:
 
 - `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS`配置不正确
-- 如果 `ssh localhost` 失败, 请确认`~/.ssh/authorized_keys`文件中包含主机的ssh公钥
+- 如果 `ssh localhost` 失败，请确认`~/.ssh/authorized_keys`文件中包含主机的ssh公钥
 
 ### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？
 
 解决办法: 按照[集群环境运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }}),
 [Alluxio配置HDFS]({{ '/cn/ufs/HDFS.html' | relativize_url }})。
-和 [Apache Spark 使用 Alluxio]({{ '/cn/compute/Spark.html' | relativize_url }}) 提示操作.
+和 [Apache Spark 使用 Alluxio]({{ '/cn/compute/Spark.html' | relativize_url }}) 提示操作。
 
 
 提示:
 
-- 通常情况下, 当Alluxio workers和计算框架的节点部署在一起的时候，性能可达到最优
+- 通常情况下，当Alluxio workers和计算框架的节点部署在一起的时候，性能可达到最优
 - 如果你正在使用Mesos或者Yarn管理集群,也可以将Mesos和Yarn集成到Alluxio中，使用Mesos和Yarn可方便集群管理
 - 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio会非常有帮助
 
@@ -283,14 +281,14 @@ Alluxio 有一个内置的探测机制来识别潜在的资源泄漏问题。此
 ```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
-在此处 [在Alluxio上运行Hadoop MapReduce]({{ '/cn/compute/Hadoop-MapReduce.html' | relativize_url }}) 查看更多详细信息.
+在此处 [在Alluxio上运行Hadoop MapReduce]({{ '/cn/compute/Hadoop-MapReduce.html' | relativize_url }}) 查看更多详细信息。
 
 - 对于Spark应用，可以将客户端jar包添加到`$SPARK_CLASSPATH`：
 
 ```console
 $ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
-在此处 [Apache Spark 使用 Alluxio]({{ '/cn/compute/Spark.html' | relativize_url }}) 查看更多详细信息.
+在此处 [Apache Spark 使用 Alluxio]({{ '/cn/compute/Spark.html' | relativize_url }}) 查看更多详细信息。
 
 除了上述方法，还可以将以下配置添加到`spark/conf/spark-defaults.conf`中：
 
@@ -300,7 +298,7 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 - 对于Presto，请将Alluxio客户端的jar`{{site.ALLUXIO_CLIENT_JAR_PATH}}`放置到Presto目录`${PRESTO_HOME}/plugin/hive-hadoop2/`中。
-添加后, 请重启Presto以确保配置生效。
+添加后，请重启Presto以确保配置生效。
 详情请见[Presto on Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})。
 
 - 对于Hive，在`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`。
@@ -308,14 +306,14 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```console
 $ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}：${HIVE_AUX_JARS_PATH}。
 ```
-添加后, 请重启Hive以确保配置生效。。
+添加后，请重启Hive以确保配置生效。
 
 如果已经设置相关的classpath，但是异常仍然存在，用户可以这样检测路径是否有效：
 
 ```console
 $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
-在此处 [在Alluxio上运行Apache Hive]({{ '/cn/compute/Hive.html' | relativize_url }}) 查看更多详细信息.
+在此处 [在Alluxio上运行Apache Hive]({{ '/cn/compute/Hive.html' | relativize_url }}) 查看更多详细信息。
 
 ### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
 
@@ -348,7 +346,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用�
 您可以在[这里]({{ '/en/operation/Journal.html#embedded-journal-vs-ufs-journal' | relativize_url }})查看这两者的区别。
 
 此外，您还应该验证您所使用的journal是否与您当前的配置兼容。
-在一些场景下，日志无法兼容, 您可以进行以下操作
+在一些场景下，日志无法兼容，您可以进行以下操作
 [备份]({{ '/cn/operation/Journal.html#备份' | relativize_url }}) 或
 [格式化]({{ '/cn/operation/Journal.html#格式化' | relativize_url }})。
 
@@ -394,7 +392,7 @@ Worker 存储目录中，如果某个 Worker 崩溃了，Worker 上的数据可�
 
 答：大多数Alluxio shell命令都需要连接到Alluxio Master才能正常执行。
 如果命令连接 Master 失败它就会不断重试，看起来就像是 "卡住" 很长时间。
-当然，也有可能是一些命令本身就需要很长时间才能执行完毕， 比如在一个速度较慢的UFS上持久化一个大文件。
+当然，也有可能是一些命令本身就需要很长时间才能执行完毕，比如在一个速度较慢的UFS上持久化一个大文件。
 如果您想知道在 UFS 中发生了什么，可以检查用户日志（默认存储路径为`${ALLUXIO_HOME}/logs/user_${USER_NAME}.log`）
 或Master日志（默认存储路径为`${ALLUXIO_HOME}/logs/master.log`，位于Master点）。
 
@@ -412,7 +410,7 @@ Worker 存储目录中，如果某个 Worker 崩溃了，Worker 上的数据可�
 
 ### 问题: 在Alluxio/Spark上进行测试（对大小为GBs的文件运行单词统计），相对于HDFS/Spark，性能并无明显差异。为什么?
 
-解决办法: Alluxio通过使用分布式的内存存储（以及分层存储）和时间或空间的本地化来实现性能加速。如果数据集没有任何本地化, 性能加速效果并不明显。
+解决办法: Alluxio通过使用分布式的内存存储（以及分层存储）和时间或空间的本地化来实现性能加速。如果数据集没有任何本地化，性能加速效果并不明显。
 
 ## 环境
 
