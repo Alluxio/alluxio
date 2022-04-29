@@ -978,19 +978,9 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Rocks Block metrics
-  public static final MetricKey MASTER_ROCKS_BLOCK_ACTUAL_DELAYED_WRITE_RATE =
-      new Builder("Master.RocksBlockActualDelayedWriteRate")
-          .setDescription("RocksDB block table. Actual delayed write rate.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS =
       new Builder("Master.RocksBlockBackgroundErrors")
           .setDescription("RocksDB block table. Accumulated number of background errors.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_BASE_LEVEL =
-      new Builder("Master.RocksBlockBaseLevel")
-          .setDescription("RocksDB block table. Base level.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_CAPACITY =
@@ -1027,16 +1017,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "memtables that are kept in memory to maintain write history in memory.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_CURRENT_SUPER_VERSION_NUMBER =
-      new Builder("Master.RocksBlockCurrentSuperVersionNumber")
-          .setDescription("RocksDB block table. Current super version number.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_LIVE_DATA_SIZE =
-      new Builder("Master.RocksBlockEstimateLiveDataSize")
-          .setDescription("RocksDB block table. Estimate live data size.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_NUM_KEYS =
       new Builder("Master.RocksBlockEstimateNumKeys")
           .setDescription("RocksDB block table. Estimated number of total keys in the active and "
@@ -1060,16 +1040,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "metric reports the memory used outside the block cache to read data.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_IS_FILE_DELETIONS_ENABLED =
-      new Builder("Master.RocksBlockIsFileDeletionsEnabled")
-          .setDescription("RocksDB block table. Is file deletions enabled.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_IS_WRITE_STOPPED =
-      new Builder("Master.RocksBlockIsWriteStopped")
-          .setDescription("RocksDB block table. Is write stopped.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_BLOCK_LIVE_SST_FILES_SIZE =
       new Builder("Master.RocksBlockLiveSstFilesSize")
           .setDescription("RocksDB block table. Total size in bytes of all SST files that belong "
@@ -1080,16 +1050,6 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.RocksBlockMemTableFlushPending")
           .setDescription("RocksDB block table. This metric returns 1 if a memtable flush "
               + "is pending; otherwhise it returns 0.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_MIN_LOG_NUMBER_TO_KEEP =
-      new Builder("Master.RocksBlockMinLogNumberToKeep")
-          .setDescription("RocksDB block table. Min log number to keep.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_MIN_OBSOLETE_SST_NUMBER_TO_KEEP =
-      new Builder("Master.RocksBlockMinObsoleteSstNumberToKeep")
-          .setDescription("RocksDB block table. Min obsolete sst number to keep.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_ACTIVE_MEM_TABLE =
@@ -1138,16 +1098,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("RocksDB block table. Number of currently running flushes.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_SNAPSHOTS =
-      new Builder("Master.RocksBlockNumSnapshots")
-          .setDescription("RocksDB block table. Num snapshots.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_BLOCK_OLDEST_SNAPSHOT_TIME =
-      new Builder("Master.RocksBlockOldestSnapshotTime")
-          .setDescription("RocksDB block table. Oldest snapshot time.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_BLOCK_SIZE_ALL_MEM_TABLES =
       new Builder("Master.RocksBlockSizeAllMemTables")
           .setDescription("RocksDB block table. Size all mem tables.")
@@ -1160,19 +1110,9 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Rocks Inode metrics
-  public static final MetricKey MASTER_ROCKS_INODE_ACTUAL_DELAYED_WRITE_RATE =
-      new Builder("Master.RocksInodeActualDelayedWriteRate")
-          .setDescription("RocksDB inode table. Actual delayed write rate.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_INODE_BACKGROUND_ERRORS =
       new Builder("Master.RocksInodeBackgroundErrors")
           .setDescription("RocksDB inode table. Accumulated number of background errors.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_BASE_LEVEL =
-      new Builder("Master.RocksInodeBaseLevel")
-          .setDescription("RocksDB inode table. Base level.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_CAPACITY =
@@ -1208,16 +1148,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "immutable memtable in bytes.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_ROCKS_INODE_CURRENT_SUPER_VERSION_NUMBER =
-      new Builder("Master.RocksInodeCurrentSuperVersionNumber")
-          .setDescription("RocksDB inode table. Current super version number.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_LIVE_DATA_SIZE =
-      new Builder("Master.RocksInodeEstimateLiveDataSize")
-          .setDescription("RocksDB inode table. Estimate live data size.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_NUM_KEYS =
       new Builder("Master.RocksInodeEstimateNumKeys")
           .setDescription("RocksDB inode table. Estimated number of total keys in the active and "
@@ -1241,16 +1171,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "metric reports the memory used outside the block cache to read data.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_ROCKS_INODE_IS_FILE_DELETIONS_ENABLED =
-      new Builder("Master.RocksInodeIsFileDeletionsEnabled")
-          .setDescription("RocksDB inode table. Is file deletions enabled.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_IS_WRITE_STOPPED =
-      new Builder("Master.RocksInodeIsWriteStopped")
-          .setDescription("RocksDB inode table. Is write stopped.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_ROCKS_INODE_LIVE_SST_FILES_SIZE =
       new Builder("Master.RocksInodeLiveSstFilesSize")
           .setDescription("RocksDB inode table. Total size in bytes of all SST files that belong "
@@ -1261,16 +1181,6 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.RocksInodeMemTableFlushPending")
           .setDescription("RocksDB inode table. This metric returns 1 if a memtable flush "
               + "is pending; otherwhise it returns 0.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_MIN_LOG_NUMBER_TO_KEEP =
-      new Builder("Master.RocksInodeMinLogNumberToKeep")
-          .setDescription("RocksDB inode table. Min log number to keep.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_MIN_OBSOLETE_SST_NUMBER_TO_KEEP =
-      new Builder("Master.RocksInodeMinObsoleteSstNumberToKeep")
-          .setDescription("RocksDB inode table. Min obsolete sst number to keep.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_ACTIVE_MEM_TABLE =
@@ -1317,16 +1227,6 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_FLUSHES =
       new Builder("Master.RocksInodeNumRunningFlushes")
           .setDescription("RocksDB inode table. Number of currently running flushes.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_NUM_SNAPSHOTS =
-      new Builder("Master.RocksInodeNumSnapshots")
-          .setDescription("RocksDB inode table. Num snapshots.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey MASTER_ROCKS_INODE_OLDEST_SNAPSHOT_TIME =
-      new Builder("Master.RocksInodeOldestSnapshotTime")
-          .setDescription("RocksDB inode table. Oldest snapshot time.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ROCKS_INODE_SIZE_ALL_MEM_TABLES =
