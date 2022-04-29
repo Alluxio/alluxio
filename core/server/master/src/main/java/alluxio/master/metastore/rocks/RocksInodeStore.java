@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -99,109 +100,109 @@ public class RocksInodeStore implements InodeStore {
         Arrays.asList(mInodesColumn, mEdgesColumn));
 
     // metrics
-    MetricsSystem.registerGaugeIfAbsent(
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_ACTUAL_DELAYED_WRITE_RATE.getName(),
-        () -> getProperty("rocksdb.actual-delayed-write-rate"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.actual-delayed-write-rate"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_BACKGROUND_ERRORS.getName(),
-        () -> getProperty("rocksdb.background-errors"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.background-errors"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_BASE_LEVEL.getName(),
-        () -> getProperty("rocksdb.base-level"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.base-level"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_CAPACITY.getName(),
-        () -> getProperty("rocksdb.block-cache-capacity"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.block-cache-capacity"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_PINNED_USAGE.getName(),
-        () -> getProperty("rocksdb.block-cache-pinned-usage"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.block-cache-pinned-usage"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_BLOCK_CACHE_USAGE.getName(),
-        () -> getProperty("rocksdb.block-cache-usage"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.block-cache-usage"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_COMPACTION_PENDING.getName(),
-        () -> getProperty("rocksdb.compaction-pending"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.compaction-pending"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_CUR_SIZE_ACTIVE_MEM_TABLE.getName(),
-        () -> getProperty("rocksdb.cur-size-active-mem-table"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.cur-size-active-mem-table"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_CUR_SIZE_ALL_MEM_TABLES.getName(),
-        () -> getProperty("rocksdb.cur-size-all-mem-tables"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.cur-size-all-mem-tables"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_CURRENT_SUPER_VERSION_NUMBER.getName(),
-        () -> getProperty("rocksdb.current-super-version-number"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.current-super-version-number"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_ESTIMATE_LIVE_DATA_SIZE.getName(),
-        () -> getProperty("rocksdb.estimate-live-data-size"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.estimate-live-data-size"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_ESTIMATE_NUM_KEYS.getName(),
-        () -> getProperty("rocksdb.estimate-num-keys"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.estimate-num-keys"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_ESTIMATE_PENDING_COMPACTION_BYTES.getName(),
-        () -> getProperty("rocksdb.estimate-pending-compaction-bytes"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.estimate-pending-compaction-bytes"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_ESTIMATE_TABLE_READERS_MEM.getName(),
-        () -> getProperty("rocksdb.estimate-table-readers-mem"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.estimate-table-readers-mem"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_IS_FILE_DELETIONS_ENABLED.getName(),
-        () -> getProperty("rocksdb.is-file-deletions-enabled"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.is-file-deletions-enabled"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_IS_WRITE_STOPPED.getName(),
-        () -> getProperty("rocksdb.is-write-stopped"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.is-write-stopped"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_LIVE_SST_FILES_SIZE.getName(),
-        () -> getProperty("rocksdb.live-sst-files-size"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.live-sst-files-size"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_MEM_TABLE_FLUSH_PENDING.getName(),
-        () -> getProperty("rocksdb.mem-table-flush-pending"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.mem-table-flush-pending"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_MIN_LOG_NUMBER_TO_KEEP.getName(),
-        () -> getProperty("rocksdb.min-log-number-to-keep"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.min-log-number-to-keep"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_MIN_OBSOLETE_SST_NUMBER_TO_KEEP.getName(),
-        () -> getProperty("rocksdb.min-obsolete-sst-number-to-keep"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.min-obsolete-sst-number-to-keep"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_DELETES_ACTIVE_MEM_TABLE.getName(),
-        () -> getProperty("rocksdb.num-deletes-active-mem-table"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-deletes-active-mem-table"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_DELETES_IMM_MEM_TABLES.getName(),
-        () -> getProperty("rocksdb.num-deletes-imm-mem-tables"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-deletes-imm-mem-tables"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_ENTRIES_ACTIVE_MEM_TABLE.getName(),
-        () -> getProperty("rocksdb.num-entries-active-mem-table"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-entries-active-mem-table"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_ENTRIES_IMM_MEM_TABLES.getName(),
-        () -> getProperty("rocksdb.num-entries-imm-mem-tables"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-entries-imm-mem-tables"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_IMMUTABLE_MEM_TABLE.getName(),
-        () -> getProperty("rocksdb.num-immutable-mem-table"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-immutable-mem-table"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_LIVE_VERSIONS.getName(),
-        () -> getProperty("rocksdb.num-live-versions"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-live-versions"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_RUNNING_COMPACTIONS.getName(),
-        () -> getProperty("rocksdb.num-running-compactions"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-running-compactions"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_RUNNING_FLUSHES.getName(),
-        () -> getProperty("rocksdb.num-running-flushes"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-running-flushes"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_NUM_SNAPSHOTS.getName(),
-        () -> getProperty("rocksdb.num-snapshots"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.num-snapshots"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_OLDEST_SNAPSHOT_TIME.getName(),
-        () -> getProperty("rocksdb.oldest-snapshot-time"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.oldest-snapshot-time"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_SIZE_ALL_MEM_TABLES.getName(),
-        () -> getProperty("rocksdb.size-all-mem-tables"));
-    MetricsSystem.registerGaugeIfAbsent(
+        () -> getProperty("rocksdb.size-all-mem-tables"), 15, TimeUnit.SECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_TOTAL_SST_FILES_SIZE.getName(),
-        () -> getProperty("rocksdb.total-sst-files-size"));
+        () -> getProperty("rocksdb.total-sst-files-size"), 15, TimeUnit.SECONDS);
   }
 
   private String getProperty(String rocksPropertyName) {
     try {
       return mRocksStore.getDb().getProperty(rocksPropertyName);
     } catch (RocksDBException e) {
-      LOG.warn("error collecting " + rocksPropertyName, e);
+      LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
     }
     return "";
   }
