@@ -22,6 +22,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/golang/glog"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,7 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	mount "k8s.io/mount-utils"
+	"k8s.io/mount-utils"
 )
 
 type nodeServer struct {
@@ -66,10 +67,12 @@ func newFuseProcessInNodeServer(req *csi.NodePublishVolumeRequest) (*csi.NodePub
 
 	notMnt, err := ensureMountPoint(targetPath)
 	if err != nil {
+		glog.V(3).Infof("Error checking mount point: %+v.", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if !notMnt {
+		glog.V(4).Infoln("target path is already mounted")
 		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
@@ -107,11 +110,14 @@ func newFuseProcessInNodeServer(req *csi.NodePublishVolumeRequest) (*csi.NodePub
 	glog.V(4).Infoln(string(stdoutStderr))
 	if err != nil {
 		if os.IsPermission(err) {
+			glog.V(3).Infof("Permission denied. Failed to run mount bind command. %+v", err)
 			return nil, status.Error(codes.PermissionDenied, err.Error())
 		}
 		if strings.Contains(err.Error(), "invalid argument") {
+			glog.V(3).Infof("Invalid argument for mount bind command. %+v", err)
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
+		glog.V(3).Infof("Error running command `%v`: %+v", command, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -124,7 +130,7 @@ func bindMountGlobalMountPointToPodVolPath(req *csi.NodePublishVolumeRequest) (*
 
 	notMnt, err := ensureMountPoint(targetPath)
 	if err != nil {
-		glog.V(3).Infof("Error checking mount point: %v.", err)
+		glog.V(3).Infof("Error checking mount point: %+v.", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if !notMnt {
@@ -134,19 +140,17 @@ func bindMountGlobalMountPointToPodVolPath(req *csi.NodePublishVolumeRequest) (*
 
 	args := []string{"--bind", stagingPath, targetPath}
 	command := exec.Command("mount", args...)
-	glog.V(4).Infoln(command)
-	stdoutStderr, err := command.CombinedOutput()
-	glog.V(4).Infoln(string(stdoutStderr))
+	_, err = command.CombinedOutput()
 	if err != nil {
 		if os.IsPermission(err) {
-			glog.V(3).Infof("Permission denied. Failed to run mount bind command. %v", err.Error())
+			glog.V(3).Infof("Permission denied. Failed to run mount bind command. %+v", err)
 			return nil, status.Error(codes.PermissionDenied, err.Error())
 		}
 		if strings.Contains(err.Error(), "invalid argument") {
-			glog.V(3).Infof("Invalid argument for mount bind command. %v", err.Error())
+			glog.V(3).Infof("Invalid argument for mount bind command %v. %+v", command, err)
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
-		glog.V(3).Infof("Error running command `%v`: %v", command, err.Error())
+		glog.V(3).Infof("Error running command `%v`: %+v", command, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &csi.NodePublishVolumeResponse{}, nil
@@ -163,7 +167,7 @@ func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 
 	err = mount.CleanupMountPoint(targetPath, mount.New(""), false)
 	if err != nil {
-		glog.V(3).Infof("Error cleaning up mount point: %v", err)
+		glog.V(3).Infof("Error cleaning up mount point: %+v", err)
 	} else {
 		glog.V(4).Infof("Succeed in unmounting %s", targetPath)
 	}
@@ -177,18 +181,20 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	ns.mutex.Lock()
 	defer ns.mutex.Unlock()
 
-	glog.V(4).Infoln("Creating Alluxio-fuse pod and mounting Alluxio to global mount point.")
 	fusePod, err := getAndCompleteFusePodObj(ns.nodeId, req)
 	if err != nil {
-		return nil, err
+		glog.V(3).Infof("Error getting or completing the CSI Fuse pod object. %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if err := ns.createFusePodIfNotExist(fusePod); err != nil {
-		return nil, err
+		glog.V(3).Infof("Error creating CSI Fuse pod. %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if err := checkIfMountPointReady(req.GetStagingTargetPath()); err != nil {
-		return nil, err
+		glog.V(3).Infof("Mount point is not ready, or error occurs. %+v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &csi.NodeStageVolumeResponse{}, nil
 }
@@ -196,7 +202,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*v1.Pod, error) {
 	csiFusePodObj, err := getFusePodObj()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error getting Fuse pod object from template.")
 	}
 
 	// Append volumeId to pod name for uniqueness
@@ -241,8 +247,7 @@ func (ns *nodeServer) createFusePodIfNotExist(fusePod *v1.Pod) error {
 		if strings.Contains(err.Error(), "already exists") {
 			glog.V(4).Infof("Fuse pod %s already exists. Skip creating pod.", fusePod.Name)
 		} else {
-			glog.V(3).Infof("Error creating Fuse pod: %v", err.Error())
-			return status.Errorf(codes.Internal, err.Error())
+			return errors.Wrap(err, "Error creating Fuse pod.")
 		}
 	}
 	return nil
@@ -252,8 +257,7 @@ func checkIfMountPointReady(mountPoint string) error {
 	command := exec.Command("bash", "-c", fmt.Sprintf("cat /proc/mounts | grep %v | grep alluxio-fuse", mountPoint))
 	_, err := command.Output()
 	if err != nil {
-		glog.V(3).Infoln("Mount point is not ready, or error occurs while checking.", err.Error())
-		return status.Error(codes.Internal, err.Error())
+		return errors.Wrap(err, "Mount point is not ready, or error occurs while checking.")
 	}
 	return nil
 }
@@ -266,11 +270,11 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 			command := exec.Command("umount", req.GetStagingTargetPath())
 			_, err := command.CombinedOutput()
 			if err != nil {
-				glog.V(3).Infof("Error running command %v: %v", command, err.Error())
+				glog.V(3).Infof("Error running command %v: %+v", command, err)
 			}
 			return &csi.NodeUnstageVolumeResponse{}, nil
 		}
-		glog.V(3).Infof("Error deleting pod with name %v: %v.", podName, err.Error())
+		glog.V(3).Infof("Error deleting pod with name %v. %+v.", podName, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &csi.NodeUnstageVolumeResponse{}, nil
@@ -309,36 +313,32 @@ func ensureMountPoint(targetPath string) (bool, error) {
 	}
 	if err != nil && os.IsNotExist(err) {
 		if err := os.MkdirAll(targetPath, 0750); err != nil {
-			return notMnt, err
+			return notMnt, errors.Wrapf(err, "Error creating dir %v", targetPath)
 		}
 		return true, nil
 	}
 	if isCorruptedDir(targetPath) {
 		glog.V(3).Infoln("detected corrupted mount for targetPath [%s]", targetPath)
 		if err := mounter.Unmount(targetPath); err != nil {
-			glog.V(3).Infoln("failed to umount corrupted path [%s]", targetPath)
-			return false, err
+			return false, errors.Wrapf(err, "Filed to umount corrupted path %v", targetPath)
 		}
 		return true, nil
 	}
-	return notMnt, err
+	return notMnt, errors.Wrapf(err, "Failed to check if target path %v is a mount point.", targetPath)
 }
 
 func getFusePodObj() (*v1.Pod, error) {
 	csiFuseYaml, err := ioutil.ReadFile("/opt/alluxio/integration/kubernetes/csi/alluxio-csi-fuse.yaml")
 	if err != nil {
-		glog.V(3).Infof("csi-fuse config yaml file not found: %v", err.Error())
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, errors.Wrap(err, "Error getting CSI Fuse yaml file.")
 	}
 	csiFuseObj, grpVerKind, err := scheme.Codecs.UniversalDeserializer().Decode(csiFuseYaml, nil, nil)
 	if err != nil {
-		glog.V(3).Infof("Failed to decode csi-fuse config yaml file: %v", err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, errors.Wrapf(err, "Error decoding CSI Fuse yaml file to object.")
 	}
 	// Only support Fuse Pod
 	if grpVerKind.Kind != "Pod" {
-		glog.V(3).Infof("csi-fuse only support pod. %v found. %v", grpVerKind.Kind, err.Error())
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return nil, errors.Wrapf(err, "CSI Fuse only supports Kind Pod. %v found.", grpVerKind.Kind)
 	}
 	return csiFuseObj.(*v1.Pod), nil
 }
