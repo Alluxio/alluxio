@@ -200,7 +200,7 @@ public class RocksInodeStore implements InodeStore {
 
   private String getProperty(String rocksPropertyName) {
     try {
-      return mRocksStore.getDb().getProperty(rocksPropertyName);
+      return db().getProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
     }
