@@ -26,17 +26,17 @@ $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 $ export ALLUXIO_HOME=$(pwd)
 ```
-您可以编译特定版本的Alluxio，否则这将编译源码的master分支。如果你要要构建特的版本的代码，你可以使用 git tag 获取。
+您可以编译特定版本的Alluxio，否则这将编译源码的master分支。如果你要构建特的版本的代码，你可以使用 git tag 获取。
 
 ```console
 $ git tag
 $ git checkout <TAG_NAME>
 ```
 
-## (Optional) Checkout Building Environment Using Docker
+## (可选) 使用Docker创建构建环境
 
 本节将指导您使用我们发布的Docker镜像来构建一个编译环境。
-如果本地已经安装了 JDK 和 Maven，您可以跳过本章节在本地编译Alluxio。
+如果本地已经安装了JDK和Maven，您可以跳过本章节在本地编译Alluxio。
 
 首先启动一个名为 `alluxio-build` 的容器，然后进入这个容器继续操作：
 
@@ -104,7 +104,7 @@ $ ./bin/alluxio-stop.sh local
 ## 编译选项
 
 ### 计算框架支持
-自Alluxio 1.7开始，编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将适用于不同的计算框架（如：Spark、Flink，Presto等）。
+自Alluxio 1.7开始，编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将可适用于不同的计算框架（如：Spark、Flink，Presto等）。
 
 ### Hadoop发行版的支持
 
