@@ -54,6 +54,19 @@ These tuning parameters primarily affect the behavior of the cache.
 * `alluxio.master.metastore.inode.cache.low.water.mark.ratio`: Ratio of the maximum cache size
   that eviction will evict down to. Default: `0.8`
 
+### Metrics and memory usage
+Alluxio exposes all RocksDB metrics found [here](https://github.com/facebook/rocksdb/blob/2b5c29f9f3a5c622031368bf3bf4566f5c590ce5/include/rocksdb/db.h#L1104-L1136).
+Alluxio uses one RocksDB database for blocks and one for inodes. Both databases have their own set of metrics. The naming of
+such metrics follows the pattern of `rocksdb.name-of-metric > Master.Rocks<Block | Inode>NameOfMetric`.
+
+The metrics that concern memory usage are explored in the [RocksDB wiki](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB).
+These are important as RocksDB is written in C++ and used through the JNI in Java. This means that RocksDB's memory usage is not
+governed by the JVM arguments `-Xmx` and `-Xms`. Here's how they are exposed in Alluxio:
+- `Master.RocksBlockBlockCacheUsage` and `Master.RocksInodeBlockCacheUsage` (derived from `rocksdb.block-cache-usage`).
+- `Master.RocksBlockEstimateTableReadersMem` and `Master.RocksInodeEstimateTableReadersMem` (derived from `rocksdb.estimate-table-readers-mem`).
+- `Master.RocksBlockCurSizeAllMemTables` and `Master.RocksInodeCurSizeAllMemTables` (derived from `rocksdb.cur-size-all-mem-tables`).
+- `Master.RocksBlockBlockCachePinnedUsage` and `Master.RocksInodeBlockCachePinnedUsage` (derived from `rocksdb.block-cache-pinned-usage`).
+
 ## Heap Metastore
 
 The heap metastore is simple: it stores all metadata on the heap. This gives consistent,
