@@ -26,7 +26,7 @@ to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.o
 To configure Alluxio to use Ozone as under storage, you will need to modify the configuration file 
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -36,7 +36,7 @@ or `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data` if only the directory `/a
 
 set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration` in `conf/alluxio-site.properties` to point to your `ozone-site.xml`. Make sure this configuration is set on all servers running Alluxio.
 
-```
+```properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
@@ -46,7 +46,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 To configure Alluxio's OzoneManager for Ozone in HA mode, you should configure Alluxio's server to access Ozone. Please note that once set up, your application using the Alluxio client does not require any special configuration.
 In HA mode `alluxio.master.mount.table.root.ufs` needs to specify `<OM_SERVICE_IDS>`
 
-```
+```properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
@@ -66,9 +66,9 @@ User can mount an Ozone cluster with a specified version as an under storage int
 Before mounting Ozone with a specific version, make sure you have built a client with that specific version of Ozone.
 You can check the existence of this client by going to the `lib` directory under the Alluxio directory.
 
-When mounting the under storage at the Alluxio root with a specific Ozone version, one can add the following line to the site properties file (`conf/alluxio-site.properties`)
+When mounting the under storage at the Alluxio root with a specific Ozone version, one can add the following line to the site properties file (`conf/alluxio-site.properties`).
 
-```
+```properties
 alluxio.master.mount.table.root.option.alluxio.underfs.version=<OZONE_VERSION>
 ```
 
@@ -116,7 +116,7 @@ $ ./bin/alluxio fs mount \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-If you need mount an HDFS cluster with a specified version, you can specify it through `alluxio.underfs.version=<OZONE_VERSION>`
+If you need mount an HDFS cluster with a specified version, you can specify it through `alluxio.underfs.version=<OZONE_VERSION>`.
 ```console
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
