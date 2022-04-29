@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.MountPResponse;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -374,7 +376,8 @@ public final class BaseFileSystemTest {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountPOptions mountOptions = MountPOptions.getDefaultInstance();
-    doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath,
+    MountPResponse mountPResponse = MountPResponse.getDefaultInstance();
+    doReturn(mountPResponse).when(mFileSystemMasterClient).mount(alluxioPath, ufsPath,
         FileSystemOptions.mountDefaults(mConf).toBuilder().mergeFrom(mountOptions).build());
     mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
     verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath,
