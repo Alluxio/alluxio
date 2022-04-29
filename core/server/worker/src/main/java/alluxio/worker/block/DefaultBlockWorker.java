@@ -400,36 +400,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
-    // Because the move operation is expensive, we first check if the operation is necessary
-    moveBlockInternal(sessionId, blockId, BlockStoreLocation.anyDirInTier(
-        WORKER_STORAGE_TIER_ASSOC.getAlias(tier)));
-  }
-
-  @Override
-  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    moveBlockInternal(sessionId, blockId,
-        BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType));
-  }
-
-  private void moveBlockInternal(long sessionId, long blockId, BlockStoreLocation dst)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).orElseThrow(
-        () -> new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId));
-    if (meta.getBlockLocation().belongsTo(dst)) {
-      return;
-    }
-    // Execute the block move if necessary
-    mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
-  }
-
-  @Override
   public List<String> getWhiteList() {
     return mWhitelist.getList();
   }

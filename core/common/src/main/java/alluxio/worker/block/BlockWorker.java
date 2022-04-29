@@ -145,40 +145,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   boolean hasBlockMeta(long blockId);
 
   /**
-   * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
-   * tiered storage.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to move
-   * @param tier the tier to move the block to
-   * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Moves a block from its current location to a target location, with a specific medium type.
-   * Throws an {@link IllegalArgumentException} if the medium type is not one of the listed medium
-   * types.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to move
-   * @param mediumType the medium type to move to
-   * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
-
-  /**
    * Creates the block reader to read from Alluxio block or UFS block.
    * Owner of this block reader must close it or lock will leak.
    *

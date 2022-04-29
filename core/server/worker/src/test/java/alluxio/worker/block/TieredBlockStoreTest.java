@@ -634,8 +634,8 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveTempBlock() throws Exception {
-    mThrown.expect(InvalidWorkerStateException.class);
-    mThrown.expectMessage(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
+    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     mBlockStore.moveBlock(SESSION_ID1, TEMP_BLOCK_ID,
