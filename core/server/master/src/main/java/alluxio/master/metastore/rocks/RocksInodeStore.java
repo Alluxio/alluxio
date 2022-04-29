@@ -191,13 +191,13 @@ public class RocksInodeStore implements InodeStore {
         CACHED_GAUGE_TIMEOUT_S, TimeUnit.SECONDS);
   }
 
-  private String getProperty(String rocksPropertyName) {
+  private long getProperty(String rocksPropertyName) {
     try {
-      return db().getProperty(rocksPropertyName);
+      return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
     }
-    return "";
+    return -1;
   }
 
   @Override
