@@ -7,14 +7,14 @@ priority: 0
 ---
 
 * 内容列表
-  {:toc}
+{:toc}
 
-该指南介绍如何克隆Alluxio仓库, 编译Alluxio源码, 并且在你的环境中运行测试。
+该指南介绍如何克隆Alluxio仓库，编译Alluxio源码，并且在你的环境中运行测试。
 
 ## 软件版本
 
 - [Java JDK 8或以上](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-- [Maven 3.3.](http://maven.apache.org/download.cgi)
+- [Maven 3.3.9](http://maven.apache.org/download.cgi)
 - [Git](https://git-scm.org/downloads)
 
 ### Checkout源码
@@ -26,7 +26,7 @@ $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 $ export ALLUXIO_HOME=$(pwd)
 ```
-您可以编译特定版本的Alluxio，否则这将编译源码的master分支。如果你要要构建特的版本的代码, 你可以使用 git tag 获取。
+您可以编译特定版本的Alluxio，否则这将编译源码的master分支。如果你要要构建特的版本的代码，你可以使用 git tag 获取。
 
 ```console
 $ git tag
@@ -35,7 +35,7 @@ $ git checkout <TAG_NAME>
 
 ## (Optional) Checkout Building Environment Using Docker
 
-本节将知道您如何根据我们发布的docker镜像来构建一个编译环境。
+本节将指导您使用我们发布的Docker镜像来构建一个编译环境。
 如果本地已经安装了 JDK 和 Maven，您可以跳过本章节在本地编译Alluxio。
 
 首先启动一个名为 `alluxio-build` 的容器，然后进入这个容器继续操作：
@@ -53,7 +53,7 @@ $ docker exec -it -w /alluxio alluxio-build bash
 
 注意，
 - 容器路径 `/alluxio` 映射到主机路径 `${ALLUXIO_HOME}`，因此构建后的二进制文件仍然可以在容器外访问。
-- 容器路径 `/root/.m2` 映射到主机路径 `${HOME}/.m2` 这可以利用 maven 缓存的本地副本。 这是可选的。
+- 容器路径 `/root/.m2` 映射到主机路径 `${HOME}/.m2` 这可以利用 maven 缓存的本地副本，这是可选的。
 
 使用完容器后，通过以下命令将其销毁
 
@@ -104,11 +104,11 @@ $ ./bin/alluxio-stop.sh local
 ## 编译选项
 
 ### 计算框架支持
-自Alluxio 1.7开始。编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将适用于不同的计算框架（如：Spark、Flink，Presto等）。
+自Alluxio 1.7开始，编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将适用于不同的计算框架（如：Spark、Flink，Presto等）。
 
 ### Hadoop发行版的支持
 
-默认情况下, Alluxio构建的HDFS发行版本为 Hadoop 3.3
+默认情况下，Alluxio构建的HDFS发行版本为 Hadoop 3.3
 要针对hadoop发行版本中某一个版本构建Alluxio，可以通过指定`<HADOOP_PROFILE>`和对应的`ufs.hadoop.version`来运行如下命令：
 
 ```console
@@ -120,7 +120,7 @@ $ mvn install -pl underfs/hdfs/ \
 
 Hadoop versions >= 3.0.0 与新版本的Alluxio有最好的兼容性。
 
-例如,
+例如
 ```console
 $ mvn clean install -pl underfs/hdfs/ \
   -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
@@ -128,7 +128,7 @@ $ mvn clean install -pl underfs/hdfs/ \
   -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 要启用`active sync`，请确保使用 `hdfsActiveSync` 属性来构建，
-请参考 [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }}) 获得更多关于使用`active sync`的信息。
+请参考 [Active Sync for HDFS]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }}#active-sync-for-hdfs) 获得更多关于使用Active Sync的信息。
 
 如果你在`${ALLUXIO_HOME}/lib`目录中发现名为`alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar`的jar，表明编译成功。
 
@@ -178,9 +178,9 @@ $ mvn clean install -pl underfs/hdfs/ \
 
 ## 故障排除
 
-### java.lang.OutOfMemoryError的异常。Java堆空间
+### 编译时出现 OutOfMemoryError 的异常
 
-如果你看到`java.lang.OutOfMemoryError: Java heap space`，请设置如下变量增大maven可使用的内存空间。
+如果你看到`java.lang.OutOfMemoryError: Java heap space`，请增大如下maven变量，以增加可使用的内存空间。
 
 ```console
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
@@ -198,7 +198,8 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 如果你看到maven有以下错误信息。
 "`Failed to execute goal org.codehaus.mojo:buildnumber-maven-plugin:1.4:create-metadata (default) on project alluxio-core-common: Execution default of goal org.codehaus.mojo:buildnumber-maven-plugin:1.4:create-metadata failed: NullPointerException`"
 
-是由于`build number`是基于从SCM检索的`revision number`，它将从git哈希代码中检查`build number`。如果检查失败，SCM就会抛出NPE。为避免该异常，请用maven参数"`-Dmaven.buildNumber.revisionOnScmFailure`"来设置Alluxio版本。
+是由于`build number`是基于从SCM检索的`revision number`，它将从git哈希代码中检查`build number`。
+如果检查失败，SCM就会抛出NPE。为避免该异常，请用maven参数"`-Dmaven.buildNumber.revisionOnScmFailure`"来设置Alluxio版本。
 例如，如果alluxio的版本是2.7.3，那么请设置参数"`-Dmaven.buildNumber.revisionOnScmFailure=2.7.3`"。
 
-更多信息可见https://www.mojohaus.org/buildnumber-maven-plugin/create-mojo.html#revisionOnScmFailure。
+更多信息可见[此处](https://www.mojohaus.org/buildnumber-maven-plugin/create-mojo.html#revisionOnScmFailure)。
