@@ -241,16 +241,16 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     UfsManager.UfsClient ufsClient = mUfsManager.get(blockInfo.getMeta().getMountId());
     Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
         new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), options.getUser()),
-        key -> key.mUser == null
+        key -> key.getUser() == null
             ? MetricsSystem.counterWithTags(
                 MetricKey.WORKER_BYTES_READ_UFS.getName(),
                 MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
-                MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
+                MetricInfo.TAG_UFS, MetricsSystem.escape(key.getUri()))
             : MetricsSystem.counterWithTags(
                 MetricKey.WORKER_BYTES_READ_UFS.getName(),
                 MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
-                MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
-                MetricInfo.TAG_USER, key.mUser));
+                MetricInfo.TAG_UFS, MetricsSystem.escape(key.getUri()),
+                MetricInfo.TAG_USER, key.getUser()));
     Meter ufsBytesReadThroughput = mUfsBytesReadThroughputMetrics.computeIfAbsent(
         ufsClient.getUfsMountPointUri(),
         uri -> MetricsSystem.meterWithTags(
@@ -353,33 +353,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
   }
 
-  private static class BytesReadMetricKey {
-    private final AlluxioURI mUri;
-    private final String mUser;
-
-    BytesReadMetricKey(AlluxioURI uri, String user) {
-      mUri = uri;
-      mUser = user;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      BytesReadMetricKey that = (BytesReadMetricKey) o;
-      return mUri.equals(that.mUri) && mUser.equals(that.mUser);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mUri, mUser);
-    }
-  }
 
   /**
    * This class is to wrap block reader/writer and the block meta into one class. The block
