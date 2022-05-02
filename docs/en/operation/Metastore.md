@@ -57,7 +57,8 @@ These tuning parameters primarily affect the behavior of the cache.
 ### Metrics and memory usage
 Alluxio exposes all RocksDB metrics found [here](https://github.com/facebook/rocksdb/blob/2b5c29f9f3a5c622031368bf3bf4566f5c590ce5/include/rocksdb/db.h#L1104-L1136).
 Alluxio uses one RocksDB database for blocks and one for inodes. Both databases have their own set of metrics. The naming of
-such metrics follows the pattern of `rocksdb.name-of-metric > Master.Rocks<Block | Inode>NameOfMetric`.
+such metrics follows the pattern of `rocksdb.name-of-metric > Master.Rocks<Block | Inode>NameOfMetric`. All metrics are 
+aggregated across all columns present in RocksDB.
 
 The metrics that concern memory usage are explored in the [RocksDB wiki](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB).
 These are important as RocksDB is written in C++ and used through the JNI in Java. This means that RocksDB's memory usage is not
