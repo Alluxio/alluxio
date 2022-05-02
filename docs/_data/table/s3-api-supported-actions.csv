@@ -1,0 +1,24 @@
+action,endpoint,headers,queryParams
+AbortMultipartUpload,POST /{bucket}/{object}?uploadId={UploadId},None,
+CompleteMultipartUpload,POST /{bucket}/{object}?uploadId={UploadId},None,
+CopyObject,PUT /{bucket}/{object},Content-Type|x-amz-copy-source|x-amz-metadata-directive|x-amz-tagging-directive|x-amz-tagging,
+CreateBucket,PUT /{bucket},None,
+CreateMultipartUpload,POST /{bucket}/{object}?uploads,None,
+DeleteBucket,DELETE /{bucket},None,
+DeleteBucketTagging,DELETE /{bucket}?tagging,None,
+DeleteObject,DELETE /{bucket}/{object},None,
+DeleteObjects,POST /{bucket}?delete,None,
+DeleteObjectTagging,DELETE /{bucket}/{object}?tagging,None,None
+GetBucketTagging,GET /{bucket}?tagging,None,
+GetObject,GET /{bucket}/{object},Range,None
+GetObjectTagging,GET /{bucket}/{object}?tagging,None,None
+HeadObject,HEAD /{bucket}/{object},None,None
+ListBuckets,GET /,,
+ListObjects,GET /{bucket},None,delimiter|encoding-type|marker|max-keys|prefix
+ListObjectsV2,GET /{bucket}?list-type=2,None,continuation-token|delimiter|encoding-type|max-keys|prefix|start-after
+ListParts,GET /{bucket}/{object}?uploadId={UploadId},None,None
+PutBucketTagging,PUT /{bucket}?tagging,None,
+PutObject,PUT /{bucket}/{object},Content-Length|Content-MD5|Content-Type|x-amz-tagging,
+PutObjectTagging,PUT /{bucket}/{object}?tagging,None,None
+UploadPart,PUT /{bucket}/{object}?partNumber={PartNumber}&uploadId={UploadId},Content-Length|Content-MD5,
+UploadPartCopy,PUT /{bucket}/{object}?partNumber={PartNumber}&uploadId={UploadId},x-amz-copy-source,
