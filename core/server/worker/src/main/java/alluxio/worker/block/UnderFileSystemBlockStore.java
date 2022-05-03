@@ -353,7 +353,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
   }
 
-
   /**
    * This class is to wrap block reader/writer and the block meta into one class. The block
    * reader/writer is not part of the {@link UnderFileSystemBlockMeta} because
