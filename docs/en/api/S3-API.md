@@ -40,8 +40,8 @@ in the Alluxio S3 API. Therefore, S3 clients must utilize [path-style requests](
 ### S3 Writes Implicitly Overwrite
 
 As described in the AWS S3 docs for [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html):
-> _Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written._  
-> _Amazon S3 does not provide object locking; if you need this, make sure to build it into your application layer or use versioning instead._  
+> _Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written._
+> _Amazon S3 does not provide object locking; if you need this, make sure to build it into your application layer or use versioning instead._
 - Note that at the moment the Alluxio S3 API does not support object versioning
 
 Alluxio S3 will overwrite the existing key and the temporary directory for multipart upload.
@@ -53,7 +53,7 @@ with if you used the AWS S3 console to create all parent folders for each object
 
 ### Tagging & Metadata Limits
 
-User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions).
+User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html).
 
 The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
 See the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
@@ -72,7 +72,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     <th>Description</th>
   </tr>
   <tr>
-    <td>Authorization</td>
+    <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html">Authorization</a></td>
     <td>AWS4-HMAC-SHA256
     Credential=<b>{user}</b>/...,
     SignedHeaders=...,
@@ -106,7 +106,7 @@ The following table describes the support status for current [S3 API Actions](ht
   </tr>
 {% for item in site.data.table.s3-api-supported-actions %}
   <tr>
-    <td>{{ item.action }}</td>
+    <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_{{ item.action }}.html">{{ item.action }}</a></td>
     <td>{{ item.endpoint }}</td>
     <td>
       {% assign headers = item.headers | split: "|" %}
@@ -146,6 +146,10 @@ The following table describes the support status for current [S3 API Actions](ht
 
 ## Property Keys
 
+The following table contains the configurable
+[Alluxio property keys]({{ '/en/reference/Properties-List.html' | relativize_url }})
+which pertain to the Alluxio S3 API.
+
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.common-configuration %}
@@ -160,6 +164,576 @@ The following table describes the support status for current [S3 API Actions](ht
 </table>
 
 ## Example Usage
+
+### AWS Command Line Interface
+
+You can use the [AWS command line interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
+to send S3 API requests to the Alluxio S3 API.
+
+As a pre-requisite for operations which involve the `Authorization` header you may need to [configure
+some AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html).
+- See the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }}) for details
+
+```console
+$ aws configure --profile alluxio-s3
+AWS Access Key ID [None]: {user}
+AWS Secret Access Key [None]: {dummy value}
+Default region name [None]:
+Default output format [None]:
+```
+
+#### [AbortMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "multipart_copy.txt_s3_multipart_tmp/",
+            "LastModified": "2022-05-03T13:00:13.429000+00:00",
+            "Size": 0
+        },
+        {
+            "Key": "multipart_copy.txt_s3_multipart_tmp/1",
+            "LastModified": "2022-05-03T13:00:13.584000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:55:01.925000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api abort-multipart-upload \
+  --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004
+
+$ % aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:55:01.925000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [CompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api complete-multipart-upload \
+  --bucket=testbucket --key=multipart.txt --upload-id=117440512003
+{
+    "Location": "/testbucket/multipart.txt",
+    "Bucket": "testbucket",
+    "Key": "multipart.txt",
+    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-object \
+  --bucket=testbucket --key=multipart.txt
+{
+    "LastModified": "2022-05-03T20:01:43+00:00",
+    "ContentLength": 27040,
+    "ETag": "\"1651608103030\"",
+    "ContentType": "application/octet-stream",
+    "Metadata": {}
+}
+```
+
+#### [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
+  --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
+{
+    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api copy-object \
+  --copy-source=testbucket/test.txt --bucket=testbucket --key=test_copy.txt
+{
+    "CopyObjectResult": {
+        "ETag": "911df44b7ff57801ca8d74568e4ebfbe",
+        "LastModified": "2022-05-03T11:37:16.015000+00:00"
+    }
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:35:59.243000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "test_copy.txt",
+            "LastModified": "2022-05-03T11:37:16.185000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-bucket \
+  --bucket=testbucket
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
+{
+    "Buckets": [
+        {
+            "Name": "testbucket",
+            "CreationDate": "2022-05-03T11:32:34.156000+00:00"
+        }
+    ]
+}
+```
+
+#### [CreateMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-multipart-upload \
+  --bucket=testbucket --key=multipart.txt
+{
+    "Bucket": "testbucket",
+    "Key": "multipart.txt",
+    "UploadId": "117440512002"
+}
+```
+
+#### [DeleteBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
+{
+    "Buckets": [
+        {
+            "Name": "tempbucket",
+            "CreationDate": "2022-05-03T11:55:58.134000+00:00"
+        },
+        {
+            "Name": "testbucket",
+            "CreationDate": "2022-05-03T11:32:34.156000+00:00"
+        }
+    ]
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api delete-bucket \
+  --bucket=tempbucket
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
+{
+    "Buckets": [
+        {
+            "Name": "testbucket",
+            "CreationDate": "2022-05-03T11:32:34.156000+00:00"
+        }
+    ]
+}
+```
+
+#### [DeleteBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketTagging.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
+  --bucket=testbucket
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api delete-bucket-tagging \
+  --bucket=testbucket
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
+  --bucket=testbucket
+{
+    "TagSet": []
+}
+```
+
+#### [DeleteObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "temp.txt",
+            "LastModified": "2022-05-03T11:55:01.925000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:54:19.698000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api delete-object \
+  --bucket=testbucket --key=temp.txt
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:55:01.925000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [DeleteObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=tempbucket
+{
+    "Contents": [
+        {
+            "Key": "foo.txt",
+            "LastModified": "2022-05-03T11:57:00.767000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "temp.txt",
+            "LastModified": "2022-05-03T11:56:11.245000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "temp2.txt",
+            "LastModified": "2022-05-03T11:56:31.414000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api delete-objects \
+  --bucket=tempbucket --delete="Objects=[{Key=temp.txt},{Key=temp2.txt}]"
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=tempbucket
+{
+    "Contents": [
+        {
+            "Key": "foo.txt",
+            "LastModified": "2022-05-03T11:57:00.767000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [DeleteObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjectTagging.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api delete-object-tagging \
+  --bucket=testbucket --key=test.txt
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": []
+}
+```
+
+#### [GetBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
+  --bucket=testbucket
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+```
+
+#### [GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object \
+  --bucket=testbucket --key=test.txt /tmp/test.txt
+{
+    "LastModified": "2022-05-03T18:55:01+00:00",
+    "ContentLength": 27040,
+    "ETag": "\"1651604101925\"",
+    "ContentType": "application/octet-stream",
+    "Metadata": {}
+}
+
+$ stat /tmp/test.txt
+  File: /tmp/test.txt
+  Size: 27040       Blocks: 56         IO Block: 4096   regular file
+  ...
+```
+
+#### [GetObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+```
+
+#### [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-object \
+  --bucket=testbucket --key=test.txt
+{
+    "LastModified": "2022-05-03T18:55:01+00:00",
+    "ContentLength": 27040,
+    "ETag": "\"1651604101925\"",
+    "ContentType": "application/octet-stream",
+    "Metadata": {}
+}
+```
+
+#### [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
+{
+    "Buckets": [
+        {
+            "Name": "testbucket",
+            "CreationDate": "2022-05-03T11:32:34.156000+00:00"
+        }
+    ]
+}
+```
+
+#### [ListObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:35:59.243000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "test_copy.txt",
+            "LastModified": "2022-05-03T11:37:16.185000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:35:59.243000+00:00",
+            "Size": 27040
+        },
+        {
+            "Key": "test_copy.txt",
+            "LastModified": "2022-05-03T11:37:16.185000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [ListParts](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListParts.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
+  --bucket=testbucket --key=multipart.txt --upload-id=117440512003
+{
+    "Parts": [
+        {
+            "PartNumber": 1,
+            "LastModified": "2022-05-03T12:56:27.775000+00:00",
+            "ETag": "\"\"",
+            "Size": 27040
+        }
+    ],
+    "ChecksumAlgorithm": null,
+    "Initiator": null,
+    "Owner": null,
+    "StorageClass": "STANDARD"
+}
+```
+
+#### [PutBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
+  --bucket=testbucket
+{
+    "TagSet": []
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-bucket-tagging \
+  --bucket=testbucket --tagging='TagSet=[{Key=key1,Value=val1},{Key=key2,Value=val2}]'
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
+  --bucket=testbucket
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+```
+
+#### [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
+  --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
+{
+    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+  --bucket=testbucket
+{
+    "Contents": [
+        {
+            "Key": "test.txt",
+            "LastModified": "2022-05-03T11:35:59.243000+00:00",
+            "Size": 27040
+        }
+    ]
+}
+```
+
+#### [PutObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": []
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object-tagging \
+  --bucket=testbucket --key=test.txt --tagging='TagSet=[{Key=key1,Value=val1},{Key=key2,Value=val2}]'
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+```
+
+#### [UploadPart](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part \
+  --bucket=testbucket --key=multipart.txt --upload-id=117440512003 --part-number=1 --body="./LICENSE"
+{
+    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
+  --bucket=testbucket --key=multipart.txt --upload-id=117440512003
+{
+    "Parts": [
+        {
+            "PartNumber": 1,
+            "LastModified": "2022-05-03T12:56:27.775000+00:00",
+            "ETag": "\"\"",
+            "Size": 27040
+        }
+    ],
+    "ChecksumAlgorithm": null,
+    "Initiator": null,
+    "Owner": null,
+    "StorageClass": "STANDARD"
+}
+```
+
+#### [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html)
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part-copy \
+  --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004 --part-number=1 --copy-source="testbucket/test.txt"
+{
+    "CopyPartResult": {
+        "ETag": "911df44b7ff57801ca8d74568e4ebfbe",
+        "LastModified": "2022-05-03T13:00:13.572000+00:00"
+    }
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
+  --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004
+{
+    "Parts": [
+        {
+            "PartNumber": 1,
+            "LastModified": "2022-05-03T13:00:13.584000+00:00",
+            "ETag": "\"\"",
+            "Size": 27040
+        }
+    ],
+    "ChecksumAlgorithm": null,
+    "Initiator": null,
+    "Owner": null,
+    "StorageClass": "STANDARD"
+}
+```
 
 ### REST API
 
