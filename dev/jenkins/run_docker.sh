@@ -50,7 +50,7 @@ function main {
     run_args+=" --env-file /tmp/.env"
   fi
 
-  local home="/home/jenkins"
+  local home="/home/centos"
   # Needed to run fuse tests:
   run_args+=" --cap-add SYS_ADMIN"
   run_args+=" --device /dev/fuse"

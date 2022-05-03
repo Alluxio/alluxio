@@ -73,7 +73,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       mountPointStr = mountPointStr.substring(0, mountPointStr.length() - 1);
     }
     if (!debug) {
-      arg = new String[] {getFileSystemName(), "-f", mountPointStr};
+      arg = new String[] {getFileSystemName(), "-f", mountPointStr, "max_idle_threads=64"};
     } else {
       arg = new String[] {getFileSystemName(), "-f", "-d", mountPointStr};
     }
