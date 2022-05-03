@@ -12,8 +12,10 @@
 package alluxio.worker.grpc;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -28,12 +30,12 @@ import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
 
-import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
@@ -74,7 +76,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
       public OpenLocalBlockResponse call() throws Exception {
-        Preconditions.checkState(mRequest == null);
+        checkState(mRequest == null);
         mRequest = request;
         if (mLockId.isPresent()) {
           LOG.warn("Lock block {} without releasing previous block lock {}.",
@@ -84,13 +86,17 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better
-        BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
+        Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
+        if (!meta.isPresent()) {
+          throw new BlockDoesNotExistException(
+              ExceptionMessage.BLOCK_META_NOT_FOUND, mRequest.getBlockId());
+        }
         if (mRequest.getPromote()) {
           // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
           // Because the move operation is expensive, we first check if the operation is necessary
           BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(
               WORKER_STORAGE_TIER_ASSOC.getAlias(0));
-          if (!meta.getBlockLocation().belongsTo(dst)) {
+          if (!meta.get().getBlockLocation().belongsTo(dst)) {
             // Execute the block move if necessary
             mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));
@@ -100,7 +106,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         mLocalBlockStore.accessBlock(mSessionId, mRequest.getBlockId());
         DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return OpenLocalBlockResponse.newBuilder()
-            .setPath(meta.getPath())
+            .setPath(meta.get().getPath())
             .build();
       }
 

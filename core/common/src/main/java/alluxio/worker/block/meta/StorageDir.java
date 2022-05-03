@@ -18,6 +18,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
@@ -106,10 +107,9 @@ public interface StorageDir {
    * Gets the {@link BlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link BlockMeta} of the given block or null
-   * @throws BlockDoesNotExistException if no block is found
+   * @return {@link BlockMeta} of the given block or empty
    */
-  BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException;
+  Optional<BlockMeta> getBlockMeta(long blockId);
 
   /**
    * Gets the {@link TempBlockMeta} from this storage dir by its block id.
@@ -143,9 +143,8 @@ public interface StorageDir {
    * Removes a block from this storage dir.
    *
    * @param blockMeta the metadata of the block
-   * @throws BlockDoesNotExistException if no block is found
    */
-  void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException;
+  void removeBlockMeta(BlockMeta blockMeta);
 
   /**
    * Removes a temp block from this storage dir.
