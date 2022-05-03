@@ -18,9 +18,7 @@ import alluxio.grpc.ServiceType;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,10 +29,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 public final class RegistryTest {
-
-  @Rule
-  public ExpectedException mThrown;
-
   public abstract static class TestServer implements Server<Void> {
     @Override
     @Nullable
@@ -132,18 +126,17 @@ public final class RegistryTest {
     registry.add(ServerC.class, new ServerC());
     registry.add(ServerC.class, new ServerD());
 
-    mThrown.expect(RuntimeException.class);
-    registry.getServers();
+    Assert.assertThrows(RuntimeException.class, registry::getServers);
   }
 
   @Test
   public void unavailable() {
     Registry<TestServer, Void> registry = new Registry<>();
 
-    mThrown.expect(Exception.class);
-    mThrown.expectMessage("Timed out");
-    mThrown.expectMessage("ServerB");
-    registry.get(ServerB.class, 100);
+    Exception exception = Assert.assertThrows(Exception.class,
+        () -> registry.get(ServerB.class, 100));
+    Assert.assertTrue(exception.getMessage().contains("Timed out"));
+    Assert.assertTrue(exception.getMessage().contains("ServerB"));
   }
 
   private void computePermutations(TestServer[] input, int index, List<TestServer[]> permutations) {
