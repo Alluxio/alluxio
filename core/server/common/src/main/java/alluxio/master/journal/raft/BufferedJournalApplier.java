@@ -72,13 +72,13 @@ public class BufferedJournalApplier {
   private boolean mResumeInProgress = false;
 
   /** Buffer to use during suspend period. */
-  private Queue<Journal.JournalEntry> mSuspendBuffer = new ConcurrentLinkedQueue();
+  private final Queue<Journal.JournalEntry> mSuspendBuffer = new ConcurrentLinkedQueue<>();
 
   /** Used to store latest catch-up thread. */
   private AbstractCatchupThread mCatchupThread;
 
   /** Used to synchronize buffer state. */
-  private ReentrantLock mStateLock = new ReentrantLock(true);
+  private final ReentrantLock mStateLock = new ReentrantLock(true);
 
   /**
    * Creates a buffered applier over given journals.
@@ -99,7 +99,7 @@ public class BufferedJournalApplier {
    * @param journalEntry the journal entry
    */
   public void processJournalEntry(Journal.JournalEntry journalEntry) {
-    try (LockResource stateLock = new LockResource(mStateLock)) {
+    try (LockResource ignored = new LockResource(mStateLock)) {
       if (mSuspended) {
         // New entry submissions are monitored by catch-up threads.
         synchronized (mSuspendBuffer) {
@@ -116,7 +116,7 @@ public class BufferedJournalApplier {
    * @return {@code true} if this applier was suspended
    */
   public boolean isSuspended() {
-    try (LockResource stateLock = new LockResource(mStateLock)) {
+    try (LockResource ignored = new LockResource(mStateLock)) {
       return mSuspended;
     }
   }
@@ -127,10 +127,10 @@ public class BufferedJournalApplier {
    * After this call, journal entries will be buffered until {@link #resume()} or
    * {@link #catchup(long)} is called.
    *
-   * @throws IOException
+   * @throws IOException if suspension fails
    */
   public void suspend() throws IOException {
-    try (LockResource stateLock = new LockResource(mStateLock)) {
+    try (LockResource ignored = new LockResource(mStateLock)) {
       Preconditions.checkState(!mSuspended, "Already suspended");
       mSuspended = true;
       LOG.info("Suspended state machine at sequence: {}", mLastAppliedSequence);
@@ -140,10 +140,10 @@ public class BufferedJournalApplier {
   /**
    * Resumes the applier. This method will apply all buffered entries before returning.
    *
-   * @throws IOException
+   * @throws IOException if resuming fails
    */
   public void resume() throws IOException {
-    try (LockResource stateLock = new LockResource(mStateLock)) {
+    try (LockResource ignored = new LockResource(mStateLock)) {
       Preconditions.checkState(mSuspended, "Not suspended");
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       mResumeInProgress = true;
@@ -152,12 +152,12 @@ public class BufferedJournalApplier {
 
     cancelCatchup();
 
-    /**
-     * Applies all buffered entries.
-     *
-     * It doesn't block state until
-     *   -> buffer contains few elements ( RESUME_LOCK_BUFFER_SIZE_WATERMARK )
-     *   -> was running for a long time  ( RESUME_LOCK_TIME_LIMIT_MS         )
+    /*
+      Applies all buffered entries.
+
+      It doesn't block state until
+        -> buffer contains few elements ( RESUME_LOCK_BUFFER_SIZE_WATERMARK )
+        -> was running for a long time  ( RESUME_LOCK_TIME_LIMIT_MS         )
      */
     try {
       // Mark resume start time.
@@ -203,7 +203,7 @@ public class BufferedJournalApplier {
    * @return the future to track when applier reaches the target sequence
    */
   public CatchupFuture catchup(long sequence) {
-    try (LockResource stateLock = new LockResource(mStateLock)) {
+    try (LockResource ignored = new LockResource(mStateLock)) {
       Preconditions.checkState(mSuspended, "Not suspended");
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
@@ -251,10 +251,10 @@ public class BufferedJournalApplier {
   }
 
   /**
-   * Resets the suspend applier. Should only be used when the state machine is reset.
+   * Resets the suspend-applier. Should only be used when the state machine is reset.
    */
   public void close() {
-    try (LockResource stateLock = new LockResource(mStateLock)) {
+    try (LockResource ignored = new LockResource(mStateLock)) {
       cancelCatchup();
       mSuspendBuffer.clear();
     }
@@ -265,7 +265,7 @@ public class BufferedJournalApplier {
    */
   class RaftJournalCatchupThread extends AbstractCatchupThread {
     /** Where to stop catching up. */
-    private long mCatchUpEndSequence;
+    private final long mCatchUpEndSequence;
     /** Used to stop catching up early. */
     private boolean mStopCatchingUp = false;
 

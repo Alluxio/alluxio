@@ -33,9 +33,9 @@ import javax.annotation.Nullable;
 public final class RegistryTest {
 
   @Rule
-  public ExpectedException mThrown = ExpectedException.none();
+  public ExpectedException mThrown;
 
-  public abstract class TestServer implements Server<Void> {
+  public abstract static class TestServer implements Server<Void> {
     @Override
     @Nullable
     public Map<ServiceType, GrpcService> getServices() {
@@ -112,7 +112,7 @@ public final class RegistryTest {
   public void registry() {
     List<TestServer> masters = ImmutableList.of(new ServerC(), new ServerB(), new ServerA());
     List<TestServer[]> permutations = new ArrayList<>();
-    computePermutations(masters.toArray(new TestServer[masters.size()]), 0, permutations);
+    computePermutations(masters.toArray(new TestServer[0]), 0, permutations);
     // Make sure that the registry orders the masters independently of the order in which they
     // are registered.
     for (TestServer[] permutation : permutations) {

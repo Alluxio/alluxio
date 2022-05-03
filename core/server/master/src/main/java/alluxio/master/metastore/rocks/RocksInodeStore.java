@@ -355,7 +355,8 @@ public class RocksInodeStore implements InodeStore {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-        sb.append("Inode " + Longs.fromByteArray(inodeIter.key()) + ": " + inode + "\n");
+        sb.append("Inode ").append(Longs.fromByteArray(inodeIter.key())).append(": ").append(inode)
+            .append("\n");
         inodeIter.next();
       }
     }
