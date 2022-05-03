@@ -84,9 +84,9 @@ It is also recommended to put all the proxy servers behind a load balancer.
     <br/><br/>
     Therefore this header is used exclusively to specify an Alluxio ACL username to perform an
     operation with. In order to remain compatible with other S3 clients, the header is still
-    expected to contain all the fields in accordance with the
+    expected to follow the
     <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html">AWS Signature Version 4</a>
-    documentation.
+    format.
     <br/><br/>
     When supplying an access key to an S3 client, put the intended Alluxio ACL username.
     The secret key is unused so you may use any dummy value.</td>
@@ -168,11 +168,14 @@ which pertain to the Alluxio S3 API.
 ### AWS Command Line Interface
 
 You can use the [AWS command line interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
-to send S3 API requests to the Alluxio S3 API.
+to send S3 API requests to the Alluxio S3 API. Note that you will have to provide the `--endpoint` parameter
+to specify the location of the Alluxio S3 REST API with the server's base URI included
+(i.e: `--endpoint "http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
 
 As a pre-requisite for operations which involve the `Authorization` header you may need to [configure
 some AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html).
-- See the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }}) for details
+- See the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
+  for details on how Alluxio uses this header
 
 ```console
 $ aws configure --profile alluxio-s3
@@ -743,7 +746,8 @@ The Alluxio proxy is listening at port 39999 by default.
 #### Authorization
 
 At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
-Therefore the 'Authorization' header is used purely to specify the intended user to perform a request.
+Therefore the [Authorization header](({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
+is used purely to specify the intended user to perform a request.
 
 ```console
 $ bin/alluxio fs ls /
