@@ -89,7 +89,7 @@ public final class TestRunner {
    */
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
-    JCommander jCommander = new JCommander(runner, args);
+    JCommander jCommander = new JCommander(runner, null, args);
     jCommander.setProgramName("TestRunner");
     if (runner.mHelp) {
       jCommander.usage();

@@ -129,7 +129,7 @@ public final class LogLevel {
     String level = parseOptLevel(cmd);
 
     for (TargetInfo targetInfo : targets) {
-      setLogLevel(targetInfo, logName, level, alluxioConf);
+      setLogLevel(targetInfo, logName, level);
     }
   }
 
@@ -274,8 +274,7 @@ public final class LogLevel {
     return null;
   }
 
-  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level,
-                                  AlluxioConfiguration alluxioConf)
+  private static void setLogLevel(final TargetInfo targetInfo, String logName, String level)
       throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
@@ -286,11 +285,11 @@ public final class LogLevel {
     if (level != null) {
       uriBuilder.addParameter(LEVEL_OPTION_NAME, level);
     }
-    LOG.info("Setting log level on {}", uriBuilder.toString());
+    LOG.info("Setting log level on {}", uriBuilder);
     HttpUtils.post(uriBuilder.toString(), "", 5000, inputStream -> {
       ObjectMapper mapper = new ObjectMapper();
       LogInfo logInfo = mapper.readValue(inputStream, LogInfo.class);
-      System.out.println(targetInfo.toString() + logInfo.toString());
+      System.out.println(targetInfo + logInfo.toString());
     });
   }
 
@@ -339,9 +338,9 @@ public final class LogLevel {
    * Object that represents a REST endpoint that logLevel sends HTTP request to.
    * */
   public static final class TargetInfo {
-    private String mRole;
-    private String mHost;
-    private int mPort;
+    private final String mRole;
+    private final String mHost;
+    private final int mPort;
 
     /**
      * Constructor.

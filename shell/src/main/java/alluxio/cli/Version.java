@@ -61,7 +61,7 @@ public final class Version {
         revision = String.format("-%s", ProjectConstants.REVISION.substring(0,
             Math.min(revisionLen, ProjectConstants.REVISION.length())));
       }
-      System.out.println(String.format("%s%s", RuntimeConstants.VERSION, revision));
+      System.out.printf("%s%s%n", RuntimeConstants.VERSION, revision);
       System.exit(0);
     } catch (ParseException e) {
       printUsage(opts);
