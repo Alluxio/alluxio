@@ -196,7 +196,8 @@ public final class AlluxioFuse {
         try {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
               mountConfig.getMountPoint(), fuseOpts.toArray(new String[0]));
-          fuseFs.mount(blocking, mountConfig.isDebug(), fuseOpts.toArray(new String[0]));
+          fuseFs.mount(blocking, mountConfig.isDebug(), mountConfig.getMaxIdleThreads(),
+              fuseOpts.toArray(new String[0]));
           return fuseFs;
         } catch (FuseException e) {
           // only try to umount file system when exception occurred.

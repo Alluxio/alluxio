@@ -50,7 +50,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         FuseMountConfig.create(mountPoint, alluxioRoot, ImmutableList.of(), conf);
     mFuseFileSystem =
         new AlluxioJniFuseFileSystem(context, fileSystem, options, conf);
-    mFuseFileSystem.mount(false, false, new String[] {});
+    mFuseFileSystem.mount(false, false, 64, new String[] {});
   }
 
   @Override

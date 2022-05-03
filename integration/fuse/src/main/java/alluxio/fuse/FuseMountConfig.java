@@ -29,6 +29,7 @@ public final class FuseMountConfig {
   private final String mMountPoint;
   private final String mAlluxioPath;
   private final boolean mDebug;
+  private final int mMaxIdleThreads;
   private final List<String> mFuseOptions;
 
   /**
@@ -71,11 +72,12 @@ public final class FuseMountConfig {
     }
     fuseOptions = AlluxioFuse.parseFuseOptions(fuseOptions, conf);
     return new FuseMountConfig(mountPoint, alluxioPath, fuseOptions,
+        conf.getInt(PropertyKey.FUSE_LIBFUSE3_MAX_IDLE_THREADS),
         conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED));
   }
 
   private FuseMountConfig(String mountPoint, String alluxioPath,
-      List<String> fuseOptions, boolean debug) {
+      List<String> fuseOptions, int maxIdleThreads, boolean debug) {
     Preconditions.checkArgument(mountPoint != null && !mountPoint.isEmpty(),
         "Fuse mount point should be set");
     Preconditions.checkArgument(alluxioPath != null && !alluxioPath.isEmpty(),
@@ -85,6 +87,7 @@ public final class FuseMountConfig {
     mMountPoint = mountPoint;
     mAlluxioPath = alluxioPath;
     mFuseOptions = fuseOptions;
+    mMaxIdleThreads = maxIdleThreads;
     mDebug = debug;
   }
 
@@ -114,5 +117,12 @@ public final class FuseMountConfig {
    */
   public boolean isDebug() {
     return mDebug;
+  }
+
+  /**
+   * @return Maximum number of idle fuse threads enforced by libfuse3
+   */
+  public int getMaxIdleThreads() {
+    return mMaxIdleThreads;
   }
 }

@@ -59,9 +59,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
    *
    * @param blocking whether this command is blocking
    * @param debug whether to show debug information
+   * @param maxIdleThreads maximum number of idle threads enforced by libfuse3
    * @param fuseOpts
    */
-  public void mount(boolean blocking, boolean debug, String[] fuseOpts) {
+  public void mount(boolean blocking, boolean debug, int maxIdleThreads, String[] fuseOpts) {
     if (!mounted.compareAndSet(false, true)) {
       throw new FuseException("Fuse File System already mounted!");
     }
@@ -72,10 +73,11 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (mountPointStr.endsWith("\\")) {
       mountPointStr = mountPointStr.substring(0, mountPointStr.length() - 1);
     }
+    String maxIdleThreadsStr = "max_idle_threads=" + maxIdleThreads;
     if (!debug) {
-      arg = new String[] {getFileSystemName(), "-f", mountPointStr};
+      arg = new String[] {getFileSystemName(), "-f", mountPointStr, maxIdleThreadsStr};
     } else {
-      arg = new String[] {getFileSystemName(), "-f", "-d", mountPointStr};
+      arg = new String[] {getFileSystemName(), "-f", "-d", mountPointStr, maxIdleThreadsStr};
     }
     if (fuseOpts.length != 0) {
       int argLen = arg.length;

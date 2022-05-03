@@ -5624,6 +5624,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "other value to use libfuse2 first, libfuse3 if libfuse2 failed")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey FUSE_LIBFUSE3_MAX_IDLE_THREADS =
+      intBuilder(Name.FUSE_LIBFUSE3_MAX_IDLE_THREADS)
+          .setDefaultValue(64)
+          .setDescription("The maximum number of idle fuse daemon threads allowed enforced "
+              + "by libfuse3. If the value is too small, FUSE may frequently create and destroy "
+              + "threads, which introduces extra performance overhead.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_SHARED_CACHING_READER_ENABLED =
       booleanBuilder(Name.FUSE_SHARED_CACHING_READER_ENABLED)
           .setDefaultValue(false)
@@ -7342,6 +7350,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
+    public static final String FUSE_JNIFUSE_LIBFUSE_VERSION =
+        "alluxio.fuse.jnifuse.libfuse.version";
+    public static final String FUSE_LIBFUSE3_MAX_IDLE_THREADS
+        = "alluxio.fuse.libfuse3.max.idle.threads";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
@@ -7365,8 +7377,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
-    public static final String FUSE_JNIFUSE_LIBFUSE_VERSION =
-        "alluxio.fuse.jnifuse.libfuse.version";
 
     //
     // Security related properties
