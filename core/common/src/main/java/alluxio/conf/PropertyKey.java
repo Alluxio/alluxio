@@ -4929,8 +4929,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE =
-      new Builder(Name.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE)
-          .setDefaultValue("0")
+      dataSizeBuilder(Name.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE)
+          .setDefaultValue("0B")
           .setDescription("Size of the reading buffer for tiny read.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
