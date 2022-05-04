@@ -118,7 +118,8 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] bytesBuffer, int offset, int length) throws IOException {
-    return readInternal(bytesBuffer, offset, length, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
+    return readInternal(bytesBuffer, offset, length, ReadType.READ_INTO_BYTE_ARRAY, mPosition,
+        false);
   }
 
   @Override
@@ -133,8 +134,8 @@ public class LocalCacheFileInStream extends FileInStream {
     return totalBytesRead;
   }
 
-  private int bufferedRead(byte[] bytesBuffer, int offset, int length, ReadType readType, long position,
-                           Stopwatch stopwatch) throws IOException {
+  private int bufferedRead(byte[] bytesBuffer, int offset, int length, ReadType readType,
+                           long position, Stopwatch stopwatch) throws IOException {
     if (mBuffer == null) { //buffer is disabled, read data from local cache directly.
       return localCachedRead(bytesBuffer, offset, length, readType, position, stopwatch);
     }
@@ -151,7 +152,8 @@ public class LocalCacheFileInStream extends FileInStream {
         return localCachedRead(bytesBuffer, offset, length, readType, position, stopwatch);
       } else {
         int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - position);
-        int bytesRead = localCachedRead(mBuffer, 0, bytesLoadToBuffer, readType, position, stopwatch);
+        int bytesRead =
+            localCachedRead(mBuffer, 0, bytesLoadToBuffer, readType, position, stopwatch);
         mBufferStartOffset = position;
         mBufferEndOffset = position + bytesRead;
         int dataReadFromBuffer = Math.min(bytesRead, length);
@@ -163,9 +165,8 @@ public class LocalCacheFileInStream extends FileInStream {
     }
   }
 
-  private int localCachedRead(byte[] bytesBuffer, int offset, int length, ReadType readType, long position,
-                              Stopwatch stopwatch)
-      throws IOException {
+  private int localCachedRead(byte[] bytesBuffer, int offset, int length, ReadType readType,
+                              long position, Stopwatch stopwatch) throws IOException {
     long currentPage = position / mPageSize;
     PageId pageId;
     CacheContext cacheContext = mStatus.getCacheContext();
@@ -178,8 +179,9 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
-    int bytesRead = mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, offset,
-        mCacheContext);
+    int bytesRead =
+        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, offset,
+            mCacheContext);
     stopwatch.stop();
     if (bytesRead > 0) {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
@@ -217,8 +219,8 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
-  private int readInternal(byte[] bytesBuffer, int offset, int length, ReadType readType, long position,
-      boolean isPositionedRead) throws IOException {
+  private int readInternal(byte[] bytesBuffer, int offset, int length, ReadType readType,
+                           long position, boolean isPositionedRead) throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
@@ -243,7 +245,8 @@ public class LocalCacheFileInStream extends FileInStream {
         mPosition = currentPosition;
       }
     }
-    if (totalBytesRead > length || (totalBytesRead < length && currentPosition < mStatus.getLength())) {
+    if (totalBytesRead > length
+        || (totalBytesRead < length && currentPosition < mStatus.getLength())) {
       throw new IOException(String.format("Invalid number of bytes read - "
           + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
           length, totalBytesRead, remaining()));
@@ -348,7 +351,8 @@ public class LocalCacheFileInStream extends FileInStream {
    * @param position the position which the page will contain
    * @return a byte array of the page data
    */
-  private synchronized byte[] readExternalPage(long position, ReadType readType) throws IOException {
+  private synchronized byte[] readExternalPage(long position, ReadType readType)
+      throws IOException {
     long pageStart = position - (position % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
