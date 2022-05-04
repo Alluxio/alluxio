@@ -100,14 +100,12 @@ The following table describes the support status for current [S3 API Actions](ht
 <table class="table table-striped">
   <tr>
     <th>S3 API Action</th>
-    <th>REST API Endpoint</th>
     <th>Supported Headers</th>
     <th>Supported Query Parameters</th>
   </tr>
 {% for item in site.data.table.s3-api-supported-actions %}
   <tr>
     <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_{{ item.action }}.html">{{ item.action }}</a></td>
-    <td>{{ item.endpoint }}</td>
     <td>
       {% assign headers = item.headers | split: "|" %}
       {% if headers.size == 0 %}
@@ -193,7 +191,7 @@ Note that the base URI for the Alluxio S3 API's REST server is `/api/v1/s3/`
 (i.e: your requests should be directed to `"http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
 
 At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
-Therefore the [Authorization header](({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
+Therefore the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
 is used purely to specify the intended user to perform a request. The header follows the
 [AWS Signature Version 4](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 format.
