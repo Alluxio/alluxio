@@ -330,6 +330,12 @@ public class TieredBlockStore implements LocalBlockStore
       WorkerOutOfSpaceException, IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
         blockId, moveOptions);
+    BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
+        () -> new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId));
+    if (meta.getBlockLocation().belongsTo(moveOptions.getLocation())) {
+      return;
+    }
+    // Execute the block move if necessary
     MoveBlockResult result = moveBlockInternal(sessionId, blockId, moveOptions);
     if (result.getSuccess()) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {

@@ -97,20 +97,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // noop
-  }
-
-  @Override
-  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // noop
-  }
-
-  @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {

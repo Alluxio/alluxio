@@ -221,23 +221,6 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void moveBlock() throws Exception {
-    long blockId = mRandom.nextLong();
-    long sessionId = mRandom.nextLong();
-    mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", 1));
-    mBlockWorker.commitBlock(sessionId, blockId, true);
-    // move sure this block is on tier 1
-    mBlockWorker.moveBlock(sessionId, blockId, 1);
-    assertEquals(Constants.MEDIUM_HDD,
-        mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId).get()
-            .getBlockLocation().tierAlias());
-    mBlockWorker.moveBlock(sessionId, blockId, 0);
-    assertEquals(Constants.MEDIUM_MEM,
-        mBlockWorker.getLocalBlockStore().getVolatileBlockMeta(blockId).get()
-            .getBlockLocation().tierAlias());
-  }
-
-  @Test
   public void removeBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
