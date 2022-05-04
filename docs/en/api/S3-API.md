@@ -56,12 +56,13 @@ with if you used the AWS S3 console to create all parent folders for each object
 User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html).
 
 The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
-See the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
+Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
 
 ### Performance Implications
 
-The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/FS-API.html#rest-api' | relativize_url }}), introducing an extra hop.
-For optimal performance, it is recommended to run the proxy server and an Alluxio worker on each compute node.
+The S3 API leverages the [Alluxio REST proxy]({{ '/en/api/FS-API.html#rest-api' | relativize_url }})
+, introducing an additional network hop for Alluxio clients. For optimal performance,
+it is recommended to run the proxy server and an Alluxio worker on each compute node.
 It is also recommended to put all the proxy servers behind a load balancer.
 
 ## Global request headers
@@ -172,8 +173,8 @@ to send S3 API requests to the Alluxio S3 API. Note that you will have to provid
 to specify the location of the Alluxio S3 REST API with the server's base URI included
 (i.e: `--endpoint "http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
 
-As a pre-requisite for operations which involve the `Authorization` header you may need to [configure
-some AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html).
+As a pre-requisite for operations which involve the `Authorization` header you may need to
+[configure AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html).
 - See the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
   for details on how Alluxio uses this header
 
