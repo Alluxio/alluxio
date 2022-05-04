@@ -21,4 +21,3 @@ PutBucketTagging,None,
 PutObject,Content-Length|Content-MD5|Content-Type|x-amz-tagging,
 PutObjectTagging,None,None
 UploadPart,Content-Length|Content-MD5,
-UploadPartCopy,x-amz-copy-source,
