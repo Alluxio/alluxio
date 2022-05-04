@@ -19,7 +19,7 @@ jobs:
           - >-
             alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
           - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
+            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
           - >-

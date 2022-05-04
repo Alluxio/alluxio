@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Integration tests for JNR-FUSE based {@link AlluxioJniFuseFileSystem}.
+ * Integration tests for JNI-FUSE based {@link AlluxioJniFuseFileSystem}.
  */
 public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private static final int FILE_LEN = 128;
