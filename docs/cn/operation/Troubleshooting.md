@@ -58,7 +58,6 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 提示:
 
 - 通常情况下, 当Alluxio workers和计算框架的节点部署在一起的时候，性能可达到最优
-- 如果你正在使用Mesos或者Yarn管理集群,也可以将Mesos和Yarn集成到Alluxio中，使用Mesos和Yarn可方便集群管理
 - 如果底层存储是远程的，比如说S3或者远程HDFS,这种情况下，使用Alluxio会非常有帮助
 
 ## ALLuxio使用常见问题
