@@ -203,7 +203,7 @@ $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHead
 {% endnavtabs %}
 
 #### [AbortMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html)
-{% navtabs %}
+{% navtabs abort_multipart_upload %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
@@ -312,7 +312,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [CompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html)
-{% navtabs %}
+{% navtabs complete_multipart_upload %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api complete-multipart-upload \
@@ -368,7 +368,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
-{% navtabs %}
+{% navtabs copy_object %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api copy-object \
@@ -446,7 +446,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
-{% navtabs %}
+{% navtabs create_bucket %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-bucket \
@@ -494,7 +494,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [CreateMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html)
-{% navtabs %}
+{% navtabs create_multipart_upload %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-multipart-upload \
@@ -526,7 +526,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [DeleteBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html)
-{% navtabs %}
+{% navtabs delete_bucket %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
@@ -607,7 +607,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [DeleteBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketTagging.html)
-{% navtabs %}
+{% navtabs delete_bucket_tagging %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
@@ -678,7 +678,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [DeleteObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html)
-{% navtabs %}
+{% navtabs delete_object %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
@@ -777,7 +777,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [DeleteObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html)
-{% navtabs %}
+{% navtabs delete_objects %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
@@ -915,7 +915,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [DeleteObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjectTagging.html)
-{% navtabs %}
+{% navtabs delete_object_tagging %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
@@ -986,7 +986,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [GetBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html)
-{% navtabs %}
+{% navtabs get_bucket_tagging %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
@@ -1032,7 +1032,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
-{% navtabs %}
+{% navtabs get_object %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object \
@@ -1070,7 +1070,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [GetObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html)
-{% navtabs %}
+{% navtabs get_object_tagging %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
@@ -1116,7 +1116,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html)
-{% navtabs %}
+{% navtabs head_object %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-object \
@@ -1146,7 +1146,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html)
-{% navtabs %}
+{% navtabs list_buckets %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
@@ -1183,7 +1183,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [ListObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html)
-{% navtabs %}
+{% navtabs list_objects %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
@@ -1238,7 +1238,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
-{% navtabs %}
+{% navtabs list_objects_v2 %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
@@ -1294,7 +1294,7 @@ Server: Jetty(9.4.43.v20210629)
 
 
 #### [ListParts](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListParts.html)
-{% navtabs %}
+{% navtabs list_parts %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
@@ -1343,7 +1343,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [PutBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html)
-{% navtabs %}
+{% navtabs put_bucket_tagging %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
@@ -1430,7 +1430,7 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html)
-{% navtabs %}
+{% navtabs put_object %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
   --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
@@ -1491,8 +1491,33 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 #### [PutObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html)
-{% navtabs %}
+{% navtabs put_object_tagging %}
 {% navtab AWS CLI %}
+```console
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": []
+}
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object-tagging \
+  --bucket=testbucket --key=test.txt --tagging='TagSet=[{Key=key1,Value=val1},{Key=key2,Value=val2}]'
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
+  --bucket=testbucket --key=test.txt
+{
+    "TagSet": [
+        {
+            "Key": "key1",
+            "Value": "val1"
+        },
+        {
+            "Key": "key2",
+            "Value": "val2"
+        }
+    ]
+}
+```
 {% endnavtab %}
 {% navtab REST Clients %}
 ```console
@@ -1551,34 +1576,9 @@ Server: Jetty(9.4.43.v20210629)
 ```
 {% endnavtab %}
 {% endnavtabs %}
-```console
-$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
-  --bucket=testbucket --key=test.txt
-{
-    "TagSet": []
-}
-
-$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object-tagging \
-  --bucket=testbucket --key=test.txt --tagging='TagSet=[{Key=key1,Value=val1},{Key=key2,Value=val2}]'
-
-$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
-  --bucket=testbucket --key=test.txt
-{
-    "TagSet": [
-        {
-            "Key": "key1",
-            "Value": "val1"
-        },
-        {
-            "Key": "key2",
-            "Value": "val2"
-        }
-    ]
-}
-```
 
 #### [UploadPart](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html)
-{% navtabs %}
+{% navtabs upload_part %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part \
@@ -1639,7 +1639,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 
 
 #### [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html)
-{% navtabs %}
+{% navtabs upload_part_copy %}
 {% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part-copy \
