@@ -53,9 +53,9 @@ public class LocalCacheFileInStream extends FileInStream {
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
+  private final int mBufferSize;
 
   private byte[] mBuffer = null;
-  private final int mBufferSize;
   private long mBufferStartOffset;
   private long mBufferEndOffset;
 
@@ -110,6 +110,7 @@ public class LocalCacheFileInStream extends FileInStream {
     Metrics.registerGauges();
 
     mBufferSize = (int) conf.getBytes(PropertyKey.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE);
+    Preconditions.checkArgument(mBufferSize >= 0, "Buffer size cannot be negative. %s", mPageSize);
     if (mBufferSize > 0) {
       mBuffer = new byte[mBufferSize];
     }
