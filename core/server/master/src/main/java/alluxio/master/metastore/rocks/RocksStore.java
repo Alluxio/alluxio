@@ -59,16 +59,18 @@ public final class RocksStore implements Closeable {
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
-  private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
+  private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
    * @param name a name to distinguish what store this is
    * @param dbPath a path for the rocks database
    * @param checkpointPath a path for taking database checkpoints
+   * @param dbOpts the configured RocksDB options
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param columnHandles column handle references to populate
    */
   public RocksStore(String name, String dbPath, String checkpointPath,
+      DBOptions dbOpts,
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
@@ -76,12 +78,7 @@ public final class RocksStore implements Closeable {
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
     mColumnFamilyDescriptors = columnFamilyDescriptors;
-    mDbOpts = new DBOptions()
-            // Concurrent memtable write is not supported for hash linked list memtable
-            .setAllowConcurrentMemtableWrite(false)
-            .setMaxOpenFiles(-1)
-            .setCreateIfMissing(true)
-            .setCreateMissingColumnFamilies(true);
+    mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     try {
       resetDb();
