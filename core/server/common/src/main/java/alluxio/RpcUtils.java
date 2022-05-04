@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.conf.SensitiveConfigMask;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
 import alluxio.metrics.Metric;
@@ -122,6 +123,17 @@ public final class RpcUtils {
       T res = callable.call();
       logger.debug("Exit: {}: {}", methodName, debugDesc);
       return res;
+    } catch (AlluxioRuntimeException e) {
+      logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
+      if (!failureOk) {
+        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+        if (!logger.isDebugEnabled()) {
+          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+              String.format(description, processObjects(logger, args)),
+              e.toString());
+        }
+      }
+      throw e.toGrpcStatusException();
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
@@ -199,7 +211,7 @@ public final class RpcUtils {
     }
   }
 
-  protected static Object[] processObjects(Logger logger, Object... args) {
+  private static Object[] processObjects(Logger logger, Object... args) {
     return SENSITIVE_CONFIG_MASKER == null
         ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args);
   }
