@@ -401,6 +401,7 @@ public final class S3RestServiceHandler {
               .readValue(is);
           List<DeleteObjectsRequest.DeleteObject> objs =
                request.getToDelete();
+          LOG.debug("Deleting objects: {}", objs);
           List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
           List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
           objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
@@ -434,9 +435,10 @@ public final class S3RestServiceHandler {
             result.setDeleted(success);
           }
           result.setErrored(errored);
+          LOG.debug("DeleteObjectsResult: {}", result);
           return result;
         } catch (IOException e) {
-          LOG.debug("Failed to parse DeleteObjects request:", e);
+          LOG.error("Failed to parse DeleteObjects request:", e);
           return Response.Status.BAD_REQUEST;
         }
       } else { // Silently swallow this POST request
