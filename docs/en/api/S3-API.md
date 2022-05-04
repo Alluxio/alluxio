@@ -165,8 +165,10 @@ which pertain to the Alluxio S3 API.
 
 ## Example Usage
 
-### AWS Command Line Interface
+### S3 API Actions
 
+{% navtabs s3_api_actions %}
+{% navtab AWS CLI %}
 You can use the [AWS command line interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
 to send S3 API requests to the Alluxio S3 API. Note that you will have to provide the `--endpoint` parameter
 to specify the location of the Alluxio S3 REST API with the server's base URI included
@@ -184,8 +186,27 @@ AWS Secret Access Key [None]: {dummy value}
 Default region name [None]:
 Default output format [None]:
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+You can directly use any HTTP client to send S3 API requests to the Alluxio S3 API.
+Note that the base URI for the Alluxio S3 API's REST server is `/api/v1/s3/`
+(i.e: your requests should be directed to `"http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
+
+At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
+Therefore the [Authorization header](({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
+is used purely to specify the intended user to perform a request. The header follows the
+[AWS Signature Version 4](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
+format.
+
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." ...
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [AbortMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
@@ -224,8 +245,77 @@ $ % aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3ap
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:45:17 GMT
+Content-Type: application/xml
+Content-Length: 583
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Marker/>
+  <Prefix/>
+  <IsTruncated>false</IsTruncated>
+  <Name>testbucket</Name>
+  <Contents>
+    <Key>multipart.txt_s3_multipart_tmp/</Key>
+    <Size>0</Size>
+    <LastModified>2022-05-03T16:44:17.490Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>multipart.txt_s3_multipart_tmp/1</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T16:44:17.715Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X DELETE "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059648"
+HTTP/1.1 204 No Content
+Date: Tue, 03 May 2022 23:45:30 GMT
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:45:36 GMT
+Content-Type: application/xml
+Content-Length: 318
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Marker/>
+  <Prefix/>
+  <IsTruncated>false</IsTruncated>
+  <Name>testbucket</Name>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [CompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api complete-multipart-upload \
   --bucket=testbucket --key=multipart.txt --upload-id=117440512003
@@ -246,15 +336,43 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "Metadata": {}
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X POST "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649"
+
+Date: Tue, 03 May 2022 23:59:17 GMT
+Content-Type: text/xml;charset=utf-8
+Transfer-Encoding: chunked
+Server: Jetty(9.4.43.v20210629)
+
+<CompleteMultipartUploadResult>
+  <Location>/testbucket/multipart.txt</Location>
+  <Bucket>testbucket</Bucket>
+  <Key>multipart.txt</Key>
+  <ETag>"911df44b7ff57801ca8d74568e4ebfbe"</ETag>
+  <Code/>
+  <Message/>
+</CompleteMultipartUploadResult>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  --head "http://localhost:39999/api/v1/s3/testbucket/multipart.txt"
+HTTP/1.1 200 OK
+Date: Wed, 04 May 2022 00:00:40 GMT
+Last-Modified: Tue, 03 May 2022 23:59:18 GMT
+ETag: "1651622358116"
+Content-Type: application/octet-stream
+Content-Length: 27040
+Server: Jetty(9.4.43.v20210629)
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
-$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
-  --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
-{
-    "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
-}
-
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api copy-object \
   --copy-source=testbucket/test.txt --bucket=testbucket --key=test_copy.txt
 {
@@ -264,7 +382,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     }
 }
 
-$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
   --bucket=testbucket
 {
     "Contents": [
@@ -281,8 +399,57 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "x-amz-copy-source: testbucket/test.txt" \
+  -X PUT http://localhost:39999/api/v1/s3/testbucket/test_copy.txt
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:50:07 GMT
+Content-Type: application/xml
+Content-Length: 135
+Server: Jetty(9.4.43.v20210629)
+
+<CopyObjectResult>
+  <ETag>911df44b7ff57801ca8d74568e4ebfbe</ETag>
+  <LastModified>2022-05-03T14:50:07.781Z</LastModified>
+</CopyObjectResult>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:50:26 GMT
+Content-Type: application/xml
+Content-Length: 434
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>test_copy.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:50:07.790Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>testbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-bucket \
   --bucket=testbucket
@@ -297,8 +464,40 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X PUT http://localhost:39999/api/v1/s3/testbucket
+
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:35:05 GMT
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:35:23 GMT
+Content-Type: application/xml
+Content-Length: 161
+Server: Jetty(9.4.43.v20210629)
+
+<ListAllMyBucketsResult>
+  <Buckets>
+    <Bucket>
+      <Name>testbucket</Name>
+      <CreationDate>2022-05-03T14:34:56.420Z</CreationDate>
+    </Bucket>
+  </Buckets>
+</ListAllMyBucketsResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [CreateMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-multipart-upload \
   --bucket=testbucket --key=multipart.txt
@@ -308,8 +507,29 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "UploadId": "117440512002"
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X POST "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploads"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:41:26 GMT
+Content-Type: application/xml
+Content-Length: 147
+Server: Jetty(9.4.43.v20210629)
+
+<InitiateMultipartUploadResult>
+  <Bucket>testbucket</Bucket>
+  <Key>multipart.txt</Key>
+  <UploadId>134268059648</UploadId>
+</InitiateMultipartUploadResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [DeleteBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
 {
@@ -338,8 +558,59 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:43:20 GMT
+Content-Type: application/xml
+Content-Length: 254
+Server: Jetty(9.4.43.v20210629)
+
+<ListAllMyBucketsResult>
+  <Buckets>
+    <Bucket>
+      <Name>tempbucket</Name>
+      <CreationDate>2022-05-03T14:43:03.651Z</CreationDate>
+    </Bucket>
+    <Bucket>
+      <Name>testbucket</Name>
+      <CreationDate>2022-05-03T14:34:56.420Z</CreationDate>
+    </Bucket>
+  </Buckets>
+</ListAllMyBucketsResult>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X DELETE http://localhost:39999/api/v1/s3/tempbucket
+HTTP/1.1 204 No Content
+Date: Tue, 03 May 2022 21:43:25 GMT
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:43:28 GMT
+Content-Type: application/xml
+Content-Length: 161
+Server: Jetty(9.4.43.v20210629)
+
+<ListAllMyBucketsResult>
+  <Buckets>
+    <Bucket>
+      <Name>testbucket</Name>
+      <CreationDate>2022-05-03T14:34:56.420Z</CreationDate>
+    </Bucket>
+  </Buckets>
+</ListAllMyBucketsResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [DeleteBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketTagging.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
   --bucket=testbucket
@@ -365,8 +636,52 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "TagSet": []
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:31:07 GMT
+Content-Type: application/xml
+Content-Length: 124
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X DELETE "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 204 No Content
+Date: Tue, 03 May 2022 23:32:26 GMT
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:32:27 GMT
+Content-Type: application/xml
+Content-Length: 28
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging><TagSet/></Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [DeleteObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
@@ -400,8 +715,72 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:59:27 GMT
+Content-Type: application/xml
+Content-Length: 540
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>temp.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:50:07.790Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>testbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X DELETE http://localhost:39999/api/v1/s3/testbucket/temp.txt
+HTTP/1.1 204 No Content
+Date: Tue, 03 May 2022 22:01:56 GMT
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 22:01:59 GMT
+Content-Type: application/xml
+Content-Length: 318
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>testbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [DeleteObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=tempbucket
@@ -440,8 +819,106 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/tempbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:59:27 GMT
+Content-Type: application/xml
+Content-Length: 540
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>foo.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:59:05.906Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>temp.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:58:58.204Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>temp2.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:59:01.987Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>tempbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+
+$ cat delete.xml
+<Delete xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Object>
+    <Key>temp.txt</Key>
+  </Object>
+  <Object>
+    <Key>temp2.txt</Key>
+  </Object>
+  <Quiet>false</Quiet>
+</Delete>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "Content-Type: application/xml" \
+  -X POST --data "@delete.xml" "http://localhost:39999/api/v1/s3/testbucket?delete"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 22:56:17 GMT
+Content-Type: application/xml
+Content-Length: 208
+Server: Jetty(9.4.43.v20210629)
+
+<DeleteResult>
+  <Deleted>
+    <Key>temp2.txt</Key>
+    <DeleteMarker/>
+    <DeleteMarkerVersionId/>
+    <VersionId/>
+  </Deleted>
+  <Deleted>
+    <Key>temp.txt</Key>
+    <DeleteMarker/>
+    <DeleteMarkerVersionId/>
+    <VersionId/>
+  </Deleted>
+</DeleteResult>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/tempbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 22:28:31 GMT
+Content-Type: application/xml
+Content-Length: 317
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>foo.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:59:05.906Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>tempbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [DeleteObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjectTagging.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
   --bucket=testbucket --key=test.txt
@@ -467,8 +944,52 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "TagSet": []
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:31:07 GMT
+Content-Type: application/xml
+Content-Length: 124
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X DELETE "http://localhost:39999/api/v1/s3/testbucket/test.txt?tagging"
+HTTP/1.1 204 No Content
+Date: Tue, 03 May 2022 23:37:46 GMT
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket/test.txt?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:37:47 GMT
+Content-Type: application/octet-stream
+Content-Length: 28
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging><TagSet/></Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [GetBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
   --bucket=testbucket
@@ -485,8 +1006,36 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:31:07 GMT
+Content-Type: application/xml
+Content-Length: 124
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object \
   --bucket=testbucket --key=test.txt /tmp/test.txt
@@ -504,7 +1053,27 @@ $ stat /tmp/test.txt
   ...
 ```
 
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/testbucket/test.txt
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 22:59:43 GMT
+Last-Modified: Tue, 03 May 2022 21:47:36 GMT
+ETag: "1651614456600"
+Content-Type: application/octet-stream
+Content-Length: 27040
+Server: Jetty(9.4.43.v20210629)
+
+................. file contents .................
+```
+{% endnavtab %}
+{% endnavtabs %}
+
 #### [GetObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
   --bucket=testbucket --key=test.txt
@@ -521,8 +1090,36 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:31:07 GMT
+Content-Type: application/xml
+Content-Length: 124
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-object \
   --bucket=testbucket --key=test.txt
@@ -534,8 +1131,25 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "Metadata": {}
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  --head http://localhost:39999/api/v1/s3/testbucket/test.txt
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:54:22 GMT
+Last-Modified: Tue, 03 May 2022 21:47:36 GMT
+ETag: "1651614456600"
+Content-Type: application/octet-stream
+Content-Length: 27040
+Server: Jetty(9.4.43.v20210629)
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
 {
@@ -547,8 +1161,32 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:35:23 GMT
+Content-Type: application/xml
+Content-Length: 161
+Server: Jetty(9.4.43.v20210629)
+
+<ListAllMyBucketsResult>
+  <Buckets>
+    <Bucket>
+      <Name>testbucket</Name>
+      <CreationDate>2022-05-03T14:34:56.420Z</CreationDate>
+    </Bucket>
+  </Buckets>
+</ListAllMyBucketsResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [ListObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
   --bucket=testbucket
@@ -567,8 +1205,43 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:50:26 GMT
+Content-Type: application/xml
+Content-Length: 434
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>test_copy.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:50:07.790Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>testbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
@@ -587,8 +1260,44 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?list-type=2"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:56:20 GMT
+Content-Type: application/xml
+Content-Length: 438
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>true</version2>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <Contents>
+    <Key>test_copy.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:50:07.790Z</LastModified>
+  </Contents>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <KeyCount>2</KeyCount>
+  <Name>testbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
+
 
 #### [ListParts](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListParts.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
   --bucket=testbucket --key=multipart.txt --upload-id=117440512003
@@ -607,8 +1316,37 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "StorageClass": "STANDARD"
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:49:05 GMT
+Content-Type: application/octet-stream
+Content-Length: 314
+Server: Jetty(9.4.43.v20210629)
+
+<ListPartsResult>
+  <Bucket>/testbucket</Bucket>
+  <Key>multipart.txt</Key>
+  <UploadId>134268059649</UploadId>
+  <StorageClass>STANDARD</StorageClass>
+  <IsTruncated>false</IsTruncated>
+  <Part>
+    <PartNumber>1</PartNumber>
+    <LastModified>2022-05-03T16:48:56.602Z</LastModified>
+    <ETag>""</ETag>
+    <Size>27040</Size>
+  </Part>
+</ListPartsResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [PutBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
   --bucket=testbucket
@@ -634,8 +1372,67 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:30:25 GMT
+Content-Type: application/xml
+Content-Length: 28
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging><TagSet/></Tagging>
+
+$ cat tags.xml
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "Content-Type: application/xml" \
+  -X PUT "http://localhost:39999/api/v1/s3/testbucket?tagging" --data-binary "@tags.xml"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:31:05 GMT
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:31:07 GMT
+Content-Type: application/xml
+Content-Length: 124
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html)
+{% navtabs %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
   --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
@@ -643,7 +1440,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
 }
 
-$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
   --bucket=testbucket
 {
     "Contents": [
@@ -655,8 +1452,107 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     ]
 }
 ```
+{% navtab AWS CLI %}
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X PUT http://localhost:39999/api/v1/s3/testbucket/test.txt -T "${ALLUXIO_HOME}/LICENSE"
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:47:36 GMT
+ETag: "911df44b7ff57801ca8d74568e4ebfbe"
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 21:47:44 GMT
+Content-Type: application/xml
+Content-Length: 318
+Server: Jetty(9.4.43.v20210629)
+
+<ListBucketResult>
+  <version2>false</version2>
+  <Contents>
+    <Key>test.txt</Key>
+    <Size>27040</Size>
+    <LastModified>2022-05-03T14:47:36.600Z</LastModified>
+  </Contents>
+  <Marker/>
+  <IsTruncated>false</IsTruncated>
+  <Prefix/>
+  <Name>testbucket</Name>
+  <MaxKeys>1000</MaxKeys>
+  <EncodingType>url</EncodingType>
+</ListBucketResult>
+```
+{% endnavtab %}
+{% endnavtabs %}
 
 #### [PutObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html)
+{% navtabs %}
+{% navtab AWS CLI %}
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket/test.txt?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:30:25 GMT
+Content-Type: application/xml
+Content-Length: 28
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging><TagSet/></Tagging>
+
+$ cat tags.xml
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "Content-Type: application/xml" \
+  -X PUT "http://localhost:39999/api/v1/s3/testbucket/test.txt?tagging" --data-binary "@tags.xml"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:35:28 GMT
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
+
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X GET "http://localhost:39999/api/v1/s3/testbucket/test.txt?tagging"
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:35:58 GMT
+Content-Type: application/octet-stream
+Content-Length: 126
+Server: Jetty(9.4.43.v20210629)
+
+<Tagging>
+  <TagSet>
+    <Tag>
+      <Key>key1</Key>
+      <Value>val1</Value>
+    </Tag>
+    <Tag>
+      <Key>key2</Key>
+      <Value>val2</Value>
+    </Tag>
+  </TagSet>
+</Tagging>
+```
+{% endnavtab %}
+{% endnavtabs %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
   --bucket=testbucket --key=test.txt
@@ -684,9 +1580,11 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 
 #### [UploadPart](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part \
-  --bucket=testbucket --key=multipart.txt --upload-id=117440512003 --part-number=1 --body="./LICENSE"
+  --bucket=testbucket --key=multipart.txt --upload-id=117440512003 --part-number=1 --body="${ALLUXIO_HOME}/LICENSE"
 {
     "ETag": "\"911df44b7ff57801ca8d74568e4ebfbe\""
 }
@@ -708,8 +1606,43 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "StorageClass": "STANDARD"
 }
 ```
+{% endnavtab %}
+{% navtab REST Clients %}
+```console
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -X PUT -T "${ALLUXIO_HOME}/LICENSE" "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649&partNumber=1"
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Date: Tue, 03 May 2022 23:51:19 GMT
+ETag: "911df44b7ff57801ca8d74568e4ebfbe"
+Content-Length: 0
+Server: Jetty(9.4.43.v20210629)
+
+$ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
+  --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004
+{
+    "Parts": [
+        {
+            "PartNumber": 1,
+            "LastModified": "2022-05-03T13:00:13.584000+00:00",
+            "ETag": "\"\"",
+            "Size": 27040
+        }
+    ],
+    "ChecksumAlgorithm": null,
+    "Initiator": null,
+    "Owner": null,
+    "StorageClass": "STANDARD"
+}
+```
+{% endnavtab %}
+{% endnavtabs %}
+
 
 #### [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html)
+{% navtabs %}
+{% navtab AWS CLI %}
 ```console
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part-copy \
   --bucket=testbucket --key=multipart_copy.txt --upload-id=117440512004 --part-number=1 --copy-source="testbucket/test.txt"
@@ -737,348 +1670,49 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
     "StorageClass": "STANDARD"
 }
 ```
-
-### REST API
-
-For example, you can run the following RESTful API calls to an Alluxio cluster running on localhost.
-The Alluxio proxy is listening at port 39999 by default.
-
-#### Authorization
-
-At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
-Therefore the [Authorization header](({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
-is used purely to specify the intended user to perform a request.
-
+{% endnavtab %}
+{% navtab REST Clients %}
 ```console
-$ bin/alluxio fs ls /
-drwxr-xr-x  testuser                                    0       PERSISTED 03-01-2021 16:02:26:547  DIR /testbucket
-
-$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/... SignedHeaders=... Signature=..." \
-    -X PUT http://localhost:39999/api/v1/s3/testbucket
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
+  -H "x-amz-copy-source: testbucket/test.txt" \
+  -X PUT -T "${ALLUXIO_HOME}/LICENSE" "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649&partNumber=1"
+HTTP/1.1 100 Continue
 
 HTTP/1.1 200 OK
-Date: Tue, 02 Mar 2021 00:02:26 GMT
-Content-Length: 0
-Server: Jetty(9.4.31.v20200723)
+Date: Tue, 03 May 2022 23:48:56 GMT
+Content-Type: application/xml
+Content-Length: 135
+Server: Jetty(9.4.43.v20210629)
+
+<CopyObjectResult>
+  <LastModified>2022-05-03T16:48:56.594Z</LastModified>
+  <ETag>911df44b7ff57801ca8d74568e4ebfbe</ETag>
+</CopyObjectResult>
 
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
-    -X PUT http://localhost:39999/api/v1/s3/testbucket
-
+  -X GET "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=134268059649"
 HTTP/1.1 200 OK
-Date: Tue, 02 Mar 2021 00:02:26 GMT
-Content-Length: 0
-Server: Jetty(9.4.31.v20200723)
-
-<ListBucketResult><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
-```
-
-#### Create a bucket
-
-```console
-$ curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:23:18 GMT
-Content-Length: 0
-Server: Jetty(9.2.z-SNAPSHOT)
-```
-
-#### List all buckets owned by the user
-
-Authenticating as a user is necessary to have buckets returned by this operation.
-
-```console
-$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." -X GET http://localhost:39999/api/v1/s3
-HTTP/1.1 200 OK
-Date: Tue, 02 Mar 2021 00:06:43 GMT
-Content-Type: application/xml
-Content-Length: 109
-Server: Jetty(9.4.31.v20200723)
-
-<ListAllMyBucketsResult><Buckets><Bucket><Name>testbucket</Name></Bucket></Buckets></ListAllMyBucketsResult>
-```
-
-#### Get the bucket (listing objects)
-
-```console
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
-
-HTTP/1.1 200 OK
-Date: Wed, 22 Sep 2021 07:13:37 GMT
-Content-Type: application/xml
-Content-Length: 193
+Date: Tue, 03 May 2022 23:49:05 GMT
+Content-Type: application/octet-stream
+Content-Length: 314
 Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
+<ListPartsResult>
+  <Bucket>/testbucket</Bucket>
+  <Key>multipart.txt</Key>
+  <UploadId>134268059649</UploadId>
+  <StorageClass>STANDARD</StorageClass>
+  <IsTruncated>false</IsTruncated>
+  <Part>
+    <PartNumber>1</PartNumber>
+    <LastModified>2022-05-03T16:48:56.602Z</LastModified>
+    <ETag>""</ETag>
+    <Size>27040</Size>
+  </Part>
+</ListPartsResult>
 ```
-
-#### Put an object
-Assuming there is an existing file on local file system called `LICENSE`:
-
-```console
-$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
-
-HTTP/1.1 100 Continue
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:24:32 GMT
-ETag: "911df44b7ff57801ca8d74568e4ebfbe"
-Content-Length: 0
-Server: Jetty(9.2.z-SNAPSHOT)
-```
-
-#### Get the object:
-
-```console
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:24:57 GMT
-Last-Modified: Tue, 18 Jun 2019 21:24:33 GMT
-Content-Type: application/xml
-Content-Length: 27040
-Server: Jetty(9.2.z-SNAPSHOT)
-
-.................. Content of the test file ...................
-```
-
-#### Listing a bucket with one object
-
-```console
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
-
-HTTP/1.1 200 OK
-Date: Wed, 22 Sep 2021 07:15:19 GMT
-Content-Type: application/xml
-Content-Length: 306
-Server: Jetty(9.4.43.v20210629)
-
-<ListBucketResult><Contents><LastModified>2021-09-22T15:14:40.754Z</LastModified><Key>testobject</Key><Size>27040</Size></Contents><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
-```
-
-#### Listing a bucket with multiple objects
-
-You can upload more files and use the `max-keys` and `marker` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html). For example:
-
-```console
-$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
-
-HTTP/1.1 100 Continue
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:26:05 GMT
-ETag: "911df44b7ff57801ca8d74568e4ebfbe"
-Content-Length: 0
-Server: Jetty(9.2.z-SNAPSHOT)
-
-$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
-
-HTTP/1.1 100 Continue
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:26:28 GMT
-ETag: "911df44b7ff57801ca8d74568e4ebfbe"
-Content-Length: 0
-Server: Jetty(9.2.z-SNAPSHOT)
-
-$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
-
-HTTP/1.1 100 Continue
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:26:43 GMT
-ETag: "911df44b7ff57801ca8d74568e4ebfbe"
-Content-Length: 0
-Server: Jetty(9.2.z-SNAPSHOT)
-
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
-
-HTTP/1.1 200 OK
-Date: Wed, 22 Sep 2021 07:18:18 GMT
-Content-Type: application/xml
-Content-Length: 444
-Server: Jetty(9.4.43.v20210629)
-
-<ListBucketResult><Contents><LastModified>2021-09-22T15:17:39.579Z</LastModified><Key>key1</Key><Size>27040</Size></Contents><Contents><LastModified>2021-09-22T15:17:41.463Z</LastModified><Key>key2</Key><Size>27040</Size></Contents><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><NextMarker>/testbucket/key2</NextMarker><IsTruncated>true</IsTruncated><Name>testbucket</Name></ListBucketResult>
-
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&marker\=\/testbucket\/key2
-
-HTTP/1.1 200 OK
-Date: Wed, 22 Sep 2021 07:25:21 GMT
-Content-Type: application/xml
-Content-Length: 477
-Server: Jetty(9.4.43.v20210629)
-
-<ListBucketResult><Contents><LastModified>2021-09-22T15:17:39.579Z</LastModified><Key>key1</Key><Size>27040</Size></Contents><Contents><LastModified>2021-09-22T15:17:41.463Z</LastModified><Key>key2</Key><Size>27040</Size></Contents><Marker>/testbucekt/key2</Marker><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><NextMarker>/testbucket/key2</NextMarker><IsTruncated>true</IsTruncated><Name>testbucket</Name></ListBucketResult>
-```
-
-You can also verify those objects are represented as Alluxio files, under `/testbucket` directory.
-
-```console
-$ ./bin/alluxio fs ls -R /testbucket
-
--rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:05:694 100% /testbucket/key1
--rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:28:153 100% /testbucket/key2
--rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:43:081 100% /testbucket/key3
--rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:24:33:029 100% /testbucket/testobject
-```
-
-#### Copy an Object
-
-```console
-$ curl -i -X PUT -H "x-amz-copy-source: /testbucket/key1" http://localhost:39999/api/v1/s3/testbucket/key2
-
-HTTP/1.1 200 OK
-Date: Wed, 02 Nov 2021 07:25:21 GMT
-Content-Type: application/xml
-Content-Length: 142
-Server: Jetty(9.4.43.v20210629)
-
-<CopyObjectResult>
-    <LastModified>2009-10-28T22:32:00</LastModified>
-    <ETag>"9b2cf535f27731c974343645a3985328"</ETag>
-<CopyObjectResult>
-```
-
-
-#### Delete Single Objects
-
-```console
-$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
-
-HTTP/1.1 204 No Content
-Date: Tue, 18 Jun 2019 21:31:27 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-
-$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
-
-HTTP/1.1 204 No Content
-Date: Tue, 18 Jun 2019 21:31:44 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-
-$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
-
-HTTP/1.1 204 No Content
-Date: Tue, 18 Jun 2019 21:31:58 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-
-$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
-
-HTTP/1.1 204 No Content
-Date: Tue, 18 Jun 2019 21:32:08 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-```
-
-#### Delete Multiple Objects
-
-```console
-$ cat body.xml
-<Delete xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-   <Object>
-      <Key>sample1.txt</Key>
-   </Object>
-   <Object>
-      <Key>sample2.txt</Key>
-   </Object>
-   <Quiet>boolean</Quiet>
-</Delete>
-$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket?delete
-
-HTTP/1.1 200 Ok
-Date: Tue, 18 Jun 2019 21:32:08 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-<?xml version="1.0" encoding="UTF-8"?>
-<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-  <Deleted>
-    <Key>sample1.txt</Key>
-  </Deleted>
-  <Error>
-  <Key>sample2.txt</Key>
-  <Code>AccessDenied</Code>
-  <Message>Access Denied</Message>
-  </Error>
-</DeleteResult>
-```
-
-#### Initiate a multipart upload
-Since we deleted the `testobject` in the previous command, you have to create another `testobject`
-before initiating a multipart upload.
-
-```console
-$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:32:36 GMT
-Content-Type: application/xml
-Content-Length: 133
-Server: Jetty(9.2.z-SNAPSHOT)
-
-<InitiateMultipartUploadResult><Bucket>testbucket</Bucket><Key>testobject</Key><UploadId>3</UploadId></InitiateMultipartUploadResult>
-```
-
-Note that the commands below related to multipart upload need the upload ID shown above, it's not necessarily 3.
-
-#### Upload part
-
-```console
-$ curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=3'
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:33:36 GMT
-ETag: "d41d8cd98f00b204e9800998ecf8427e"
-Content-Length: 0
-Server: Jetty(9.2.z-SNAPSHOT)
-```
-
-#### List parts
-
-```console
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:35:10 GMT
-Content-Type: application/xml
-Content-Length: 296
-Server: Jetty(9.2.z-SNAPSHOT)
-
-<ListPartsResult><Bucket>/testbucket</Bucket><Key>testobject</Key><UploadId>3</UploadId><StorageClass>STANDARD</StorageClass><IsTruncated>false</IsTruncated><Part><PartNumber>1</PartNumber><LastModified>2019-06-18T14:33:36.373Z</LastModified><ETag>""</ETag><Size>0</Size></Part></ListPartsResult>
-```
-
-#### Complete a multipart upload
-
-```console
-$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
-
-HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:35:47 GMT
-Content-Type: application/xml
-Content-Length: 201
-Server: Jetty(9.2.z-SNAPSHOT)
-
-<CompleteMultipartUploadResult><Location>/testbucket/testobject</Location><Bucket>testbucket</Bucket><Key>testobject</Key><ETag>"d41d8cd98f00b204e9800998ecf8427e"</ETag></CompleteMultipartUploadResult>
-```
-
-#### Abort a multipart upload
-
-A non-completed upload can be aborted:
-
-```console
-$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
-
-HTTP/1.1 204 No Content
-Date: Tue, 18 Jun 2019 21:37:27 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-```
-
-#### Delete an empty bucket
-
-```console
-$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
-
-HTTP/1.1 204 No Content
-Date: Tue, 18 Jun 2019 21:38:38 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-```
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Python S3 Client
 
