@@ -45,6 +45,8 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   /** Metric name. */
   private final String mName;
+  /** Metrics name without instance prefix. */
+  private final String mMetricsName
 
   /** Metric key description. */
   private final String mDescription;
@@ -67,6 +69,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mMetricType = metricType;
     mIsClusterAggregated = isClusterAggregated;
+    mMetricsName = extractMetricName();
   }
 
   /**
@@ -134,7 +137,11 @@ public final class MetricKey implements Comparable<MetricKey> {
   /**
    * @return the name of the Metric without instance prefix
    */
-  public String getMetricName() {
+  public String getMetricsName() {
+    return mMetricsName;
+  }
+
+  private String extractMetricName() {
     String[] pieces = mName.split("\\.");
     if (pieces.length <= 1) {
       return mName;
