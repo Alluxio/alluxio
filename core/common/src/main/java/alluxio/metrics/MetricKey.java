@@ -137,7 +137,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   /**
    * @return the name of the Metric without instance prefix
    */
-  public String getMetricsName() {
+  public String getMetricName() {
     return mMetricsName;
   }
 
@@ -239,7 +239,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Master metrics
   // Absent cache stats
   public static final MetricKey MASTER_ABSENT_CACHE_HITS =
-      new Builder("Master.AbsentCacheHits")
+      new Builder("Master.AbsentCacheHits")F
           .setDescription("Number of cache hits on the absent cache")
           .setMetricType(MetricType.GAUGE)
           .build();
