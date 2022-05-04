@@ -146,23 +146,21 @@ public class LocalCacheFileInStream extends FileInStream {
       System.arraycopy(mBuffer, (int) (position - mBufferStartOffset),
           bytesBuffer, offset, lengthToReadFromBuffer);
       return lengthToReadFromBuffer;
-    } else {
-      if (length >= mBufferSize) {
-        // Skip load to the in stream buffer if the data piece is larger than buffer size
-        return localCachedRead(bytesBuffer, offset, length, readType, position, stopwatch);
-      } else {
-        int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - position);
-        int bytesRead =
-            localCachedRead(mBuffer, 0, bytesLoadToBuffer, readType, position, stopwatch);
-        mBufferStartOffset = position;
-        mBufferEndOffset = position + bytesRead;
-        int dataReadFromBuffer = Math.min(bytesRead, length);
-        System.arraycopy(mBuffer, 0, bytesBuffer, offset, dataReadFromBuffer);
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER.getName())
-            .mark(dataReadFromBuffer);
-        return dataReadFromBuffer;
-      }
     }
+    if (length >= mBufferSize) {
+      // Skip load to the in stream buffer if the data piece is larger than buffer size
+      return localCachedRead(bytesBuffer, offset, length, readType, position, stopwatch);
+    }
+    int bytesLoadToBuffer = (int) Math.min(mBufferSize, mStatus.getLength() - position);
+    int bytesRead =
+        localCachedRead(mBuffer, 0, bytesLoadToBuffer, readType, position, stopwatch);
+    mBufferStartOffset = position;
+    mBufferEndOffset = position + bytesRead;
+    int dataReadFromBuffer = Math.min(bytesRead, length);
+    System.arraycopy(mBuffer, 0, bytesBuffer, offset, dataReadFromBuffer);
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER.getName())
+        .mark(dataReadFromBuffer);
+    return dataReadFromBuffer;
   }
 
   private int localCachedRead(byte[] bytesBuffer, int offset, int length, ReadType readType,
@@ -193,29 +191,28 @@ public class LocalCacheFileInStream extends FileInStream {
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
       }
       return bytesRead;
-    } else {
-      // on local cache miss, read a complete page from external storage. This will always make
-      // progress or throw an exception
-      stopwatch.reset().start();
-      byte[] page = readExternalPage(position, readType);
-      stopwatch.stop();
-      if (page.length > 0) {
-        System.arraycopy(page, currentPageOffset, bytesBuffer, offset, bytesToReadInPage);
-        // cache misses
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-            .mark(bytesToReadInPage);
-        if (cacheContext != null) {
-          cacheContext.incrementCounter(
-              MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesToReadInPage);
-          cacheContext.incrementCounter(
-              MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
-              stopwatch.elapsed(TimeUnit.NANOSECONDS)
-          );
-        }
-        mCacheManager.put(pageId, page, mCacheContext);
-      }
-      return bytesToReadInPage;
     }
+    // on local cache miss, read a complete page from external storage. This will always make
+    // progress or throw an exception
+    stopwatch.reset().start();
+    byte[] page = readExternalPage(position, readType);
+    stopwatch.stop();
+    if (page.length > 0) {
+      System.arraycopy(page, currentPageOffset, bytesBuffer, offset, bytesToReadInPage);
+      // cache misses
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+          .mark(bytesToReadInPage);
+      if (cacheContext != null) {
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesToReadInPage);
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
+            stopwatch.elapsed(TimeUnit.NANOSECONDS)
+        );
+      }
+      mCacheManager.put(pageId, page, mCacheContext);
+    }
+    return bytesToReadInPage;
   }
 
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
