@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -300,8 +301,9 @@ public final class DefaultStorageDir implements StorageDir {
     }
     Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
     if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId,
-          mTier.getTierAlias(), sessionId);
+      throw new BlockDoesNotExistException(
+          MessageFormat.format("blockId {0,number,#} in {1} not found for session {2,number,#}",
+              blockId, mTier.getTierAlias(), sessionId));
     }
     Preconditions.checkState(sessionBlocks.remove(blockId));
     if (sessionBlocks.isEmpty()) {

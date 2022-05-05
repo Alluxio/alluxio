@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -318,7 +319,8 @@ public final class BlockMetadataManager {
         }
       }
     }
-    throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    throw new BlockDoesNotExistException(
+        MessageFormat.format("TempBlockMeta not found for blockId {0,number,#}", blockId));
   }
 
   /**

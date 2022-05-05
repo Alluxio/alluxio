@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -290,8 +291,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
-          blockId, sessionId);
+      throw new BlockDoesNotExistException(MessageFormat.format(
+          "UFS block {0,number,#} does not exist for session {1,number,#}", blockId, sessionId));
     }
     return blockInfo;
   }

@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -272,8 +273,8 @@ public final class BlockLockManager {
     try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-            lockId);
+        throw new BlockDoesNotExistException(
+            MessageFormat.format("lockId {0,number,#} has no lock record", lockId));
       }
       if (sessionId != record.getSessionId()) {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,
@@ -300,7 +301,7 @@ public final class BlockLockManager {
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (record == null) {
-          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
+          LOG.error("While cleaning up, lockId {} has no lock record", lockId);
           continue;
         }
         Lock lock = record.getLock();
