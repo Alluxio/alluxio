@@ -135,14 +135,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     LOG.info("Becoming a leader.");
     // Don't upgrade if this master's primacy is unstable.
     AtomicBoolean unstable = new AtomicBoolean(false);
-    try (Scoped ignored = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
+    try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
       if (mLeaderSelector.getState() != State.PRIMARY) {
         LOG.info("Lost leadership while becoming a leader.");
         unstable.set(true);
       }
       stopMasters();
       LOG.info("Standby stopped");
-      try (Timer.Context ignored1 = MetricsSystem
+      try (Timer.Context ctx = MetricsSystem
           .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
         mJournalSystem.gainPrimacy();
       }

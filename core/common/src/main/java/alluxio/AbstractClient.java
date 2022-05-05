@@ -368,7 +368,7 @@ public abstract class AbstractClient implements Client {
     // TODO(binfan): create RPC context so we could get RPC duration from metrics timer directly
     long startMs = System.currentTimeMillis();
     logger.debug("Enter: {}({})", rpcName, debugDesc);
-    try (Timer.Context ignored = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
       V ret = retryRPCInternal(retryPolicy, rpc, () -> {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;

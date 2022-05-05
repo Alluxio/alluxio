@@ -491,7 +491,7 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
-    try (Timer.Context ignored = MetricsSystem
+    try (Timer.Context ctx = MetricsSystem
         .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
       // The start time of the most recent snapshot
       long lastSnapshotStartTime = System.currentTimeMillis();
@@ -558,7 +558,7 @@ public class JournalStateMachine extends BaseStateMachine {
     }
 
     long snapshotId = 0L;
-    try (Timer.Context ignored = MetricsSystem.timer(MetricKey
+    try (Timer.Context ctx = MetricsSystem.timer(MetricKey
         .MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER.getName()).time();
          DataInputStream stream =  new DataInputStream(new FileInputStream(snapshotFile))) {
       snapshotId = stream.readLong();

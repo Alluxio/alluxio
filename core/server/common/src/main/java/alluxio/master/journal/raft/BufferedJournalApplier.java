@@ -99,7 +99,7 @@ public class BufferedJournalApplier {
    * @param journalEntry the journal entry
    */
   public void processJournalEntry(Journal.JournalEntry journalEntry) {
-    try (LockResource ignored = new LockResource(mStateLock)) {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
       if (mSuspended) {
         // New entry submissions are monitored by catch-up threads.
         synchronized (mSuspendBuffer) {
@@ -116,7 +116,7 @@ public class BufferedJournalApplier {
    * @return {@code true} if this applier was suspended
    */
   public boolean isSuspended() {
-    try (LockResource ignored = new LockResource(mStateLock)) {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
       return mSuspended;
     }
   }
@@ -130,7 +130,7 @@ public class BufferedJournalApplier {
    * @throws IOException if suspension fails
    */
   public void suspend() throws IOException {
-    try (LockResource ignored = new LockResource(mStateLock)) {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
       Preconditions.checkState(!mSuspended, "Already suspended");
       mSuspended = true;
       LOG.info("Suspended state machine at sequence: {}", mLastAppliedSequence);
@@ -143,7 +143,7 @@ public class BufferedJournalApplier {
    * @throws IOException if resuming fails
    */
   public void resume() throws IOException {
-    try (LockResource ignored = new LockResource(mStateLock)) {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
       Preconditions.checkState(mSuspended, "Not suspended");
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       mResumeInProgress = true;
@@ -203,7 +203,7 @@ public class BufferedJournalApplier {
    * @return the future to track when applier reaches the target sequence
    */
   public CatchupFuture catchup(long sequence) {
-    try (LockResource ignored = new LockResource(mStateLock)) {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
       Preconditions.checkState(mSuspended, "Not suspended");
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
@@ -254,7 +254,7 @@ public class BufferedJournalApplier {
    * Resets the suspend-applier. Should only be used when the state machine is reset.
    */
   public void close() {
-    try (LockResource ignored = new LockResource(mStateLock)) {
+    try (LockResource stateLock = new LockResource(mStateLock)) {
       cancelCatchup();
       mSuspendBuffer.clear();
     }

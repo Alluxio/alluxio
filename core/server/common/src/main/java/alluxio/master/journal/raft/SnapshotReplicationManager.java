@@ -381,7 +381,7 @@ public class SnapshotReplicationManager {
       return RaftLog.INVALID_LOG_INDEX;
     }
     File tempFile = null;
-    try (Timer.Context ignored = MetricsSystem
+    try (Timer.Context ctx = MetricsSystem
         .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER.getName()).time()) {
       SnapshotInfo snapshot = mDownloadedSnapshot;
       if (snapshot == null) {
