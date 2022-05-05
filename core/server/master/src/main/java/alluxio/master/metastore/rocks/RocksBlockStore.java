@@ -22,6 +22,7 @@ import alluxio.resource.CloseableIterator;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
@@ -189,6 +190,14 @@ public class RocksBlockStore implements BlockStore {
         MetricKey.MASTER_ROCKS_BLOCK_TOTAL_SST_FILES_SIZE.getName(),
         () -> getProperty("rocksdb.total-sst-files-size"),
         CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+
+    ImmutableSet<MetricKey> s = ImmutableSet.of(MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_USAGE,
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM,
+        MetricKey.MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES,
+        MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE);
+    MetricsSystem.registerAggregatedCachedGauge(
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE.getName(),
+        s, CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
   }
 
   private long getProperty(String rocksPropertyName) {

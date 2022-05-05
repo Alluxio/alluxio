@@ -1108,6 +1108,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("RocksDB block table. Total size in bytes of all SST files.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksBlockEstimatedMemUsage")
+          .setDescription("RocksDB block table. This metric estimates the memory usage of the "
+              + "RockDB Block table by aggregating the values of "
+              + "Master.RocksBlockBlockCacheUsage, Master.RocksBlockEstimateTableReadersMem, "
+              + "Master.RocksBlockCurSizeAllMemTables, and Master.RocksBlockBlockCachePinnedUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Rocks Inode metrics
   public static final MetricKey MASTER_ROCKS_INODE_BACKGROUND_ERRORS =
@@ -1239,6 +1247,21 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_ROCKS_INODE_TOTAL_SST_FILES_SIZE =
       new Builder("Master.RocksInodeTotalSstFilesSize")
           .setDescription("RocksDB inode table. Total size in bytes of all SST files.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksInodeEstimatedMemUsage")
+          .setDescription("RocksDB block table. This metric estimates the memory usage of the "
+              + "RockDB Inode table by aggregating the values of "
+              + "Master.RocksInodeBlockCacheUsage, Master.RocksInodeEstimateTableReadersMem, "
+              + "Master.RocksInodeCurSizeAllMemTables, and Master.RocksInodeBlockCachePinnedUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_TOTAL_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksTotalEstimatedMemUsage")
+          .setDescription("This metric gives an estimate of the total memory used by RocksDB by "
+              + "aggregating the values of Master.RocksBlockEstimatedMemUsage and "
+              + "Master.RocksInodeEstimatedMemUsage")
           .setMetricType(MetricType.GAUGE)
           .build();
 
