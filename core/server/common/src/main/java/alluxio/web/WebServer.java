@@ -48,6 +48,7 @@ public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
   private static final String DISABLED_METHODS = "TRACE,OPTIONS";
   private static final String THREAD_DUMP_PATH = REST_API_PREFIX + "/common/thread_dump";
+  private static final String JMX_PATH = "/metrics/jmx";
 
   private final Server mServer;
   private final String mServiceName;
@@ -109,6 +110,7 @@ public abstract class WebServer {
       disableMethod(s);
     }
     mServletContextHandler.addServlet(StacksServlet.class, THREAD_DUMP_PATH);
+    mServletContextHandler.addServlet(JmxServlet.class, JMX_PATH);
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
         mServletContextHandler, new DefaultHandler()});

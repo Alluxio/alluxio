@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.annotator;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -64,7 +64,6 @@ public class EmulatingBlockIterator implements BlockIterator {
    * Used to calculate configuration that evictors need to run.
    */
   private void initEvictorConfiguration() {
-    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     // Calculate tier capacities.
     Map<String, Long> tierCapacities = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
@@ -72,8 +71,8 @@ public class EmulatingBlockIterator implements BlockIterator {
     }
 
     long lastTierReservedBytes = 0;
-    for (int ordinal = 0; ordinal < storageTierAssoc.size(); ordinal++) {
-      String tierAlias = storageTierAssoc.getAlias(ordinal);
+    for (int ordinal = 0; ordinal < WORKER_STORAGE_TIER_ASSOC.size(); ordinal++) {
+      String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(ordinal);
       long tierCapacity = tierCapacities.get(tierAlias);
       // High watermark defines when to start the space reserving process.
       // It's only validated in this emulator, it doesn't trigger any background task.

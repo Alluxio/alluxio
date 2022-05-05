@@ -269,3 +269,7 @@
 - Rename mountPath to mountPoint in fuse
 - Require non-empty values for fuse mountPoint
 - Passing fuse mountPoint and alluxioPath into containers as args instead of env variables
+
+0.6.43
+
+- Rename static pvc metadata.name in csi

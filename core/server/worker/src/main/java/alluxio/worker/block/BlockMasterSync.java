@@ -12,8 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.ProcessUtils;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
@@ -54,6 +52,18 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
+  private static final boolean ACQUIRE_LEASE =
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
+  private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
+  private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
+  private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
+  private static final boolean USE_STREAMING =
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
+  private static final int HEARTBEAT_TIMEOUT_MS =
+      (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -64,31 +74,16 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** The net address of the worker. */
   private final WorkerNetAddress mWorkerAddress;
 
-  /** Milliseconds between heartbeats before a timeout. */
-  private final int mHeartbeatTimeoutMs;
-
   /** Client-pool for all master communication. */
   private final BlockMasterClientPool mMasterClientPool;
   /** Client for all master communication. */
-  private BlockMasterClient mMasterClient;
+  private final BlockMasterClient mMasterClient;
 
   /** An async service to remove block. */
   private final AsyncBlockRemover mAsyncBlockRemover;
 
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
-
-  /** Whether to use streaming. */
-  private boolean mUseStreaming;
-
-  private static final boolean ACQUIRE_LEASE =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
-  private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
-  private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
-  private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.
@@ -105,10 +100,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mWorkerAddress = workerAddress;
     mMasterClientPool = masterClientPool;
     mMasterClient = mMasterClientPool.acquire();
-    mHeartbeatTimeoutMs = (int) ServerConfiguration
-        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
-    mUseStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -136,7 +128,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
-    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
 
@@ -158,14 +149,16 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       }
     }
 
-    if (mUseStreaming) {
+    if (USE_STREAMING) {
       mMasterClient.registerWithStream(mWorkerId.get(),
-          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getStorageTierAssoc().getOrderedStorageAliases(),
+          storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
           storeMeta.getLostStorage(), configList);
     } else {
       mMasterClient.register(mWorkerId.get(),
-          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getStorageTierAssoc().getOrderedStorageAliases(),
+          storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
           storeMeta.getLostStorage(), configList);
     }
@@ -201,14 +194,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
             cmdFromMaster.toString(), e);
       }
       mMasterClient.disconnect();
-      if (mHeartbeatTimeoutMs > 0) {
-        if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
+      if (HEARTBEAT_TIMEOUT_MS > 0) {
+        if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= HEARTBEAT_TIMEOUT_MS) {
           if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-            throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
+            throw new RuntimeException(
+                String.format("Master heartbeat timeout exceeded: %s", HEARTBEAT_TIMEOUT_MS));
           }
           // TODO(andrew): Propagate the exception to the main thread and exit there.
           ProcessUtils.fatalError(LOG, "Master heartbeat timeout exceeded: %d",
-              mHeartbeatTimeoutMs);
+              HEARTBEAT_TIMEOUT_MS);
         }
       }
     }

@@ -79,7 +79,7 @@ public class ChannelAuthenticator {
    * @throws AlluxioStatusException
    */
   public void authenticate() throws AlluxioStatusException {
-    LOG.debug("Authenticating channel: {}. AuthType: {}", mChannelKey.toStringShort(), mAuthType);
+    LOG.debug("Authenticating channel: {}. AuthType: {}", mChannelKey.toString(), mAuthType);
 
     ChannelAuthenticationScheme authScheme = getChannelAuthScheme(mAuthType, mParentSubject,
         mChannelKey.getServerAddress().getSocketAddress());
@@ -108,7 +108,7 @@ public class ChannelAuthenticator {
       // Build a pretty message for authentication failure.
       String message = String.format(
           "Channel authentication failed with code:%s. Channel: %s, AuthType: %s, Error: %s",
-          e.getStatusCode().name(), mChannelKey.toStringShort(), mAuthType, e.toString());
+          e.getStatusCode().name(), mChannelKey.toString(), mAuthType, e.toString());
       throw AlluxioStatusException
           .from(Status.fromCode(e.getStatusCode()).withDescription(message).withCause(t));
     }

@@ -52,7 +52,7 @@ public class DefaultTempBlockMetaTest {
         TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES,
         TEST_TIER_MEDIUM_TYPES, TEST_WORKER_DATA_FOLDER);
 
-    StorageTier tier = DefaultStorageTier.newStorageTier(TEST_TIER_ALIAS, false);
+    StorageTier tier = DefaultStorageTier.newStorageTier(TEST_TIER_ALIAS, 0, false);
     StorageDir dir = tier.getDir(0);
     // Append the worker data folder to the expected path.
     mTestBlockDirPath = PathUtils.concatPath(mTestDirPath, TEST_WORKER_DATA_FOLDER);

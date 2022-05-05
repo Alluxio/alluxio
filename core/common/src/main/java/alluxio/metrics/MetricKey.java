@@ -45,6 +45,8 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   /** Metric name. */
   private final String mName;
+  /** Metrics name without instance prefix. */
+  private final String mMetricName;
 
   /** Metric key description. */
   private final String mDescription;
@@ -67,6 +69,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mMetricType = metricType;
     mIsClusterAggregated = isClusterAggregated;
+    mMetricName = extractMetricName();
   }
 
   /**
@@ -135,6 +138,10 @@ public final class MetricKey implements Comparable<MetricKey> {
    * @return the name of the Metric without instance prefix
    */
   public String getMetricName() {
+    return mMetricName;
+  }
+
+  private String extractMetricName() {
     String[] pieces = mName.split("\\.");
     if (pieces.length <= 1) {
       return mName;
@@ -1490,6 +1497,41 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.CacheManagerThreadActiveCount")
+          .setDescription("The approximate number of block cache "
+              + "threads that are actively executing tasks in the cache manager thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_CURRENT_COUNT =
+      new Builder("Worker.CacheManagerThreadCurrentCount")
+          .setDescription("The current number of cache threads in the cache manager thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT =
+      new Builder("Worker.CacheManagerThreadQueueWaitingTaskCount")
+          .setDescription("The current number of tasks waiting in the work queue "
+              + "in the cache manager thread pool, bounded by "
+              + PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_MAX_COUNT =
+      new Builder("Worker.CacheManagerThreadMaxCount")
+          .setDescription("The maximum allowed number of block cache "
+              + "thread in the cache manager thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT =
+      new Builder("Worker.CacheManagerCompleteTaskCount")
+          .setDescription("The approximate total number of block cache tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT =
       new Builder("Worker.BlockReaderThreadActiveCount")
           .setDescription("The approximate number of block read "
@@ -1597,6 +1639,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
       new Builder("Client.CacheBytesReadCache")
           .setDescription("Total number of bytes read from the client cache.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_IN_STREAM_BUFFER =
+      new Builder("Client.CacheBytesReadInStreamBuffer")
+          .setDescription("Total number of bytes read from the client cache's in stream buffer.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();

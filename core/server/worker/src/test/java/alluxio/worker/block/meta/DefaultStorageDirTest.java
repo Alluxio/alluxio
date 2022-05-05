@@ -82,7 +82,7 @@ public final class DefaultStorageDirTest {
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, Constants.MEDIUM_MEM,
         testDirPaths, testDirCapacity, testDirMediumType, null);
 
-    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     mDir = DefaultStorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         TEST_REVERSED_BYTES, mTestDirPath, Constants.MEDIUM_MEM);
     mBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
@@ -342,25 +342,11 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to remove the metadata of a block which does not
-   * exist.
+   * Tests get the metadata of a block which does not exist returns Optional.empty().
    */
   @Test
-  public void removeBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
-    mDir.removeBlockMeta(mBlockMeta);
-  }
-
-  /**
-   * Tests that an exception is thrown when trying to get the metadata of a block which does not
-   * exist.
-   */
-  @Test
-  public void getBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
-    mDir.getBlockMeta(TEST_BLOCK_ID);
+  public void getBlockMetaNotExisting() {
+    assertFalse(mDir.getBlockMeta(TEST_BLOCK_ID).isPresent());
   }
 
   /**
@@ -424,14 +410,11 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to get the metadata of a temporary block that
-   * does not exist.
+   * Tests getting the metadata of a temporary block that does not exist returns Optional.empty().
    */
   @Test
-  public void getTempBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
-    mDir.getBlockMeta(TEST_TEMP_BLOCK_ID);
+  public void getTempBlockMetaNotExisting() {
+    assertFalse(mDir.getBlockMeta(TEST_TEMP_BLOCK_ID).isPresent());
   }
 
   /**
@@ -445,7 +428,7 @@ public final class DefaultStorageDirTest {
 
     mDir.addBlockMeta(mBlockMeta);
     assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
-    assertEquals(mBlockMeta, mDir.getBlockMeta(TEST_BLOCK_ID));
+    assertEquals(mBlockMeta, mDir.getBlockMeta(TEST_BLOCK_ID).get());
     assertEquals(TEST_DIR_CAPACITY - TEST_REVERSED_BYTES - TEST_BLOCK_SIZE,
         mDir.getAvailableBytes());
 

@@ -25,8 +25,8 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.worker.BlockUtils;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -52,7 +52,7 @@ public final class UfsFallbackBlockWriteHandler
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
-  private final BlockWorker mWorker;
+  private final DefaultBlockWorker mWorker;
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
   private final boolean mDomainSocketEnabled;
@@ -64,7 +64,7 @@ public final class UfsFallbackBlockWriteHandler
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether using a domain socket
    */
-  UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
+  UfsFallbackBlockWriteHandler(DefaultBlockWorker blockWorker, UfsManager ufsManager,
       StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
@@ -266,10 +266,8 @@ public final class UfsFallbackBlockWriteHandler
    */
   private void transferToUfsBlock(BlockWriteRequestContext context, long pos) throws Exception {
     OutputStream ufsOutputStream = context.getOutputStream();
-
-    long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getTempBlockMeta(blockId);
+    TempBlockMeta block = mWorker.getLocalBlockStore().getTempBlockMeta(blockId);
     Preconditions.checkState(Files.copy(Paths.get(block.getPath()), ufsOutputStream) == pos);
   }
 }

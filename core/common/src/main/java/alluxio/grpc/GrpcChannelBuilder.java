@@ -137,12 +137,12 @@ public final class GrpcChannelBuilder {
         connection.close();
       } catch (Exception e) {
         throw new RuntimeException(
-            "Failed to release the connection. " + mChannelKey.toStringShort(), e);
+            "Failed to release the connection. " + mChannelKey.toString(), e);
       }
       // Pretty print unavailable cases.
       if (t instanceof UnavailableException) {
         throw new UnavailableException(String.format("Failed to connect to remote server %s. %s",
-            mChannelKey.getServerAddress(), mChannelKey.toStringShort()),
+            mChannelKey.getServerAddress(), mChannelKey.toString()),
             t.getCause());
       }
       throw AlluxioStatusException.fromThrowable(t);

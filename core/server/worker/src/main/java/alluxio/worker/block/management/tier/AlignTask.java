@@ -14,7 +14,6 @@ package alluxio.worker.block.management.tier;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
@@ -28,6 +27,7 @@ import alluxio.worker.block.management.BlockOperationResult;
 import alluxio.worker.block.management.BlockOperationType;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
+import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -124,10 +125,11 @@ public class AlignTask extends AbstractBlockManagementTask {
 
     // Function that is used to map blockId to <blockId,location> pair.
     Function<Long, Pair<Long, BlockStoreLocation>> blockToPairFunc = (blockId) -> {
-      try {
-        return new Pair(blockId, mEvictorView.getBlockMeta(blockId).getBlockLocation());
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed to find location of a block:{}. Error: {}", blockId, e);
+      Optional<BlockMeta> blockMeta = mEvictorView.getBlockMeta(blockId);
+      if (blockMeta.isPresent()) {
+        return new Pair(blockId, blockMeta.get().getBlockLocation());
+      } else {
+        LOG.warn("Failed to find location of a block:{}.", blockId);
         return new Pair(blockId, BlockStoreLocation.anyTier());
       }
     };
