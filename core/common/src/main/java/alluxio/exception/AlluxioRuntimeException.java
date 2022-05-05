@@ -12,8 +12,11 @@
 package alluxio.exception;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.Any;
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusException;
+import io.grpc.protobuf.ProtoUtils;
 
 /**
  * Alluxio RuntimeException. Every developer should throw this exception when need to surface
@@ -22,33 +25,38 @@ import io.grpc.StatusException;
 public class AlluxioRuntimeException extends RuntimeException {
   private static final long serialVersionUID = 7801880681732804395L;
   private final Status mStatus;
+  private final Any[] mDetails;
 
   /**
    * @param status the grpc status code for this exception
    * @param message the error message
+   * @param details the additional information needed
    */
-  public AlluxioRuntimeException(Status status, String message) {
-    this(status, message, null);
+  public AlluxioRuntimeException(Status status, String message, Any... details) {
+    this(status, message, null, details);
   }
 
   /**
    * @param status the grpc status code for this exception
    * @param cause the exception
+   * @param details the additional information needed
    */
-  public AlluxioRuntimeException(Status status, Throwable cause) {
-    this(status, null, cause);
+  public AlluxioRuntimeException(Status status, Throwable cause, Any... details) {
+    this(status, null, cause, details);
   }
 
   /**
    * @param status the grpc status code for this exception
    * @param message the error message
    * @param cause the exception
+   * @param details the additional information needed
    */
-  public AlluxioRuntimeException(Status status, String message, Throwable cause) {
+  public AlluxioRuntimeException(Status status, String message, Throwable cause, Any... details) {
     super(message, cause);
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
     mStatus = status;
+    mDetails = details;
   }
 
   /**
@@ -62,7 +70,15 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return a gRPC status exception representation of this exception
    */
   public StatusException toGrpcStatusException() {
-    return mStatus.withCause(getCause()).withDescription(getMessage()).asException();
+    Metadata trailers = null;
+    if (mDetails != null) {
+      trailers = new Metadata();
+      for (Any details : mDetails) {
+        Metadata.Key<Any> detailsKey = ProtoUtils.keyForProto(Any.getDefaultInstance());
+        trailers.put(detailsKey, details);
+      }
+    }
+    return mStatus.withCause(getCause()).withDescription(getMessage()).asException(trailers);
   }
 
   @Override
