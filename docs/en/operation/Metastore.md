@@ -68,6 +68,11 @@ governed by the JVM arguments `-Xmx` and `-Xms`. Here's how they are exposed in 
 - `Master.RocksBlockCurSizeAllMemTables` and `Master.RocksInodeCurSizeAllMemTables` (derived from `rocksdb.cur-size-all-mem-tables`).
 - `Master.RocksBlockBlockCachePinnedUsage` and `Master.RocksInodeBlockCachePinnedUsage` (derived from `rocksdb.block-cache-pinned-usage`).
 
+These four metrics are aggregated on a blocks and inodes basis to estimate total memory usage. `Master.RocksBlockEstimatedMemUsage`
+and `Master.RocksInodeEstimatedMemUsage` estimate the total memory usage for the blocks table and the inodes table, respectively.
+These two metrics are further combined in `Master.RocksTotalEstimatedMemUsage` to estimate the total memory usage of RocksDB across
+all of Alluxio.
+
 ## Heap Metastore
 
 The heap metastore is simple: it stores all metadata on the heap. This gives consistent,
