@@ -24,7 +24,7 @@ import java.text.MessageFormat;
 public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
   private static final long serialVersionUID = -1313208091357063634L;
   private static final Status STATUS = Status.NOT_FOUND;
-  private static final Any DEATILS = null;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
@@ -50,6 +50,6 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param blockId block id
    */
   public BlockDoesNotExistRuntimeException(long blockId) {
-    super(STATUS, message);
+    this(new MessageFormat("BlockMeta not found for blockId {0,number,#}").format(blockId));
   }
 }
