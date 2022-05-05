@@ -195,7 +195,7 @@ public class RocksBlockStore implements BlockStore {
         MetricKey.MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM,
         MetricKey.MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES,
         MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE);
-    MetricsSystem.registerAggregatedCachedGauge(
+    MetricsSystem.registerAggregatedCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE.getName(),
         s, CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
   }

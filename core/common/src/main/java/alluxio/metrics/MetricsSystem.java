@@ -619,8 +619,11 @@ public final class MetricsSystem {
    * @param timeout the cached gauge timeout
    * @param timeUnit the unit of timeout
    */
-  public static synchronized void registerAggregatedCachedGauge(
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
       String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
     METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
       @Override
       protected Double loadValue() {
