@@ -51,6 +51,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +68,8 @@ public final class TieredBlockStoreTest {
   private static final long BLOCK_SIZE = 512;
   private static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
   private static final String SECOND_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[1];
+  private static final MessageFormat TEMP_BLOCK_META_NOT_FOUND =
+      new MessageFormat("TempBlockMeta not found for blockId {0,number,#}");
   private TieredBlockStore mBlockStore;
   private BlockMetadataManager mMetaManager;
   private BlockLockManager mLockManager;
@@ -574,7 +577,7 @@ public final class TieredBlockStoreTest {
   @Test
   public void getBlockWriterForNonExistingBlock() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
+    mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(BLOCK_ID1));
 
     mBlockStore.getBlockWriter(SESSION_ID1, BLOCK_ID1);
   }
@@ -585,7 +588,7 @@ public final class TieredBlockStoreTest {
   @Test
   public void abortNonExistingBlock() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
+    mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(BLOCK_ID1));
 
     mBlockStore.abortBlock(SESSION_ID1, BLOCK_ID1);
   }
@@ -691,7 +694,7 @@ public final class TieredBlockStoreTest {
   @Test
   public void commitNonExistingBlock() throws Exception {
     mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
+    mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(BLOCK_ID1));
 
     mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1, false);
   }

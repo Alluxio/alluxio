@@ -37,6 +37,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -401,8 +402,9 @@ public final class DefaultStorageDirTest {
     final long wrongSessionId = TEST_SESSION_ID + 1;
     String alias = Constants.MEDIUM_MEM;
     mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION
-        .getMessage(TEST_TEMP_BLOCK_ID, alias, wrongSessionId));
+    mThrown.expectMessage(
+        MessageFormat.format("blockId {0,number,#} in {1} not found for session {2,number,#}",
+            TEST_TEMP_BLOCK_ID, alias, wrongSessionId));
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta wrongTempBlockMeta =
         new DefaultTempBlockMeta(wrongSessionId, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);

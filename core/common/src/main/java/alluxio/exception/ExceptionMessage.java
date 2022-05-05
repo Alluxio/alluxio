@@ -48,14 +48,12 @@ public enum ExceptionMessage {
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
   LOCK_ID_FOR_DIFFERENT_SESSION(
       "lockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
-  LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
   LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
   SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
 
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
   GET_DIR_FROM_NON_SPECIFIC_LOCATION("Cannot get path from non-specific dir {0}"),
-  TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0,number,#}"),
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
 
@@ -68,14 +66,12 @@ public enum ExceptionMessage {
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0,number,#} exists in {1}"),
-  BLOCK_NOT_FOUND_FOR_SESSION("blockId {0,number,#} in {1} not found for session {2,number,#}"),
   NO_SPACE_FOR_BLOCK_META(
       "blockId {0,number,#} is {1,number,#} bytes, but only {2,number,#} bytes available in {3}"),
 
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_SESSION(
       "blockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
-  BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE(
