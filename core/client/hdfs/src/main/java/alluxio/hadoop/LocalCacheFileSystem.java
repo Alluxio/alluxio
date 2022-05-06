@@ -118,7 +118,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @return scheme
    */
   // @Override This doesn't exist in Hadoop 1.x, so cannot put {@literal @Override}.
-  @Override
   public String getScheme() {
     return mExternalFileSystem.getScheme();
   }

@@ -86,9 +86,6 @@ public final class FuseIOTaskResult implements TaskResult {
     mErrors.addAll(result.mErrors);
   }
 
-  /**
-   * @return the base parameters
-   */
   @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
