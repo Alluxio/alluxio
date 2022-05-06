@@ -11,6 +11,7 @@
 
 package alluxio.stress.client;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;
@@ -153,6 +154,7 @@ public class CompactionTaskResult implements TaskResult {
   /**
    * Summary of the benchmark results.
    */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   public static class CompactionSummary implements Summary {
     @JsonProperty("baseParameters")
     private final BaseParameters mBaseParameters;
