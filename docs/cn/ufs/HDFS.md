@@ -15,22 +15,25 @@ priority: 3
 
 要在一组机器上运行一个Alluxio集群，需要在每台机器上部署Alluxio二进制服务端包。你可以[下载带有正确Hadoop版本的预编译二进制包](Running-Alluxio-Locally.html)，对于高级用户，也可[源码编译Alluxio](Building-Alluxio-From-Source.html)，
 
-注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `2.7.3`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
+注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `3.3.1`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
 
 ```console
-$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
+$ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
-Alluxio提供了预定义配置文件，其包含`hadoop-1`，`hadoop-2.2`，`hadoop-2.3` ··· `hadoop-2.9`的Hadoop版本。如果你想编译特定Hadoop版本的Alluxio，你应该在命令中指定版本。
+Alluxio提供了预定义配置文件，其包含`hadoop-2`和`hadoop-3`的Hadoop版本。如果你想编译特定Hadoop版本的Alluxio，你应该在命令中指定版本。
 例如，
 
 ```console
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+# 使用 Hadoop 2.7.1 构建Alluxio
+$ mvn install -Pufs-hadoop-2 -Dhadoop.version=2.7.1 -DskipTests
+# 使用 Hadoop 3.1.0 构建Alluxio
+$ mvn install -Pufs-hadoop-3 -Dhadoop.version=3.1.0 -DskipTests
 ```
 
-将会编译Hadoop 2.7.1版本的Alluxio。如果想获取更多的版本支持，请访问[编译Alluxio主分支](Building-Alluxio-From-Source.html#distro-support)。
+如果想获取更多的版本支持，请访问[编译Alluxio主分支](Building-Alluxio-From-Source.html#distro-support)。
 
-## 配置Alluxio
+如果一切顺利，你将在`${ALLUXIO_HOME}/assembly/server/target`目录下看到创建的`alluxio-assembly-server-{{site.ALLUXIO_VERSION_STRING}}-jar-with-dependencies.jar`文件
 
 你需要通过修改`conf/alluxio-site.properties`来配置Alluxio使用底层存储系统，如果该配置文件不存在，则根据模版创建一个配置文件
 
@@ -70,9 +73,9 @@ alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 Alluxio支持类POSIX文件系统[用户和权限检查]({{ '/cn/operation/Security.html' | relativize_url }})，这从v1.3开始默认启用。
 为了确保文件/目录的权限信息，即HDFS上的用户，组和访问模式，与Alluxio一致，(例如，在Alluxio中被用户Foo创建的文件在HDFS中也以Foo作为用户持久化)，用户**需要**以以下方式启动:
 
-1. [HDFS超级用户](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User)。即，使用启动HDFS namenode进程的同一用户也启动Alluxio master和worker进程。也就是说，使用与启动HDFS的namenode进程相同的用户名启动Alluxio master和worker进程。
+1. [HDFS超级用户](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User)。即，使用启动HDFS namenode进程的同一用户也启动Alluxio master和worker进程。也就是说，使用与启动HDFS的namenode进程相同的用户名启动Alluxio master和worker进程。
 
-2. [HDFS超级用户组](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameter)的成员。编辑HDFS配置文件`hdfs-site.xml`并检查配置属性`dfs.permissions.superusergroup`的值。如果使用组（例如，“hdfs”）设置此属性，则将用户添加到此组（“hdfs”）以启动Alluxio进程（例如，“alluxio”）;如果未设置此属性，请将一个组添加到此属性，其中Alluxio运行用户是此新添加组的成员。
+2. [HDFS超级用户组](http://hadoop.apache.org/docs/r3.3.1/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#Configuration_Parameters)的成员。编辑HDFS配置文件`hdfs-site.xml`并检查配置属性`dfs.permissions.superusergroup`的值。如果使用组（例如，“hdfs”）设置此属性，则将用户添加到此组（“hdfs”）以启动Alluxio进程（例如，“alluxio”）;如果未设置此属性，请将一个组添加到此属性，其中Alluxio运行用户是此新添加组的成员。
 
 注意，上面设置的用户只是启动Alluxio master和worker进程的标识。一旦Alluxio服务器启动，就**不必**使用此用户运行Alluxio客户端应用程序。
 
@@ -130,7 +133,8 @@ $ ./bin/alluxio-start.sh local
 $ ./bin/alluxio runTests
 ```
 
-运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，在[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)中创建的文件名称应像这样：`/default_tests_files/BASIC_CACHE_THROUGH`。
+运行成功后，访问HDFS Web UI [http://localhost:9870](http://localhost:9870)([http://localhost:50070](http://localhost:50070) 如果你使用HDFS 2.x)，
+确认其中包含了由Alluxio创建的文件和目录。在该测试中，在[http://localhost:9870/explorer.html](http://localhost:9870/explorer.html)中创建的文件名称应像这样：`/default_tests_files/BASIC_CACHE_THROUGH`。
 
 运行以下命令停止Alluxio：
 
@@ -152,7 +156,7 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 ```
 
 #### 使用挂载命令行
-当使用挂载Alluxio shell命令时，可以通过安装选项`alluxio.underfs.version`来指定要安装的HDFS版本。 如果未指定版本，Alluxio默认为Apache HDFS 2.7。
+当使用挂载Alluxio shell命令时，可以通过安装选项`alluxio.underfs.version`来指定要安装的HDFS版本。 如果未指定版本，Alluxio默认为Apache HDFS 3.3。
 
 例如，以下命令将两个HDFS部署(一个是HDFS 2.2，另一个是2.7)挂载到Alluxio命名空间`/mnt/hdfs12`和`/mnt/hdfs27`目录下。
 
@@ -179,7 +183,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
 
 Alluxio支持以下版本的HDFS作为有效挂载选项`alluxio.underfs.version`参数：
 
-- Apache Hadoop：2.2、2.3、2.4、2.5、2.6、2.7、2.8、2.9、3.0、3.1
+- Apache Hadoop：2.2、2.3、2.4、2.5、2.6、2.7、2.8、2.9、3.0、3.1、3.2、3.3
 
 注意：仍支持Apache Hadoop 1.0和1.2，但默认下载中不包括此支持。
 要自己构建此模块，构建shaded hadoop客户端，然后构建UFS模型，如下以hadoop-1.2.0为例所示。
