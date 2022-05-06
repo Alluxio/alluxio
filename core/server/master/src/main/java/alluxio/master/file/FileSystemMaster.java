@@ -416,7 +416,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return all the files lost on the workers
    */
-  List<Long> getLostFiles();
+  Set<Long> getLostFiles();
 
   /**
    * Mounts a UFS path onto an Alluxio path.
