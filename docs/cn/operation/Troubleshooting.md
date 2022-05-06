@@ -29,7 +29,7 @@ Master和Worker日志对于理解Alluxio Master节点和Worker节点的运行过
 当Alluxio运行在客户端侧无法连接的服务器上时，客户端侧的日志会很有用。Alluxio客户端通过log4j生成日志消息，因此日志的位置由使用Alluxio的应用程序的log4j配置确定。
 您可以在 [此处]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs) 找到有关客户端日志的更多详细信息。
 
-`${ALLUXIO_HOME}/logs/user/`是Alluxioshell的日志。每个用户都有单独的日志文件。
+`${ALLUXIO_HOME}/logs/user/`是Alluxio shell的日志。每个用户都有单独的日志文件。
 
 有关日志记录的更多信息，请查看
 [本页]({{ '/en/operation/Basic-Logging.html' | relativize_url }})。
