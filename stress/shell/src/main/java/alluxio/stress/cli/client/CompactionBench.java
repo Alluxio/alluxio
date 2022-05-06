@@ -472,8 +472,10 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
             for (AlluxioURI file : files) {
               mFs.delete(file);
             }
+            mFs.delete(srcDir, DeletePOptions.newBuilder().build());
+          } else {
+            mFs.delete(srcDir, DeletePOptions.newBuilder().setRecursive(true).build());
           }
-          mFs.delete(srcDir, DeletePOptions.newBuilder().setRecursive(true).build());
         }
 
         mResult.getStatistics().encodeResponseTimeNsRaw(mRawRecords);
