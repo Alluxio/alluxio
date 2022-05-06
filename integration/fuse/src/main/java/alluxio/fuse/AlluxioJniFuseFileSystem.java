@@ -29,8 +29,9 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.AlluxioFuseOpenUtils.OpenAction;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
+import alluxio.fuse.file.FuseFileEntry;
+import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
@@ -102,27 +103,26 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final LoadingCache<String, Long> mGidCache;
   private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
-  private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
   private final FuseShell mFuseShell;
-  private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
+  private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX =
-      new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
+      new IndexDefinition<FuseFileEntry<FuseFileStream>, Long>(true) {
         @Override
-        public Long getFieldValue(CreateFileEntry<FileOutStream> o) {
+        public Long getFieldValue(FuseFileEntry<FuseFileStream> o) {
           return o.getId();
         }
       };
 
   // Add a PATH_INDEX to know getattr() been called when writing this file
-  private static final IndexDefinition<CreateFileEntry<FileOutStream>, String>
+  private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX =
-      new IndexDefinition<CreateFileEntry<FileOutStream>, String>(true) {
+      new IndexDefinition<FuseFileEntry<FuseFileStream>, String>(true) {
         @Override
-        public String getFieldValue(CreateFileEntry<FileOutStream> o) {
+        public String getFieldValue(FuseFileEntry<FuseFileStream> o) {
           return o.getPath();
         }
       };
-  private final IndexedSet<CreateFileEntry<FileOutStream>> mCreateFileEntries
+  private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
@@ -194,12 +194,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Failed to set AlluxioJniFuseFileSystem log to debug level", e);
       }
     }
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.FUSE_READING_FILE_COUNT.getName()),
-        mOpenFileEntries::size);
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.FUSE_WRITING_FILE_COUNT.getName()),
-        mCreateFileEntries::size);
+    // TODO(lu) update metrics
+    //MetricsSystem.registerGaugeIfAbsent(
+    //    MetricsSystem.getMetricName(MetricKey.FUSE_READING_FILE_COUNT.getName()),
+    //    mOpenFileEntries::size);
+    //MetricsSystem.registerGaugeIfAbsent(
+    //    MetricsSystem.getMetricName(MetricKey.FUSE_WRITING_FILE_COUNT.getName()),
+    //    mFileEntries::size);
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.FUSE_CACHED_PATH_COUNT.getName()),
         mPathResolverCache::size);
@@ -219,14 +220,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.ENAMETOOLONG();
     }
     try {
-      FileOutStream os = mFileSystem.createFile(uri,
-          CreateFilePOptions.newBuilder()
-              .setMode(new Mode((short) mode).toProto())
-              .build());
+      FuseFileStream stream = FuseFileStream.Factory.create(mFileSystem, uri, fi.flags.get(), mode, mAuthPolicy);
       long fid = mNextOpenFileId.getAndIncrement();
-      mCreateFileEntries.add(new CreateFileEntry<>(fid, path, os));
+      mFileEntries.add(new FuseFileEntry<>(fid, path, stream));
       fi.fh.set(fid);
-      mAuthPolicy.setUserGroupIfNeeded(uri);
     } catch (Throwable t) {
       LOG.error("Failed to create {}", path, t);
       return -ErrorCodes.EIO();
@@ -254,14 +251,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       long size = status.getLength();
       if (!status.isCompleted()) {
-        if (mCreateFileEntries.contains(PATH_INDEX, path)) {
-          // Alluxio master will not update file length until file is completed
-          // get file length from the current output stream
-          CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
-          if (ce != null) {
-            FileOutStream os = ce.getOut();
-            size = os.getBytesWritten();
-          }
+        FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
+        if (stream != null) {
+          size = stream.getFileStream().getFileLength();
         } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           // Always block waiting for file to be completed except when the file is writing
           // We do not want to block the writing process
@@ -424,7 +416,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // wait for fuse.truncate(size=0) to delete file and create new output stream
         // otherwise all future write will error out
         FileOutStream os = mFileSystem.createFile(uri);
-        mCreateFileEntries.add(new CreateFileEntry<>(fd, path, os));
+        mFileEntries.add(new CreateFileEntry<>(fd, path, os));
         mAuthPolicy.setUserGroupIfNeeded(uri);
       }
       return 0;
@@ -504,7 +496,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return ErrorCodes.EIO();
     }
     final int sz = (int) size;
-    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
       if (offset != 0) {
         LOG.error(String.format("Cannot write to offset %s for path %s with flags 0x%x."
@@ -548,7 +540,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       try {
         FileOutStream os = mFileSystem.createFile(uri);
         ce = new CreateFileEntry<>(fd, path, os);
-        mCreateFileEntries.add(ce);
+        mFileEntries.add(ce);
         mAuthPolicy.setUserGroupIfNeeded(uri);
       } catch (Throwable e) {
         LOG.error("Failed to create file output stream for {}", path, e);
@@ -590,7 +582,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int flushInternal(String path, long fd) {
     FileInStream is = mOpenFileEntries.get(fd);
-    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+    CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null && is == null) {
       LOG.error("Failed to flush {}: cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
@@ -622,7 +614,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int releaseInternal(String path, long fd) {
     try {
       FileInStream is = mOpenFileEntries.remove(fd);
-      CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
+      CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(ID_INDEX, fd);
       if (is == null && ce == null) {
         LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
         return -ErrorCodes.EBADFD();
@@ -630,7 +622,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (ce != null) {
         // Remove earlier to try best effort to avoid write() - async release() - getAttr()
         // without waiting for file completed and return 0 bytes file size error
-        mCreateFileEntries.remove(ce);
+        mFileEntries.remove(ce);
         synchronized (ce) {
           ce.close();
         }
@@ -858,7 +850,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to truncate {} to {} bytes: Failed to get file status", path, size, t);
       return -ErrorCodes.EIO();
     }
-    CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(PATH_INDEX, path);
+    CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(PATH_INDEX, path);
     if (size == 0) {
       if (status == null) {
         // Case 1: Truncate size = 0, file does not exist => no-op
@@ -886,12 +878,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           if (bytesWritten == 0) {
             return 0;
           }
-          mCreateFileEntries.remove(ce);
+          mFileEntries.remove(ce);
           mFileSystem.delete(uri);
           os = mFileSystem.createFile(uri);
           final long fd = ce.getId();
           ce = new CreateFileEntry(fd, path, os);
-          mCreateFileEntries.add(ce);
+          mFileEntries.add(ce);
           mAuthPolicy.setUserGroupIfNeeded(uri);
           return 0;
         }
@@ -1019,11 +1011,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (mMaxUmountWaitTime > 0 && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
+    if (mMaxUmountWaitTime > 0 && (!mFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
-            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
+            () -> mFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
             WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mMountPoint);
@@ -1032,7 +1024,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Timeout when waiting all in progress file read/write to finish "
             + "when unmounting {}. {} fileInStream remain unclosed. "
             + "{} fileOutStream remain unclosed.",
-            mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
+            mMountPoint, mOpenFileEntries.size(), mFileEntries.size());
         if (!force) {
           throw new FuseException("Timed out for umount due to device is busy.");
         }
