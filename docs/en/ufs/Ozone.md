@@ -60,7 +60,7 @@ In the following example `ozone-site.xml` file, `<OM_SERVICE_IDS>` is `omservice
 </property>
 ```
 
-### Mount HDFS with Specific Versions
+### Mount Ozone with Specific Versions
 
 Users can mount an Ozone cluster of a specific version as an under storage into Alluxio namespace.
 Before mounting Ozone with a specific version, make sure you have built a client with that specific version of Ozone.
