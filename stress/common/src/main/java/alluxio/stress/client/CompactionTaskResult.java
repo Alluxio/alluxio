@@ -16,25 +16,27 @@ import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.stress.common.TaskResultStatistics;
-import alluxio.stress.rpc.RpcTaskResult;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.zip.DataFormatException;
-
 import javax.annotation.Nullable;
 
+/**
+ * Task results for the compaction bench.
+ */
 public class CompactionTaskResult implements TaskResult {
   private BaseParameters mBaseParameters;
   private CompactionParameters mParameters;
   private List<String> mErrors;
   private CompactionTaskResultStatistics mStatistics;
 
+  /**
+   * Creates an empty result.
+   */
   public CompactionTaskResult() {
     mErrors = new ArrayList<>();
     mStatistics = new CompactionTaskResultStatistics();
@@ -51,9 +53,7 @@ public class CompactionTaskResult implements TaskResult {
     mStatistics = from.mStatistics;
   }
 
-  /**
-   * @return the {@link BaseParameters}
-   */
+  @Override
   @Nullable
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
@@ -88,9 +88,7 @@ public class CompactionTaskResult implements TaskResult {
     mErrors.add(errorMsg);
   }
 
-  /**
-   * @return all the error messages
-   */
+  @Override
   public List<String> getErrors() {
     return mErrors;
   }
@@ -102,19 +100,32 @@ public class CompactionTaskResult implements TaskResult {
     mErrors = errors;
   }
 
+  /**
+   * Merges a result into this one.
+   * @param toMerge the result to merge
+   */
   public void merge(CompactionTaskResult toMerge) throws Exception {
     mStatistics.merge(toMerge.getStatistics());
     mErrors.addAll(toMerge.getErrors());
   }
 
+  /**
+   * Increase number of successes by 1.
+   */
   public void incrementNumSuccess() {
     mStatistics.mNumSuccess += 1;
   }
 
+  /**
+   * @return the result statistics
+   */
   public CompactionTaskResultStatistics getStatistics() {
     return mStatistics;
   }
 
+  /**
+   * @param statistics the result statistics
+   */
   public void setStatistics(CompactionTaskResultStatistics statistics) {
     mStatistics = statistics;
   }
@@ -139,6 +150,9 @@ public class CompactionTaskResult implements TaskResult {
     }
   }
 
+  /**
+   * Summary of the benchmark results.
+   */
   public static class CompactionSummary implements Summary {
     @JsonProperty("baseParameters")
     private final BaseParameters mBaseParameters;
@@ -151,6 +165,10 @@ public class CompactionTaskResult implements TaskResult {
     @JsonProperty("statistics")
     private final SummaryStatistics mSummaryStatistics;
 
+    /**
+     * Creates a summary from a result object.
+     * @param mergedResult the final result
+     */
     public CompactionSummary(CompactionTaskResult mergedResult) throws DataFormatException {
       mBaseParameters = mergedResult.getBaseParameters();
       mParameters = mergedResult.getParameters();

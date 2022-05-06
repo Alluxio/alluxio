@@ -13,7 +13,13 @@ package alluxio.stress.client;
 
 import alluxio.stress.common.TaskResultStatistics;
 
+/**
+ * Result statistics of the compaction benchmark.
+ */
 public class CompactionTaskResultStatistics extends TaskResultStatistics {
+  /**
+   * Creates an empty statistics object.
+   */
   public CompactionTaskResultStatistics() {
     super();
     mMaxResponseTimeNs = new long[0];
