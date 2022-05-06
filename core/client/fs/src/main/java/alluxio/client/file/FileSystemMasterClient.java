@@ -312,4 +312,9 @@ public interface FileSystemMasterClient extends Client {
    * @return the state lock waiters and holders thread identifiers
    */
   List<String> getStateLockHolders() throws AlluxioStatusException;
+
+  /**
+   * @return the ids of lost file
+   */
+  List<Long> getLostFiles() throws AlluxioStatusException;
 }

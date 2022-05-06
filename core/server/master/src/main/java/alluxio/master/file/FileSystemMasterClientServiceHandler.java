@@ -37,6 +37,8 @@ import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
 import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetFilePathPResponse;
+import alluxio.grpc.GetLostFilesIdPRequest;
+import alluxio.grpc.GetLostFilesIdPResponse;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -433,6 +435,14 @@ public final class FileSystemMasterClientServiceHandler
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getLostFilesId(GetLostFilesIdPRequest request,
+      StreamObserver<GetLostFilesIdPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetLostFilesIdPResponse.newBuilder()
+        .addAllLostFilesId(mFileSystemMaster.getLostFiles()).build(),
+        "GetLostFilesId", "request=%s", responseObserver, request);
   }
 
   /**

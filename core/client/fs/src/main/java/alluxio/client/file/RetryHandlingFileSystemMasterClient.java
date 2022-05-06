@@ -33,6 +33,7 @@ import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
+import alluxio.grpc.GetLostFilesIdPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -393,6 +394,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .forEach((thread) -> result.add(thread));
       return result;
     }, RPC_LOG, "GetStateLockHolders", "");
+  }
+
+  @Override
+  public List<Long> getLostFiles()
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      List<Long> result =
+          mClient.getLostFilesId(GetLostFilesIdPRequest.newBuilder().build()).getLostFilesIdList();
+      return result;
+    }, RPC_LOG, "GetLostFilesId", "");
   }
 
   /**

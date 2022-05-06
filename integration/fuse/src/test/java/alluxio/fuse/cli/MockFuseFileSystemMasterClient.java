@@ -188,6 +188,11 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public List<Long> getLostFiles() throws AlluxioStatusException {
+    return Collections.EMPTY_LIST;
+  }
+
+  @Override
   public void connect() throws IOException {
   }
 

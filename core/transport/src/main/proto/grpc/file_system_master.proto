@@ -519,6 +519,11 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
+message GetLostFilesIdPRequest {
+}
+message GetLostFilesIdPResponse {
+  repeated int64 lostFilesId = 1;
+}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -656,6 +661,8 @@ service FileSystemMasterClientService {
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
+
+  rpc GetLostFilesId(GetLostFilesIdPRequest) returns (GetLostFilesIdPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

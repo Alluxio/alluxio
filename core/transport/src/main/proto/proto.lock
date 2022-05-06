@@ -3337,6 +3337,20 @@
             ]
           },
           {
+            "name": "GetLostFilesIdPRequest"
+          },
+          {
+            "name": "GetLostFilesIdPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "lostFilesId",
+                "type": "int64",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -3593,6 +3607,11 @@
                 "name": "GetStateLockHolders",
                 "in_type": "GetStateLockHoldersPRequest",
                 "out_type": "GetStateLockHoldersPResponse"
+              },
+              {
+                "name": "GetLostFilesId",
+                "in_type": "GetLostFilesIdPRequest",
+                "out_type": "GetLostFilesIdPResponse"
               }
             ]
           },
