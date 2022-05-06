@@ -26,8 +26,7 @@ $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 $ export ALLUXIO_HOME=$(pwd)
 ```
-您可以编译特定版本的Alluxio，否则这将编译源码的master分支。如果你要构建特的版本的代码，你可以使用 git tag 获取。
-
+您可以编译特定版本的Alluxio，否则这将编译源码的master分支。如果你要构建特定版本的代码，你可以使用 git tag 获取。
 ```console
 $ git tag
 $ git checkout <TAG_NAME>
@@ -128,7 +127,7 @@ $ mvn clean install -pl underfs/hdfs/ \
   -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 要启用`active sync`，请确保使用 `hdfsActiveSync` 属性来构建，
-请参考 [Active Sync for HDFS]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }}#active-sync-for-hdfs) 获得更多关于使用Active Sync的信息。
+请参考 [Active Sync for HDFS]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }}#hdfs元数据主动同步) 获得更多关于使用Active Sync的信息。
 
 如果你在`${ALLUXIO_HOME}/lib`目录中发现名为`alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar`的jar，表明编译成功。
 
