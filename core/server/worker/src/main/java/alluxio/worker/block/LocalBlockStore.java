@@ -46,7 +46,7 @@ public interface LocalBlockStore
    * @param ufsManager
    */
   static LocalBlockStore create(UfsManager ufsManager) {
-    if(ServerConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
       try {
         InstancedConfiguration conf = ServerConfiguration.global();
         PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
@@ -219,7 +219,8 @@ public interface LocalBlockStore
    * @param options the options for UFS fall-back
    * @return a {@link BlockReader} instance on this block
    */
-  default BlockReader getBlockReader(long sessionId, long blockId,  Protocol.OpenUfsBlockOptions options) {
+  default BlockReader getBlockReader(long sessionId, long blockId,
+                                     Protocol.OpenUfsBlockOptions options) {
     throw new UnsupportedOperationException();
   }
 

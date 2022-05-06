@@ -35,6 +35,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * A paged implementation of BlockReader interface. The read operations will fall back to the
+ * under storage when the requested data is not in the local storage.
+ */
 @NotThreadSafe
 public class PagedBlockReader extends BlockReader {
 
@@ -43,12 +47,20 @@ public class PagedBlockReader extends BlockReader {
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
   private final UfsInputStreamCache mUfsInStreamCache;
-  private final AlluxioConfiguration mConf;
   private final long mBlockId;
   private final Protocol.OpenUfsBlockOptions mUfsBlockOptions;
   private boolean mClosed = false;
   private long mPosition = 0;
 
+  /**
+   * Constructor for PagedBlockReader.
+   * @param cacheManager paging cache manager
+   * @param ufsManager under file storage manager
+   * @param ufsInStreamCache a cache for the in streams from ufs
+   * @param conf alluxio configurations
+   * @param blockId block id
+   * @param ufsBlockOptions options to open a ufs block
+   */
   public PagedBlockReader(CacheManager cacheManager, UfsManager ufsManager,
                           UfsInputStreamCache ufsInStreamCache,
                           AlluxioConfiguration conf,
@@ -57,7 +69,6 @@ public class PagedBlockReader extends BlockReader {
     mCacheManager = cacheManager;
     mUfsManager = ufsManager;
     mUfsInStreamCache = ufsInStreamCache;
-    mConf = conf;
     mBlockId = blockId;
     mUfsBlockOptions = ufsBlockOptions;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
@@ -119,7 +130,6 @@ public class PagedBlockReader extends BlockReader {
       mUfsInStreamCache.release(ufsInputStream);
     }
     return page;
-
   }
 
   private InputStream seekUfsInputStream(long posInFile)
@@ -169,7 +179,7 @@ public class PagedBlockReader extends BlockReader {
   }
 
   @Override
-  public void close() throws IOException{
+  public void close() throws IOException {
     mClosed = true;
   }
 }
