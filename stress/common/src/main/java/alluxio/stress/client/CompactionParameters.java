@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class CompactionParameters extends Parameters {
   @Parameter(names = {"--base"}, description = "Base path of the benchmark")
-  public String mBase = "alluxio:///compaction-base";
+  public String mBase = "/compaction-base";
 
   @Parameter(names = {"--source-base"},
       description = "Path of the base directory where each subdirectory contains source files "
