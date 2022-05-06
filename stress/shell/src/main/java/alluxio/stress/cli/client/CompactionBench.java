@@ -40,6 +40,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
@@ -58,6 +59,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+/**
+ * Benchmark that simulates a workload that compacts many small files into a bigger file.
+ */
 public class CompactionBench extends Benchmark<CompactionTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(CompactionBench.class);
 
@@ -76,7 +80,28 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    return null;
+    return String.join("\n", ImmutableList.of(
+        "A benchmark that simulates the workload of compacting many small files into a bigger "
+            + "file.",
+        "",
+        "Example:",
+        "# This example creates 4 source directories each containing 100 source files that are "
+            + "10KB each,",
+        "# and compacts every 10 source files into 1 output file, resulting in 40 output files in",
+        "# a single output directory.",
+        "# The compaction is done on 1 job worker with 5 threads, meaning each thread will "
+            + "process 80 source",
+        "# files in 8 sequential batches.",
+        "$ bin/alluxio runClass alluxio.stress.cli.client.CompactionBench "
+            + "--cluster "
+            + "--cluster-limit 1 "
+            + "--base alluxio:///compaction-base "
+            + "--source-files 1000 "
+            + "--source-dirs 4 "
+            + "--source-file-size 10kb "
+            + "--threads 5 "
+            + "--compact-ratio 10 "
+    ));
   }
 
   @Override
@@ -87,7 +112,9 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
       mCachedFs[i] = FileSystem.Factory.create(new InstancedConfiguration(properties));
     }
     FileSystem fs = mCachedFs[0];
-    AlluxioURI destBaseUri = new AlluxioURI(mParameters.mOutputBase);
+    AlluxioURI baseUri = new AlluxioURI(mParameters.mBase);
+    AlluxioURI destBaseUri = baseUri.join(mParameters.mOutputBase);
+    AlluxioURI stagingBaseUri = baseUri.join(mParameters.mStagingBase);
     // Scan base dir to get all subdirectories that contain files to compact
     List<AlluxioURI> subDirs =
         fs.listStatus(mRealSourceBase)
@@ -109,7 +136,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
         BenchThread thread = new BenchThread(
             mCachedFs[i],
             srcDestDirMap,
-            new AlluxioURI(mParameters.mStagingBase),
+            stagingBaseUri,
             mParameters.mCompactRatio,
             FormatUtils.parseTimeSize(mParameters.mDelayMs),
             (int) FormatUtils.parseSpaceSize(mParameters.mBufSize),
@@ -182,7 +209,8 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
         break;
       case 0b001:
         // set real base to "local"
-        mRealSourceBase = new AlluxioURI(mParameters.mSourceBase).join("local");
+        mRealSourceBase =
+            new AlluxioURI(mParameters.mBase).join(mParameters.mSourceBase).join("local");
         if (!mParameters.mSkipPrepare) {
           prepareSourceFiles(prepareFs);
         }
@@ -190,7 +218,8 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
       case 0b101:
         // set real base to the id of the job worker, to avoid sharing the same base
         // path with other job workers
-        mRealSourceBase = new AlluxioURI(mParameters.mSourceBase).join(mBaseParameters.mId);
+        mRealSourceBase = new AlluxioURI(mParameters.mBase)
+            .join(mParameters.mSourceBase).join(mBaseParameters.mId);
         if (!mParameters.mSkipPrepare) {
           prepareSourceFiles(prepareFs);
         }
@@ -214,14 +243,14 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
 
   private void prepareStagingBaseDir(FileSystem fs) throws IOException, AlluxioException {
     try {
-      fs.createDirectory(new AlluxioURI(mParameters.mStagingBase),
+      fs.createDirectory(new AlluxioURI(mParameters.mBase).join(mParameters.mStagingBase),
           CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     } catch (FileAlreadyExistsException ignored) { /* ignored */ }
   }
 
   private void prepareOutputBaseDir(FileSystem fs) throws IOException, AlluxioException {
     if (!mParameters.mOutputInPlace) {
-      AlluxioURI path = new AlluxioURI(mParameters.mOutputBase);
+      AlluxioURI path = new AlluxioURI(mParameters.mBase).join(mParameters.mOutputBase);
       try {
         fs.delete(path,
             DeletePOptions.newBuilder().setRecursive(true).build());
@@ -233,7 +262,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
 
   private void prepareSourceBaseDir(FileSystem fs) throws IOException, AlluxioException {
     try {
-      fs.createDirectory(new AlluxioURI(mParameters.mSourceBase),
+      fs.createDirectory(new AlluxioURI(mParameters.mBase).join(mParameters.mSourceBase),
           CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     } catch (FileAlreadyExistsException ignored) { /* ignored */ }
   }

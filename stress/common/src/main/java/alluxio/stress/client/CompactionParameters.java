@@ -18,15 +18,21 @@ import com.beust.jcommander.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Parameters of CompactionBench.
+ */
 public class CompactionParameters extends Parameters {
+  @Parameter(names = {"--base"}, description = "Base path of the benchmark")
+  public String mBase = "alluxio:///compaction-base";
+
   @Parameter(names = {"--source-base"},
       description = "Path of the base directory where each subdirectory contains source files "
-          + "to compact")
-  public String mSourceBase = "/compaction-base/source";
+          + "to compact, relative to the base path. Defaults to `${base}/source`.")
+  public String mSourceBase = "source";
 
   @Parameter(names = {"--source-dirs"},
       description = "Number of directories containing source files to compact. "
-      + "In cluster mode, each job worker will create this many directories.")
+          + "In cluster mode, each job worker will create this many directories.")
   public int mNumSourceDirs = 100;
 
   @Parameter(names = {"--source-files"},
@@ -38,12 +44,14 @@ public class CompactionParameters extends Parameters {
   public String mSourceFileSize = "8kb";
 
   @Parameter(names = {"--output-base"},
-      description = "Path of the base directory where compacted output will be stored.")
-  public String mOutputBase = "/compaction-base/output";
+      description = "Path of the base directory where compacted output will be stored, "
+          + "relative to the base path. Defaults to `${base}/output`.")
+  public String mOutputBase = "output";
 
   @Parameter(names = {"--staging-base"},
-      description = "Path of the staging directory where intermediate files are created.")
-  public String mStagingBase = "/compaction-base/.staging";
+      description = "Path of the staging directory where intermediate files are created, "
+          + "relative to the base path. Defaults to `${base}/.staging`.")
+  public String mStagingBase = ".staging";
 
   @Parameter(names = {"--output-in-place"},
       description = "Whether to output each compacted file in the same directory of its "
