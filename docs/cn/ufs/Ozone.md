@@ -30,9 +30,9 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 编辑`conf/alluxio-site.properties`将`alluxio.master.mount.table.root.ufs`底层存储地址设置为Ozone桶或想要挂载到Alluxio的Ozone目录。
-例如，如果要将整个存储桶挂载到Alluxio底层存储的地址可以是`o3fs://<OZONE_BUCKET>.<s_VOLUME>/`
-如果仅将`<OZONE_VOLUME>`的`<OZONE_BUCKET>`ozone桶内的`/alluxio/data`目录映射到Alluxio。such
-底层存储的地址可以是`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data`。
+例如，如果要将整个存储桶挂载到Alluxio的根目录，则将`alluxio.master.mount.table.root.ufs`设置为`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/`；
+如果仅将`<OZONE_VOLUME>`的`<OZONE_BUCKET>`Ozone桶内的`/alluxio/data`目录映射到Alluxio的根目录，
+则可以设置为`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data`。
 
 将`alluxio-site.properties`中的`alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration`指向`ozone-site.xml`，确保配置在所有正在运行Alluxio的服务端上设置了。
 
@@ -52,7 +52,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 ``` 
 
 `<OM_SERVICE_IDS>` 可以在`ozone-site.xml`中找到，
-可能的 `ozone-site.xml` 文件，从该文件中可以知道，`<OM_SERVICE_IDS>` 为 `omservice1`。
+例如以下`ozone-site.xml`配置文件中`<OM_SERVICE_IDS>`为`omservice1`。
 ```xml
 <property>
     <name>ozone.om.service.ids</name>
@@ -113,7 +113,7 @@ $ ./bin/alluxio fs mount \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-如果需要挂载指定版本的Ozone可以通过`alluxio.underfs.version=<OZONE_VERSION>`指定。
+如果需要挂载指定版本的Ozone，可以在挂载时通过`alluxio.underfs.version=<OZONE_VERSION>`参数指定版本。
 ```console
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \

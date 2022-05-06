@@ -51,8 +51,8 @@ alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SER
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
 
-`<OM_SERVICE_IDS>` can be found in `ozone-site.xml`
-Possible `ozone-site.xml` file, as known from the file, `<OM_SERVICE_IDS>` is `omservice1`
+`<OM_SERVICE_IDS>` can be found in `ozone-site.xml`.
+In the following example `ozone-site.xml` file, `<OM_SERVICE_IDS>` is `omservice1`:
 ```xml
 <property>
     <name>ozone.om.service.ids</name>
@@ -62,7 +62,7 @@ Possible `ozone-site.xml` file, as known from the file, `<OM_SERVICE_IDS>` is `o
 
 ### Mount HDFS with Specific Versions
 
-User can mount an Ozone cluster with a specified version as an under storage into Alluxio namespace.
+Users can mount an Ozone cluster of a specific version as an under storage into Alluxio namespace.
 Before mounting Ozone with a specific version, make sure you have built a client with that specific version of Ozone.
 You can check the existence of this client by going to the `lib` directory under the Alluxio directory.
 
@@ -116,7 +116,7 @@ $ ./bin/alluxio fs mount \
   /ozone o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 ```
 
-If you need mount an HDFS cluster with a specified version, you can specify it through `alluxio.underfs.version=<OZONE_VERSION>`.
+If you need to mount an Ozone cluster of a specific version, you can specify it through the command line option `alluxio.underfs.version=<OZONE_VERSION>`.
 ```console
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.hdfs.configuration=<DIR>/ozone-site.xml \
