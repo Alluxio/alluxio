@@ -176,6 +176,7 @@
     <module>examples</module>
     <module>integration</module>
     <module>logserver</module>
+    <module>microbench</module>
     <module>minicluster</module>
     <module>job</module>
     <module>shaded</module>
