@@ -11,16 +11,22 @@
 
 package alluxio.worker.page;
 
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.DefaultMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +39,13 @@ import java.util.Set;
  */
 public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreMeta {
 
+  public static final String DEFAULT_TIER = "DefaultTier";
+  public static final BlockStoreLocation DEFAULT_BLOCK_STORE_LOCATION =
+      new BlockStoreLocation(DEFAULT_TIER, 0);
+  public static final String DEFAULT_DIR = "DefaultDir";
+  public static final DefaultStorageTierAssoc DEFAULT_STORAGE_TIER_ASSOC =
+      new DefaultStorageTierAssoc(ImmutableList.of("SSD"));
+  private final long mCapacity;
   private Map<Long, Set<Long>> mBlockPageMap = new HashMap<>();
 
   /**
@@ -41,6 +54,7 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
    */
   public PagedBlockMetaStore(AlluxioConfiguration conf) {
     super(conf);
+    mCapacity = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
   }
 
   @Override
@@ -69,61 +83,62 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
 
   @Override
   public Map<String, List<Long>> getBlockList() {
-    return null;
+    return ImmutableMap.of(DEFAULT_TIER, ImmutableList.copyOf(mBlockPageMap.keySet()));
   }
 
   @Override
   public Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation() {
-    return null;
+    return ImmutableMap.of(DEFAULT_BLOCK_STORE_LOCATION,
+        ImmutableList.copyOf(mBlockPageMap.keySet()));
   }
 
   @Override
   public long getCapacityBytes() {
-    return 0;
+    return mCapacity;
   }
 
   @Override
   public Map<String, Long> getCapacityBytesOnTiers() {
-    return null;
+    return ImmutableMap.of(DEFAULT_TIER, mCapacity);
   }
 
   @Override
   public Map<Pair<String, String>, Long> getCapacityBytesOnDirs() {
-    return null;
+    return ImmutableMap.of(new Pair(DEFAULT_TIER, DEFAULT_DIR), mCapacity);
   }
 
   @Override
   public Map<String, List<String>> getDirectoryPathsOnTiers() {
-    return null;
+    return ImmutableMap.of(DEFAULT_TIER, ImmutableList.of(DEFAULT_DIR));
   }
 
   @Override
   public Map<String, List<String>> getLostStorage() {
-    return null;
+    return Collections.EMPTY_MAP;
   }
 
   @Override
   public int getNumberOfBlocks() {
-    return 0;
+    return mBlockPageMap.size();
   }
 
   @Override
   public long getUsedBytes() {
-    return 0;
+    return bytes();
   }
 
   @Override
   public Map<String, Long> getUsedBytesOnTiers() {
-    return null;
+    return ImmutableMap.of(DEFAULT_TIER, bytes());
   }
 
   @Override
   public Map<Pair<String, String>, Long> getUsedBytesOnDirs() {
-    return null;
+    return ImmutableMap.of(new Pair(DEFAULT_TIER, DEFAULT_DIR), bytes());
   }
 
   @Override
   public StorageTierAssoc getStorageTierAssoc() {
-    return null;
+    return DEFAULT_STORAGE_TIER_ASSOC;
   }
 }
