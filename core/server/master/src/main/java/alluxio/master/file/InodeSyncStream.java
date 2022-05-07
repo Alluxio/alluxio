@@ -235,7 +235,7 @@ public class InodeSyncStream {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
-    mMetadataSyncService = fsMaster.mSyncMetadataExecutor;
+    mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
     mForceSync = forceSync;
     mRootScheme = rootPath;
     mSyncOptions = options;
@@ -264,7 +264,7 @@ public class InodeSyncStream {
           ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
       validCacheTime = System.currentTimeMillis() - syncInterval;
     }
-    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor,
+    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutorIns,
         fsMaster.getAbsentPathCache(), validCacheTime);
     // Maintain a global counter of active sync streams
     DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT.inc();
@@ -535,7 +535,7 @@ public class InodeSyncStream {
   }
 
   private Object getFromUfs(Callable<Object> task) throws InterruptedException {
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
+    final Future<Object> future = mFsMaster.mSyncPrefetchExecutorIns.submit(task);
     DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
     while (true) {
       try {

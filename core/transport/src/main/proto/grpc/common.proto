@@ -67,6 +67,8 @@ enum MetricType {
   METER = 2;
   // TIMER represents a histogram of the rate of the specified events.
   TIMER = 3;
+  // EXECUTOR_SERVICE represents an executor service.
+  EXECUTOR_SERVICE = 4;
 }
 
 enum CommandType {
