@@ -154,6 +154,7 @@ public class UfsStatusCache {
     }
     Collection<UfsStatus> removedChildren = mChildren.remove(path);
     if (removedChildren != null) {
+      DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_SIZE_TOTAL.dec(removedChildren.size());
       DefaultFileSystemMaster.Metrics
           .UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.dec(removedChildren.size());
     }
