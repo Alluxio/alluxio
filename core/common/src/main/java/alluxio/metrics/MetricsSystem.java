@@ -508,14 +508,16 @@ public final class MetricsSystem {
   }
 
   // Some helper functions.
-  /** Add or replace the instrumented executor service metrics for the given name and executor service.
+  /** Add or replace the instrumented executor service metrics for
+   * the given name and executor service.
    *
    * @param delegate the executor service delegate that will be instrumented with metrics
    * @param name the name of the metric
    * @return the instrumented executor service
    */
   public static InstrumentedExecutorService executorService(ExecutorService delegate, String name) {
-    InstrumentedExecutorService service = new InstrumentedExecutorService(delegate, METRIC_REGISTRY, getMetricName(name));
+    InstrumentedExecutorService service = new InstrumentedExecutorService(
+        delegate, METRIC_REGISTRY, getMetricName(name));
     EXECUTOR_SERVICES.put(name, service);
     return service;
   }
