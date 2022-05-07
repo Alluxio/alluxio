@@ -20,6 +20,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.resource.LockResource;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
 
@@ -32,6 +33,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  *  An implementation of MetaStore.
@@ -45,7 +48,10 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
   public static final String DEFAULT_DIR = "DefaultDir";
   public static final DefaultStorageTierAssoc DEFAULT_STORAGE_TIER_ASSOC =
       new DefaultStorageTierAssoc(ImmutableList.of("SSD"));
+
   private final long mCapacity;
+  private final ReentrantReadWriteLock mBlockPageMapLock = new ReentrantReadWriteLock();
+  @GuardedBy("mBlockPageMapLock")
   private Map<Long, Set<Long>> mBlockPageMap = new HashMap<>();
 
   /**
@@ -61,35 +67,43 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
   public void addPage(PageId pageId, PageInfo pageInfo) {
     super.addPage(pageId, pageInfo);
     long blockId = Long.parseLong(pageId.getFileId());
-    mBlockPageMap
-        .computeIfAbsent(blockId, k -> new HashSet<>())
-        .add(pageId.getPageIndex());
+    try (LockResource lock = new LockResource(mBlockPageMapLock.writeLock())) {
+      mBlockPageMap
+          .computeIfAbsent(blockId, k -> new HashSet<>())
+          .add(pageId.getPageIndex());
+    }
   }
 
   @Override
   public PageInfo removePage(PageId pageId) throws PageNotFoundException {
     PageInfo pageInfo = super.removePage(pageId);
     long blockId = Long.parseLong(pageId.getFileId());
-    mBlockPageMap.computeIfPresent(blockId, (k, pageIndexes) -> {
-      pageIndexes.remove(pageId.getPageIndex());
-      if (pageIndexes.isEmpty()) {
-        return null;
-      } else {
-        return pageIndexes;
-      }
-    });
+    try (LockResource lock = new LockResource(mBlockPageMapLock.writeLock())) {
+      mBlockPageMap.computeIfPresent(blockId, (k, pageIndexes) -> {
+        pageIndexes.remove(pageId.getPageIndex());
+        if (pageIndexes.isEmpty()) {
+          return null;
+        } else {
+          return pageIndexes;
+        }
+      });
+    }
     return pageInfo;
   }
 
   @Override
   public Map<String, List<Long>> getBlockList() {
-    return ImmutableMap.of(DEFAULT_TIER, ImmutableList.copyOf(mBlockPageMap.keySet()));
+    try (LockResource lock = new LockResource(mBlockPageMapLock.readLock())) {
+      return ImmutableMap.of(DEFAULT_TIER, ImmutableList.copyOf(mBlockPageMap.keySet()));
+    }
   }
 
   @Override
   public Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation() {
-    return ImmutableMap.of(DEFAULT_BLOCK_STORE_LOCATION,
-        ImmutableList.copyOf(mBlockPageMap.keySet()));
+    try (LockResource lock = new LockResource(mBlockPageMapLock.readLock())) {
+      return ImmutableMap.of(DEFAULT_BLOCK_STORE_LOCATION,
+          ImmutableList.copyOf(mBlockPageMap.keySet()));
+    }
   }
 
   @Override
