@@ -984,6 +984,294 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .build();
 
+  // Rocks Block metrics
+  public static final MetricKey MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS =
+      new Builder("Master.RocksBlockBackgroundErrors")
+          .setDescription("RocksDB block table. Accumulated number of background errors.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_CAPACITY =
+      new Builder("Master.RocksBlockBlockCacheCapacity")
+          .setDescription("RocksDB block table. Block cache capacity.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE =
+      new Builder("Master.RocksBlockBlockCachePinnedUsage")
+          .setDescription("RocksDB block table. Memory size for the entries being pinned.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_BLOCK_CACHE_USAGE =
+      new Builder("Master.RocksBlockBlockCacheUsage")
+          .setDescription("RocksDB block table. Memory size for the entries residing in block "
+              + "cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_COMPACTION_PENDING =
+      new Builder("Master.RocksBlockCompactionPending")
+          .setDescription("RocksDB block table. This metric 1 if at least one compaction "
+              + "is pending; otherwise, the metric reports 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CUR_SIZE_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockCurSizeActiveMemTable")
+          .setDescription("RocksDB block table. Approximate size of active memtable in bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksBlockCurSizeAllMemTables")
+          .setDescription("RocksDB block table. Approximate size of active, unflushed immutable, "
+              + "and pinned immutable memtables in bytes. Pinned immutable memtables are flushed "
+              + "memtables that are kept in memory to maintain write history in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_NUM_KEYS =
+      new Builder("Master.RocksBlockEstimateNumKeys")
+          .setDescription("RocksDB block table. Estimated number of total keys in the active and "
+              + "unflushed immutable memtables and storage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_PENDING_COMPACTION_BYTES =
+      new Builder("Master.RocksBlockEstimatePendingCompactionBytes")
+          .setDescription("RocksDB block table. Estimated total number of bytes a compaction needs "
+              + "to rewrite on disk to get all levels down to under target size. In other words, "
+              + "this metrics relates to the write amplification in level compaction. "
+              + "Thus, this metric is not valid for compactions other than level-based.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM =
+      new Builder("Master.RocksBlockEstimateTableReadersMem")
+          .setDescription("RocksDB inode table. Estimated memory in bytes used for reading SST "
+              + "tables, excluding memory used in block cache (e.g., filter and index blocks). "
+              + "This metric records the memory used by iterators as well as filters and indices "
+              + "if the filters and indices are not maintained in the block cache. Basically this "
+              + "metric reports the memory used outside the block cache to read data.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_LIVE_SST_FILES_SIZE =
+      new Builder("Master.RocksBlockLiveSstFilesSize")
+          .setDescription("RocksDB block table. Total size in bytes of all SST files that belong "
+              + "to the latest LSM tree.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_MEM_TABLE_FLUSH_PENDING =
+      new Builder("Master.RocksBlockMemTableFlushPending")
+          .setDescription("RocksDB block table. This metric returns 1 if a memtable flush "
+              + "is pending; otherwhise it returns 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumDeletesActiveMemTable")
+          .setDescription("RocksDB block table. Total number of delete entries in the active "
+              + "memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_DELETES_IMM_MEM_TABLES =
+      new Builder("Master.RocksBlockNumDeletesImmMemTables")
+          .setDescription("RocksDB block table. Total number of delete entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_ENTRIES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumEntriesActiveMemTable")
+          .setDescription("RocksDB block table. Total number of entries in the active memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_ENTRIES_IMM_MEM_TABLES =
+      new Builder("Master.RocksBlockNumEntriesImmMemTables")
+          .setDescription("RocksDB block table. Total number of entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_IMMUTABLE_MEM_TABLE =
+      new Builder("Master.RocksBlockNumImmutableMemTable")
+          .setDescription("RocksDB block table. Number of immutable memtables that have not yet "
+              + "been flushed.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_LIVE_VERSIONS =
+      new Builder("Master.RocksBlockNumLiveVersions")
+          .setDescription("RocksDB inode table. Number of live versions. More live versions often "
+              + "mean more SST files are held from being deleted, by iterators or unfinished "
+              + "compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_RUNNING_COMPACTIONS =
+      new Builder("Master.RocksBlockNumRunningCompactions")
+          .setDescription("RocksDB block table. Number of currently running compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_NUM_RUNNING_FLUSHES =
+      new Builder("Master.RocksBlockNumRunningFlushes")
+          .setDescription("RocksDB block table. Number of currently running flushes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksBlockSizeAllMemTables")
+          .setDescription("RocksDB block table. Size all mem tables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_TOTAL_SST_FILES_SIZE =
+      new Builder("Master.RocksBlockTotalSstFilesSize")
+          .setDescription("RocksDB block table. Total size in bytes of all SST files.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksBlockEstimatedMemUsage")
+          .setDescription("RocksDB block table. This metric estimates the memory usage of the "
+              + "RockDB Block table by aggregating the values of "
+              + "Master.RocksBlockBlockCacheUsage, Master.RocksBlockEstimateTableReadersMem, "
+              + "Master.RocksBlockCurSizeAllMemTables, and Master.RocksBlockBlockCachePinnedUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
+  // Rocks Inode metrics
+  public static final MetricKey MASTER_ROCKS_INODE_BACKGROUND_ERRORS =
+      new Builder("Master.RocksInodeBackgroundErrors")
+          .setDescription("RocksDB inode table. Accumulated number of background errors.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_CAPACITY =
+      new Builder("Master.RocksInodeBlockCacheCapacity")
+          .setDescription("RocksDB inode table. Block cache capacity.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_PINNED_USAGE =
+      new Builder("Master.RocksInodeBlockCachePinnedUsage")
+          .setDescription("RocksDB inode table. Memory size for the entries being pinned.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_BLOCK_CACHE_USAGE =
+      new Builder("Master.RocksInodeBlockCacheUsage")
+          .setDescription("RocksDB inode table. Memory size for the entries residing in block "
+              + "cache.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_COMPACTION_PENDING =
+      new Builder("Master.RocksInodeCompactionPending")
+          .setDescription("RocksDB inode table. This metric 1 if at least one compaction is "
+              + "pending; otherwise, the metric reports 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CUR_SIZE_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeCurSizeActiveMemTable")
+          .setDescription("RocksDB inode table. Approximate size of active memtable in bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_CUR_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksInodeCurSizeAllMemTables")
+          .setDescription("RocksDB inode table. Approximate size of active and unflushed "
+              + "immutable memtable in bytes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_NUM_KEYS =
+      new Builder("Master.RocksInodeEstimateNumKeys")
+          .setDescription("RocksDB inode table. Estimated number of total keys in the active and "
+              + "unflushed immutable memtables and storage.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_PENDING_COMPACTION_BYTES =
+      new Builder("Master.RocksInodeEstimatePendingCompactionBytes")
+          .setDescription("RocksDB block table. Estimated total number of bytes a compaction needs "
+              + "to rewrite on disk to get all levels down to under target size. In other words, "
+              + "this metrics relates to the write amplification in level compaction. "
+              + "Thus, this metric is not valid for compactions other than level-based.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATE_TABLE_READERS_MEM =
+      new Builder("Master.RocksInodeEstimateTableReadersMem")
+          .setDescription("RocksDB inode table. Estimated memory in bytes used for reading SST "
+              + "tables, excluding memory used in block cache (e.g., filter and index blocks). "
+              + "This metric records the memory used by iterators as well as filters and indices "
+              + "if the filters and indices are not maintained in the block cache. Basically this "
+              + "metric reports the memory used outside the block cache to read data.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_LIVE_SST_FILES_SIZE =
+      new Builder("Master.RocksInodeLiveSstFilesSize")
+          .setDescription("RocksDB inode table. Total size in bytes of all SST files that belong "
+              + "to the latest LSM tree.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_MEM_TABLE_FLUSH_PENDING =
+      new Builder("Master.RocksInodeMemTableFlushPending")
+          .setDescription("RocksDB inode table. This metric returns 1 if a memtable flush "
+              + "is pending; otherwhise it returns 0.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumDeletesActiveMemTable")
+          .setDescription("RocksDB inode table. Total number of delete entries in the active "
+              + "memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_DELETES_IMM_MEM_TABLES =
+      new Builder("Master.RocksInodeNumDeletesImmMemTables")
+          .setDescription("RocksDB inode table. Total number of delete entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_ENTRIES_ACTIVE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumEntriesActiveMemTable")
+          .setDescription("RocksDB inode table. Total number of entries in the active memtable.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_ENTRIES_IMM_MEM_TABLES =
+      new Builder("Master.RocksInodeNumEntriesImmMemTables")
+          .setDescription("RocksDB inode table. Total number of entries in the unflushed "
+              + "immutable memtables.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_IMMUTABLE_MEM_TABLE =
+      new Builder("Master.RocksInodeNumImmutableMemTable")
+          .setDescription("RocksDB inode table. Number of immutable memtables that have not yet "
+              + "been flushed.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_LIVE_VERSIONS =
+      new Builder("Master.RocksInodeNumLiveVersions")
+          .setDescription("RocksDB inode table. Number of live versions. More live versions often "
+              + "mean more SST files are held from being deleted, by iterators or unfinished "
+              + "compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_COMPACTIONS =
+      new Builder("Master.RocksInodeNumRunningCompactions")
+          .setDescription("RocksDB inode table. Number of currently running compactions.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_NUM_RUNNING_FLUSHES =
+      new Builder("Master.RocksInodeNumRunningFlushes")
+          .setDescription("RocksDB inode table. Number of currently running flushes.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_SIZE_ALL_MEM_TABLES =
+      new Builder("Master.RocksInodeSizeAllMemTables")
+          .setDescription("RocksDB inode table. Approximate size of active, unflushed immutable, "
+              + "and pinned immutable memtables in bytes. Pinned immutable memtables are flushed "
+              + "memtables that are kept in memory to maintain write history in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_TOTAL_SST_FILES_SIZE =
+      new Builder("Master.RocksInodeTotalSstFilesSize")
+          .setDescription("RocksDB inode table. Total size in bytes of all SST files.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_INODE_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksInodeEstimatedMemUsage")
+          .setDescription("RocksDB block table. This metric estimates the memory usage of the "
+              + "RockDB Inode table by aggregating the values of "
+              + "Master.RocksInodeBlockCacheUsage, Master.RocksInodeEstimateTableReadersMem, "
+              + "Master.RocksInodeCurSizeAllMemTables, and Master.RocksInodeBlockCachePinnedUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_ROCKS_TOTAL_ESTIMATED_MEM_USAGE =
+      new Builder("Master.RocksTotalEstimatedMemUsage")
+          .setDescription("This metric gives an estimate of the total memory used by RocksDB by "
+              + "aggregating the values of Master.RocksBlockEstimatedMemUsage and "
+              + "Master.RocksInodeEstimatedMemUsage")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Cluster metrics
   public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
       new Builder("Cluster.ActiveRpcReadCount")
