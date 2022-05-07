@@ -592,7 +592,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          Path dst = new Path(path.toString() + "-renamed");
+          Path dst = new Path(path + "-renamed");
           if (!mFs.rename(path, dst)) {
             throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
           }
@@ -677,7 +677,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          Path dst = new Path(path.toString() + "-renamed");
+          Path dst = new Path(path + "-renamed");
           mFs.rename(new AlluxioURI(path.toString()), new AlluxioURI(dst.toString()));
           break;
         case DELETE_FILE:

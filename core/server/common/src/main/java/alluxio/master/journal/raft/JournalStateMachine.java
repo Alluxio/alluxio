@@ -126,8 +126,6 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   private volatile Runnable mInterruptCallback;
 
-  // The start time of the most recent snapshot
-  private volatile long mLastSnapshotStartTime = 0;
   // The last index of the latest journal snapshot
   // created by this master or downloaded from other masters
   private volatile long mSnapshotLastIndex = -1;
@@ -495,7 +493,8 @@ public class JournalStateMachine extends BaseStateMachine {
     mSnapshotting = true;
     try (Timer.Context ctx = MetricsSystem
         .timer(MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER.getName()).time()) {
-      mLastSnapshotStartTime = System.currentTimeMillis();
+      // The start time of the most recent snapshot
+      long lastSnapshotStartTime = System.currentTimeMillis();
       long snapshotId = mNextSequenceNumberToRead - 1;
       TermIndex last = getLastAppliedTermIndex();
       File tempFile;
@@ -527,7 +526,7 @@ public class JournalStateMachine extends BaseStateMachine {
           return RaftLog.INVALID_LOG_INDEX;
         }
         LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
-            System.currentTimeMillis() - mLastSnapshotStartTime);
+            System.currentTimeMillis() - lastSnapshotStartTime);
       } catch (Exception e) {
         tempFile.delete();
         LogUtils.warnWithException(LOG,
@@ -589,7 +588,7 @@ public class JournalStateMachine extends BaseStateMachine {
    * immediately.
    *
    * @param interruptCallback a callback function to be called when the suspend is interrupted
-   * @throws IOException
+   * @throws IOException if suspension fails
    */
   public synchronized void suspend(Runnable interruptCallback) throws IOException {
     LOG.info("Suspending raft state machine.");
@@ -604,7 +603,7 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * Resumes applying to masters.
    *
-   * @throws IOException
+   * @throws IOException if resuming fails
    */
   public synchronized void resume() throws IOException {
     LOG.info("Resuming raft state machine");
