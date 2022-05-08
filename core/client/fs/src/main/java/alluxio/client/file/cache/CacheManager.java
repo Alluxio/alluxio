@@ -180,8 +180,7 @@ public interface CacheManager extends AutoCloseable {
   }
 
   /**
-   * Reads a part of a page if the queried page is found in the cache, stores the result in
-   * buffer.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
@@ -196,8 +195,7 @@ public interface CacheManager extends AutoCloseable {
   }
 
   /**
-   * Reads a part of a page if the queried page is found in the cache, stores the result in
-   * buffer.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page

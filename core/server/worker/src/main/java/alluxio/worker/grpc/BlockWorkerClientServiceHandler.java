@@ -37,10 +37,14 @@ import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import com.google.common.collect.ImmutableMap;
 import io.grpc.MethodDescriptor;
@@ -62,8 +66,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
   private static final boolean ZERO_COPY_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
-  private final WorkerProcess mWorkerProcess;
-  private final BlockWorker mBlockWorker;
+  private final DefaultBlockWorker mBlockWorker;
+  private final UfsManager mUfsManager;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
@@ -76,8 +80,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    */
   public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
       boolean domainSocketEnabled) {
-    mWorkerProcess = workerProcess;
-    mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
+    mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
+    mUfsManager = workerProcess.getUfsManager();
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -121,8 +125,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }
-    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+    DelegationWriteHandler handler = new DelegationWriteHandler(mBlockWorker, mUfsManager,
+        responseObserver, getAuthenticatedUserInfo(), mDomainSocketEnabled);
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }
@@ -130,9 +134,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    ShortCircuitBlockReadHandler handler = new ShortCircuitBlockReadHandler(
-        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
-    return handler;
+    return new ShortCircuitBlockReadHandler(
+        mBlockWorker.getLocalBlockStore(), responseObserver, getAuthenticatedUserInfo());
   }
 
   @Override
@@ -178,8 +181,10 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
-          request.getBlockId(), request.getMediumType());
+      mBlockWorker.getLocalBlockStore()
+          .moveBlock(sessionId, request.getBlockId(),
+              AllocateOptions.forMove(
+                  BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
   }
@@ -188,7 +193,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void clearMetrics(ClearMetricsRequest request,
       StreamObserver<ClearMetricsResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).clearMetrics();
+      mBlockWorker.clearMetrics();
       return ClearMetricsResponse.getDefaultInstance();
     }, "clearMetrics", "request=%s", responseObserver, request);
   }

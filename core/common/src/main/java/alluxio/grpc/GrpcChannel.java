@@ -138,7 +138,7 @@ public final class GrpcChannel extends Channel {
    * @return a short identifier for the channel
    */
   public String toStringShort() {
-    return mConnection.getChannelKey().toStringShort();
+    return mConnection.getChannelKey().toString();
   }
 
   /**

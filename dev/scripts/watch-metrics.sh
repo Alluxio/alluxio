@@ -59,8 +59,11 @@ WDIFF_OPTS is required, and is one of:
 
 # argument parsing
 OPTIND=1
-while getopts ":hH:p:f:F:n:w:" opt; do
+while getopts ":hH:d:p:f:F:n:w:" opt; do
     case ${opt} in
+        d )
+            metrics_dir="${OPTARG}"
+            ;;
         f )
             metrics_file_prefix="${OPTARG}"
             ;;
@@ -98,10 +101,16 @@ if [[ -z "${host}" || -z "${port}" || -z "${metrics_file_prefix}" || -z "${metri
     exit 1
 fi
 
-nslookup ${host} > /dev/null 2>&1
-if [[ ${?} -ne 0 ]]; then
-    echo "ERROR: Unknown host ${host}"
-    exit 1
+# check if command `nslookup` exists
+if ! command -v nslookup > /dev/null 2>&1; then
+  echo "ERROR: nslookup command not found"
+  exit 1
+fi
+
+# check if command `jq` exists
+if ! command -v jq > /dev/null 2>&1; then
+  echo "ERROR: jq command not found"
+  exit 1
 fi
 
 if [[ ${port} -le 0 ]]; then

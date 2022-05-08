@@ -46,8 +46,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.IntStream;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -182,10 +182,10 @@ public final class BlockMetadataManager {
   public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
       throws WorkerOutOfSpaceException, BlockAlreadyExistsException, BlockDoesNotExistException {
     long blockId = tempBlockMeta.getBlockId();
-    if (hasBlockMeta(blockId)) {
-      BlockMeta blockMeta = getBlockMeta(blockId);
+    Optional<BlockMeta> blockMeta = getBlockMeta(blockId);
+    if (blockMeta.isPresent()) {
       throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
-          blockMeta.getBlockLocation().tierAlias()));
+          blockMeta.get().getBlockLocation().tierAlias()));
     }
     BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
@@ -257,9 +257,8 @@ public final class BlockMetadataManager {
    *
    * @param blockId the block id
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no BlockMeta for this block id is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public Optional<BlockMeta> getBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasBlockMeta(blockId)) {
@@ -267,25 +266,7 @@ public final class BlockMetadataManager {
         }
       }
     }
-    throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-  }
-
-  /**
-   * Returns the path of a block given its location, or null if the location is not a specific
-   * {@link StorageDir}. Throws an {@link IllegalArgumentException} if the location is not a
-   * specific {@link StorageDir}.
-   *
-   * @param blockId the id of the block
-   * @param location location of a particular {@link StorageDir} to store this block
-   * @return the path of this block in this location, or null if the location is not available
-   */
-  @Nullable
-  public String getBlockPath(long blockId, BlockStoreLocation location) {
-    StorageDir dir = getDir(location);
-    if (dir == null) {
-      return null;
-    }
-    return DefaultBlockMeta.commitPath(dir, blockId);
+    return Optional.empty();
   }
 
   /**
@@ -455,9 +436,8 @@ public final class BlockMetadataManager {
    * Removes the metadata of a specific block.
    *
    * @param block the metadata of the block to remove
-   * @throws BlockDoesNotExistException when block is not found
    */
-  public void removeBlockMeta(BlockMeta block) throws BlockDoesNotExistException {
+  public void removeBlockMeta(BlockMeta block) {
     StorageDir dir = block.getParentDir();
     dir.removeBlockMeta(block);
   }

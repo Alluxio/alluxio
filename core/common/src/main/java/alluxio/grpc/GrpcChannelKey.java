@@ -16,22 +16,15 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.MoreObjects;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Used to identify a unique {@link GrpcChannel}.
  */
 public class GrpcChannelKey {
-  @IdentityField
   GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
-  @IdentityField
   private GrpcServerAddress mServerAddress;
 
   /** Unique channel identifier. */
@@ -114,55 +107,25 @@ public class GrpcChannelKey {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder hashCodebuilder = new HashCodeBuilder();
-    for (Field field : this.getClass().getDeclaredFields()) {
-      if (field.isAnnotationPresent(IdentityField.class)) {
-        try {
-          hashCodebuilder.append(field.get(this));
-        } catch (IllegalAccessException e) {
-          throw new RuntimeException(
-              String.format("Failed to calculate hashcode for channel-key: %s", this), e);
-        }
-      }
-    }
-    return hashCodebuilder.toHashCode();
+    return Objects.hash(mNetworkGroup, mServerAddress);
   }
 
   @Override
-  public boolean equals(Object other) {
-    if (other instanceof GrpcChannelKey) {
-      GrpcChannelKey otherKey = (GrpcChannelKey) other;
-      boolean areEqual = true;
-      for (Field field : this.getClass().getDeclaredFields()) {
-        if (field.isAnnotationPresent(IdentityField.class)) {
-          try {
-            areEqual &= field.get(this).equals(field.get(otherKey));
-          } catch (IllegalAccessException e) {
-            throw new RuntimeException(String.format(
-                "Failed to calculate equality between channel-keys source: %s | destination: %s",
-                this, otherKey), e);
-          }
-        }
-      }
-      return areEqual;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-    return false;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GrpcChannelKey other = (GrpcChannelKey) o;
+    return mNetworkGroup.equals(other.mNetworkGroup)
+        && mServerAddress.equals(other.mServerAddress);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("ClientType", mClientType)
-        .add("ServerAddress", mServerAddress)
-        .add("ChannelId", mChannelId)
-        .omitNullValues()
-        .toString();
-  }
-
-  /**
-   * @return short representation of this channel key
-   */
-  public String toStringShort() {
     return MoreObjects.toStringHelper(this)
         .add("ClientType", mClientType)
         .add("ClientHostname", mLocalHostName)
@@ -170,17 +133,5 @@ public class GrpcChannelKey {
         .add("ChannelId", mChannelId)
         .omitNullValues()
         .toString();
-  }
-
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target(ElementType.FIELD)
-  /**
-   * Used to mark fields in this class that are part of
-   * the identity of a channel while pooling channels.
-   *
-   * Values of fields that are marked with this annotation will be used
-   * during {@link #hashCode()} and {@link #equals(Object)}.
-   */
-  protected @interface IdentityField {
   }
 }

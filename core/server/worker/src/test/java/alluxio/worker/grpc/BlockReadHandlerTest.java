@@ -14,6 +14,8 @@ package alluxio.worker.grpc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
@@ -22,13 +24,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.NoopBlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -46,6 +46,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -69,7 +70,6 @@ public class BlockReadHandlerTest {
   private List<ReadResponse> mResponses = new ArrayList<>();
   private boolean mResponseCompleted;
   private Throwable mError;
-  private BlockWorker mBlockWorker;
   private BlockReader mBlockReader;
   private File mFile;
 
@@ -85,15 +85,6 @@ public class BlockReadHandlerTest {
 
     mFile = mTestFolder.newFile();
     mBlockReader = new LocalFileBlockReader(mFile.getPath());
-    mBlockWorker = new NoopBlockWorker() {
-      @Override
-      public BlockReader createBlockReader(long sessionId, long blockId, long offset,
-          boolean positionShort, Protocol.OpenUfsBlockOptions options)
-          throws IOException {
-        ((FileChannel) mBlockReader.getChannel()).position(offset);
-        return mBlockReader;
-      }
-    };
     mResponseObserver = Mockito.mock(ServerCallStreamObserver.class);
     Mockito.when(mResponseObserver.isReady()).thenReturn(true);
     doAnswer(args -> {
@@ -111,7 +102,15 @@ public class BlockReadHandlerTest {
           args.getArgument(0, ReadResponse.class).toByteString()));
       return null;
     }).when(mResponseObserver).onNext(any(ReadResponse.class));
-    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
+    DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);
+    Mockito.when(blockWorker
+            .createBlockReader(anyLong(), anyLong(), anyLong(), anyBoolean(), any()))
+        .thenAnswer((Answer<BlockReader>) invocationOnMock -> {
+          long offset = invocationOnMock.getArgument(2);
+          ((FileChannel) mBlockReader.getChannel()).position(offset);
+          return mBlockReader;
+        });
+    mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, blockWorker,
         mResponseObserver, new AuthenticatedUserInfo(), false);
   }
 
@@ -163,7 +162,7 @@ public class BlockReadHandlerTest {
   }
 
   @Test
-  public void ErrorReceived() throws Exception {
+  public void ErrorReceived() {
     mReadHandler.onError(new IOException("test error"));
   }
 
