@@ -116,11 +116,11 @@ public final class MountCommand extends AbstractFileSystemCommand {
       optionsBuilder.putAllProperties(Maps.fromProperties(properties));
     }
     if (cl.hasOption(VERBOSE_OPTION.getOpt())) {
-      optionsBuilder.setDetail(true);
+      optionsBuilder.setVerbosity(true);
       List<String> mountDetailInfos =
-          mFileSystem.mountWithDetail(alluxioPath, ufsPath, optionsBuilder.build());
+          mFileSystem.mountWithVerbosity(alluxioPath, ufsPath, optionsBuilder.build());
       for (String mountDetailInfo: mountDetailInfos) {
-        System.out.println("detail:  " + mountDetailInfo);
+        System.out.println("Verbosity:  " + mountDetailInfo);
       }
     } else {
       mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());

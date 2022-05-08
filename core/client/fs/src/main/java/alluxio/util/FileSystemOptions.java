@@ -252,7 +252,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setReadOnly(false)
         .setShared(false)
-        .setDetail(false)
+        .setVerbosity(false)
         .build();
   }
 

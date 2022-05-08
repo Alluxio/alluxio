@@ -118,7 +118,7 @@ public final class UnderFileSystemFactoryRegistry {
             "Versions [%s] are supported for path %s but you have configured version: %s",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
-        recorder.recordIfEnable(message);
+        recorder.recordIfEnabled(message);
         LOG.warn(message);
       }
       ufsConf.set(PropertyKey.UNDERFS_VERSION, configuredVersion);

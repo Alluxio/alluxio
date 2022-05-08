@@ -98,21 +98,21 @@ public interface UnderFileSystem extends Closeable {
 
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
-        recorder.recordIfEnable("Under File System Factory {} version {} found for: {}",
+        recorder.recordIfEnabled("Under File System Factory {} version {} found for: {}",
             factory.getClass().getSimpleName(), factory.getVersion(), path);
         ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
           // Reflection may be invoked during UFS creation on service loading which uses context
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
-          recorder.recordIfEnable("Load Under File System {} with ClassLoader {}",
+          recorder.recordIfEnabled("Load Under File System {} with ClassLoader {}",
               factory.getClass().getSimpleName(),
               factory.getClass().getClassLoader().getClass().getSimpleName());
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           UnderFileSystem underFileSystem =
               new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
-          recorder.recordIfEnable("Load Under File System {} successfully",
+          recorder.recordIfEnabled("Load Under File System {} successfully",
               factory.getClass().getSimpleName());
           return underFileSystem;
         } catch (Throwable e) {

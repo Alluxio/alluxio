@@ -137,16 +137,17 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
     String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
-    recorder.recordIfEnable("Loading {} factory core jars from {}", factories.size(), libDir);
+    recorder.recordIfEnabled("Loading {} factory core jars from {}", factories.size(), libDir);
     scanExtensions(factories, extensionDir);
-    recorder.recordIfEnable("Loading extension jars from {}", extensionDir);
-    recorder.recordIfEnable("The total number of loaded factory core jars is {}", factories.size());
+    recorder.recordIfEnabled("Loading extension jars from {}", extensionDir);
+    recorder.recordIfEnabled("The total number of loaded factory core jars is {}",
+        factories.size());
 
     if (conf.isSetByUser(PropertyKey.UNDERFS_VERSION)) {
-      recorder.recordIfEnable("alluxio.underfs.version is set by user,  target version is {}",
+      recorder.recordIfEnabled("alluxio.underfs.version is set by user,  target version is {}",
           conf.getString(PropertyKey.UNDERFS_VERSION));
     } else {
-      recorder.recordIfEnable("alluxio.underfs.version is not set by user");
+      recorder.recordIfEnabled("alluxio.underfs.version is not set by user");
     }
 
     List<T> eligibleFactories = new ArrayList<>();
@@ -158,25 +159,25 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
             Optional.ofNullable(((UnderFileSystemFactory) factory).getVersion()).orElse("");
         version = factoryVersion.isEmpty() ? "unknown" : factoryVersion;
       }
-      recorder.recordIfEnable("Check eligible of {} version {} for {}",
+      recorder.recordIfEnabled("Check eligible of {} version {} for {}",
           factory.getClass().getSimpleName(), version, path);
       if (factory.supportsPath(path, conf)) {
         String message =
             String.format("Factory implementation %s version %s is eligible for path %s",
                 factory.getClass().getSimpleName(), version, path);
-        recorder.recordIfEnable("Successfully! " + message + "\n");
+        recorder.recordIfEnabled("Successfully! " + message + "\n");
         LOG.debug(message);
 
         eligibleFactories.add(factory);
       } else {
-        recorder.recordIfEnable("Factory implementation {} version {} isn't eligible for path {}\n",
+        recorder.recordIfEnabled("Factory implementation {} version {} isn't eligible for path {}\n",
             factory.getClass().getSimpleName(), version, path);
       }
     }
 
     if (eligibleFactories.isEmpty()) {
       String message = String.format("No factory implementation supports the path %s", path);
-      recorder.recordIfEnable(message);
+      recorder.recordIfEnabled(message);
       LOG.warn(message);
     }
     return eligibleFactories;
@@ -191,7 +192,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
    */
   public List<T> findAll(String path, S conf) {
     // Create a default Recorder, it will not record any information
-    return findAllWithRecorder(path, conf, Recorder.create());
+    return findAllWithRecorder(path, conf, Recorder.createDisabled());
   }
 
   /**

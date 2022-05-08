@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-  private boolean mDetail;
+  private boolean mVerbosity;
   private Recorder mRecorder;
 
   /**
@@ -61,8 +61,8 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     super(props);
     mReadOnly = false;
     mShared = false;
-    mDetail = false;
-    mRecorder = Recorder.create();
+    mVerbosity = false;
+    mRecorder = Recorder.createDisabled();
   }
 
   /**
@@ -95,8 +95,8 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   /**
    * @return whether to record information about the detailed execution process
    */
-  public boolean isDetail() {
-    return mDetail;
+  public boolean isVerbosity() {
+    return mVerbosity;
   }
 
   /**
@@ -125,11 +125,11 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * @param detail whether to record information about the detailed execution process
+   * @param verbosity whether to record information about the detailed execution process
    * @return the updated configuration object
    */
-  public UnderFileSystemConfiguration setDetail(boolean detail) {
-    mDetail = detail;
+  public UnderFileSystemConfiguration setVerbosity(boolean verbosity) {
+    mVerbosity = verbosity;
     return this;
   }
 
@@ -153,7 +153,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
     ufsConf.mReadOnly = mReadOnly;
     ufsConf.mShared = mShared;
-    ufsConf.mDetail = mDetail;
+    ufsConf.mVerbosity = mVerbosity;
     ufsConf.mRecorder = mRecorder;
     return ufsConf;
   }

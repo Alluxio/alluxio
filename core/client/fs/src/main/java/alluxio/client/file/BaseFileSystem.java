@@ -329,7 +329,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<String> mountWithDetail(AlluxioURI alluxioPath,
+  public List<String> mountWithVerbosity(AlluxioURI alluxioPath,
       AlluxioURI ufsPath, final MountPOptions options) throws IOException, AlluxioException {
     checkUri(alluxioPath);
     return rpc(client -> {

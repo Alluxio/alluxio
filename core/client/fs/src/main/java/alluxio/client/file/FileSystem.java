@@ -476,9 +476,9 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    * @return details of the mount execution process
    */
-  default List<String> mountWithDetail(AlluxioURI alluxioPath, AlluxioURI ufsPath,
+  default List<String> mountWithVerbosity(AlluxioURI alluxioPath, AlluxioURI ufsPath,
       MountPOptions options) throws IOException, AlluxioException {
-    throw new UnimplementedException("mountWithDetail");
+    throw new UnimplementedException("mountWithVerbosity");
   }
 
   /**

@@ -123,7 +123,7 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public MountPResponse mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException {
-    return MountPResponse.getDefaultInstance();
+    return null;
   }
 
   @Override

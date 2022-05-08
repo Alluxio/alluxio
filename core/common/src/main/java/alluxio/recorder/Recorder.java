@@ -11,6 +11,7 @@
 
 package alluxio.recorder;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.LinkedList;
@@ -30,17 +31,13 @@ public class Recorder {
     mEnableRecord = enable;
   }
 
-  private Recorder(List<String> recorder) {
-    this(recorder, false);
-  }
-
   /**
-   * Create a Recorder Object.
-   * By default, mEnableRecorder is false needs to be enabled by {@link Recorder#setEnable()}.
+   * Create a disabled Recorder Object.
+   * By default, mEnableRecorder is false needs to be enabled by {@link Recorder#setEnabled()}.
    * @return A {@code Recorder} Object
    */
-  public static Recorder create() {
-    return new Recorder(new LinkedList<>());
+  public static Recorder createDisabled() {
+    return new Recorder(new LinkedList<>(), false);
   }
 
   /**
@@ -54,26 +51,26 @@ public class Recorder {
   /**
    * Setting enable Record.
    */
-  public void setEnable() {
+  public void setEnabled() {
     mEnableRecord = true;
   }
 
   /**
-   * Record a message.
-   * @param message options builder
+   * Record a message, if the recorder is enabled.
+   * @param message the message string to be recorded
    */
-  public void recordIfEnable(String message) {
+  public void recordIfEnabled(String message) {
     if (mEnableRecord) {
       record(message);
     }
   }
 
   /**
-   * Record a message.
-   * @param format options builder
-   * @param arguments options builder
+   * Record a message, if the recorder is enabled.
+   * @param format the message format string
+   * @param arguments the message string to be recorded
    */
-  public void recordIfEnable(String format, Object... arguments) {
+  public void recordIfEnabled(String format, Object... arguments) {
     if (mEnableRecord) {
       record(MessageFormatter.arrayFormat(format, arguments).getMessage());
     }
@@ -84,6 +81,6 @@ public class Recorder {
    * @return the record
    */
   public List<String> getRecord() {
-    return mRecord;
+    return ImmutableList.copyOf(mRecord);
   }
 }
