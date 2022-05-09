@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -626,19 +625,6 @@ public final class MetricsSystem {
   }
 
   /**
-<<<<<<< HEAD
-||||||| parent of 89f9087353 (Expose RockDB metrics as Alluxio metrics)
-   * Removes the metric with the given name.
-   *
-   * @param name the metric name
-   * @return true if the metric was removed, false otherwise
-   */
-  public static synchronized boolean removeMetrics(String name) {
-    return METRIC_REGISTRY.remove(name);
-  }
-
-  /**
-=======
    * Created a gauge that aggregates the value of existing gauges.
    *
    * @param name the gauge name
@@ -668,17 +654,6 @@ public final class MetricsSystem {
   }
 
   /**
-   * Removes the metric with the given name.
-   *
-   * @param name the metric name
-   * @return true if the metric was removed, false otherwise
-   */
-  public static synchronized boolean removeMetrics(String name) {
-    return METRIC_REGISTRY.remove(name);
-  }
-
-  /**
->>>>>>> 89f9087353 (Expose RockDB metrics as Alluxio metrics)
    * This method is used to return a list of RPC metric objects which will be sent to the
    * MetricsMaster.
    *
