@@ -377,7 +377,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
-    return mLocalBlockStore.getBlockWriter(sessionId, blockId);
+    return mLocalBlockStore.createBlockWriter(sessionId, blockId);
   }
 
   @Override

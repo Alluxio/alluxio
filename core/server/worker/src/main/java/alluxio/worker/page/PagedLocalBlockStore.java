@@ -121,7 +121,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public BlockWriter getBlockWriter(long sessionId, long blockId)
+  public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return null;
