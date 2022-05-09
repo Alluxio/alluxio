@@ -626,6 +626,59 @@ public final class MetricsSystem {
   }
 
   /**
+<<<<<<< HEAD
+||||||| parent of 89f9087353 (Expose RockDB metrics as Alluxio metrics)
+   * Removes the metric with the given name.
+   *
+   * @param name the metric name
+   * @return true if the metric was removed, false otherwise
+   */
+  public static synchronized boolean removeMetrics(String name) {
+    return METRIC_REGISTRY.remove(name);
+  }
+
+  /**
+=======
+   * Created a gauge that aggregates the value of existing gauges.
+   *
+   * @param name the gauge name
+   * @param metrics the set of metric values to be aggregated
+   * @param timeout the cached gauge timeout
+   * @param timeUnit the unit of timeout
+   */
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
+      String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
+    METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
+      @Override
+      protected Double loadValue() {
+        double total = 0.0;
+        for (MetricKey key : metrics) {
+          Metric m = getMetricValue(key.getName());
+          if (m == null || m.getMetricType() != MetricType.GAUGE) {
+            continue;
+          }
+          total += m.getValue();
+        }
+        return total;
+      }
+    });
+  }
+
+  /**
+   * Removes the metric with the given name.
+   *
+   * @param name the metric name
+   * @return true if the metric was removed, false otherwise
+   */
+  public static synchronized boolean removeMetrics(String name) {
+    return METRIC_REGISTRY.remove(name);
+  }
+
+  /**
+>>>>>>> 89f9087353 (Expose RockDB metrics as Alluxio metrics)
    * This method is used to return a list of RPC metric objects which will be sent to the
    * MetricsMaster.
    *
