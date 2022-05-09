@@ -11,8 +11,6 @@
 
 package alluxio.worker.block;
 
-import static alluxio.worker.block.BlockStoreType.*;
-
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
