@@ -9,7 +9,7 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Alluxio has a user-friendly web interface allowing users to monitor and manage the cluster.
+Alluxio has a user-friendly web interface allowing users to monitor the cluster.
 The master and workers all serve their own web UI.
 The default port for the web interface is 19999 and 30000 for masters and workers respectively.
 
