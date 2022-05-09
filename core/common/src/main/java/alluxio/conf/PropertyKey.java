@@ -3680,6 +3680,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_READER_BUFFER_POOLED =
+      booleanBuilder(Name.WORKER_NETWORK_READER_BUFFER_POOLED)
+          .setDefaultValue(true)
+          .setDescription("Whether it is using pooled direct buffer or unpooled wrapped buffer"
+              + " when creating a buffer for remote read")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
       dataSizeBuilder(Name.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES)
           .setDefaultValue("2MB")
@@ -7001,6 +7009,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.worker.threads";
     public static final String WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
         "alluxio.worker.network.reader.buffer.size";
+    public static final String WORKER_NETWORK_READER_BUFFER_POOLED =
+        "alluxio.worker.network.reader.buffer.pooled";
     public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
