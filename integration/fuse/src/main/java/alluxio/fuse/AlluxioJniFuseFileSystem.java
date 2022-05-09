@@ -355,39 +355,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int openInternal(String path, FuseFileInfo fi, int flags, OpenAction openAction) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    if (openAction == OpenAction.NOT_SUPPORTED) {
-      LOG.error(String.format("Failed to open %s: Not supported open flag 0x%x. "
-          + "Alluxio does not support file modification. "
-          + "Cannot open directory in fuse.open().",
-          path, flags));
-      return -ErrorCodes.EOPNOTSUPP();
-    }
-
     boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
-    if (openAction == OpenAction.READ_ONLY && truncate) {
-      LOG.error(
-          String.format("Failed to open %s: can not pass flag 0x%x for reading and truncating.",
-          path, flags));
-      return -ErrorCodes.EACCES();
-    }
-
-    URIStatus status;
-    try {
-      status = getPathStatus(uri);
-    } catch (Throwable t) {
-      LOG.error("Failed to open {}", path, t);
-      return -ErrorCodes.EIO();
-    }
-
-    if (status != null && !status.isCompleted()) {
-      // Cannot open incomplete file for read or write
-      // wait for file to complete in read or read_write mode
-      if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-        LOG.error("Failed to open {}: unable to read incomplete file", path);
-        return -ErrorCodes.EIO();
-      }
-    }
-
     // Alluxio fuse only supports read-only for completed file
     // and write-only for file that does not exist or contains open flag O_TRUNC
     // O_RDWR will be treated as read-only if file exists and no O_TRUNC,
