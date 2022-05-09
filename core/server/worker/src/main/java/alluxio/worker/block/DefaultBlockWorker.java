@@ -313,14 +313,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
+      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
-      String mediumType = loc.mediumType();
-      Long length = meta.getBlockSize();
-      BlockStoreMeta storeMeta = mLocalBlockStore.getBlockStoreMeta();
-      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), mediumType,
-          blockId, length);
+      blockMasterClient.commitBlock(mWorkerId.get(),
+          mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
+          loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
@@ -376,12 +373,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId)
-      throws BlockDoesNotExistException {
-    return mLocalBlockStore.getTempBlockMeta(blockId);
-  }
-
-  @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
@@ -404,47 +395,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
-    return mLocalBlockStore.getVolatileBlockMeta(blockId);
-  }
-
-  @Override
   public boolean hasBlockMeta(long blockId) {
     return mLocalBlockStore.hasBlockMeta(blockId);
-  }
-
-  @Override
-  public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
-    // Because the move operation is expensive, we first check if the operation is necessary
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(
-        WORKER_STORAGE_TIER_ASSOC.getAlias(tier));
-    long lockId = mLocalBlockStore.pinBlock(sessionId, blockId).getAsLong();
-    try {
-      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
-      if (meta.getBlockLocation().belongsTo(dst)) {
-        return;
-      }
-    } finally {
-      mLocalBlockStore.unpinBlock(lockId);
-    }
-    // Execute the block move if necessary
-    mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
-  }
-
-  @Override
-  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType);
-    BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId);
-    if (meta.getBlockLocation().belongsTo(dst)) {
-      return;
-    }
-    // Execute the block move if necessary
-    mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
   }
 
   @Override

@@ -11,9 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import static com.google.common.base.Preconditions.checkState;
-import static java.lang.String.format;
-
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
@@ -40,9 +37,12 @@ import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.underfs.UfsManager;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 
@@ -66,8 +66,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
   private static final boolean ZERO_COPY_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
-  private final WorkerProcess mWorkerProcess;
   private final DefaultBlockWorker mBlockWorker;
+  private final UfsManager mUfsManager;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
   private final WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
   private final boolean mDomainSocketEnabled;
@@ -80,11 +80,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    */
   public BlockWorkerClientServiceHandler(WorkerProcess workerProcess,
       boolean domainSocketEnabled) {
-    mWorkerProcess = workerProcess;
-    BlockWorker blockWorker = mWorkerProcess.getWorker(BlockWorker.class);
-    checkState(blockWorker instanceof DefaultBlockWorker,
-        format("Expect DefaultBlockWorker, get %s", blockWorker.getClass().getName()));
-    mBlockWorker = (DefaultBlockWorker) blockWorker;
+    mBlockWorker = (DefaultBlockWorker) workerProcess.getWorker(BlockWorker.class);
+    mUfsManager = workerProcess.getUfsManager();
     mDomainSocketEnabled = domainSocketEnabled;
   }
 
@@ -128,8 +125,8 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }
-    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+    DelegationWriteHandler handler = new DelegationWriteHandler(mBlockWorker, mUfsManager,
+        responseObserver, getAuthenticatedUserInfo(), mDomainSocketEnabled);
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }
@@ -184,8 +181,10 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
     RpcUtils.call(LOG, () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
-          request.getBlockId(), request.getMediumType());
+      mBlockWorker.getLocalBlockStore()
+          .moveBlock(sessionId, request.getBlockId(),
+              AllocateOptions.forMove(
+                  BlockStoreLocation.anyDirInAnyTierWithMedium(request.getMediumType())));
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
   }
@@ -194,7 +193,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void clearMetrics(ClearMetricsRequest request,
       StreamObserver<ClearMetricsResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mWorkerProcess.getWorker(BlockWorker.class).clearMetrics();
+      mBlockWorker.clearMetrics();
       return ClearMetricsResponse.getDefaultInstance();
     }, "clearMetrics", "request=%s", responseObserver, request);
   }

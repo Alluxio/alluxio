@@ -60,7 +60,7 @@ public abstract class AbstractBlockAnnotatorTest {
   }
 
   protected void moveBlock(long blockId, StorageDir destDir) throws Exception {
-    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId));
+    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId).get());
     TieredBlockStoreTestUtils.cache2(mUserSession++, blockId, 1, destDir, mMetaManager,
         (BlockIterator) null);
     mBlockEventListener.onMoveBlockByWorker(mInternalSession++, blockId,
@@ -69,7 +69,7 @@ public abstract class AbstractBlockAnnotatorTest {
   }
 
   protected void removeBlock(long blockId) throws Exception {
-    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId));
+    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId).get());
     mBlockEventListener.onRemoveBlock(mUserSession++, blockId,
         mBlockLocation.remove(blockId).toBlockStoreLocation());
   }

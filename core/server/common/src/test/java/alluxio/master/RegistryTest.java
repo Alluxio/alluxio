@@ -18,9 +18,7 @@ import alluxio.grpc.ServiceType;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,11 +29,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 public final class RegistryTest {
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
-  public abstract class TestServer implements Server<Void> {
+  public abstract static class TestServer implements Server<Void> {
     @Override
     @Nullable
     public Map<ServiceType, GrpcService> getServices() {
@@ -112,7 +106,7 @@ public final class RegistryTest {
   public void registry() {
     List<TestServer> masters = ImmutableList.of(new ServerC(), new ServerB(), new ServerA());
     List<TestServer[]> permutations = new ArrayList<>();
-    computePermutations(masters.toArray(new TestServer[masters.size()]), 0, permutations);
+    computePermutations(masters.toArray(new TestServer[0]), 0, permutations);
     // Make sure that the registry orders the masters independently of the order in which they
     // are registered.
     for (TestServer[] permutation : permutations) {
@@ -132,18 +126,17 @@ public final class RegistryTest {
     registry.add(ServerC.class, new ServerC());
     registry.add(ServerC.class, new ServerD());
 
-    mThrown.expect(RuntimeException.class);
-    registry.getServers();
+    Assert.assertThrows(RuntimeException.class, registry::getServers);
   }
 
   @Test
   public void unavailable() {
     Registry<TestServer, Void> registry = new Registry<>();
 
-    mThrown.expect(Exception.class);
-    mThrown.expectMessage("Timed out");
-    mThrown.expectMessage("ServerB");
-    registry.get(ServerB.class, 100);
+    Exception exception = Assert.assertThrows(Exception.class,
+        () -> registry.get(ServerB.class, 100));
+    Assert.assertTrue(exception.getMessage().contains("Timed out"));
+    Assert.assertTrue(exception.getMessage().contains("ServerB"));
   }
 
   private void computePermutations(TestServer[] input, int index, List<TestServer[]> permutations) {

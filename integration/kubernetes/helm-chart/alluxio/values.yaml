@@ -649,9 +649,6 @@ csi:
   # Run alluxio fuse process inside csi nodeserver container if mountInPod = false
   # Run alluxio fuse process inside a separate pod if mountInPod = true
   mountInPod: false
-  # If mountInPod, use a timeout for waiting until the fuse process is ready
-  periodSeconds: 15
-  failureThreshold: 10
   nodePlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet

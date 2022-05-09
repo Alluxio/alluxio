@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
+ * The fault-tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
  */
 @NotThreadSafe
 final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
@@ -47,7 +47,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private final long mServingThreadTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
-  private PrimarySelector mLeaderSelector;
+  private final PrimarySelector mLeaderSelector;
   private Thread mServingThread;
 
   /** An indicator for whether the process is running (after start() and before stop()). */
@@ -56,7 +56,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
    */
-  protected FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem,
+  FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem,
       PrimarySelector leaderSelector) {
     super(journalSystem);
     try {
@@ -170,7 +170,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
-        if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+        if (root instanceof InterruptedException || Thread.interrupted()) {
           return;
         }
         ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
@@ -225,7 +225,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   /**
    * @return whether the master is running
    */
-  protected boolean isRunning() {
+  boolean isRunning() {
     return mRunning;
   }
 
@@ -252,7 +252,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     // Masters will always start from standby state, and later be elected to primary.
     // If standby masters are enabled to start metric sink service,
     // the service will have been started before the master is promoted to primary.
-    // Thus when the master is primary, no need to start metric sink service again.
+    // Thus, when the master is primary, no need to start metric sink service again.
     //
     // Vice versa, if the standby masters do not start the metric sink service,
     // the master should start the metric sink when it is primacy.
@@ -274,7 +274,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
   }
 
-  protected void stopCommonServicesIfNecessary() throws Exception {
+  void stopCommonServicesIfNecessary() throws Exception {
     if (!ServerConfiguration.getBoolean(
         PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
       LOG.info("Stop metric sinks.");

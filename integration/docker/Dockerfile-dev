@@ -67,7 +67,7 @@ RUN \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     yum clean all && \
     ./dockerfile-common.sh install-libfuse2 && \
-    yum install -y fuse3-libs
+    yum install -y fuse3 fuse3-devel fuse3-lib
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
 

@@ -26,8 +26,6 @@ import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.List;
@@ -100,14 +98,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * @param blockId the id of the block
-   *
-   * @return metadata of the block if the temp block exists
-   * @throws BlockDoesNotExistException if the block cannot be found
-   */
-  TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
-
-  /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
    * {@link #createBlock}.
    *
@@ -147,56 +137,12 @@ public interface BlockWorker extends Worker, SessionCleanable {
   BlockStoreMeta getStoreMetaFull();
 
   /**
-   * Gets the metadata of a block given its blockId or throws IOException. This method does not
-   * require a lock id so the block is possible to be moved or removed after it returns.
-   *
-   * @param blockId the block id
-   * @return metadata of the block
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
-   */
-  BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
-
-  /**
    * Checks if the storage has a given block.
    *
    * @param blockId the block id
    * @return true if the block is contained, false otherwise
    */
   boolean hasBlockMeta(long blockId);
-
-  /**
-   * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
-   * tiered storage.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to move
-   * @param tier the tier to move the block to
-   * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
-
-  /**
-   * Moves a block from its current location to a target location, with a specific medium type.
-   * Throws an {@link IllegalArgumentException} if the medium type is not one of the listed medium
-   * types.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to move
-   * @param mediumType the medium type to move to
-   * @throws BlockDoesNotExistException if blockId cannot be found
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
 
   /**
    * Creates the block reader to read from Alluxio block or UFS block.

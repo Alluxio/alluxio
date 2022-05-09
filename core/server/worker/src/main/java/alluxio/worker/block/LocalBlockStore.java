@@ -23,6 +23,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 
@@ -72,15 +73,14 @@ public interface LocalBlockStore
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * Gets the metadata of a block given its block id or throws {@link BlockDoesNotExistException}.
+   * Gets the metadata of a block given its block id or empty if block does not exist.
    * This method does not require a lock id so the block is possible to be moved or removed after it
    * returns.
    *
    * @param blockId the block id
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no BlockMeta for this block id is found
    */
-  BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
+  Optional<BlockMeta> getVolatileBlockMeta(long blockId);
 
   /**
    * Gets the temp metadata of a specific block from local storage.
@@ -205,10 +205,8 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to remove a block
    * @param blockId the id of an existing block
    * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws BlockDoesNotExistException if block can not be found
    */
-  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
-      BlockDoesNotExistException, IOException;
+  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly

@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -88,6 +89,8 @@ public final class MetricsSystem {
   // Local hostname will be used if no related property key founds.
   private static Supplier<String> sSourceNameSupplier =
       CommonUtils.memoize(() -> constructSourceName());
+  private static final Map<String, InstrumentedExecutorService>
+      EXECUTOR_SERVICES = new ConcurrentHashMap<>();
 
   /**
    * An enum of supported instance type.
@@ -99,6 +102,7 @@ public final class MetricsSystem {
     WORKER("Worker"),
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
+    PLUGIN("Plugin"),
     PROXY("Proxy"),
     CLIENT("Client"),
     FUSE("Fuse");
@@ -314,6 +318,8 @@ public final class MetricsSystem {
         return getJobMasterMetricName(name);
       case JOB_WORKER:
         return getJobWorkerMetricName(name);
+      case PLUGIN:
+        return getPluginMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -411,6 +417,20 @@ public final class MetricsSystem {
   }
 
   /**
+   * Builds metric registry name for plugin instance. The pattern is
+   * instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getPluginMetricName(String name) {
+    if (name.startsWith(InstanceType.PLUGIN.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.PLUGIN, name);
+  }
+
+  /**
    * Builds unique metric registry names with unique ID (set to host name). The pattern is
    * instance.metricName.hostname
    *
@@ -488,6 +508,19 @@ public final class MetricsSystem {
   }
 
   // Some helper functions.
+  /** Add or replace the instrumented executor service metrics for
+   * the given name and executor service.
+   *
+   * @param delegate the executor service delegate that will be instrumented with metrics
+   * @param name the name of the metric
+   * @return the instrumented executor service
+   */
+  public static InstrumentedExecutorService executorService(ExecutorService delegate, String name) {
+    InstrumentedExecutorService service = new InstrumentedExecutorService(
+        delegate, METRIC_REGISTRY, getMetricName(name));
+    EXECUTOR_SERVICES.put(name, service);
+    return service;
+  }
 
   /**
    * Get or add counter with the given name.
@@ -609,6 +642,35 @@ public final class MetricsSystem {
         }
       });
     }
+  }
+
+  /**
+   * Created a gauge that aggregates the value of existing gauges.
+   *
+   * @param name the gauge name
+   * @param metrics the set of metric values to be aggregated
+   * @param timeout the cached gauge timeout
+   * @param timeUnit the unit of timeout
+   */
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
+      String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
+    METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
+      @Override
+      protected Double loadValue() {
+        double total = 0.0;
+        for (MetricKey key : metrics) {
+          Metric m = getMetricValue(key.getName());
+          if (m == null || m.getMetricType() != MetricType.GAUGE) {
+            continue;
+          }
+          total += m.getValue();
+        }
+        return total;
+      }
+    });
   }
 
   /**
@@ -855,6 +917,11 @@ public final class MetricsSystem {
       METRIC_REGISTRY.remove(timerName);
       METRIC_REGISTRY.timer(timerName);
     }
+
+    // Reset the InstrumentedExecutorServices last as it needs to keep the
+    // reference to the new metrics objects
+    EXECUTOR_SERVICES.values().forEach(InstrumentedExecutorService::reset);
+
     LAST_REPORTED_METRICS.clear();
     LOG.info("Reset all metrics in the metrics system in {}ms",
         System.currentTimeMillis() - startTime);
@@ -868,6 +935,7 @@ public final class MetricsSystem {
     for (String name : METRIC_REGISTRY.getNames()) {
       METRIC_REGISTRY.remove(name);
     }
+    EXECUTOR_SERVICES.clear();
   }
 
   /**
