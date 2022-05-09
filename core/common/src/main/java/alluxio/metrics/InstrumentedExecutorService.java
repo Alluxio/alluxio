@@ -11,9 +11,13 @@
 
 package alluxio.metrics;
 
-import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.logging.SamplingLogger;
 
+import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -24,10 +28,12 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -41,13 +47,12 @@ import java.util.concurrent.TimeoutException;
  */
 public class InstrumentedExecutorService implements ExecutorService {
 
-  private static final Logger SAMPLING_LOG =
+  private static final AlluxioConfiguration CONF =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
+
+  private final Logger mSamplingLog =
       new SamplingLogger(LoggerFactory.getLogger(InstrumentedExecutorService.class),
-          5L * Constants.SECOND_MS);
-  // If the number of active tasks (queued or running) is above this amount
-  // when a new task is added, then a warning log is printed at the given
-  // rate of the above sampling log.
-  private static final long ACTIVE_TASK_WARNING_SIZE = 1000;
+          CONF.getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
 
   private com.codahale.metrics
       .InstrumentedExecutorService mDelegate;
@@ -70,6 +75,17 @@ public class InstrumentedExecutorService implements ExecutorService {
     mName = name;
     mRegistry = registry;
     mExecutorService = executorService;
+    if (executorService instanceof ThreadPoolExecutor) {
+      BlockingQueue<Runnable> queue = ((ThreadPoolExecutor) executorService).getQueue();
+      MetricsSystem.registerCachedGaugeIfAbsent(
+          MetricRegistry.name(mName, "queueSize"),
+          new CachedGauge<Integer>(1, TimeUnit.SECONDS) {
+            @Override
+            protected Integer loadValue() {
+              return queue.size();
+            }
+          });
+    }
     reset();
   }
 
@@ -92,8 +108,8 @@ public class InstrumentedExecutorService implements ExecutorService {
   private void addedTasks(int count) {
     long activeCount = mSubmitted.getCount() - mCompleted.getCount() + count;
     mHist.update(activeCount);
-    if (activeCount >= ACTIVE_TASK_WARNING_SIZE) {
-      SAMPLING_LOG.warn("Number of active tasks (queued and running) for executor {} is {}",
+    if (activeCount >= CONF.getInt(PropertyKey.METRICS_EXECUTOR_TASK_WARN_SIZE)) {
+      mSamplingLog.warn("Number of active tasks (queued and running) for executor {} is {}",
           mName, activeCount);
     }
   }

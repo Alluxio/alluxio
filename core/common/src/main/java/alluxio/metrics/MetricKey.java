@@ -237,7 +237,9 @@ public final class MetricKey implements Comparable<MetricKey> {
       + " tasks at any time during execution. %1$s.running is the number of tasks actively"
       + " being run by the executor. %1$s.idle is the time spent idling by the submitted"
       + " tasks (i.e. waiting the the queue before being executed)."
-      + " %1$s.duration is the time spent running the submitted tasks.";
+      + " %1$s.duration is the time spent running the submitted tasks."
+      + " If the executor is a thread pool executor then %1$s.queueSize is"
+      + " the size of the task queue.";
 
   // Master metrics
   // Absent cache stats
