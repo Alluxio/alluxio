@@ -78,7 +78,6 @@ public class InodeStoreTest {
   public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
     {
       put(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE);
-      put(PropertyKey.ROCKS_INODE_CONF_FILE, sDir + CONF_NAME);
     }
   }, ServerConfiguration.global());
 
@@ -101,6 +100,21 @@ public class InodeStoreTest {
   @After
   public void after() {
     mStore.close();
+  }
+
+  @Test
+  public void rocksConfigFile() throws Exception {
+    // close the store first because we want to reopen it with the new config
+    mStore.close();
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_INODE_CONF_FILE, sDir + CONF_NAME);
+      }
+    }, ServerConfiguration.global()).toResource()) {
+      before();
+      writeInode(mRoot);
+      assertEquals(Inode.wrap(mRoot), mStore.get(0).get());
+    }
   }
 
   @Test

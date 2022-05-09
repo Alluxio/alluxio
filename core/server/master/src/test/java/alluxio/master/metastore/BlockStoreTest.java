@@ -17,6 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.heap.HeapBlockStore;
@@ -24,6 +25,8 @@ import alluxio.master.metastore.rocks.RocksBlockStore;
 import alluxio.proto.meta.Block;
 import alluxio.resource.CloseableIterator;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -32,28 +35,54 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 @RunWith(Parameterized.class)
 public class BlockStoreTest {
   private static final String CONF_NAME = "/rocks-block.ini";
+  private static String sDir;
 
   @Parameterized.Parameters
-  public static Collection<Object[]> data() throws Exception {
-    String dir = AlluxioTestDirectory.createTemporaryDirectory(
+  public static Collection<Supplier<BlockStore>> data() throws Exception {
+    sDir = AlluxioTestDirectory.createTemporaryDirectory(
         "block-store-test").getAbsolutePath();
-    File confFile = new File(dir + CONF_NAME);
+    File confFile = new File(sDir + CONF_NAME);
     writeStringToFile(confFile, ROCKS_CONFIG, (Charset) null);
-    ServerConfiguration.global().set(PropertyKey.ROCKS_BLOCK_CONF_FILE,
-        (Object) confFile.getAbsolutePath());
-    return Arrays.asList(new Object[][] {
-        {new RocksBlockStore(dir)},
-        {new HeapBlockStore()}
-    });
+    return Arrays.asList(
+        () -> new RocksBlockStore(sDir),
+        HeapBlockStore::new
+    );
   }
 
   @Parameterized.Parameter
+  public Supplier<BlockStore> mBlockStoreSupplier;
   public BlockStore mBlockStore;
+
+  @Before
+  public void before() {
+    mBlockStore = mBlockStoreSupplier.get();
+  }
+
+  @After
+  public void after() {
+    mBlockStore.close();
+  }
+
+  @Test
+  public void rocksConfigFile() throws Exception {
+    // close the store first because we want to reopen it with the new config
+    mBlockStore.close();
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_BLOCK_CONF_FILE, sDir + CONF_NAME);
+      }
+    }, ServerConfiguration.global()).toResource()) {
+      mBlockStore = mBlockStoreSupplier.get();
+      testPutGet();
+    }
+  }
 
   @Test
   public void testPutGet() throws Exception {

@@ -26,10 +26,14 @@ import org.rocksdb.BloomFilter;
 import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
 import org.rocksdb.DataBlockIndexType;
 import org.rocksdb.Env;
 import org.rocksdb.Filter;
+import org.rocksdb.HashLinkedListMemTableConfig;
+import org.rocksdb.HashSkipListMemTableConfig;
 import org.rocksdb.IndexType;
 import org.rocksdb.LRUCache;
 import org.rocksdb.OptionsUtil;
@@ -92,20 +96,47 @@ public class RocksBlockStore implements BlockStore {
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
-    try {
-      OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
-          PropertyKey.ROCKS_BLOCK_CONF_FILE), Env.getDefault(), opts, columns, false);
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+    if (ServerConfiguration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
+      try {
+        OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
+            PropertyKey.ROCKS_BLOCK_CONF_FILE), Env.getDefault(), opts, columns,
+            false);
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+      if (columns.size() != 3
+          || !new String(columns.get(1).getName()).equals(BLOCK_META_COLUMN)
+          || !new String(columns.get(2).getName()).equals(BLOCK_LOCATIONS_COLUMN)) {
+        throw new RuntimeException(String.format("Invalid RocksDB block store table configuration,"
+            + "expected 3 columns, default, %s, and %s",
+            BLOCK_META_COLUMN, BLOCK_LOCATIONS_COLUMN));
+      }
+      // Remove the default column as it is created in RocksStore
+      columns.remove(0).getOptions().close();
+    } else {
+      opts = new DBOptions()
+          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+          .setCreateMissingColumnFamilies(true)
+          .setCreateIfMissing(true)
+          .setMaxOpenFiles(-1);
+      columns.add(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
+              .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+              .optimizeLevelStyleCompaction() // use level style compaction
+              .setMemtableWholeKeyFiltering(true) // fast point lookups for bucket id
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
+      columns.add(new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
+              .setMemTableConfig(new HashSkipListMemTableConfig()) // bucket contains workers for id
+              .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+              .optimizeLevelStyleCompaction() // use level style compaction
+              .setMemtableWholeKeyFiltering(true) // fast point lookups for bucket id
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
     }
-    if (columns.size() != 3
-        || !new String(columns.get(1).getName()).equals(BLOCK_META_COLUMN)
-        || !new String(columns.get(2).getName()).equals(BLOCK_LOCATIONS_COLUMN)) {
-      throw new RuntimeException(String.format("Invalid RocksDB block store table configuration,"
-          + "expected 3 columns, default, %s, and %s", BLOCK_META_COLUMN, BLOCK_LOCATIONS_COLUMN));
-    }
-    // Remove the default column as it is created in RocksStore
-    columns.remove(0).getOptions().close();
+
     mToClose.addAll(columns.stream().map(
         ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
 

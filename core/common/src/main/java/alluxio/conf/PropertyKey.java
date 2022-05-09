@@ -714,16 +714,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ROCKS_INODE_CONF_FILE =
       stringBuilder(Name.ROCKS_INODE_CONF_FILE)
-          .setDefaultValue(format("${%s}/rocks-inode.ini", Name.CONF_DIR))
-          .setDescription(format("Name of file containing RocksDB inode store configuration "
-              + "within the folder given by {%s}", Name.SITE_CONF_DIR))
+          .setDescription("Path of file containing RocksDB inode store configuration."
+              + " If unset then a default configuration will"
+              + " be used.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ROCKS_BLOCK_CONF_FILE =
       stringBuilder(Name.ROCKS_BLOCK_CONF_FILE)
-          .setDefaultValue(format("${%s}/rocks-block.ini", Name.CONF_DIR))
-          .setDescription(format("Name of file containing RocksDB block store configuration "
-              + "within the folder given by {%s}", Name.SITE_CONF_DIR))
+          .setDescription("Path of file containing RocksDB block store configuration."
+              + " If unset then a default configuration will"
+              + " be used.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey NETWORK_IP_ADDRESS_USED =

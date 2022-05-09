@@ -32,10 +32,14 @@ import org.rocksdb.BloomFilter;
 import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
 import org.rocksdb.DataBlockIndexType;
 import org.rocksdb.Env;
 import org.rocksdb.Filter;
+import org.rocksdb.HashLinkedListMemTableConfig;
+import org.rocksdb.HashSkipListMemTableConfig;
 import org.rocksdb.IndexType;
 import org.rocksdb.LRUCache;
 import org.rocksdb.OptionsUtil;
@@ -99,20 +103,44 @@ public class RocksInodeStore implements InodeStore {
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
-    try {
-      OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
-          PropertyKey.ROCKS_INODE_CONF_FILE), Env.getDefault(), opts, columns, false);
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+    if (ServerConfiguration.isSet(PropertyKey.ROCKS_INODE_CONF_FILE)) {
+      try {
+        OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
+            PropertyKey.ROCKS_INODE_CONF_FILE), Env.getDefault(), opts, columns, false);
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+      if (columns.size() != 3
+          || !new String(columns.get(1).getName()).equals(INODES_COLUMN)
+          || !new String(columns.get(2).getName()).equals(EDGES_COLUMN)) {
+        throw new RuntimeException(String.format("Invalid RocksDB inode store table configuration,"
+            + "expected 3 columns, default, %s, and %s", INODES_COLUMN, EDGES_COLUMN));
+      }
+      // Remove the default column as it is created in RocksStore
+      columns.remove(0).getOptions().close();
+    } else {
+      opts = new DBOptions()
+          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+          .setCreateMissingColumnFamilies(true)
+          .setCreateIfMissing(true)
+          .setMaxOpenFiles(-1);
+      columns.add(new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+          .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+          .setMemTableConfig(new HashSkipListMemTableConfig()) // bucket contains all children
+          .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+          .optimizeLevelStyleCompaction() // use level style compaction
+          .setMemtableWholeKeyFiltering(true) // fast point lookups during inode traversal
+          .setCompressionType(CompressionType.NO_COMPRESSION)));
+      columns.add(new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket only contains an id
+              .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+              .optimizeLevelStyleCompaction() // use level style compaction
+              .setMemtableWholeKeyFiltering(true) // fast point lookups during inode traversal
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
     }
-    if (columns.size() != 3
-        || !new String(columns.get(1).getName()).equals(INODES_COLUMN)
-        || !new String(columns.get(2).getName()).equals(EDGES_COLUMN)) {
-      throw new RuntimeException(String.format("Invalid RocksDB inode store table configuration,"
-          + "expected 3 columns, default, %s, and %s", INODES_COLUMN, EDGES_COLUMN));
-    }
-    // Remove the default column as it is created in RocksStore
-    columns.remove(0).getOptions().close();
     mToClose.addAll(columns.stream().map(
         ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
 
