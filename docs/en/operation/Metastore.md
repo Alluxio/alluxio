@@ -73,6 +73,43 @@ and `Master.RocksInodeEstimatedMemUsage` estimate the total memory usage for the
 These two metrics are further combined in `Master.RocksTotalEstimatedMemUsage` to estimate the total memory usage of RocksDB across
 all of Alluxio.
 
+### RocksDB configuration
+
+RocksDB is highly tunable.
+Users familiar with the internals of RocksDB can configure the inode and edge tables through a configuration
+file by setting `{alluxio.site.conf.rocks.inode.file}` with the file path. The block metadata and block locations
+tables can be configured by setting `{alluxio.site.conf.rocks.block.file}` with the configuration file path.
+Template configuration files can be found at `conf/rocks-inode.ini.template` and `conf/rocks-block.ini.template`.
+Along with the RocksDB metrics described above, the [RocksDB Tuning Guide](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide)
+can assist users with designing an appropriate configuration for their workload.
+The current defaults are set using the following options
+```java
+new DBOptions()
+        .setAllowConcurrentMemtableWrite(false)
+        .setCreateMissingColumnFamilies(true)
+        .setCreateIfMissing(true)
+        .setMaxOpenFiles(-1);
+new ColumnFamilyOptions() // for each table (inode, edge, block metadata and block location)
+        .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable hash buckets by inode id or block id
+        .setMemTableConfig(new HashSkipListMemTableConfig()) // or HashLinkedList for Inode table and Block metadata table as they are single entry buckets
+        .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
+        .optimizeLevelStyleCompaction() // use level style compaction
+        .setMemtableWholeKeyFiltering(true) // for fast memtable point lookups
+        .setCompressionType(CompressionType.NO_COMPRESSION)
+        .setTableFormatConfig(
+            new BlockBasedTableConfig()
+                .setIndexType(IndexType.kHashSearch) // for fast hash lookups in the memtable
+                .setDataBlockIndexType(DataBlockIndexType.kDataBlockBinaryAndHash) // for fast hash lookup in blocks
+                .setBlockCache(new LRUCache(8 * 1024 * 1024))
+                .setFilterPolicy(new BloomFilter()));
+```
+
+[Not all](https://github.com/facebook/rocksdb/blob/7.2.fb/include/rocksdb/utilities/options_util.h#L22-L72)
+RocksDB configuration options are tunable via configuration files, these
+must be set using the property keys with the prefix `alluxio.master.metastore.rocks.inode`
+and `alluxio.master.metastore.rocks.edge` for the inode tables and `alluxio.master.metastore.rocks.block.meta`
+and `alluxio.master.metastore.rocks.block.location` for the block tables.
+
 ## Heap Metastore
 
 The heap metastore is simple: it stores all metadata on the heap. This gives consistent,

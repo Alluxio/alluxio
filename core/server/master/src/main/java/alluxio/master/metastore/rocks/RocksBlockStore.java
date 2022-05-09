@@ -127,7 +127,7 @@ public class RocksBlockStore implements BlockStore {
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
-              .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+              .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
               .optimizeLevelStyleCompaction() // use level style compaction
               .setMemtableWholeKeyFiltering(true) // fast point lookups for bucket id
               .setCompressionType(CompressionType.NO_COMPRESSION)));
@@ -135,7 +135,7 @@ public class RocksBlockStore implements BlockStore {
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashSkipListMemTableConfig()) // bucket contains workers for id
-              .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+              .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
               .optimizeLevelStyleCompaction() // use level style compaction
               .setMemtableWholeKeyFiltering(true) // fast point lookups for bucket id
               .setCompressionType(CompressionType.NO_COMPRESSION)));

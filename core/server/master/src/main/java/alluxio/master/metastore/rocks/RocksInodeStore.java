@@ -132,7 +132,7 @@ public class RocksInodeStore implements InodeStore {
           new ColumnFamilyOptions()
           .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
           .setMemTableConfig(new HashSkipListMemTableConfig()) // bucket contains all children
-          .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+          .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
           .optimizeLevelStyleCompaction() // use level style compaction
           .setMemtableWholeKeyFiltering(true) // fast point lookups during inode traversal
           .setCompressionType(CompressionType.NO_COMPRESSION)));
@@ -140,7 +140,7 @@ public class RocksInodeStore implements InodeStore {
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket only contains an id
-              .setMemtablePrefixBloomSizeRatio(0.02) // for fast bucket memtable lookups
+              .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
               .optimizeLevelStyleCompaction() // use level style compaction
               .setMemtableWholeKeyFiltering(true) // fast point lookups during inode traversal
               .setCompressionType(CompressionType.NO_COMPRESSION)));
