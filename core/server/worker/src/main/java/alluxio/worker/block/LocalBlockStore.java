@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static alluxio.worker.block.BlockStoreType.*;
+
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -46,17 +48,19 @@ public interface LocalBlockStore
    * @param ufsManager
    */
   static LocalBlockStore create(UfsManager ufsManager) {
-    if (ServerConfiguration.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
-      try {
-        InstancedConfiguration conf = ServerConfiguration.global();
-        PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-        CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
-        return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
-      }
-    } else {
-      return new TieredBlockStore();
+    switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        try {
+          InstancedConfiguration conf = ServerConfiguration.global();
+          PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
+          CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+          return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
+        }
+      case FILE:
+      default:
+        return new TieredBlockStore();
     }
   }
 

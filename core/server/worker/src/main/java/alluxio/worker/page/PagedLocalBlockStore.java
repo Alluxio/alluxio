@@ -30,9 +30,11 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A paged implementation of LocalBlockStore interface.
@@ -43,9 +45,11 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
-  private PagedBlockMetaStore mPagedBlockMetaStore;
-  private AlluxioConfiguration mConf;
+  private final PagedBlockMetaStore mPagedBlockMetaStore;
+  private final AlluxioConfiguration mConf;
   private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
+      new CopyOnWriteArrayList<>();
 
   /**
    * Constructor for PagedLocalBlockStore.
@@ -176,12 +180,11 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void cleanupSession(long sessionId) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
-    throw new UnsupportedOperationException();
+    mBlockStoreEventListeners.add(listener);
   }
 
   @Override
