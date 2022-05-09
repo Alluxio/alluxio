@@ -521,7 +521,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
     if (mLocalBlockStore instanceof PagedLocalBlockStore) {
-      BlockReader reader = mLocalBlockStore.getBlockReader(sessionId, blockId, options);
+      BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, options);
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return reader;
     }

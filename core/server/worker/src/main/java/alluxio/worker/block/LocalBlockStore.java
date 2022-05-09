@@ -223,8 +223,8 @@ public interface LocalBlockStore
    * @param options the options for UFS fall-back
    * @return a {@link BlockReader} instance on this block
    */
-  default BlockReader getBlockReader(long sessionId, long blockId,
-                                     Protocol.OpenUfsBlockOptions options) {
+  default BlockReader createBlockReader(long sessionId, long blockId,
+                                        Protocol.OpenUfsBlockOptions options) {
     throw new UnsupportedOperationException();
   }
 

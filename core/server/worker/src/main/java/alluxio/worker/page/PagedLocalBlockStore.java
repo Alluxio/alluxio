@@ -134,8 +134,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public BlockReader getBlockReader(long sessionId, long blockId,
-                                    Protocol.OpenUfsBlockOptions options) {
+  public BlockReader createBlockReader(long sessionId, long blockId,
+                                       Protocol.OpenUfsBlockOptions options) {
     return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
         options);
   }
