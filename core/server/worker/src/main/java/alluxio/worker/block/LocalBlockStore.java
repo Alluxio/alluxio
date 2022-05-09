@@ -164,7 +164,7 @@ public interface LocalBlockStore
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId)
+  BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
