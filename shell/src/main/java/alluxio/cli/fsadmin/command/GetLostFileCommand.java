@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -63,8 +64,14 @@ public class GetLostFileCommand extends AbstractFsAdminCommand {
 
     List<Long> lostFiles = mFsClient.getLostFiles();
     if (lostFiles != null) {
-      lostFiles.forEach(System.out::println);
-      System.out.println("Size of lostFile is " + lostFiles.size());
+      lostFiles.stream().map(lostFileId -> {
+        try {
+          return mFsClient.getFilePath(lostFileId);
+        } catch (AlluxioStatusException e) {
+          return e.getMessage() + " for lost fileId " + lostFileId;
+        }
+      }).sorted().forEach(System.out::println);
+      System.out.println("Number of lost files is " + lostFiles.size());
     }
     return 0;
   }
@@ -76,7 +83,7 @@ public class GetLostFileCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getDescription() {
-    return "get the lost file.";
+    return "Get all lost files.";
   }
 
   @Override
