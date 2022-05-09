@@ -644,6 +644,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey METRICS_EXECUTOR_TASK_WARN_SIZE =
+      intBuilder(Name.METRICS_EXECUTOR_TASK_WARN_SIZE)
+          .setDefaultValue(1000)
+          .setDescription(String.format("When instrumenting an executor with"
+                  + " InstrumentedExecutorService, if the number of"
+                  + " active tasks (queued or running) is greater than this value, a warning log"
+                  + " will be printed at the interval given by %s",
+              Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY))
+          .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
+      durationBuilder(Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY)
+          .setDefaultValue("5sec")
+          .setDescription(String.format("When instrumenting an executor with"
+                  + "InstrumentedExecutorService, if the number of"
+                  + " active tasks (queued or running) is greater than %s value, a warning log"
+                  + " will be printed at the given interval",
+              Name.METRICS_EXECUTOR_TASK_WARN_SIZE))
+          .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
       durationBuilder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
           .setDefaultValue("30sec")
@@ -3013,6 +3035,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of threads used to execute all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR)
+          .setDescription("If true the metadata sync thread pool executors will be"
+              + " instrumented with additional metrics.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_REPORT_FAILURE =
@@ -6355,6 +6385,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
         "alluxio.metrics.context.shutdown.timeout";
+    public static final String METRICS_EXECUTOR_TASK_WARN_SIZE =
+        "alluxio.metrics.executor.task.warn.size";
+    public static final String METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
+        "alluxio.metrics.executor.task.warn.frequency";
     public static final String NETWORK_CONNECTION_AUTH_TIMEOUT =
         "alluxio.network.connection.auth.timeout";
     public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
@@ -6716,6 +6750,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR =
+        "alluxio.master.metadata.sync.instrument.executor";
     public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
