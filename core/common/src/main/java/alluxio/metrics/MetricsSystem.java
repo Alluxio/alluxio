@@ -614,8 +614,22 @@ public final class MetricsSystem {
    * @param <T> the type
    */
   public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric) {
+    registerCachedGaugeIfAbsent(name, metric, 10, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Registers a cached gauge if it has not been registered.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param timeout the cache gauge timeout
+   * @param unit the unit of timeout
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerCachedGaugeIfAbsent(
+      String name, Gauge<T> metric, long timeout, TimeUnit unit) {
     if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
-      METRIC_REGISTRY.register(name, new CachedGauge<T>(10, TimeUnit.MINUTES) {
+      METRIC_REGISTRY.register(name, new CachedGauge<T>(timeout, unit) {
         @Override
         protected T loadValue() {
           return metric.getValue();

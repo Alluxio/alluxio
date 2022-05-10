@@ -43,7 +43,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -2022,7 +2021,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
-      durationBuilder(Name.MASTER_METASTORE_METRICS_REFRESH_INTERVAL)
+      new Builder(Name.MASTER_METASTORE_METRICS_REFRESH_INTERVAL)
           .setDefaultValue("5s")
           .setDescription("Interval with which the master refreshes and reports metastore metrics")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
