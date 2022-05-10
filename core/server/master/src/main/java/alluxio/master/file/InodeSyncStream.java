@@ -94,7 +94,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 /**
@@ -502,15 +501,8 @@ public class InodeSyncStream {
   }
 
   private Object getFromUfs(Callable<Object> task) throws InterruptedException {
-<<<<<<< HEAD
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
-||||||| parent of dc3ba3e393 (Add InstrumentedExecutorService for monitoring executor services)
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
-    DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
-=======
     final Future<Object> future = mFsMaster.mSyncPrefetchExecutorIns.submit(task);
     DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
->>>>>>> dc3ba3e393 (Add InstrumentedExecutorService for monitoring executor services)
     while (true) {
       try {
         return future.get(1, TimeUnit.SECONDS);

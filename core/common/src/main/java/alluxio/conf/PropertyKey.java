@@ -412,7 +412,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey METRICS_EXECUTOR_TASK_WARN_SIZE =
-      intBuilder(Name.METRICS_EXECUTOR_TASK_WARN_SIZE)
+      new Builder(Name.METRICS_EXECUTOR_TASK_WARN_SIZE)
           .setDefaultValue(1000)
           .setDescription(String.format("When instrumenting an executor with"
                   + " InstrumentedExecutorService, if the number of"
@@ -423,7 +423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
   public static final PropertyKey METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
-      durationBuilder(Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY)
+      new Builder(Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY)
           .setDefaultValue("5sec")
           .setDescription(String.format("When instrumenting an executor with"
                   + "InstrumentedExecutorService, if the number of"
@@ -2779,7 +2779,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR =
-      booleanBuilder(Name.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR)
+      new Builder(Name.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR)
           .setDescription("If true the metadata sync thread pool executors will be"
               + " instrumented with additional metrics.")
           .setScope(Scope.MASTER)
