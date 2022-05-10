@@ -54,6 +54,9 @@ public class CompactionTaskResult implements TaskResult {
     mStatistics = from.mStatistics;
   }
 
+  /**
+   * @return base parameters
+   */
   @Nullable
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
@@ -88,6 +91,9 @@ public class CompactionTaskResult implements TaskResult {
     mErrors.add(errorMsg);
   }
 
+  /**
+   * @return errors
+   */
   public List<String> getErrors() {
     return mErrors;
   }
