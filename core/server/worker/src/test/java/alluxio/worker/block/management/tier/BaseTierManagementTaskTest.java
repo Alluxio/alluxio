@@ -87,7 +87,8 @@ public abstract class BaseTierManagementTaskTest {
   protected void startSimulateLoad() throws Exception {
     mBlockStore.createBlock(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID,
         AllocateOptions.forCreate(0, BlockStoreLocation.anyTier()));
-    mSimulateWriter = mBlockStore.createBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
+    mSimulateWriter =
+        mBlockStore.createBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
   }
 
   /**

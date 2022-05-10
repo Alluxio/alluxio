@@ -133,7 +133,9 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
 
   @Override
   public int getNumberOfBlocks() {
-    return mBlockPageMap.size();
+    try (LockResource lock = new LockResource(mBlockPageMapLock.readLock())) {
+      return mBlockPageMap.size();
+    }
   }
 
   @Override
