@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
-import static alluxio.master.file.InodeSyncStream.SyncStatus.NOT_NEEDED;
 import static alluxio.master.file.InodeSyncStream.SyncStatus.FAILED;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.NOT_NEEDED;
 import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
@@ -65,7 +65,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.wire.JobInfo;
-import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.ProtobufUtils;
@@ -74,6 +73,7 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
+import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -216,7 +216,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -399,17 +398,25 @@ public final class DefaultFileSystemMaster extends CoreMaster
   /** Used to check pending/running backup from RPCs. */
   private CallTracker mStateLockCallTracker;
 
-  final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
+  private final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
+  final ExecutorService mSyncPrefetchExecutorIns =
+      ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR)
+          ? MetricsSystem.executorService(mSyncPrefetchExecutor,
+          MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR.getName()) : mSyncPrefetchExecutor;
 
-  final ThreadPoolExecutor mSyncMetadataExecutor = new ThreadPoolExecutor(
+  private final ThreadPoolExecutor mSyncMetadataExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-%d", false));
+  final ExecutorService mSyncMetadataExecutorIns =
+      ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR)
+          ? MetricsSystem.executorService(mSyncMetadataExecutor,
+          MetricKey.MASTER_METADATA_SYNC_EXECUTOR.getName()) : mSyncMetadataExecutor;
 
   final ThreadPoolExecutor mActiveSyncMetadataExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
@@ -4527,6 +4534,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
+
+    public static final Counter METADATA_SYNC_PREFETCH_OPS_COUNT
+        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT.getName());
 
     /**
      * UFS operations enum.

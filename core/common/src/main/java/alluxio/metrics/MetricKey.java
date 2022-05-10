@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -229,6 +228,18 @@ public final class MetricKey implements Comparable<MetricKey> {
       return key;
     }
   }
+
+  private static final String EXECUTOR_STRING = "%1$s.submitted is a meter of the tasks submitted"
+      + " to the executor. %1$s.completed is a meter of the tasks completed by the executor."
+      + " %1$s.activeTaskQueue is exponentially-decaying random reservoir of the number of"
+      + " active tasks (running or submitted) at the executor calculated each time a new"
+      + " task is added to the executor. The max value is the maximum number of active"
+      + " tasks at any time during execution. %1$s.running is the number of tasks actively"
+      + " being run by the executor. %1$s.idle is the time spent idling by the submitted"
+      + " tasks (i.e. waiting the the queue before being executed)."
+      + " %1$s.duration is the time spent running the submitted tasks."
+      + " If the executor is a thread pool executor then %1$s.queueSize is"
+      + " the size of the task queue.";
 
   // Master metrics
   // Absent cache stats
@@ -601,6 +612,155 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+
+  // Metadata sync metrics
+  public static final MetricKey MASTER_METADATA_SYNC_OPS_COUNT =
+      new Builder("Master.MetadataSyncOpsCount")
+          .setDescription("The number of metadata sync operations. "
+              + "Each sync operation corresponds to one InodeSyncStream instance.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_TIME_MS =
+      new Builder("Master.MetadataSyncTimeMs")
+          .setDescription("The total time elapsed in all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_SKIPPED =
+      new Builder("Master.MetadataSyncSkipped")
+          .setDescription("The number of InodeSyncStream that are skipped because "
+              + "the Alluxio metadata is fresher than "
+              + PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_NO_CHANGE =
+      new Builder("Master.MetadataSyncNoChange")
+          .setDescription("The number of InodeSyncStream that finished with no change to inodes.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_SUCCESS =
+      new Builder("Master.MetadataSyncSuccess")
+          .setDescription("The number of InodeSyncStream that succeeded")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FAIL =
+      new Builder("Master.MetadataSyncFail")
+          .setDescription("The number of InodeSyncStream that failed, either partially or fully")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PENDING_PATHS =
+      new Builder("Master.MetadataSyncPendingPaths")
+          .setDescription("The number of pending paths from all active InodeSyncStream instances,"
+              + "waiting for metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_ACTIVE_PATHS =
+      new Builder("Master.MetadataSyncActivePaths")
+          .setDescription("The number of in-progress paths from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_CANCEL =
+      new Builder("Master.MetadataSyncPathsCancel")
+          .setDescription("The number of pending paths from all InodeSyncStream instances that "
+              + "are ignored in the end instead of processed")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_SUCCESS =
+      new Builder("Master.MetadataSyncPathsSuccess")
+          .setDescription("The number of paths sync-ed from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PATHS_FAIL =
+      new Builder("Master.MetadataSyncPathsFail")
+          .setDescription("The number of paths that failed during metadata sync"
+              + " from all InodeSyncStream instances")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT =
+      new Builder("Master.MetadataSyncPrefetchOpsCount")
+          .setDescription("The number of prefetch operations handled by the prefetch thread pool")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_SUCCESS =
+      new Builder("Master.MetadataSyncPrefetchSuccess")
+          .setDescription("Number of successful prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_FAIL =
+      new Builder("Master.MetadataSyncPrefetchFail")
+          .setDescription("Number of failed prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_CANCEL =
+      new Builder("Master.MetadataSyncPrefetchCancel")
+          .setDescription("Number of cancelled prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_RETRIES =
+      new Builder("Master.MetadataSyncPrefetchRetries")
+          .setDescription("Number of retries to get from prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_PATHS =
+      new Builder("Master.MetadataSyncPrefetchPaths")
+          .setDescription("Total number of UFS paths fetched by prefetch jobs from metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_UFS_STATUS_CACHE_SIZE =
+      new Builder("Master.UfsStatusCacheSize")
+          .setDescription("Total number of Alluxio paths being processed by the "
+              + "metadata sync prefetch thread pool.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_UFS_STATUS_CACHE_CHILDREN_SIZE =
+      new Builder("Master.UfsStatusCacheChildrenSize")
+          .setDescription("Total number of UFS file metadata cached."
+              + " The cache is used during metadata sync.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR =
+      new Builder("Master.MetadataSyncPrefetchExecutor")
+          .setDescription(String.format("Metrics concerning the master metadata sync prefetch"
+              + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncPrefetchExecutor"))
+          .setMetricType(MetricType.EXECUTOR_SERVICE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
+          .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR =
+      new Builder("Master.MetadataSyncExecutor")
+          .setDescription(String.format("Metrics concerning the master metadata sync "
+              + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncExecutor"))
+          .setMetricType(MetricType.EXECUTOR_SERVICE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE =
+      new Builder("Master.MetadataSyncExecutorQueueSize")
+          .setDescription("The number of queuing sync tasks in the metadata sync thread pool"
+              + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
