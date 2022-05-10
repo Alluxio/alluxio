@@ -11,6 +11,9 @@
 
 package alluxio.worker.page;
 
+import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_DIR;
+import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
+
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -21,6 +24,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStoreEventListener;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.UfsInputStreamCache;
@@ -28,6 +32,8 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+
+import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.List;
@@ -97,6 +103,12 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
+    // TODO(bowen): implement actual committing and replace placeholder values
+    BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      // BlockStoreEventListeners ensure thread safety, no synchronization needed here
+      listener.onCommitBlock(sessionId, blockId, dummyLoc);
+    }
     throw new UnsupportedOperationException();
   }
 
@@ -104,6 +116,11 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
+    // TODO(bowen): implement actual committing and replace placeholder values
+    BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      listener.onCommitBlock(sessionId, blockId, dummyLoc);
+    }
     throw new UnsupportedOperationException();
   }
 
@@ -111,12 +128,29 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   public void abortBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException {
+    // TODO(bowen): implement actual abortion and replace placeholder values
+    boolean blockAborted = true;
+    if (blockAborted) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onAbortBlock(sessionId, blockId);
+      }
+    }
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+    // TODO(bowen): implement actual space allocation and replace placeholder values
+    boolean blockEvicted = true;
+    if (blockEvicted) {
+      long evictedBlockId = 0;
+      BlockStoreLocation evictedBlockLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onRemoveBlockByWorker(sessionId, evictedBlockId);
+        listener.onRemoveBlock(sessionId, evictedBlockId, evictedBlockLocation);
+      }
+    }
     throw new UnsupportedOperationException();
   }
 
@@ -144,17 +178,41 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
+    // TODO(bowen): implement actual move and replace placeholder values
+    BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
+    BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      listener.onMoveBlockByClient(sessionId, blockId, srcLocation, destLocation);
+    }
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void removeBlock(long sessionId, long blockId)
       throws InvalidWorkerStateException, IOException {
+    // TODO(bowen): implement actual removal and replace placeholder values
+    boolean removeSuccess = true;
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      listener.onRemoveBlockByClient(sessionId, blockId);
+      if (removeSuccess) {
+        BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
+        listener.onRemoveBlock(sessionId, blockId, removedFrom);
+      }
+    }
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+    // TODO(bowen): implement actual access and replace placeholder values
+    boolean blockExists = true;
+    if (blockExists) {
+      BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onAccessBlock(sessionId, blockId);
+        listener.onAccessBlock(sessionId, blockId, dummyLoc);
+      }
+    }
     throw new UnsupportedOperationException();
   }
 
@@ -194,6 +252,18 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void removeInaccessibleStorage() {
+    // TODO(bowen): implement actual removal and replace placeholder values
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      List<Long> lostBlocks = ImmutableList.of();
+      String lostStorageTier = DEFAULT_TIER;
+      String lostStoragePath = DEFAULT_DIR;
+      BlockStoreLocation lostStoreLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
+      for (long lostBlock : lostBlocks) {
+        listener.onBlockLost(lostBlock);
+      }
+      listener.onStorageLost(lostStorageTier, lostStoragePath);
+      listener.onStorageLost(lostStoreLocation);
+    }
     throw new UnsupportedOperationException();
   }
 
