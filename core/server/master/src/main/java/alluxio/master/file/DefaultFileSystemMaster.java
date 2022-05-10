@@ -4581,9 +4581,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
 
-    public static final Counter METADATA_SYNC_PREFETCH_OPS_COUNT
-        = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PREFETCH_OPS_COUNT.getName());
-
     /**
      * UFS operations enum.
      */

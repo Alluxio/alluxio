@@ -2806,6 +2806,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
+      new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT)
+          .setDefaultValue("100ms")
+          .setDescription("The timeout for a metadata fetch operation from the UFSes. "
+              + "Adjust this timeout according to the expected UFS worst-case response time.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_TYPE =
       new Builder(Name.MASTER_RPC_EXECUTOR_TYPE)
           .setDefaultValue("TPE")
@@ -6412,6 +6420,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
+    public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
+        "alluxio.master.metadata.sync.ufs.prefetch.timeout";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =

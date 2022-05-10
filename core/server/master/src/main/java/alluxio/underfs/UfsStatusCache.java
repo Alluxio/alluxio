@@ -12,7 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;
@@ -36,7 +37,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,6 +57,7 @@ public class UfsStatusCache {
   private final UfsAbsentPathCache mAbsentCache;
   private final long mCacheValidTime;
   private final ExecutorService mPrefetchExecutor;
+  private final long mUfsFetchTimeout;
 
   /**
    * Create a new instance of {@link UfsStatusCache}.
@@ -75,6 +76,8 @@ public class UfsStatusCache {
     mAbsentCache = absentPathCache;
     mCacheValidTime = cacheValidTime;
     mPrefetchExecutor = prefetchExecutor;
+    mUfsFetchTimeout =
+        ServerConfiguration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
   }
 
   /**
@@ -113,21 +116,13 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> addChildren(AlluxioURI path, Collection<UfsStatus> children) {
-    ConcurrentHashSet<UfsStatus> set = new ConcurrentHashSet<>();
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
-      set.add(child);
     });
-<<<<<<< HEAD
-    return mChildren.put(path, set);
-||||||| parent of f24c268e91 (Add metrics for metadata sync)
-    return mChildren.put(path, children);
-=======
     // Update global counters for all InodeSyncStream
     DefaultFileSystemMaster.Metrics.UFS_STATUS_CACHE_CHILDREN_SIZE_TOTAL.inc(children.size());
     return mChildren.put(path, children);
->>>>>>> f24c268e91 (Add metrics for metadata sync)
   }
 
   /**
@@ -236,11 +231,6 @@ public class UfsStatusCache {
     if (prefetchJob != null) {
       while (true) {
         try {
-<<<<<<< HEAD
-          return prefetchJob.get(100, TimeUnit.MILLISECONDS);
-||||||| parent of f24c268e91 (Add metrics for metadata sync)
-          return prefetchJob.get(mUfsFetchTimeout, TimeUnit.MILLISECONDS);
-=======
           Collection<UfsStatus> statuses = prefetchJob.get(
               mUfsFetchTimeout, TimeUnit.MILLISECONDS);
           if (statuses != null) {
@@ -248,7 +238,6 @@ public class UfsStatusCache {
           }
           DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS.inc();
           return statuses;
->>>>>>> f24c268e91 (Add metrics for metadata sync)
         } catch (TimeoutException e) {
           if (rpcContext != null) {
             rpcContext.throwIfCancelled();

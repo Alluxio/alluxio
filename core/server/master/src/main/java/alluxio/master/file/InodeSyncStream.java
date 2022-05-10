@@ -535,15 +535,8 @@ public class InodeSyncStream {
   }
 
   private Object getFromUfs(Callable<Object> task) throws InterruptedException {
-<<<<<<< HEAD
     final Future<Object> future = mFsMaster.mSyncPrefetchExecutorIns.submit(task);
     DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
-||||||| parent of f24c268e91 (Add metrics for metadata sync)
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
-=======
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
-    DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
->>>>>>> f24c268e91 (Add metrics for metadata sync)
     while (true) {
       try {
         Object j = future.get(1, TimeUnit.SECONDS);
