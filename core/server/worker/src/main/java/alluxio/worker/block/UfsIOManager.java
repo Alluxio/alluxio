@@ -74,7 +74,7 @@ public class UfsIOManager {
   }
 
   private void schedule() {
-    while (!Thread.currentThread().isInterrupted()) {
+    while (!Thread.currentThread().isInterrupted() && !mReadQueue.isEmpty()) {
       ReadTask task = mReadQueue.poll();
       int quota = mThroughputQuota.getOrDefault(task.getOptions().getUser(), -1);
       Meter ufsBytesReadThroughput =
