@@ -217,7 +217,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
             WritePType.THROUGH, 10);
 
     long jobId = sJobMaster.run(new PersistConfig("/mnt/testFile",
-            0, false, "/testUfsPath"));
+            0, false, "/mnt/testUfsPath"));
 
     sJobShell.run("cancel", Long.toString(jobId));
 
