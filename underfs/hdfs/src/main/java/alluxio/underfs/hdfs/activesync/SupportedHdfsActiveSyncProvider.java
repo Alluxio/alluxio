@@ -410,7 +410,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     try (LockResource r = new LockResource(mWriteLock)) {
       initNextWindow();
       if (mEventMissed) {
-        // force sync every syncpoint
+        // force sync every sync point
         for (AlluxioURI uri : mUfsUriList) {
           syncPointFiles.put(uri, null);
           syncSyncPoint(uri.toString());
@@ -434,8 +434,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
       }
       txId = getLastTxId();
     }
-    LOG.debug("Syncing {} files", syncPointFiles.size());
-    LOG.debug("Last transaction id {}", txId);
+    LOG.debug("Syncing {} files with last transaction id {}", syncPointFiles.size(), txId);
 
     SyncInfo syncInfo = new SyncInfo(syncPointFiles, false, txId);
     return syncInfo;
