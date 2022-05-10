@@ -50,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * cache, since the processing of the path may be slow.
  */
 @ThreadSafe
-public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
+public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUfsAbsentPathCache.class);
   /** Number of seconds to keep threads alive. */
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
@@ -87,17 +87,21 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
     mPool.allowCoreThreadTimeOut(true);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
-        mCache::size);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
-        () -> mCache.stats().missCount());
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
-        () -> mCache.stats().hitCount());
+    long timeout = getCachedGaugeTimeoutMillis();
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
+        mCache::size, timeout, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName(),
+        () -> mCache.stats().missCount(), timeout, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_HITS.getName(),
+        () -> mCache.stats().hitCount(), timeout, TimeUnit.MILLISECONDS);
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricKey.MASTER_UFS_ABSENT_PATH_CACHE_SIZE.getName(), mCache::size, 2, TimeUnit.SECONDS);
-    MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricKey.MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE.getName(),
-        () -> mPool.getQueue().size(), 2, TimeUnit.SECONDS);
+        MetricKey.MASTER_ABSENT_PATH_CACHE_QUEUE_SIZE.getName(),
+        () -> mPool.getQueue().size(), timeout, TimeUnit.MILLISECONDS);
+  }
+
+  @VisibleForTesting
+  protected long getCachedGaugeTimeoutMillis() {
+    return 2000;
   }
 
   @Override
