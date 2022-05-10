@@ -103,10 +103,10 @@ public class UfsIOManager {
     }
   }
 
-  public CompletableFuture<ByteBuffer> read(UnderFileSystemBlockMeta blockMeta, long offset,
+  public CompletableFuture<byte[]> read(UnderFileSystemBlockMeta blockMeta, long offset,
       long length, boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
 
-    CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
+    CompletableFuture<byte[]> future = new CompletableFuture<>();
     mReadQueue.add(new ReadTask(blockMeta, offset, length, positionShort, options, future));
 
     return future;
@@ -118,11 +118,11 @@ public class UfsIOManager {
     private final long mOffset;
     private final long mBytesToRead;
     private final boolean mIsPositionShort;
-    private final CompletableFuture<ByteBuffer> mFuture;
+    private final CompletableFuture<byte[]> mFuture;
 
     private ReadTask(UnderFileSystemBlockMeta blockMeta, long offset, long length,
         boolean positionShort, Protocol.OpenUfsBlockOptions options,
-        CompletableFuture<ByteBuffer> future) {
+        CompletableFuture<byte[]> future) {
       mOptions = options;
       mBlockMeta = blockMeta;
       mOffset = offset;
@@ -137,14 +137,14 @@ public class UfsIOManager {
 
     public void run() {
       try {
-        ByteBuffer buffer = readInternal();
+        byte[] buffer = readInternal();
         mFuture.complete(buffer);
       } catch (IOException e) {
         mFuture.completeExceptionally(e);
       }
     }
 
-    public ByteBuffer readInternal() throws IOException {
+    public byte[] readInternal() throws IOException {
       Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
           new BytesReadMetricKey(mUfsClient.getUfsMountPointUri(), mOptions.getUser()),
           key -> key.getUser() == null
@@ -166,7 +166,7 @@ public class UfsIOManager {
               .setOffset(mBlockMeta.getOffset() + mOffset).setPositionShort(mIsPositionShort));
 
       if (mBytesToRead <= 0) {
-        return ByteBuffer.allocate(0);
+        return new byte[0];
       }
       byte[] data = new byte[(int) mBytesToRead];
       int bytesRead = 0;
@@ -186,7 +186,7 @@ public class UfsIOManager {
       mUfsInstreamCache.release(inStream);
       ufsBytesRead.inc(bytesRead);
       ufsBytesReadThroughput.mark(bytesRead);
-      return ByteBuffer.wrap(data, 0, bytesRead);
+      return data;
     }
   }
 }
