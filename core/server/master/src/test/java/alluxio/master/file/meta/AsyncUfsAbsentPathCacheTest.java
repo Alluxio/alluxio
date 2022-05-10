@@ -56,7 +56,7 @@ public class AsyncUfsAbsentPathCacheTest {
   @Rule
   public ConfigurationRule mMaxPathRule = new ConfigurationRule(
       PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY,
-      3,
+      "3",
       ServerConfiguration.global()
   );
 
