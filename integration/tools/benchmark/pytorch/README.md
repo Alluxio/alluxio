@@ -42,12 +42,12 @@ Change the `RANK=0` to `RANK=1` and run in the other node.
 [Arena](https://github.com/kubeflow/arena) can be used for running the benchmark in multi-node.
 ```
 arena --loglevel info submit pytorch --name=test-job --gpus=0 --workers=2 --cpu 4 --memory 32G \
---image=luqqiu/alluxioloadagent:latest --selector alluxio-master=false --data-dir=/alluxio/ \
---sync-mode=git --sync-source=https://github.com/LuQQiu/TrainingScript.git \
+--image=luqqiu/alluxioloadagent:latest --selector alluxio-master=false --data-dir=/mnt/ \
+--sync-mode=git --sync-source=https://github.com/Alluxio/alluxio.git \
 "export MASTER_ADDR=test-job-master-0 && export MASTER_PORT=12425 \
-&& /root/code/TrainingScript/run-test.sh 2 /root/code/TrainingScript/load.py \
---workers 2 --file_name_list /root/code/TrainingScript/header-1-3m-100kb-130gb.csv --number_of_files 10000 \
--p /alluxio/alluxio-mountpoint/alluxio-fuse/dali/train/"
+&& /root/code/alluxio/integration/tools/benchmark/pytorch/run-test.sh 2 /root/code/alluxio/integration/tools/benchmark/pytorch/load.py \
+--workers 2 --file_name_list inputdata.csv --number_of_files 10000 \
+-p /mnt/alluxio-fuse/data"
 ```
 Please refer to [Distribtued Pytorch Training Guide](https://arena-docs.readthedocs.io/en/latest/training/pytorchjob/distributed/)
 for more information about how to launch a pytorch script in multi-node.
