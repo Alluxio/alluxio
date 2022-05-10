@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -62,13 +63,14 @@ type CatalogSpec struct {
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
 type PrestoClusterStatus struct {
-	CoordinatorNode NodeStatus `json:"coordinator-node"`
-	// Nodes is a list of the status of the presto workers
-	WorkerNodes NodeStatus `json:"nodes"`
+	// Nodes is a list of the status of the presto coordinator and workers
+	Nodes []NodeStatus `json:"nodes"`
 }
 
 type NodeStatus struct {
-
+	Name  string          `json:"name"`
+	Phase corev1.PodPhase `json:"phase,omitempty"`
+	PodIP string          `json:"podIP,omitempty"`
 }
 
 //+kubebuilder:object:root=true

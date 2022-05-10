@@ -50,12 +50,12 @@ spec:
                 type: array
               coordinatorSpec:
                 properties:
-                  AdditionalJvmOptions:
-                    type: string
                   additionalConfigs:
                     additionalProperties:
                       type: string
                     type: object
+                  additionalJvmOptions:
+                    type: string
                   cpuCores:
                     format: int32
                     type: integer
@@ -113,13 +113,25 @@ spec:
           status:
             description: PrestoClusterStatus defines the observed state of PrestoCluster
             properties:
-              nodes:
-                description: Nodes is a list of the status of the presto workers
+              worker-nodes:
+                description: Nodes is a list of the status of the presto coordinator
+                  and workers
                 items:
-                  type: string
+                  properties:
+                    name:
+                      type: string
+                    phase:
+                      description: PodPhase is a label for the condition of a pod
+                        at the current time.
+                      type: string
+                    podIP:
+                      type: string
+                  required:
+                  - name
+                  type: object
                 type: array
             required:
-            - nodes
+            - worker-nodes
             type: object
         type: object
     served: true

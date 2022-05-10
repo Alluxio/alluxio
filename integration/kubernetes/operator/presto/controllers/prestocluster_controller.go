@@ -162,9 +162,18 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		logger.Error(err, "Failed to list pods", "Memcached.Namespace", prestoCluster.Namespace, "Memcached.Name", prestoCluster.Name)
 		return ctrl.Result{}, err
 	}
-	for _, pod := range podList.Items {
-		prestoCluster.Status
-		pod.Status.
+
+	newStatus := make([]alluxiocomv1alpha1.NodeStatus, len(podList.Items))
+	for i, pod := range podList.Items {
+		newStatus[i] = alluxiocomv1alpha1.NodeStatus{Name: pod.Name, Phase: pod.Status.Phase, PodIP: pod.Status.PodIP}
+	}
+	if !reflect.DeepEqual(prestoCluster.Status.Nodes, newStatus) {
+		prestoCluster.Status.Nodes = newStatus
+		err := r.Status().Update(ctx, prestoCluster)
+		if err != nil {
+			logger.Error(err, "Failed to update presto worker status")
+			return ctrl.Result{}, err
+		}
 	}
 	return ctrl.Result{}, nil
 }
