@@ -32,7 +32,6 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -45,43 +44,39 @@ import java.util.concurrent.RejectedExecutionException;
  * Control UFS IO.
  */
 public class UfsIOManager {
-  private static final int SYNC_THREADS =
+  private static final int IO_THREADS =
       ServerConfiguration.getInt(PropertyKey.UNDERFS_IO_THREADS);
-
+  private static final int READ_CAPACITY =
+      ServerConfiguration.getInt(PropertyKey.UNDERFS_IO_READ_QUEUE_CAPACITY);
+  private final UfsManager.UfsClient mUfsClient;
   private final ConcurrentMap<BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
       new ConcurrentHashMap<>();
-
   private final ConcurrentMap<AlluxioURI, Meter> mUfsBytesReadThroughputMetrics =
       new ConcurrentHashMap<>();
-  private final ConcurrentMap<String, Double> mThroughputQuota = new ConcurrentHashMap<>();
-  private final UfsManager.UfsClient mUfsClient;
-  private final UfsInputStreamCache mUfsInstreamCache;
-  private final LinkedBlockingQueue<ReadTask> mReadQueue = new LinkedBlockingQueue<>(8192);
-  private final LinkedBlockingQueue<Runnable> mWriteQueue = new LinkedBlockingQueue<>();
-  private ExecutorService mUfsIoExecutor;
-  private ExecutorService mScheduleExecutor;
+  private final ConcurrentMap<String, Integer> mThroughputQuota = new ConcurrentHashMap<>();
+  private final UfsInputStreamCache mUfsInstreamCache = new UfsInputStreamCache();
+  private final LinkedBlockingQueue<ReadTask> mReadQueue = new LinkedBlockingQueue<>(READ_CAPACITY);
+  private final ExecutorService mUfsIoExecutor = Executors.newFixedThreadPool(IO_THREADS,
+      ThreadFactoryUtils.build("UfsIOManager-IO-%d", true));
+  private final ExecutorService mScheduleExecutor = Executors
+      .newSingleThreadExecutor(ThreadFactoryUtils.build("UfsIOManager-Scheduler-%d", true));
 
   public UfsIOManager(UfsManager.UfsClient ufsClient) {
     mUfsClient = ufsClient;
-    mUfsInstreamCache = new UfsInputStreamCache();
   }
 
   public void start() throws IOException {
-    mUfsIoExecutor = Executors.newFixedThreadPool(SYNC_THREADS,
-        ThreadFactoryUtils.build("UfsIOManager-IO-%d", true));
-    mScheduleExecutor = Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("UfsIOManager-Scheduler-%d", true));
     mScheduleExecutor.submit(this::schedule);
   }
 
-  public void setQuota(String user, double throughput) {
+  public void setQuota(String user, int throughput) {
     mThroughputQuota.put(user, throughput);
   }
 
   private void schedule() {
     while (!Thread.currentThread().isInterrupted()) {
       ReadTask task = mReadQueue.poll();
-      double quota = mThroughputQuota.getOrDefault(task.getOptions().getUser(), -1d);
+      int quota = mThroughputQuota.getOrDefault(task.getOptions().getUser(), -1);
       Meter ufsBytesReadThroughput =
           mUfsBytesReadThroughputMetrics.computeIfAbsent(mUfsClient.getUfsMountPointUri(),
               uri -> MetricsSystem.meterWithTags(
@@ -97,7 +92,7 @@ public class UfsIOManager {
           // or throw error?
           mReadQueue.add(task);
         }
-      } else {// resubmit to queue
+      } else { // resubmit to queue
         mReadQueue.add(task);
       }
     }
