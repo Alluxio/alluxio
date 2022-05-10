@@ -12,8 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -48,7 +46,6 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   /** The block worker. */
   private final BlockWorker mBlockWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final StreamObserver<CreateLocalBlockResponse> mResponseObserver;
   private CreateLocalBlockRequest mRequest = null;
 

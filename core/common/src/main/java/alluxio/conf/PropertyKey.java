@@ -31,6 +31,7 @@ import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
+import alluxio.client.file.cache.ShadowCacheType;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.exception.ExceptionMessage;
 import alluxio.executor.RpcExecutorType;
@@ -2279,6 +2280,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to inherit the owner/group from the parent when creating a new "
               + "inode path if empty")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
+      durationBuilder(Name.MASTER_METASTORE_METRICS_REFRESH_INTERVAL)
+          .setDefaultValue("5s")
+          .setDescription("Interval with which the master refreshes and reports metastore metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
@@ -4834,6 +4842,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           "If this is enabled, a shadow cache will be created to tracking the working set of "
               + "a past time window, and measure the hit ratio if the working set fits the cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_TYPE =
+      enumBuilder(Name.USER_CLIENT_CACHE_SHADOW_TYPE, ShadowCacheType.class)
+          .setDefaultValue("CLOCK_CUCKOO_FILTER")
+          .setDescription("The type of shadow cache to be used. "
+              + "Valid options are `MULTIPLE_BLOOM_FILTER` (which uses a chain of bloom filters), "
+              +    "`CLOCK_CUCKOO_FILTER` (which uses cuckoo filter with extended field).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_WINDOW =
       durationBuilder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW)
           .setDefaultValue("24h")
@@ -4856,6 +4871,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(
               "The number of bloom filters used for tracking. Each tracks a segment of window")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS)
+          .setDefaultValue(6)
+          .setDescription(
+                  "The number of bits of each item's clock field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS)
+          .setDefaultValue(20)
+          .setDescription(
+                  "The number of bits of each item's size field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
+      intBuilder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS)
+          .setDefaultValue(8)
+          .setDescription(
+                  "The number of bits of each item's scope field.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       stringBuilder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -4933,6 +4972,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       dataSizeBuilder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
           .setDefaultValue("1MB")
           .setDescription("Size of each page in client-side cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE =
+      dataSizeBuilder(Name.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE)
+          .setDefaultValue("0B")
+          .setDescription("Size of the reading buffer for tiny read.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -6703,6 +6749,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.iterator.readahead.size";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
         "alluxio.master.metastore.inode.inherit.owner.and.group";
+    public static final String MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
+        "alluxio.master.metastore.metrics.refresh.interval";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
     public static final String MASTER_METRICS_HEAP_ENABLED =
@@ -7137,16 +7185,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.nondeterministic.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
         "alluxio.user.client.cache.shadow.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_TYPE =
+            "alluxio.user.client.cache.shadow.type";
     public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
         "alluxio.user.client.cache.shadow.window";
     public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
         "alluxio.user.client.cache.shadow.memory.overhead";
     public static final String USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
         "alluxio.user.client.cache.shadow.bloomfilter.num";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
+            "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
+            "alluxio.user.client.cache.shadow.cuckoo.size.bits";
+    public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
+            "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
         "alluxio.user.client.cache.local.store.file.buckets";
+    public static final String USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE =
+        "alluxio.user.client.cache.instream_buffer_size";
     public static final String USER_CLIENT_CACHE_PAGE_SIZE =
         "alluxio.user.client.cache.page.size";
     public static final String USER_CLIENT_CACHE_QUOTA_ENABLED =

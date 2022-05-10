@@ -28,7 +28,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link ServerConfiguration}.
  */
 @ThreadSafe
-public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
+public final class DefaultStorageTierAssoc
+    implements StorageTierAssoc {
   /**
    * An immutable bi-directional mapping between storage level aliases and their ordinals. Immutable
    * maps are thread safe.
@@ -63,7 +64,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param template the format for the conf that identifies the alias for each level
    */
-  protected AbstractStorageTierAssoc(PropertyKey levelsProperty, PropertyKey.Template template) {
+  public DefaultStorageTierAssoc(PropertyKey levelsProperty, PropertyKey.Template template) {
     int levels = ServerConfiguration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
@@ -79,7 +80,7 @@ public abstract class AbstractStorageTierAssoc implements StorageTierAssoc {
    *
    * @param storageTierAliases the list of aliases
    */
-  protected AbstractStorageTierAssoc(List<String> storageTierAliases) {
+  public DefaultStorageTierAssoc(List<String> storageTierAliases) {
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int ordinal = 0; ordinal < storageTierAliases.size(); ordinal++) {
       builder.put(storageTierAliases.get(ordinal), ordinal);

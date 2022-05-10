@@ -81,10 +81,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
       Supplier<RetryPolicy> retryPolicySupplier,
       AlluxioConfiguration alluxioConf) {
-    mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
-    mRetryPolicySupplier = retryPolicySupplier;
-    mConfiguration = alluxioConf;
-    mUserState = UserState.Factory.create(mConfiguration);
+    this(masterAddresses, retryPolicySupplier, alluxioConf, UserState.Factory.create(alluxioConf));
   }
 
   /**
@@ -137,13 +134,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         return address;
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
-        continue;
       } catch (DeadlineExceededException e) {
         LOG.debug("Timeout while connecting to {}", address);
-        continue;
       } catch (CancelledException e) {
         LOG.debug("Cancelled while connecting to {}", address);
-        continue;
       } catch (AlluxioStatusException e) {
         LOG.error("Error while connecting to {}. {}", address, e);
         // Breaking the loop on non filtered error.

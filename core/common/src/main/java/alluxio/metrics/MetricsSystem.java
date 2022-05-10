@@ -99,6 +99,7 @@ public final class MetricsSystem {
     WORKER("Worker"),
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
+    PLUGIN("Plugin"),
     PROXY("Proxy"),
     CLIENT("Client"),
     FUSE("Fuse");
@@ -314,6 +315,8 @@ public final class MetricsSystem {
         return getJobMasterMetricName(name);
       case JOB_WORKER:
         return getJobWorkerMetricName(name);
+      case PLUGIN:
+        return getPluginMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -408,6 +411,20 @@ public final class MetricsSystem {
    */
   public static String getJobWorkerMetricName(String name) {
     return getMetricNameWithUniqueId(InstanceType.JOB_WORKER, name);
+  }
+
+  /**
+   * Builds metric registry name for plugin instance. The pattern is
+   * instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getPluginMetricName(String name) {
+    if (name.startsWith(InstanceType.PLUGIN.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.PLUGIN, name);
   }
 
   /**
@@ -609,6 +626,35 @@ public final class MetricsSystem {
         }
       });
     }
+  }
+
+  /**
+   * Created a gauge that aggregates the value of existing gauges.
+   *
+   * @param name the gauge name
+   * @param metrics the set of metric values to be aggregated
+   * @param timeout the cached gauge timeout
+   * @param timeUnit the unit of timeout
+   */
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
+      String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
+    METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
+      @Override
+      protected Double loadValue() {
+        double total = 0.0;
+        for (MetricKey key : metrics) {
+          Metric m = getMetricValue(key.getName());
+          if (m == null || m.getMetricType() != MetricType.GAUGE) {
+            continue;
+          }
+          total += m.getValue();
+        }
+        return total;
+      }
+    });
   }
 
   /**

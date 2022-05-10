@@ -11,6 +11,8 @@
 
 package alluxio.worker.grpc;
 
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.Constants;
 import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.PropertyKey;
@@ -30,7 +32,9 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
@@ -97,7 +101,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   /** A serializing executor for sending responses. */
   private Executor mSerializingExecutor;
   /** The Block Worker. */
-  private final BlockWorker mWorker;
+  private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
   private final AuthenticatedUserInfo mUserInfo;
@@ -120,7 +124,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
-      BlockWorker blockWorker,
+      DefaultBlockWorker blockWorker,
       StreamObserver<ReadResponse> responseObserver,
       AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
@@ -556,7 +560,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
-          mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
+          mWorker.getLocalBlockStore()
+              .moveBlock(request.getSessionId(), request.getId(),
+                  AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(
+                      WORKER_STORAGE_TIER_ASSOC.getAlias(0))));
         } catch (BlockDoesNotExistException e) {
           LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
         } catch (Exception e) {

@@ -59,7 +59,7 @@ public final class RocksStore implements Closeable {
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
-  private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
+  private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
    * @param name a name to distinguish what store this is
