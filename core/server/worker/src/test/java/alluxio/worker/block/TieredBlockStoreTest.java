@@ -576,7 +576,7 @@ public final class TieredBlockStoreTest {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
-    mBlockStore.getBlockWriter(SESSION_ID1, BLOCK_ID1);
+    mBlockStore.createBlockWriter(SESSION_ID1, BLOCK_ID1);
   }
 
   /**
