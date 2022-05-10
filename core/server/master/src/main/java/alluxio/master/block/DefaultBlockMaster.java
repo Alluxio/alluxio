@@ -12,9 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -123,7 +123,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
 
@@ -153,6 +152,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           return o.getWorkerAddress();
         }
       };
+
+  /**
+   * Mapping between all possible storage level aliases and their ordinal position. This mapping
+   * forms a total ordering on all storage level aliases in the system, and must be consistent
+   * across masters.
+   */
+  private static final StorageTierAssoc MASTER_STORAGE_TIER_ASSOC =
+      new DefaultStorageTierAssoc(
+          PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
+          PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
+
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -212,13 +223,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @GuardedBy("itself")
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
-
-  /**
-   * Mapping between all possible storage level aliases and their ordinal position. This mapping
-   * forms a total ordering on all storage level aliases in the system, and must be consistent
-   * across masters.
-   */
-  private final StorageTierAssoc mGlobalStorageTierAssoc;
 
   /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
@@ -288,7 +292,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
 
     mBlockStore = blockStore;
-    mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
 
@@ -533,7 +536,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public StorageTierAssoc getGlobalStorageTierAssoc() {
-    return mGlobalStorageTierAssoc;
+    return MASTER_STORAGE_TIER_ASSOC;
   }
 
   @Override
@@ -1050,7 +1053,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         WorkerMetaLockSection.USAGE,
         WorkerMetaLockSection.BLOCKS), false)) {
       // Detect any lost blocks on this worker.
-      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+      Set<Long> removedBlocks = worker.register(MASTER_STORAGE_TIER_ASSOC, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks, false);
       processWorkerAddedBlocks(worker, currentBlocksOnLocation);
@@ -1123,7 +1126,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // With each batch we receive, we mark them not-to-be-removed.
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
     worker.markAllBlocksToRemove();
-    worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
+    worker.updateUsage(MASTER_STORAGE_TIER_ASSOC, storageTiers,
         totalBytesOnTiers, usedBytesOnTiers);
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(worker);
@@ -1412,7 +1415,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Sort the block locations by their alias ordinal in the master storage tier mapping
     Collections.sort(blockLocations,
-        Comparator.comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTier())));
+        Comparator.comparingInt(o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
 
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {

@@ -15,7 +15,6 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.exception.status.DeadlineExceededException;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -24,6 +23,8 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 
 /**
@@ -34,22 +35,21 @@ public interface LocalBlockStore
     extends SessionCleanable, Closeable {
 
   /**
-   * Locks an existing block and guards subsequent reads on this block.
+   * Pins the block indicating subsequent access.
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
-   * @return the lock id (non-negative) if the lock is acquired successfully
-   * @throws BlockDoesNotExistException if block id can not be found, for example, evicted already
+   * @return a non-negative unique identifier to conveniently unpin the block later, or empty
+   * if the block does not exist
    */
-  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  OptionalLong pinBlock(long sessionId, long blockId);
 
   /**
-   * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
+   * Unpins an accessed block based on the id (returned by {@link #pinBlock(long, long)}).
    *
-   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
-   * @throws BlockDoesNotExistException if lockId can not be found
+   * @param id the id returned by {@link #pinBlock(long, long)}
    */
-  void unlockBlock(long lockId) throws BlockDoesNotExistException;
+  void unpinBlock(long id);
 
   /**
    * Creates the metadata of a new block and assigns a temporary path (e.g., a subdir of the final
@@ -65,7 +65,6 @@ public interface LocalBlockStore
    * @param blockId the id of the block to create
    * @param options allocation options
    * @return metadata of the temp block created
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -74,33 +73,14 @@ public interface LocalBlockStore
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * Gets the metadata of a block given its block id or throws {@link BlockDoesNotExistException}.
+   * Gets the metadata of a block given its block id or empty if block does not exist.
    * This method does not require a lock id so the block is possible to be moved or removed after it
    * returns.
    *
    * @param blockId the block id
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no BlockMeta for this block id is found
    */
-  BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
-
-  /**
-   * Gets the metadata of a specific block from local storage.
-   * <p>
-   * This method requires the lock id returned by a previously acquired
-   * {@link #lockBlock(long, long)}.
-   *
-   * @param sessionId the id of the session to get this file
-   * @param blockId the id of the block
-   * @param lockId the id of the lock
-   * @return metadata of the block
-   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
-   *         lockId can not be found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
-   */
-  BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException;
+  Optional<BlockMeta> getVolatileBlockMeta(long blockId);
 
   /**
    * Gets the temp metadata of a specific block from local storage.
@@ -184,7 +164,7 @@ public interface LocalBlockStore
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId)
+  BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
@@ -192,18 +172,16 @@ public interface LocalBlockStore
    * Creates a reader of an existing block to read data from this block.
    * <p>
    * This operation requires the lock id returned by a previously acquired
-   * {@link #lockBlock(long, long)}.
+   * {@link #pinBlock(long, long)}.
    *
    * @param sessionId the id of the session to get the reader
    * @param blockId the id of an existing block
-   * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
+   * @param offset the offset within the block
    * @return a {@link BlockReader} instance on this block
    * @throws BlockDoesNotExistException if lockId is not found
-   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
-   *         LockRecord of lockId
    */
-  BlockReader getBlockReader(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  BlockReader createBlockReader(long sessionId, long blockId, long offset)
+      throws BlockDoesNotExistException, IOException;
 
   /**
    * Moves an existing block to a new location.
@@ -213,59 +191,22 @@ public interface LocalBlockStore
    * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
    * @throws BlockDoesNotExistException if block id can not be found
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
-   *         newLocation
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockDoesNotExistException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
   /**
-   * Moves an existing block to a new location.
-   *
-   * @param sessionId the id of the session to remove a block
-   * @param blockId the id of an existing block
-   * @param oldLocation the location of the source
-   * @param moveOptions the options for move
-   * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws BlockDoesNotExistException if block id can not be found
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
-   *         newLocation
-   * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      AllocateOptions moveOptions) throws BlockDoesNotExistException,
-      BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
-      IOException;
-
-  /**
    * Removes an existing block. If the block can not be found in this store.
    *
    * @param sessionId the id of the session to remove a block
    * @param blockId the id of an existing block
    * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws BlockDoesNotExistException if block can not be found
    */
-  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
-      BlockDoesNotExistException, IOException;
-
-  /**
-   * Removes an existing block. If the block can not be found in this store.
-   *
-   * @param sessionId the id of the session to move a block
-   * @param blockId the id of an existing block
-   * @param location the location of the block
-   * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws BlockDoesNotExistException if block can not be found
-   * @throws DeadlineExceededException if locking takes longer than timeout
-   */
-  void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly

@@ -36,7 +36,7 @@ public class AllocateOptions {
    * @param size the allocation size
    */
   private AllocateOptions(BlockStoreLocation location, long size) {
-    this(location);
+    mLocation = location;
     mSize = size;
   }
 
@@ -46,8 +46,7 @@ public class AllocateOptions {
    * @param location the allocation location
    */
   private AllocateOptions(BlockStoreLocation location) {
-    mLocation = location;
-    mUseReservedSpace = false;
+    this(location, 0);
   }
 
   /**

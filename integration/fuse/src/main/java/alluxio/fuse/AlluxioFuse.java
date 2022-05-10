@@ -194,9 +194,10 @@ public final class AlluxioFuse {
         Signal.handle(new Signal("TERM"), fuseSignalHandler);
 
         try {
+          String[] fuseOptsArray = fuseOpts.toArray(new String[0]);
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
-              mountConfig.getMountPoint(), fuseOpts.toArray(new String[0]));
-          fuseFs.mount(blocking, mountConfig.isDebug(), fuseOpts.toArray(new String[0]));
+              mountConfig.getMountPoint(), fuseOptsArray);
+          fuseFs.mount(blocking, mountConfig.isDebug(), fuseOptsArray);
           return fuseFs;
         } catch (FuseException e) {
           // only try to umount file system when exception occurred.

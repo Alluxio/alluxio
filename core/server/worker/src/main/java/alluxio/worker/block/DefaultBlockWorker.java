@@ -11,13 +11,13 @@
 
 package alluxio.worker.block;
 
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
 import alluxio.conf.ConfigurationValueOptions;
@@ -71,11 +71,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -107,8 +107,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
-
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /** Block store delta reporter for master heartbeat. */
   private final BlockHeartbeatReporter mHeartbeatReporter;
@@ -180,6 +178,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
+  }
+
+  /**
+   * get the LocalBlockStore that manages local blocks.
+   *
+   * @return the LocalBlockStore that manages local blocks
+   * */
+  public LocalBlockStore getLocalBlockStore() {
+    return mLocalBlockStore;
   }
 
   @Override
@@ -288,17 +295,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    mLocalBlockStore.accessBlock(sessionId, blockId);
-  }
-
-  @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
-    long lockId = BlockWorker.INVALID_LOCK_ID;
+    OptionalLong lockId = OptionalLong.empty();
     try {
-      lockId = mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate);
+      lockId = OptionalLong.of(mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate));
     } catch (BlockAlreadyExistsException e) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure, therefore ignore the exception", blockId, e);
@@ -306,24 +308,23 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
-    if (lockId == BlockWorker.INVALID_LOCK_ID) {
-      lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
+    if (!lockId.isPresent()) {
+      lockId = mLocalBlockStore.pinBlock(sessionId, blockId);
     }
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
+      BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
       BlockStoreLocation loc = meta.getBlockLocation();
-      String mediumType = loc.mediumType();
-      Long length = meta.getBlockSize();
-      BlockStoreMeta storeMeta = mLocalBlockStore.getBlockStoreMeta();
-      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), mediumType,
-          blockId, length);
+      blockMasterClient.commitBlock(mWorkerId.get(),
+          mLocalBlockStore.getBlockStoreMeta().getUsedBytesOnTiers().get(loc.tierAlias()),
+          loc.tierAlias(), loc.mediumType(), blockId, meta.getBlockSize());
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
-      mLocalBlockStore.unlockBlock(lockId);
+      if (lockId.isPresent()) {
+        mLocalBlockStore.unpinBlock(lockId.getAsLong());
+      }
       Metrics.WORKER_ACTIVE_CLIENTS.dec();
     }
   }
@@ -345,8 +346,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       CreateBlockOptions createBlockOptions)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
+    String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(tier);
     if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
-      loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
     } else {
       loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium());
     }
@@ -358,7 +360,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       LOG.error(
           "Failed to create block. SessionId: {}, BlockId: {}, "
               + "TierAlias:{}, Medium:{}, InitialBytes:{}, Error:{}",
-          sessionId, blockId, mStorageTierAssoc.getAlias(tier),
+          sessionId, blockId, tierAlias,
           createBlockOptions.getMedium(), createBlockOptions.getInitialBytes(), e);
 
       InetSocketAddress address =
@@ -371,16 +373,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId)
-      throws BlockDoesNotExistException {
-    return mLocalBlockStore.getTempBlockMeta(blockId);
-  }
-
-  @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
-    return mLocalBlockStore.getBlockWriter(sessionId, blockId);
+    return mLocalBlockStore.createBlockWriter(sessionId, blockId);
   }
 
   @Override
@@ -399,98 +395,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
-    return mLocalBlockStore.getVolatileBlockMeta(blockId);
-  }
-
-  @Override
-  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
-    return mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
-  }
-
-  @Override
   public boolean hasBlockMeta(long blockId) {
     return mLocalBlockStore.hasBlockMeta(blockId);
-  }
-
-  @Override
-  public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
-    long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
-    Metrics.WORKER_ACTIVE_CLIENTS.inc();
-    return lockId;
-  }
-
-  @Override
-  public void moveBlock(long sessionId, long blockId, int tier)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
-    // Because the move operation is expensive, we first check if the operation is necessary
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(tier));
-    long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
-    try {
-      BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
-      if (meta.getBlockLocation().belongsTo(dst)) {
-        return;
-      }
-    } finally {
-      mLocalBlockStore.unlockBlock(lockId);
-    }
-    // Execute the block move if necessary
-    mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
-  }
-
-  @Override
-  public void moveBlockToMedium(long sessionId, long blockId, String mediumType)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation dst = BlockStoreLocation.anyDirInAnyTierWithMedium(mediumType);
-    long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
-    try {
-      BlockMeta meta = mLocalBlockStore.getBlockMeta(sessionId, blockId, lockId);
-      if (meta.getBlockLocation().belongsTo(dst)) {
-        return;
-      }
-    } finally {
-      mLocalBlockStore.unlockBlock(lockId);
-    }
-    // Execute the block move if necessary
-    mLocalBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
-  }
-
-  /**
-   * Creates the block reader to read the local cached block starting from given block offset.
-   * Owner of this block reader must close it or lock will leak.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to read
-   * @param offset the offset within this block
-   * @return the block reader for the block or null if block not found
-   */
-  private BlockReader createLocalBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
-    long lockId = mLocalBlockStore.lockBlock(sessionId, blockId);
-    try {
-      BlockReader reader = mLocalBlockStore.getBlockReader(sessionId, blockId, lockId);
-      ((FileChannel) reader.getChannel()).position(offset);
-      mLocalBlockStore.accessBlock(sessionId, blockId);
-      return new DelegatingBlockReader(reader, () -> {
-        try {
-          mLocalBlockStore.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException e) {
-          throw new IOException(e);
-        }
-      });
-    } catch (Exception e) {
-      try {
-        mLocalBlockStore.unlockBlock(lockId);
-      } catch (Exception ee) {
-        LOG.warn("Failed to unlock block blockId={}, lockId={}", blockId, lockId, ee);
-      }
-      throw new IOException(String.format("Failed to get local block reader, sessionId=%d, "
-              + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
-    }
   }
 
   @Override
@@ -534,12 +440,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
-  }
-
-  @Override
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
-    mLocalBlockStore.unlockBlock(lockId);
-    Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   @Override
@@ -620,7 +520,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
     try {
-      BlockReader reader = createLocalBlockReader(sessionId, blockId, offset);
+      BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return reader;
     }
@@ -683,7 +583,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   @ThreadSafe
   public static final class Metrics {
-    private static final Counter WORKER_ACTIVE_CLIENTS =
+    public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
     /**
@@ -705,9 +605,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
                       .getUsedBytes());
 
-      StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
-      for (int i = 0; i < assoc.size(); i++) {
-        String tier = assoc.getAlias(i);
+      for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
+        String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
