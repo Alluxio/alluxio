@@ -743,44 +743,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-<<<<<<< HEAD
   public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR =
       new Builder("Master.MetadataSyncPrefetchExecutor")
           .setDescription(String.format("Metrics concerning the master metadata sync prefetch"
               + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncPrefetchExecutor"))
           .setMetricType(MetricType.EXECUTOR_SERVICE)
           .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths cached.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheQueueSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths being processed.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-||||||| parent of acc5dadd40 (Remove duplicate metric for absent cache)
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths cached.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_UFS_ABSENT_PATH_CACHE_QUEUE_SIZE =
-      new Builder("Master.UfsAbsentPathCacheQueueSize")
-          .setDescription("Alluxio maintains a cache of absent UFS paths. "
-              + "This is the number of UFS paths being processed.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-=======
->>>>>>> acc5dadd40 (Remove duplicate metric for absent cache)
   public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
       new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
           .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
