@@ -170,8 +170,8 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
 
         eligibleFactories.add(factory);
       } else {
-        recorder.recordIfEnabled("Factory implementation {} version {} isn't eligible for path {}\n",
-            factory.getClass().getSimpleName(), version, path);
+        recorder.recordIfEnabled("Factory implementation {} version {} "
+            + "isn't eligible for path {}\n", factory.getClass().getSimpleName(), version, path);
       }
     }
 
