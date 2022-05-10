@@ -62,8 +62,13 @@ type CatalogSpec struct {
 
 // PrestoClusterStatus defines the observed state of PrestoCluster
 type PrestoClusterStatus struct {
+	CoordinatorNode NodeStatus `json:"coordinator-node"`
 	// Nodes is a list of the status of the presto workers
-	Nodes []string `json:"nodes"`
+	WorkerNodes NodeStatus `json:"nodes"`
+}
+
+type NodeStatus struct {
+
 }
 
 //+kubebuilder:object:root=true

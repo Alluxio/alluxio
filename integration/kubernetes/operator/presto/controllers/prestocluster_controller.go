@@ -137,11 +137,34 @@ func (r *PrestoClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 		// Deployment deleted successfully - return and requeue
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	} else if *workerDeployment.Spec.Replicas != prestoCluster.Spec.WorkerSpec.Count {
+		workerDeployment.Spec.Replicas = &prestoCluster.Spec.WorkerSpec.Count
+		err = r.Update(ctx, workerDeployment)
+		if err != nil {
+			logger.Error(err, "Failed to update Deployment", "Deployment.Namespace", workerDeployment.Namespace, "Deployment.Name", workerDeployment.Name)
+			return ctrl.Result{}, err
+		}
+		// Requeue after 1 minute to give enough time for the pods be created on the cluster side
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	err = r.createService(ctx, prestoCluster)
 	if err != nil {
 		logger.Error(err, "Failed to create service for presto coordinator")
+	}
+
+	podList := &corev1.PodList{}
+	listOpts := []client.ListOption{
+		client.InNamespace(prestoCluster.Namespace),
+		client.MatchingLabels(map[string]string{"app": "presto", "presto_cr": prestoCluster.Name}),
+	}
+	if err = r.List(ctx, podList, listOpts...); err != nil {
+		logger.Error(err, "Failed to list pods", "Memcached.Namespace", prestoCluster.Namespace, "Memcached.Name", prestoCluster.Name)
+		return ctrl.Result{}, err
+	}
+	for _, pod := range podList.Items {
+		prestoCluster.Status
+		pod.Status.
 	}
 	return ctrl.Result{}, nil
 }
