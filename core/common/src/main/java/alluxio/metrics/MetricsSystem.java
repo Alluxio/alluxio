@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -615,14 +614,57 @@ public final class MetricsSystem {
    * @param <T> the type
    */
   public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric) {
+    registerCachedGaugeIfAbsent(name, metric, 10, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Registers a cached gauge if it has not been registered.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param timeout the cache gauge timeout
+   * @param unit the unit of timeout
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerCachedGaugeIfAbsent(
+      String name, Gauge<T> metric, long timeout, TimeUnit unit) {
     if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
-      METRIC_REGISTRY.register(name, new CachedGauge<T>(10, TimeUnit.MINUTES) {
+      METRIC_REGISTRY.register(name, new CachedGauge<T>(timeout, unit) {
         @Override
         protected T loadValue() {
           return metric.getValue();
         }
       });
     }
+  }
+
+  /**
+   * Created a gauge that aggregates the value of existing gauges.
+   *
+   * @param name the gauge name
+   * @param metrics the set of metric values to be aggregated
+   * @param timeout the cached gauge timeout
+   * @param timeUnit the unit of timeout
+   */
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
+      String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
+    METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
+      @Override
+      protected Double loadValue() {
+        double total = 0.0;
+        for (MetricKey key : metrics) {
+          Metric m = getMetricValue(key.getName());
+          if (m == null || m.getMetricType() != MetricType.GAUGE) {
+            continue;
+          }
+          total += m.getValue();
+        }
+        return total;
+      }
+    });
   }
 
   /**
