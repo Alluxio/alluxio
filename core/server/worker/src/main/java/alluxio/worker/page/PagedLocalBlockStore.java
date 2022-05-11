@@ -106,8 +106,9 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      // BlockStoreEventListeners ensure thread safety, no synchronization needed here
-      listener.onCommitBlock(sessionId, blockId, dummyLoc);
+      synchronized (listener) {
+        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+      }
     }
     throw new UnsupportedOperationException();
   }
@@ -119,7 +120,9 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      listener.onCommitBlock(sessionId, blockId, dummyLoc);
+      synchronized (listener) {
+        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+      }
     }
     throw new UnsupportedOperationException();
   }
@@ -132,7 +135,9 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     boolean blockAborted = true;
     if (blockAborted) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onAbortBlock(sessionId, blockId);
+        synchronized (listener) {
+          listener.onAbortBlock(sessionId, blockId);
+        }
       }
     }
     throw new UnsupportedOperationException();
@@ -147,8 +152,10 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       long evictedBlockId = 0;
       BlockStoreLocation evictedBlockLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onRemoveBlockByWorker(sessionId, evictedBlockId);
-        listener.onRemoveBlock(sessionId, evictedBlockId, evictedBlockLocation);
+        synchronized (listener) {
+          listener.onRemoveBlockByWorker(sessionId, evictedBlockId);
+          listener.onRemoveBlock(sessionId, evictedBlockId, evictedBlockLocation);
+        }
       }
     }
     throw new UnsupportedOperationException();
@@ -182,7 +189,9 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      listener.onMoveBlockByClient(sessionId, blockId, srcLocation, destLocation);
+      synchronized (listener) {
+        listener.onMoveBlockByClient(sessionId, blockId, srcLocation, destLocation);
+      }
     }
     throw new UnsupportedOperationException();
   }
@@ -193,10 +202,12 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     // TODO(bowen): implement actual removal and replace placeholder values
     boolean removeSuccess = true;
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      listener.onRemoveBlockByClient(sessionId, blockId);
-      if (removeSuccess) {
-        BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
-        listener.onRemoveBlock(sessionId, blockId, removedFrom);
+      synchronized (listener) {
+        listener.onRemoveBlockByClient(sessionId, blockId);
+        if (removeSuccess) {
+          BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
+          listener.onRemoveBlock(sessionId, blockId, removedFrom);
+        }
       }
     }
     throw new UnsupportedOperationException();
@@ -209,8 +220,10 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     if (blockExists) {
       BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onAccessBlock(sessionId, blockId);
-        listener.onAccessBlock(sessionId, blockId, dummyLoc);
+        synchronized (listener) {
+          listener.onAccessBlock(sessionId, blockId);
+          listener.onAccessBlock(sessionId, blockId, dummyLoc);
+        }
       }
     }
     throw new UnsupportedOperationException();
@@ -254,15 +267,17 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   public void removeInaccessibleStorage() {
     // TODO(bowen): implement actual removal and replace placeholder values
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-      List<Long> lostBlocks = ImmutableList.of();
-      String lostStorageTier = DEFAULT_TIER;
-      String lostStoragePath = DEFAULT_DIR;
-      BlockStoreLocation lostStoreLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
-      for (long lostBlock : lostBlocks) {
-        listener.onBlockLost(lostBlock);
+      synchronized (listener) {
+        List<Long> lostBlocks = ImmutableList.of();
+        String lostStorageTier = DEFAULT_TIER;
+        String lostStoragePath = DEFAULT_DIR;
+        BlockStoreLocation lostStoreLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
+        for (long lostBlock : lostBlocks) {
+          listener.onBlockLost(lostBlock);
+        }
+        listener.onStorageLost(lostStorageTier, lostStoragePath);
+        listener.onStorageLost(lostStoreLocation);
       }
-      listener.onStorageLost(lostStorageTier, lostStoragePath);
-      listener.onStorageLost(lostStoreLocation);
     }
     throw new UnsupportedOperationException();
   }
