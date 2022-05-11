@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -207,6 +208,16 @@ public interface CacheManager extends AutoCloseable {
    */
   int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
       CacheContext cacheContext);
+
+  /**
+   * Get page ids by the given file id.
+   * @param fileId file identifier
+   * @param fileLength file length
+   * @return a list of page ids which belongs to the file
+   */
+  default List<PageId> getPageIdsByFileId(String fileId, long fileLength) {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Deletes a page from the cache.
