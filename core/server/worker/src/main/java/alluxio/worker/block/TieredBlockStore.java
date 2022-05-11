@@ -195,18 +195,18 @@ public class TieredBlockStore implements LocalBlockStore
     Optional<BlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       blockMeta = mMetaManager.getBlockMeta(blockId);
-    }
-    if (!blockMeta.isPresent()) {
-      unpinBlock(lockId);
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-    }
-    try {
+      if (!blockMeta.isPresent()) {
+        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+      }
       BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
       ((FileChannel) reader.getChannel()).position(offset);
       accessBlock(sessionId, blockId);
       return new DelegatingBlockReader(reader, () -> unpinBlock(lockId));
     } catch (Exception e) {
       unpinBlock(lockId);
+      if (e instanceof BlockDoesNotExistException) {
+        throw e;
+      }
       throw new IOException(String.format("Failed to get local block reader, sessionId=%d, "
           + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
     }
