@@ -195,18 +195,18 @@ public class TieredBlockStore implements LocalBlockStore
     Optional<BlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       blockMeta = mMetaManager.getBlockMeta(blockId);
-    }
-    if (!blockMeta.isPresent()) {
-      unpinBlock(lockId);
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-    }
-    try {
+      if (!blockMeta.isPresent()) {
+        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+      }
       BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
       ((FileChannel) reader.getChannel()).position(offset);
       accessBlock(sessionId, blockId);
       return new DelegatingBlockReader(reader, () -> unpinBlock(lockId));
     } catch (Exception e) {
       unpinBlock(lockId);
+      if (e instanceof BlockDoesNotExistException) {
+        throw e;
+      }
       throw new IOException(String.format("Failed to get local block reader, sessionId=%d, "
           + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
     }
@@ -381,18 +381,17 @@ public class TieredBlockStore implements LocalBlockStore
         mLockManager.unlockBlock(lockId.getAsLong());
         throw new InvalidWorkerStateException(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
       }
-
       blockMeta = mMetaManager.getBlockMeta(blockId);
     }
 
-    if (blockMeta.isPresent()) {
-      try (LockResource r = new LockResource(mMetadataWriteLock)) {
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      if (blockMeta.isPresent()) {
         removeBlockFileAndMeta(blockMeta.get());
       }
-      finally {
-        mLockManager.unlockBlock(lockId.getAsLong());
-      }
+    } finally {
+      mLockManager.unlockBlock(lockId.getAsLong());
     }
+
     return blockMeta;
   }
 
@@ -402,12 +401,12 @@ public class TieredBlockStore implements LocalBlockStore
     Optional<BlockMeta> blockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       blockMeta = mMetaManager.getBlockMeta(blockId);
-    }
-    if (blockMeta.isPresent()) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        synchronized (listener) {
-          listener.onAccessBlock(sessionId, blockId);
-          listener.onAccessBlock(sessionId, blockId, blockMeta.get().getBlockLocation());
+      if (blockMeta.isPresent()) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onAccessBlock(sessionId, blockId);
+            listener.onAccessBlock(sessionId, blockId, blockMeta.get().getBlockLocation());
+          }
         }
       }
     }
@@ -845,20 +844,24 @@ public class TieredBlockStore implements LocalBlockStore
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
+      long blockSize;
+      String srcFilePath;
       BlockMeta srcBlockMeta;
+      BlockStoreLocation srcLocation;
+
       try (LockResource r = new LockResource(mMetadataReadLock)) {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
           throw new InvalidWorkerStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
         }
         srcBlockMeta = mMetaManager.getBlockMeta(blockId).orElseThrow(() ->
           new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId));
-      }
 
-      BlockStoreLocation srcLocation = srcBlockMeta.getBlockLocation();
-      String srcFilePath = srcBlockMeta.getPath();
-      long blockSize = srcBlockMeta.getBlockSize();
-      // Update moveOptions with the block size.
-      moveOptions.setSize(blockSize);
+        srcLocation = srcBlockMeta.getBlockLocation();
+        srcFilePath = srcBlockMeta.getPath();
+        blockSize = srcBlockMeta.getBlockSize();
+        // Update moveOptions with the block size.
+        moveOptions.setSize(blockSize);
+      }
       if (srcLocation.belongsTo(moveOptions.getLocation())) {
         return new MoveBlockResult(true, blockSize, srcLocation, srcLocation);
       }
