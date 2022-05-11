@@ -90,26 +90,12 @@ public class MaxFileBench extends StressMasterBench {
   }
 
   @Override
-  protected void parseParameters(String[] args) {
+  protected void parseParameters(JCommander jc, String[] args) {
     List<String> argsList = new ArrayList<>(Arrays.asList(args));
     argsList.addAll(mDefaultParams);
 
-    JCommander jc = new JCommander(this);
     jc.setAllowParameterOverwriting(true);
-    jc.setProgramName(this.getClass().getSimpleName());
-    try {
-      jc.parse(argsList.toArray(new String[0]));
-      if (mBaseParameters.mHelp) {
-        System.out.println(getBenchDescription());
-        jc.usage();
-        System.exit(0);
-      }
-    } catch (Exception e) {
-      LOG.error("Failed to parse command: ", e);
-      System.out.println(getBenchDescription());
-      jc.usage();
-      throw e;
-    }
+    super.parseParameters(jc, argsList.toArray(new String[0]));
   }
 
   @Override
