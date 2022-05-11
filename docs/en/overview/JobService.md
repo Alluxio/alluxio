@@ -24,7 +24,7 @@ The Job Workers queues tasks from the Job Master and manages a configurable fixe
 ### Load
 
 Load Job is used as part of the `fs distributedLoad` CLI command and loads a single file to Alluxio 
-with specified amount of replication
+with specified amount of replication.
 
 ### Migrate
 
@@ -57,7 +57,7 @@ to a specified number of other workers.
 ### Data Transformation
 
 The job service also supports data transformation. More details can be found at 
-[Data Transformations]({{ '/en/core-services/Transformation.html' | relativize_url }})
+[Data Transformations]({{ '/en/core-services/Transformation.html' | relativize_url }}).
 
 ## Inspection Commands
 
