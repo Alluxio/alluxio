@@ -52,7 +52,7 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
   private final long mCapacity;
   private final ReentrantReadWriteLock mBlockPageMapLock = new ReentrantReadWriteLock();
   @GuardedBy("mBlockPageMapLock")
-  private Map<Long, Set<Long>> mBlockPageMap = new HashMap<>();
+  private final Map<Long, Set<Long>> mBlockPageMap = new HashMap<>();
 
   /**
    * Constructor of PagedBlockMetaStore.
@@ -93,6 +93,7 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
 
   @Override
   public Map<String, List<Long>> getBlockList() {
+    //TODO(beinan): we could incremental update the the list for heart-beat to avoid the deep copy
     try (LockResource lock = new LockResource(mBlockPageMapLock.readLock())) {
       return ImmutableMap.of(DEFAULT_TIER, ImmutableList.copyOf(mBlockPageMap.keySet()));
     }
@@ -100,6 +101,7 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
 
   @Override
   public Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation() {
+    //TODO(beinan): we could incremental update the the list for heart-beat to avoid the deep copy
     try (LockResource lock = new LockResource(mBlockPageMapLock.readLock())) {
       return ImmutableMap.of(DEFAULT_BLOCK_STORE_LOCATION,
           ImmutableList.copyOf(mBlockPageMap.keySet()));

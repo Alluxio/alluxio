@@ -42,8 +42,8 @@ import java.util.Set;
 public interface LocalBlockStore
     extends SessionCleanable, Closeable {
   /**
-   * @return the instance of LocalBlockStore
    * @param ufsManager
+   * @return the instance of LocalBlockStore
    */
   static LocalBlockStore create(UfsManager ufsManager) {
     switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
