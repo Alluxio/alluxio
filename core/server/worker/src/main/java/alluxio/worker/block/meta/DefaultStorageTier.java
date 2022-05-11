@@ -12,7 +12,6 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Constants;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -59,9 +58,9 @@ public final class DefaultStorageTier implements StorageTier {
   /** The lost storage paths that are failed to initialize or lost. */
   private List<String> mLostStorage;
 
-  private DefaultStorageTier(String tierAlias) {
+  private DefaultStorageTier(String tierAlias, int tierOrdinal) {
     mTierAlias = tierAlias;
-    mTierOrdinal = new WorkerStorageTierAssoc().getOrdinal(tierAlias);
+    mTierOrdinal = tierOrdinal;
   }
 
   private void initStorageTier(boolean isMultiTier)
@@ -183,14 +182,15 @@ public final class DefaultStorageTier implements StorageTier {
    * Factory method to create {@link StorageTier}.
    *
    * @param tierAlias the tier alias
+   * @param tierOrdinal the tier ordinal
    * @param isMultiTier whether this tier is part of a multi-tier setup
    * @return a new storage tier
    * @throws BlockAlreadyExistsException if the tier already exists
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
-  public static StorageTier newStorageTier(String tierAlias, boolean isMultiTier)
+  public static StorageTier newStorageTier(String tierAlias, int tierOrdinal, boolean isMultiTier)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    DefaultStorageTier ret = new DefaultStorageTier(tierAlias);
+    DefaultStorageTier ret = new DefaultStorageTier(tierAlias, tierOrdinal);
     ret.initStorageTier(isMultiTier);
     return ret;
   }

@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -223,12 +224,8 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
-    BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
-    if (blockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-    }
-    return blockMeta;
+  public Optional<BlockMeta> getBlockMeta(long blockId) {
+    return Optional.ofNullable(mBlockIdToBlockMap.get(blockId));
   }
 
   @Override
@@ -283,14 +280,13 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException {
+  public void removeBlockMeta(BlockMeta blockMeta) {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
-    if (deletedBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+    if (deletedBlockMeta != null) {
+      reclaimSpace(blockMeta.getBlockSize(), true);
     }
-    reclaimSpace(blockMeta.getBlockSize(), true);
   }
 
   @Override

@@ -12,7 +12,7 @@
 package alluxio.master.block.meta;
 
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -82,7 +82,7 @@ public class WorkerUsageMeta {
       }
     }
 
-    WorkerStorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
+    StorageTierAssoc storageTierAssoc = new DefaultStorageTierAssoc(storageTierAliases);
     // validate the number of tiers
     if (storageTierAssoc.size() != totalBytesOnTiers.size()
             || storageTierAssoc.size() != usedBytesOnTiers.size()) {
