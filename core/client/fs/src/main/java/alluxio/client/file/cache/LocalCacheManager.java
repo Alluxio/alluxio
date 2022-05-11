@@ -633,7 +633,7 @@ public class LocalCacheManager implements CacheManager {
     }
     return pageIds;
   }
-  
+
   @Override
   public void close() throws Exception {
     mPageStore.close();
