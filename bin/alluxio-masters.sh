@@ -9,6 +9,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+. $(dirname "$0")/alluxio-common.sh
 
 set -o pipefail
 
@@ -46,10 +47,10 @@ fi
 for master in ${HOSTLIST[@]}; do
   echo "[${master}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   if [[ ${HA_ENABLED} == "true" || ${N} -eq 0 ]]; then
-    nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
+    nohup ssh -p ${PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
       $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   else
-    nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
+    nohup ssh -p ${PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
       $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   fi
   pids[${#pids[@]}]=$!

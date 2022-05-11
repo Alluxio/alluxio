@@ -358,7 +358,7 @@ get_offline_workers() {
     if [[ ${i} -gt 0 ]]; then
       result+=","
     fi
-    run=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} \
+    run=$(ssh -p ${PORT} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} \
         ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
     if [[ ${run} -eq 0 ]]; then
       result+="${worker}"

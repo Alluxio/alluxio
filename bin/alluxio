@@ -9,6 +9,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+. $(dirname "$0")/alluxio-common.sh
 
 function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
@@ -146,7 +147,7 @@ function copyDir {
   DIR=$(echo ${DIR}|sed 's@/$@@')
   DEST=$(dirname ${DIR})
 
-  SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
+  SSH_OPTS="-p ${PORT} -o StrictHostKeyChecking=no -o ConnectTimeout=5"
 
   echo "RSYNC'ing ${DIR} to masters..."
   for master in ${MASTERS}; do
