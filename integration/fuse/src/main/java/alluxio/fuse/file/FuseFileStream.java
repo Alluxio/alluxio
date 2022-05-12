@@ -15,13 +15,18 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.auth.AuthPolicy;
 
 import jnr.constants.platform.OpenFlags;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.InvalidPathException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -88,24 +93,48 @@ public interface FuseFileStream {
      * @param flags the create/open flags
      * @param policy the authentication policy
      * @param mode the create file mode, -1 if not set
+     * @param status the uri status, null if not uri does not exist
      * @return the created fuse file stream
      */
     public static FuseFileStream create(FileSystem fileSystem, AlluxioURI uri,
-        int flags, AuthPolicy policy, long mode) throws Exception {
-      // TODO(lu) how can i avoid passing that many parameters to create in out stream
+        int flags, AuthPolicy policy, long mode, @Nullable URIStatus status) throws Exception {
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(fileSystem, uri, flags);
+          return FuseFileInStream.create(fileSystem, uri, flags, status);
         case O_WRONLY:
-          return FuseFileOutStream.create(fileSystem, uri, flags, policy, mode);
+          return FuseFileOutStream.create(fileSystem, uri, flags, policy, mode, status);
         case O_RDWR:
-          return FuseFileInOrOutStream.create(fileSystem, uri, flags, policy, mode);
+          return FuseFileInOrOutStream.create(fileSystem, uri, flags, policy, mode, status);
         default:
           // TODO(lu) what's the default createInternal flag?
           throw new IOException(String.format("Cannot create file stream with flag 0x%x. "
               + "Alluxio does not support file modification. "
               + "Cannot open directory in fuse.open().", flags));
       }
+    }
+
+    /**
+     * Factory method for creating an implementation of {@link FuseFileStream}.
+     *
+     * @param fileSystem the file system
+     * @param uri the Alluxio URI
+     * @param flags the create/open flags
+     * @param policy the authentication policy
+     * @param mode the create file mode, -1 if not set
+     * @return the created fuse file stream
+     */
+    public static FuseFileStream create(FileSystem fileSystem, AlluxioURI uri,
+        int flags, AuthPolicy policy, long mode) throws Exception {
+      URIStatus status;
+      try {
+        status = fileSystem.getStatus(uri);
+      } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+        status = null;
+      } catch (Throwable t) {
+        throw new IOException(String.format(
+            "Failed to create write-only stream for %s: failed to get file status", uri), t);
+      }
+      return create(fileSystem, uri, flags, policy, mode, status);
     }
 
     /**

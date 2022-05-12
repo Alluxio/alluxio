@@ -16,14 +16,12 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.InvalidPathException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,33 +39,23 @@ public class FuseFileInStream implements FuseFileStream {
    * @param fileSystem the file system
    * @param uri the alluxio uri
    * @param flags the fuse create/open flags
+   * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInStream}
    */
-  public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri, int flags)
-      throws IOException, AlluxioException {
+  public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri, int flags,
+      @Nullable URIStatus status) throws IOException, AlluxioException {
     if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
       throw new IOException(String.format(
           "Failed to create read-only stream for path %s: flags 0x%x contains truncate",
           uri, flags));
     }
-    // TODO(lu) create utils method for waitForFileCompleted
-    URIStatus status;
-    try {
-      status = fileSystem.getStatus(uri);
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      throw new IOException(String.format(
-          "Failed to create read-only stream for %s: file does not exist", uri), e);
-    } catch (Throwable t) {
-      throw new IOException(String.format(
-          "Failed to create read-only stream for %s: failed to get file status", uri), t);
-    }
     if (status == null) {
       throw new IOException(String.format(
-          "Failed to create read-only stream for %s: unexpected null file status", uri));
+          "Failed to create read-only stream for %s: file does not exist", uri));
     }
 
-    if (status != null && !status.isCompleted()) {
-      // Cannot open incomplete file for read or write
+    if (!status.isCompleted()) {
+      // Cannot open incomplete file for read
       // wait for file to complete in read or read_write mode
       if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
         throw new IOException(String.format(

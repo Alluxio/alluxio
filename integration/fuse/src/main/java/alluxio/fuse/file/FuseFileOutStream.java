@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
@@ -24,10 +23,9 @@ import alluxio.security.authorization.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.InvalidPathException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -52,22 +50,13 @@ public class FuseFileOutStream implements FuseFileStream {
    * @param flags the fuse create/open flags
    * @param authPolicy the authentication policy
    * @param mode the filesystem mode, -1 if not set
+   * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AlluxioURI uri, int flags,
-      AuthPolicy authPolicy, long mode) throws Exception {
-    URIStatus status;
-    try {
-      status = fileSystem.getStatus(uri);
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      status = null;
-    } catch (Throwable t) {
-      throw new IOException(String.format(
-          "Failed to create write-only stream for %s: failed to get file status", uri), t);
-    }
-    boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
+      AuthPolicy authPolicy, long mode, @Nullable URIStatus status) throws Exception {
     if (status != null) {
-      if (truncate) {
+      if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
         fileSystem.delete(uri);
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", uri, flags));
