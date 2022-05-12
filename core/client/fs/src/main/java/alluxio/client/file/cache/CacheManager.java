@@ -212,10 +212,10 @@ public interface CacheManager extends AutoCloseable {
   /**
    * Get page ids by the given file id.
    * @param fileId file identifier
-   * @param fileLength file length
+   * @param fileLength file length (this will not be needed after we have per-file metadata)
    * @return a list of page ids which belongs to the file
    */
-  default List<PageId> getPageIdsByFileId(String fileId, long fileLength) {
+  default List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     throw new UnsupportedOperationException();
   }
 

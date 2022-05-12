@@ -892,16 +892,16 @@ public final class LocalCacheManagerTest {
   public void listPageIds() throws Exception {
     mCacheManager = createLocalCacheManager();
     assertEquals(0,
-        mCacheManager.getPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).size());
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).size());
     mCacheManager.put(PAGE_ID1, PAGE1);
     assertEquals(PAGE_ID1,
-        mCacheManager.getPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
     PageId pageId5 = new PageId(PAGE_ID1.getFileId(), 5);
     mCacheManager.put(pageId5, PAGE1);
     assertEquals(PAGE_ID1,
-        mCacheManager.getPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
     assertEquals(pageId5,
-        mCacheManager.getPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(1));
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(1));
   }
 
   /**
