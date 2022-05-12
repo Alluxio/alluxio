@@ -26,6 +26,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,6 +126,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
   }
 
+  private static void checkTokenNotReleased(BlockAccessToken block) {
+    Preconditions.checkArgument(!block.isReleased(),
+        "reuse of a ufs block token which has been released");
+  }
+
   /**
    * Closes the block reader or writer and checks whether it is necessary to commit the block
    * to Local block store.
@@ -136,11 +142,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    *              from {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}
    */
   public void close(BlockAccessToken block) throws IOException {
+    checkTokenNotReleased(block);
     BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = mBlocks.get(block);
     }
-    // the existence of blockInfo is guaranteed by the existence of BlockAccessToken
     blockInfo.close();
   }
 
@@ -151,8 +157,10 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    *              from {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}
    */
   public void releaseAccess(BlockAccessToken block) {
+    checkTokenNotReleased(block);
     try (LockResource lr = new LockResource(mLock)) {
       long sessionId = block.getSessionId();
+      block.markAsReleased();
       mBlocks.remove(block);
       Set<BlockAccessToken> blocks = mSessionIdToBlocks.get(sessionId);
       if (blocks != null) {
@@ -208,6 +216,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public BlockReader createBlockReader(BlockAccessToken block, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
+    checkTokenNotReleased(block);
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
       // flag.mUnderFileSystemBlockStore
@@ -218,7 +227,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
-      blockInfo =  mBlocks.get(block);
+      blockInfo = mBlocks.get(block);
       BlockReader blockReader = blockInfo.getBlockReader();
       if (blockReader != null) {
         return blockReader;
@@ -256,11 +265,22 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}.
    */
   public static final class BlockAccessToken extends UnderFileSystemBlockMeta {
+    /** Whether this token has been released. */
+    private volatile boolean mReleased = false;
+
     /**
      * Private constructor that only acquireAccess should call to create new instances.
      */
     private BlockAccessToken(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
       super(sessionId, blockId, options);
+    }
+
+    private boolean isReleased() {
+      return mReleased;
+    }
+
+    private void markAsReleased() {
+      mReleased = true;
     }
 
     @Override
