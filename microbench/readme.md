@@ -9,7 +9,7 @@ This module is built along with others in a normal full project build. Alternati
 this module alone by running the following build command from the repository root:
 
 ```console
-$ mvn -DskipTests package -pl microbench
+$ mvn -DskipTests -Dcheckstyle.skip -Dlicense.skip -Dfindbugs.skip package -pl microbench
 ```
 
 This will build an uber jar named `benchmarks.jar` under `microbench/target` containing all
