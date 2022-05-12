@@ -55,10 +55,15 @@ public class FuseFileInStream implements FuseFileStream {
     try {
       status = fileSystem.getStatus(uri);
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      status = null;
+      throw new IOException(String.format(
+          "Failed to create read-only stream for %s: file does not exist", uri), e);
     } catch (Throwable t) {
       throw new IOException(String.format(
           "Failed to create read-only stream for %s: failed to get file status", uri), t);
+    }
+    if (status == null) {
+      throw new IOException(String.format(
+          "Failed to create read-only stream for %s: unexpected null file status", uri));
     }
 
     if (status != null && !status.isCompleted()) {
