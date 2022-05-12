@@ -140,7 +140,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = mBlocks.get(block);
     }
-    // the existence of blockInfo is guaranteed by the ExistingBlock type
+    // the existence of blockInfo is guaranteed by the existence of BlockAccessToken
     blockInfo.close();
   }
 
