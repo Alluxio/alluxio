@@ -259,6 +259,11 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   @Override
+  public List<InodeView> getLockedInodeViews() {
+    return new ArrayList<>(mInodes);
+  }
+
+  @Override
   public Inode get(int index) {
     return mInodes.get(index);
   }

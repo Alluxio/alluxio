@@ -322,6 +322,14 @@ public final class MountTable implements DelegatingJournaled {
     String path = uri.getPath();
     String lastMount = ROOT;
     try (LockResource r = new LockResource(mReadLock)) {
+      // Trie<Inode> p = mRoot;
+      // List<Inode> ret;
+      // while(p.hasChildren()) {
+      //  if(p.currentId() != uri.id()) {
+      //    break;
+      //  }
+      // }
+      // p.get
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mount = entry.getKey();
         // we choose a new candidate path if the previous candidatepath is a prefix

@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.UnmodifiableArrayList;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -554,6 +555,35 @@ public class LockedInodePath implements Closeable {
     }
     mLockList.lockRootEdge(edgeLock);
     mLockList.lockInode(mRoot, inodeLock);
+  }
+
+  List<String> getPathComponents() {
+    return new UnmodifiableArrayList<>(mPathComponents);
+  }
+
+  /**
+   * Check if given path is the prefix of current path
+   * @param path
+   * @return return true if path is the prefix of current path
+   * (e.g. current: /a/b/c, path: /a);
+   */
+  public boolean hasPrefix(LockedInodePath path) throws InvalidPathException{
+    if (!fullPathExists()) {
+      // if inodes are not up-to-date, call PathUtils.hasPrefix to compare the underlying literals
+      return PathUtils.hasPrefix(this.getUri().getPath(), path.getUri().getPath());
+    }
+    List<Inode> currentInodes = getInodeList();
+    List<Inode> pathInodes = path.getInodeList();
+    if (currentInodes.size() < pathInodes.size()) {
+      return false;
+    }
+    for(int i = 0; i<pathInodes.size(); i++) {
+      // TODO(Jiadong): how can we compare two inodes?
+      if(pathInodes.get(i).getId() != currentInodes.get(i).getId()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
