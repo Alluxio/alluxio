@@ -75,7 +75,6 @@ public class RpcUtilsBench {
     Options opts = new OptionsBuilder()
         .parent(argsCli)
         .include(RpcUtilsBench.class.getName())
-        .shouldDoGC(true)
         .result("results.json")
         .resultFormat(ResultFormatType.JSON)
         .build();
