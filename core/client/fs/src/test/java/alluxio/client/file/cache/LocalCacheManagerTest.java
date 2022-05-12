@@ -888,6 +888,22 @@ public final class LocalCacheManagerTest {
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
   }
 
+  @Test
+  public void listPageIds() throws Exception {
+    mCacheManager = createLocalCacheManager();
+    assertEquals(0,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).size());
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    assertEquals(PAGE_ID1,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
+    PageId pageId5 = new PageId(PAGE_ID1.getFileId(), 5);
+    mCacheManager.put(pageId5, PAGE1);
+    assertEquals(PAGE_ID1,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(0));
+    assertEquals(pageId5,
+        mCacheManager.getCachedPageIdsByFileId(PAGE_ID1.getFileId(), 64 * PAGE_SIZE_BYTES).get(1));
+  }
+
   /**
    * A PageStore where put can throw IOException on put or delete.
    */
