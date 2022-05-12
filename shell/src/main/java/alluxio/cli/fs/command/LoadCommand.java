@@ -118,12 +118,15 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         System.out.println(filePath + " already in Alluxio fully");
         return;
       }
-      runLoadTask(filePath, status, local);
+      if (!runLoadTask(filePath, status, local)) {
+        System.out.println(filePath + " load failed");
+        return;
+      }
     }
     System.out.println(filePath + " loaded");
   }
 
-  private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
+  private boolean runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
       throws IOException {
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
     OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
@@ -144,8 +147,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
-      cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
+      if (!cacheBlock(blockId, dataSource, status, openUfsBlockOptions)) {
+        return false;
+      }
     }
+    return true;
   }
 
   @Override
@@ -163,7 +169,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
-  private void cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
+  private boolean cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
       Protocol.OpenUfsBlockOptions options) {
     BlockInfo info = status.getBlockInfo(blockId);
     long blockLength = info.getLength();
@@ -179,9 +185,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     try (CloseableResource<BlockWorkerClient> blockWorker =
         mFsContext.acquireBlockWorkerClient(dataSource)) {
       blockWorker.get().cache(request);
+      return true;
     } catch (Exception e) {
       System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
           status.getPath(), e);
+      return false;
     }
   }
 }
