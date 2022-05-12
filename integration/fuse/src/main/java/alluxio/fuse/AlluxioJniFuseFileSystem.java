@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -26,7 +24,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.fuse.AlluxioFuseOpenUtils.OpenAction;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
@@ -65,9 +62,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -220,10 +215,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.ENAMETOOLONG();
     }
     try {
-      FuseFileStream stream = FuseFileStream.Factory.create(mFileSystem, uri, fi.flags.get(), mode, mAuthPolicy);
-      long fid = mNextOpenFileId.getAndIncrement();
-      mFileEntries.add(new FuseFileEntry<>(fid, path, stream));
-      fi.fh.set(fid);
+      FuseFileStream stream = FuseFileStream.Factory
+          .create(mFileSystem, uri, fi.flags.get(), mAuthPolicy, mode);
+      long fd = mNextOpenFileId.getAndIncrement();
+      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+      fi.fh.set(fd);
     } catch (Throwable t) {
       LOG.error("Failed to create {}", path, t);
       return -ErrorCodes.EIO();
@@ -253,6 +249,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (!status.isCompleted()) {
         FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
         if (stream != null) {
+          // TODO(lu) how to avoid double get status?
           size = stream.getFileStream().getFileLength();
         } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           // Always block waiting for file to be completed except when the file is writing
@@ -348,50 +345,23 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @Override
   public int open(String path, FuseFileInfo fi) {
     final int flags = fi.flags.get();
-    OpenAction openAction = AlluxioFuseOpenUtils.getOpenAction(flags);
-    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, flags, openAction),
-        "Fuse.Open", "path=%s,flags=0x%x(%s)", path, flags, openAction.name());
+    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, flags),
+        "Fuse.Open", "path=%s,flags=0x%x", path, flags);
   }
 
-  private int openInternal(String path, FuseFileInfo fi, int flags, OpenAction openAction) {
+  private int openInternal(String path, FuseFileInfo fi, int flags) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
-    // Alluxio fuse only supports read-only for completed file
-    // and write-only for file that does not exist or contains open flag O_TRUNC
-    // O_RDWR will be treated as read-only if file exists and no O_TRUNC,
-    // if truncate() or write() is detected, read-only will be transferred to write-only
-    // write-only otherwise
-    boolean readOnly = openAction == OpenAction.READ_ONLY
-        || (openAction == OpenAction.READ_WRITE && status != null && !truncate);
-
-    long fd = mNextOpenFileId.getAndIncrement();
-    fi.fh.set(fd);
     try {
-      if (status != null && truncate) {
-        // Attention: according to POSIX standard
-        // file cannot be removed with O_WRONLY or O_RDWR flag itself
-        // O_TRUNC or fuse.truncate(size=0) is needed.
-        mFileSystem.delete(uri);
-        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
-            + "Alluxio deleted the old file and created a new file for writing", path, flags));
-        status = null;
-      }
-      if (readOnly) {
-        FileInStream is = mFileSystem.openFile(uri);
-        mOpenFileEntries.put(fd, is);
-      } else if (status == null) {
-        // If O_WRONLY without O_TRUNC
-        // wait for fuse.truncate(size=0) to delete file and create new output stream
-        // otherwise all future write will error out
-        FileOutStream os = mFileSystem.createFile(uri);
-        mFileEntries.add(new CreateFileEntry<>(fd, path, os));
-        mAuthPolicy.setUserGroupIfNeeded(uri);
-      }
-      return 0;
+      // TODO(lu) can i get mode from open structure? or directly use the old one?
+      FuseFileStream stream = FuseFileStream.Factory.create(mFileSystem, uri, flags, mAuthPolicy);
+      long fd = mNextOpenFileId.getAndIncrement();
+      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+      fi.fh.set(fd);
     } catch (Throwable t) {
-      LOG.error("Failed to open {}: openAction={}", path, openAction, t);
+      LOG.error(String.format("Failed to open %s: openAction=0x%x", path, flags), t);
       return -ErrorCodes.EIO();
     }
+    return  0;
   }
 
   @Override
@@ -405,42 +375,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int readInternal(
       String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi, long fd) {
     MetricsSystem.counter(MetricKey.FUSE_BYTES_TO_READ.getName()).inc(size);
-    final int sz = (int) size;
     int nread = 0;
-    int rd = 0;
     try {
-      FileInStream is = mOpenFileEntries.get(fd);
-      if (is == null) {
-        final int flags = fi.flags.get();
-        if (AlluxioFuseOpenUtils.getOpenAction(flags) == OpenAction.READ_WRITE) {
-          LOG.error(String.format("Alluxio only supports read-only or write-only. "
-              + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
-              + "Cannot find stream for reading may because "
-              + "open with O_RDWR is treated as write-only. ",
-              path, flags));
-        } else {
-          LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
-        }
+      FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
+      if (entry == null) {
+        LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
         return -ErrorCodes.EBADFD();
       }
-
-      // FileInStream is not thread safe
-      synchronized (is) {
-        // double check in case benign race on mOpenFileEntries
-        if (!mOpenFileEntries.containsKey(fd)) {
-          LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
-          return -ErrorCodes.EBADFD();
-        }
-        if (offset - is.getPos() < is.remaining()) {
-          is.seek(offset);
-          while (rd >= 0 && nread < sz) {
-            rd = is.read(buf, nread, sz - nread);
-            if (rd >= 0) {
-              nread += rd;
-            }
-          }
-        }
-      }
+      nread = entry.getFileStream().read(buf, size, offset);
     } catch (Throwable t) {
       LOG.error("Failed to read {}: size={} offset={}", path, size, offset, t);
       return -ErrorCodes.EIO();
@@ -459,86 +401,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int writeInternal(
       String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi, long fd) {
-    if (size > Integer.MAX_VALUE) {
-      LOG.error("Failed to write {}: Cannot write more than {}", path, Integer.MAX_VALUE);
-      return ErrorCodes.EIO();
-    }
-    final int sz = (int) size;
-    CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(ID_INDEX, fd);
-    if (ce == null) {
-      if (offset != 0) {
-        LOG.error(String.format("Cannot write to offset %s for path %s with flags 0x%x."
-            + "Output stream is not initiated.",
-            offset, path, fi.flags.get()));
+    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
+    try {
+      if (entry == null) {
+        LOG.error("Failed to write {}: Cannot find fd {}", path, fd);
         return -ErrorCodes.EBADFD();
       }
-      // Several cases may happen here
-      // 1. open(O_WRONLY) do nothing -> truncate(0) delete file
-      // -> write(offset=0) should create file output stream
-      // 2. open(O_RDWR) -> file exists and no O_TRUNC provided,
-      // treated as read-only first, created file input stream
-      // if truncate(0) delete file,
-      // write(offset=0) should delete input stream and create output stream
-      // if no truncate(0), write(offset=0) should error out
-      final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-      URIStatus status;
-      try {
-        status = getPathStatus(uri);
-      } catch (Throwable t) {
-        LOG.error("Failed to get status of path {} when writing to it.", path);
-        return -ErrorCodes.EIO();
-      }
-      if (status != null) {
-        // open (O_WRONLY or O_RDWR) needs O_TRUNC open flag
-        // or fuse.truncate(size = 0) to delete existing file
-        // otherwise cannot overwrite existing file
-        LOG.error(String.format("Cannot overwrite existing file %s "
-            + "without O_TRUNC flag or fuse.truncate(size=0), flag 0x%x",
-            path, fi.flags.get()));
-        return -ErrorCodes.EEXIST();
-      }
-
-      // open(O_RDWR) without O_TRUNC() will be treated as read-only first
-      // fuse.truncate(size=0) delete the file
-      // following write(size=0) will create the new file out stream
-      // and delete file in stream if any
-      mOpenFileEntries.remove(fd);
-
-      // create file out stream
-      try {
-        FileOutStream os = mFileSystem.createFile(uri);
-        ce = new CreateFileEntry<>(fd, path, os);
-        mFileEntries.add(ce);
-        mAuthPolicy.setUserGroupIfNeeded(uri);
-      } catch (Throwable e) {
-        LOG.error("Failed to create file output stream for {}", path, e);
-        return -ErrorCodes.EIO();
-      }
-    }
-
-    FileOutStream os = ce.getOut();
-    long bytesWritten = os.getBytesWritten();
-    if (offset != bytesWritten && offset + sz > bytesWritten) {
-      LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
-          + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
+      entry.getFileStream().write(buf, size, offset);
+    } catch (Exception e) {
+      LOG.error("Failed to write {}:", path, e);
       return -ErrorCodes.EIO();
     }
-    if (offset + sz <= bytesWritten) {
-      LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
-          path, offset, sz, bytesWritten);
-      // To fulfill vim :wq
-      return sz;
-    }
-
-    try {
-      final byte[] dest = new byte[sz];
-      buf.get(dest, 0, sz);
-      os.write(dest);
-    } catch (IOException e) {
-      LOG.error("IOException while writing to {}.", path, e);
-      return -ErrorCodes.EIO();
-    }
-    return sz;
+    return (int) size;
   }
 
   @Override
@@ -549,24 +423,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int flushInternal(String path, long fd) {
-    FileInStream is = mOpenFileEntries.get(fd);
-    CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(ID_INDEX, fd);
-    if (ce == null && is == null) {
-      LOG.error("Failed to flush {}: cannot find fd {}", path, fd);
-      return -ErrorCodes.EBADFD();
-    }
-
-    if (ce == null) {
-      // flush() may be called in places other than write
-      return 0;
-    }
-
+    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     try {
-      synchronized (ce) {
-        ce.getOut().flush();
+      if (entry == null) {
+        LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
+        return -ErrorCodes.EBADFD();
       }
-    } catch (Throwable t) {
-      LOG.error("Failed to flush {}", path, t);
+      entry.getFileStream().flush();
+    } catch (IOException e) {
+      LOG.error("Failed to flush {}:", path, e);
       return -ErrorCodes.EIO();
     }
     return 0;
@@ -580,28 +445,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int releaseInternal(String path, long fd) {
+    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     try {
-      FileInStream is = mOpenFileEntries.remove(fd);
-      CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(ID_INDEX, fd);
-      if (is == null && ce == null) {
+      if (entry == null) {
         LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
         return -ErrorCodes.EBADFD();
       }
-      if (ce != null) {
-        // Remove earlier to try best effort to avoid write() - async release() - getAttr()
-        // without waiting for file completed and return 0 bytes file size error
-        mFileEntries.remove(ce);
-        synchronized (ce) {
-          ce.close();
-        }
-      }
-      if (is != null) {
-        synchronized (is) {
-          is.close();
-        }
-      }
-    } catch (Throwable e) {
-      LOG.error("Failed to release {}", path, e);
+      entry.getFileStream().close();
+    } catch (IOException e) {
+      LOG.error("Failed to close {}:", path, e);
       return -ErrorCodes.EIO();
     }
     return 0;
@@ -791,23 +643,17 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int truncateInternal(String path, long size) {
-    // Truncate scenarios:
-    // 1. Truncate size = 0, file does not exist => no-op
-    // 2. Truncate size = 0, file exists and completed
-    // => noop if file size = 0 or delete file
-    // TODO(lu) delete open file entry if any, blocked by libfuse 3
-    // 3. Truncate size = 0, file exists and is being written by current Fuse
-    // => noop if written size = 0, otherwise delete file and update create file entry
-    // 4. Truncate size = 0, file exists and is being written by other applications
-    // => error out
-    // 5. Truncate size != 0, file does not exist => error out
-    // 6. Truncate size != 0, file is completed
-    // => no-op if file size = truncate size, error out otherwise
-    // 7. Truncate size != 0, file is being written by other applications
-    // => error out, don't know exact file written size
-    // 8. Truncate size != 0, file is being written by current Fuse
-    // => no-op if written size = truncate size, error out otherwise
-    // Error out in all other cases
+    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(PATH_INDEX, path);
+    try {
+      if (entry != null) {
+        entry.getFileStream().truncate(size);
+        return (int) size;
+      }
+    } catch (Exception e) {
+      LOG.info("Failed to truncate {} to {}:", path, size, e);
+      return -ErrorCodes.EIO();
+    }
+
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     URIStatus status;
     try {
@@ -815,86 +661,39 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     } catch (FileDoesNotExistException | InvalidPathException e) {
       status = null;
     } catch (Throwable t) {
-      LOG.error("Failed to truncate {} to {} bytes: Failed to get file status", path, size, t);
+      LOG.error("Failed to truncate {} to {} bytes: failed to get file status", path, size, t);
       return -ErrorCodes.EIO();
     }
-    CreateFileEntry<FileOutStream> ce = mFileEntries.getFirstByField(PATH_INDEX, path);
-    if (size == 0) {
-      if (status == null) {
-        // Case 1: Truncate size = 0, file does not exist => no-op
+
+    if (status == null) {
+      if (size == 0) {
         return 0;
       }
-      try {
-        // Case 2: Truncate size = 0, file exists and completed
-        if (status.isCompleted()) {
-          if (status.getLength() == 0) {
-            return 0;
-          }
-          // support open(O_WRONLY or O_RDWR) -> truncate() -> write()
-          mFileSystem.delete(uri);
-          // TODO(lu) delete existing opened file entry if any
-          // require libfuse 3 which truncate() has fd info
-          // otherwise we need to change OpenFileEntries to include PATH_INDEX
-          // now fuse.read() will error out but it's acceptable
-          // because concurrent read and delete are not supported
-          return 0;
-        }
-        // Case 3: Truncate size = 0, file exists and is being written by current Fuse
-        if (ce != null) {
-          FileOutStream os = ce.getOut();
-          long bytesWritten = os.getBytesWritten();
-          if (bytesWritten == 0) {
-            return 0;
-          }
-          mFileEntries.remove(ce);
-          mFileSystem.delete(uri);
-          os = mFileSystem.createFile(uri);
-          final long fd = ce.getId();
-          ce = new CreateFileEntry(fd, path, os);
-          mFileEntries.add(ce);
-          mAuthPolicy.setUserGroupIfNeeded(uri);
-          return 0;
-        }
-        // Case 4: Truncate size = 0, file exists and is being written by other applications
-        LOG.error("Failed to truncate path {} to size 0, "
-            + "file is being written in other applications",
-            path);
-        return -ErrorCodes.EOPNOTSUPP();
-      } catch (Throwable t) {
-        LOG.error("Failed to truncate path {} to {}. Failed to delete path {} from Alluxio",
-            path, size, path, t);
-        return -ErrorCodes.EIO();
-      }
-    }
-    // Case 5: Truncate size != 0, file does not exist => error out
-    if (status == null) {
-      LOG.error("Cannot truncate non-existing file {} to size {}", path, size);
+      LOG.error("Failed to truncate file {} to {} bytes: file does not exist", path, size);
       return -ErrorCodes.EEXIST();
     }
-    // Case 6: Truncate size != 0, file is completed
+
     if (status.isCompleted()) {
-      if (size == status.getLength()) {
+      if (status.getLength() == size) {
         return 0;
       }
-      LOG.error("Cannot truncate file {} to non-zero size {}", path, size);
+      if (size == 0) {
+        try {
+          mFileSystem.delete(uri);
+          return 0;
+        } catch (Exception e) {
+          LOG.error("Failed to truncate {} to {} bytes: failed to delete file", path, size, e);
+          return -ErrorCodes.EIO();
+        }
+      }
+      LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
+          path, status.getLength(), size);
       return -ErrorCodes.EOPNOTSUPP();
     }
-    // Case 7: Truncate size != 0, file is being written by other applications
-    if (ce == null) {
-      LOG.error("Cannot truncate {} to {}. "
-          + "File is being written in other Fuse applications or APIs",
-          path, size);
-      return -ErrorCodes.EOPNOTSUPP();
-    }
-    // Case 8: Truncate size != 0, file is being written by current Fuse
-    FileOutStream os = ce.getOut();
-    long bytesWritten = os.getBytesWritten();
-    if (bytesWritten == size) {
-      return 0;
-    }
-    // error out otherwise
-    LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
-        path, bytesWritten, size);
+
+    LOG.error("Failed to truncate file {} to {} bytes: "
+        + "file is being written by other Fuse applications or Alluxio APIs.",
+        path, size);
     return -ErrorCodes.EOPNOTSUPP();
   }
 
@@ -979,20 +778,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (mMaxUmountWaitTime > 0 && (!mFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
+    if (mMaxUmountWaitTime > 0 && (!mFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
-            () -> mFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
+            mFileEntries::isEmpty,
             WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mMountPoint);
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
-            + "when unmounting {}. {} fileInStream remain unclosed. "
-            + "{} fileOutStream remain unclosed.",
-            mMountPoint, mOpenFileEntries.size(), mFileEntries.size());
+            + "when unmounting {}. {} file stream remain unclosed.",
+            mMountPoint, mFileEntries.size());
         if (!force) {
           throw new FuseException("Timed out for umount due to device is busy.");
         }

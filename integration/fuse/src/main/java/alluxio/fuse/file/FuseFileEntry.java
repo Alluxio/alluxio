@@ -1,10 +1,28 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.fuse.file;
 
 import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * Convenience class to encapsulate file stream
+ * and its information (path, id) for reading or writing alluxio file.
+ * @param <T> the concrete fuse file stream subclass
+ */
+@ThreadSafe
 public final class FuseFileEntry<T extends FuseFileStream>
     implements Closeable {
   private final long mId;
@@ -21,7 +39,7 @@ public final class FuseFileEntry<T extends FuseFileStream>
    */
   public FuseFileEntry(long id, String path, T fileStream) {
     Preconditions.checkArgument(id != -1 && !path.isEmpty());
-    Preconditions.checkArgument(fileStream != null);
+    Preconditions.checkNotNull(fileStream, "file stream cannot be null");
     mId = id;
     mFileStream = fileStream;
     mPath = path;
@@ -42,10 +60,9 @@ public final class FuseFileEntry<T extends FuseFileStream>
   }
 
   /**
-   * Gets the opened output stream for this open file entry. The value returned can be {@code null}
-   * if the file is not open for writing.
+   * Gets the fuse file stream for this entry.
    *
-   * @return an opened input stream for the open alluxio file, or null
+   * @return a fuse file stream
    */
   public T getFileStream() {
     return mFileStream;
