@@ -22,6 +22,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
+import java.util.Optional;
+
 public final class UnderFileSystemBlockStoreTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private static final long BLOCK_ID = 2;
@@ -47,7 +49,7 @@ public final class UnderFileSystemBlockStoreTest {
     UnderFileSystemBlockStore blockStore =
         new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
+      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions).isPresent());
     }
   }
 
@@ -56,10 +58,12 @@ public final class UnderFileSystemBlockStoreTest {
     UnderFileSystemBlockStore blockStore =
         new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
-      blockStore.releaseAccess(i + 1, BLOCK_ID);
+      Optional<UnderFileSystemBlockStore.ExistingBlock> block =
+          blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions);
+      assertTrue(block.isPresent());
+      blockStore.releaseAccess(block.get());
     }
 
-    assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
+    assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions).isPresent());
   }
 }

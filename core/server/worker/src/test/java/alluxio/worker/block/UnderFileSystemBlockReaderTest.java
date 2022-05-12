@@ -99,7 +99,7 @@ public final class UnderFileSystemBlockReaderTest {
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE).setUfsPath(testFilePath)
         .build();
     mUnderFileSystemBlockMeta =
-        new UnderFileSystemBlockMeta(SESSION_ID, BLOCK_ID, mOpenUfsBlockOptions);
+        new TestUfsBlockMeta(SESSION_ID, BLOCK_ID, mOpenUfsBlockOptions);
     mUfsBytesRead = MetricsSystem.counterWithTags(
         MetricKey.WORKER_BYTES_READ_UFS.getName(),
         MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
@@ -172,7 +172,7 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Test
   public void readFullBlockNoCache() throws Exception {
-    mUnderFileSystemBlockMeta = new UnderFileSystemBlockMeta(SESSION_ID, BLOCK_ID,
+    mUnderFileSystemBlockMeta = new TestUfsBlockMeta(SESSION_ID, BLOCK_ID,
         mOpenUfsBlockOptions.toBuilder().setNoCache(true).build());
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         mAlluxioBlockStore, mUfsClient, mUfsInstreamCache, mUfsBytesRead, mUfsBytesReadThroughput);
@@ -254,5 +254,11 @@ public final class UnderFileSystemBlockReaderTest {
     mReader = UnderFileSystemBlockReader.create(mUnderFileSystemBlockMeta, 0, false,
         mAlluxioBlockStore, mUfsClient, mUfsInstreamCache, mUfsBytesRead, mUfsBytesReadThroughput);
     assertTrue(mReader.getLocation().startsWith(mOpenUfsBlockOptions.getUfsPath()));
+  }
+
+  private static class TestUfsBlockMeta extends UnderFileSystemBlockMeta {
+    public TestUfsBlockMeta(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
+      super(sessionId, blockId, options);
+    }
   }
 }
