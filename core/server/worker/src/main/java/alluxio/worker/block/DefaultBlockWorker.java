@@ -408,7 +408,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
-    UnderFileSystemBlockStore.ExistingBlock block =
+    UnderFileSystemBlockStore.BlockAccessToken block =
         mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options)
             .orElseThrow(() -> new UnavailableException(
                 String.format("Failed to read from UFS, the block has already been acquired from "
@@ -487,7 +487,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @throws WorkerOutOfSpaceException the worker does not have enough space to commit the block
    */
   @VisibleForTesting
-  public void closeUfsBlock(UnderFileSystemBlockStore.ExistingBlock block)
+  public void closeUfsBlock(UnderFileSystemBlockStore.BlockAccessToken block)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     long sessionId = block.getSessionId();
     long blockId = block.getBlockId();

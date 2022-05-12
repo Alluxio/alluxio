@@ -58,7 +58,7 @@ public final class UnderFileSystemBlockStoreTest {
     UnderFileSystemBlockStore blockStore =
         new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      Optional<UnderFileSystemBlockStore.ExistingBlock> block =
+      Optional<UnderFileSystemBlockStore.BlockAccessToken> block =
           blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions);
       assertTrue(block.isPresent());
       blockStore.releaseAccess(block.get());
