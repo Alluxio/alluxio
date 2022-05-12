@@ -63,9 +63,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * same block. If the client do that, the client can see failures but the worker won't crash.
    */
   private final ReentrantLock mLock = new ReentrantLock();
-  /** Maps from the {@link Key} to the {@link BlockInfo}. */
+  /** Maps from the {@link ExistingBlock} to the {@link BlockInfo}. */
   @GuardedBy("mLock")
-  private final Map<Key, BlockInfo> mBlocks = new HashMap<>();
+  private final Map<ExistingBlock, BlockInfo> mBlocks = new HashMap<>();
   /** Maps from the session ID to the block IDs. */
   @GuardedBy("mLock")
   private final Map<Long, Set<ExistingBlock>> mSessionIdToBlocks = new HashMap<>();
@@ -112,12 +112,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public Optional<ExistingBlock> acquireAccess(
       long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
     try (LockResource lr = new LockResource(mLock)) {
-      Key key = new Key(sessionId, blockId);
-      if (mBlocks.containsKey(key)) {
+      ExistingBlock block = new ExistingBlock(sessionId, blockId, options);
+      if (mBlocks.containsKey(block)) {
         return Optional.empty();
       }
-      ExistingBlock block = new ExistingBlock(sessionId, blockId, options);
-      mBlocks.put(key, new BlockInfo(block));
+      mBlocks.put(block, new BlockInfo(block));
       Set<ExistingBlock> blocks =
           mSessionIdToBlocks.computeIfAbsent(sessionId, k -> new HashSet<>());
       blocks.add(block);
@@ -138,8 +137,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public void close(ExistingBlock block) throws IOException {
     BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
-      blockInfo = mBlocks.get(new Key(block.getSessionId(), block.getBlockId()));
+      blockInfo = mBlocks.get(block);
     }
+    // the existence of blockInfo is guaranteed by the ExistingBlock type
     blockInfo.close();
   }
 
@@ -152,9 +152,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public void releaseAccess(ExistingBlock block) {
     try (LockResource lr = new LockResource(mLock)) {
       long sessionId = block.getSessionId();
-      long blockId = block.getBlockId();
-      Key key = new Key(sessionId, blockId);
-      mBlocks.remove(key);
+      mBlocks.remove(block);
       Set<ExistingBlock> blocks = mSessionIdToBlocks.get(sessionId);
       if (blocks != null) {
         blocks.remove(block);
@@ -219,7 +217,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
-      blockInfo =  mBlocks.get(new Key(block.getSessionId(), block.getBlockId()));
+      blockInfo =  mBlocks.get(block);
       BlockReader blockReader = blockInfo.getBlockReader();
       if (blockReader != null) {
         return blockReader;
@@ -256,45 +254,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * A token for a block that has been granted access via
    * {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}.
    */
-  public static class ExistingBlock extends UnderFileSystemBlockMeta {
+  public static final class ExistingBlock extends UnderFileSystemBlockMeta {
     /**
      * Private constructor to ensure only acquireAccess can create new instances.
      */
     private ExistingBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
       super(sessionId, blockId, options);
-    }
-  }
-
-  /**
-   * This class is to wrap session ID amd block ID.
-   */
-  private static class Key {
-    private final long mSessionId;
-    private final long mBlockId;
-
-    /**
-     * Creates an instance of the Key class.
-     *
-     * @param sessionId the session ID
-     * @param blockId the block ID
-     */
-    public Key(long sessionId, long blockId) {
-      mSessionId = sessionId;
-      mBlockId = blockId;
-    }
-
-    /**
-     * @return the block ID
-     */
-    public long getBlockId() {
-      return mBlockId;
-    }
-
-    /**
-     * @return the session ID
-     */
-    public long getSessionId() {
-      return mSessionId;
     }
 
     @Override
@@ -302,22 +267,25 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       if (this == o) {
         return true;
       }
-      if (!(o instanceof Key)) {
+      if (!(o instanceof ExistingBlock)) {
         return false;
       }
 
-      Key that = (Key) o;
-      return Objects.equal(mBlockId, that.mBlockId) && Objects.equal(mSessionId, that.mSessionId);
+      ExistingBlock that = (ExistingBlock) o;
+      return Objects.equal(getBlockId(), that.getBlockId())
+          && Objects.equal(getSessionId(), that.getSessionId());
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mBlockId, mSessionId);
+      return Objects.hashCode(getBlockId(), getSessionId());
     }
 
     @Override
     public String toString() {
-      return MoreObjects.toStringHelper(this).add("blockId", mBlockId).add("sessionId", mSessionId)
+      return MoreObjects.toStringHelper(this)
+          .add("blockId", getBlockId())
+          .add("sessionId", getSessionId())
           .toString();
     }
   }
