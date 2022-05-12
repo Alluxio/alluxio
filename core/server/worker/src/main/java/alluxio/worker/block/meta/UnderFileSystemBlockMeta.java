@@ -12,7 +12,6 @@
 package alluxio.worker.block.meta;
 
 import alluxio.proto.dataserver.Protocol;
-import alluxio.worker.block.UnderFileSystemBlockStore;
 
 /**
  * This class represents the metadata of a block that is in UFS. This class is immutable.
@@ -32,16 +31,13 @@ public class UnderFileSystemBlockMeta {
   private final String mUser;
 
   /**
-   * Creates an instance of {@link UnderFileSystemBlockMeta}. An instance of this class should
-   * only be acquired via
-   * {@link UnderFileSystemBlockStore#acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}.
+   * Creates an instance of {@link UnderFileSystemBlockMeta}.
    *
    * @param sessionId the session ID
    * @param blockId the block ID
    * @param options the {@link Protocol.OpenUfsBlockOptions}
    */
-  // protected access to prevent accidental instantiation
-  protected UnderFileSystemBlockMeta(long sessionId, long blockId,
+  public UnderFileSystemBlockMeta(long sessionId, long blockId,
       Protocol.OpenUfsBlockOptions options) {
     mSessionId = sessionId;
     mBlockId = blockId;
