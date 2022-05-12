@@ -33,9 +33,13 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -48,10 +52,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * we use pages managed by the CacheManager to store the data.
  */
 public class PagedLocalBlockStore implements LocalBlockStore {
+  private static final Logger LOG = LoggerFactory.getLogger(PagedLocalBlockStore.class);
 
   private final CacheManager mCacheManager;
   private final UfsManager mUfsManager;
   private final PagedBlockMetaStore mPagedBlockMetaStore;
+
+  /** A set of pinned inodes updated via periodic master-worker sync. */
+  private final Set<Long> mPinnedInodes = new HashSet<>();
   private final AlluxioConfiguration mConf;
   private final UfsInputStreamCache mUfsInStreamCache = new UfsInputStreamCache();
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
@@ -251,6 +259,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void cleanupSession(long sessionId) {
+    // TODO(bowen): session cleaner seems to be defunct, as Sessions are always empty
   }
 
   @Override
@@ -260,7 +269,12 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
-    throw new UnsupportedOperationException();
+    // TODO(bowen): this is unused now, make sure to use the pinned inodes when allocating space
+    LOG.debug("updatePinnedInodes: inodes={}", inodes);
+    synchronized (mPinnedInodes) {
+      mPinnedInodes.clear();
+      mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
   }
 
   @Override
