@@ -13,11 +13,12 @@ package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
-import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.AlluxioJniFuseFileSystem;
+
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,14 +37,16 @@ public class FuseFileInStream implements FuseFileStream {
   /**
    * Creates a {@link FuseFileInStream}.
    *
-   * @param fileSystem the file system
+   * @param fuseFileSystem the fuse file system
    * @param uri the alluxio uri
    * @param flags the fuse create/open flags
    * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInStream}
    */
-  public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri, int flags,
-      @Nullable URIStatus status) throws IOException, AlluxioException {
+  public static FuseFileInStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
+      int flags, @Nullable URIStatus status) throws IOException, AlluxioException {
+    Preconditions.checkNotNull(fuseFileSystem);
+    Preconditions.checkNotNull(uri);
     if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
       throw new IOException(String.format(
           "Failed to create read-only stream for path %s: flags 0x%x contains truncate",
@@ -57,13 +60,13 @@ public class FuseFileInStream implements FuseFileStream {
     if (!status.isCompleted()) {
       // Cannot open incomplete file for read
       // wait for file to complete in read or read_write mode
-      if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
+      if (!fuseFileSystem.waitForFileCompleted(uri)) {
         throw new IOException(String.format(
             "Failed to create read-only stream for %s: incomplete file", uri));
       }
     }
 
-    FileInStream is = fileSystem.openFile(uri);
+    FileInStream is = fuseFileSystem.openFile(uri);
     return new FuseFileInStream(is, status.getLength(), uri);
   }
 

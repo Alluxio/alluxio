@@ -12,12 +12,12 @@
 package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
-import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.AlluxioJniFuseFileSystem;
 
+import com.google.common.base.Preconditions;
 import jnr.constants.platform.OpenFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,69 +30,68 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * An implementation for {@link FuseFileStream} for read only or write only workloads.
  * Fuse can open file for reading and writing concurrently but Alluxio only support
- * read-only or write-only workloads. This class will treat the stream as read-only or write-only
- * workloads based on whether truncate is called and the first operation is read or write.
+ * read-only or write-only workloads. This class will be used as write only stream
+ * if O_TRUNC flag is provided or first operation is write() or truncate(),
+ * will be used as read only stream otherwise.
  */
 @ThreadSafe
 public class FuseFileInOrOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileInOrOutStream.class);
-  private final FileSystem mFileSystem;
+  private final AlluxioJniFuseFileSystem mFuseFileSystem;
   private final AlluxioURI mUri;
   private final long mMode;
-  private final AuthPolicy mAuthPolicy;
-
-  // TODO(lu) reconsider whether to store the status.
-  // If store status, then we can directly provide to all getattr
   private final URIStatus mStatus;
-  // Treat as read only or write only stream based on first operation is read or truncate or write
+
+  // underlying reed-only or write-only stream
   private FuseFileStream mStream;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
    *
-   * @param fileSystem the file system
+   * @param fuseFileSystem the fuse file system
    * @param uri the alluxio uri
    * @param flags the fuse create/open flags
-   * @param authPolicy the authentication policy
    * @param mode the filesystem mode, -1 if not set
    * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInOrOutStream}
    */
-  public static FuseFileInOrOutStream create(FileSystem fileSystem, AlluxioURI uri, int flags,
-      AuthPolicy authPolicy, long mode, @Nullable URIStatus status) throws Exception {
+  public static FuseFileInOrOutStream create(AlluxioJniFuseFileSystem fuseFileSystem,
+      AlluxioURI uri, int flags, long mode, @Nullable URIStatus status) throws Exception {
+    Preconditions.checkNotNull(fuseFileSystem);
+    Preconditions.checkNotNull(uri);
     boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
     if (status != null && truncate) {
-      fileSystem.delete(uri);
+      fuseFileSystem.deleteFile(uri);
       status = null;
       LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
           + "Alluxio deleted the old file and created a new file for writing", uri, flags));
     }
     if (status == null) {
-      FuseFileOutStream stream = FuseFileOutStream.create(fileSystem,
-          uri, OpenFlags.O_WRONLY.intValue(), authPolicy, mode, null);
-      return new FuseFileInOrOutStream(stream, null, fileSystem, uri, authPolicy, mode);
+      FuseFileOutStream stream = FuseFileOutStream.create(fuseFileSystem,
+          uri, OpenFlags.O_WRONLY.intValue(), mode, null);
+      return new FuseFileInOrOutStream(fuseFileSystem, stream, null, uri, mode);
     }
     // Left for next operation to decide read-only or write-only mode
     // read-only: open(READ_WRITE) existing file - read()
     // write-only: open(READ_WRITE) existing file - truncate(0) - write()
-    return new FuseFileInOrOutStream(null, status, fileSystem, uri, authPolicy, mode);
+    return new FuseFileInOrOutStream(fuseFileSystem, null, status, uri, mode);
   }
 
-  private FuseFileInOrOutStream(@Nullable FuseFileStream stream, @Nullable URIStatus status,
-      FileSystem fileSystem, AlluxioURI uri, AuthPolicy authPolicy, long mode) {
+  private FuseFileInOrOutStream(AlluxioJniFuseFileSystem fuseFileSystem,
+      @Nullable FuseFileStream stream, @Nullable URIStatus status, AlluxioURI uri, long mode) {
+    mFuseFileSystem = fuseFileSystem;
     mStream = stream;
-    mFileSystem = fileSystem;
     mStatus = status;
     mUri = uri;
     mMode = mode;
-    mAuthPolicy = authPolicy;
   }
 
   @Override
   public synchronized int read(ByteBuffer buf, long size, long offset)
       throws IOException, AlluxioException {
     if (mStream == null) {
-      mStream = FuseFileInStream.create(mFileSystem, mUri, OpenFlags.O_RDONLY.intValue(), mStatus);
+      mStream = FuseFileInStream.create(mFuseFileSystem, mUri,
+          OpenFlags.O_RDONLY.intValue(), mStatus);
     } else if (!isRead()) {
       throw new IOException("Alluxio does not support reading while writing");
     }
@@ -102,8 +101,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public synchronized void write(ByteBuffer buf, long size, long offset) throws Exception {
     if (mStream == null) {
-      mStream = FuseFileOutStream.create(mFileSystem, mUri, OpenFlags.O_WRONLY.intValue(),
-          mAuthPolicy, mMode, mStatus);
+      mStream = FuseFileOutStream.create(mFuseFileSystem, mUri, OpenFlags.O_WRONLY.intValue(),
+          mMode, mStatus);
     } else if (isRead()) {
       throw new IOException("Alluxio does not support reading while writing");
     }
@@ -138,9 +137,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       return;
     }
     if (size == 0) {
-      mFileSystem.delete(mUri);
-      mStream = FuseFileOutStream.create(mFileSystem, mUri,
-          OpenFlags.O_WRONLY.intValue(), mAuthPolicy, mMode, mStatus);
+      mFuseFileSystem.deleteFile(mUri);
+      mStream = FuseFileOutStream.create(mFuseFileSystem, mUri,
+          OpenFlags.O_WRONLY.intValue(), mMode, mStatus);
     }
   }
 

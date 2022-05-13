@@ -14,18 +14,14 @@ package alluxio.fuse.file;
 import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.AlluxioJniFuseFileSystem;
 
 import jnr.constants.platform.OpenFlags;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.InvalidPathException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -88,25 +84,23 @@ public interface FuseFileStream {
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fileSystem the file system
+     * @param fuseFileSystem the fuse file system
      * @param uri the Alluxio URI
      * @param flags the create/open flags
-     * @param policy the authentication policy
      * @param mode the create file mode, -1 if not set
      * @param status the uri status, null if not uri does not exist
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(FileSystem fileSystem, AlluxioURI uri,
-        int flags, AuthPolicy policy, long mode, @Nullable URIStatus status) throws Exception {
+    public static FuseFileStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
+        int flags, long mode, @Nullable URIStatus status) throws Exception {
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(fileSystem, uri, flags, status);
+          return FuseFileInStream.create(fuseFileSystem, uri, flags, status);
         case O_WRONLY:
-          return FuseFileOutStream.create(fileSystem, uri, flags, policy, mode, status);
+          return FuseFileOutStream.create(fuseFileSystem, uri, flags, mode, status);
         case O_RDWR:
-          return FuseFileInOrOutStream.create(fileSystem, uri, flags, policy, mode, status);
+          return FuseFileInOrOutStream.create(fuseFileSystem, uri, flags, mode, status);
         default:
-          // TODO(lu) what's the default createInternal flag?
           throw new IOException(String.format("Cannot create file stream with flag 0x%x. "
               + "Alluxio does not support file modification. "
               + "Cannot open directory in fuse.open().", flags));
@@ -116,39 +110,29 @@ public interface FuseFileStream {
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fileSystem the file system
+     * @param fuseFileSystem the fuse file system
      * @param uri the Alluxio URI
      * @param flags the create/open flags
-     * @param policy the authentication policy
      * @param mode the create file mode, -1 if not set
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(FileSystem fileSystem, AlluxioURI uri,
-        int flags, AuthPolicy policy, long mode) throws Exception {
-      URIStatus status;
-      try {
-        status = fileSystem.getStatus(uri);
-      } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-        status = null;
-      } catch (Throwable t) {
-        throw new IOException(String.format(
-            "Failed to create write-only stream for %s: failed to get file status", uri), t);
-      }
-      return create(fileSystem, uri, flags, policy, mode, status);
+    public static FuseFileStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
+        int flags, long mode) throws Exception {
+      URIStatus status = fuseFileSystem.getPathStatus(uri);
+      return create(fuseFileSystem, uri, flags, mode, status);
     }
 
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fileSystem the file system
+     * @param fuseFileSystem the fuse file system
      * @param uri the Alluxio URI
      * @param flags the create/open flags
-     * @param authPolicy the authentication policy
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(FileSystem fileSystem, AlluxioURI uri,
-        int flags, AuthPolicy authPolicy) throws Exception {
-      return create(fileSystem, uri, flags, authPolicy, FuseFileStream.MODE_NOT_SET);
+    public static FuseFileStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
+        int flags) throws Exception {
+      return create(fuseFileSystem, uri, flags, FuseFileStream.MODE_NOT_SET);
     }
   }
 }
