@@ -421,6 +421,10 @@ public class LocalCacheManager implements CacheManager {
           // Failed to evict page, remove new page from metastore as there will not be enough space
           undoAddPage(pageId);
         }
+        if (e instanceof PageNotFoundException) {
+          //The victim page got deleted by other thread, likely due to a benign racing. Will retry.
+          return PutResult.BENIGN_RACING;
+        }
         LOG.error("Failed to delete page {} from pageStore", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();
         return PutResult.OTHER;
