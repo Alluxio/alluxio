@@ -144,7 +144,7 @@ public final class InStreamOptions {
    */
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
     Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId),
-        "block id does not belong to the file");
+        "block id %s does not belong to the file %s", blockId, mStatus.getPath());
     // In case it is possible to fallback to read UFS blocks, also fill in the options.
     boolean storedAsUfsBlock = mStatus.getPersistenceState()
         .equals(PersistenceState.TO_BE_PERSISTED.name());
