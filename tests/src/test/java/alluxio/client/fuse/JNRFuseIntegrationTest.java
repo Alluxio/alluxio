@@ -17,7 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.FuseMountConfig;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 
 import com.google.common.collect.ImmutableList;
 
@@ -38,9 +38,9 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void mountFuse(FileSystemContext context,
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     InstancedConfiguration conf = ServerConfiguration.global();
-    FuseMountConfig options =
-        FuseMountConfig.create(mountPoint, alluxioRoot, ImmutableList.of(), conf);
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options, conf);
+    AlluxioFuseFileSystemOpts fuseFsOpts =
+        AlluxioFuseFileSystemOpts.create(mountPoint, alluxioRoot, ImmutableList.of(), false);
+    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, fuseFsOpts, conf);
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 

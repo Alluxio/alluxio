@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -29,6 +30,7 @@ import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
@@ -40,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -86,6 +89,32 @@ public final class AlluxioFuseUtils {
     } else {
       return VersionPreference.NO;
     }
+  }
+
+  /**
+   * Tries to laod Alluxio config from Alluxio Master through Grpc.
+   *
+   * @param conf Alluxio config that has master information
+   * @param fsContext for communicating with master
+   *
+   * @return the Alluxio config if loaded successfully; the unmodified conf otherwise
+   */
+  public static AlluxioConfiguration tryLoadingConfigFromMaster(
+      AlluxioConfiguration conf, FileSystemContext fsContext) {
+    try {
+      InetSocketAddress confMasterAddress =
+          fsContext.getMasterClientContext().getConfMasterInquireClient().getPrimaryRpcAddress();
+      RetryUtils.retry("load cluster default configuration with master " + confMasterAddress,
+          () -> fsContext.getClientContext().loadConfIfNotLoaded(confMasterAddress),
+          RetryUtils.defaultClientRetry(
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+              conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+    } catch (IOException e) {
+      LOG.warn("Failed to load cluster default configuration for Fuse process. "
+          + "Proceed with local configuration for FUSE: {}", e.toString());
+    }
+    return fsContext.getClusterConf();
   }
 
   /**

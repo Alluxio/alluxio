@@ -94,12 +94,13 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    FuseMountConfig opts =
-        FuseMountConfig.create("/doesnt/matter", TEST_ROOT_PATH, ImmutableList.of(), mConf);
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(
+        TEST_ROOT_PATH, "/test/mountPoint", ImmutableList.of(), false);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     try {
-      mFuseFs = new AlluxioJniFuseFileSystem(mFileSystemContext, mFileSystem, opts, mConf);
+      mFuseFs = new AlluxioJniFuseFileSystem(
+          mFileSystemContext, mFileSystem, fuseFsOpts, mConf);
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

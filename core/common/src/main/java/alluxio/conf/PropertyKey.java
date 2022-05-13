@@ -5641,14 +5641,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_MAXWRITE_BYTES =
-      dataSizeBuilder(Name.FUSE_MAXWRITE_BYTES)
-          .setDefaultValue("128KB")
-          .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
-              + "max (as of Linux 3.16.0).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
@@ -7343,7 +7335,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
-    public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =

@@ -16,8 +16,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
-import alluxio.fuse.FuseMountConfig;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.util.io.BufferUtils;
 
@@ -46,10 +46,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void mountFuse(FileSystemContext context,
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     InstancedConfiguration conf = ServerConfiguration.global();
-    FuseMountConfig options =
-        FuseMountConfig.create(mountPoint, alluxioRoot, ImmutableList.of(), conf);
-    mFuseFileSystem =
-        new AlluxioJniFuseFileSystem(context, fileSystem, options, conf);
+    AlluxioFuseFileSystemOpts fuseFsOpts =
+        AlluxioFuseFileSystemOpts.create(alluxioRoot,mountPoint, ImmutableList.of(), false);
+    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts, conf);
     mFuseFileSystem.mount(false, false, new String[] {});
   }
 

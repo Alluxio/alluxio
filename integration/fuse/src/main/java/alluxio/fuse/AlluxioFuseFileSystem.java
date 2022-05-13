@@ -144,14 +144,15 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
    * Creates a new instance of {@link AlluxioFuseFileSystem}.
    *
    * @param fs Alluxio file system
-   * @param opts options
+   * @param fuseFsOpts fuseFsOpts options for fuse filesystem
    * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, FuseMountConfig opts, AlluxioConfiguration conf) {
+  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts,
+      AlluxioConfiguration conf) {
     super();
     mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
-    mAlluxioRootPath = Paths.get(opts.getMountAlluxioPath());
+    mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
 
     final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);

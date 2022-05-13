@@ -139,18 +139,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    *
    * @param fsContext the file system context
    * @param fs Alluxio file system
-   * @param opts options
+   * @param fuseFsOpts options for fuse filesystem
    * @param conf Alluxio configuration
    */
   public AlluxioJniFuseFileSystem(
-      FileSystemContext fsContext, FileSystem fs, FuseMountConfig opts, AlluxioConfiguration conf) {
-    super(Paths.get(opts.getMountPoint()));
+      FileSystemContext fsContext, FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts,
+      AlluxioConfiguration conf) {
+    super(Paths.get(fuseFsOpts.getMountPoint()));
     mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystemContext = fsContext;
     mFileSystem = fs;
     mConf = conf;
-    mAlluxioRootPath = Paths.get(opts.getMountAlluxioPath());
-    mMountPoint = opts.getMountPoint();
+    mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
+    mMountPoint = fuseFsOpts.getMountPoint();
     mFuseShell = new FuseShell(fs, conf);
     long statCacheTimeout = conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
@@ -187,7 +188,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
-    if (opts.isDebug()) {
+    if (fuseFsOpts.isDebug()) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
       } catch (IOException e) {
