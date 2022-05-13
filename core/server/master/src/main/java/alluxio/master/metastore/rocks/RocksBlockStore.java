@@ -14,12 +14,15 @@ package alluxio.master.metastore.rocks;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.BlockStore;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
@@ -40,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
 import javax.annotation.concurrent.ThreadSafe;
@@ -94,6 +98,115 @@ public class RocksBlockStore implements BlockStore {
     }
     mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
         Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
+
+    // metrics
+    final long CACHED_GAUGE_TIMEOUT_S =
+        ServerConfiguration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS.getName(),
+        () -> getProperty("rocksdb.background-errors"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_CAPACITY.getName(),
+        () -> getProperty("rocksdb.block-cache-capacity"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE.getName(),
+        () -> getProperty("rocksdb.block-cache-pinned-usage"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_USAGE.getName(),
+        () -> getProperty("rocksdb.block-cache-usage"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_COMPACTION_PENDING.getName(),
+        () -> getProperty("rocksdb.compaction-pending"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_CUR_SIZE_ACTIVE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.cur-size-active-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.cur-size-all-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATE_NUM_KEYS.getName(),
+        () -> getProperty("rocksdb.estimate-num-keys"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATE_PENDING_COMPACTION_BYTES.getName(),
+        () -> getProperty("rocksdb.estimate-pending-compaction-bytes"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM.getName(),
+        () -> getProperty("rocksdb.estimate-table-readers-mem"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_LIVE_SST_FILES_SIZE.getName(),
+        () -> getProperty("rocksdb.live-sst-files-size"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_MEM_TABLE_FLUSH_PENDING.getName(),
+        () -> getProperty("rocksdb.mem-table-flush-pending"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_DELETES_ACTIVE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.num-deletes-active-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_DELETES_IMM_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.num-deletes-imm-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_ENTRIES_ACTIVE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.num-entries-active-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_ENTRIES_IMM_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.num-entries-imm-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_IMMUTABLE_MEM_TABLE.getName(),
+        () -> getProperty("rocksdb.num-immutable-mem-table"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_LIVE_VERSIONS.getName(),
+        () -> getProperty("rocksdb.num-live-versions"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_RUNNING_COMPACTIONS.getName(),
+        () -> getProperty("rocksdb.num-running-compactions"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_NUM_RUNNING_FLUSHES.getName(),
+        () -> getProperty("rocksdb.num-running-flushes"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_SIZE_ALL_MEM_TABLES.getName(),
+        () -> getProperty("rocksdb.size-all-mem-tables"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_TOTAL_SST_FILES_SIZE.getName(),
+        () -> getProperty("rocksdb.total-sst-files-size"),
+        CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+
+    ImmutableSet<MetricKey> s = ImmutableSet.of(MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_USAGE,
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATE_TABLE_READERS_MEM,
+        MetricKey.MASTER_ROCKS_BLOCK_CUR_SIZE_ALL_MEM_TABLES,
+        MetricKey.MASTER_ROCKS_BLOCK_BLOCK_CACHE_PINNED_USAGE);
+    MetricsSystem.registerAggregatedCachedGaugeIfAbsent(
+        MetricKey.MASTER_ROCKS_BLOCK_ESTIMATED_MEM_USAGE.getName(),
+        s, CACHED_GAUGE_TIMEOUT_S, TimeUnit.MILLISECONDS);
+  }
+
+  private long getProperty(String rocksPropertyName) {
+    try {
+      return db().getAggregatedLongProperty(rocksPropertyName);
+    } catch (RocksDBException e) {
+      LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
+    }
+    return -1;
   }
 
   @Override

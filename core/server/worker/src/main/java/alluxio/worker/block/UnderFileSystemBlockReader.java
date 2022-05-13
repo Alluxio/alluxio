@@ -360,7 +360,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
             WORKER_STORAGE_TIER_ASSOC.getAlias(0));
         mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
             AllocateOptions.forCreate(mInitialBlockSize, loc));
-        mBlockWriter = mLocalBlockStore.getBlockWriter(
+        mBlockWriter = mLocalBlockStore.createBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
     } catch (BlockAlreadyExistsException e) {

@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -97,16 +96,18 @@ public class ActiveSyncer implements HeartbeatExecutor {
         // This returns a list of ufsUris that we need to sync.
         Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
         // Parallelize across sync points
-        List<CompletableFuture<Long>> tasksPerSync = new ArrayList<>();
+        CompletableFuture<Long>[] tasksPerSync = new CompletableFuture[ufsSyncPoints.size()];
+        int idx = 0;
         for (AlluxioURI ufsUri : ufsSyncPoints) {
-          tasksPerSync.add(CompletableFuture.supplyAsync(() -> {
+          tasksPerSync[idx] = CompletableFuture.supplyAsync(() -> {
             processSyncPoint(ufsUri, syncInfo);
             return syncInfo.getTxId();
-          }, mSyncManager.getExecutor()));
+          }, mSyncManager.getExecutor());
+          idx++;
         }
         // Journal the latest processed txId
         CompletableFuture<Void> syncTask =
-            CompletableFuture.allOf(tasksPerSync.toArray(new CompletableFuture<?>[0]))
+            CompletableFuture.allOf(tasksPerSync)
             .thenRunAsync(() -> mFileSystemMaster
                     .recordActiveSyncTxid(syncInfo.getTxId(), mMountId),
                 mSyncManager.getExecutor());

@@ -40,7 +40,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -615,6 +617,21 @@ public class LocalCacheManager implements CacheManager {
             + "discarded {} pages ({} bytes)",
         options, mMetaStore.pages(), mMetaStore.bytes(), discardedPages, discardedBytes);
     return true;
+  }
+
+  @Override
+  public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
+    int numOfPages = (int) (fileLength / mPageSize);
+    List<PageId> pageIds = new ArrayList<>(numOfPages);
+    try (LockResource r = new LockResource(mMetaLock.readLock())) {
+      for (long pageIndex = 0; pageIndex < numOfPages; pageIndex++) {
+        PageId pageId = new PageId(fileId, pageIndex);
+        if (mMetaStore.hasPage(pageId)) {
+          pageIds.add(pageId);
+        }
+      }
+    }
+    return pageIds;
   }
 
   @Override
