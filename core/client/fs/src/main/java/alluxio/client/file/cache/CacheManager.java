@@ -86,7 +86,7 @@ public interface CacheManager extends AutoCloseable {
       if (CACHE_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
           if (CACHE_MANAGER.get() == null) {
-            CACHE_MANAGER.set(create(conf));
+            CACHE_MANAGER.set(create(conf, MetaStore.create(conf)));
           }
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
@@ -98,17 +98,19 @@ public interface CacheManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
+     * @param metaStore
      * @return an instance of {@link CacheManager}
      */
-    static CacheManager create(AlluxioConfiguration conf) throws IOException {
+    public static CacheManager create(AlluxioConfiguration conf,
+                                      MetaStore metaStore) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore), conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(conf));
+        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);
