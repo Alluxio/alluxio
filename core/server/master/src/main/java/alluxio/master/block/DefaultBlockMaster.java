@@ -442,7 +442,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         String msg = String.format(
             "ClockTime: %d, LastActivityTime: %d. Worker %d register stream hanging for %sms!"
                 + " Tune up %s if this is undesired.",
-            clockTime, lastActivityTime, context.mWorker.getId(), staleTime,
+            clockTime, lastActivityTime, context.getWorkerInfo().getId(), staleTime,
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
         Exception e = new TimeoutException(msg);
         try {
@@ -1116,26 +1116,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
 
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
-    mActiveRegisterContexts.put(worker.getId(), context);
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+    mActiveRegisterContexts.put(workerInfo.getId(), context);
 
-    // The worker is locked so we can operate on its blocks without race conditions
+    // The workerInfo is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
     // With each batch we receive, we mark them not-to-be-removed.
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
-    worker.markAllBlocksToRemove();
-    worker.updateUsage(MASTER_STORAGE_TIER_ASSOC, storageTiers,
+    workerInfo.markAllBlocksToRemove();
+    workerInfo.updateUsage(MASTER_STORAGE_TIER_ASSOC, storageTiers,
         totalBytesOnTiers, usedBytesOnTiers);
-    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-    processWorkerOrphanedBlocks(worker);
-    worker.addLostStorage(lostStorage);
+    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
+    processWorkerOrphanedBlocks(workerInfo);
+    workerInfo.addLostStorage(lostStorage);
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        WorkerNetAddress workerAddress = workerInfo.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
                 options.getConfigsList());
       }
@@ -1146,55 +1146,55 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
                 chunk.getCurrentBlocksList(), context.getWorkerId());
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
 
-    // Even if we add the BlockLocation before the worker is fully registered,
-    // it should be fine because the block can be read on this worker.
+    // Even if we add the BlockLocation before the workerInfo is fully registered,
+    // it should be fine because the block can be read on this workerInfo.
     // If the stream fails in the middle, the blocks recorded on the MasterWorkerInfo
     // will be removed by processLostWorker()
-    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
 
-    processWorkerOrphanedBlocks(worker);
+    processWorkerOrphanedBlocks(workerInfo);
 
     // Update the TS at the end of the process
-    worker.updateLastUpdatedTimeMs();
+    workerInfo.updateLastUpdatedTimeMs();
   }
 
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) {
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
 
-    // Detect any lost blocks on this worker.
+    // Detect any lost blocks on this workerInfo.
     Set<Long> removedBlocks;
-    if (worker.mIsRegistered) {
-      // This is a re-register of an existing worker. Assume the new block ownership data is more
+    if (workerInfo.mIsRegistered) {
+      // This is a re-register of an existing workerInfo. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: {}", worker.getId());
+      LOG.info("re-registering an existing workerId: {}", workerInfo.getId());
 
       // The toRemoveBlocks field now contains all the updates
       // after all the blocks have been processed.
-      removedBlocks = worker.getToRemoveBlocks();
+      removedBlocks = workerInfo.getToRemoveBlocks();
     } else {
       removedBlocks = Collections.emptySet();
     }
-    LOG.info("Found {} blocks to remove from the worker", removedBlocks.size());
-    processWorkerRemovedBlocks(worker, removedBlocks, true);
+    LOG.info("Found {} blocks to remove from the workerInfo", removedBlocks.size());
+    processWorkerRemovedBlocks(workerInfo, removedBlocks, true);
 
     // Mark registered successfully
-    worker.mIsRegistered = true;
-    recordWorkerRegistration(worker.getId());
+    workerInfo.mIsRegistered = true;
+    recordWorkerRegistration(workerInfo.getId());
 
     // Update the TS at the end of the process
-    worker.updateLastUpdatedTimeMs();
+    workerInfo.updateLastUpdatedTimeMs();
 
-    // Invalidate cache to trigger new build of worker info list
+    // Invalidate cache to trigger new build of workerInfo info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
-    LOG.info("Worker successfully registered: {}", worker);
-    mActiveRegisterContexts.remove(worker.getId());
+    LOG.info("Worker successfully registered: {}", workerInfo);
+    mActiveRegisterContexts.remove(workerInfo.getId());
   }
 
   @Override
