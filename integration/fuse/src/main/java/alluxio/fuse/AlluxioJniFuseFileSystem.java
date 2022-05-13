@@ -451,6 +451,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
         return -ErrorCodes.EBADFD();
       }
+      mFileEntries.remove(entry);
       entry.getFileStream().close();
     } catch (IOException e) {
       LOG.error("Failed to close {}:", path, e);

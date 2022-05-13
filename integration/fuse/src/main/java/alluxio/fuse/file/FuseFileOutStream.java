@@ -40,6 +40,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private final FileSystem mFileSystem;
   private final AlluxioURI mURI;
 
+  private long mOriginalFileLen;
   private FileOutStream mOutStream;
 
   /**
@@ -55,16 +56,6 @@ public class FuseFileOutStream implements FuseFileStream {
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AlluxioURI uri, int flags,
       AuthPolicy authPolicy, long mode, @Nullable URIStatus status) throws Exception {
-    if (status != null) {
-      if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
-        fileSystem.delete(uri);
-        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
-            + "Alluxio deleted the old file and created a new file for writing", uri, flags));
-      } else {
-        throw new IOException(String.format("Failed to create write-only stream for %s: "
-            + "cannot overwrite existing file without truncate flag", uri));
-      }
-    }
     CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
     if (mode == MODE_NOT_SET && status != null) {
       optionsBuilder.setMode(new Mode((short) status.getMode()).toProto());
@@ -73,20 +64,33 @@ public class FuseFileOutStream implements FuseFileStream {
       optionsBuilder.setMode(new Mode((short) mode).toProto());
     }
     CreateFilePOptions options = optionsBuilder.build();
+    long fileLen = status == null ? 0 : status.getLength();
+    if (status != null) {
+      if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
+        fileSystem.delete(uri);
+        fileLen = 0;
+        LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
+            + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+      } else {
+        // Support open(O_WRONLY flag) - truncate(0) - write() workflow, otherwise error out
+        return new FuseFileOutStream(null, fileLen, fileSystem, uri, options, authPolicy);
+      }
+    }
     FileOutStream out = fileSystem.createFile(uri, options);
     if (authPolicy != null) {
       authPolicy.setUserGroupIfNeeded(uri);
     }
-    return new FuseFileOutStream(out, fileSystem, uri, options, authPolicy);
+    return new FuseFileOutStream(out, fileLen, fileSystem, uri, options, authPolicy);
   }
 
-  private FuseFileOutStream(FileOutStream outStream, FileSystem fileSystem,
+  private FuseFileOutStream(@Nullable FileOutStream outStream, long fileLen, FileSystem fileSystem,
       AlluxioURI uri, CreateFilePOptions options, AuthPolicy authPolicy) {
     mOutStream = outStream;
     mCreateFileOptions = options;
     mFileSystem = fileSystem;
     mURI = uri;
     mAuthPolicy = authPolicy;
+    mOriginalFileLen = fileLen;
   }
 
   @Override
@@ -98,6 +102,10 @@ public class FuseFileOutStream implements FuseFileStream {
   public synchronized void write(ByteBuffer buf, long size, long offset) throws IOException {
     if (size > Integer.MAX_VALUE) {
       throw new IOException(String.format("Cannot write more than %s", Integer.MAX_VALUE));
+    }
+    if (mOutStream == null) {
+      throw new IOException(
+          "Cannot overwrite existing file without O_TRUNC flag or truncate(0) operation");
     }
     int sz = (int) size;
     long bytesWritten = mOutStream.getBytesWritten();
@@ -118,31 +126,41 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized long getFileLength() {
+    if (mOutStream == null) {
+      return mOriginalFileLen;
+    }
     return mOutStream.getBytesWritten();
   }
 
   @Override
   public synchronized void flush() throws IOException {
+    if (mOutStream == null) {
+      return;
+    }
     mOutStream.flush();
   }
 
   @Override
   public synchronized void truncate(long size) throws Exception {
-    if (mOutStream.getBytesWritten() == size) {
+    if (mOutStream != null && mOutStream.getBytesWritten() == size) {
       return;
     }
     if (size == 0) {
-      mOutStream.close();
+      close();
       mFileSystem.delete(mURI);
       mOutStream = mFileSystem.createFile(mURI, mCreateFileOptions);
       if (mAuthPolicy != null) {
         mAuthPolicy.setUserGroupIfNeeded(mURI);
       }
+      return;
     }
+    throw new IOException(String.format("Cannot truncate file %s to size %s", mURI, size));
   }
 
   @Override
   public synchronized void close() throws IOException {
-    mOutStream.close();
+    if (mOutStream != null) {
+      mOutStream.close();
+    }
   }
 }
