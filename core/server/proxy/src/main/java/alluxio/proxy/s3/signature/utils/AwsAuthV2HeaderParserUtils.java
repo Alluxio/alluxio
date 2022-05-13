@@ -57,8 +57,8 @@ public final class AwsAuthV2HeaderParserUtils {
         signature,
         "",
         "",
-         "",
-         false
+        "",
+        false
     );
   }
 }

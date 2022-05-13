@@ -144,6 +144,6 @@ public class SignatureInfo {
    * Signature version.
    */
   public enum Version {
-    NONE, V4, V2;
+    V4, V2;
   }
 }

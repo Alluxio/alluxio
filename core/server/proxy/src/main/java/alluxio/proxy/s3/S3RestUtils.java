@@ -38,6 +38,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
@@ -300,6 +304,87 @@ public final class S3RestUtils {
    */
   public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
     return conf.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
+  }
+
+  /**
+   * Convert header map key to lower case key.
+   * @param rawHeaders header map
+   * @return lower case key map
+   */
+  public static Map<LowerCaseKey, String> lowerCaseKeyMap(MultivaluedMap<String,
+                                                                String> rawHeaders) {
+    final Map<LowerCaseKey, String> headers = new HashMap<>();
+
+    for (Map.Entry<String, List<String>> headerEntry : rawHeaders.entrySet()) {
+      if (0 < headerEntry.getValue().size()) {
+        String headerKey = headerEntry.getKey();
+        if (!headers.containsKey(LowerCaseKey.valueOf(headerKey))) {
+          headers.put(new LowerCaseKey(headerKey), headerEntry.getValue().get(0));
+        }
+      }
+    }
+    return headers;
+  }
+
+  /**
+   * Convert MultivaluedMap to a single value map.
+   *
+   * @param queryParameters
+   * @return a single value map
+   */
+  public static Map<String, String> fromMultiValueToSingleValueMap(
+      MultivaluedMap<String, String> queryParameters) {
+    Map<String, String> result = new HashMap<>();
+    for (String key : queryParameters.keySet()) {
+      result.put(key, queryParameters.getFirst(key));
+    }
+    return result;
+  }
+
+  /**
+   * A class which get lowercase key.
+   */
+  public static class LowerCaseKey {
+    String mKey;
+
+    /**
+     * Constructs a new instance of {@link LowerCaseKey}.
+     * @param key header key
+     */
+    public LowerCaseKey(String key) {
+      mKey = key;
+    }
+
+    /**
+     * Constructs a new instance of {@link LowerCaseKey}.
+     * @param key
+     * @return LowerCaseKey instance
+     */
+    public static LowerCaseKey valueOf(String key) {
+      return new LowerCaseKey(key);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      LowerCaseKey that = (LowerCaseKey) o;
+      return mKey.equalsIgnoreCase(that.mKey);
+    }
+
+    @Override
+    public int hashCode() {
+      return mKey != null ? mKey.toLowerCase().hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+      return mKey.toLowerCase();
+    }
   }
 
   /**

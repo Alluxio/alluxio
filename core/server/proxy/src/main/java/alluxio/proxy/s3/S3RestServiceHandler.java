@@ -100,8 +100,6 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
-  private AwsSignatureProcessor mSignatureProcessor;
-  private Authenticator mAuthenticator;
 
   @Context
   private ContainerRequestContext mRequestContext;
@@ -129,10 +127,8 @@ public final class S3RestServiceHandler {
    * @return username
    * @throws S3Exception
    */
-  public String getUser(String authorization) throws S3Exception {
+  private String getUser(String authorization) throws S3Exception {
     if (S3RestUtils.isAuthenticationEnabled(mSConf)) {
-      mSignatureProcessor = new AwsSignatureProcessor(mRequestContext);
-      mAuthenticator = Authenticator.Factory.create(mSConf);
       return getUserFromSignature();
     } else {
       return getUserFromAuthorization(authorization);
@@ -145,9 +141,11 @@ public final class S3RestServiceHandler {
    * @return username
    * @throws S3Exception
    */
-  public String getUserFromSignature() throws S3Exception {
-    AwsAuthInfo authInfo = mSignatureProcessor.getAuthInfo();
-    if (mAuthenticator.isAuthenticated(authInfo)) {
+  private String getUserFromSignature() throws S3Exception {
+    AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(mRequestContext);
+    Authenticator authenticator = Authenticator.Factory.create(mSConf);
+    AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
+    if (authenticator.isAuthenticated(authInfo)) {
       return authInfo.getAccessID();
     }
     throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
@@ -163,6 +161,7 @@ public final class S3RestServiceHandler {
     if (authorization == null) {
       return null;
     }
+
     // Parse the authorization header defined at
     // https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html
     // All other authorization types are deprecated or EOL (as of writing)

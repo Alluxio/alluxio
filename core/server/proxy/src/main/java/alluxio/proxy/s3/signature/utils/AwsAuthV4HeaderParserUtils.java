@@ -61,6 +61,15 @@ public final class AwsAuthV4HeaderParserUtils {
 
   /**
    * Function to parse signature.
+   *
+   * Sample authHeader value:
+   * AWS4-HMAC-SHA256 Credential=testuser/20220510/us-east-1/s3/aws4_request, \
+   * SignedHeaders=amz-sdk-invocation-id;amz-sdk-request;host;x-amz-content-sha256;x-amz-date, \
+   * Signature=687370ebf9278c5c0b1ef744aa84026d471e074701fd31817012dc54d5c2cedc
+   *
+   * Sample dateHeader value:
+   * 20220510T081815Z
+   *
    * @param authHeader authorization header string
    * @param dateHeader date string
    * @return SignatureInfo instance
@@ -141,7 +150,7 @@ public final class AwsAuthV4HeaderParserUtils {
       credential = credential.substring(CREDENTIAL.length());
       // Parse credential. Other parts of header are not validated yet. When
       // security comes, it needs to be completed.
-      return AwsCredential.Factory.create(credential);
+      return AwsCredential.create(credential);
     }
     throw new S3Exception(authHeader, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
   }

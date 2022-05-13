@@ -5858,7 +5858,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey S3_REST_AUTHENTICATOR_CLASSNAME =
        classBuilder(Name.S3_REST_AUTHENTICATOR_CLASSNAME)
            .setDescription("The class's name is instantiated as an S3 authenticator.")
-           .setDefaultValue("alluxio.proxy.s3.auth.DefaultAuthenticator")
+           .setDefaultValue("alluxio.proxy.s3.auth.PassAllAuthenticator")
            .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
            .setScope(Scope.ALL)
            .build();

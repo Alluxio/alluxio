@@ -36,17 +36,8 @@ public interface Authenticator {
     public static Authenticator create(AlluxioConfiguration conf) {
       Authenticator authenticator = CommonUtils.createNewClassInstance(
                 conf.getClass(PropertyKey.S3_REST_AUTHENTICATOR_CLASSNAME), null, null);
-
-      authenticator.init(conf);
       return authenticator;
     }
-  }
-
-    /**
-   * Initialize the authenticator.
-   * @param conf
-   */
-  default void init(AlluxioConfiguration conf) {
   }
 
   /**

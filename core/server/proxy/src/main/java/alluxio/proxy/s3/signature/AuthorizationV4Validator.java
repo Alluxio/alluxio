@@ -11,6 +11,8 @@
 
 package alluxio.proxy.s3.signature;
 
+import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
+
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.SigningAlgorithm;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 /**
@@ -32,11 +33,32 @@ public class AuthorizationV4Validator {
   private static final Logger LOG =
             LoggerFactory.getLogger(AuthorizationV4Validator.class);
 
-  private static final String LINE_SEPARATOR = "\n";
-  private static final String SIGN_SEPARATOR = "/";
+  private static final char LINE_SEPARATOR = '\n';
+  private static final char SIGN_SEPARATOR = '/';
   private static final String AWS4_TERMINATOR = "aws4_request";
+  private static final SigningAlgorithm HMAC_SHA256 = SigningAlgorithm.HmacSHA256;
 
   private AuthorizationV4Validator() {
+  }
+
+  /**
+   * Validate request by comparing Signature from request. Returns true if
+   * aws request is legit else returns false.
+   * Signature = HEX(HMAC_SHA256(key, String to Sign))
+   *
+   * For more details refer to AWS documentation: https://docs.aws.amazon.com
+   * /AmazonS3/latest/API/sigv4-streaming.html
+   *
+   * @param strToSign string to sign
+   * @param signature signature string
+   * @param userKey secretKey
+   * @return ture, if validate success
+   */
+  public static boolean validateRequest(String strToSign, String signature,
+                                        String userKey) {
+    String expectedSignature = Hex.encode(sign(getSignedKey(userKey,
+            strToSign), strToSign));
+    return expectedSignature.equals(signature);
   }
 
   /**
@@ -46,7 +68,7 @@ public class AuthorizationV4Validator {
    * @return sign bytes
    */
   private static byte[] sign(byte[] key, String msg) {
-    return sign(msg.getBytes(StandardCharsets.UTF_8), key, SigningAlgorithm.HmacSHA256);
+    return sign(msg.getBytes(AUTHORIZATION_CHARSET), key, HMAC_SHA256);
   }
 
   private static byte[] sign(byte[] data, byte[] key, SigningAlgorithm algorithm)
@@ -82,31 +104,11 @@ public class AuthorizationV4Validator {
     String regionName = signData[1];
     String serviceName = signData[2];
     byte[] kDate = sign(String.format("%s%s", "AWS4", key)
-                .getBytes(StandardCharsets.UTF_8), dateStamp);
+                .getBytes(AUTHORIZATION_CHARSET), dateStamp);
     byte[] kRegion = sign(kDate, regionName);
     byte[] kService = sign(kRegion, serviceName);
     byte[] kSigning = sign(kService, AWS4_TERMINATOR);
     LOG.info(Hex.encode(kSigning));
     return kSigning;
-  }
-
-  /**
-   * Validate request by comparing Signature from request. Returns true if
-   * aws request is legit else returns false.
-   * Signature = HEX(HMAC_SHA256(key, String to Sign))
-   *
-   * For more details refer to AWS documentation: https://docs.aws.amazon.com
-   * /AmazonS3/latest/API/sigv4-streaming.html
-   *
-   * @param strToSign string to sign
-   * @param signature signature string
-   * @param userKey secretKey
-   * @return ture, if validate success
-   */
-  public static boolean validateRequest(String strToSign, String signature,
-                                          String userKey) {
-    String expectedSignature = Hex.encode(sign(getSignedKey(userKey,
-                strToSign), strToSign));
-    return expectedSignature.equals(signature);
   }
 }

@@ -11,34 +11,32 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.signature.SignerConstants.TIME_FORMATTER;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_CONTENT_SHA256;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNATURE;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_CONTENT_SHA256;
+import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
+import static alluxio.proxy.s3.S3Constants.TIME_FORMATTER;
 
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
-import alluxio.proxy.s3.signature.AwsSignatureProcessor.LowerCaseKeyStringMap;
+import alluxio.proxy.s3.S3RestUtils;
+import alluxio.proxy.s3.S3RestUtils.LowerCaseKey;
 
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -51,10 +49,11 @@ import java.time.temporal.ChronoUnit;
  */
 public final class StringToSignProducer {
   private static final Logger LOG = LoggerFactory.getLogger(StringToSignProducer.class);
-  private static final Charset UTF_8 = StandardCharsets.UTF_8;
   private static final String NEWLINE = "\n";
   private static final String HOST = "host";
+  private static final String X_AMZ_DATE = "x-amz-date";
   private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+  private static final String SHA_256_ALGORITHM = "SHA-256";
   /**
    * Seconds in a week, which is the max expiration time Sig-v4 accepts.
    */
@@ -80,9 +79,8 @@ public final class StringToSignProducer {
         context.getUriInfo().getRequestUri().getScheme(),
         context.getMethod(),
         context.getUriInfo().getRequestUri().getPath(),
-        LowerCaseKeyStringMap.fromHeaderMap(context.getHeaders()),
-        fromMultiValueToSingleValueMap(
-        context.getUriInfo().getQueryParameters()));
+        S3RestUtils.lowerCaseKeyMap(context.getHeaders()),
+        S3RestUtils.fromMultiValueToSingleValueMap(context.getUriInfo().getQueryParameters()));
   }
 
   /**
@@ -112,7 +110,7 @@ public final class StringToSignProducer {
        String scheme,
        String method,
        String uri,
-       LowerCaseKeyStringMap headers,
+       Map<LowerCaseKey, String> headers,
        Map<String, String> queryParams
   ) throws Exception {
     StringBuilder strToSign = new StringBuilder();
@@ -142,29 +140,14 @@ public final class StringToSignProducer {
   }
 
   /**
-   * Convert MultivaluedMap to a single value map.
-   *
-   * @param queryParameters
-   * @return a single value map
-   */
-  public static Map<String, String> fromMultiValueToSingleValueMap(
-            MultivaluedMap<String, String> queryParameters) {
-    Map<String, String> result = new HashMap<>();
-    for (String key : queryParameters.keySet()) {
-      result.put(key, queryParameters.getFirst(key));
-    }
-    return result;
-  }
-
-  /**
    * Compute a hash for provided string.
    * @param payload
    * @return hashed string
    * @throws NoSuchAlgorithmException
    */
   public static String hash(String payload) throws NoSuchAlgorithmException {
-    MessageDigest md = MessageDigest.getInstance("SHA-256");
-    md.update(payload.getBytes(UTF_8));
+    MessageDigest md = MessageDigest.getInstance(SHA_256_ALGORITHM);
+    md.update(payload.getBytes(AUTHORIZATION_CHARSET));
     return Hex.encode(md.digest()).toLowerCase();
   }
 
@@ -185,21 +168,22 @@ public final class StringToSignProducer {
       String method,
       String uri,
       String signedHeaders,
-      Map<String, String> headers,
+      Map<LowerCaseKey, String> headers,
       Map<String, String> queryParams,
       boolean unsignedPayload
   ) throws S3Exception {
     String canonicalUri = getCanonicalUri("/", uri);
 
     String canonicalQueryStr = getQueryParamString(queryParams);
+    System.out.println(canonicalQueryStr);
 
     StringBuilder canonicalHeaders = new StringBuilder();
 
     for (String header : signedHeaders.split(";")) {
-      canonicalHeaders.append(header.toLowerCase());
+      canonicalHeaders.append(header);
       canonicalHeaders.append(":");
-      if (headers.containsKey(header)) {
-        String headerValue = headers.get(header);
+      if (headers.containsKey(LowerCaseKey.valueOf(header))) {
+        String headerValue = headers.get(LowerCaseKey.valueOf(header));
         canonicalHeaders.append(headerValue);
         canonicalHeaders.append(NEWLINE);
 
@@ -212,11 +196,11 @@ public final class StringToSignProducer {
     }
 
     String payloadHash;
-    if (UNSIGNED_PAYLOAD.equals(headers.get(X_AMZ_CONTENT_SHA256))
+    if (UNSIGNED_PAYLOAD.equals(headers.get(LowerCaseKey.valueOf(S3_SIGN_CONTENT_SHA256)))
             || unsignedPayload) {
       payloadHash = UNSIGNED_PAYLOAD;
     } else {
-      payloadHash = headers.get(X_AMZ_CONTENT_SHA256);
+      payloadHash = headers.get(LowerCaseKey.valueOf(S3_SIGN_CONTENT_SHA256));
     }
     StringJoiner canonicalRequestJoiner = new StringJoiner(NEWLINE);
     canonicalRequestJoiner.add(method)
@@ -248,6 +232,21 @@ public final class StringToSignProducer {
     return result.toString();
   }
 
+  private static String getQueryParamString(Map<String, String> queryMap) {
+    List<String> params = new ArrayList<>(queryMap.keySet());
+
+    // Sort by name, then by value
+    Collections.sort(params, (o1, o2) -> o1.equals(o2)
+            ? queryMap.get(o1).compareTo(queryMap.get(o2))
+            : o1.compareTo(o2));
+    params.remove(S3_SIGN_SIGNATURE);
+
+    StringJoiner joiner = new StringJoiner("&");
+    params.forEach(key ->
+        joiner.add(String.format("%s=%s", urlEncode(key), urlEncode(queryMap.get(key)))));
+    return joiner.toString();
+  }
+
   /**
    * Encode url.
    *
@@ -268,28 +267,6 @@ public final class StringToSignProducer {
     }
   }
 
-  private static String getQueryParamString(Map<String, String> queryMap) {
-    List<String> params = new ArrayList<>(queryMap.keySet());
-
-    // Sort by name, then by value
-    Collections.sort(params, (o1, o2) -> o1.equals(o2)
-            ? queryMap.get(o1).compareTo(queryMap.get(o2))
-            : o1.compareTo(o2));
-
-    StringBuilder result = new StringBuilder();
-    for (String p : params) {
-      if (!p.equals("X-Amz-Signature")) {
-        if (result.length() > 0) {
-          result.append("&");
-        }
-        result.append(urlEncode(p));
-        result.append('=');
-        result.append(urlEncode(queryMap.get(p)));
-      }
-    }
-    return result.toString();
-  }
-
   static void validateSignedHeader(
       String schema,
       String header,
@@ -307,17 +284,15 @@ public final class StringToSignProducer {
         }
         break;
       case X_AMZ_DATE:
-        LocalDate date = LocalDate.parse(headerValue, TIME_FORMATTER);
-        LocalDate now = LocalDate.now();
-        if (date.isBefore(now.minus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))
-             || date.isAfter(now.plus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))) {
+        LocalDateTime dateTime = LocalDateTime.parse(headerValue, TIME_FORMATTER);
+        LocalDateTime now = LocalDateTime.now();
+        if (dateTime.isBefore(now.minus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))
+            || dateTime.isAfter(now.plus(PRESIGN_URL_MAX_EXPIRATION_SECONDS, ChronoUnit.SECONDS))) {
           LOG.error("AWS date not in valid range. Request timestamp:{} should "
                  + "not be older than {} seconds.", headerValue,
                  PRESIGN_URL_MAX_EXPIRATION_SECONDS);
           throw new S3Exception(headerValue, S3ErrorCode.AUTHINFO_CREATION_ERROR);
         }
-        break;
-      case X_AMZ_CONTENT_SHA256:
         break;
       default:
         break;

@@ -24,7 +24,7 @@ import alluxio.proxy.s3.S3Exception;
  *                 signedInfo.getSignature(),
  *                 secret);
  */
-public class DefaultAuthenticator implements Authenticator {
+public class PassAllAuthenticator implements Authenticator {
   @Override
   public boolean isAuthenticated(AwsAuthInfo authInfo) throws S3Exception {
     return true;

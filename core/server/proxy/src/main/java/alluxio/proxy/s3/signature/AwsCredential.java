@@ -11,7 +11,7 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.signature.SignerConstants.DATE_FORMATTER;
+import static alluxio.proxy.s3.S3Constants.DATE_FORMATTER;
 
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.S3ErrorCode;
@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Credential in the AWS authorization header.
@@ -100,78 +102,55 @@ public class AwsCredential {
   }
 
   /**
-   * Factory to create a {@link AwsCredential} instance.
+   * Parse credential value.
+   *
+   * Sample credential value:
+   * Credential=testuser/20220316/us-east-1/s3/aws4_request
+   *
+   * @param credential credential string
+   * @return AwsCredential instance
+   * @throws S3Exception
    */
-  public static class Factory {
-    /**
-     * Parse credential value.
-     *
-     * Sample credential value:
-     * Credential=testuser/20220316/us-east-1/s3/aws4_request
-     *
-     * @param credential credential string
-     * @return AwsCredential instance
-     * @throws S3Exception
-     */
-    public static AwsCredential create(String credential) throws S3Exception {
-      if (isValidCredential(credential)) {
-        String[] split = credential.split("/");
-        boolean isKerberos = isKerberosPrincipal(credential);
-        String accessKeyID = isKerberos ? String.format("%s/%s", split[0], split[1]) : split[0];
-        String date = isKerberos ? split[2] : split[1];
-        String awsRegion = isKerberos ? split[3] : split[2];
-        String awsService = isKerberos ? split[4] : split[3];
-        String awsRequest = isKerberos ? split[5] : split[4];
-        validateDateRange(credential, date);
-        return new AwsCredential(accessKeyID, date, awsRegion, awsService, awsRequest);
-      }
-      LOG.error("Credentials not in expected format. credential:{}", credential);
-      throw new S3Exception(credential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+  public static AwsCredential create(String credential) throws S3Exception {
+    Pattern pattern = Pattern.compile("(\\S+)(/\\d+)(/\\S+)(/\\S+)(/aws\\S+)");
+    Matcher matcher = pattern.matcher(credential);
+    if (matcher.find()) {
+      String accessKeyID = matcher.group(1);
+      String date = matcher.group(2).substring(1);
+      String awsRegion = matcher.group(3).substring(1);
+      String awsService = matcher.group(4).substring(1);
+      String awsRequest = matcher.group(5).substring(1);
+      validateDateRange(credential, date);
+      return new AwsCredential(accessKeyID, date, awsRegion, awsService, awsRequest);
     }
 
-    /**
-     * To check credential format.
-     * @param credential credential string
-     * @return true if credential is valid
-     */
-    private static boolean isValidCredential(String credential) {
-      return credential.matches("\\S+(/\\S+){4,5}");
-    }
+    LOG.error("Credentials not in expected format. credential:{}", credential);
+    throw new S3Exception(credential, S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+  }
 
-    /**
-     * To check if contain kerberos principal.
-     * @param credential credential string
-     * @return true if contain kerberos principal
-     */
-    private static boolean isKerberosPrincipal(String credential) {
-      return credential.matches("\\S+(/\\S+){5}");
+  /**
+   * validate credential info.
+   *
+   * @param credential credential string
+   * @param dateString date string
+   * @throws S3Exception
+   */
+  public static void validateDateRange(String credential, String dateString) throws S3Exception {
+    // Date should not be empty and within valid range.
+    if (dateString.isEmpty()) {
+      LOG.error("Aws date shouldn't be empty. credential:{}", credential);
+      throw new S3Exception("Aws date is empty", credential,
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
-
-    /**
-     * validate credential info.
-     *
-     * @param credential credential string
-     * @param dateString date string
-     * @throws S3Exception
-     */
-    public static void validateDateRange(String credential, String dateString) throws S3Exception {
-      // Date should not be empty and within valid range.
-      if (!dateString.isEmpty()) {
-        LocalDate date = LocalDate.parse(dateString, DATE_FORMATTER);
-        LocalDate now = LocalDate.now();
-        if (date.isBefore(now.minus(1, ChronoUnit.DAYS))
-                || date.isAfter(now.plus(1, ChronoUnit.DAYS))) {
-          LOG.error("AWS date not in valid range. Date:{} should not be older "
-                  + "than 1 day(i.e yesterday) and greater than 1 day(i.e "
-                  + "tomorrow).", date);
-          throw new S3Exception("AWS date not in valid range", credential,
-                  S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
-        }
-      } else {
-        LOG.error("Aws date shouldn't be empty. credential:{}", credential);
-        throw new S3Exception("Aws date is empty", credential,
-                S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
-      }
+    LocalDate date = LocalDate.parse(dateString, DATE_FORMATTER);
+    LocalDate now = LocalDate.now();
+    if (date.isBefore(now.minus(1, ChronoUnit.DAYS))
+        || date.isAfter(now.plus(1, ChronoUnit.DAYS))) {
+      LOG.error("AWS date not in valid range. Date:{} should not be older "
+          + "than 1 day(i.e yesterday) and greater than 1 day(i.e "
+          + "tomorrow).", date);
+      throw new S3Exception("AWS date not in valid range", credential,
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
   }
 }

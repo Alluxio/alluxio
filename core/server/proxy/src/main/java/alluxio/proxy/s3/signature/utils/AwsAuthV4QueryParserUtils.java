@@ -11,13 +11,14 @@
 
 package alluxio.proxy.s3.signature.utils;
 
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_DATE;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_SIGNATURE;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_CREDENTIAL;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_SIGNED_HEADER;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_ALGORITHM;
-import static alluxio.proxy.s3.signature.SignerConstants.X_AMZ_EXPIRES;
-import static alluxio.proxy.s3.signature.SignerConstants.TIME_FORMATTER;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_CREDENTIAL;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNATURE;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_DATE;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNED_HEADER;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_ALGORITHM;
+import static alluxio.proxy.s3.S3Constants.S3_SIGN_EXPIRES;
+import static alluxio.proxy.s3.S3Constants.TIME_FORMATTER;
+import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
 
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.signature.AwsCredential;
@@ -45,35 +46,36 @@ public final class AwsAuthV4QueryParserUtils {
    */
   public static SignatureInfo parseSignature(Map<String, String> queryParameters)
           throws S3Exception {
-    if (!queryParameters.containsKey(X_AMZ_SIGNATURE)) {
+    if (!queryParameters.containsKey(S3_SIGN_SIGNATURE)) {
       return null;
     }
     validateDateAndExpires(queryParameters);
-    final String rawCredential = queryParameters.get(X_AMZ_CREDENTIAL);
+    final String rawCredential = queryParameters.get(S3_SIGN_CREDENTIAL);
 
     AwsCredential credential = null;
     try {
-      credential = AwsCredential.Factory.create(URLDecoder.decode(rawCredential, "UTF-8"));
+      credential = AwsCredential.create(URLDecoder.decode(rawCredential,
+          AUTHORIZATION_CHARSET.name()));
     } catch (UnsupportedEncodingException e) {
       throw new IllegalArgumentException("X-Amz-Credential is not proper URL encoded");
     }
 
     return new SignatureInfo(
-            SignatureInfo.Version.V4,
-            credential.getDate(),
-            queryParameters.get(X_AMZ_DATE),
-            credential.getAccessKeyID(),
-            queryParameters.get(X_AMZ_SIGNATURE),
-            queryParameters.get(X_AMZ_SIGNED_HEADER),
-            credential.createScope(),
-            queryParameters.get(X_AMZ_ALGORITHM),
-            false
+        SignatureInfo.Version.V4,
+        credential.getDate(),
+        queryParameters.get(S3_SIGN_DATE),
+        credential.getAccessKeyID(),
+        queryParameters.get(S3_SIGN_SIGNATURE),
+        queryParameters.get(S3_SIGN_SIGNED_HEADER),
+        credential.createScope(),
+        queryParameters.get(S3_SIGN_ALGORITHM),
+        false
     );
   }
 
   protected static void validateDateAndExpires(Map<String, String> queryParameters) {
-    final String dateString = queryParameters.get(X_AMZ_DATE);
-    final String expiresString = queryParameters.get(X_AMZ_EXPIRES);
+    final String dateString = queryParameters.get(S3_SIGN_DATE);
+    final String expiresString = queryParameters.get(S3_SIGN_EXPIRES);
     if (expiresString != null && expiresString.length() > 0) {
       final Long expires = Long.valueOf(expiresString);
 
