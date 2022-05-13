@@ -877,6 +877,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey HOST_SSH_PORT =
+      intBuilder(Name.HOST_SSH_PORT)
+          .setDefaultValue(22)
+          .setDescription("The SSH Port that used for shell remote connect between nodes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   /**
    * UFS related properties.
    */
@@ -6354,6 +6361,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
     public static final String ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
         "alluxio.zookeeper.leader.connection.error.policy";
+    public static final String HOST_SSH_PORT = "alluxio.host.ssh.port";
     //
     // UFS related properties
     //
