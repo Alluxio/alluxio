@@ -207,6 +207,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId)
       throws InvalidWorkerStateException, IOException {
+    LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
     // TODO(bowen): implement actual removal and replace placeholder values
     boolean removeSuccess = true;
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -218,7 +219,6 @@ public class PagedLocalBlockStore implements LocalBlockStore {
         }
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -293,7 +293,6 @@ public class PagedLocalBlockStore implements LocalBlockStore {
         listener.onStorageLost(lostStoreLocation);
       }
     }
-    throw new UnsupportedOperationException();
   }
 
   @Override
