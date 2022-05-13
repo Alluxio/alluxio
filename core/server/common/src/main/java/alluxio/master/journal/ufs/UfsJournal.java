@@ -672,6 +672,7 @@ public class UfsJournal implements Journal {
       mStopCatchingUp = true;
     }
 
+    @Override
     protected void runCatchup() {
       // Update suspended sequence after catch-up is finished.
       mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;
