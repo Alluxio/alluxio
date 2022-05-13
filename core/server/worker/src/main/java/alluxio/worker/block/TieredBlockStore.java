@@ -385,13 +385,12 @@ public class TieredBlockStore implements LocalBlockStore
       blockMeta = mMetaManager.getBlockMeta(blockId);
     }
 
-    if (blockMeta.isPresent()) {
-      try (LockResource r = new LockResource(mMetadataWriteLock)) {
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      if (blockMeta.isPresent()) {
         removeBlockFileAndMeta(blockMeta.get());
       }
-      finally {
-        mLockManager.unlockBlock(lockId.getAsLong());
-      }
+    } finally {
+      mLockManager.unlockBlock(lockId.getAsLong());
     }
     return blockMeta;
   }
