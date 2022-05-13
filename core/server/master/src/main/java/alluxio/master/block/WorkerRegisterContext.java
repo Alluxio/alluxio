@@ -11,6 +11,8 @@
 
 package alluxio.master.block;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -53,13 +55,14 @@ public class WorkerRegisterContext implements Closeable {
       MasterWorkerInfo workerInfo,
       StreamObserver<RegisterWorkerPRequest> workerRequestObserver,
       Clock clock) {
-    mWorkerInfo = workerInfo;
-    mWorkerRequestObserver = workerRequestObserver;
+    mWorkerInfo = requireNonNull(workerInfo, "workerInfo is null");
+    mWorkerRequestObserver = requireNonNull(workerRequestObserver,
+        "mWorkerRequestObserver is null");
     mWorkerLock = workerInfo.lockWorkerMeta(EnumSet.of(
         WorkerMetaLockSection.STATUS,
         WorkerMetaLockSection.USAGE,
         WorkerMetaLockSection.BLOCKS), false);
-    mClock = clock;
+    mClock = requireNonNull(clock, "clock is null");
     mLastActivityTimeMs = mClock.millis();
   }
 
@@ -122,7 +125,7 @@ public class WorkerRegisterContext implements Closeable {
   }
 
   /**
-   * @return MasterWorkerInfo worker's runtime info
+   * @return MasterWorkerInfo worker's runtime info and metadata
    */
   public MasterWorkerInfo getWorkerInfo() {
     return mWorkerInfo;

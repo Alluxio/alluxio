@@ -1171,8 +1171,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Detect any lost blocks on this workerInfo.
     Set<Long> removedBlocks;
     if (workerInfo.mIsRegistered) {
-      // This is a re-register of an existing workerInfo. Assume the new block ownership data is more
-      // up-to-date and update the existing block information.
+      // This is a re-register of an existing workerInfo. Assume the new block ownership data is
+      // more up-to-date and update the existing block information.
       LOG.info("re-registering an existing workerId: {}", workerInfo.getId());
 
       // The toRemoveBlocks field now contains all the updates
