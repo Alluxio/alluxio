@@ -31,6 +31,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -50,7 +51,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
   private final OutStreamOptions mOptions;
   private final long mSessionId;
   private final long mBufferSize;
-  private long mReservedBytes;
+  private final long mReservedBytes;
 
   /**
    * Creates an instance of {@link BlockWorkerDataWriter}.
@@ -71,7 +72,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
     long sessionId = IdUtils.createSessionId();
     try {
       blockWorker.createBlock(sessionId, blockId, options.getWriteTier(),
-          new CreateBlockOptions(null, options.getMediumType(), reservedBytes));
+          new CreateBlockOptions(Optional.ofNullable(options.getMediumType()), reservedBytes));
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);

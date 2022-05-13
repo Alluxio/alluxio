@@ -31,6 +31,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -87,7 +88,8 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
             mSessionId = IdUtils.createSessionId();
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
                 request.getTier(),
-                new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
+                new CreateBlockOptions(Optional.ofNullable(request.getMediumType()),
+                    request.getSpaceToReserve()));
             CreateLocalBlockResponse response =
                 CreateLocalBlockResponse.newBuilder().setPath(path).build();
             return response;

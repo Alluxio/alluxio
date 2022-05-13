@@ -347,10 +347,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(tier);
-    if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
-      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    if (createBlockOptions.getMedium().isPresent()) {
+      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium().get());
     } else {
-      loc = BlockStoreLocation.anyDirInAnyTierWithMedium(createBlockOptions.getMedium());
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
     }
     TempBlockMeta createdBlock;
     try {
