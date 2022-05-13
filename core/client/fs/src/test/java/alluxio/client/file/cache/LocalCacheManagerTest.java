@@ -800,11 +800,19 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     FaultyPageStore pageStore = new FaultyPageStore();
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, pageStore);
-    pageStore.setDeleteFaulty(true);
     // first put should be ok
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     // trigger a failed eviction
+    pageStore.setPutFaulty(true);
+    // put operation failed because we do not retry for the IO exception from put
     assertFalse(mCacheManager.put(PAGE_ID2, PAGE2));
+    //clear put faulty and set delete faulty to true
+    pageStore.setPutFaulty(false);
+    pageStore.setDeleteFaulty(true);
+    // put operation succeeded after retry
+    assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
+    assertArrayEquals(PAGE2, mBuf);
     // restore page store to function
     pageStore.setDeleteFaulty(false);
     // trigger another eviction, this should work
