@@ -262,14 +262,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             FileOutStream os = ce.getOut();
             size = os.getBytesWritten();
           }
-        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
-          // Always block waiting for file to be completed except when the file is writing
-          // We do not want to block the writing process
-          LOG.error("File {} is not completed", path);
-        } else {
-          // Update the file status after waiting
-          status = mFileSystem.getStatus(uri);
-          size = status.getLength();
         }
       }
       stat.st_size.set(size);
@@ -558,16 +550,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
     FileOutStream os = ce.getOut();
     long bytesWritten = os.getBytesWritten();
-    if (offset != bytesWritten && offset + sz > bytesWritten) {
+    if (offset != bytesWritten) {
       LOG.error("Only sequential write is supported. Cannot write bytes of size {} to offset {} "
           + "when {} bytes have written to path {}", size, offset, bytesWritten, path);
       return -ErrorCodes.EIO();
-    }
-    if (offset + sz <= bytesWritten) {
-      LOG.warn("Skip writting to file {} offset={} size={} when {} bytes has written to file",
-          path, offset, sz, bytesWritten);
-      // To fulfill vim :wq
-      return sz;
     }
 
     try {
