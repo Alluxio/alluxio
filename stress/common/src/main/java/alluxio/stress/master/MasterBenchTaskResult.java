@@ -13,6 +13,7 @@ package alluxio.stress.master;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
+import alluxio.util.JsonSerializable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -254,7 +255,9 @@ public final class MasterBenchTaskResult implements TaskResult {
         nodes.put(result.getBaseParameters().mId, result);
 
         if (mergingTaskResult == null) {
-          mergingTaskResult = result;
+          // make a deep copy from the first task result
+          String jsonResult = result.toJson();
+          mergingTaskResult = (MasterBenchTaskResult) JsonSerializable.fromJson(jsonResult);
           continue;
         }
         mergingTaskResult.aggregateByWorker(result);
