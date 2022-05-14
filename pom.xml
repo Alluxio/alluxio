@@ -167,7 +167,8 @@
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
     <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
     <libcephfs.version>0.0.1</libcephfs.version>
-    <jnr-fuse.version>0.5.5</jnr-fuse.version>
+    <jnr-ffi.version>2.2.9</jnr-ffi.version>
+    <jnr-fuse.version>0.5.7</jnr-fuse.version>
   </properties>
 
   <modules>
@@ -249,6 +250,11 @@
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.jnr</groupId>
+        <artifactId>jnr-ffi</artifactId>
+        <version>${jnr-ffi.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.serceman</groupId>
