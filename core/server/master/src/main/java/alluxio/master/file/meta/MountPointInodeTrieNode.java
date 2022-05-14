@@ -7,13 +7,16 @@ import java.util.*;
 
 @NotThreadSafe
 public final class MountPointInodeTrieNode<T> {
+  // mChildren stores the map from T to the child TrieNode of its children
   private Map<T, MountPointInodeTrieNode<T>> mChildren = new HashMap<>();
 
-  // mLists is valid only when mIsTerminal is true
+  // mList is valid only when mIsTerminal is true
   private List<T> mList = null;
 
+  // mIsMountPoint is set when inserting a list of inodes
   private boolean mIsMountPoint = false;
 
+  // mIsTerminal is true if the path is the last TrieNode of an inserted path
   private boolean mIsTerminal = false;
 
   /**
@@ -122,27 +125,32 @@ public final class MountPointInodeTrieNode<T> {
    * @param predicate filter the children nodes
    * @return all the children TrieNodes
    */
-  public List<T> allChildren(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate) {
-    List<T> childrenNodes = new ArrayList<>();
+  public List<MountPointInodeTrieNode<T>> allChildrenTrieNode(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate) {
+    List<MountPointInodeTrieNode<T>> childrenNodes = new ArrayList<>();
     if (isLastTrieNode()) {
       return childrenNodes;
     }
     Queue<MountPointInodeTrieNode<T>> queue = new LinkedList<>();
     queue.add(this);
-
     while(!queue.isEmpty()) {
       MountPointInodeTrieNode<T> front = queue.poll();
+      if(front != this && predicate.apply(front)) {
+        childrenNodes.add(front);
+      }
       for(Map.Entry<T, MountPointInodeTrieNode<T>> entry : front.mChildren.entrySet()) {
         MountPointInodeTrieNode<T> value = entry.getValue();
         queue.add(value);
-        if(value.mIsTerminal && predicate.apply(value)) {
-          childrenNodes.add(entry.getKey());
-        }
       }
     }
     return childrenNodes;
   }
 
+  /**
+   * Removes the given inodes from current TrieNode
+   * @param inodes inodes of the path to be removed
+   * @param predicate the condition to qualify inodes
+   * @return not null if the inodes are removed successfully, else return null
+   */
   public MountPointInodeTrieNode<T> remove(List<T> inodes,
                                            java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate) {
     Stack<Pair<MountPointInodeTrieNode<T>, T>> parents = new Stack<>();
@@ -194,6 +202,10 @@ public final class MountPointInodeTrieNode<T> {
     return mIsMountPoint;
   }
 
+  /**
+   * Checks whether current TrieNode is a valid inserted path
+   * @return true if current TrieNode is created via insert
+   */
   public boolean isTerminal() {
     return mIsTerminal;
   }
