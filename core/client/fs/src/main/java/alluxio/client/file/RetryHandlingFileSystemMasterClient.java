@@ -68,6 +68,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.FileInfo;
 import alluxio.wire.SyncPointInfo;
 
 import org.slf4j.Logger;
@@ -200,10 +201,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public String getFilePath(long fileId) throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getFilePath(GetFilePathPRequest
-            .newBuilder().setFileId(fileId).build()).getPath(), RPC_LOG, "GetFilePath", "fileId=%d",
-        fileId);
+  public FileInfo getFilePath(long fileId) throws AlluxioStatusException {
+    return retryRPC(() -> GrpcUtils.fromProto(mClient.getFilePath(GetFilePathPRequest
+            .newBuilder().setFileId(fileId).build()).getFileInfo()),
+        RPC_LOG, "GetFilePath", "fileId=%d", fileId);
   }
 
   @Override

@@ -34,6 +34,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.security.authorization.AclEntry;
+import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -90,7 +91,7 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public String getFilePath(long fileId) throws AlluxioStatusException {
+  public FileInfo getFilePath(long fileId) throws AlluxioStatusException {
     return null;
   }
 

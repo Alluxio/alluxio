@@ -323,7 +323,9 @@ message FileInfo {
 }
 
 message GetFilePathPResponse {
+  /* For backward compatibility, remove path in the next release version. */
   optional string path = 1;
+  optional FileInfo fileInfo = 2;
 }
 message GetFilePathPRequest {
   optional int64 fileId = 1;

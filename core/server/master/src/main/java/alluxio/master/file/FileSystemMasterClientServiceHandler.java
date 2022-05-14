@@ -90,6 +90,7 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.underfs.UfsMode;
+import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -221,10 +222,12 @@ public final class FileSystemMasterClientServiceHandler
   public void getFilePath(GetFilePathPRequest request,
       StreamObserver<GetFilePathPResponse> responseObserver) {
     long fileId = request.getFileId();
-    RpcUtils.call(LOG,
-        () -> GetFilePathPResponse.newBuilder()
-            .setPath(mFileSystemMaster.getPath(fileId).toString()).build(),
-        "GetFilePath", true, "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> {
+      FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+      return GetFilePathPResponse.newBuilder()
+          .setPath(fileInfo.getPath())
+          .setFileInfo(GrpcUtils.toProto(fileInfo)).build();
+    }, "GetFilePath", true, "request=%s", responseObserver, request);
   }
 
   @Override

@@ -35,6 +35,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
+import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -144,7 +145,7 @@ public interface FileSystemMasterClient extends Client {
    * @param fileId a file id
    * @return the file path for the given file id
    */
-  String getFilePath(long fileId) throws AlluxioStatusException;
+  FileInfo getFilePath(long fileId) throws AlluxioStatusException;
 
   /**
    * @param path the file path

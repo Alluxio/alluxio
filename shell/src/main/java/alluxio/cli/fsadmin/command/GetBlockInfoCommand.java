@@ -81,7 +81,7 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
     long fileId = BlockId.getFileId(blockId);
     String path = null;
     try {
-      path = mFsClient.getFilePath(fileId);
+      path = mFsClient.getFilePath(fileId).getPath();
     } catch (Exception e) {
       // ignore
     }

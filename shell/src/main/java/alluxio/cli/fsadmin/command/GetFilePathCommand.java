@@ -16,6 +16,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.wire.FileInfo;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -71,8 +72,8 @@ public class GetFilePathCommand extends AbstractFsAdminCommand {
     }
 
     try {
-      String path = mFsClient.getFilePath(fileId);
-      System.out.println(path);
+      FileInfo fileInfo = mFsClient.getFilePath(fileId);
+      System.out.println(fileInfo);
     } catch (Exception e) {
       System.err.println("Command failed with exception:");
       e.printStackTrace(System.err);

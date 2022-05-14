@@ -2747,6 +2747,11 @@
                 "id": 1,
                 "name": "path",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "fileInfo",
+                "type": "FileInfo"
               }
             ]
           },
