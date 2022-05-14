@@ -20,15 +20,11 @@ import alluxio.proto.journal.Journal.JournalEntry;
  * serialized in protocol buffer format.
  */
 public class JournalEntryCommand {
+  // this is necessary for serialization
   private static final long serialVersionUID = 7020023290825215903L;
 
-  private int mSize;
-  private byte[] mSerializedJournalEntry;
-
-  /**
-   * No-arg constructor for use by Catalyst deserialization.
-   */
-  public JournalEntryCommand() {}
+  private final int mSize;
+  private final byte[] mSerializedJournalEntry;
 
   /**
    * Constructs a {@link JournalEntryCommand} for a journal entry.

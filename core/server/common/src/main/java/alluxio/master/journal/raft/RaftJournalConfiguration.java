@@ -28,13 +28,18 @@ import java.util.List;
  * Configuration for the Raft journal system.
  */
 public class RaftJournalConfiguration {
-  private List<InetSocketAddress> mClusterAddresses;
-  private long mMinElectionTimeoutMs;
-  private long mMaxElectionTimeoutMs;
+  private long mMinElectionTimeoutMs =
+      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
+  private long mMaxElectionTimeoutMs =
+      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+  private long mMaxLogSize =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+  private Integer mMaxConcurrencyPoolSize =
+      ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX);
+  private File mPath = new File(JournalUtils.getJournalLocation().getPath());
+
   private InetSocketAddress mLocalAddress;
-  private long mMaxLogSize;
-  private File mPath;
-  private Integer mMaxConcurrencyPoolSize;
+  private List<InetSocketAddress> mClusterAddresses;
 
   /**
    * @param serviceType either master raft service or job master raft service
@@ -44,16 +49,8 @@ public class RaftJournalConfiguration {
     return new RaftJournalConfiguration()
         .setClusterAddresses(ConfigurationUtils
             .getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType))
-        .setElectionMinTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT))
-        .setElectionMaxTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
-            ServerConfiguration.global()))
-        .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
-        .setPath(new File(JournalUtils.getJournalLocation().getPath()))
-        .setMaxConcurrencyPoolSize(
-            ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX));
+            ServerConfiguration.global()));
   }
 
   /**

@@ -91,7 +91,7 @@ public class RaftJournalWriterTest {
         return reply;
       }
     };
-    when(mClient.sendAsync(any(), any())).thenReturn(future);
+    when(mClient.sendAsync(any())).thenReturn(future);
 
     mRaftJournalWriter = new RaftJournalWriter(1, mClient);
   }
@@ -107,16 +107,16 @@ public class RaftJournalWriterTest {
               .setAlluxioPath(alluxioMountPoint)
               .setUfsPath(ufsPath).build()).build());
     }
-    verify(mClient, never()).sendAsync(any(), any());
+    verify(mClient, never()).sendAsync(any());
 
     mRaftJournalWriter.flush();
-    verify(mClient, times(1)).sendAsync(any(), any());
+    verify(mClient, times(1)).sendAsync(any());
     mRaftJournalWriter.flush();
-    verify(mClient, times(1)).sendAsync(any(), any());
+    verify(mClient, times(1)).sendAsync(any());
 
     mRaftJournalWriter.write(Journal.JournalEntry.getDefaultInstance());
     mRaftJournalWriter.flush();
-    verify(mClient, times(2)).sendAsync(any(), any());
+    verify(mClient, times(2)).sendAsync(any());
   }
 
   @Test
@@ -137,6 +137,6 @@ public class RaftJournalWriterTest {
               .setUfsPath(ufsPath).build()).build());
     }
     mRaftJournalWriter.write(Journal.JournalEntry.getDefaultInstance());
-    verify(mClient, atLeast(totalMessageBytes / flushBatchSize)).sendAsync(any(), any());
+    verify(mClient, atLeast(totalMessageBytes / flushBatchSize)).sendAsync(any());
   }
 }

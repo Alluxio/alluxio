@@ -174,9 +174,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   private final RaftJournalConfiguration mConf;
   /** Controls whether state machine can take snapshots. */
-  private final AtomicBoolean mSnapshotAllowed;
-  /** Controls whether or not the quorum leadership can be transferred. */
-  private final AtomicBoolean mTransferLeaderAllowed;
+  private final AtomicBoolean mSnapshotAllowed = new AtomicBoolean(true);
+  /** Controls whether the quorum leadership can be transferred. */
+  private final AtomicBoolean mTransferLeaderAllowed = new AtomicBoolean(false);
 
   private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
       new ConcurrentHashMap<>();
@@ -186,12 +186,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * object is the same as the lifecycle of the {@link RaftJournalSystem}. When the Ratis server
    * is reset during failover, this object must be re-initialized with the new server.
    */
-  private final RaftPrimarySelector mPrimarySelector;
+  private final RaftPrimarySelector mPrimarySelector = new RaftPrimarySelector();
 
   /// Lifecycle: constant from when the journal system is started.
 
   /** Contains all journals created by this journal system. */
-  private final ConcurrentHashMap<String, RaftJournal> mJournals;
+  private final ConcurrentHashMap<String, RaftJournal> mJournals = new ConcurrentHashMap<>();
 
   /// Lifecycle: created at startup and re-created when master loses primacy and resets.
 
@@ -217,7 +217,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * will use the writer within this reference. The writer is null when the journal is in standby
    * mode.
    */
-  private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
+  private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter = new AtomicReference<>();
   /**
    * The id for submitting a normal raft client request.
    **/
@@ -229,7 +229,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
-  private final Map<String, TransferLeaderMessage> mErrorMessages;
+  private final Map<String, TransferLeaderMessage> mErrorMessages = new ConcurrentHashMap<>();
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -240,12 +240,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   private RaftJournalSystem(RaftJournalConfiguration conf) {
     mConf = processRaftConfiguration(conf);
-    mJournals = new ConcurrentHashMap<>();
-    mSnapshotAllowed = new AtomicBoolean(true);
-    mTransferLeaderAllowed = new AtomicBoolean(false);
-    mPrimarySelector = new RaftPrimarySelector();
-    mAsyncJournalWriter = new AtomicReference<>();
-    mErrorMessages = new ConcurrentHashMap<>();
   }
 
   private void maybeMigrateOldJournal() {
@@ -487,8 +481,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void gainPrimacy() {
     LOG.info("Gaining primacy.");
     mSnapshotAllowed.set(false);
-    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId, ServerConfiguration.global());
+    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient, mRawClientId);
 
     Runnable closeClient = () -> {
       try {
@@ -617,7 +610,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from standby master
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId, ServerConfiguration.global())) {
+        mRawClientId)) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
@@ -650,8 +643,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private void catchUp(JournalStateMachine stateMachine, RaftJournalAppender client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
-    long waitBeforeRetry = ServerConfiguration.global()
-        .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
+    long waitBeforeRetry =
+        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
@@ -704,8 +697,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       Exception ex;
       try {
         CompletableFuture<RaftClientReply> future = client.sendAsync(
-            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()),
-            TimeDuration.valueOf(5, TimeUnit.SECONDS));
+            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
         RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
         ex = reply.getException();
       } catch (TimeoutException | ExecutionException | IOException e) {

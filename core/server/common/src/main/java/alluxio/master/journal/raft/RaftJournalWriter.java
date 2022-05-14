@@ -21,7 +21,6 @@ import alluxio.util.FormatUtils;
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
-import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,41 +39,33 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
   // How long to wait for a response from the cluster before giving up and trying again.
-  private final long mWriteTimeoutMs;
-  private final long mEntrySizeMax;
-  private final long mFlushBatchBytes;
+  private final long mWriteTimeoutMs =
+      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
+  // journal entry size max is the hard limit set by underlying ratis
+  // use a smaller value to guarantee we don't pass the hard limit
+  private final long mEntrySizeMax =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+  private final long mFlushBatchBytes = mEntrySizeMax / 3;
 
   private final AtomicLong mNextSequenceNumberToWrite;
-  private final AtomicLong mLastSubmittedSequenceNumber;
-  private final AtomicLong mLastCommittedSequenceNumber;
+  private final AtomicLong mLastSubmittedSequenceNumber = new AtomicLong(-1);
+  private final AtomicLong mLastCommittedSequenceNumber = new AtomicLong(-1);
 
   private final RaftJournalAppender mClient;
 
-  private volatile boolean mClosed;
+  private volatile boolean mClosed = false;
   private JournalEntry.Builder mJournalEntryBuilder;
-  private final AtomicLong mCurrentJournalEntrySize;
+  private final AtomicLong mCurrentJournalEntrySize = new AtomicLong(0);
 
   /**
    * @param nextSequenceNumberToWrite the sequence number for the writer to begin writing at
    * @param client client for writing entries to the journal; the constructed journal writer owns
    *               this client and is responsible for closing it
    */
-  public RaftJournalWriter(long nextSequenceNumberToWrite,
-      RaftJournalAppender client) {
+  public RaftJournalWriter(long nextSequenceNumberToWrite, RaftJournalAppender client) {
     LOG.debug("Journal writer created starting at SN#{}", nextSequenceNumberToWrite);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
-    mLastSubmittedSequenceNumber = new AtomicLong(-1);
-    mLastCommittedSequenceNumber = new AtomicLong(-1);
-    mCurrentJournalEntrySize = new AtomicLong(0);
     mClient = client;
-    mClosed = false;
-    mWriteTimeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
-    // journal entry size max is the hard limit set by underlying ratis
-    // use a smaller value to guarantee we don't pass the hard limit
-    mEntrySizeMax = ServerConfiguration
-        .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
-    mFlushBatchBytes = mEntrySizeMax / 3;
   }
 
   @Override
@@ -118,8 +109,7 @@ public class RaftJournalWriter implements JournalWriter {
         Message message = RaftJournalSystem.toRaftMessage(entry);
         mLastSubmittedSequenceNumber.set(flushSN);
         LOG.trace("Flushing entry {} ({})", entry, message);
-        RaftClientReply reply = mClient
-            .sendAsync(message, TimeDuration.valueOf(mWriteTimeoutMs, TimeUnit.MILLISECONDS))
+        RaftClientReply reply = mClient.sendAsync(message)
             .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
         mLastCommittedSequenceNumber.set(flushSN);
         if (reply.getException() != null) {
