@@ -16,6 +16,8 @@ import static org.junit.Assert.assertTrue;
 import alluxio.TestLoggerRule;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.TestUserState;
@@ -47,8 +49,12 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
   @Before
   public void before() throws Exception {
     mWorkerNetAddress = mClusterResource.get().getWorkerAddress();
+    InstancedConfiguration conf = ServerConfiguration.global();
+    // testMultiClose needs these configuration keys to make the resource pool do GC
+    conf.set(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS, 10);
+    conf.set(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS, 100);
     mFsContext = FileSystemContext
-        .create(new TestUserState("test", ServerConfiguration.global()).getSubject(),
+        .create(new TestUserState("test", conf).getSubject(),
             ServerConfiguration.global());
   }
 
@@ -67,6 +73,18 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
       assertTrue(client.get().isShutdown());
       client.close();
     }
+  }
+
+  @Test
+  public void testMultiClose() throws Exception {
+    CloseableResource<BlockWorkerClient> client = mFsContext
+        .acquireBlockWorkerClient(mWorkerNetAddress);
+    Assert.assertFalse(client.get().isShutdown());
+    client.get().close();
+    assertTrue(client.get().isShutdown());
+    client.close();
+    Thread.sleep(1000);
+    client.close();
   }
 
   @Ignore

@@ -4524,6 +4524,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS =
+      durationBuilder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which block master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       dataSizeBuilder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -7198,6 +7205,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.min";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MAX =
         "alluxio.user.block.worker.client.pool.max";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.block.worker.client.pool.gc.interval";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
     public static final String USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
