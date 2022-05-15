@@ -487,14 +487,25 @@ public class InodeSyncStream {
    * be synced as well.
    *
    * @param path The path to sync
-   * @return true if the system has valid cache for this path
+   * @return true if this path was synced
    */
   private boolean processSyncPath(AlluxioURI path) {
     if (path == null) {
       return false;
     }
+
+    boolean hasCache;
+    try {
+      hasCache = (mStatusCache.getStatus(path) != null);
+    } catch (FileNotFoundException e) {
+      LogUtils.warnWithException(LOG, "Failed to process sync path: {}", path, e);
+      return false;
+    }
+
     LockingScheme scheme;
-    if (mForceSync) {
+    // hasCache is true means listStatus already prefetched metadata of children,
+    // update metadata for such cases
+    if (mForceSync || hasCache) {
       scheme = new LockingScheme(path, LockPattern.READ, true);
     } else {
       scheme = new LockingScheme(path, LockPattern.READ, mSyncOptions,
@@ -502,7 +513,7 @@ public class InodeSyncStream {
     }
 
     if (!scheme.shouldSync() && !mForceSync) {
-      return true;
+      return false;
     }
     try (LockedInodePath inodePath = mInodeTree.tryLockInodePath(scheme)) {
       if (Thread.currentThread().isInterrupted()) {
