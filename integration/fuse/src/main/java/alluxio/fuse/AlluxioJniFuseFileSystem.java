@@ -350,13 +350,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int openInternal(String path, FuseFileInfo fi, int flags) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
-      FuseFileStream stream = FuseFileStream.Factory.create(this, uri, flags);
+      FuseFileStream stream = FuseFileStream.Factory.create(
+          this, mPathResolverCache.getUnchecked(path), flags);
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
-    } catch (Throwable t) {
+    } catch (Exception e) {
       LOG.error(String.format("Failed to open %s: openAction=0x%x", path, flags), t);
       return -ErrorCodes.EIO();
     }
@@ -373,15 +373,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int readInternal(
       String path, ByteBuffer buf, long size, long offset, long fd) {
+    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
+    if (entry == null) {
+      LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
+      return -ErrorCodes.EBADFD();
+    }
     try {
-      FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
-      if (entry == null) {
-        LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
-        return -ErrorCodes.EBADFD();
-      }
       return entry.getFileStream().read(buf, size, offset);
-    } catch (Throwable t) {
-      LOG.error("Failed to read {}: size={} offset={}", path, size, offset, t);
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Failed to read {}: size={} offset={}", path, size, offset, e);
       return -ErrorCodes.EIO();
     }
   }
@@ -397,11 +397,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int writeInternal(
       String path, ByteBuffer buf, long size, long offset, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
+    if (entry == null) {
+      LOG.error("Failed to write {}: Cannot find fd {}", path, fd);
+      return -ErrorCodes.EBADFD();
+    }
     try {
-      if (entry == null) {
-        LOG.error("Failed to write {}: Cannot find fd {}", path, fd);
-        return -ErrorCodes.EBADFD();
-      }
       entry.getFileStream().write(buf, size, offset);
     } catch (Exception e) {
       LOG.error("Failed to write {}:", path, e);
@@ -419,11 +419,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int flushInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
+    if (entry == null) {
+      LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
+      return -ErrorCodes.EBADFD();
+    }
     try {
-      if (entry == null) {
-        LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
-        return -ErrorCodes.EBADFD();
-      }
       entry.getFileStream().flush();
     } catch (IOException e) {
       LOG.error("Failed to flush {}:", path, e);
@@ -441,19 +441,17 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int releaseInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
+    if (entry == null) {
+      LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
+      return -ErrorCodes.EBADFD();
+    }
     try {
-      if (entry == null) {
-        LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
-        return -ErrorCodes.EBADFD();
-      }
       entry.getFileStream().close();
     } catch (IOException e) {
       LOG.error("Failed to close {}:", path, e);
       return -ErrorCodes.EIO();
     } finally {
-      if (entry != null) {
-        mFileEntries.remove(entry);
-      }
+      mFileEntries.remove(entry);
     }
     return 0;
   }

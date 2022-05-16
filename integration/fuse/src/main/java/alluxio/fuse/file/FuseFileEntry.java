@@ -26,9 +26,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class FuseFileEntry<T extends FuseFileStream>
     implements Closeable {
   private final long mId;
+  private final String mPath;
   private final T mFileStream;
-  // Path is likely to be changed when fuse rename() is called
-  private String mPath;
 
   /**
    * Constructs a new {@link FuseFileEntry} for an Alluxio file.
@@ -38,11 +37,13 @@ public final class FuseFileEntry<T extends FuseFileStream>
    * @param fileStream the in/out stream of the file
    */
   public FuseFileEntry(long id, String path, T fileStream) {
-    Preconditions.checkArgument(id != -1 && !path.isEmpty());
+    Preconditions.checkArgument(id >= 0, "id should not be negative");
+    Preconditions.checkArgument(path != null && !path.isEmpty(),
+        "path should not be null or empty");
     Preconditions.checkNotNull(fileStream, "file stream cannot be null");
     mId = id;
-    mFileStream = fileStream;
     mPath = path;
+    mFileStream = fileStream;
   }
 
   /**
@@ -73,8 +74,6 @@ public final class FuseFileEntry<T extends FuseFileStream>
    */
   @Override
   public void close() throws IOException {
-    if (mFileStream != null) {
-      mFileStream.close();
-    }
+    mFileStream.close();
   }
 }
