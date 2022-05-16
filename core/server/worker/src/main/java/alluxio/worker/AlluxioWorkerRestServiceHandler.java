@@ -289,7 +289,8 @@ public final class AlluxioWorkerRestServiceHandler {
         } catch (IOException e) {
           response.setInvalidPathError(
               "Error: File " + requestPath + " is not available " + e.getMessage());
-        } catch (BlockDoesNotExistException e) {
+        } // TODO(jianjian) really need to catch block doesn't exist?
+        catch (BlockDoesNotExistException e) {
           response.setFatalError("Error: block not found. " + e.getMessage());
         } catch (AlluxioException e) {
           response.setFatalError("Error: alluxio exception. " + e.getMessage());

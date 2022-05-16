@@ -25,7 +25,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
@@ -444,7 +443,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+      throws InvalidWorkerStateException, IOException {
     mLocalBlockStore.removeBlock(sessionId, blockId);
   }
 
@@ -528,16 +527,17 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     try {
       BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return reader;
     }
+    // TODO(jianjian) use optional instead of exception
     catch (BlockDoesNotExistException e) {
       boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
       if (!checkUfs) {
-        throw e;
+        throw new BlockDoesNotExistRuntimeException(e.getMessage());
       }
     }
     // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.

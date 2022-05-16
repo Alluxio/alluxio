@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -241,8 +242,7 @@ public class TieredBlockStore implements LocalBlockStore
   @Override
   @VisibleForTesting
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException {
+      throws BlockAlreadyExistsException, InvalidWorkerStateException, IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -326,8 +326,8 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
+      throws InvalidWorkerStateException, WorkerOutOfSpaceException, IOException,
+      BlockDoesNotExistException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
         blockId, moveOptions);
     BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
@@ -552,7 +552,6 @@ public class TieredBlockStore implements LocalBlockStore
    * @param blockId the id of block
    * @param pinOnCreate is block pinned on create
    * @return destination location to move the block
-   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
@@ -831,12 +830,11 @@ public class TieredBlockStore implements LocalBlockStore
    * @param blockId block id
    * @param moveOptions the allocate options for the move
    * @return the resulting information about the move operation
-   * @throws BlockDoesNotExistException if block is not found
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
       AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+      throws InvalidWorkerStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockMeta srcBlockMeta;
@@ -845,7 +843,7 @@ public class TieredBlockStore implements LocalBlockStore
           throw new InvalidWorkerStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
         }
         srcBlockMeta = mMetaManager.getBlockMeta(blockId).orElseThrow(() ->
-          new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId));
+          new BlockDoesNotExistRuntimeException(blockId));
       }
 
       BlockStoreLocation srcLocation = srcBlockMeta.getBlockLocation();

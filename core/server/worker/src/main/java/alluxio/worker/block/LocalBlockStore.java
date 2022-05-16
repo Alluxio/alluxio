@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.SessionCleanable;
@@ -88,9 +87,8 @@ public interface LocalBlockStore
    *
    * @param blockId the id of the block
    * @return metadata of the block if the temp block exists
-   * @throws BlockDoesNotExistException if the block id cannot be found
    */
-  TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
+  TempBlockMeta getTempBlockMeta(long blockId);
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -101,12 +99,11 @@ public interface LocalBlockStore
    * @param blockId the id of a temp block
    * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 
   /**
@@ -145,8 +142,6 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to request space
    * @param blockId the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws BlockDoesNotExistRuntimeException if block id can not be found, or some block in eviction plan
-   *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
@@ -212,9 +207,8 @@ public interface LocalBlockStore
    *
    * @param sessionId the id of the session to access a block
    * @param blockId the id of an accessed block
-   * @throws BlockDoesNotExistException if the block id is not found
    */
-  void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  void accessBlock(long sessionId, long blockId);
 
   /**
    * Gets the metadata of the entire store in a snapshot. There is no guarantee the state will be

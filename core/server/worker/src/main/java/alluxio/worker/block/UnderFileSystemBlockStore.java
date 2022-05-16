@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricInfo;

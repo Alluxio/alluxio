@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
@@ -140,7 +141,7 @@ public class AsyncBlockRemover {
                 blockToBeRemoved);
           }
           break;
-        } catch (BlockDoesNotExistException e) {
+        } catch (BlockDoesNotExistRuntimeException e) { // TODO(jianjian) should I catch checked exception?
           // Ignore the case when block is already removed. This could happen when master is asking
           // worker to remove blocks based on stale information
         } catch (Exception e) {

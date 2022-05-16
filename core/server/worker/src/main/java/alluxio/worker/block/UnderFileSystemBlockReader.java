@@ -15,7 +15,6 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
@@ -334,7 +333,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       mBlockWriter.close();
       mBlockWriter = null;
       mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
-    } catch (BlockDoesNotExistException e) {
+    } catch (BlockDoesNotExistRuntimeException e) { // TODO(jianjian) pass checked?
       // This can only happen when the session is expired.
       LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
           mBlockMeta.getBlockId());
