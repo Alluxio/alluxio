@@ -13,15 +13,17 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.LostBlockList;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Command for getting lost files.
@@ -62,13 +64,13 @@ public class GetLostFileCommand extends AbstractFsAdminCommand {
 
     FileSystemAdminShellUtils.checkMasterClientService(mConf);
 
-    List<Long> lostFiles = mFsClient.getLostFiles();
+    Map<Long, LostBlockList> lostFiles = mFsClient.getLostFiles();
     if (lostFiles != null) {
-      lostFiles.stream().map(lostFileId -> {
+      lostFiles.entrySet().stream().map((entry) -> {
         try {
-          return mFsClient.getFilePath(lostFileId);
+          return new Pair(mFsClient.getFilePath(entry.getKey()), entry.getValue());
         } catch (AlluxioStatusException e) {
-          return e.getMessage() + " for lost fileId " + lostFileId;
+          return e.getMessage() + " for lost fileId " + entry.getKey();
         }
       }).sorted().forEach(System.out::println);
       System.out.println("Number of lost files is " + lostFiles.size());

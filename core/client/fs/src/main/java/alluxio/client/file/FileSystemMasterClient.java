@@ -26,6 +26,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -316,5 +317,5 @@ public interface FileSystemMasterClient extends Client {
   /**
    * @return the ids of lost file
    */
-  List<Long> getLostFiles() throws AlluxioStatusException;
+  Map<Long, LostBlockList> getLostFiles() throws AlluxioStatusException;
 }

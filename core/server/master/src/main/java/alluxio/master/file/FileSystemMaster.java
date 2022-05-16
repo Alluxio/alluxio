@@ -419,6 +419,15 @@ public interface FileSystemMaster extends Master {
   List<Long> getLostFiles();
 
   /**
+   * @return the lost files with blocks
+   * @throws FileDoesNotExistException
+   * @throws UnavailableException
+   * @throws AccessControlException
+   */
+  Map<Long, List<Long>> getLostFilesWithBlocks()
+      throws FileDoesNotExistException, UnavailableException, AccessControlException;
+
+  /**
    * Mounts a UFS path onto an Alluxio path.
    * <p>
    * This operation requires users to have WRITE permission on the parent

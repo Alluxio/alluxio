@@ -519,10 +519,13 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
-message GetLostFilesIdPRequest {
+message LostBlockList {
+  repeated int64 blockId = 1;
 }
-message GetLostFilesIdPResponse {
-  repeated int64 lostFilesId = 1;
+message GetLostFilesPRequest {
+}
+message GetLostFilesPResponse {
+  map<int64, LostBlockList> lostFiles = 1;
 }
 
 /**
@@ -662,7 +665,7 @@ service FileSystemMasterClientService {
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 
-  rpc GetLostFilesId(GetLostFilesIdPRequest) returns (GetLostFilesIdPResponse);
+  rpc GetLostFilesWithBlocks(GetLostFilesPRequest) returns (GetLostFilesPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

@@ -33,7 +33,7 @@ import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
-import alluxio.grpc.GetLostFilesIdPRequest;
+import alluxio.grpc.GetLostFilesPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -45,6 +45,7 @@ import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
@@ -397,11 +398,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public List<Long> getLostFiles()
+  public Map<Long, LostBlockList> getLostFiles()
       throws AlluxioStatusException {
     return retryRPC(() -> {
-      List<Long> result =
-          mClient.getLostFilesId(GetLostFilesIdPRequest.newBuilder().build()).getLostFilesIdList();
+      Map<Long, LostBlockList> result =
+          mClient.getLostFilesWithBlocks(GetLostFilesPRequest.newBuilder().build())
+              .getLostFilesMap();
       return result;
     }, RPC_LOG, "GetLostFilesId", "");
   }

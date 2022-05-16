@@ -26,6 +26,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -188,8 +189,8 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public List<Long> getLostFiles() throws AlluxioStatusException {
-    return Collections.EMPTY_LIST;
+  public Map<Long, LostBlockList> getLostFiles() throws AlluxioStatusException {
+    return Collections.EMPTY_MAP;
   }
 
   @Override

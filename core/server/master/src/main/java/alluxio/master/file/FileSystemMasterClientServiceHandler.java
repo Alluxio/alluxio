@@ -37,8 +37,8 @@ import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
 import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetFilePathPResponse;
-import alluxio.grpc.GetLostFilesIdPRequest;
-import alluxio.grpc.GetLostFilesIdPResponse;
+import alluxio.grpc.GetLostFilesPRequest;
+import alluxio.grpc.GetLostFilesPResponse;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -53,6 +53,7 @@ import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePRequest;
@@ -438,11 +439,15 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void getLostFilesId(GetLostFilesIdPRequest request,
-      StreamObserver<GetLostFilesIdPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetLostFilesIdPResponse.newBuilder()
-        .addAllLostFilesId(mFileSystemMaster.getLostFiles()).build(),
-        "GetLostFilesId", "request=%s", responseObserver, request);
+  public void getLostFilesWithBlocks(GetLostFilesPRequest request,
+      StreamObserver<GetLostFilesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Map<Long, List<Long>> lostFilesWithBlocks = mFileSystemMaster.getLostFilesWithBlocks();
+      final Map<Long, LostBlockList> lostStorageMap = lostFilesWithBlocks.entrySet().stream()
+          .collect(Collectors.toMap(Map.Entry::getKey,
+              e -> LostBlockList.newBuilder().addAllBlockId(e.getValue()).build()));
+      return GetLostFilesPResponse.newBuilder().putAllLostFiles(lostStorageMap).build();
+    }, "GetLostFilesId", "request=%s", responseObserver, request);
   }
 
   /**

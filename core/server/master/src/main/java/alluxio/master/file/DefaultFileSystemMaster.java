@@ -2947,6 +2947,27 @@ public class DefaultFileSystemMaster extends CoreMaster
     return new ArrayList<>(lostFiles);
   }
 
+  @Override
+  public Map<Long, List<Long>> getLostFilesWithBlocks() {
+    Map<Long, List<Long>> lostResults = new HashMap<>();
+    Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
+    while (iter.hasNext()) {
+      long blockId = iter.next();
+      // the file id is the container id of the block id
+      long containerId = BlockId.getContainerId(blockId);
+      long fileId = IdUtils.createFileId(containerId);
+      List<Long> lostBlockList;
+      if (!lostResults.containsKey(fileId)) {
+        lostBlockList = new ArrayList<>();
+        lostResults.put(fileId, lostBlockList);
+      } else {
+        lostBlockList = lostResults.get(fileId);
+      }
+      lostBlockList.add(blockId);
+    }
+    return lostResults;
+  }
+
   /**
    * Loads metadata for the path if it is (non-existing || load direct children is set).
    *
