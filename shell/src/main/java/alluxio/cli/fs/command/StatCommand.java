@@ -16,9 +16,11 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -61,6 +63,11 @@ public final class StatCommand extends AbstractFileSystemCommand {
             .hasArg()
             .desc("format")
             .build()
+    ).addOption(
+        Option.builder("fileId")
+            .required(false)
+            .desc("fileId")
+            .build()
     );
   }
 
@@ -94,7 +101,15 @@ public final class StatCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
+    AlluxioURI path;
+    if (cl.hasOption("fileId")) {
+      try (CloseableResource<FileSystemMasterClient> client =
+          mFsContext.acquireMasterClientResource()) {
+        path = new AlluxioURI(client.get().getFilePath(Long.parseLong(args[0])));
+      }
+    } else {
+      path = new AlluxioURI(args[0]);
+    }
     runWildCardCmd(path, cl);
 
     return 0;
@@ -107,7 +122,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Displays info for the specified path both file and directory."
+    return "Displays info for the specified path or fileId both file and directory."
         + " Specify -f to display info in given format:"
         + "   \"%N\": name of the file;"
         + "   \"%z\": size of file in bytes;"
