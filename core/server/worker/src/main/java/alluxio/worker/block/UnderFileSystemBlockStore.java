@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -222,7 +223,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    */
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException, BlockAlreadyExistsException {
+      throws IOException, BlockAlreadyExistsException {
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
       // flag.mUnderFileSystemBlockStore
@@ -284,14 +285,14 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the session ID
    * @param blockId the block ID
    * @return the {@link UnderFileSystemBlockMeta} instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
+   * @throws BlockDoesNotExistRuntimeException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  private BlockInfo getBlockInfo(long sessionId, long blockId) throws BlockDoesNotExistException {
+  private BlockInfo getBlockInfo(long sessionId, long blockId) {
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
-      throw new BlockDoesNotExistException(MessageFormat.format(
+      throw new BlockDoesNotExistRuntimeException(MessageFormat.format(
           "UFS block {0,number,#} does not exist for session {1,number,#}", blockId, sessionId));
     }
     return blockInfo;

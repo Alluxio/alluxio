@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 
@@ -130,7 +130,7 @@ public final class BlockLockManagerTest {
   @Test
   public void validateLockIdWithNoRecord() throws Exception {
     long badLockId = 1;
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.format(badLockId));
     // Validate a non-existing lockId, expect to see IOException
     mLockManager.validateLock(TEST_SESSION_ID, TEST_BLOCK_ID, badLockId);
@@ -176,7 +176,7 @@ public final class BlockLockManagerTest {
     long sessionId2 = TEST_SESSION_ID + 1;
     long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.format(lockId2));
     mLockManager.cleanupSession(sessionId2);
     // Expect validating sessionId1 to get through

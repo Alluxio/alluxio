@@ -25,6 +25,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -418,7 +419,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           throw new IOException(e);
         }
       });
-    } catch (Exception e) {
+    }
+    catch (AlluxioRuntimeException e) {
+      try {
+        closeUfsBlock(sessionId, blockId);
+      } catch (Exception ee) {
+        LOG.warn("Failed to close UFS block", ee);
+      }
+      throw e;
+    }
+    catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
       } catch (Exception ee) {
