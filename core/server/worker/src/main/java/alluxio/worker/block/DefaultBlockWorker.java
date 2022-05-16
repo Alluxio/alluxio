@@ -489,11 +489,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @param blockId the block ID
    * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
    *         because the block exists in the Alluxio block store
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   *         UFS block store
-   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
+   * @throws WorkerOutOfSpaceException the worker does not have enough space to commit the block
    */
-  @VisibleForTesting
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     try {

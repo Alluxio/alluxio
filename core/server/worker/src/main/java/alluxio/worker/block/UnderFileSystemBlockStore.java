@@ -218,7 +218,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param options the open ufs options
    * @return the block reader instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
