@@ -173,7 +173,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public BlockWriter getBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     LOG.debug("getBlockWriter: sessionId={}, blockId={}", sessionId, blockId);
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
@@ -231,8 +231,7 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId)
-      throws BlockDoesNotExistException {
+  public TempBlockMeta getTempBlockMeta(long blockId) {
     LOG.debug("getTempBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getTempBlockMeta(blockId);
@@ -240,8 +239,9 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
+  @VisibleForTesting
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
@@ -260,7 +260,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
         sessionId, blockId, pinOnCreate);
@@ -282,7 +282,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+      InvalidWorkerStateException, IOException {
     LOG.debug("abortBlock: sessionId={}, blockId={}", sessionId, blockId);
     abortBlockInternal(sessionId, blockId);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -294,7 +294,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
         additionalBytes);
     if (additionalBytes <= 0) {
@@ -501,12 +501,11 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param sessionId the id of session
    * @param blockId the id of block
-   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
   private void checkTempBlockOwnedBySession(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException {
+      throws BlockAlreadyExistsException, InvalidWorkerStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new BlockAlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
     }
@@ -523,11 +522,10 @@ public class TieredBlockStore implements LocalBlockStore
    *
    * @param sessionId the id of session
    * @param blockId the id of block
-   * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
-  private void abortBlockInternal(long sessionId, long blockId) throws BlockDoesNotExistException,
+  private void abortBlockInternal(long sessionId, long blockId) throws
       BlockAlreadyExistsException, InvalidWorkerStateException, IOException {
 
     String path;
@@ -544,8 +542,6 @@ public class TieredBlockStore implements LocalBlockStore
 
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       mMetaManager.abortTempBlockMeta(tempBlockMeta);
-    } catch (BlockDoesNotExistException e) {
-      throw Throwables.propagate(e); // We shall never reach here
     }
   }
 
@@ -561,8 +557,7 @@ public class TieredBlockStore implements LocalBlockStore
    * @throws InvalidWorkerStateException if block id is not owned by session id
    */
   private BlockStoreLocation commitBlockInternal(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
-      IOException {
+      throws BlockAlreadyExistsException, InvalidWorkerStateException, IOException {
     // When committing TempBlockMeta, the final BlockMeta calculates the block size according to
     // the actual file size of this TempBlockMeta. Therefore, commitTempBlockMeta must happen
     // after moving actual block file to its committed path.
@@ -583,8 +578,7 @@ public class TieredBlockStore implements LocalBlockStore
 
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       mMetaManager.commitTempBlockMeta(tempBlockMeta);
-    } catch (BlockAlreadyExistsException | BlockDoesNotExistException
-        | WorkerOutOfSpaceException e) {
+    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException e) {
       throw Throwables.propagate(e); // we shall never reach here
     }
 
@@ -890,8 +884,7 @@ public class TieredBlockStore implements LocalBlockStore
         // If this metadata update fails, we panic for now.
         // TODO(bin): Implement rollback scheme to recover from IO failures.
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
-      } catch (BlockAlreadyExistsException | BlockDoesNotExistException
-          | WorkerOutOfSpaceException e) {
+      } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException e) {
         // WorkerOutOfSpaceException is only possible if session id gets cleaned between
         // createBlockMetaInternal and moveBlockMeta.
         throw Throwables.propagate(e); // we shall never reach here

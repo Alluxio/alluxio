@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricKey;
@@ -75,7 +76,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException | BlockDoesNotExistException
+    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException | BlockDoesNotExistRuntimeException
         | InvalidWorkerStateException e) {
       throw new IOException(e);
     }
@@ -100,7 +101,12 @@ public final class BlockWorkerDataWriter implements DataWriter {
               - mReservedBytes);
           // Allocate enough space in the existing temporary block for the write.
           mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
-        } catch (Exception e) {
+        }
+        catch (BlockDoesNotExistRuntimeException e) {
+          // TODO(jianjian) catch here or throw?
+          throw new IOException(e);
+        }
+        catch (Exception e) {
           throw new IOException(e);
         }
       }
@@ -117,6 +123,8 @@ public final class BlockWorkerDataWriter implements DataWriter {
     mBlockWriter.close();
     try {
       mBlockWorker.abortBlock(mSessionId, mBlockId);
+    } catch (BlockDoesNotExistRuntimeException e) { // TODO(jianjian): cast or throw?
+      throw new IOException(e);
     } catch (Exception e) {
       throw new IOException(e);
     } finally {

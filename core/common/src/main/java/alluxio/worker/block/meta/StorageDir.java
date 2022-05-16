@@ -13,6 +13,7 @@ package alluxio.worker.block.meta;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockStoreLocation;
@@ -150,9 +151,9 @@ public interface StorageDir {
    * Removes a temp block from this storage dir.
    *
    * @param tempBlockMeta the metadata of the temp block to remove
-   * @throws BlockDoesNotExistException if no temp block is found
+   * @throws BlockDoesNotExistRuntimeException if no temp block is found
    */
-  void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException;
+  void removeTempBlockMeta(TempBlockMeta tempBlockMeta);
 
   /**
    * Changes the size of a temp block.

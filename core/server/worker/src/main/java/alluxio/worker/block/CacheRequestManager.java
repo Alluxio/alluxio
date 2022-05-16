@@ -17,7 +17,9 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
 import alluxio.metrics.MetricKey;
@@ -303,12 +305,12 @@ public class CacheRequestManager {
       BufferUtils.transfer(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
-    } catch (AlluxioException | IOException e) {
+    } catch (AlluxioException | IOException | AlluxioRuntimeException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
           blockId, sourceAddress, e.toString());
       try {
         mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
-      } catch (AlluxioException | IOException ee) {
+      } catch (AlluxioException | IOException | AlluxioRuntimeException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
       throw e;

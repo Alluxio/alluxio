@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.SessionCleanable;
@@ -117,12 +118,11 @@ public interface LocalBlockStore
    * @param pinOnCreate whether to pin block on create
    * @return the lock id
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 
   /**
@@ -133,11 +133,10 @@ public interface LocalBlockStore
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
    */
   void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+      InvalidWorkerStateException, IOException;
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
@@ -146,12 +145,12 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to request space
    * @param blockId the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws BlockDoesNotExistException if block id can not be found, or some block in eviction plan
+   * @throws BlockDoesNotExistRuntimeException if block id can not be found, or some block in eviction plan
    *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -160,12 +159,11 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to get the writer
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
-   * @throws BlockDoesNotExistException if the block can not be found
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    */
   BlockWriter getBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
   /**

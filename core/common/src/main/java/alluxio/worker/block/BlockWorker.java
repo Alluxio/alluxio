@@ -47,11 +47,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to be aborted
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    */
   void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+      InvalidWorkerStateException, IOException;
 
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block will not be
@@ -61,12 +60,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param blockId the id of the block to commit
    * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block cannot be found
    * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 
   /**
@@ -104,12 +102,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to be opened for writing
    * @return the block writer for the local block file
-   * @throws BlockDoesNotExistException if the block cannot be found
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    */
   BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
   /**

@@ -46,7 +46,7 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+      InvalidWorkerStateException, IOException {
     // noop
   }
 
@@ -71,7 +71,7 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return null;
   }

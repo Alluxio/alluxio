@@ -28,6 +28,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -290,14 +291,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+      InvalidWorkerStateException, IOException {
     mLocalBlockStore.abortBlock(sessionId, blockId);
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
     OptionalLong lockId = OptionalLong.empty();
     try {
@@ -375,7 +376,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return mLocalBlockStore.getBlockWriter(sessionId, blockId);
   }
@@ -420,7 +421,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         }
       });
     }
-    catch (AlluxioRuntimeException e) {
+    // TODO(jianjian): should we catch here? check createBlockReader whether we need cleanup
+    catch (BlockDoesNotExistRuntimeException e) {
       try {
         closeUfsBlock(sessionId, blockId);
       } catch (Exception ee) {
@@ -448,7 +450,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 
@@ -499,7 +501,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         try {
           commitBlock(sessionId, blockId, false);
         }
-        catch (BlockDoesNotExistException e) {
+        //TODO(jianjian) should I pass checked exception instead?
+        catch (BlockDoesNotExistRuntimeException e) {
           // This can only happen if the session is expired. Ignore this exception if that happens.
           LOG.warn("Block {} does not exist while being committed.", blockId);
         }

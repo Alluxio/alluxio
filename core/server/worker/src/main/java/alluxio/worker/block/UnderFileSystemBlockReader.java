@@ -16,6 +16,7 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -370,7 +371,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
               + "Concurrent UFS readers may be caching the same block.",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
       mBlockWriter = null;
-    } catch (IOException | AlluxioException e) {
+      // TODO(jianjian): figure out do we need to catch it and log or just throw runtime exception
+    } catch (IOException | AlluxioException | BlockDoesNotExistRuntimeException e) {
       LOG.warn(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.toString());

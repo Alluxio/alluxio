@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -291,17 +292,17 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
+  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     final long blockId = tempBlockMeta.getBlockId();
     final long sessionId = tempBlockMeta.getSessionId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
     if (deletedTempBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+      throw new BlockDoesNotExistRuntimeException(blockId);
     }
     Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
     if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
-      throw new BlockDoesNotExistException(
+      throw new BlockDoesNotExistRuntimeException(
           MessageFormat.format("blockId {0,number,#} in {1} not found for session {2,number,#}",
               blockId, mTier.getTierAlias(), sessionId));
     }
