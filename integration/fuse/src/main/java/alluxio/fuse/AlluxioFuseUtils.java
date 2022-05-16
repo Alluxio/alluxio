@@ -12,7 +12,9 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -25,20 +27,25 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.fuse.auth.AuthPolicy;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +72,27 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * Creates a file in alluxio namespace.
+   *
+   * @param fileSystem the file system
+   * @param authPolicy the authentication policy
+   * @param uri the alluxio uri
+   * @param mode the create mode
+   * @return a file out stream
+   */
+  public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
+      AlluxioURI uri, long mode) throws Exception {
+    Preconditions.checkNotNull(uri);
+    FileOutStream out = fileSystem.createFile(uri,
+        CreateFilePOptions.newBuilder()
+            .setMode(new Mode((short) mode).toProto()).build());
+    if (authPolicy != null) {
+      authPolicy.setUserGroupIfNeeded(uri);
+    }
+    return out;
+  }
 
   /**
    * Gets the libjnifuse version preference set by user.
@@ -270,6 +298,22 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EOPNOTSUPP();
     } catch (AlluxioException ex) {
       return -ErrorCodes.EBADMSG();
+    }
+  }
+
+  /**
+   * Gets the path status.
+   *
+   * @param fileSystem the file system
+   * @param uri the Alluxio uri to get status of
+   * @return the file status, null if the path does not exist in Alluxio
+   * @throws Exception when failed to get path status
+   */
+  public static URIStatus getPathStatus(FileSystem fileSystem, AlluxioURI uri) throws Exception {
+    try {
+      return fileSystem.getStatus(uri);
+    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+      return null;
     }
   }
 

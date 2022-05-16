@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -32,7 +30,6 @@ import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
@@ -51,7 +48,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -59,7 +55,6 @@ import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.InvalidPathException;
@@ -217,7 +212,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     try {
       FuseFileStream stream = FuseFileStream.Factory
-          .create(this, uri, fi.flags.get(), mode);
+          .create(mFileSystem, mAuthPolicy, uri, fi.flags.get(), mode);
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
@@ -251,7 +246,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
         if (stream != null) {
           size = stream.getFileStream().getFileLength();
-        } else if (waitForFileCompleted(uri)) {
+        } else if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           // Always block waiting for file to be completed except when the file is writing
           // We do not want to block the writing process
           LOG.error("File {} is not completed", path);
@@ -352,12 +347,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int openInternal(String path, FuseFileInfo fi, int flags) {
     try {
       FuseFileStream stream = FuseFileStream.Factory.create(
-          this, mPathResolverCache.getUnchecked(path), flags);
+          mFileSystem, mAuthPolicy, mPathResolverCache.getUnchecked(path), flags);
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
     } catch (Exception e) {
-      LOG.error(String.format("Failed to open %s: openAction=0x%x", path, flags), t);
+      LOG.error(String.format("Failed to open %s: openAction=0x%x", path, flags), e);
       return -ErrorCodes.EIO();
     }
     return  0;
@@ -499,7 +494,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   private int rmInternal(String path) {
     try {
-      deleteFile(mPathResolverCache.getUnchecked(path));
+      mFileSystem.delete(mPathResolverCache.getUnchecked(path));
     } catch (Throwable t) {
       LOG.error("Failed to delete {}", path, t);
       return -ErrorCodes.EIO();
@@ -525,7 +520,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     URIStatus status;
     try {
-      status = getPathStatus(sourceUri);
+      status = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
     } catch (Throwable t) {
       LOG.error("Failed to rename {} to {}: cannot get status of source", sourcePath, destPath);
       return -ErrorCodes.EIO();
@@ -652,7 +647,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     URIStatus status;
     try {
-      status = getPathStatus(uri);
+      status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
     } catch (Throwable t) {
       LOG.error("Failed to truncate {} to {} bytes: failed to get file status", path, size, t);
       return -ErrorCodes.EIO();
@@ -672,7 +667,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
       if (size == 0) {
         try {
-          deleteFile(uri);
+          mFileSystem.delete(uri);
           return 0;
         } catch (Exception e) {
           LOG.error("Failed to truncate {} to {} bytes: failed to delete file", path, size, e);
@@ -790,71 +785,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       }
     }
     super.umount(force);
-  }
-
-  /**
-   * Creates a file in alluxio namespace.
-   *
-   * @param uri the alluxio uri
-   * @param mode the create mode
-   * @return a file out stream
-   */
-  public FileOutStream createFile(AlluxioURI uri, long mode) throws Exception {
-    Preconditions.checkNotNull(uri);
-    FileOutStream out = mFileSystem.createFile(uri,
-        CreateFilePOptions.newBuilder()
-            .setMode(new Mode((short) mode).toProto()).build());
-    if (mAuthPolicy != null) {
-      mAuthPolicy.setUserGroupIfNeeded(uri);
-    }
-    return out;
-  }
-
-  /**
-   * Deletes a file from alluxio namespace.
-   *
-   * @param uri the alluxio uri to delete
-   */
-  public void deleteFile(AlluxioURI uri) throws IOException, AlluxioException {
-    Preconditions.checkNotNull(uri);
-    mFileSystem.delete(uri);
-  }
-
-  /**
-   * Gets the path status.
-   *
-   * @param uri the Alluxio uri to get status of
-   * @return the file status, null if the path does not exist in Alluxio
-   * @throws Exception when failed to get path status
-   */
-  public URIStatus getPathStatus(AlluxioURI uri) throws Exception {
-    try {
-      return mFileSystem.getStatus(uri);
-    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      return null;
-    }
-  }
-
-  /**
-   * Opens a file in the alluxio namespace.
-   *
-   * @param uri the uri to open
-   * @return a file in stream
-   */
-  public FileInStream openFile(AlluxioURI uri) throws IOException, AlluxioException {
-    Preconditions.checkNotNull(uri);
-    return mFileSystem.openFile(uri);
-  }
-
-  /**
-   * Waits for file to be completed.
-   *
-   * @param uri the uri to wait for
-   * @return true if file completed, false otherwise
-   */
-  public boolean waitForFileCompleted(AlluxioURI uri) {
-    Preconditions.checkNotNull(uri);
-    return AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri);
   }
 
   @VisibleForTesting

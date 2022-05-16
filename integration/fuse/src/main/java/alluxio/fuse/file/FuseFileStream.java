@@ -14,9 +14,11 @@ package alluxio.fuse.file;
 import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.fuse.AlluxioJniFuseFileSystem;
+import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.auth.AuthPolicy;
 
 import jnr.constants.platform.OpenFlags;
 
@@ -84,22 +86,23 @@ public interface FuseFileStream {
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fuseFileSystem the fuse file system
+     * @param fileSystem the Alluxio file system
+     * @param authPolicy the Authentication policy
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @param mode the create file mode, -1 if not set
      * @param status the uri status, null if not uri does not exist
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
-        int flags, long mode, @Nullable URIStatus status) throws Exception {
+    public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
+        AlluxioURI uri, int flags, long mode, @Nullable URIStatus status) throws Exception {
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(fuseFileSystem, uri, flags, status);
+          return FuseFileInStream.create(fileSystem, uri, flags, status);
         case O_WRONLY:
-          return FuseFileOutStream.create(fuseFileSystem, uri, flags, mode, status);
+          return FuseFileOutStream.create(fileSystem, authPolicy, uri, flags, mode, status);
         case O_RDWR:
-          return FuseFileInOrOutStream.create(fuseFileSystem, uri, flags, mode, status);
+          return FuseFileInOrOutStream.create(fileSystem, authPolicy, uri, flags, mode, status);
         default:
           throw new IOException(String.format("Cannot create file stream with flag 0x%x. "
               + "Alluxio does not support file modification. "
@@ -110,29 +113,31 @@ public interface FuseFileStream {
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fuseFileSystem the fuse file system
+     * @param fileSystem the Alluxio file system
+     * @param authPolicy the Authentication policy
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @param mode the create file mode, -1 if not set
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
-        int flags, long mode) throws Exception {
-      URIStatus status = fuseFileSystem.getPathStatus(uri);
-      return create(fuseFileSystem, uri, flags, mode, status);
+    public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
+        AlluxioURI uri, int flags, long mode) throws Exception {
+      URIStatus status = AlluxioFuseUtils.getPathStatus(fileSystem, uri);
+      return create(fileSystem, authPolicy, uri, flags, mode, status);
     }
 
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fuseFileSystem the fuse file system
+     * @param fileSystem the Alluxio file system
+     * @param authPolicy the Authentication policy
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
-        int flags) throws Exception {
-      return create(fuseFileSystem, uri, flags, FuseFileStream.MODE_NOT_SET);
+    public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
+        AlluxioURI uri, int flags) throws Exception {
+      return create(fileSystem, authPolicy, uri, flags, FuseFileStream.MODE_NOT_SET);
     }
   }
 }

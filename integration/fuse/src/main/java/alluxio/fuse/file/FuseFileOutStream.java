@@ -13,9 +13,11 @@ package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.fuse.AlluxioFuseOpenUtils;
-import alluxio.fuse.AlluxioJniFuseFileSystem;
+import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.auth.AuthPolicy;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -33,7 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class FuseFileOutStream implements FuseFileStream {
   private static final Logger LOG = LoggerFactory.getLogger(FuseFileOutStream.class);
-  private final AlluxioJniFuseFileSystem mFuseFileSystem;
+  private final FileSystem mFileSystem;
+  private final AuthPolicy mAuthPolicy;
   private final AlluxioURI mURI;
   private final long mMode;
   private final long mOriginalFileLen;
@@ -43,16 +46,18 @@ public class FuseFileOutStream implements FuseFileStream {
   /**
    * Creates a {@link FuseFileInOrOutStream}.
    *
-   * @param fuseFileSystem the fuse file system
+   * @param fileSystem the Alluxio file system
+   * @param authPolicy the Authentication policy
    * @param uri the alluxio uri
    * @param flags the fuse create/open flags
    * @param mode the filesystem mode, -1 if not set
    * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInOrOutStream}
    */
-  public static FuseFileOutStream create(AlluxioJniFuseFileSystem fuseFileSystem,
+  public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
       AlluxioURI uri, int flags, long mode, @Nullable URIStatus status) throws Exception {
-    Preconditions.checkNotNull(fuseFileSystem);
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
     if (mode == MODE_NOT_SET && status != null) {
       mode = status.getMode();
@@ -60,22 +65,23 @@ public class FuseFileOutStream implements FuseFileStream {
     long fileLen = status == null ? 0 : status.getLength();
     if (status != null) {
       if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
-        fuseFileSystem.deleteFile(uri);
+        fileSystem.delete(uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", uri, flags));
       } else {
         // Support open(O_WRONLY flag) - truncate(0) - write() workflow, otherwise error out
-        return new FuseFileOutStream(fuseFileSystem, null, fileLen, uri, mode);
+        return new FuseFileOutStream(fileSystem, authPolicy, null, fileLen, uri, mode);
       }
     }
-    FileOutStream out = fuseFileSystem.createFile(uri, mode);
-    return new FuseFileOutStream(fuseFileSystem, out, fileLen, uri, mode);
+    return new FuseFileOutStream(fileSystem, authPolicy,
+        AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, mode), fileLen, uri, mode);
   }
 
-  private FuseFileOutStream(AlluxioJniFuseFileSystem fuseFileSystem,
+  private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
       @Nullable FileOutStream outStream, long fileLen, AlluxioURI uri, long mode) {
-    mFuseFileSystem = fuseFileSystem;
+    mFileSystem = fileSystem;
+    mAuthPolicy = authPolicy;
     mOutStream = outStream;
     mOriginalFileLen = fileLen;
     mURI = uri;
@@ -136,8 +142,8 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     if (size == 0) {
       close();
-      mFuseFileSystem.deleteFile(mURI);
-      mOutStream = mFuseFileSystem.createFile(mURI, mMode);
+      mFileSystem.delete(mURI);
+      mOutStream = AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode);
       return;
     }
     throw new IOException(String.format("Cannot truncate file %s to size %s", mURI, size));

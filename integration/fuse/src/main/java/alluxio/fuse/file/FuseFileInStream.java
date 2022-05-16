@@ -13,10 +13,11 @@ package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
-import alluxio.fuse.AlluxioJniFuseFileSystem;
+import alluxio.fuse.AlluxioFuseUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -37,15 +38,15 @@ public class FuseFileInStream implements FuseFileStream {
   /**
    * Creates a {@link FuseFileInStream}.
    *
-   * @param fuseFileSystem the fuse file system
+   * @param fileSystem the file system
    * @param uri the alluxio uri
    * @param flags the fuse create/open flags
    * @param status the uri status, null if not uri does not exist
    * @return a {@link FuseFileInStream}
    */
-  public static FuseFileInStream create(AlluxioJniFuseFileSystem fuseFileSystem, AlluxioURI uri,
+  public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
       int flags, @Nullable URIStatus status) throws IOException, AlluxioException {
-    Preconditions.checkNotNull(fuseFileSystem);
+    Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
       throw new IOException(String.format(
@@ -60,13 +61,13 @@ public class FuseFileInStream implements FuseFileStream {
     if (!status.isCompleted()) {
       // Cannot open incomplete file for read
       // wait for file to complete in read or read_write mode
-      if (!fuseFileSystem.waitForFileCompleted(uri)) {
+      if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
         throw new IOException(String.format(
             "Failed to create read-only stream for %s: incomplete file", uri));
       }
     }
 
-    FileInStream is = fuseFileSystem.openFile(uri);
+    FileInStream is = fileSystem.openFile(uri);
     return new FuseFileInStream(is, status.getLength(), uri);
   }
 
