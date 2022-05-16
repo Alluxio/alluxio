@@ -137,7 +137,7 @@ public class FuseFileOutStream implements FuseFileStream {
     if (size == 0) {
       close();
       mFuseFileSystem.deleteFile(mURI);
-      mFuseFileSystem.createFile(mURI, mMode);
+      mOutStream = mFuseFileSystem.createFile(mURI, mMode);
       return;
     }
     throw new IOException(String.format("Cannot truncate file %s to size %s", mURI, size));

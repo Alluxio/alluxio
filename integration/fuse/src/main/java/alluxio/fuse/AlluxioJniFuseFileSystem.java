@@ -447,10 +447,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return -ErrorCodes.EBADFD();
       }
       entry.getFileStream().close();
-      mFileEntries.remove(entry);
     } catch (IOException e) {
       LOG.error("Failed to close {}:", path, e);
       return -ErrorCodes.EIO();
+    } finally {
+      if (entry != null) {
+        mFileEntries.remove(entry);
+      }
     }
     return 0;
   }
