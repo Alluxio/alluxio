@@ -286,6 +286,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param startMessage empty string or the message that the master gains the leadership
    * @param stopMessage empty string or the message that the master loses the leadership
    */
+  @Override
   protected void startServing(String startMessage, String stopMessage) {
     // start all common services for non-ha master or leader master
     startCommonServices();

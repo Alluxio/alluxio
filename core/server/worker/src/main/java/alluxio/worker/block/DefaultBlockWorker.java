@@ -60,6 +60,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.page.PagedLocalBlockStore;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -143,7 +144,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     this(new BlockMasterClientPool(),
         new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
-        new Sessions(), new TieredBlockStore(), ufsManager);
+        new Sessions(), LocalBlockStore.create(ufsManager), ufsManager);
   }
 
   /**
@@ -376,7 +377,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
-    return mLocalBlockStore.getBlockWriter(sessionId, blockId);
+    return mLocalBlockStore.createBlockWriter(sessionId, blockId);
   }
 
   @Override
@@ -519,6 +520,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
+    if (mLocalBlockStore instanceof PagedLocalBlockStore) {
+      BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, options);
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return reader;
+    }
     try {
       BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
