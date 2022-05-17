@@ -19,7 +19,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
 import alluxio.metrics.MetricKey;
