@@ -11,7 +11,6 @@
 
 package alluxio.fuse;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -24,17 +23,28 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * An object that holds all the options from the command line
+ * when Alluxio fuse is being launched through CLI.
+ */
 public final class AlluxioFuseCliOpts {
   private final String mMountPoint;
   private final String mAlluxioPath;
   private final List<String> mFuseOptions;
 
-  private AlluxioFuseCliOpts(@Nullable String mountPoint, @Nullable String alluxioPath, @Nullable List<String> fuseOptions) {
+  private AlluxioFuseCliOpts(@Nullable String mountPoint, @Nullable String alluxioPath,
+      @Nullable List<String> fuseOptions) {
     mMountPoint = mountPoint;
     mAlluxioPath = alluxioPath;
     mFuseOptions = fuseOptions;
   }
 
+  /**
+   * Gives the command line arguments to parser.
+   * Gets and returns the created AlluxioFuseCliOpts.
+   * @param args the fuse command line arguments
+   * @return an AlluxioFuseCliOpts object holding all command line arguments
+   */
   public static AlluxioFuseCliOpts parseAndCreateAlluxioFuseCliOpts(String[] args) {
     return AlluxioFuseCliParser.parseAndCreateAlluxioFuseCliOpts(args);
   }

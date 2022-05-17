@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,11 @@ public final class AlluxioFuseFileSystemOpts {
     }
     List<String> fuseOptions = fuseCliOpts.getFuseOptions();
     if (fuseOptions == null) {
-      fuseOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS);
+      if (conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)) {
+        fuseOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS);
+      } else {
+        fuseOptions = ImmutableList.of();
+      }
     }
     fuseOptions = optimizeAndFormatFuseOptions(fuseOptions);
     boolean isDebug = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
