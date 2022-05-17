@@ -38,14 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
-  // How long to wait for a response from the cluster before giving up and trying again.
-  private final long mWriteTimeoutMs =
-      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
-  // journal entry size max is the hard limit set by underlying ratis
-  // use a smaller value to guarantee we don't pass the hard limit
-  private final long mEntrySizeMax =
-      ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
-  private final long mFlushBatchBytes = mEntrySizeMax / 3;
 
   private final AtomicLong mNextSequenceNumberToWrite;
   private final AtomicLong mLastSubmittedSequenceNumber = new AtomicLong(-1);
@@ -54,7 +46,7 @@ public class RaftJournalWriter implements JournalWriter {
   private final RaftJournalAppender mClient;
 
   private volatile boolean mClosed = false;
-  private JournalEntry.Builder mJournalEntryBuilder;
+  private JournalEntry.Builder mJournalEntryBuilder; // gets build across successive writes
   private final AtomicLong mCurrentJournalEntrySize = new AtomicLong(0);
 
   /**
@@ -75,7 +67,10 @@ public class RaftJournalWriter implements JournalWriter {
     }
     Preconditions.checkState(entry.getAllFields().size() <= 2,
         "Raft journal entries should never set multiple fields, but found %s", entry);
-    if (mCurrentJournalEntrySize.get() > mFlushBatchBytes) {
+    // journal entry size max is the hard limit set by underlying ratis
+    // we use a smaller value to guarantee we don't pass the hard limit
+    if (mCurrentJournalEntrySize.get()
+        > ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX) / 3) {
       flush();
     }
     if (mJournalEntryBuilder == null) {
@@ -86,9 +81,11 @@ public class RaftJournalWriter implements JournalWriter {
     mJournalEntryBuilder.addJournalEntries(entry.toBuilder()
         .setSequenceNumber(mNextSequenceNumberToWrite.getAndIncrement()).build());
     long size = entry.getSerializedSize();
-    if (size > mEntrySizeMax) {
+    long entrySizeMax =
+        ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+    if (size > entrySizeMax) {
       LOG.error("Journal entry size ({}) is bigger than the max allowed size ({}) defined by {}",
-          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(mEntrySizeMax),
+          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(entrySizeMax),
           PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.getName());
     }
     mCurrentJournalEntrySize.addAndGet(size);
@@ -101,6 +98,8 @@ public class RaftJournalWriter implements JournalWriter {
     }
     if (mJournalEntryBuilder != null) {
       long flushSN = mNextSequenceNumberToWrite.get() - 1;
+      final long writeTimeoutMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
       try {
         // It is ok to submit the same entries multiple times because we de-duplicate by sequence
         // number when applying them. This could happen if submit fails and we re-submit the same
@@ -110,11 +109,11 @@ public class RaftJournalWriter implements JournalWriter {
         mLastSubmittedSequenceNumber.set(flushSN);
         LOG.trace("Flushing entry {} ({})", entry, message);
         RaftClientReply reply = mClient.sendAsync(message)
-            .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
-        mLastCommittedSequenceNumber.set(flushSN);
+            .get(writeTimeoutMs, TimeUnit.MILLISECONDS);
         if (reply.getException() != null) {
           throw reply.getException();
         }
+        mLastCommittedSequenceNumber.set(flushSN);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new IOException(e);
@@ -123,7 +122,7 @@ public class RaftJournalWriter implements JournalWriter {
       } catch (TimeoutException e) {
         throw new IOException(String.format(
             "Timed out after waiting %s milliseconds for journal entries to be processed",
-            mWriteTimeoutMs), e);
+            writeTimeoutMs), e);
       }
       mJournalEntryBuilder = null;
     }
