@@ -93,12 +93,10 @@ public interface LocalBlockStore
    * @param blockId the id of the block to create
    * @param options allocation options
    * @return metadata of the temp block created
-   * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
-   *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
   TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Gets the metadata of a block given its block id or empty if block does not exist.
@@ -115,9 +113,8 @@ public interface LocalBlockStore
    *
    * @param blockId the id of the block
    * @return metadata of the block if the temp block exists
-   * @throws BlockDoesNotExistException if the block id cannot be found
    */
-  TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException;
+  Optional<TempBlockMeta> getTempBlockMeta(long blockId);
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -127,14 +124,9 @@ public interface LocalBlockStore
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
    * @param pinOnCreate whether to pin block on create
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block can not be found
-   * @throws InvalidWorkerStateException if block id does not belong to session id
-   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws IOException;
 
   /**
    * Similar to {@link #commitBlock(long, long, boolean)}. It returns the block locked,
@@ -144,14 +136,9 @@ public interface LocalBlockStore
    * @param blockId the id of a temp block
    * @param pinOnCreate whether to pin block on create
    * @return the lock id
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block can not be found
-   * @throws InvalidWorkerStateException if block id does not belong to session id
-   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException;
+      throws IOException;
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
@@ -174,12 +161,10 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to request space
    * @param blockId the id of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws BlockDoesNotExistException if block id can not be found, or some block in eviction plan
-   *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -188,13 +173,9 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to get the writer
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
-   * @throws BlockDoesNotExistException if the block can not be found
-   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
-   * @throws InvalidWorkerStateException if the worker state is invalid
    */
   BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException;
+      throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.

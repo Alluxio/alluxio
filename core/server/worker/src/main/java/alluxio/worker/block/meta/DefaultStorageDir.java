@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -253,21 +255,18 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
-    if (getAvailableBytes() + getReservedBytes() < blockSize) {
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias());
-    }
-    if (hasTempBlockMeta(blockId)) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId,
-          tempBlockMeta.getBlockLocation().tierAlias());
-    }
+    checkState(getAvailableBytes() + getReservedBytes() >= blockSize,
+        ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId,
+            blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias()));
+    checkState(!hasTempBlockMeta(blockId),
+        ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(
+            blockId, tempBlockMeta.getBlockLocation().tierAlias()));
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
@@ -303,7 +302,7 @@ public final class DefaultStorageDir implements StorageDir {
       throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId,
           mTier.getTierAlias(), sessionId);
     }
-    Preconditions.checkState(sessionBlocks.remove(blockId));
+    checkState(sessionBlocks.remove(blockId));
     if (sessionBlocks.isEmpty()) {
       mSessionIdToTempBlockIdsMap.remove(sessionId);
     }
@@ -379,7 +378,7 @@ public final class DefaultStorageDir implements StorageDir {
   private void reclaimSpace(long size, boolean committed) {
     mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
       long newAvailableBytes = oldAvailableBytes + size;
-      Preconditions.checkState(mCapacityBytes >= newAvailableBytes,
+      checkState(mCapacityBytes >= newAvailableBytes,
               "Available bytes should always be less than total capacity bytes");
       return newAvailableBytes;
     });
@@ -390,7 +389,7 @@ public final class DefaultStorageDir implements StorageDir {
 
   private void reserveSpace(long size, boolean committed) {
     mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
-      Preconditions.checkState(size <= oldAvailableBytes + getReservedBytes(),
+      checkState(size <= oldAvailableBytes + getReservedBytes(),
               "Available bytes should always be non-negative");
       return oldAvailableBytes - size;
     });

@@ -133,11 +133,8 @@ public interface StorageDir {
    * Adds the metadata of a new block into this storage dir.
    *
    * @param tempBlockMeta the metadata of a temp block to add
-   * @throws BlockAlreadyExistsException if blockId already exists
-   * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
-  void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException;
+  void addTempBlockMeta(TempBlockMeta tempBlockMeta);
 
   /**
    * Removes a block from this storage dir.

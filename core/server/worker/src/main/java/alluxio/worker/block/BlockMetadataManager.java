@@ -162,11 +162,8 @@ public final class BlockMetadataManager {
    * Adds a temp block.
    *
    * @param tempBlockMeta the metadata of the temp block to add
-   * @throws WorkerOutOfSpaceException when no more space left to hold the block
-   * @throws BlockAlreadyExistsException when the block already exists
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
-      throws WorkerOutOfSpaceException, BlockAlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.addTempBlockMeta(tempBlockMeta);
   }
@@ -308,17 +305,16 @@ public final class BlockMetadataManager {
    *
    * @param blockId the id of the temp block
    * @return metadata of the block
-   * @throws BlockDoesNotExistException when block id can not be found
    */
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
-          return dir.getTempBlockMeta(blockId);
+          return Optional.of(dir.getTempBlockMeta(blockId));
         }
       }
     }
-    throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    return Optional.empty();
   }
 
   /**

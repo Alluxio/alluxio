@@ -161,7 +161,7 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
       blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
-      TempBlockMeta meta = mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId);
+      TempBlockMeta meta = mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).get();
       assertEquals(Constants.MEDIUM_MEM, meta.getBlockLocation().mediumType());
     }
     mBlockWorker.abortBlock(sessionId, blockId);
@@ -239,7 +239,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", initialBytes));
     mBlockWorker.requestSpace(sessionId, blockId, additionalBytes);
     assertEquals(initialBytes + additionalBytes,
-        mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).getBlockSize());
+        mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).get().getBlockSize());
   }
 
   @Test

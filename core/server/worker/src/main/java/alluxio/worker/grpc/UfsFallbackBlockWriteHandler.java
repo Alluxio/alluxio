@@ -34,9 +34,11 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -264,10 +266,11 @@ public final class UfsFallbackBlockWriteHandler
    * @param context context of this request
    * @param pos number of bytes in block store to write in the UFS block
    */
-  private void transferToUfsBlock(BlockWriteRequestContext context, long pos) throws Exception {
+  private void transferToUfsBlock(BlockWriteRequestContext context, long pos) throws IOException {
     OutputStream ufsOutputStream = context.getOutputStream();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getLocalBlockStore().getTempBlockMeta(blockId);
-    Preconditions.checkState(Files.copy(Paths.get(block.getPath()), ufsOutputStream) == pos);
+    Optional<TempBlockMeta> block = mWorker.getLocalBlockStore().getTempBlockMeta(blockId);
+    Preconditions.checkState(block.isPresent()
+        && Files.copy(Paths.get(block.get().getPath()), ufsOutputStream) == pos);
   }
 }
