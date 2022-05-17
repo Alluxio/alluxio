@@ -89,47 +89,47 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public TempBlockMeta getTempBlockMeta(long blockId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void abortBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
     return null;
   }
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -154,7 +154,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+  public void accessBlock(long sessionId, long blockId) {
     throw new UnsupportedOperationException();
   }
 
