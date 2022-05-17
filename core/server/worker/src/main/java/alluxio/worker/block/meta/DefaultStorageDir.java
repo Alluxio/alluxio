@@ -229,6 +229,7 @@ public final class DefaultStorageDir implements StorageDir {
     return Optional.ofNullable(mBlockIdToBlockMap.get(blockId));
   }
 
+  // TODO(jianjian) optional?
   @Override
   public TempBlockMeta getTempBlockMeta(long blockId) {
     return mBlockIdToTempBlockMap.get(blockId);

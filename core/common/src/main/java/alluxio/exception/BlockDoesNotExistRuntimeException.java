@@ -11,9 +11,6 @@
 
 package alluxio.exception;
 
-import alluxio.worker.block.meta.BlockMeta;
-
-import com.google.protobuf.Any;
 import io.grpc.Status;
 
 import java.text.MessageFormat;

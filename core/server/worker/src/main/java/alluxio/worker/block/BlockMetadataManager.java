@@ -318,6 +318,7 @@ public final class BlockMetadataManager {
         }
       }
     }
+    // TODO(jianjian) use optional
     throw new BlockDoesNotExistRuntimeException(
         MessageFormat.format("TempBlockMeta not found for blockId {0,number,#}", blockId));
   }
