@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.LockedInodePath;
 
 import java.io.IOException;
 
@@ -24,8 +25,9 @@ public interface UfsDeleter {
   /**
    * Deletes a path if not covered by a recursive delete.
    *
-   * @param alluxioUri Alluxio path to delete
+   * @param alluxioLockedInodePath Alluxio path to delete
    * @param inode to delete
    */
-  void delete(AlluxioURI alluxioUri, Inode inode) throws IOException, InvalidPathException;
+  void delete(LockedInodePath alluxioLockedInodePath, Inode inode) throws IOException,
+      InvalidPathException;
 }

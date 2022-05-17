@@ -314,7 +314,8 @@ public final class MountTableTest {
         MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)).getOptions().build();
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
-    mMountTable.add(NoopJournalContext.INSTANCE, alluxioUri,
+    // TODO(Jiadong): rewrite new tests
+    mMountTable.add(NoopJournalContext.INSTANCE, , alluxioUri,
         new AlluxioURI("hdfs://localhost:5678/foo"), 2L, options);
 
     try {

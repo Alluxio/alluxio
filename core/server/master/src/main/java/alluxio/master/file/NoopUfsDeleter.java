@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.LockedInodePath;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -24,5 +25,5 @@ public final class NoopUfsDeleter implements UfsDeleter {
   public static final NoopUfsDeleter INSTANCE = new NoopUfsDeleter();
 
   @Override
-  public void delete(AlluxioURI alluxioUri, Inode inode) {}
+  public void delete(LockedInodePath alluxioLockedInodePath, Inode inode) {}
 }

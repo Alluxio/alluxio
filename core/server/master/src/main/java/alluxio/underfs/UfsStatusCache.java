@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.RpcContext;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.resource.CloseableResource;
@@ -196,13 +197,15 @@ public class UfsStatusCache {
   /**
    * Attempts to return a status from the cache. If it doesn't exist, reaches to the UFS for it.
    *
-   * @param path the path the retrieve
+   * @param alluxioLockedInodePath the path the retrieve
    * @param mountTable the Alluxio mount table
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
   @Nullable
-  public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException {
+  public UfsStatus fetchStatusIfAbsent(LockedInodePath alluxioLockedInodePath,
+                                       MountTable mountTable)
+      throws InvalidPathException, IOException {
+    AlluxioURI path = alluxioLockedInodePath.getUri();
     UfsStatus status;
     try {
       status = getStatus(path);
@@ -212,7 +215,7 @@ public class UfsStatusCache {
     if (status != null) {
       return status;
     }
-    MountTable.Resolution resolution = mountTable.resolve(path);
+    MountTable.Resolution resolution = mountTable.resolve(alluxioLockedInodePath);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -246,7 +249,7 @@ public class UfsStatusCache {
    * return null.
    *
    * @param rpcContext the rpcContext of the source of this call
-   * @param path the Alluxio path to get the children of
+   * @param lockedInodePath the Alluxio path to get the children of
    * @param mountTable the Alluxio mount table
    * @param useFallback whether or not to fall back to calling the UFS
    * @return child UFS statuses of the alluxio path, or null if no prefetch job and fallback
@@ -254,9 +257,10 @@ public class UfsStatusCache {
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
+  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, LockedInodePath lockedInodePath,
        MountTable mountTable, boolean useFallback)
       throws InterruptedException, InvalidPathException {
+    AlluxioURI path = lockedInodePath.getUri();
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.get(path);
     if (prefetchJob != null) {
       while (true) {
@@ -308,16 +312,16 @@ public class UfsStatusCache {
    * a prefetch job was scheduled or not.
    *
    * @param rpcContext the rpcContext of the source of this call
-   * @param path the Alluxio path
+   * @param lockedInodePath the Alluxio path
    * @param mountTable the Alluxio mount table
    * @return child UFS statuses of the alluxio path
    * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, AlluxioURI path,
+  public Collection<UfsStatus> fetchChildrenIfAbsent(RpcContext rpcContext, LockedInodePath lockedInodePath,
        MountTable mountTable)
       throws InterruptedException, InvalidPathException {
-    return fetchChildrenIfAbsent(rpcContext, path, mountTable, true);
+    return fetchChildrenIfAbsent(rpcContext, lockedInodePath, mountTable, true);
   }
 
   /**
@@ -326,15 +330,16 @@ public class UfsStatusCache {
    * This method first checks if the children have already been retrieved, and if not, then
    * retrieves them.
 
-   * @param path the path to get the children for
+   * @param lockedInodePath the path to get the children for
    * @param mountTable the Alluxio mount table
    * @return the child statuses that were stored in the cache, or null if the UFS couldn't list the
    *         statuses
    * @throws InvalidPathException when the table can't resolve the mount for the given URI
    */
   @Nullable
-  Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
+  Collection<UfsStatus> getChildrenIfAbsent(LockedInodePath lockedInodePath, MountTable mountTable)
       throws InvalidPathException {
+    AlluxioURI path = lockedInodePath.getUri();
     Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
       return children;
@@ -342,7 +347,7 @@ public class UfsStatusCache {
     if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
       return null;
     }
-    MountTable.Resolution resolution = mountTable.resolve(path);
+    MountTable.Resolution resolution = mountTable.resolve(lockedInodePath);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -375,7 +380,7 @@ public class UfsStatusCache {
    * Submit a request to asynchronously fetch the statuses corresponding to a given directory.
    *
    * Retrieve any fetched statuses by calling
-   * {@link #fetchChildrenIfAbsent(RpcContext, AlluxioURI, MountTable)} with the same Alluxio path.
+   * {@link #fetchChildrenIfAbsent(RpcContext, LockedInodePath, MountTable)} with the same Alluxio path.
    *
    * If no {@link ExecutorService} was provided to this object before instantiation, this method is
    * a no-op.

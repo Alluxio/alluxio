@@ -63,16 +63,17 @@ public final class SafeUfsDeleter implements UfsDeleter {
         // Mount points are not deleted recursively as we need to preserve the directory itself
         if (inode != null && inode.isPersisted() && inode.isDirectory()
             && !mMountTable.isMountPoint(alluxioUri)) {
-          mUfsSyncChecker.checkDirectory(inode.asDirectory(), alluxioUri);
+          mUfsSyncChecker.checkDirectory(inode.asDirectory(), inodePair.getSecond());
         }
       }
     }
   }
 
   @Override
-  public void delete(AlluxioURI alluxioUri, Inode inode)
+  public void delete(LockedInodePath alluxioLockedInodePath, Inode inode)
       throws IOException, InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioLockedInodePath);
+    AlluxioURI alluxioUri = alluxioLockedInodePath.getUri();
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

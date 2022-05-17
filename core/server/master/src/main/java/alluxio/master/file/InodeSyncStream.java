@@ -114,7 +114,7 @@ import javax.annotation.Nullable;
  * are completed and there are no new inodes left in the queue.
  *
  * Syncing inode metadata requires making calls to the UFS. This implementation will schedule UFS
- * RPCs with the {@link UfsStatusCache#prefetchChildren(AlluxioURI, MountTable)}. Then, once the
+ * RPCs with the {@link UfsStatusCache#prefetchChildren(LockedInodePath, MountTable)}. Then, once the
  * inode begins processing, it can retrieve the results. After processing, it can then remove its
  * {@link UfsStatus} from the cache. This strategy helps reduce memory pressure on the master
  * while performing a sync for a large tree. Additionally, by using a prefetch mechanism we can
@@ -804,7 +804,7 @@ public class InodeSyncStream {
       } catch (FileNotFoundException e) {
         fileNotFound = true;
       }
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath);
       AlluxioURI ufsUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
@@ -835,7 +835,7 @@ public class InodeSyncStream {
             }
           }
         }
-        boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri(), true);
+        boolean containsMountPoint = mMountTable.containsMountPoint(inodePath, true);
 
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
@@ -909,7 +909,7 @@ public class InodeSyncStream {
       }
 
       // Fetch and populate children into the cache
-      mStatusCache.prefetchChildren(inodePath.getUri(), mMountTable);
+      mStatusCache.prefetchChildren(inodePath, mMountTable);
       Collection<UfsStatus> listStatus = mStatusCache
           .fetchChildrenIfAbsent(rpcContext, inodePath.getUri(), mMountTable);
       // Iterate over UFS listings and process UFS children.
@@ -969,7 +969,7 @@ public class InodeSyncStream {
   private void loadMetadataForPath(LockedInodePath inodePath, RpcContext rpcContext)
       throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
       FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
-    UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath.getUri(), mMountTable);
+    UfsStatus status = mStatusCache.fetchStatusIfAbsent(inodePath, mMountTable);
     DescendantType descendantType = mDescendantType;
     // If loadMetadata is only for one level, and the path is not the root of the loadMetadata,
     // do not load the subdirectory
@@ -995,7 +995,7 @@ public class InodeSyncStream {
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
-    MountTable.Resolution resolution = mMountTable.resolve(path);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath);
     int failedSync = 0;
     try {
       if (context.getUfsStatus() == null) {

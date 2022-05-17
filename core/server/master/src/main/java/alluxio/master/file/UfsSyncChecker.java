@@ -13,9 +13,11 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableIterator;
@@ -75,13 +77,13 @@ public final class UfsSyncChecker {
    * Check if immediate children of directory are in sync with UFS.
    *
    * @param inode read-locked directory to check
-   * @param alluxioUri path of directory to to check
+   * @param alluxioInodePath path of directory to to check
    */
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-  public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
-      throws InvalidPathException, IOException {
+  public void checkDirectory(InodeDirectory inode, LockedInodePath alluxioInodePath)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
-    UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
+    UfsStatus[] ufsChildren = getChildrenInUFS(alluxioInodePath);
     // Filter out temporary files
     ufsChildren = Arrays.stream(ufsChildren)
         .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
@@ -106,6 +108,7 @@ public final class UfsSyncChecker {
       }
     }
 
+    AlluxioURI alluxioUri = alluxioInodePath.getUri();
     if (ufsPos == ufsChildren.length) {
       // Directory is in sync
       mSyncedDirectories.put(alluxioUri, inode);
@@ -123,7 +126,7 @@ public final class UfsSyncChecker {
 
   /**
    * Based on directories for which
-   * {@link UfsSyncChecker#checkDirectory(InodeDirectory, AlluxioURI)} was called, this
+   * {@link UfsSyncChecker#checkDirectory(InodeDirectory, LockedInodePath)} was called, this
    * method returns whether any un-synced entries were found.
    *
    * @param alluxioUri path of directory to check
@@ -136,14 +139,14 @@ public final class UfsSyncChecker {
   /**
    * Get the children in under storage for given alluxio path.
    *
-   * @param alluxioUri alluxio path
+   * @param alluxioLockedInodePath alluxio path
    * @return the list of children in under storage
    * @throws InvalidPathException if aluxioUri is invalid
    * @throws IOException if a non-alluxio error occurs
    */
-  private UfsStatus[] getChildrenInUFS(AlluxioURI alluxioUri)
+  private UfsStatus[] getChildrenInUFS(LockedInodePath alluxioLockedInodePath)
       throws InvalidPathException, IOException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioLockedInodePath);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

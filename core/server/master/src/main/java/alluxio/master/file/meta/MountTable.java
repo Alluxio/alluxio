@@ -244,8 +244,9 @@ public final class MountTable implements DelegatingJournaled {
    * @param checkNestedMount whether to check nested mount points before delete
    * @return whether the operation succeeded or not
    */
-  public boolean delete(Supplier<JournalContext> journalContext, AlluxioURI uri,
-      boolean checkNestedMount) {
+  public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
+                        boolean checkNestedMount) {
+    AlluxioURI uri = alluxioLockedPath.getUri();
     String path = uri.getPath();
     LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
@@ -290,25 +291,27 @@ public final class MountTable implements DelegatingJournaled {
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public void update(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri,
-      long newMountId, MountPOptions newOptions) throws InvalidPathException,
+  public void update(Supplier<JournalContext> journalContext,
+                     LockedInodePath alluxioLockedInodePath,
+                     long newMountId, MountPOptions newOptions) throws InvalidPathException,
       FileAlreadyExistsException, IOException {
+    AlluxioURI alluxioUri = alluxioLockedInodePath.getUri();
     try (LockResource r = new LockResource(mWriteLock)) {
       MountInfo mountInfo = getMountTable().get(alluxioUri.getPath());
-      if (mountInfo == null || !delete(journalContext, alluxioUri, false)) {
+      if (mountInfo == null || !delete(journalContext, alluxioLockedInodePath, false)) {
         throw new InvalidPathException(String.format("Failed to update mount point at %s."
             + " Please ensure the path is an existing mount point and not root.",
             alluxioUri.getPath()));
       }
       try {
-        add(journalContext, alluxioUri, mountInfo.getUfsUri(), newMountId, newOptions);
+        add(journalContext, alluxioLockedInodePath, mountInfo.getUfsUri(), newMountId, newOptions);
       } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
         // This should never happen since the path is guaranteed to exist and the mount point is
         // just removed from the same path.
         LOG.error("Failed to add the updated mount point at {}", alluxioUri, e);
         // re-add old mount point
-        add(journalContext, alluxioUri, mountInfo.getUfsUri(), mountInfo.getMountId(),
-            mountInfo.getOptions());
+        add(journalContext, alluxioLockedInodePath, mountInfo.getUfsUri(),
+            mountInfo.getMountId());
         throw e;
       }
     }
@@ -317,24 +320,30 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * Returns the closest ancestor mount point the given path is nested under.
    *
-   * @param uri an Alluxio path URI
+   * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return mount point the given Alluxio path is nested under
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
-    String path = uri.getPath();
-    String lastMount = ROOT;
+  public String getMountPoint(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
+    // TODO(Jiadong): check and use trie
     try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mount = entry.getKey();
-        // we choose a new candidate path if the previous candidatepath is a prefix
-        // of the current alluxioPath and the alluxioPath is a prefix of the path
-        if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
-            && lastMount.length() < mount.length()) {
-          lastMount = mount;
+      if(mState.getMountTableTrie().isTrieEnable()) {
+        return mState.getMountTableTrie().getMountPoint(alluxioLockedInodePath);
+      } else {
+        AlluxioURI uri = alluxioLockedInodePath.getUri();
+        String path = uri.getPath();
+        String lastMount = ROOT;
+        for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+          String mount = entry.getKey();
+          // we choose a new candidate path if the previous candidatepath is a prefix
+          // of the current alluxioPath and the alluxioPath is a prefix of the path
+          if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
+              && PathUtils.hasPrefix(mount, lastMount)) {
+            lastMount = mount;
+          }
         }
+        return lastMount;
       }
-      return lastMount;
     }
   }
 
@@ -351,48 +360,68 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * @param uri the Alluxio uri to check
-   * @param containsSelf cause method to return true when given uri itself is a mount point
+   * @param alluxioLockedInodePath an Alluxio LockedInodePath
+   * @param containsSelf           cause method to return true when given uri itself is a mount
+   *                               point
    * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    */
-  public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf)
+  public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
       throws InvalidPathException {
+    // TODO(Jiadong): add InodeContains
+    AlluxioURI uri = alluxioLockedInodePath.getUri();
     String path = uri.getPath();
 
     try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mountPath = entry.getKey();
-        if (!containsSelf && mountPath.equals(path)) {
-          continue;
+      if(mState.getMountTableTrie().isTrieEnable()) {
+        return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioLockedInodePath,
+            containsSelf);
+      } else {
+        for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+          String mountPath = entry.getKey();
+          if (!containsSelf && mountPath.equals(path)) {
+            continue;
+          }
+          if (PathUtils.hasPrefix(mountPath, path)) {
+            return true;
+          }
         }
-        if (PathUtils.hasPrefix(mountPath, path)) {
-          return true;
-        }
+        return false;
       }
     }
-    return false;
   }
 
   /**
    * Returns the mount points under the specified path.
    *
-   * @param uri the Alluxio uri to check
-   * @param containsSelf if the given uri itself can be a mount point and included in the return
+   * @param alluxioLockedInodePath an Alluxio LockedInodePath
+   * @param containsSelf           if the given uri itself can be a mount point and included in
+   *                               the return
    * @return the mount points found
    */
-  public List<MountInfo> findChildrenMountPoints(AlluxioURI uri, boolean containsSelf)
+  public List<MountInfo> findChildrenMountPoints(LockedInodePath alluxioLockedInodePath,
+                                                 boolean containsSelf)
       throws InvalidPathException {
+    AlluxioURI uri = alluxioLockedInodePath.getUri();
     String path = uri.getPath();
     List<MountInfo> childrenMountPoints = new ArrayList<>();
 
     try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mountPath = entry.getKey();
-        if (!containsSelf && mountPath.equals(path)) {
-          continue;
+      if (mState.getMountTableTrie().isTrieEnable()) {
+        List<String> mountPointsPath =
+            mState.getMountTableTrie().findChildrenMountPoints(alluxioLockedInodePath,
+                containsSelf);
+        for(String p : mountPointsPath) {
+          childrenMountPoints.add(mState.getMountTable().get(p));
         }
-        if (PathUtils.hasPrefix(mountPath, path)) {
-          childrenMountPoints.add(entry.getValue());
+      } else {
+        for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+          String mountPath = entry.getKey();
+          if (!containsSelf && mountPath.equals(path)) {
+            continue;
+          }
+          if (PathUtils.hasPrefix(mountPath, path)) {
+            childrenMountPoints.add(entry.getValue());
+          }
         }
       }
     }
@@ -468,17 +497,19 @@ public final class MountTable implements DelegatingJournaled {
    * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
    * no-op.
    *
-   * @param uri an Alluxio path URI
+   * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return the {@link Resolution} representing the UFS path
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
+  public Resolution resolve(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
+      AlluxioURI uri = alluxioLockedInodePath.getUri();
       String path = uri.getPath();
       LOG.debug("Resolving {}", path);
       PathUtils.validatePath(uri.getPath());
       // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(uri);
+      // TODO(Jiadong) speed up this get with trie
+      String mountPoint = getMountPoint(alluxioLockedInodePath);
       if (mountPoint != null) {
         MountInfo info = mState.getMountTable().get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
@@ -507,18 +538,21 @@ public final class MountTable implements DelegatingJournaled {
    * Checks to see if a write operation is allowed for the specified Alluxio path, by determining
    * if it is under a readonly mount point.
    *
-   * @param alluxioUri an Alluxio path URI
-   * @throws InvalidPathException if the Alluxio path is invalid
+   * @param alluxioLockedInodePath an Alluxio LockedInodePath
+   * @throws InvalidPathException   if the Alluxio path is invalid
    * @throws AccessControlException if the Alluxio path is under a readonly mount point
    */
-  public void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
+  public void checkUnderWritableMountPoint(LockedInodePath alluxioLockedInodePath)
       throws InvalidPathException, AccessControlException {
     try (LockResource r = new LockResource(mReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(alluxioUri);
+
+      String mountPoint = getMountPoint(alluxioLockedInodePath);
       MountInfo mountInfo = mState.getMountTable().get(mountPoint);
       if (mountInfo.getOptions().getReadOnly()) {
-        throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
+        throw new AccessControlException(ExceptionMessage.MOUNT_READONLY,
+            alluxioLockedInodePath.getUri()
+            , mountPoint);
       }
     }
   }
@@ -680,6 +714,87 @@ public final class MountTable implements DelegatingJournaled {
             entry.getMountId(), GrpcUtils.fromMountEntry(entry));
   }
 
+  public static final class MountTableTrie {
+    private MountPointInodeTrieNode<InodeView> mRootTrieNode;
+
+    private MountPointInodeTrieNode<InodeView> mRootTrieInode = null;
+
+    private Map<MountPointInodeTrieNode<InodeView>, String> mMountPointTrieTable;
+
+    public MountTableTrie() {
+      mRootTrieNode = new MountPointInodeTrieNode<>();
+    }
+
+    public void setRootInode(InodeView rootInode) {
+      Preconditions.checkNotNull(mRootTrieNode);
+      Preconditions.checkArgument(mRootTrieNode.isLastTrieNode());
+
+      mRootTrieInode = mRootTrieNode.insert(Arrays.asList(rootInode), true);
+      mMountPointTrieTable = new HashMap<>(10);
+      mMountPointTrieTable.put(mRootTrieInode, ROOT);
+    }
+
+    public void addMountPoint(LockedInodePath inodes) {
+      // TODO(Jiadong): whether we check the fullPathExists of inodes?
+      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkNotNull(mRootTrieNode);
+      MountPointInodeTrieNode<InodeView> trieNode =
+          mRootTrieNode.insert(inodes.getInodeViewList(), true);
+      mMountPointTrieTable.put(trieNode, inodes.getUri().getPath());
+    }
+
+    public void removeMountPoint(LockedInodePath inodes) {
+      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkNotNull(mRootTrieNode);
+      MountPointInodeTrieNode<InodeView> trieNode =
+          mRootTrieNode.remove(inodes.getInodeViewList(), n -> n.isTerminal() && n.isMountPoint());
+      mMountPointTrieTable.remove(trieNode);
+    }
+
+    public String getMountPoint(LockedInodePath path) {
+      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkNotNull(mRootTrieNode);
+
+      MountPointInodeTrieNode<InodeView> trieNode =
+          mRootTrieNode.lowestMatchedTrieNode(path.getInodeViewList(),
+              MountPointInodeTrieNode::isMountPoint, false);
+      return mMountPointTrieTable.get(trieNode);
+    }
+
+    public List<String> findChildrenMountPoints(LockedInodePath path, boolean isContainSelf) {
+      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkNotNull(mRootTrieNode);
+
+      List<String> mountPoints = new ArrayList<>();
+
+      MountPointInodeTrieNode<InodeView> trieNode =
+          mRootTrieNode.lowestMatchedTrieNode(path.getInodeViewList(), n -> true, true);
+      if (trieNode == null) {
+        return mountPoints;
+      }
+      List<MountPointInodeTrieNode<InodeView>> childrenTrieNodes =
+          trieNode.allChildrenTrieNode(n -> n.isTerminal() && n.isMountPoint(), isContainSelf);
+      for (MountPointInodeTrieNode<InodeView> node : childrenTrieNodes) {
+        mountPoints.add(mMountPointTrieTable.get(node));
+      }
+      return mountPoints;
+    }
+
+    public boolean hasChildrenContainsMountPoints(LockedInodePath path,
+                                                       boolean isContainSelf) {
+      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkNotNull(mRootTrieNode);
+      return mRootTrieNode.isContainsCertainTypeOfTrieNodes(n -> true, true);
+    }
+
+    public boolean isTrieEnable() {
+      return mRootTrieInode != null;
+    }
+
+
+  }
+
+
   /**
    * Persistent mount table state. replayJournalEntryFromJournal should only be called during
    * journal replay. To modify the mount table, create a journal entry and call one of the
@@ -694,6 +809,8 @@ public final class MountTable implements DelegatingJournaled {
     /** Map from mount id to cache of paths which have been synced with UFS. */
     private final UfsSyncPathCache mUfsSyncPathCache;
 
+    private final MountTableTrie mMountTableTrie;
+
     /**
      * @param mountInfo root mount info
      * @param clock the clock used for computing sync times
@@ -701,6 +818,7 @@ public final class MountTable implements DelegatingJournaled {
     State(MountInfo mountInfo, Clock clock) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
+      mMountTableTrie = new MountTableTrie();
       mUfsSyncPathCache = new UfsSyncPathCache(clock);
     }
 
@@ -709,6 +827,10 @@ public final class MountTable implements DelegatingJournaled {
      */
     public Map<String, MountInfo> getMountTable() {
       return Collections.unmodifiableMap(mMountTable);
+    }
+
+    public MountTableTrie getMountTableTrie() {
+      return mMountTableTrie;
     }
 
     /**

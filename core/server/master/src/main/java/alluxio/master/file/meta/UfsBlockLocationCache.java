@@ -31,11 +31,11 @@ public interface UfsBlockLocationCache {
    * If failed to get the locations from UFS, {@code null} is returned and nothing is cached.
    *
    * @param blockId the block ID
-   * @param fileUri the URI of the file which contains the block
+   * @param fileLockedInodePath the URI of the file which contains the block
    * @param offset the block's offset in the file
    * @return the block locations or null if it fails to get the locations from UFS
    */
-  List<String> get(long blockId, AlluxioURI fileUri, long offset);
+  List<String> get(long blockId, LockedInodePath fileLockedInodePath, long offset);
 
   /**
    * Invalidates the UFS locations for the block.

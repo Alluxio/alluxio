@@ -1400,6 +1400,7 @@ public class InodeTree implements DelegatingJournaled {
   private Optional<UfsStatus> syncPersistDirectory(InodeDirectoryView dir, boolean isMetadataLoad)
       throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
+    // TODO(Jiadong) figure out how to modify this interface
     MountTable.Resolution resolution = mMountTable.resolve(uri);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {

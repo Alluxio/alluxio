@@ -66,13 +66,14 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
 
   @Override
   @Nullable
-  public List<String> get(long blockId, AlluxioURI fileUri, long offset) {
+  public List<String> get(long blockId, LockedInodePath fileLockedInodePath, long offset) {
     List<String> locations = mCache.getIfPresent(blockId);
     if (locations != null) {
       return locations;
     }
+    AlluxioURI fileUri = fileLockedInodePath.getUri();
     try {
-      MountTable.Resolution resolution = mMountTable.resolve(fileUri);
+      MountTable.Resolution resolution = mMountTable.resolve(fileLockedInodePath);
       String ufsUri = resolution.getUri().toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();

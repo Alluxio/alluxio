@@ -169,6 +169,7 @@ public class ActiveSyncManager implements Journaled {
    * @param path path to check
    * @return true if a URI is being actively synced
    */
+  // TODO(Jiadong) I think we'd better not to alter this class for now?
   public boolean isUnderSyncPoint(AlluxioURI path) {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {

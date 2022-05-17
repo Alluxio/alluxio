@@ -57,7 +57,7 @@ public final class MountPointInodeTrieNode<T> {
     MountPointInodeTrieNode<T> matchedPos = null;
     MountPointInodeTrieNode<T> current = this;
 
-    if(inodes.isEmpty() && this.mIsTerminal && predicate.apply(this)) {
+    if(inodes.isEmpty() && predicate.apply(this)) {
       return this;
     }
     for (int i = 0; i<inodes.size(); i++) {
@@ -69,7 +69,7 @@ public final class MountPointInodeTrieNode<T> {
         break;
       }
       current = current.mChildren.get(inode);
-      if(current.mIsTerminal && predicate.apply(current) && (!isCompleteMatch || i == inodes.size() - 1)) {
+      if(predicate.apply(current) && (!isCompleteMatch || i == inodes.size() - 1)) {
         matchedPos = current;
       }
     }
@@ -93,39 +93,11 @@ public final class MountPointInodeTrieNode<T> {
   }
 
   /**
-   * acquire the direct children's TrieNodes of current TrieNode
-   * @return the direct children's TrieNodes of current Node
-   */
-  public Collection<MountPointInodeTrieNode<T>> childrenTrieNodes(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate) {
-    Collection<MountPointInodeTrieNode<T>> children = new HashSet<>();
-    for(MountPointInodeTrieNode<T> node : mChildren.values()) {
-      if(predicate.apply(node)) {
-        children.add(node);
-      }
-    }
-    return children;
-  }
-
-  /**
-   * acquire the direct children's keys of current TrieNode
-   * @return the direct children's keys of current TrieNode
-   */
-  public Collection<T> childrenKeys(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate) {
-    Collection<T> children = new HashSet<>();
-    for(T key : mChildren.keySet()) {
-      if(predicate.apply(mChildren.get(key))) {
-        children.add(key);
-      }
-    }
-    return children;
-  }
-
-  /**
-   * acquire all the children TrieNodes
+   * acquire all the children TrieNodes, no include self
    * @param predicate filter the children nodes
    * @return all the children TrieNodes
    */
-  public List<MountPointInodeTrieNode<T>> allChildrenTrieNode(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate) {
+  public List<MountPointInodeTrieNode<T>> allChildrenTrieNode(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate, boolean isContainSelf) {
     List<MountPointInodeTrieNode<T>> childrenNodes = new ArrayList<>();
     if (isLastTrieNode()) {
       return childrenNodes;
@@ -134,7 +106,7 @@ public final class MountPointInodeTrieNode<T> {
     queue.add(this);
     while(!queue.isEmpty()) {
       MountPointInodeTrieNode<T> front = queue.poll();
-      if(front != this && predicate.apply(front)) {
+      if(predicate.apply(front) && (isContainSelf || front != this)) {
         childrenNodes.add(front);
       }
       for(Map.Entry<T, MountPointInodeTrieNode<T>> entry : front.mChildren.entrySet()) {
@@ -143,6 +115,25 @@ public final class MountPointInodeTrieNode<T> {
       }
     }
     return childrenNodes;
+  }
+
+  public boolean isContainsCertainTypeOfTrieNodes(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate, boolean isContainSelf) {
+    if (isLastTrieNode()) {
+      return false;
+    }
+    Queue<MountPointInodeTrieNode<T>> queue = new LinkedList<>();
+    queue.add(this);
+    while(!queue.isEmpty()) {
+      MountPointInodeTrieNode<T> front = queue.poll();
+      if(predicate.apply(front) && (isContainSelf || front != this)) {
+        return true;
+      }
+      for(Map.Entry<T, MountPointInodeTrieNode<T>> entry : front.mChildren.entrySet()) {
+        MountPointInodeTrieNode<T> value = entry.getValue();
+        queue.add(value);
+      }
+    }
+    return false;
   }
 
   /**
@@ -162,7 +153,7 @@ public final class MountPointInodeTrieNode<T> {
       parents.push(new Pair<>(current, inode));
       current = current.mChildren.get(inode);
     }
-    if(!current.mIsTerminal || !predicate.apply(current)) {
+    if(!predicate.apply(current)) {
       return null;
     }
     MountPointInodeTrieNode<T> nodeToRemove = current;

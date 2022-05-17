@@ -8451,27 +8451,33 @@
               },
               {
                 "id": 2,
+                "name": "alluxio_path_inode_ids",
+                "type": "int64",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
                 "name": "ufs_path",
                 "type": "string"
               },
               {
-                "id": 3,
+                "id": 4,
                 "name": "readOnly",
                 "type": "bool"
               },
               {
-                "id": 4,
+                "id": 5,
                 "name": "properties",
                 "type": "StringPairEntry",
                 "is_repeated": true
               },
               {
-                "id": 5,
+                "id": 6,
                 "name": "shared",
                 "type": "bool"
               },
               {
-                "id": 6,
+                "id": 7,
                 "name": "mount_id",
                 "type": "int64"
               }

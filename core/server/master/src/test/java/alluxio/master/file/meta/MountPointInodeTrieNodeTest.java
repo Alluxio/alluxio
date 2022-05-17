@@ -51,16 +51,8 @@ public class MountPointInodeTrieNodeTest {
     MountPointInodeTrieNode<Long> node2 = root.lowestMatchedTrieNode(ids2, n -> true, true);
     MountPointInodeTrieNode<Long> node3 = root.lowestMatchedTrieNode(ids4, n -> true, true);
     Assert.assertNull(node1.child(6L, n -> true));
-    Assert.assertEquals(new HashSet<Long>() {{
-      add(3L);
-      add(5L);
-    }}, node2.childrenKeys(n -> true));
     Assert.assertNull(node2.child(4L, n -> true));
-
     Assert.assertNotNull(node3);
-    Assert.assertEquals(new HashSet<Long>() {{
-      add(4L);
-    }}, node3.childrenKeys(n -> true));
   }
 
   @Test
@@ -129,22 +121,9 @@ public class MountPointInodeTrieNodeTest {
     Assert.assertNull(node2);
     MountPointInodeTrieNode<Long> node3 = root.remove(ids4, n -> true);
     Assert.assertNotNull(node3);
-    Assert.assertEquals(new ArrayList<List<Long>>() {
-                          {
-                            add(idsn);
-                            add(idsToRemove);
-                          }
-                        },
-        node.childrenTrieNodes(MountPointInodeTrieNode::isTerminal).stream().map(MountPointInodeTrieNode::list).collect(Collectors.toList()));
     MountPointInodeTrieNode<Long> node4 = root.remove(idsToRemove,
         MountPointInodeTrieNode::isTerminal);
     Assert.assertNotNull(node4);
-    Assert.assertEquals(new ArrayList<List<Long>>() {
-                          {
-                            add(idsn);
-                          }
-                        },
-        node.childrenTrieNodes(MountPointInodeTrieNode::isTerminal).stream().map(MountPointInodeTrieNode::list).collect(Collectors.toList()));
     List<Long> ids6 = new ArrayList<Long>() {
       {
         add(1L);
@@ -240,9 +219,6 @@ public class MountPointInodeTrieNodeTest {
     Assert.assertNotNull(node2);
     Assert.assertNull(node5);
     Assert.assertNotNull(node6.child(3L, MountPointInodeTrieNode::isTerminal));
-    Assert.assertEquals(new HashSet<Long>() {{
-      add(10L);
-    }}, node2.childrenKeys(MountPointInodeTrieNode::isTerminal));
     Assert.assertEquals(node2, node4);
     Assert.assertNull(node3);
   }
@@ -284,9 +260,9 @@ public class MountPointInodeTrieNodeTest {
     MountPointInodeTrieNode<Long> n2 = root.insert(ids4, true);
 
     List<MountPointInodeTrieNode<Long>> n1ChildrenTrieNode =
-        n1.allChildrenTrieNode(MountPointInodeTrieNode::isTerminal);
+        n1.allChildrenTrieNode(MountPointInodeTrieNode::isTerminal, false);
     List<MountPointInodeTrieNode<Long>> n2ChildrenTrieNode =
-        n2.allChildrenTrieNode(MountPointInodeTrieNode::isTerminal);
+        n2.allChildrenTrieNode(MountPointInodeTrieNode::isTerminal, false);
 
     Assert.assertEquals(new ArrayList<List<Long>>() {{
                         }},
