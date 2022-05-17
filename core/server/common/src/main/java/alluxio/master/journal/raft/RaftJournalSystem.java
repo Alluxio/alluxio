@@ -254,7 +254,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @VisibleForTesting
   RaftJournalSystem(URI path, InetSocketAddress localAddress,
       List<InetSocketAddress> clusterAddresses) {
-    mPath = new File(path);
+    mPath = new File(path.getPath());
     mLocalAddress = localAddress;
     mClusterAddresses = clusterAddresses;
 
