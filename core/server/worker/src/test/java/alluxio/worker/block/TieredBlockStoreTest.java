@@ -24,7 +24,7 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -576,7 +576,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void getBlockWriterForNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(BLOCK_ID1));
 
     mBlockStore.getBlockWriter(SESSION_ID1, BLOCK_ID1);
@@ -587,7 +587,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void abortNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(BLOCK_ID1));
 
     mBlockStore.abortBlock(SESSION_ID1, BLOCK_ID1);
@@ -625,7 +625,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
@@ -637,7 +637,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveTempBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -693,7 +693,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void commitNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(BLOCK_ID1));
 
     mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1, false);

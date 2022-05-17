@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -388,7 +388,7 @@ public final class DefaultStorageDirTest {
    */
   @Test
   public void removeTempBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mDir.removeTempBlockMeta(mTempBlockMeta);
   }
@@ -401,7 +401,7 @@ public final class DefaultStorageDirTest {
   public void removeTempBlockMetaNotOwner() throws Exception {
     final long wrongSessionId = TEST_SESSION_ID + 1;
     String alias = Constants.MEDIUM_MEM;
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(
         MessageFormat.format("blockId {0,number,#} in {1} not found for session {2,number,#}",
             TEST_TEMP_BLOCK_ID, alias, wrongSessionId));

@@ -26,7 +26,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.proto.dataserver.Protocol;
@@ -107,7 +107,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.abortBlock(sessionId, blockId);
-    assertThrows(BlockDoesNotExistException.class,
+    assertThrows(BlockDoesNotExistRuntimeException.class,
         () -> mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId));
   }
 
@@ -247,7 +247,7 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = 1;
-    assertThrows(BlockDoesNotExistException.class,
+    assertThrows(BlockDoesNotExistRuntimeException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
   }

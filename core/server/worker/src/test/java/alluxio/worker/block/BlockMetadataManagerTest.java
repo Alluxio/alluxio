@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.meta.BlockMeta;
@@ -227,7 +227,7 @@ public final class BlockMetadataManagerTest {
    */
   @Test
   public void getTempBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(TEST_TEMP_BLOCK_ID));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
   }
@@ -253,7 +253,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // test to make sure that the dst tempBlockMeta has been removed from the dir
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(TEST_TEMP_BLOCK_ID2));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
   }
@@ -282,7 +282,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // make sure that the dst tempBlockMeta has been removed from the dir2
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(TEST_TEMP_BLOCK_ID2));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
   }
