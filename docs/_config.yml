@@ -14,9 +14,9 @@ ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.9.0-SNAPSHOT-client
 # For release branches, this should be the Alluxio version in the form of <major>.<minor>, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
 # For master branch, this should be "edge"
 # This should be used to reference versioned pages that are not relative to the docs/ directory
-# e.g. Javadoc: https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/master/index.html
-# e.g. REST API doc: https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/master/index.html
-ALLUXIO_MAJOR_VERSION: edge
+# e.g. Javadoc: https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION: 2.8
+# e.g. REST API doc: https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION: 2.8
+ALLUXIO_MAJOR_VERSION: 2.8
 # The Alluxio docker image name.
 ALLUXIO_DOCKER_IMAGE: alluxio
 
