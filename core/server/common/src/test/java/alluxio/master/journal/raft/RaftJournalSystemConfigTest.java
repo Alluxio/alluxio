@@ -12,32 +12,32 @@
 package alluxio.master.journal.raft;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.journal.JournalUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.Sets;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 /**
- * Units tests for {@link RaftJournalConfiguration}.
+ * Units tests for {@link RaftJournalSystem}'s initialization.
  */
-public final class RaftJournalConfigurationTest {
-  @Before
-  public void before() {
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "testhost");
-  }
+public final class RaftJournalSystemConfigTest {
+
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
   @After
   public void after() {
@@ -45,65 +45,81 @@ public final class RaftJournalConfigurationTest {
   }
 
   @Test
-  public void defaultDefaults() {
-    RaftJournalConfiguration conf = getConf(ServiceType.MASTER_RAFT);
-    checkAddress("testhost", 19200, conf.getLocalAddress());
+  public void defaultDefaults() throws Exception {
+    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "testhost");
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
+    InetSocketAddress address = getLocalAddress(system);
+    assertEquals("testhost:" + 19200, address.toString());
   }
 
   @Test
-  public void port() {
+  public void port() throws Exception {
     int testPort = 10000;
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, testPort);
-    RaftJournalConfiguration conf = getConf(ServiceType.MASTER_RAFT);
-    assertEquals(testPort, conf.getLocalAddress().getPort());
-    assertEquals(testPort, conf.getClusterAddresses().get(0).getPort());
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
+    InetSocketAddress localAddress = getLocalAddress(system);
+    List<InetSocketAddress> clusterAddresses = getClusterAddresses(system);
+    assertEquals(testPort, localAddress.getPort());
+    assertEquals(testPort, clusterAddresses.get(0).getPort());
   }
 
   @Test
-  public void derivedMasterHostname() {
+  public void derivedMasterHostname() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "test");
-    RaftJournalConfiguration conf = getConf(ServiceType.MASTER_RAFT);
-    checkAddress("test", 19200, conf.getLocalAddress());
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
+    InetSocketAddress address = getLocalAddress(system);
+    assertEquals("test:" + 19200, address.toString());
   }
 
   @Test
-  public void derivedJobMasterHostname() {
+  public void derivedJobMasterHostname() throws Exception {
     ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, "test");
-    RaftJournalConfiguration conf = getConf(ServiceType.JOB_MASTER_RAFT);
-    checkAddress("test", 20003, conf.getLocalAddress());
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
+    InetSocketAddress address = getLocalAddress(system);
+    assertEquals("test:" + 20003, address.toString());
   }
 
   @Test
-  public void derivedJobMasterHostnameFromMasterHostname() {
+  public void derivedJobMasterHostnameFromMasterHostname() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "test");
-    RaftJournalConfiguration conf = getConf(ServiceType.JOB_MASTER_RAFT);
-    checkAddress("test", 20003, conf.getLocalAddress());
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
+    InetSocketAddress address = getLocalAddress(system);
+    assertEquals("test:" + 20003, address.toString());
   }
 
   @Test
-  public void derivedJobMasterAddressesFromMasterAddresses() {
+  public void derivedJobMasterAddressesFromMasterAddresses() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
         "host1:10,host2:20,host3:10");
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "host1");
     ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 5);
-    RaftJournalConfiguration conf = getConf(ServiceType.JOB_MASTER_RAFT);
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
+    List<InetSocketAddress> addresses = getClusterAddresses(system);
     assertEquals(Sets.newHashSet(InetSocketAddress.createUnresolved("host1", 5),
         InetSocketAddress.createUnresolved("host2", 5),
         InetSocketAddress.createUnresolved("host3", 5)),
-        new HashSet<>(conf.getClusterAddresses()));
+        new HashSet<>(addresses));
   }
 
   @Test
-  public void derivedJobMasterAddressesFromJobMasterAddresses() {
+  public void derivedJobMasterAddressesFromJobMasterAddresses() throws Exception {
     ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES,
         "host1:10,host2:20,host3:10");
     ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, "host1");
     ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 10);
-    RaftJournalConfiguration conf = getConf(ServiceType.JOB_MASTER_RAFT);
+    RaftJournalSystem system =
+        new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
+    List<InetSocketAddress> addresses = getClusterAddresses(system);
     assertEquals(Sets.newHashSet(InetSocketAddress.createUnresolved("host1", 10),
         InetSocketAddress.createUnresolved("host2", 20),
         InetSocketAddress.createUnresolved("host3", 10)),
-        new HashSet<>(conf.getClusterAddresses()));
+        new HashSet<>(addresses));
   }
 
   @Test
@@ -122,26 +138,20 @@ public final class RaftJournalConfigurationTest {
     clusterAddresses.add(raftNodeAddress1);
     clusterAddresses.add(raftNodeAddress2);
     clusterAddresses.add(raftNodeAddress3);
-    RaftJournalConfiguration conf = new RaftJournalConfiguration()
-        .setClusterAddresses(clusterAddresses)
-        .setElectionMinTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT))
-        .setElectionMaxTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
-        .setLocalAddress(localAddress)
-        .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
-        .setPath(new File(JournalUtils.getJournalLocation().getPath()));
-    conf.validate();
+    assertTrue(clusterAddresses.contains(localAddress)
+        || NetworkAddressUtils.containsLocalIp(clusterAddresses, ServerConfiguration.global()));
   }
 
-  private RaftJournalConfiguration getConf(ServiceType serviceType) {
-    RaftJournalConfiguration conf = RaftJournalConfiguration.defaults(serviceType);
-    conf.validate();
-    return conf;
+  private InetSocketAddress getLocalAddress(RaftJournalSystem system) throws Exception {
+    Field field = RaftJournalSystem.class.getDeclaredField("mLocalAddress");
+    field.setAccessible(true);
+    return (InetSocketAddress) field.get(system);
   }
 
-  private void checkAddress(String hostname, int port, InetSocketAddress address) {
-    assertEquals(hostname, address.getHostString());
-    assertEquals(port, address.getPort());
+  @SuppressWarnings("unchecked")
+  private List<InetSocketAddress> getClusterAddresses(RaftJournalSystem system) throws Exception {
+    Field field = RaftJournalSystem.class.getDeclaredField("mClusterAddresses");
+    field.setAccessible(true);
+    return (List<InetSocketAddress>) field.get(system);
   }
 }
