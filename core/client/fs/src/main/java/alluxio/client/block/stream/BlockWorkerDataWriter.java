@@ -75,7 +75,8 @@ public final class BlockWorkerDataWriter implements DataWriter {
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException | BlockDoesNotExistRuntimeException
+    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException
+        | BlockDoesNotExistRuntimeException //TODO(jianjian) directly throw?
         | InvalidWorkerStateException e) {
       throw new IOException(e);
     }
