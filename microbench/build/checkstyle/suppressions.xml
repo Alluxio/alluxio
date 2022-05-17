@@ -1,0 +1,17 @@
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+  <!-- Does not require java doc on methods and types, as they are typically benchmark methods and params. -->
+  <suppress files="[\\/]src[\\/]main[\\/].*" checks="MissingJavadocMethod" />
+  <suppress files="[\\/]src[\\/]main[\\/].*" checks="MissingJavadocType" />
+  <!-- Suppresses files in the target folder. -->
+  <suppress files="[/\\]target[/\\]" checks=".*" />
+  <!-- Suppresses files in the src/test folder. To be used for rules which only apply to
+       production code. -->
+  <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*"
+            id="ProductionScope" />
+  <!-- Suppresses files in the src/main folder. To be used for rules which only apply to test
+       code. -->
+  <suppress files="[\\/]src[\\/]main[\\/].*|[\\/]generated-sources[\\/].*" id="TestScope" />
+</suppressions>
