@@ -105,7 +105,7 @@ RUN mkdir -p /home/jenkins && \
     chmod -R 777 /.config && \
     apt-get update -y && \
     apt-get upgrade -y ca-certificates && \
-    apt-get install -y build-essential fuse libfuse-dev fuse3 libfuse3-dev make ruby ruby-dev
+    apt-get install -y build-essential fuse libfuse-dev make ruby ruby-dev
 # jekyll for documentation
 RUN gem install jekyll bundler
 # golang for tooling

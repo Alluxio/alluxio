@@ -11,15 +11,23 @@
 
 package alluxio.worker.block;
 
+import alluxio.client.file.cache.CacheManager;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.page.PagedBlockMetaStore;
+import alluxio.worker.page.PagedLocalBlockStore;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,6 +41,26 @@ import java.util.Set;
  */
 public interface LocalBlockStore
     extends SessionCleanable, Closeable {
+  /**
+   * @param ufsManager
+   * @return the instance of LocalBlockStore
+   */
+  static LocalBlockStore create(UfsManager ufsManager) {
+    switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        try {
+          InstancedConfiguration conf = ServerConfiguration.global();
+          PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
+          CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+          return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
+        }
+      case FILE:
+      default:
+        return new TieredBlockStore();
+    }
+  }
 
   /**
    * Pins the block indicating subsequent access.
@@ -157,7 +185,7 @@ public interface LocalBlockStore
    * @throws BlockAlreadyExistsException if a committed block with the same ID exists
    * @throws InvalidWorkerStateException if the worker state is invalid
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId)
+  BlockWriter createBlockWriter(long sessionId, long blockId)
       throws BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException;
 
@@ -175,6 +203,21 @@ public interface LocalBlockStore
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException;
+
+  /**
+   * Creates a reader of an existing block to read data from this block.
+   * <p>
+   * The block reader will fetch the data from UFS when the data is not cached by the worker
+   *
+   * @param sessionId the id of the session to get the reader
+   * @param blockId the id of an existing block
+   * @param options the options for UFS fall-back
+   * @return a {@link BlockReader} instance on this block
+   */
+  default BlockReader createBlockReader(long sessionId, long blockId,
+                                        Protocol.OpenUfsBlockOptions options) {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Moves an existing block to a new location.

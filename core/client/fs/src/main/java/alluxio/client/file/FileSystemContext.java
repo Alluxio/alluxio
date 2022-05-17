@@ -281,6 +281,7 @@ public class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
+  @Override
   public synchronized void close() throws IOException {
     LOG.debug("Closing context with id: {}", mId);
     mReinitializer.close();

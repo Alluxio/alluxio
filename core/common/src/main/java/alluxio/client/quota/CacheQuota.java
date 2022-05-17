@@ -25,6 +25,7 @@ public class CacheQuota {
    * A predefined CacheQuota instance that sets NO limit.
    */
   public static final CacheQuota UNLIMITED = new CacheQuota() {
+    @Override
     public long getQuota(CacheScope cacheScope) {
       return Long.MAX_VALUE;
     }

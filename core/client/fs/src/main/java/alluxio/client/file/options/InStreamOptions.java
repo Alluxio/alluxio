@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
@@ -142,30 +143,31 @@ public final class InStreamOptions {
    * @return a {@link Protocol.OpenUfsBlockOptions} based on the block id and options
    */
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
-    Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");
-    boolean readFromUfs = mStatus.isPersisted();
+    Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId),
+        "block id %s does not belong to the file %s", blockId, mStatus.getPath());
     // In case it is possible to fallback to read UFS blocks, also fill in the options.
-    boolean storedAsUfsBlock = mStatus.getPersistenceState().equals("TO_BE_PERSISTED");
-    readFromUfs = readFromUfs || storedAsUfsBlock;
-    if (!readFromUfs) {
+    boolean storedAsUfsBlock = mStatus.getPersistenceState()
+        .equals(PersistenceState.TO_BE_PERSISTED.name());
+    if (!mStatus.isPersisted() && !storedAsUfsBlock) {
       return Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
     long blockStart = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
     BlockInfo info = getBlockInfo(blockId);
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setUfsPath(mStatus.getUfsPath()).setOffsetInFile(blockStart).setBlockSize(info.getLength())
-        .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
-        .setNoCache(!ReadType.fromProto(mProtoOptions.getReadType()).isCache())
-        .setMountId(mStatus.getMountId()).build();
+    Protocol.OpenUfsBlockOptions.Builder openUfsBlockOptionsBuilder =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
+            .setOffsetInFile(blockStart).setBlockSize(info.getLength())
+            .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
+            .setNoCache(!ReadType.fromProto(mProtoOptions.getReadType()).isCache())
+            .setMountId(mStatus.getMountId());
     if (storedAsUfsBlock) {
       // On client-side, we do not have enough mount information to fill in the UFS file path.
       // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file
       // path can be derived from mount id and the block ID. Also because the entire file is only
       // one block, we set the offset in file to be zero.
-      openUfsBlockOptions = openUfsBlockOptions.toBuilder().clearUfsPath().setBlockInUfsTier(true)
-            .setOffsetInFile(0).build();
+      openUfsBlockOptionsBuilder.clearUfsPath().setBlockInUfsTier(true)
+            .setOffsetInFile(0);
     }
-    return openUfsBlockOptions;
+    return openUfsBlockOptionsBuilder.build();
   }
 
   @Override
