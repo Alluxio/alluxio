@@ -36,7 +36,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -56,8 +55,6 @@ public final class BlockMetadataManagerTest {
   public static final String[][] TIER_MEDIA_TYPE =
       {{Constants.MEDIUM_MEM}, {Constants.MEDIUM_HDD, Constants.MEDIUM_HDD}};
   private static final long[][] TIER_CAPACITY_BYTES = {{1000}, {3000, 5000}};
-  private static final MessageFormat TEMP_BLOCK_META_NOT_FOUND =
-      new MessageFormat("TempBlockMeta not found for blockId {0,number,#}");
   private BlockMetadataManager mMetaManager;
 
   /** Rule to create a new temporary folder during each test. */
@@ -228,7 +225,7 @@ public final class BlockMetadataManagerTest {
   @Test
   public void getTempBlockMetaNotExisting() throws Exception {
     mThrown.expect(BlockDoesNotExistRuntimeException.class);
-    mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(TEST_TEMP_BLOCK_ID));
+    mThrown.expectMessage(new BlockDoesNotExistRuntimeException(TEST_TEMP_BLOCK_ID).getMessage());
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
   }
 
@@ -254,7 +251,7 @@ public final class BlockMetadataManagerTest {
 
     // test to make sure that the dst tempBlockMeta has been removed from the dir
     mThrown.expect(BlockDoesNotExistRuntimeException.class);
-    mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(TEST_TEMP_BLOCK_ID2));
+    mThrown.expectMessage(new BlockDoesNotExistRuntimeException(TEST_TEMP_BLOCK_ID2).getMessage());
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
   }
 
@@ -283,7 +280,7 @@ public final class BlockMetadataManagerTest {
 
     // make sure that the dst tempBlockMeta has been removed from the dir2
     mThrown.expect(BlockDoesNotExistRuntimeException.class);
-    mThrown.expectMessage(TEMP_BLOCK_META_NOT_FOUND.format(TEST_TEMP_BLOCK_ID2));
+    mThrown.expectMessage(new BlockDoesNotExistRuntimeException(TEST_TEMP_BLOCK_ID2).getMessage());
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
   }
 

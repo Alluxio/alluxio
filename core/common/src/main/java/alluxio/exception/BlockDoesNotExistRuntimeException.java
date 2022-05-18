@@ -47,6 +47,6 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
    * @param blockId block id
    */
   public BlockDoesNotExistRuntimeException(long blockId) {
-    this(new MessageFormat("BlockMeta not found for blockId {0,number,#}").format(blockId));
+    this(MessageFormat.format("BlockMeta not found for blockId {0,number,#}", blockId));
   }
 }
