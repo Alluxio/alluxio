@@ -92,11 +92,6 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public boolean hasBlockMeta(long blockId) {
-    return false;
-  }
-
-  @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
