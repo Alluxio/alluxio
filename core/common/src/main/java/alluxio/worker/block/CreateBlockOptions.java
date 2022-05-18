@@ -11,11 +11,14 @@
 
 package alluxio.worker.block;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -25,30 +28,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateBlockOptions {
-  private String mAlluxioPath;
-  private long mInitialBytes;
-  private String mMedium;
+  private final long mInitialBytes;
+  private final Optional<String> mMedium;
 
   /**
    * Constructor.
    *
-   * @param alluxioPath the alluxio path
    * @param medium the medium
    * @param initialBytes the initialBytes
    */
-  public CreateBlockOptions(@Nullable String alluxioPath, @Nullable String medium,
+  public CreateBlockOptions(Optional<String> medium,
       long initialBytes) {
-    mAlluxioPath = alluxioPath;
-    mMedium = medium;
+    mMedium = requireNonNull(medium, "medium is null");
     mInitialBytes = initialBytes;
-  }
-
-  /**
-   * @return the alluxio path
-   */
-  @Nullable
-  public String getAlluxioPath() {
-    return mAlluxioPath;
   }
 
   /**
@@ -62,35 +54,8 @@ public final class CreateBlockOptions {
    * @return the medium
    */
   @Nullable
-  public String getMedium() {
+  public Optional<String> getMedium() {
     return mMedium;
-  }
-
-  /**
-   * @param alluxioPath the alluxio path
-   * @return the CreateBlockOptions
-   */
-  public CreateBlockOptions setAlluxioPath(String alluxioPath) {
-    mAlluxioPath = alluxioPath;
-    return this;
-  }
-
-  /**
-   * @param initialBytes the intial bytes
-   * @return the CreateBlockOptions
-   */
-  public CreateBlockOptions setInitialBytes(long initialBytes) {
-    mInitialBytes = initialBytes;
-    return this;
-  }
-
-  /**
-   * @param medium the medium
-   * @return the CreateBlockOptions
-   */
-  public CreateBlockOptions setMedium(String medium) {
-    mMedium = medium;
-    return this;
   }
 
   @Override
@@ -102,15 +67,13 @@ public final class CreateBlockOptions {
       return false;
     }
     CreateBlockOptions that = (CreateBlockOptions) o;
-    return Objects.equal(mAlluxioPath, that.getAlluxioPath())
-        && Objects.equal(mInitialBytes, that.mInitialBytes)
+    return Objects.equal(mInitialBytes, that.mInitialBytes)
         && Objects.equal(mMedium, that.getMedium());
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(
-        mAlluxioPath,
         mInitialBytes,
         mMedium
     );
@@ -119,7 +82,6 @@ public final class CreateBlockOptions {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("alluxioPath", mAlluxioPath)
         .add("initialBytes", mInitialBytes)
         .add("medium", mMedium)
         .toString();

@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -289,7 +290,7 @@ public class CacheRequestManager {
       throws IOException, AlluxioException {
     try {
       mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
-          new CreateBlockOptions(null, "", blockSize));
+          new CreateBlockOptions(Optional.empty(), blockSize));
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       LOG.debug("block already cached: {}", blockId);

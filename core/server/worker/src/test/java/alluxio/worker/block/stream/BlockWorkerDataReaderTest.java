@@ -59,6 +59,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Unit tests for {@link BlockWorkerDataReader}.
@@ -129,7 +130,7 @@ public class BlockWorkerDataReaderTest {
   @Test
   public void create() throws Exception {
     mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+        new CreateBlockOptions(Optional.of(Constants.MEDIUM_MEM), 1));
     mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID, true);
     DataReader dataReader = mDataReaderFactory.create(100, 200);
     assertEquals(100, dataReader.pos());
@@ -141,7 +142,7 @@ public class BlockWorkerDataReaderTest {
     for (int i = 0; i < LOCK_NUM * 10; i++) {
       long blockId = i;
       mBlockWorker.createBlock(SESSION_ID, blockId, 0,
-          new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+          new CreateBlockOptions(Optional.of(Constants.MEDIUM_MEM), 1));
       mBlockWorker.commitBlock(SESSION_ID, blockId, true);
       InStreamOptions inStreamOptions = new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(blockId))),
@@ -186,7 +187,7 @@ public class BlockWorkerDataReaderTest {
   public void readChunkFullFile() throws Exception {
     int len = CHUNK_SIZE * 2;
     mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+        new CreateBlockOptions(Optional.of(Constants.MEDIUM_MEM), 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }
@@ -203,7 +204,7 @@ public class BlockWorkerDataReaderTest {
   public void readChunkPartial() throws Exception {
     int len = CHUNK_SIZE * 5;
     mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, 0,
-        new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
+        new CreateBlockOptions(Optional.of(Constants.MEDIUM_MEM), 1));
     try (BlockWriter writer = mBlockWorker.createBlockWriter(SESSION_ID, BLOCK_ID)) {
       writer.append(BufferUtils.getIncreasingByteBuffer(len));
     }

@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -94,7 +95,7 @@ public final class UfsFallbackBlockWriteHandler
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
       mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
-          new CreateBlockOptions(null, request.getMediumType(), FILE_BUFFER_SIZE));
+          new CreateBlockOptions(Optional.ofNullable(request.getMediumType()), FILE_BUFFER_SIZE));
     }
     return context;
   }

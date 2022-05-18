@@ -89,6 +89,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -531,7 +532,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
       int tierIndex = mTierToIndex.get(loc.tierAlias());
       for (long blockId : entry.getValue()) {
         mBlockWorker.createBlock(1L, blockId, tierIndex,
-            new CreateBlockOptions(null, loc.tierAlias(), 1));
+            new CreateBlockOptions(Optional.of(loc.tierAlias()), 1));
         mBlockWorker.commitBlock(1L, blockId, false);
       }
     }
