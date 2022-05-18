@@ -14,7 +14,9 @@ package alluxio.master.metastore;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
@@ -30,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -72,6 +75,7 @@ public class BlockStoreTest {
 
   @Test
   public void rocksConfigFile() throws Exception {
+    assumeTrue(mBlockStore instanceof RocksBlockStore);
     // close the store first because we want to reopen it with the new config
     mBlockStore.close();
     try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
@@ -81,6 +85,26 @@ public class BlockStoreTest {
     }, ServerConfiguration.global()).toResource()) {
       mBlockStore = mBlockStoreSupplier.get();
       testPutGet();
+    }
+  }
+
+  @Test
+  public void rocksInvalidConfigFile() throws Exception {
+    assumeTrue(mBlockStore instanceof RocksBlockStore);
+    // close the store first because we want to reopen it with the new config
+    mBlockStore.close();
+    // write an invalid config
+    String path = sDir + CONF_NAME + "invalid";
+    File confFile = new File(path);
+    writeStringToFile(confFile, "Invalid config", (Charset) null);
+
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_BLOCK_CONF_FILE, path);
+      }
+    }, ServerConfiguration.global()).toResource()) {
+      assertEquals(RocksDBException.class,
+          assertThrows(RuntimeException.class, this::before).getCause().getClass());
     }
   }
 

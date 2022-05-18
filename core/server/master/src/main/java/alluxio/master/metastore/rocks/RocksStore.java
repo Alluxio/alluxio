@@ -12,6 +12,8 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
@@ -20,12 +22,20 @@ import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
+import org.rocksdb.BlockBasedTableConfig;
+import org.rocksdb.BloomFilter;
+import org.rocksdb.Cache;
 import org.rocksdb.Checkpoint;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.DBOptions;
+import org.rocksdb.DataBlockIndexType;
+import org.rocksdb.Filter;
+import org.rocksdb.IndexType;
+import org.rocksdb.LRUCache;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +47,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -225,5 +236,45 @@ public final class RocksStore implements Closeable {
     stopDb();
     mDbOpts.close();
     LOG.info("Closed store at {}", mDbPath);
+  }
+
+  // helper function to load RockDB configuration options based on property key configurations.
+  protected static Optional<BlockBasedTableConfig> checkSetTableConfig(
+      PropertyKey cacheSize, PropertyKey bloomFilter, PropertyKey indexType,
+      PropertyKey blockIndexType, List<RocksObject> toClose) {
+    // The following options are set by property keys as they are not able to be
+    // set using configuration files.
+    BlockBasedTableConfig blockConfig = new BlockBasedTableConfig();
+    boolean shoudSetConfig = false;
+    if (ServerConfiguration.isSet(
+        cacheSize)) {
+      shoudSetConfig = true;
+      // Set the inodes column options
+      Cache inodeCache = new LRUCache(ServerConfiguration.getInt(
+          cacheSize));
+      toClose.add(inodeCache);
+      blockConfig.setBlockCache(inodeCache);
+    }
+    if (ServerConfiguration.getBoolean(bloomFilter)) {
+      shoudSetConfig = true;
+      Filter filter = new BloomFilter();
+      toClose.add(filter);
+      blockConfig.setFilterPolicy(filter);
+    }
+    if (ServerConfiguration.isSet(
+        indexType)) {
+      shoudSetConfig = true;
+      blockConfig.setIndexType(ServerConfiguration.getEnum(
+          indexType, IndexType.class));
+    }
+    if (ServerConfiguration.isSet(blockIndexType)) {
+      shoudSetConfig = true;
+      blockConfig.setDataBlockIndexType(ServerConfiguration.getEnum(
+          blockIndexType, DataBlockIndexType.class));
+    }
+    if (shoudSetConfig) {
+      return Optional.of(blockConfig);
+    }
+    return Optional.empty();
   }
 }

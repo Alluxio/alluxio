@@ -14,6 +14,7 @@ package alluxio.master.metastore;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -45,6 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -104,6 +106,7 @@ public class InodeStoreTest {
 
   @Test
   public void rocksConfigFile() throws Exception {
+    assumeTrue(mStore instanceof RocksInodeStore || mStore instanceof CachingInodeStore);
     // close the store first because we want to reopen it with the new config
     mStore.close();
     try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
@@ -114,6 +117,26 @@ public class InodeStoreTest {
       before();
       writeInode(mRoot);
       assertEquals(Inode.wrap(mRoot), mStore.get(0).get());
+    }
+  }
+
+  @Test
+  public void rocksInvalidConfigFile() throws Exception {
+    assumeTrue(mStore instanceof RocksInodeStore || mStore instanceof CachingInodeStore);
+    // close the store first because we want to reopen it with the new config
+    mStore.close();
+    // write an invalid config
+    String path = sDir + CONF_NAME + "invalid";
+    File confFile = new File(path);
+    writeStringToFile(confFile, "Invalid config", (Charset) null);
+
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_INODE_CONF_FILE, path);
+      }
+    }, ServerConfiguration.global()).toResource()) {
+      assertEquals(RocksDBException.class,
+          assertThrows(RuntimeException.class, this::before).getCause().getClass());
     }
   }
 

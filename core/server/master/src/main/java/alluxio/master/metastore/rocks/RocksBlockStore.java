@@ -11,6 +11,8 @@
 
 package alluxio.master.metastore.rocks;
 
+import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.BlockStore;
@@ -24,21 +26,13 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
-import org.rocksdb.BlockBasedTableConfig;
-import org.rocksdb.BloomFilter;
-import org.rocksdb.Cache;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
-import org.rocksdb.DataBlockIndexType;
 import org.rocksdb.Env;
-import org.rocksdb.Filter;
 import org.rocksdb.HashLinkedListMemTableConfig;
-import org.rocksdb.HashSkipListMemTableConfig;
-import org.rocksdb.IndexType;
-import org.rocksdb.LRUCache;
 import org.rocksdb.OptionsUtil;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -127,55 +121,30 @@ public class RocksBlockStore implements BlockStore {
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
-              .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
-              .optimizeLevelStyleCompaction() // use level style compaction
-              .setMemtableWholeKeyFiltering(true) // fast point lookups for bucket id
               .setCompressionType(CompressionType.NO_COMPRESSION)));
       columns.add(new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
-              .setMemTableConfig(new HashSkipListMemTableConfig()) // bucket contains workers for id
-              .setMemtablePrefixBloomSizeRatio(0.02) // Bloomfilter for fast bucket memtable lookups
-              .optimizeLevelStyleCompaction() // use level style compaction
-              .setMemtableWholeKeyFiltering(true) // fast point lookups for bucket id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains worker info
               .setCompressionType(CompressionType.NO_COMPRESSION)));
     }
 
     mToClose.addAll(columns.stream().map(
         ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
 
-    Filter filterPolicy = new BloomFilter();
-    mToClose.add(filterPolicy);
-    // Set the block meta column options
-    Cache inodeCache = new LRUCache(ServerConfiguration.getInt(
-        PropertyKey.MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE));
-    mToClose.add(inodeCache);
-    columns.get(0).getOptions()
-        // the table format configuration is set here as it is not able to be set from the
-        // configuration file
-        .setTableFormatConfig(new BlockBasedTableConfig()
-            .setIndexType(ServerConfiguration.getEnum(
-                PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX, IndexType.class))
-            .setDataBlockIndexType(ServerConfiguration.getEnum(
-                PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX,
-                DataBlockIndexType.class))
-            .setBlockCache(inodeCache)
-            .setFilterPolicy(filterPolicy));
-    // Set the block location column options
-    Cache edgeCache = new LRUCache(ServerConfiguration.getInt(
-        PropertyKey.MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE));
-    mToClose.add(edgeCache);
-    columns.get(1).getOptions()
-        // the table format configuration is set here as it is not able to be set from the
-        // configuration file
-        .setTableFormatConfig(new BlockBasedTableConfig()
-            .setIndexType(ServerConfiguration.getEnum(
-                PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX, IndexType.class))
-            .setDataBlockIndexType(ServerConfiguration.getEnum(
-                PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX,
-                DataBlockIndexType.class))
-            .setBlockCache(edgeCache)
-            .setFilterPolicy(filterPolicy));
+    // The following options are set by property keys as they are not able to be
+    // set using configuration files.
+    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
+    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
+
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
     // Create block store db path if it does not exist.

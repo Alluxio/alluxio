@@ -2313,57 +2313,81 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER =
+      booleanBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER)
+          .setDescription("Whether or not to use a bloom filter in the Block meta"
+              + "table in RocksDB. If unset, the RocksDB default will be used")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
-          .setDefaultValue(8 * 1024 * 1024)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
-              + "cache. See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+              + "cache. If unset, the RocksDB default will be used."
+              + "See https://github.com/facebook/rocksdb/wiki/Block-Cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX, DataBlockIndexType.class)
-          .setDefaultValue(DataBlockIndexType.kDataBlockBinaryAndHash)
           .setDescription("The block index type to be used in the RocksDB block metadata table."
+              + " If unset, the RocksDB default will be used."
               + "See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX, IndexType.class)
-          .setDefaultValue(IndexType.kHashSearch)
-          .setDescription("The index type to be used in the RocksDB block metadata table")
+          .setDescription("The index type to be used in the RocksDB block metadata table."
+              + " If unset, the RocksDB default will be used")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER =
+      booleanBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER)
+          .setDescription("Whether or not to use a bloom filter in the Block location"
+              + "table in RocksDB. If unset, the RocksDB default will be used")
+          .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
-          .setDefaultValue(8 * 1024 * 1024)
           .setDescription("The capacity in bytes of the RocksDB block location table LRU "
-              + "cache. See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+              + "cache. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX, DataBlockIndexType.class)
-          .setDefaultValue(DataBlockIndexType.kDataBlockBinaryAndHash)
           .setDescription("The block index type to be used in the RocksDB block location table."
-              + "See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
+              + " If unset, the RocksDB default will be used."
+              + " See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX, IndexType.class)
-          .setDefaultValue(IndexType.kHashSearch)
-          .setDescription("The index type to be used in the RocksDB block location table")
+          .setDescription("The index type to be used in the RocksDB block location table. "
+              + "If unset, the RocksDB default will be used")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER =
+      booleanBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER)
+          .setDescription("Whether or not to use a bloom filter in the Inode edge"
+              + "table in RocksDB. If unset, the RocksDB default will be used")
+          .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
       intBuilder(Name.MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE)
-          .setDefaultValue(8 * 1024 * 1024)
           .setDescription("The capacity in bytes of the RocksDB Inode edge table LRU "
-              + "cache. See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+              + "cache. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2371,37 +2395,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       enumBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX, DataBlockIndexType.class)
           .setDefaultValue(DataBlockIndexType.kDataBlockBinaryAndHash)
           .setDescription("The block index type to be used in the RocksDB inode edge table."
-              + "See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
+              + " If unset, the RocksDB default will be used."
+              + " See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_INDEX, IndexType.class)
-          .setDefaultValue(IndexType.kHashSearch)
-          .setDescription("The index type to be used in the RocksDB Inode edge table")
+          .setDescription("The index type to be used in the RocksDB Inode edge table."
+              + " If unset, the RocksDB default will be used")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER =
+      booleanBuilder(Name.MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER)
+          .setDescription("Whether or not to use a bloom filter in the Inode"
+              + "table in RocksDB. If unset, the RocksDB default will be used")
+          .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MATER_METASTORE_ROCKS_INODE_CACHE_SIZE =
       intBuilder(Name.MATER_METASTORE_ROCKS_INODE_CACHE_SIZE)
-          .setDefaultValue(8 * 1024 * 1024)
           .setDescription("The capacity in bytes of the RocksDB Inode table LRU "
-              + "cache. See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+              + "cache. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX, DataBlockIndexType.class)
-          .setDefaultValue(DataBlockIndexType.kDataBlockBinaryAndHash)
           .setDescription("The block index type to be used in the RocksDB inode table."
-              + "See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
+              + " If unset, the RocksDB default will be used."
+              + " See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_INODE_INDEX, IndexType.class)
-          .setDefaultValue(IndexType.kHashSearch)
-          .setDescription("The index type to be used in the RocksDB Inode table")
+          .setDescription("The index type to be used in the RocksDB Inode table. "
+              + "If unset, the RocksDB default will be used")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -6901,24 +6934,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.iterator.readahead.size";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
         "alluxio.master.metastore.inode.inherit.owner.and.group";
+    public static final String MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER =
+        "alluxio.master.metastore.rocks.block.meta.bloom.filter";
     public static final String MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
         "alluxio.master.metastore.rocks.block.meta.cache.size";
     public static final String MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.block.meta.block.index";
     public static final String MASTER_METASTORE_ROCKS_BLOCK_META_INDEX =
         "alluxio.master.metastore.rocks.block.meta.index";
+    public static final String MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER =
+        "alluxio.master.metastore.rocks.block.location.bloom.filter";
     public static final String MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
         "alluxio.master.metastore.rocks.block.location.cache.size";
     public static final String MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.block.location.block.index";
     public static final String MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX =
         "alluxio.master.metastore.rocks.block.location.index";
+    public static final String MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER =
+        "alluxio.master.metastore.rocks.edge.bloom.filter";
     public static final String MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
         "alluxio.master.metastore.rocks.edge.cache.size";
     public static final String MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.edge.block.index";
     public static final String MASTER_METASTORE_ROCKS_EDGE_INDEX =
         "alluxio.master.metastore.rocks.edge.index";
+    public static final String MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER =
+        "alluxio.master.metastore.rocks.inode.bloom.filter";
     public static final String MATER_METASTORE_ROCKS_INODE_CACHE_SIZE =
         "alluxio.master.metastore.rocks.inode.cache.size";
     public static final String MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX =
