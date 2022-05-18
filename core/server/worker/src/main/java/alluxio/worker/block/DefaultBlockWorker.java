@@ -421,15 +421,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         }
       });
     }
-    // TODO(jianjian): should we catch here? check createBlockReader whether we need cleanup
-    catch (BlockDoesNotExistRuntimeException e) {
-      try {
-        closeUfsBlock(sessionId, blockId);
-      } catch (Exception ee) {
-        LOG.warn("Failed to close UFS block", ee);
-      }
-      throw e;
-    }
     catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
