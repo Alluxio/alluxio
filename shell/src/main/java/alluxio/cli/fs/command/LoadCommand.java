@@ -189,6 +189,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       throw new RuntimeException(String.format("Failed to complete cache request for block %d of file %s: %s", blockId,
           status.getPath(), e), e);
      }
+     return true;
     }
   }
 }
