@@ -36,6 +36,7 @@ public class BaseInodeLockingTest {
   protected InodeLockManager mInodeLockManager = new InodeLockManager();
   protected InodeStore mInodeStore = new HeapInodeStore();
 
+  protected InodeFile mFileFile = inodeFile(19, 4, "File");
   // Directory structure is /mnt/foo/sub/f1
   protected InodeFile mFileF1 = inodeFile(18, 17, "f1");
   protected InodeDirectory mFileSub = inodeDir(17, 5, "sub", mFileF1);
@@ -56,17 +57,17 @@ public class BaseInodeLockingTest {
   // Directory structure is /mnt/foo/x
   protected InodeFile mFileX = inodeFile(6, 5, "x");
   protected InodeDirectory mDirFoo = inodeDir(5, 4, "foo", mFileX, mFileSub);
-  protected InodeDirectory mDirMnt = inodeDir(4, 0, "mnt", mDirFoo, mDirBar);
+  protected InodeDirectory mDirMnt = inodeDir(4, 0, "mnt", mDirFoo, mDirBar, mFileFile);
   // Directory structure is /a/b/c
   protected InodeFile mFileC = inodeFile(3, 2, "c");
   protected InodeDirectory mDirB = inodeDir(2, 1, "b", mFileC);
   protected InodeDirectory mDirA = inodeDir(1, 0, "a", mDirB);
-  protected InodeDirectory mRootDir = inodeDir(0, -1, "", mDirA, mDirMnt, mFileFooBar, mFileTest1
-      , mFileTest2, mFileT1, mFileT2, mFileBogus);
+  protected InodeDirectory mRootDir = inodeDir(0, -1, "", mDirA, mDirMnt, mFileFooBar,
+      mFileTest1, mFileTest2, mFileT1, mFileT2, mFileBogus);
 
   protected List<Inode> mAllInodes = Arrays.asList(mRootDir, mDirA, mDirB, mFileC, mDirMnt,
       mDirFoo, mFileX, mDirBar, mFileY, mFileFooBar, mFileBaz, mFileTest1, mFileTest2, mFileT1,
-      mFileT2, mFileBogus, mFileBay, mFileSub, mFileF1);
+      mFileT2, mFileBogus, mFileBay, mFileSub, mFileF1, mFileFile);
 
   @After
   public void after() {

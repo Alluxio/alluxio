@@ -11,7 +11,6 @@
 
 package alluxio.master.file;
 
-import alluxio.AlluxioURI;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 

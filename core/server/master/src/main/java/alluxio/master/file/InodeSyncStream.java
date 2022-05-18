@@ -114,9 +114,9 @@ import javax.annotation.Nullable;
  * are completed and there are no new inodes left in the queue.
  *
  * Syncing inode metadata requires making calls to the UFS. This implementation will schedule UFS
- * RPCs with the {@link UfsStatusCache#prefetchChildren(LockedInodePath, MountTable)}. Then, once the
- * inode begins processing, it can retrieve the results. After processing, it can then remove its
- * {@link UfsStatus} from the cache. This strategy helps reduce memory pressure on the master
+ * RPCs with the {@link UfsStatusCache#prefetchChildren(LockedInodePath, MountTable)}. Then, once
+ * the inode begins processing, it can retrieve the results. After processing, it can then remove
+ * its {@link UfsStatus} from the cache. This strategy helps reduce memory pressure on the master
  * while performing a sync for a large tree. Additionally, by using a prefetch mechanism we can
  * concurrently process other inodes while waiting for UFS RPCs to complete.
  *

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,14 +67,13 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
 
   @Override
   @Nullable
-  public List<String> get(long blockId, LockedInodePath fileLockedInodePath, long offset) {
+  public List<String> get(long blockId, AlluxioURI fileUri, long offset) {
     List<String> locations = mCache.getIfPresent(blockId);
     if (locations != null) {
       return locations;
     }
-    AlluxioURI fileUri = fileLockedInodePath.getUri();
     try {
-      MountTable.Resolution resolution = mMountTable.resolve(fileLockedInodePath);
+      MountTable.Resolution resolution = mMountTable.resolve(fileUri, new ArrayList<>());
       String ufsUri = resolution.getUri().toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();

@@ -4,12 +4,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Tests {@link MountPointInodeTrieNode}
+ * Tests {@link MountPointInodeTrieNode}.
  */
 public class MountPointInodeTrieNodeTest {
   @Test
@@ -132,7 +131,7 @@ public class MountPointInodeTrieNodeTest {
       }
     };
     root.insert(ids6, true);
-    Assert.assertNotNull(root.remove(ids6, n->true));
+    Assert.assertNotNull(root.remove(ids6, n -> true));
   }
 
   @Test
@@ -264,9 +263,9 @@ public class MountPointInodeTrieNodeTest {
     List<MountPointInodeTrieNode<Long>> n2ChildrenTrieNode =
         n2.allChildrenTrieNode(MountPointInodeTrieNode::isTerminal, false);
 
-    Assert.assertEquals(new ArrayList<List<Long>>() {{
-                        }},
-        n1ChildrenTrieNode.stream().map(MountPointInodeTrieNode::list).collect(Collectors.toList()));
+    Assert.assertEquals(new ArrayList<List<Long>>(),
+        n1ChildrenTrieNode.stream()
+            .map(MountPointInodeTrieNode::list).collect(Collectors.toList()));
     Assert.assertEquals(new ArrayList<List<Long>>() {
       {
         add(ids2);

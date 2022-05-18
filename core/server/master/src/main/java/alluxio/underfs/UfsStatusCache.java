@@ -330,16 +330,15 @@ public class UfsStatusCache {
    * This method first checks if the children have already been retrieved, and if not, then
    * retrieves them.
 
-   * @param lockedInodePath the path to get the children for
+   * @param path the path to get the children for
    * @param mountTable the Alluxio mount table
    * @return the child statuses that were stored in the cache, or null if the UFS couldn't list the
    *         statuses
    * @throws InvalidPathException when the table can't resolve the mount for the given URI
    */
   @Nullable
-  Collection<UfsStatus> getChildrenIfAbsent(LockedInodePath lockedInodePath, MountTable mountTable)
+  Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InvalidPathException {
-    AlluxioURI path = lockedInodePath.getUri();
     Collection<UfsStatus> children = getChildren(path);
     if (children != null) {
       return children;
@@ -347,7 +346,7 @@ public class UfsStatusCache {
     if (mAbsentCache.isAbsentSince(path, mCacheValidTime)) {
       return null;
     }
-    MountTable.Resolution resolution = mountTable.resolve(lockedInodePath);
+    MountTable.Resolution resolution = mountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

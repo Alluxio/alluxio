@@ -36,6 +36,12 @@ import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.NoopUfsAbsentPathCache;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.BaseInodeLockingTest;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.NoopUfsAbsentPathCache;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.underfs.local.LocalUnderFileSystem;
@@ -46,6 +52,7 @@ import com.google.common.collect.Lists;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -498,7 +505,8 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     mUfs.mkdirs(PathUtils.concatPath(mUfsUri, relPath));
   }
 
-  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern) throws InvalidPathException {
+  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern)
+      throws InvalidPathException {
     LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
         mInodeLockManager, mRootDir, lockPattern, false);
     lockedPath.traverse();

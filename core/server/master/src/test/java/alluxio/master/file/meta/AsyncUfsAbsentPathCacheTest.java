@@ -39,7 +39,6 @@ import java.io.File;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.Lock;
 
 /**
  * Unit tests for {@link AsyncUfsAbsentPathCache}.
@@ -84,7 +83,8 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.enableMountTableTrie(mRootDir);
-    mMountTable.add(NoopJournalContext.INSTANCE, createLockedInodePath("/mnt", InodeTree.LockPattern.READ),
+    mMountTable.add(NoopJournalContext.INSTANCE,
+        createLockedInodePath("/mnt", InodeTree.LockPattern.READ),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
@@ -342,7 +342,8 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     }
   }
 
-  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern) throws InvalidPathException {
+  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern)
+      throws InvalidPathException {
     LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
         mInodeLockManager, mRootDir, lockPattern, false);
     lockedPath.traverse();

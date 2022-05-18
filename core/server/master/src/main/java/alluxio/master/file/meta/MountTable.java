@@ -329,9 +329,20 @@ public final class MountTable implements DelegatingJournaled {
         alluxioLockedInodePath.getInodeViewList());
   }
 
-  public String getMountPoint(AlluxioURI uri, List<InodeView> inodeViewList) throws InvalidPathException {
+  /**
+   * getMountPoint based on uri and inodeViewList, if inodeViewList is empty, then use string
+   * comparison.
+   *
+   * @param uri target Alluxio uri
+   * @param inodeViewList target path's inode lists
+   * @return the mount point of given uri and inodes
+   * @throws InvalidPathException hasPrefix will check the format of the path
+   */
+  public String getMountPoint(AlluxioURI uri, List<InodeView> inodeViewList)
+      throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
-      if(mState.getMountTableTrie().isTrieEnable() && inodeViewList != null && !inodeViewList.isEmpty()) {
+      if (mState.getMountTableTrie().isTrieEnable() && inodeViewList != null
+          && !inodeViewList.isEmpty()) {
         return mState.getMountTableTrie().getMountPoint(inodeViewList);
       } else {
         String path = uri.getPath();
@@ -362,8 +373,13 @@ public final class MountTable implements DelegatingJournaled {
     }
   }
 
+  /**
+   * enable the MountTableTrie by setting the given rootInode.
+   *
+   * @param rootInode the rootInode set in MountTableTrie
+   */
   public void enableMountTableTrie(InodeView rootInode) {
-    try(LockResource r = new LockResource(mWriteLock)) {
+    try (LockResource r = new LockResource(mWriteLock)) {
       mState.getMountTableTrie().setRootInode(rootInode);
     }
   }
@@ -376,9 +392,8 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
       throws InvalidPathException {
-    // TODO(Jiadong): add InodeContains
     try (LockResource r = new LockResource(mReadLock)) {
-      if(mState.getMountTableTrie().isTrieEnable()) {
+      if (mState.getMountTableTrie().isTrieEnable()) {
         return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioLockedInodePath,
             containsSelf);
       } else {
@@ -513,7 +528,8 @@ public final class MountTable implements DelegatingJournaled {
     return resolve(alluxioLockedInodePath.getUri(), alluxioLockedInodePath.getInodeViewList());
   }
 
-  public Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList) throws InvalidPathException {
+  public Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList)
+      throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
       LOG.debug("Resolving {}", path);
@@ -747,11 +763,16 @@ public final class MountTable implements DelegatingJournaled {
     public void addMountPoint(LockedInodePath inodes) {
       // TODO(Jiadong): whether we check the fullPathExists of inodes?
       Preconditions.checkArgument(inodes.fullPathExists());
+      addMountPoint(inodes.getUri(), inodes.getInodeViewList());
+    }
+
+    public void addMountPoint(AlluxioURI uri, List<InodeView> inodes) {
+      Preconditions.checkArgument(!inodes.isEmpty());
       Preconditions.checkArgument(isTrieEnable());
       Preconditions.checkNotNull(mRootTrieNode);
       MountPointInodeTrieNode<InodeView> trieNode =
-          mRootTrieNode.insert(inodes.getInodeViewList(), true);
-      mMountPointTrieTable.put(trieNode, inodes.getUri().getPath());
+          mRootTrieNode.insert(inodes, true);
+      mMountPointTrieTable.put(trieNode, uri.getPath());
     }
 
     public void removeMountPoint(LockedInodePath inodes) {
@@ -783,7 +804,8 @@ public final class MountTable implements DelegatingJournaled {
       return findChildrenMountPoints(path.getInodeViewList(), isContainSelf);
     }
 
-    public List<String> findChildrenMountPoints(List<InodeView> inodeViewList, boolean isContainSelf) {
+    public List<String> findChildrenMountPoints(List<InodeView> inodeViewList,
+                                                boolean isContainSelf) {
       Preconditions.checkArgument(isTrieEnable());
       Preconditions.checkNotNull(mRootTrieNode);
 

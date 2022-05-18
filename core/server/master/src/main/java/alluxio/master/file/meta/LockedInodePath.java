@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.UnmodifiableArrayList;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;

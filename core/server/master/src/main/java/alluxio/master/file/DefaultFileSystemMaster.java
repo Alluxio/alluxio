@@ -1858,7 +1858,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         mMountTable.checkUnderWritableMountPoint(inodePath);
         if (context.isPersisted()) {
           // Check if ufs is writable
-          checkUfsMode(path, OperationType.WRITE);
+          checkUfsMode(inodePath, OperationType.WRITE);
         }
         createFileInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
@@ -2212,7 +2212,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           } else {
             if (!deleteContext.getOptions().getAlluxioOnly()) {
               try {
-                checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
+                checkUfsMode(lockedInodePathToDelete, OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
                 ufsDeleter.delete(lockedInodePathToDelete, inodeToDelete);
               } catch (AccessControlException | IOException e) {
@@ -2635,7 +2635,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
         mMountTable.checkUnderWritableMountPoint(inodePath);
         if (context.isPersisted()) {
-          checkUfsMode(path, OperationType.WRITE);
+          checkUfsMode(inodePath, OperationType.WRITE);
         }
         createDirectoryInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
@@ -2964,8 +2964,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     try {
       if (!replayed && srcInode.isPersisted()) {
         // Check if ufs is writable
-        checkUfsMode(srcPath, OperationType.WRITE);
-        checkUfsMode(dstPath, OperationType.WRITE);
+        checkUfsMode(srcInodePath, OperationType.WRITE);
+        checkUfsMode(dstInodePath, OperationType.WRITE);
 
         MountTable.Resolution resolution = mMountTable.resolve(srcInodePath);
         // Persist ancestor directories from top to the bottom. We cannot use recursive create
@@ -3552,7 +3552,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInodeOrNull();
 
-    checkUfsMode(inodePath.getUri(), OperationType.WRITE);
+    checkUfsMode(inodePath, OperationType.WRITE);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
@@ -4443,7 +4443,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             continue;
           }
           try {
-            checkUfsMode(uri, OperationType.WRITE);
+            checkUfsMode(inodePath, OperationType.WRITE);
           } catch (Exception e) {
             LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
             // Retry when ufs mode permits operation
