@@ -140,7 +140,7 @@ public class AsyncBlockRemover {
                 blockToBeRemoved);
           }
           break;
-        } catch (BlockDoesNotExistRuntimeException e) { // TODO(jianjian) catch checked?
+        } catch (BlockDoesNotExistRuntimeException e) {
           // Ignore the case when block is already removed. This could happen when master is asking
           // worker to remove blocks based on stale information
         } catch (Exception e) {

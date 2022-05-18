@@ -76,7 +76,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
     } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException
-        | BlockDoesNotExistRuntimeException //TODO(jianjian) directly throw?
+        | BlockDoesNotExistRuntimeException
         | InvalidWorkerStateException e) {
       throw new IOException(e);
     }
@@ -102,10 +102,6 @@ public final class BlockWorkerDataWriter implements DataWriter {
           // Allocate enough space in the existing temporary block for the write.
           mBlockWorker.requestSpace(mSessionId, mBlockId, bytesToReserve);
         }
-        catch (BlockDoesNotExistRuntimeException e) {
-          // TODO(jianjian) catch here or throw?
-          throw new IOException(e);
-        }
         catch (Exception e) {
           throw new IOException(e);
         }
@@ -123,8 +119,6 @@ public final class BlockWorkerDataWriter implements DataWriter {
     mBlockWriter.close();
     try {
       mBlockWorker.abortBlock(mSessionId, mBlockId);
-    } catch (BlockDoesNotExistRuntimeException e) { // TODO(jianjian): cast or throw?
-      throw new IOException(e);
     } catch (Exception e) {
       throw new IOException(e);
     } finally {

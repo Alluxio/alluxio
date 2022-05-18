@@ -492,7 +492,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         try {
           commitBlock(sessionId, blockId, false);
         }
-        //TODO(jianjian) should I pass checked exception instead?
         catch (BlockDoesNotExistRuntimeException e) {
           // This can only happen if the session is expired. Ignore this exception if that happens.
           LOG.warn("Block {} does not exist while being committed.", blockId);

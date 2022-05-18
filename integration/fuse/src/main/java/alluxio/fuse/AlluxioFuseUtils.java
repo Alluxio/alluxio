@@ -259,7 +259,7 @@ public final class AlluxioFuseUtils {
     } catch (InvalidPathException ex) {
       return -ErrorCodes.EFAULT();
     } catch (BlockDoesNotExistRuntimeException ex) {
-      // TODO(jianjian) handle runtime exception for fuse
+      // TODO(jianjian) handle runtime exception for fuse in base class?
       return -ErrorCodes.ENODATA();
     } catch (DirectoryNotEmptyException ex) {
       return -ErrorCodes.ENOTEMPTY();

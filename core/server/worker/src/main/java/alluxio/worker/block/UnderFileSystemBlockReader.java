@@ -333,7 +333,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       mBlockWriter.close();
       mBlockWriter = null;
       mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
-    } catch (BlockDoesNotExistRuntimeException e) { // TODO(jianjian) pass checked?
+    } catch (BlockDoesNotExistRuntimeException e) {
       // This can only happen when the session is expired.
       LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
           mBlockMeta.getBlockId());
@@ -370,7 +370,6 @@ public final class UnderFileSystemBlockReader extends BlockReader {
               + "Concurrent UFS readers may be caching the same block.",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
       mBlockWriter = null;
-      // TODO(jianjian): figure out do we need to catch it and log or just throw runtime exception
     } catch (IOException | AlluxioException | BlockDoesNotExistRuntimeException e) {
       LOG.warn(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
