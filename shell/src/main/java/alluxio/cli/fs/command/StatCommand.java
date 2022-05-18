@@ -122,10 +122,14 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Displays info for the specified path or fileId both file and directory."
-        + " Specify -f to display info in given format:"
-        + "   \"%N\": name of the file;"
-        + "   \"%z\": size of file in bytes;"
+    return String.join("\n", Arrays.asList(
+        "Displays info for the specified file or directory.",
+        "Specify -fileId to treat the first positional argument as a file ID.",
+        "Specify -f with a template string to display info in the given format. These format placeholders are available:",
+        "  %N: name of the file",
+        "  %z: size of file in bytes",
+        ...
+    ));
         + "   \"%u\": owner;"
         + "   \"%g\": group name of owner;"
         + "   \"%y\" or \"%Y\": modification time,"
