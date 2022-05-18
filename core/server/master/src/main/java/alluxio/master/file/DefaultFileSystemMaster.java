@@ -624,6 +624,8 @@ public class DefaultFileSystemMaster extends CoreMaster
               .format("Unauthorized user on root. inode owner: %s current user: %s",
                   root.getOwner(), serverOwner)));
         }
+        // enable MountTableTrie here
+        mMountTable.enableMountTableTrie(root);
       }
 
       // Initialize the ufs manager from the mount table.
@@ -2981,6 +2983,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             break;
           }
         }
+        // TODO(Jiadong): discuss it
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {

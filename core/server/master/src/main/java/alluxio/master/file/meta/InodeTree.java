@@ -1401,7 +1401,7 @@ public class InodeTree implements DelegatingJournaled {
       throws FileDoesNotExistException, IOException, InvalidPathException {
     AlluxioURI uri = getPath(dir);
     // TODO(Jiadong) figure out how to modify this interface
-    MountTable.Resolution resolution = mMountTable.resolve(uri);
+    MountTable.Resolution resolution = mMountTable.resolve(uri, new ArrayList<>());
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();

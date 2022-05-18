@@ -169,12 +169,13 @@ public class ActiveSyncManager implements Journaled {
    * @param path path to check
    * @return true if a URI is being actively synced
    */
-  // TODO(Jiadong) I think we'd better not to alter this class for now?
+  // TODO(Jiadong) I think we'd better not alter this class for now?
   public boolean isUnderSyncPoint(AlluxioURI path) {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
-            && mMountTable.getMountPoint(path).equals(mMountTable.getMountPoint(syncedPath))) {
+            && mMountTable.getMountPoint(path, new ArrayList<>()).equals(mMountTable.getMountPoint(syncedPath,
+            new ArrayList<>()))) {
           return true;
         }
       } catch (InvalidPathException e) {
@@ -193,7 +194,7 @@ public class ActiveSyncManager implements Journaled {
     for (AlluxioURI syncPoint : mSyncPathList) {
       MountTable.Resolution resolution;
       try {
-        resolution = mMountTable.resolve(syncPoint);
+        resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
       } catch (InvalidPathException e) {
         LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
             + "path {}, exception {}", syncPoint, e);
@@ -225,7 +226,7 @@ public class ActiveSyncManager implements Journaled {
                   syncPoint -> {
                     MountTable.Resolution resolution;
                     try {
-                      resolution = mMountTable.resolve(syncPoint);
+                      resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
                     } catch (InvalidPathException e) {
                       LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
                           + "path {}, exception {}", syncPoint, e);
@@ -311,7 +312,7 @@ public class ActiveSyncManager implements Journaled {
   public void startSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
       throws InvalidPathException {
     try (LockResource r = new LockResource(mLock)) {
-      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
+      MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
       long mountId = resolution.getMountId();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
         if (!ufsResource.get().supportsActiveSync()) {
@@ -372,7 +373,7 @@ public class ActiveSyncManager implements Journaled {
       throw new InvalidPathException(String.format("%s is not a sync point", syncPoint));
     }
     try (LockResource r = new LockResource(mLock)) {
-      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
+      MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
       final long mountId = resolution.getMountId();
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
@@ -453,7 +454,7 @@ public class ActiveSyncManager implements Journaled {
         while (mountId == -1) {
           try {
             syncPointPath = mEntry.getPath();
-            String mountPoint = mMountTable.getMountPoint(mEntry);
+            String mountPoint = mMountTable.getMountPoint(mEntry, new ArrayList<>());
             MountInfo mountInfo = mMountTable.getMountTable().get(mountPoint);
             mountId = mountInfo.getMountId();
           } catch (InvalidPathException e) {
@@ -572,7 +573,7 @@ public class ActiveSyncManager implements Journaled {
    * @throws InvalidPathException throw an invalid path exception
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
+    MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
     // Remove initial sync thread
     Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
     if (syncFuture != null) {
@@ -703,7 +704,7 @@ public class ActiveSyncManager implements Journaled {
     }
     try {
       // the init sync thread has been removed, to reestablish sync, we need to sync again
-      MountTable.Resolution resolution = mMountTable.resolve(uri);
+      MountTable.Resolution resolution = mMountTable.resolve(uri, new ArrayList<>());
       startInitialFullSync(uri, resolution);
       launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
     } catch (Throwable t) {
