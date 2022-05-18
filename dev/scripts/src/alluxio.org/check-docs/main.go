@@ -18,11 +18,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"regexp"
+	"strings"
 
-	"gopkg.in/yaml.v3"
 	"bytes"
+	"gopkg.in/yaml.v3"
 	"io"
 )
 
@@ -237,7 +237,7 @@ func checkFile(mdFile string, ctx *checkContext) error {
 				return fmt.Errorf("encountered empty named match when parsing accordion header from %v", l)
 			}
 			if strings.Contains(namedMatch, " ") {
-				return fmt.Errorf("accordion header %v on line %v in file %v must not contain a space", l, i, mdFile	)
+				return fmt.Errorf("accordion header %v on line %v in file %v must not contain a space", l, i, mdFile)
 			}
 		}
 	}
