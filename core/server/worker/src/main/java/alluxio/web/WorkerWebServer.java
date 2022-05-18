@@ -46,7 +46,7 @@ public final class WorkerWebServer extends WebServer {
   public static final String ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY =
       "Alluxio Worker FileSystem Client";
 
-  private FileSystem mFileSystem;
+  private final FileSystem mFileSystem;
 
   /**
    * Creates a new instance of {@link WorkerWebServer}.
@@ -54,11 +54,9 @@ public final class WorkerWebServer extends WebServer {
    * @param webAddress the service address
    * @param workerProcess the Alluxio worker process
    * @param blockWorker block worker to manage blocks
-   * @param connectHost the connect host for the web server
-   * @param startTimeMs start time milliseconds
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-      BlockWorker blockWorker, String connectHost, long startTimeMs) {
+      BlockWorker blockWorker) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
     // REST configuration

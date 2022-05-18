@@ -397,11 +397,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public boolean hasBlockMeta(long blockId) {
-    return mLocalBlockStore.hasBlockMeta(blockId);
-  }
-
-  @Override
   public List<String> getWhiteList() {
     return mWhitelist.getList();
   }
