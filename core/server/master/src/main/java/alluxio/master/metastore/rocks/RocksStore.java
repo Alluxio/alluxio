@@ -239,7 +239,7 @@ public final class RocksStore implements Closeable {
   }
 
   // helper function to load RockDB configuration options based on property key configurations.
-  protected static Optional<BlockBasedTableConfig> checkSetTableConfig(
+  static Optional<BlockBasedTableConfig> checkSetTableConfig(
       PropertyKey cacheSize, PropertyKey bloomFilter, PropertyKey indexType,
       PropertyKey blockIndexType, List<RocksObject> toClose) {
     // The following options are set by property keys as they are not able to be
