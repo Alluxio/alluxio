@@ -46,8 +46,8 @@ public final class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_SESSION_ID2 = 3;
   private static final long TEST_BLOCK_ID = 9;
-  private static final MessageFormat LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID =
-      new MessageFormat("lockId {0,number,#} has no lock record");
+  private static final String LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID =
+      "lockId {0,number,#} has no lock record";
   private BlockLockManager mLockManager;
 
   /** Rule to create a new temporary folder during each test. */
@@ -131,7 +131,7 @@ public final class BlockLockManagerTest {
   public void validateLockIdWithNoRecord() throws Exception {
     long badLockId = 1;
     mThrown.expect(BlockDoesNotExistRuntimeException.class);
-    mThrown.expectMessage(LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.format(badLockId));
+    mThrown.expectMessage(MessageFormat.format(LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, badLockId));
     // Validate a non-existing lockId, expect to see IOException
     mLockManager.validateLock(TEST_SESSION_ID, TEST_BLOCK_ID, badLockId);
   }
@@ -177,7 +177,7 @@ public final class BlockLockManagerTest {
     long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
     mThrown.expect(BlockDoesNotExistRuntimeException.class);
-    mThrown.expectMessage(LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.format(lockId2));
+    mThrown.expectMessage(MessageFormat.format(LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId2));
     mLockManager.cleanupSession(sessionId2);
     // Expect validating sessionId1 to get through
     mLockManager.validateLock(sessionId1, TEST_BLOCK_ID, lockId1);
