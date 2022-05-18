@@ -185,11 +185,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     try (CloseableResource<BlockWorkerClient> blockWorker =
         mFsContext.acquireBlockWorkerClient(dataSource)) {
       blockWorker.get().cache(request);
-      return true;
     } catch (Exception e) {
-      System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
-          status.getPath(), e);
-      return false;
+      throw new RuntimeException(String.format("Failed to complete cache request for block %d of file %s: %s", blockId,
+          status.getPath(), e), e);
+     }
     }
   }
 }
