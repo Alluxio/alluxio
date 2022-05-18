@@ -16,7 +16,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
@@ -199,10 +198,9 @@ public interface LocalBlockStore
    * @param blockId the id of an existing block
    * @param offset the offset within the block
    * @return a {@link BlockReader} instance on this block
-   * @throws BlockDoesNotExistException if lockId is not found
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException;
+      throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.
@@ -226,13 +224,12 @@ public interface LocalBlockStore
    * @param blockId the id of an existing block
    * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws BlockDoesNotExistException if block id can not be found
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
+      throws InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
   /**

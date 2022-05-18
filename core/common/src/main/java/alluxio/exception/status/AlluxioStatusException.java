@@ -17,7 +17,6 @@ import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DependencyDoesNotExistException;
@@ -238,7 +237,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
-    } catch (BlockDoesNotExistException | FileDoesNotExistException | JobDoesNotExistException e) {
+    } catch (FileDoesNotExistException | JobDoesNotExistException e) {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);

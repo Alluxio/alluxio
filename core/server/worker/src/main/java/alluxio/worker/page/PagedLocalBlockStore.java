@@ -14,7 +14,6 @@ package alluxio.worker.page;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
@@ -142,7 +141,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
+      throws InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     throw new UnsupportedOperationException();
   }

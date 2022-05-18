@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -189,17 +188,14 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     LOG.debug("createBlockReader: sessionId={}, blockId={}, offset={}",
         sessionId, blockId, offset);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
-    Optional<BlockMeta> blockMeta;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
-      blockMeta = mMetaManager.getBlockMeta(blockId);
-    }
+    Optional<BlockMeta> blockMeta = getVolatileBlockMeta(blockId);
     if (!blockMeta.isPresent()) {
       unpinBlock(lockId);
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+      throw new BlockDoesNotExistRuntimeException(blockId);
     }
     try {
       BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
@@ -326,12 +322,11 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws InvalidWorkerStateException, WorkerOutOfSpaceException, IOException,
-      BlockDoesNotExistException {
+      throws InvalidWorkerStateException, WorkerOutOfSpaceException, IOException{
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
         blockId, moveOptions);
     BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
-        () -> new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId));
+        () -> new BlockDoesNotExistRuntimeException(blockId));
     if (meta.getBlockLocation().belongsTo(moveOptions.getLocation())) {
       return;
     }

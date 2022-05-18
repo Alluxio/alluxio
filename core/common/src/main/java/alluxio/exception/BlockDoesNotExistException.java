@@ -25,14 +25,4 @@ public class BlockDoesNotExistException extends AlluxioException {
   public BlockDoesNotExistException(String message) {
     super(message);
   }
-
-  /**
-   * Constructs a new exception with the specified exception message and multiple parameters.
-   *
-   * @param message the exception message
-   * @param params the parameters
-   */
-  public BlockDoesNotExistException(ExceptionMessage message, Object... params) {
-    this(message.getMessage(params));
-  }
 }

@@ -26,7 +26,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -77,6 +76,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -529,26 +529,23 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
+    BlockReader reader;
     if (mLocalBlockStore instanceof PagedLocalBlockStore) {
-      BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, options);
+      reader = mLocalBlockStore.createBlockReader(sessionId, blockId, options);
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return reader;
     }
-    try {
-      BlockReader reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
-      Metrics.WORKER_ACTIVE_CLIENTS.inc();
-      return reader;
-    }
-    // TODO(jianjian) use optional instead of exception
-    catch (BlockDoesNotExistException e) {
+    Optional<BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
+    if (blockMeta.isPresent()) {
+      reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
+    } else {
       boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
       if (!checkUfs) {
-        throw new BlockDoesNotExistRuntimeException(e.getMessage());
+        throw new BlockDoesNotExistRuntimeException(blockId);
       }
+      // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
+      reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
     }
-    // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-    BlockReader reader = createUfsBlockReader(sessionId, blockId, offset,
-        positionShort, options);
     Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
