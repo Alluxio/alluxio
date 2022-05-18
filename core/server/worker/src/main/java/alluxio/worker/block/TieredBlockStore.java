@@ -322,11 +322,10 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws InvalidWorkerStateException, WorkerOutOfSpaceException, IOException{
-    LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,
-        blockId, moveOptions);
-    BlockMeta meta = getVolatileBlockMeta(blockId).orElseThrow(
-        () -> new BlockDoesNotExistRuntimeException(blockId));
+      throws InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
+    LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, moveOptions);
+    BlockMeta meta = getVolatileBlockMeta(blockId)
+        .orElseThrow(() -> new BlockDoesNotExistRuntimeException(blockId));
     if (meta.getBlockLocation().belongsTo(moveOptions.getLocation())) {
       return;
     }
