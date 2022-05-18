@@ -66,6 +66,9 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
         new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()),
         Clock.systemUTC());
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
+        new AlluxioURI("/ufs"), 1, MountContext.defaults().getOptions().build()));
+    mMountTable.enableMountTableTrie(mRootDir);
+    mMountTable.add(NoopJournalContext.INSTANCE, createLockedInodePath("/mnt", InodeTree.LockPattern.READ),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
 
     mUfsBlockLocationCache = new LazyUfsBlockLocationCache(mMountTable);
@@ -74,7 +77,8 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
   @Test
   public void get() throws Exception {
     final long blockId = IdUtils.getRandomNonNegativeLong();
-    final AlluxioURI fileUri = new AlluxioURI("/mnt/file");
+    LockedInodePath fileUriLockedPath = createLockedInodePath("/mnt/file",
+        InodeTree.LockPattern.READ);
     final String localFilePath = new AlluxioURI(mLocalUfsPath).join("file").getPath();
     mLocalUfs.create(localFilePath);
     final List<String> ufsLocations = mLocalUfs.getFileLocations(localFilePath);
@@ -84,7 +88,7 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
 
     Assert.assertNull(mUfsBlockLocationCache.get(blockId));
 
-    List<String> locations = mUfsBlockLocationCache.get(blockId, fileUri, 0);
+    List<String> locations = mUfsBlockLocationCache.get(blockId, fileUriLockedPath, 0);
     Assert.assertArrayEquals(ufsLocations.toArray(), locations.toArray());
 
     locations = mUfsBlockLocationCache.get(blockId);
@@ -92,5 +96,12 @@ public class LazyUfsBlockLocationCacheTest extends BaseInodeLockingTest {
 
     mUfsBlockLocationCache.invalidate(blockId);
     Assert.assertNull(mUfsBlockLocationCache.get(blockId));
+  }
+
+  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern) throws InvalidPathException {
+    LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
+        mInodeLockManager, mRootDir, lockPattern, false);
+    lockedPath.traverse();
+    return lockedPath;
   }
 }
