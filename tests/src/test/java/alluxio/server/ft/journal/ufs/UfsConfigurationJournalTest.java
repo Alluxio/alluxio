@@ -32,6 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -67,7 +68,8 @@ public class UfsConfigurationJournalTest {
     MountTable mountTable =
         Whitebox.getInternalState(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
             .getMasterProcess().getMaster(FileSystemMaster.class), "mMountTable");
-    long mountId = mountTable.resolve(mountPoint).getMountId();
+    // TODO(Jiadong): whether alter it as a LockedInodePath
+    long mountId = mountTable.resolve(mountPoint, new ArrayList<>()).getMountId();
 
     // Restart masters
     mLocalAlluxioClusterResource.get().restartMasters();

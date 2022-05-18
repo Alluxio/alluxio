@@ -118,7 +118,7 @@ public class MountPointInodeTrieNodeTest {
     MountPointInodeTrieNode<Long> node1 = root.remove(ids5, n -> true);
     Assert.assertNull(node1);
     MountPointInodeTrieNode<Long> node2 = root.remove(ids3, n -> true);
-    Assert.assertNull(node2);
+    Assert.assertNotNull(node2);
     MountPointInodeTrieNode<Long> node3 = root.remove(ids4, n -> true);
     Assert.assertNotNull(node3);
     MountPointInodeTrieNode<Long> node4 = root.remove(idsToRemove,
