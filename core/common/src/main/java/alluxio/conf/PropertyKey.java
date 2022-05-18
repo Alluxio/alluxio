@@ -7231,7 +7231,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
         "alluxio.user.client.cache.shadow.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_TYPE =
-            "alluxio.user.client.cache.shadow.type";
+        "alluxio.user.client.cache.shadow.type";
     public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
         "alluxio.user.client.cache.shadow.window";
     public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
@@ -7239,11 +7239,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
         "alluxio.user.client.cache.shadow.bloomfilter.num";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.size.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
