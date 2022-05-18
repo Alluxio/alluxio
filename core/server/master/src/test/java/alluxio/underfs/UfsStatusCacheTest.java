@@ -325,17 +325,17 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     mCache.prefetchChildren(lockedInodePath2, mMountTable);
     Collection<UfsStatus> children;
     children = mCache.fetchChildrenIfAbsent(
-        null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
+        null, lockedInodePath1, mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir2", s.getName()));
     children = mCache.fetchChildrenIfAbsent(
-        null, new AlluxioURI("/mnt/dir2/dir0"), mMountTable, false);
+        null, lockedInodePath2, mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir3", s.getName()));
     children = mCache.fetchChildrenIfAbsent(
-        null, new AlluxioURI("/mnt/dir1/dir0"), mMountTable, false);
+        null, lockedInodePath1, mMountTable, false);
     assertNotNull(children);
     assertEquals(1, children.size());
     children.forEach(s -> assertEquals("dir2", s.getName()));
@@ -348,7 +348,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
     mCache.prefetchChildren(new AlluxioURI("/dir0/dir0"), mMountTable);
     mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Collection<UfsStatus> statuses =
-        mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0/dir0"), mMountTable, false);
+        mCache.fetchChildrenIfAbsent(null, lockedInodePath1, mMountTable, false);
     assertEquals(1, statuses.size());
     statuses.forEach(s -> assertEquals("file", s.getName()));
     statuses = mCache.fetchChildrenIfAbsent(null, new AlluxioURI("/dir0"), mMountTable, false);
@@ -370,7 +370,7 @@ public class UfsStatusCacheTest extends BaseInodeLockingTest {
       } finally {
         l.unlock();
       }
-    }).when(mCache).getChildrenIfAbsent(any(AlluxioURI.class), any(MountTable.class));
+    }).when(mCache).getChildrenIfAbsent(any(LockedInodePath.class), any(MountTable.class));
     l.lock();
     Future<?> f1 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
     Future<?> f2 = mCache.prefetchChildren(new AlluxioURI("/dir0"), mMountTable);
