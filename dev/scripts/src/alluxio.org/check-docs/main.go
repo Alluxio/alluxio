@@ -18,11 +18,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"regexp"
+	"strings"
 
-	"gopkg.in/yaml.v3"
 	"bytes"
+	"gopkg.in/yaml.v3"
 	"io"
 )
 
