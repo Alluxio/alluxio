@@ -66,7 +66,8 @@ public class CacheRequestManagerTest {
   private static final int PORT = 22;
 
   private CacheRequestManager mCacheRequestManager;
-  private BlockWorker mBlockWorker;
+  private DefaultBlockWorker mBlockWorker;
+  private LocalBlockStore mBlockStore;
   private String mRootUfs;
   private final String mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
       (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
@@ -110,6 +111,7 @@ public class CacheRequestManagerTest {
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
         sessions, blockStore, ufsManager));
+    mBlockStore = mBlockWorker.getLocalBlockStore();
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =
         spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));
@@ -134,7 +136,7 @@ public class CacheRequestManagerTest {
         .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).build();
     mCacheRequestManager.submitRequest(request);
-    assertTrue(mBlockWorker.hasBlockMeta(BLOCK_ID));
+    assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -145,7 +147,7 @@ public class CacheRequestManagerTest {
         .setSourcePort(PORT).build();
     setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOpenUfsBlockOptions);
     mCacheRequestManager.submitRequest(request);
-    assertTrue(mBlockWorker.hasBlockMeta(BLOCK_ID));
+    assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -154,7 +156,7 @@ public class CacheRequestManagerTest {
         .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).setAsync(true).build();
     mCacheRequestManager.submitRequest(request);
-    CommonUtils.waitFor("wait for async cache", () -> mBlockWorker.hasBlockMeta(BLOCK_ID));
+    CommonUtils.waitFor("wait for async cache", () -> mBlockStore.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
@@ -165,7 +167,7 @@ public class CacheRequestManagerTest {
         .setSourcePort(PORT).setAsync(true).build();
     setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOpenUfsBlockOptions);
     mCacheRequestManager.submitRequest(request);
-    CommonUtils.waitFor("wait for async cache", () -> mBlockWorker.hasBlockMeta(BLOCK_ID));
+    CommonUtils.waitFor("wait for async cache", () -> mBlockStore.hasBlockMeta(BLOCK_ID));
   }
 
   private void setupMockRemoteReader(String source, int port, long blockId, long blockLength,
