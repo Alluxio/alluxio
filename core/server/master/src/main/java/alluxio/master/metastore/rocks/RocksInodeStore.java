@@ -11,6 +11,8 @@
 
 package alluxio.master.metastore.rocks;
 
+import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.EdgeEntry;
@@ -35,11 +37,15 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
+import org.rocksdb.Env;
 import org.rocksdb.HashLinkedListMemTableConfig;
+import org.rocksdb.OptionsUtil;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
+import org.rocksdb.RocksObject;
 import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +61,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -74,7 +81,7 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
-  private final ColumnFamilyOptions mColumnFamilyOpts;
+  private final List<RocksObject> mToClose = new ArrayList<>();
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
@@ -90,18 +97,63 @@ public class RocksInodeStore implements InodeStore {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
-    mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+    mIteratorOption = new ReadOptions().setTotalOrderSeek(true)
+        .setReadaheadSize(ServerConfiguration.getBytes(
+            PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
-    mColumnFamilyOpts = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION)
-        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
-    List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), mColumnFamilyOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), mColumnFamilyOpts));
-    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
+
+    List<ColumnFamilyDescriptor> columns = new ArrayList<>();
+    DBOptions opts = new DBOptions();
+    if (ServerConfiguration.isSet(PropertyKey.ROCKS_INODE_CONF_FILE)) {
+      try {
+        OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
+            PropertyKey.ROCKS_INODE_CONF_FILE), Env.getDefault(), opts, columns, false);
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+      if (columns.size() != 3
+          || !new String(columns.get(1).getName()).equals(INODES_COLUMN)
+          || !new String(columns.get(2).getName()).equals(EDGES_COLUMN)) {
+        throw new RuntimeException(String.format("Invalid RocksDB inode store table configuration,"
+            + "expected 3 columns, default, %s, and %s", INODES_COLUMN, EDGES_COLUMN));
+      }
+      // Remove the default column as it is created in RocksStore
+      columns.remove(0).getOptions().close();
+    } else {
+      opts = new DBOptions()
+          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+          .setCreateMissingColumnFamilies(true)
+          .setCreateIfMissing(true)
+          .setMaxOpenFiles(-1);
+      columns.add(new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+          .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+          .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains children ids
+          .setCompressionType(CompressionType.NO_COMPRESSION)));
+      columns.add(new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by inode id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket only contains an id
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
+    }
+    mToClose.addAll(columns.stream().map(
+        ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
+
+    // The following options are set by property keys as they are not able to be
+    // set using configuration files.
+    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_INODE_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_INODE_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
+    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_EDGE_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
+
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
         Arrays.asList(mInodesColumn, mEdgesColumn));
     db = db();
 
@@ -511,7 +563,9 @@ public class RocksInodeStore implements InodeStore {
   public void close() {
     LOG.info("Closing RocksInodeStore and recycling all RocksDB JNI objects");
     mRocksStore.close();
-    mColumnFamilyOpts.close();
+    mDisableWAL.close();
+    mReadPrefixSameAsStart.close();
+    mToClose.forEach(RocksObject::close);
     LOG.info("RocksInodeStore closed");
   }
 

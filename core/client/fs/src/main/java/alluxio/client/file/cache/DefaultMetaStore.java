@@ -19,6 +19,7 @@ import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,7 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
+    Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());

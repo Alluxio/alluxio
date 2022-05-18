@@ -42,6 +42,8 @@ public class CollectConfCommandTest {
           "metrics.properties",
           "metrics.properties.template",
           "log4j.properties",
+          "rocks-block.ini.template",
+          "rocks-inode.ini.template",
           "core-site.properties",
           "core-site.properties.template",
           "hdfs-site.properties",

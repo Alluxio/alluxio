@@ -524,6 +524,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
       Path path;
@@ -621,6 +622,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException, AlluxioException {
       Path path;

@@ -283,10 +283,7 @@ public abstract class AbstractClient implements Client {
         lastConnectFailure);
   }
 
-  /**
-   * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
-   * if the client has not connected with the remote for a while, for example.
-   */
+  @Override
   public synchronized void disconnect() {
     if (mConnected) {
       Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
@@ -298,9 +295,7 @@ public abstract class AbstractClient implements Client {
     }
   }
 
-  /**
-   * @return true if this client is connected to the remote
-   */
+  @Override
   public synchronized boolean isConnected() {
     return mConnected;
   }

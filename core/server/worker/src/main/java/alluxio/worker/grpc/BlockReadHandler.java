@@ -48,9 +48,11 @@ import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -91,6 +93,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
+  private static final boolean IS_READER_BUFFER_POOLED =
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
       MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),
@@ -509,6 +513,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReader blockReader = null;
       // timings
       long openMs = -1;
+      long startTransferMs = -1;
       long transferMs = -1;
       long startMs = System.currentTimeMillis();
       try {
@@ -516,18 +521,22 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         openMs = System.currentTimeMillis() - startMs;
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
-        try {
-          long startTransferMs = System.currentTimeMillis();
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        startTransferMs = System.currentTimeMillis();
+        if (IS_READER_BUFFER_POOLED) {
+          ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+          try {
+            while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+            }
+            return new NettyDataBuffer(buf.retain());
+          } finally {
+            buf.release();
           }
-          transferMs = System.currentTimeMillis() - startTransferMs;
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+        } else {
+          ByteBuffer buf = blockReader.read(offset, len);
+          return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
         }
       } finally {
+        transferMs = System.currentTimeMillis() - startTransferMs;
         long durationMs = System.currentTimeMillis() - startMs;
         if (durationMs >= SLOW_BUFFER_MS) {
           // This buffer took much longer than expected

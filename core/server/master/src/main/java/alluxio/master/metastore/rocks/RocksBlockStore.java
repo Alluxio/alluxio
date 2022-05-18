@@ -11,6 +11,8 @@
 
 package alluxio.master.metastore.rocks;
 
+import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.BlockStore;
@@ -28,12 +30,15 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
+import org.rocksdb.Env;
 import org.rocksdb.HashLinkedListMemTableConfig;
+import org.rocksdb.OptionsUtil;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
-import org.rocksdb.Slice;
+import org.rocksdb.RocksObject;
 import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +51,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -62,7 +68,9 @@ public class RocksBlockStore implements BlockStore {
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mIteratorOption;
-  private final ColumnFamilyOptions mColumnFamilyOptions;
+  private final ReadOptions mReadPrefixSameAsStart;
+
+  private final List<RocksObject> mToClose = new ArrayList<>();
 
   private final RocksStore mRocksStore;
   // The handles are closed in RocksStore
@@ -78,14 +86,65 @@ public class RocksBlockStore implements BlockStore {
   public RocksBlockStore(String baseDir) {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
-    mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
-    mColumnFamilyOptions = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION);
-    List<ColumnFamilyDescriptor> columns = Arrays.asList(
-        new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), mColumnFamilyOptions),
-        new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), mColumnFamilyOptions));
+    mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mIteratorOption = new ReadOptions()
+        .setReadaheadSize(ServerConfiguration.getBytes(
+            PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
+        .setTotalOrderSeek(true);
+
+    List<ColumnFamilyDescriptor> columns = new ArrayList<>();
+    DBOptions opts = new DBOptions();
+    if (ServerConfiguration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
+      try {
+        OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
+            PropertyKey.ROCKS_BLOCK_CONF_FILE), Env.getDefault(), opts, columns,
+            false);
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+      if (columns.size() != 3
+          || !new String(columns.get(1).getName()).equals(BLOCK_META_COLUMN)
+          || !new String(columns.get(2).getName()).equals(BLOCK_LOCATIONS_COLUMN)) {
+        throw new RuntimeException(String.format("Invalid RocksDB block store table configuration,"
+            + "expected 3 columns, default, %s, and %s",
+            BLOCK_META_COLUMN, BLOCK_LOCATIONS_COLUMN));
+      }
+      // Remove the default column as it is created in RocksStore
+      columns.remove(0).getOptions().close();
+    } else {
+      opts = new DBOptions()
+          .setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
+          .setCreateMissingColumnFamilies(true)
+          .setCreateIfMissing(true)
+          .setMaxOpenFiles(-1);
+      columns.add(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
+      columns.add(new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(),
+          new ColumnFamilyOptions()
+              .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
+              .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains worker info
+              .setCompressionType(CompressionType.NO_COMPRESSION)));
+    }
+
+    mToClose.addAll(columns.stream().map(
+        ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
+
+    // The following options are set by property keys as they are not able to be
+    // set using configuration files.
+    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
+    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX,
+        PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX, mToClose)
+        .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
+
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
     // Create block store db path if it does not exist.
@@ -96,7 +155,7 @@ public class RocksBlockStore implements BlockStore {
         LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
       }
     }
-    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, columns,
+    mRocksStore = new RocksStore(ROCKS_STORE_NAME, dbPath, backupPath, opts, columns,
         Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
 
     // metrics
@@ -274,15 +333,13 @@ public class RocksBlockStore implements BlockStore {
     mRocksStore.close();
     mIteratorOption.close();
     mDisableWAL.close();
-    mColumnFamilyOptions.close();
+    mReadPrefixSameAsStart.close();
+    mToClose.forEach(RocksObject::close);
     LOG.info("RocksBlockStore closed");
   }
 
   @Override
   public List<BlockLocation> getLocations(long id) {
-    byte[] startKey = RocksUtils.toByteArray(id, 0);
-    byte[] endKey = RocksUtils.toByteArray(id, Long.MAX_VALUE);
-
     // References to the RocksObject need to be held explicitly and kept from GC
     // In order to prevent segfaults in the native code execution
     // Ref: https://github.com/facebook/rocksdb/issues/9378
@@ -290,10 +347,9 @@ public class RocksBlockStore implements BlockStore {
     // When there are multiple resources declared in the try-with-resource block
     // They are closed in the opposite order of declaration
     // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
-    try (final Slice slice = new Slice(endKey);
-         final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(slice);
-         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
-      iter.seek(startKey);
+    try (final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
+        mReadPrefixSameAsStart)) {
+      iter.seek(Longs.toByteArray(id));
       List<BlockLocation> locations = new ArrayList<>();
       for (; iter.isValid(); iter.next()) {
         try {

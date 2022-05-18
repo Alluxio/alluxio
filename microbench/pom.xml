@@ -43,6 +43,13 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-master</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-tests</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
 
     <!-- external dependencies -->
@@ -63,18 +70,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server-master</artifactId>
-      <version>${project.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-tests</artifactId>
-      <version>${project.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>compile</scope>
@@ -84,24 +79,7 @@
       <artifactId>junit</artifactId>
       <scope>compile</scope>
     </dependency>
-
-
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>java11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>javax.annotation</groupId>
-          <artifactId>javax.annotation-api</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
 
   <build>
     <plugins>
