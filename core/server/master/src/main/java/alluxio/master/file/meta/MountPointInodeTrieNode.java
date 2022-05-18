@@ -118,6 +118,9 @@ public final class MountPointInodeTrieNode<T> {
   }
 
   public boolean isContainsCertainTypeOfTrieNodes(java.util.function.Function<MountPointInodeTrieNode<T>, Boolean> predicate, boolean isContainSelf) {
+    if(predicate.apply(this) && isContainSelf) {
+      return true;
+    }
     if (isLastTrieNode()) {
       return false;
     }

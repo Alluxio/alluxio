@@ -36,13 +36,37 @@ public class BaseInodeLockingTest {
   protected InodeLockManager mInodeLockManager = new InodeLockManager();
   protected InodeStore mInodeStore = new HeapInodeStore();
 
+  // Directory structure is /mnt/foo/sub/f1
+  protected InodeFile mFileF1 = inodeFile(18, 17, "f1");
+  protected InodeDirectory mFileSub = inodeDir(17, 5, "sub", mFileF1);
+  // Directory structure is /mnt/bar/baz/bay
+  protected InodeFile mFileBay = inodeFile(16, 9, "bay");
+  // Directory structure is /test1, /test2, /t1, /t2, /bogus
+  protected InodeFile mFileBogus = inodeFile(15, 0, "bogus");
+  protected InodeFile mFileT2 = inodeFile(14, 0, "t2");
+  protected InodeFile mFileT1 = inodeFile(13, 0, "t1");
+  protected InodeFile mFileTest2 = inodeFile(12, 0, "test2");
+  protected InodeFile mFileTest1 = inodeFile(11, 0, "test1");
+  // Directory structure is /foobar
+  protected InodeFile mFileFooBar = inodeFile(10, 0, "foobar");
+  // Directory structure is /mnt/bar/y
+  protected InodeDirectory mFileBaz = inodeDir(9, 7, "baz", mFileBay);
+  protected InodeFile mFileY = inodeFile(8, 7, "y");
+  protected InodeDirectory mDirBar = inodeDir(7, 4, "bar", mFileY, mFileBaz);
+  // Directory structure is /mnt/foo/x
+  protected InodeFile mFileX = inodeFile(6, 5, "x");
+  protected InodeDirectory mDirFoo = inodeDir(5, 4, "foo", mFileX, mFileSub);
+  protected InodeDirectory mDirMnt = inodeDir(4, 0, "mnt", mDirFoo, mDirBar);
   // Directory structure is /a/b/c
   protected InodeFile mFileC = inodeFile(3, 2, "c");
   protected InodeDirectory mDirB = inodeDir(2, 1, "b", mFileC);
   protected InodeDirectory mDirA = inodeDir(1, 0, "a", mDirB);
-  protected InodeDirectory mRootDir = inodeDir(0, -1, "", mDirA);
+  protected InodeDirectory mRootDir = inodeDir(0, -1, "", mDirA, mDirMnt, mFileFooBar, mFileTest1
+      , mFileTest2, mFileT1, mFileT2, mFileBogus);
 
-  protected List<Inode> mAllInodes = Arrays.asList(mRootDir, mDirA, mDirB, mFileC);
+  protected List<Inode> mAllInodes = Arrays.asList(mRootDir, mDirA, mDirB, mFileC, mDirMnt,
+      mDirFoo, mFileX, mDirBar, mFileY, mFileFooBar, mFileBaz, mFileTest1, mFileTest2, mFileT1,
+      mFileT2, mFileBogus, mFileBay, mFileSub, mFileF1);
 
   @After
   public void after() {

@@ -343,9 +343,8 @@ public final class MountTableTest extends BaseInodeLockingTest{
         MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)).getOptions().build();
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
-    LockedInodePath alluxioLockedInodePath = createLockedInodePath("alluxio://localhost:1234",
+    LockedInodePath alluxioLockedInodePath = createLockedInodePath(alluxioUri.getPath(),
         InodeTree.LockPattern.READ);
-    // TODO(Jiadong): rewrite new tests
     mMountTable.add(NoopJournalContext.INSTANCE, alluxioLockedInodePath,
         new AlluxioURI("hdfs://localhost:5678/foo"), 2L, options);
 
@@ -354,18 +353,21 @@ public final class MountTableTest extends BaseInodeLockingTest{
       Assert.fail("Readonly mount point should not be writable.");
     } catch (AccessControlException e) {
       // Exception expected
-      Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
+      // TODO(Jiadong): should we alter the test or the error message format in checkUnderWritableMountPoint
+      Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(mountPath, mountPath),
           e.getMessage());
     }
 
     try {
-      String path = mountPath + "/sub/directory";
+      String path = mountPath + "/sub/f1";
       alluxioUri = new AlluxioURI("alluxio://localhost:1234" + path);
-      mMountTable.checkUnderWritableMountPoint(alluxioLockedInodePath);
+      LockedInodePath inodePath = createLockedInodePath(alluxioUri.getPath(),
+          InodeTree.LockPattern.READ);
+      mMountTable.checkUnderWritableMountPoint(inodePath);
       Assert.fail("Readonly mount point should not be writable.");
     } catch (AccessControlException e) {
       // Exception expected
-      Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
+      Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(mountPath + "/sub/f1", mountPath),
           e.getMessage());
     }
   }
