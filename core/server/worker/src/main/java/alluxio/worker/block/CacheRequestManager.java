@@ -64,7 +64,7 @@ public class CacheRequestManager {
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mCacheExecutor;
   /** The block worker. */
-  private final BlockWorker mBlockWorker;
+  private final DefaultBlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, CacheRequest> mActiveCacheRequests =
       new ConcurrentHashMap<>();
   private final FileSystemContext mFsContext;
@@ -76,7 +76,7 @@ public class CacheRequestManager {
    * @param blockWorker handler to the block worker
    * @param fsContext context
    */
-  public CacheRequestManager(ExecutorService service, BlockWorker blockWorker,
+  public CacheRequestManager(ExecutorService service, DefaultBlockWorker blockWorker,
       FileSystemContext fsContext) {
     mCacheExecutor = service;
     mBlockWorker = blockWorker;
@@ -230,7 +230,7 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     // Check if the block has already been cached on this worker
-    if (mBlockWorker.hasBlockMeta(blockId)) {
+    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)) {
       LOG.debug("block already cached: {}", blockId);
       return true;
     }

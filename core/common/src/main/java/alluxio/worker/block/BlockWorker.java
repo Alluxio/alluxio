@@ -134,14 +134,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   BlockStoreMeta getStoreMetaFull();
 
   /**
-   * Checks if the storage has a given block.
-   *
-   * @param blockId the block id
-   * @return true if the block is contained, false otherwise
-   */
-  boolean hasBlockMeta(long blockId);
-
-  /**
    * Creates the block reader to read from Alluxio block or UFS block.
    * Owner of this block reader must close it or lock will leak.
    *
