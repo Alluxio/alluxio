@@ -1137,6 +1137,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("Journal Path", mConf.getPath())
+        .add("Local Address", mConf.getLocalAddress())
         .add("State", mPrimarySelector.getState())
         .add("Configuration ClusterAddress", mConf.getClusterAddresses())
         .add("RaftGroup", mRaftGroup)
