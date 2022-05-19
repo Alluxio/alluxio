@@ -32,7 +32,7 @@ public class DefaultMetaStoreTest {
   protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
   protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   protected DefaultMetaStore mMetaStore;
-  private Gauge mCachedPageGauge;
+  protected Gauge mCachedPageGauge;
 
   /**
    * Sets up the instances.
