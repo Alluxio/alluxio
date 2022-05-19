@@ -135,8 +135,8 @@ public class InodeStoreTest {
         put(PropertyKey.ROCKS_INODE_CONF_FILE, path);
       }
     }, ServerConfiguration.global()).toResource()) {
-      assertEquals(RocksDBException.class,
-          assertThrows(RuntimeException.class, this::before).getCause().getClass());
+      RuntimeException exception = assertThrows(RuntimeException.class, this::before);
+      assertEquals(RocksDBException.class, exception.getCause().getClass());
     }
   }
 

@@ -246,12 +246,10 @@ public final class RocksStore implements Closeable {
     // set using configuration files.
     BlockBasedTableConfig blockConfig = new BlockBasedTableConfig();
     boolean shoudSetConfig = false;
-    if (ServerConfiguration.isSet(
-        cacheSize)) {
+    if (ServerConfiguration.isSet(cacheSize)) {
       shoudSetConfig = true;
       // Set the inodes column options
-      Cache inodeCache = new LRUCache(ServerConfiguration.getInt(
-          cacheSize));
+      Cache inodeCache = new LRUCache(ServerConfiguration.getInt(cacheSize));
       toClose.add(inodeCache);
       blockConfig.setBlockCache(inodeCache);
     }
@@ -261,11 +259,9 @@ public final class RocksStore implements Closeable {
       toClose.add(filter);
       blockConfig.setFilterPolicy(filter);
     }
-    if (ServerConfiguration.isSet(
-        indexType)) {
+    if (ServerConfiguration.isSet(indexType)) {
       shoudSetConfig = true;
-      blockConfig.setIndexType(ServerConfiguration.getEnum(
-          indexType, IndexType.class));
+      blockConfig.setIndexType(ServerConfiguration.getEnum(indexType, IndexType.class));
     }
     if (ServerConfiguration.isSet(blockIndexType)) {
       shoudSetConfig = true;
