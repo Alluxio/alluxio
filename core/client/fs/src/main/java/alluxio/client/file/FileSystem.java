@@ -28,7 +28,6 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnimplementedException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -466,20 +465,6 @@ public interface FileSystem extends Closeable {
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException;
-
-  /**
-   * Same as {@link FileSystem#mount(AlluxioURI, AlluxioURI, MountPOptions)},
-   * and will return detailed mount execution process.
-   *
-   * @param alluxioPath an Alluxio path to mount the data to
-   * @param ufsPath a UFS path to mount the data from
-   * @param options options to associate with this operation
-   * @return details of the mount execution process
-   */
-  default List<String> mountWithVerbosity(AlluxioURI alluxioPath, AlluxioURI ufsPath,
-      MountPOptions options) throws IOException, AlluxioException {
-    throw new UnimplementedException("mountWithVerbosity");
-  }
 
   /**
    * Updates the options for an existing mount point.

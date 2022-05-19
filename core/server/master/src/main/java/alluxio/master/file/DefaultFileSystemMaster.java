@@ -3161,13 +3161,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
-    UnderFileSystemConfiguration configuration =
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global());
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        configuration
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
             .setReadOnly(context.getOptions().getReadOnly())
             .setShared(context.getOptions().getShared())
-            .setVerbosity(context.getOptions().getVerbosity())
             .setRecorder(context.getRecorder())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     Recorder recorder = context.getRecorder();

@@ -25,7 +25,6 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
@@ -121,9 +120,8 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public MountPResponse mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException {
-    return null;
   }
 
   @Override

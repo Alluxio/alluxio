@@ -2761,15 +2761,7 @@
             ]
           },
           {
-            "name": "MountPResponse",
-            "fields": [
-              {
-                "id": 1,
-                "name": "mountDetailInfo",
-                "type": "string",
-                "is_repeated": true
-              }
-            ]
+            "name": "MountPResponse"
           },
           {
             "name": "MountPOptions",
@@ -2788,11 +2780,6 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
-              },
-              {
-                "id": 5,
-                "name": "verbosity",
-                "type": "bool"
               }
             ],
             "maps": [

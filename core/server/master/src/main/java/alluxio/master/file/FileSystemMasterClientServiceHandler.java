@@ -274,24 +274,18 @@ public final class FileSystemMasterClientServiceHandler
     RpcUtils.call(LOG, () -> {
       MountContext mountContext = MountContext.create(request.getOptions().toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver));
-      if (request.getOptions().getVerbosity()) {
-        mountContext.getRecorder().setEnabled();
-      }
+      // By default, the mount execution process record is enabled
+      mountContext.getRecorder().setEnabled();
       try {
         mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
             new AlluxioURI(request.getUfsPath()), mountContext);
       } catch (Exception e) {
-        if (request.getOptions().getVerbosity()) {
-          // if throw Exception, returns the record of mount execution process by exception message
-          Recorder recorder = mountContext.getRecorder();
-          recorder.recordIfEnabled(e.getMessage());
-          throw new AlluxioException(String.join("\n", recorder.getRecord()), e);
-        } else {
-          throw e;
-        }
+        // if throw Exception, returns the record of mount execution process by exception message
+        Recorder recorder = mountContext.getRecorder();
+        recorder.recordIfEnabled(e.getMessage());
+        throw new AlluxioException(String.join("\n", recorder.getRecord()), e);
       }
-      return MountPResponse.newBuilder()
-          .addAllMountDetailInfo(mountContext.getRecorder().getRecord()).build();
+      return MountPResponse.newBuilder().build();
     }, "Mount", "request=%s", responseObserver, request);
   }
 

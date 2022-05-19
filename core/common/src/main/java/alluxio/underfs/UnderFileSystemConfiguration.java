@@ -43,7 +43,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-  private boolean mVerbosity;
   private Recorder mRecorder;
 
   /**
@@ -61,7 +60,6 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     super(props);
     mReadOnly = false;
     mShared = false;
-    mVerbosity = false;
     mRecorder = Recorder.createDisabled();
   }
 
@@ -93,13 +91,6 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * @return whether to record information about the detailed execution process
-   */
-  public boolean isVerbosity() {
-    return mVerbosity;
-  }
-
-  /**
    * @return get a recorder to recode information about the detailed execution process
    */
   public Recorder getRecorder() {
@@ -125,15 +116,6 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * @param verbosity whether to record information about the detailed execution process
-   * @return the updated configuration object
-   */
-  public UnderFileSystemConfiguration setVerbosity(boolean verbosity) {
-    mVerbosity = verbosity;
-    return this;
-  }
-
-  /**
    * @param recorder Used to record information about the detailed execution process
    * @return the updated configuration object
    */
@@ -153,7 +135,6 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
     ufsConf.mReadOnly = mReadOnly;
     ufsConf.mShared = mShared;
-    ufsConf.mVerbosity = mVerbosity;
     ufsConf.mRecorder = mRecorder;
     return ufsConf;
   }

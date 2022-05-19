@@ -329,15 +329,12 @@ message GetFilePathPRequest {
   optional int64 fileId = 1;
 }
 
-message MountPResponse {
-  repeated string mountDetailInfo = 1;
-}
+message MountPResponse {}
 message MountPOptions {
   optional bool readOnly = 1;
   map<string, string> properties = 2;
   optional bool shared = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
-  optional bool verbosity = 5;
 }
 message MountPRequest {
   /** the path of alluxio mount point */

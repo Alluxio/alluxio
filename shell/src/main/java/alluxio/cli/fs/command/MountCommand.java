@@ -26,7 +26,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.concurrent.ThreadSafe;
@@ -44,15 +43,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .required(false)
           .hasArg(false)
           .desc("mount point is readonly in Alluxio")
-          .build();
-  private static final Option VERBOSE_OPTION =
-      Option.builder("v")
-          .required(false)
-          .longOpt("verbose")
-          .hasArg(false)
-          .desc("Verbose mode, "
-              + "causes mount command to print debugging messages about its progress."
-              + "This is helpful in debugging mount problems")
           .build();
   private static final Option SHARED_OPTION =
       Option.builder()
@@ -86,11 +76,8 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options()
-        .addOption(READONLY_OPTION)
-        .addOption(SHARED_OPTION)
-        .addOption(OPTION_OPTION)
-        .addOption(VERBOSE_OPTION);
+    return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
+        .addOption(OPTION_OPTION);
   }
 
   @Override
@@ -115,24 +102,14 @@ public final class MountCommand extends AbstractFileSystemCommand {
       Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
       optionsBuilder.putAllProperties(Maps.fromProperties(properties));
     }
-    if (cl.hasOption(VERBOSE_OPTION.getOpt())) {
-      optionsBuilder.setVerbosity(true);
-      List<String> mountDetailInfos =
-          mFileSystem.mountWithVerbosity(alluxioPath, ufsPath, optionsBuilder.build());
-      for (String mountDetailInfo: mountDetailInfos) {
-        System.out.println("Verbosity:  " + mountDetailInfo);
-      }
-    } else {
-      mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());
-    }
+    mFileSystem.mount(alluxioPath, ufsPath, optionsBuilder.build());
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [-v/--verbose] [--option <key=val>]"
-        + " <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
   }
 
   @Override

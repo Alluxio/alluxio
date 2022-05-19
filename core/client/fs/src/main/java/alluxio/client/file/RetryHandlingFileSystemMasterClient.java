@@ -46,7 +46,6 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
-import alluxio.grpc.MountPResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -285,9 +284,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public MountPResponse mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
+  public void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
       final MountPOptions options) throws AlluxioStatusException {
-    return retryRPC(
+    retryRPC(
         () -> mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
             .setUfsPath(ufsPath.toString()).setOptions(options).build()),
         RPC_LOG, "Mount", "alluxioPath=%s,ufsPath=%s,options=%s", alluxioPath, ufsPath, options);
