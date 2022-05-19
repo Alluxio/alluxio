@@ -528,6 +528,14 @@ public final class MountTable implements DelegatingJournaled {
     return resolve(alluxioLockedInodePath.getUri(), alluxioLockedInodePath.getInodeViewList());
   }
 
+  /**
+   * Underlying implementation of resolve. If the calling context has no LockedInodePath, then
+   * call this method and pass an empty array list as the second parameter.
+   * @param uri target alluxio path's uri
+   * @param inodeViewList target alluxio path's inodes
+   * @return the {@link Resolution} representing the UFS path
+   * @throws InvalidPathException if an invalid path is encountered
+   */
   public Resolution resolve(AlluxioURI uri, List<InodeView> inodeViewList)
       throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
@@ -740,32 +748,54 @@ public final class MountTable implements DelegatingJournaled {
             entry.getMountId(), GrpcUtils.fromMountEntry(entry));
   }
 
+  /**
+   * MountTableTrie encapsulates some basic operations of MountPointInodeTrieNode, as well as
+   * mechanisms, include verifying if the Trie is enabled.
+   */
   public static final class MountTableTrie {
+    // The root of Trie of current MountTable
     private MountPointInodeTrieNode<InodeView> mRootTrieNode;
-
+    // The trie node of the root inode, if it is null, then the Trie is regarded as not enabled
     private MountPointInodeTrieNode<InodeView> mRootTrieInode = null;
-
+    // Map from TrieNode to the alluxio path literal
     private Map<MountPointInodeTrieNode<InodeView>, String> mMountPointTrieTable;
 
+    /**
+     * Constructor of MountTableTrie.
+     */
     public MountTableTrie() {
       mRootTrieNode = new MountPointInodeTrieNode<>();
+      mMountPointTrieTable = new HashMap<>(10);
     }
 
+    /**
+     * Insert the root inode into Trie, and the MountTableTrie will be enabled.
+     * @param rootInode the target root inode
+     */
     public void setRootInode(InodeView rootInode) {
       Preconditions.checkNotNull(mRootTrieNode);
+      Preconditions.checkNotNull(mMountPointTrieTable);
       Preconditions.checkArgument(mRootTrieNode.isLastTrieNode());
 
       mRootTrieInode = mRootTrieNode.insert(Arrays.asList(rootInode), true);
-      mMountPointTrieTable = new HashMap<>(10);
       mMountPointTrieTable.put(mRootTrieInode, ROOT);
     }
 
+    /**
+     * Insert the given lockedInodePath into the MountTableTrie.
+     * @param inodes target locked inodePath
+     */
     public void addMountPoint(LockedInodePath inodes) {
-      // TODO(Jiadong): whether we check the fullPathExists of inodes?
+      Preconditions.checkArgument(isTrieEnable());
       Preconditions.checkArgument(inodes.fullPathExists());
       addMountPoint(inodes.getUri(), inodes.getInodeViewList());
     }
 
+    /**
+     * Insert the given inodes into the MountTableTrie.
+     * @param uri the alluxioUri of the target inodes
+     * @param inodes the inodes of target inodePath
+     */
     public void addMountPoint(AlluxioURI uri, List<InodeView> inodes) {
       Preconditions.checkArgument(!inodes.isEmpty());
       Preconditions.checkArgument(isTrieEnable());
@@ -775,6 +805,10 @@ public final class MountTable implements DelegatingJournaled {
       mMountPointTrieTable.put(trieNode, uri.getPath());
     }
 
+    /**
+     * Remove a TrieNode from MountTableTrie based on the lockedInodePath.
+     * @param inodes the target LockedInodePath
+     */
     public void removeMountPoint(LockedInodePath inodes) {
       Preconditions.checkArgument(inodes.fullPathExists());
       Preconditions.checkArgument(isTrieEnable());
@@ -784,11 +818,21 @@ public final class MountTable implements DelegatingJournaled {
       mMountPointTrieTable.remove(trieNode);
     }
 
+    /**
+     * Get the lowest matched mount point of the given lockedInodePath.
+     * @param path the target lockedInodePath
+     * @return the lowest mountPoint of the given path
+     */
     public String getMountPoint(LockedInodePath path) {
       Preconditions.checkArgument(path.fullPathExists());
       return getMountPoint(path.getInodeViewList());
     }
 
+    /**
+     * Get the mount point of the given inodes.
+     * @param inodeViewList the target inodes
+     * @return the lowest mountPoint of the given path
+     */
     public String getMountPoint(List<InodeView> inodeViewList) {
       Preconditions.checkArgument(isTrieEnable());
       Preconditions.checkNotNull(mRootTrieNode);
@@ -799,11 +843,23 @@ public final class MountTable implements DelegatingJournaled {
       return mMountPointTrieTable.get(trieNode);
     }
 
+    /**
+     * Finds all the mount point among the children TrieNodes of the given path.
+     * @param path the target inodePath
+     * @param isContainSelf true if the results can contain the TrieNode of the given path
+     * @return the qualified children mount points of the target path
+     */
     public List<String> findChildrenMountPoints(LockedInodePath path, boolean isContainSelf) {
       Preconditions.checkArgument(path.fullPathExists());
       return findChildrenMountPoints(path.getInodeViewList(), isContainSelf);
     }
 
+    /**
+     * Finds all the mount point among the children TrieNodes of the given inodes.
+     * @param inodeViewList the target inodes
+     * @param isContainSelf true if the results can contain the TrieNode of the given path
+     * @return the qualified children mount points of the target path
+     */
     public List<String> findChildrenMountPoints(List<InodeView> inodeViewList,
                                                 boolean isContainSelf) {
       Preconditions.checkArgument(isTrieEnable());
@@ -824,11 +880,22 @@ public final class MountTable implements DelegatingJournaled {
       return mountPoints;
     }
 
-    public boolean hasChildrenContainsMountPoints(LockedInodePath path,
-                                                       boolean isContainSelf) {
+    /**
+     * Checks if the given path contains children paths that are mountPoint.
+     * @param path the target path
+     * @param isContainSelf true if the search targets will include the given path
+     * @return true if the target path contains at least one mountPoint
+     */
+    public boolean hasChildrenContainsMountPoints(LockedInodePath path, boolean isContainSelf) {
       return hasChildrenContainsMountPoints(path.getInodeViewList(), isContainSelf);
     }
 
+    /**
+     * Checks if the given inodes contains children paths that are mountPoint.
+     * @param inodeViewList the target inodes
+     * @param isContainSelf true if the search targets will include the given path
+     * @return true if the target inodes contains at least one mountPoint
+     */
     public boolean hasChildrenContainsMountPoints(List<InodeView> inodeViewList,
                                                   boolean isContainSelf) {
       Preconditions.checkArgument(isTrieEnable());
@@ -841,6 +908,10 @@ public final class MountTable implements DelegatingJournaled {
       return trieNode.isContainsCertainTypeOfTrieNodes(MountPointInodeTrieNode::isMountPoint, isContainSelf);
     }
 
+    /**
+     * Checks if MountTableTrie is enabled.
+     * @return true if the MountTableTrie is enabled
+     */
     public boolean isTrieEnable() {
       return mRootTrieInode != null;
     }
@@ -881,6 +952,9 @@ public final class MountTable implements DelegatingJournaled {
       return Collections.unmodifiableMap(mMountTable);
     }
 
+    /**
+     * @return the MountTableTrie object
+     */
     public MountTableTrie getMountTableTrie() {
       return mMountTableTrie;
     }
