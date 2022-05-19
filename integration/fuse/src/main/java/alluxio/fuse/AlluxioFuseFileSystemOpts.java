@@ -47,10 +47,13 @@ public final class AlluxioFuseFileSystemOpts {
    * @return AlluxioFuseFileSystemOpts
    */
   public static AlluxioFuseFileSystemOpts create(AlluxioConfiguration conf) {
+    List<String> fuseOptions = conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)
+        ? conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
+        : ImmutableList.of();
     return new AlluxioFuseFileSystemOpts(
         conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH),
         conf.getString(PropertyKey.FUSE_MOUNT_POINT),
-        conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS),
+        fuseOptions,
         conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)
     );
   }
