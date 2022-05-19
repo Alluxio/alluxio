@@ -16,7 +16,10 @@ import static org.junit.Assert.assertThrows;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Gauge;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,19 +32,24 @@ public class DefaultMetaStoreTest {
   protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
   protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   protected DefaultMetaStore mMetaStore;
+  private Gauge mCachedPageGauge;
 
   /**
    * Sets up the instances.
    */
   @Before
   public void before() {
+    MetricsSystem.clearAllMetrics();
     mMetaStore = new DefaultMetaStore(mConf);
+    mCachedPageGauge =
+        MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
 
   @Test
   public void addNew() {
     mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
+    Assert.assertEquals(1, mCachedPageGauge.getValue());
   }
 
   @Test
@@ -49,6 +57,7 @@ public class DefaultMetaStoreTest {
     mMetaStore.addPage(mPage, mPageInfo);
     mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
+    Assert.assertEquals(1, mCachedPageGauge.getValue());
   }
 
   @Test
@@ -57,6 +66,7 @@ public class DefaultMetaStoreTest {
     Assert.assertTrue(mMetaStore.hasPage(mPage));
     mMetaStore.removePage(mPage);
     Assert.assertFalse(mMetaStore.hasPage(mPage));
+    Assert.assertEquals(0, mCachedPageGauge.getValue());
   }
 
   @Test
@@ -64,6 +74,7 @@ public class DefaultMetaStoreTest {
     assertThrows(PageNotFoundException.class, () -> {
       Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
     });
+    Assert.assertEquals(0, mCachedPageGauge.getValue());
   }
 
   @Test
@@ -90,5 +101,6 @@ public class DefaultMetaStoreTest {
     Assert.assertEquals(mPageInfo, mMetaStore.evict());
     mMetaStore.removePage(mPageInfo.getPageId());
     Assert.assertNull(mMetaStore.evict());
+    Assert.assertEquals(0, mCachedPageGauge.getValue());
   }
 }
