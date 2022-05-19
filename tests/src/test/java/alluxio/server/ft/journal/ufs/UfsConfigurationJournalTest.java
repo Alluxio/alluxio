@@ -68,7 +68,6 @@ public class UfsConfigurationJournalTest {
     MountTable mountTable =
         Whitebox.getInternalState(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
             .getMasterProcess().getMaster(FileSystemMaster.class), "mMountTable");
-    // TODO(Jiadong): whether alter it as a LockedInodePath
     long mountId = mountTable.resolve(mountPoint, new ArrayList<>()).getMountId();
 
     // Restart masters
