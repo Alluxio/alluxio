@@ -56,7 +56,7 @@ public class RaftJournalTest {
   @Before
   public void before() throws Exception {
     // Create and start journal systems.
-    List<RaftJournalSystem> journalSystems = startJournalCluster(createJournalSystems());
+    List<RaftJournalSystem> journalSystems = startJournalCluster(createJournalSystems(2));
     // Sleep for 2 leader election cycles for leadership to stabilize.
     Thread.sleep(2
             * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
@@ -454,20 +454,19 @@ public class RaftJournalTest {
   /**
    * Creates list of raft journal systems in a clustered mode.
    */
-  private List<RaftJournalSystem> createJournalSystems() throws Exception {
+  private List<RaftJournalSystem> createJournalSystems(int journalSystemCount) throws Exception {
     // Override defaults for faster quorum formation.
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
 
-    int numJournals = 2;
-    List<InetSocketAddress> clusterAddresses = new ArrayList<>(numJournals);
-    List<Integer> freePorts = getFreePorts(numJournals);
-    for (int i = 0; i < numJournals; i++) {
+    List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
+    List<Integer> freePorts = getFreePorts(journalSystemCount);
+    for (int i = 0; i < journalSystemCount; i++) {
       clusterAddresses.add(InetSocketAddress.createUnresolved("localhost", freePorts.get(i)));
     }
 
-    List<RaftJournalSystem> journalSystems = new ArrayList<>(numJournals);
-    for (int i = 0; i < numJournals; i++) {
+    List<RaftJournalSystem> journalSystems = new ArrayList<>(journalSystemCount);
+    for (int i = 0; i < journalSystemCount; i++) {
       journalSystems.add(new RaftJournalSystem(mFolder.newFolder().toURI(), clusterAddresses.get(i),
            clusterAddresses));
     }

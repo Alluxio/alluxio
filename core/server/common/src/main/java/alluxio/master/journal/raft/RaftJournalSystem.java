@@ -619,11 +619,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return mStateMachine.catchup(distinctSequences.get(0));
   }
 
-  static Message toRaftMessage(JournalEntry entry) {
-    return Message.valueOf(UnsafeByteOperations.unsafeWrap(
-        new JournalEntryCommand(entry).getSerializedJournalEntry()));
-  }
-
   @Override
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
@@ -715,8 +710,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           lastAppliedSN, gainPrimacySN);
       Exception ex;
       try {
+        JournalEntry entry = JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build();
         CompletableFuture<RaftClientReply> future = client.sendAsync(
-            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()));
+            Message.valueOf(UnsafeByteOperations.unsafeWrap(entry.toByteArray())));
         RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
         ex = reply.getException();
       } catch (TimeoutException | ExecutionException | IOException e) {

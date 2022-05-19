@@ -21,6 +21,7 @@ import alluxio.util.FormatUtils;
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
+import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +106,7 @@ public class RaftJournalWriter implements JournalWriter {
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
         JournalEntry entry = mJournalEntryBuilder.build();
-        Message message = RaftJournalSystem.toRaftMessage(entry);
+        Message message = Message.valueOf(UnsafeByteOperations.unsafeWrap(entry.toByteArray()));
         mLastSubmittedSequenceNumber.set(flushSN);
         LOG.trace("Flushing entry {} ({})", entry, message);
         RaftClientReply reply = mClient.sendAsync(message)
