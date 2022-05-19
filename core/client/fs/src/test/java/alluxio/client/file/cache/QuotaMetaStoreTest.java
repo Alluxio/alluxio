@@ -19,7 +19,6 @@ import alluxio.client.quota.CacheScope;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
-import com.codahale.metrics.Gauge;
 import org.junit.Before;
 import org.junit.Test;
 
