@@ -39,6 +39,11 @@
       <artifactId>alluxio-core-server-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- external dependencies -->
     <dependency>
@@ -51,6 +56,12 @@
       <artifactId>jmh-generator-annprocess</artifactId>
       <version>${jmh.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>1.10.13</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
