@@ -38,8 +38,6 @@ public class DefaultMetaStore implements MetaStore {
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
-  /** The number of pages stored. */
-  private final AtomicLong mPages = new AtomicLong(0);
   /** The evictor. */
   private final CacheEvictor mEvictor;
 
@@ -48,6 +46,9 @@ public class DefaultMetaStore implements MetaStore {
    */
   public DefaultMetaStore(AlluxioConfiguration conf) {
     this(CacheEvictor.create(conf));
+    //metrics for the num of pages stored in the cache
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
+        mPageMap::size);
   }
 
   /**
@@ -69,8 +70,6 @@ public class DefaultMetaStore implements MetaStore {
     mPageMap.put(pageId, pageInfo);
     mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    mPages.incrementAndGet();
-    Metrics.PAGES.inc();
     mEvictor.updateOnPut(pageId);
   }
 
@@ -91,8 +90,6 @@ public class DefaultMetaStore implements MetaStore {
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    mPages.decrementAndGet();
-    Metrics.PAGES.dec();
     mEvictor.updateOnDelete(pageId);
     return pageInfo;
   }
@@ -104,13 +101,11 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   public long pages() {
-    return mPages.get();
+    return mPageMap.size();
   }
 
   @Override
   public void reset() {
-    mPages.set(0);
-    Metrics.PAGES.dec(Metrics.PAGES.getCount());
     mBytes.set(0);
     Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
     mPageMap.clear();
@@ -144,8 +139,5 @@ public class DefaultMetaStore implements MetaStore {
     /** Bytes used in the cache. */
     private static final Counter SPACE_USED =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_SPACE_USED_COUNT.getName());
-    /** Pages stored in the cache. */
-    private static final Counter PAGES =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
 }
