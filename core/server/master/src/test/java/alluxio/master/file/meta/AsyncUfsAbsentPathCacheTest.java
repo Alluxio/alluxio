@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -82,9 +83,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.enableMountTableTrie(mRootDir);
-    mMountTable.add(NoopJournalContext.INSTANCE,
-        createLockedInodePath("/mnt", InodeTree.LockPattern.READ),
+    mMountTable.add(NoopJournalContext.INSTANCE, new ArrayList<>(), new AlluxioURI("/mnt"),
         new AlluxioURI(mLocalUfsPath), mMountId, options);
   }
 
@@ -197,7 +196,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     String alluxioBase = "/mnt" + ufsBase;
     // Create ufs directories
     assertTrue((new File(mLocalUfsPath + ufsBase)).mkdirs());
-    LockedInodePath mntInodePath = createLockedInodePath("/mnt", InodeTree.LockPattern.READ);
+    AlluxioURI mntInodePath = new AlluxioURI("/mnt");
 
     // 'base + /c' will be the first absent path
     process(new AlluxioURI(alluxioBase + "/c/d"));
@@ -205,7 +204,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
 
     // Unmount
     assertTrue(
-        mMountTable.delete(NoopJournalContext.INSTANCE, mntInodePath, true));
+        mMountTable.delete(NoopJournalContext.INSTANCE, new ArrayList<>(), mntInodePath, true));
 
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
@@ -213,7 +212,7 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         new UnderFileSystemConfiguration(Configuration.global(), options.getReadOnly())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
-    mMountTable.add(NoopJournalContext.INSTANCE, mntInodePath,
+    mMountTable.add(NoopJournalContext.INSTANCE, new ArrayList<>(), mntInodePath,
         new AlluxioURI(mLocalUfsPath), newMountId, options);
 
     // The cache should not contain any paths now.
@@ -340,14 +339,6 @@ public class AsyncUfsAbsentPathCacheTest extends BaseInodeLockingTest {
           UfsAbsentPathCache.ALWAYS));
       existing = existing.getParent();
     }
-  }
-
-  private LockedInodePath createLockedInodePath(String path, InodeTree.LockPattern lockPattern)
-      throws InvalidPathException {
-    LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-        mInodeLockManager, mRootDir, lockPattern, false);
-    lockedPath.traverse();
-    return lockedPath;
   }
 
   /**
