@@ -79,9 +79,9 @@ public final class JobMasterTest {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
     ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
     mockStatic(FileSystem.Factory.class);
-    FileSystem mFs = mock(FileSystem.class);
+    FileSystem fs = mock(FileSystem.class);
     when(FileSystem.Factory.create(any(FileSystemContext.class)))
-            .thenReturn(mFs);
+            .thenReturn(fs);
     mJobMaster = new JobMaster(new MasterContext<>(new NoopJournalSystem(), new NoopUfsManager()),
         mock(FileSystem.class), mock(FileSystemContext.class), mock(UfsManager.class));
     mJobMaster.start(true);

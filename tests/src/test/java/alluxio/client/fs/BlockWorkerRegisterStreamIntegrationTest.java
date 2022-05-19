@@ -175,13 +175,13 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
-    TieredBlockStore mBlockStore = spy(new TieredBlockStore());
-    FileSystemMasterClient mFileSystemMasterClient = mock(FileSystemMasterClient.class);
-    Sessions mSessions = mock(Sessions.class);
-    UfsManager mUfsManager = mock(UfsManager.class);
+    TieredBlockStore blockStore = spy(new TieredBlockStore());
+    FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
+    Sessions sessions = mock(Sessions.class);
+    UfsManager ufsManager = mock(UfsManager.class);
 
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
-            mSessions, mBlockStore, mUfsManager);
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
+            sessions, blockStore, ufsManager);
   }
 
   /**
