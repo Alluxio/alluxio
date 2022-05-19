@@ -40,6 +40,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.io.FileUtils;
@@ -1122,6 +1123,17 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         throw new AccessDeniedException(journalPath.getPath());
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("JournalPath", mConf.getPath())
+        .add("Address", mConf.getLocalAddress())
+        .add("State", mPrimarySelector.getState())
+        .add("Cluster", mConf.getClusterAddresses())
+        .add("RaftGroup", mRaftGroup)
+        .toString();
   }
 
   /**
