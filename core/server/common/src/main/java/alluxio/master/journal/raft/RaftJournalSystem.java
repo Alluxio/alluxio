@@ -1130,7 +1130,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
-   * @return a primary selector backed by leadership within the Raft cluster
+   * @return a primary selector that reflects the Raft quorum status
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
