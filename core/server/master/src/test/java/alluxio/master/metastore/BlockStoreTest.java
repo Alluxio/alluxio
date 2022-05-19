@@ -103,8 +103,8 @@ public class BlockStoreTest {
         put(PropertyKey.ROCKS_BLOCK_CONF_FILE, path);
       }
     }, ServerConfiguration.global()).toResource()) {
-      assertEquals(RocksDBException.class,
-          assertThrows(RuntimeException.class, this::before).getCause().getClass());
+      RuntimeException exception = assertThrows(RuntimeException.class, this::before);
+      assertEquals(RocksDBException.class, exception.getCause().getClass());
     }
   }
 
