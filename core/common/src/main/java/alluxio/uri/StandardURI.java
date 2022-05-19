@@ -75,8 +75,21 @@ public class StandardURI implements URI {
     mScheme = baseUri.getScheme();
     mSchemeSpecificPart = baseUri.getSchemeSpecificPart();
     mAuthority = baseUri.getAuthority();
-    mPath = AlluxioURI.normalizePath(newPath);
     mQuery = baseUri.getQuery();
+    try {
+      java.net.URI uri;
+      String authority = mAuthority.toString().equals("") ? null : mAuthority.toString();
+      if (AlluxioURI.CUR_DIR.equals(newPath)) {
+        uri = new java.net.URI(
+            mScheme, authority, AlluxioURI.normalizePath(newPath), mQuery, null);
+      } else {
+        uri = new java.net.URI(
+            mScheme, authority, AlluxioURI.normalizePath(newPath), mQuery, null).normalize();
+      }
+      mPath = uri.getPath();
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   @Override
