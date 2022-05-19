@@ -39,7 +39,7 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
     InstancedConfiguration conf = ServerConfiguration.global();
     AlluxioFuseFileSystemOpts fuseFsOpts =
-        AlluxioFuseFileSystemOpts.create(mountPoint, alluxioRoot, ImmutableList.of(), false);
+        AlluxioFuseFileSystemOpts.create(alluxioRoot, mountPoint, ImmutableList.of(), false);
     mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, fuseFsOpts, conf);
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
