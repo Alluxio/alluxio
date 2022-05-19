@@ -104,6 +104,7 @@ import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
@@ -2363,7 +2364,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
-      List<String> locations = mUfsBlockLocationCache.get(blockId, inodePath,
+      List<String> locations = mUfsBlockLocationCache.get(blockId, inodePath.getUri(),
           fileBlockInfo.getOffset());
       if (locations != null) {
         fileBlockInfo.setUfsLocations(locations);
@@ -4079,7 +4080,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       if ((inode instanceof InodeFile) && !inode.asFile().isCompleted()) {
         LOG.warn("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
-        checkUfsMode(inodePath.getUri(), OperationType.WRITE);
+        checkUfsMode(inodePath, OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath);
         String ufsUri = resolution.getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
@@ -4433,17 +4434,19 @@ public class DefaultFileSystemMaster extends CoreMaster
           continue;
         }
         AlluxioURI uri = null;
+        List<InodeView> inodes = new ArrayList<>();
         try {
           try (LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.READ, NoopJournalContext.INSTANCE)) {
             uri = inodePath.getUri();
+            inodes = inodePath.getInodeViewList();
           } catch (FileDoesNotExistException e) {
             LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
                 + "removed by users", fileId, e);
             continue;
           }
           try {
-            checkUfsMode(inodePath, OperationType.WRITE);
+            checkUfsMode(uri, inodes, OperationType.WRITE);
           } catch (Exception e) {
             LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
             // Retry when ufs mode permits operation
@@ -4882,7 +4885,18 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
   private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
       throws AccessControlException, InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+    checkUfsMode(alluxioPath.getUri(), alluxioPath.getInodeViewList(), opType);
+  }
+
+  /**
+   * Check if the specified operation type is allowed to the ufs based on inodes.
+   * @param uri alluxio uri of target alluxioPath
+   * @param inodes list of inodes of target alluxioPath
+   * @param opType the operation type
+   */
+  private void checkUfsMode(AlluxioURI uri, List<InodeView> inodes, OperationType opType)
+      throws AccessControlException, InvalidPathException {
+    MountTable.Resolution resolution = mMountTable.resolve(uri, inodes);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsMode ufsMode =
