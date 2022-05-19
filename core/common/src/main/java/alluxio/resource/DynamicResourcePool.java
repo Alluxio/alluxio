@@ -372,15 +372,10 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     // We don't need to acquire mLock here because the resource is guaranteed not to be removed
     // if it is not available (i.e. not in mAvailableResources list).
     if (!mResources.containsKey(resource)) {
-      // The resource may have been released and removed by GC
-      LOG.warn("Resource " + resource.toString() + " was not acquired from this resource pool.");
-      return;
+      throw new IllegalArgumentException(
+          "Resource " + resource.toString() + " was not acquired from this resource pool.");
     }
     ResourceInternal<T> resourceInternal = mResources.get(resource);
-    if (mAvailableResources.contains(resourceInternal)) {
-      // The resource has already been released
-      return;
-    }
     resourceInternal.setLastAccessTimeMs(mClock.millis());
     try {
       mLock.lock();

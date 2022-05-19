@@ -549,10 +549,14 @@ public class FileSystemContext implements Closeable {
                 PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS),
             context.getClusterConf()))
         .acquire()) {
+      boolean mClosed = false;
       // Save the reference to the original pool map.
       @Override
       public void closeResource() {
-        releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
+        if (!mClosed) {
+          releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
+          mClosed = true;
+        }
       }
     };
   }
