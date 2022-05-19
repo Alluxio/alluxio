@@ -72,7 +72,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (WorkerOutOfSpaceException | RuntimeException e) {
+    } catch (WorkerOutOfSpaceException | IllegalStateException e) {
       throw new IOException(e);
     }
   }

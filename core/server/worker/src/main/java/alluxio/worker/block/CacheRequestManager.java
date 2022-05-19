@@ -286,14 +286,13 @@ public class CacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws IOException, AlluxioException {
-    try {
-      mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
-          new CreateBlockOptions(null, "", blockSize));
-    } catch (IllegalStateException e) {
+    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)
+        || mBlockWorker.getLocalBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached
-      LOG.debug("block already cached: {}", blockId);
       return true;
     }
+    mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
+        new CreateBlockOptions(null, "", blockSize));
     try (
         BlockReader reader =
             getRemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
@@ -307,7 +306,7 @@ public class CacheRequestManager {
           blockId, sourceAddress, e.toString());
       try {
         mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
-      } catch (AlluxioException | IOException ee) {
+      } catch (IOException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
       throw e;

@@ -25,10 +25,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
@@ -289,8 +287,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+  public void abortBlock(long sessionId, long blockId) throws IOException {
     mLocalBlockStore.abortBlock(sessionId, blockId);
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
@@ -414,13 +411,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+      throws IOException {
     mLocalBlockStore.removeBlock(sessionId, blockId);
   }
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 

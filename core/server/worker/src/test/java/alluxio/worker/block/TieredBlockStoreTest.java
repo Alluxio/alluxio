@@ -23,10 +23,7 @@ import static org.mockito.Mockito.when;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -622,7 +619,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
@@ -634,7 +631,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveTempBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -650,7 +647,7 @@ public final class TieredBlockStoreTest {
   public void cacheSameBlockInDifferentDirs() throws Exception {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mBlockIterator);
-    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
         FIRST_TIER_ALIAS));
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
@@ -665,7 +662,7 @@ public final class TieredBlockStoreTest {
   public void cacheSameBlockInDifferentTiers() throws Exception {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mBlockIterator);
-    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
         FIRST_TIER_ALIAS));
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir3, mMetaManager,
@@ -718,7 +715,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void removeTempBlock() throws Exception {
-    mThrown.expect(InvalidWorkerStateException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);

@@ -17,8 +17,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -333,7 +331,7 @@ public final class DefaultStorageDirTest {
    */
   @Test
   public void addBlockMetaExisting() throws Exception {
-    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK
         .getMessage(TEST_BLOCK_ID, Constants.MEDIUM_MEM));
     mDir.addBlockMeta(mBlockMeta);
@@ -354,12 +352,12 @@ public final class DefaultStorageDirTest {
    * too big.
    */
   @Test
-  public void addTempBlockMetaTooBig() throws Exception {
+  public void addTempBlockMetaTooBig() {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     TempBlockMeta bigTempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
     String alias = bigTempBlockMeta.getBlockLocation().tierAlias();
-    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_TEMP_BLOCK_ID,
         bigBlockSize, TEST_DIR_CAPACITY - TEST_REVERSED_BYTES, alias));
     mDir.addTempBlockMeta(bigTempBlockMeta);
@@ -370,8 +368,8 @@ public final class DefaultStorageDirTest {
    * already exists.
    */
   @Test
-  public void addTempBlockMetaExisting() throws Exception {
-    mThrown.expect(BlockAlreadyExistsException.class);
+  public void addTempBlockMetaExisting() {
+    mThrown.expect(IllegalStateException.class);
     mThrown
         .expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK
             .getMessage(TEST_TEMP_BLOCK_ID, Constants.MEDIUM_MEM));
@@ -386,8 +384,8 @@ public final class DefaultStorageDirTest {
    * does not exist.
    */
   @Test
-  public void removeTempBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+  public void removeTempBlockMetaNotExisting() {
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mDir.removeTempBlockMeta(mTempBlockMeta);
   }
@@ -397,10 +395,10 @@ public final class DefaultStorageDirTest {
    * is not owned.
    */
   @Test
-  public void removeTempBlockMetaNotOwner() throws Exception {
+  public void removeTempBlockMetaNotOwner() {
     final long wrongSessionId = TEST_SESSION_ID + 1;
     String alias = Constants.MEDIUM_MEM;
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION
         .getMessage(TEST_TEMP_BLOCK_ID, alias, wrongSessionId));
     mDir.addTempBlockMeta(mTempBlockMeta);

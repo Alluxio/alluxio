@@ -12,9 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
@@ -46,12 +44,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be aborted
-   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block cannot be found
-   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    */
-  void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  void abortBlock(long sessionId, long blockId) throws IOException;
 
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block will not be
@@ -162,11 +156,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be freed
-   * @throws InvalidWorkerStateException if blockId has not been committed
-   * @throws BlockDoesNotExistException if block cannot be found
    */
-  void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+  void removeBlock(long sessionId, long blockId) throws IOException;
 
   /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary
@@ -175,12 +166,10 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the id of the client
    * @param blockId the id of the block to allocate space to
    * @param additionalBytes the amount of bytes to allocate
-   * @throws BlockDoesNotExistException if blockId can not be found, or some block in eviction plan
-   *         cannot be found
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    */
   void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Submits the async cache request to async cache manager to execute.

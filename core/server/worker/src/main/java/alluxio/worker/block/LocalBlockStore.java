@@ -15,9 +15,7 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -147,12 +145,8 @@ public interface LocalBlockStore
    *
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
-   * @throws BlockDoesNotExistException if the temporary block can not be found
-   * @throws InvalidWorkerStateException if block id does not belong to session id
    */
-  void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
+  void abortBlock(long sessionId, long blockId) throws IOException;
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
@@ -174,8 +168,7 @@ public interface LocalBlockStore
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
    */
-  BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws IOException;
+  BlockWriter createBlockWriter(long sessionId, long blockId) throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.
@@ -203,7 +196,7 @@ public interface LocalBlockStore
    * @return a {@link BlockReader} instance on this block
    */
   default BlockReader createBlockReader(long sessionId, long blockId,
-                                        Protocol.OpenUfsBlockOptions options) {
+      Protocol.OpenUfsBlockOptions options) {
     throw new UnsupportedOperationException();
   }
 
@@ -213,24 +206,19 @@ public interface LocalBlockStore
    * @param sessionId the id of the session to move a block
    * @param blockId the id of an existing block
    * @param moveOptions the options for move
-   * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws BlockDoesNotExistException if block id can not be found
-   * @throws InvalidWorkerStateException if block id has not been committed
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
+      throws WorkerOutOfSpaceException, IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
    *
    * @param sessionId the id of the session to remove a block
    * @param blockId the id of an existing block
-   * @throws InvalidWorkerStateException if block id has not been committed
    */
-  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException, IOException;
+  void removeBlock(long sessionId, long blockId) throws IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -238,9 +226,8 @@ public interface LocalBlockStore
    *
    * @param sessionId the id of the session to access a block
    * @param blockId the id of an accessed block
-   * @throws BlockDoesNotExistException if the block id is not found
    */
-  void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+  void accessBlock(long sessionId, long blockId);
 
   /**
    * Gets the metadata of the entire store in a snapshot. There is no guarantee the state will be

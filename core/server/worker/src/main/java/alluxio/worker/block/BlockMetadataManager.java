@@ -19,8 +19,6 @@ import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -41,7 +39,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -92,7 +89,7 @@ public final class BlockMetadataManager {
                 tierOrdinal,
                 WORKER_STORAGE_TIER_ASSOC.size() > 1);
           }
-          catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
+          catch (WorkerOutOfSpaceException e) {
             throw new RuntimeException(e);
           }
         })
@@ -151,11 +148,9 @@ public final class BlockMetadataManager {
    * Aborts a temp block.
    *
    * @param tempBlockMeta the metadata of the temp block to add
-   * @throws BlockDoesNotExistException when block can not be found
    */
-  public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
-    StorageDir dir = tempBlockMeta.getParentDir();
-    dir.removeTempBlockMeta(tempBlockMeta);
+  public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) {
+    tempBlockMeta.getParentDir().removeTempBlockMeta(tempBlockMeta);
   }
 
   /**
@@ -173,16 +168,13 @@ public final class BlockMetadataManager {
    *
    * @param tempBlockMeta the metadata of the temp block to commit
    * @throws WorkerOutOfSpaceException when no more space left to hold the block
-   * @throws BlockAlreadyExistsException when the block already exists in committed blocks
-   * @throws BlockDoesNotExistException when temp block can not be found
    */
   public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
-      throws WorkerOutOfSpaceException, BlockAlreadyExistsException, BlockDoesNotExistException {
+      throws WorkerOutOfSpaceException {
     long blockId = tempBlockMeta.getBlockId();
-    Optional<BlockMeta> blockMeta = getBlockMeta(blockId);
-    if (blockMeta.isPresent()) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
-          blockMeta.get().getBlockLocation().tierAlias()));
+    if (hasBlockMeta(blockId)) {
+      throw new IllegalStateException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+          getBlockMeta(blockId).get().getBlockLocation().tierAlias()));
     }
     BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
@@ -411,13 +403,11 @@ public final class BlockMetadataManager {
    * @param blockMeta the metadata of the block to move
    * @param tempBlockMeta a placeholder in the destination directory
    * @return the new block metadata if success, absent otherwise
-   * @throws BlockDoesNotExistException when the block to move is not found
-   * @throws BlockAlreadyExistsException when the block to move already exists in the destination
    * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
    *         move
    */
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, BlockAlreadyExistsException {
+      throws WorkerOutOfSpaceException {
     StorageDir srcDir = blockMeta.getParentDir();
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);
