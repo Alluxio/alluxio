@@ -32,7 +32,7 @@ import java.util.Set;
 /**
  * Delete a worker from the cluster.
  */
-public class DeleteWorker extends AbstractFsAdminCommand {
+public class DeleteWorkerCommand extends AbstractFsAdminCommand {
   private static final Option HELP_OPTION =
       Option.builder()
           .required(false)
@@ -59,7 +59,7 @@ public class DeleteWorker extends AbstractFsAdminCommand {
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
-  public DeleteWorker(Context context, AlluxioConfiguration alluxioConf) {
+  public DeleteWorkerCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
   }
 
@@ -130,7 +130,7 @@ public class DeleteWorker extends AbstractFsAdminCommand {
    */
   @VisibleForTesting
   public static String usage() {
-    return "deleteWorker [Worker Name]";
+    return "deleteWorker [WorkerAddresses]";
   }
 
   @Override

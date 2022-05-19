@@ -12,7 +12,7 @@
 package alluxio.client.cli.fsadmin.command;
 
 import alluxio.Constants;
-import alluxio.cli.fsadmin.command.DeleteWorker;
+import alluxio.cli.fsadmin.command.DeleteWorkerCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -38,7 +38,7 @@ public class DeleteWorkerCommandIntegrationTest  extends AbstractFsAdminShellTes
     int ret = mFsAdminShell.run("deleteWorker");
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
-    Assert.assertTrue(output.contains(DeleteWorker.usage()));
+    Assert.assertTrue(output.contains(DeleteWorkerCommand.usage()));
   }
 
   @Test
