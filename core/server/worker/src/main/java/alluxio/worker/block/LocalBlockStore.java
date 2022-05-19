@@ -12,6 +12,9 @@
 package alluxio.worker.block;
 
 import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.LocalCacheDir;
+import alluxio.client.file.cache.PageStore;
+import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -29,11 +32,15 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedLocalBlockStore;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
@@ -51,7 +58,14 @@ public interface LocalBlockStore
         try {
           InstancedConfiguration conf = ServerConfiguration.global();
           PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-          CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
+          PageStoreOptions options = PageStoreOptions.create(conf);
+          List<LocalCacheDir> dirs = options.getRootDirs().stream().map(path -> {
+            options.setRootDir(path);
+            PageStore pageStore = PageStore.openOrCreatePageStore(options);
+            return new LocalCacheDir(path, pageStore, options.getCacheSize());
+          }).collect(Collectors.toList());
+
+          CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore, dirs);
           return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
         } catch (IOException e) {
           throw new RuntimeException("Failed to create PagedLocalBlockStore", e);

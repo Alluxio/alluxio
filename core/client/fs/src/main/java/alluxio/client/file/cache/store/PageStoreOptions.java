@@ -79,7 +79,7 @@ public abstract class PageStoreOptions {
   /**
    * Root directory where the data is stored.
    */
-  protected List<Path> mRootDirs;
+  protected Path mRootDirs;
 
   /**
    * Page size for the data.
@@ -117,7 +117,7 @@ public abstract class PageStoreOptions {
    * @param rootDirs the root directories where pages are stored
    * @return the updated options
    */
-  public PageStoreOptions setRootDirs(List<Path> rootDirs) {
+  public PageStoreOptions setRootDir(Path rootDirs) {
     mRootDirs = rootDirs;
     return this;
   }

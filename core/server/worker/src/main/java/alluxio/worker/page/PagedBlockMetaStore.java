@@ -11,6 +11,7 @@
 
 package alluxio.worker.page;
 
+import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.DefaultMetaStore;
@@ -23,10 +24,14 @@ import alluxio.exception.PageNotFoundException;
 import alluxio.resource.LockResource;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.meta.DefaultStorageDir;
+import alluxio.worker.block.meta.DefaultStorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,9 +55,8 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
       new DefaultStorageTierAssoc(ImmutableList.of("SSD"));
 
   private final long mCapacity;
-  private final ReentrantReadWriteLock mBlockPageMapLock = new ReentrantReadWriteLock();
-  @GuardedBy("mBlockPageMapLock")
-  private final Map<Long, Set<Long>> mBlockPageMap = new HashMap<>();
+
+  private final List<PagedStorageDir> mStorageDirs = new ArrayList<>();
 
   /**
    * Constructor of PagedBlockMetaStore.
@@ -61,17 +65,13 @@ public class PagedBlockMetaStore extends DefaultMetaStore implements BlockStoreM
   public PagedBlockMetaStore(AlluxioConfiguration conf) {
     super(conf);
     mCapacity = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
+    mStorageDirs.add(new PagedStorageDir());
   }
 
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
     super.addPage(pageId, pageInfo);
-    long blockId = Long.parseLong(pageId.getFileId());
-    try (LockResource lock = new LockResource(mBlockPageMapLock.writeLock())) {
-      mBlockPageMap
-          .computeIfAbsent(blockId, k -> new HashSet<>())
-          .add(pageId.getPageIndex());
-    }
+
   }
 
   @Override

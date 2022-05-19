@@ -27,9 +27,14 @@ import alluxio.worker.block.UfsInputStreamCache;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultStorageDir;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -80,7 +85,16 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    throw new UnsupportedOperationException();
+    StorageDir storageDir = allocate(options.getSize();
+    TempBlockMeta blockMeta =
+        new PagedTempBlockMeta(sessionId, blockId, options.getSize(), storageDir);
+    storageDir.addTempBlockMeta(blockMeta);
+    return blockMeta;
+  }
+
+  private StorageDir allocate(long blockSize) {
+    //TODO: implement allocator for multi directories.
+    return mStorageDirs.get(0);
   }
 
   @Override
@@ -90,7 +104,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
-    throw new UnsupportedOperationException();
+
   }
 
   @Override

@@ -34,6 +34,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,41 +106,25 @@ public class LocalCacheManager implements CacheManager {
   /**
    * @param conf the Alluxio configuration
    * @param metaStore the metadata store for local cache
+   * @param dirs the list of the directory for local cache
    * @return an instance of {@link LocalCacheManager}
    */
-  public static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore)
-      throws IOException {
+  public static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
+                                         List<LocalCacheDir> dirs) throws IOException {
+    LocalCacheManager manager = new LocalCacheManager(conf, metaStore, dirs);
     PageStoreOptions options = PageStoreOptions.create(conf);
-    PageStore pageStore;
-    try {
-      pageStore = PageStore.open(options);
-    } catch (IOException e) {
-      pageStore = PageStore.create(options);
-    }
-    return create(conf, metaStore, pageStore);
-  }
-
-  /**
-   * @param conf the Alluxio configuration
-   * @param metaStore the meta store manages the metadata
-   * @param pageStore the page store manages the cache data
-   * @return an instance of {@link LocalCacheManager}
-   */
-  @VisibleForTesting
-  static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
-      PageStore pageStore) throws IOException {
-    LocalCacheManager manager = new LocalCacheManager(conf, metaStore, pageStore);
-    PageStoreOptions options = PageStoreOptions.create(conf);
-    if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
-      manager.mInitService.submit(() -> {
-        try {
-          manager.restoreOrInit(options);
-        } catch (IOException e) {
-          LOG.error("Failed to restore LocalCacheManager", e);
-        }
-      });
-    } else {
-      manager.restoreOrInit(options);
+    for (LocalCacheDir dir : dirs) {
+      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED)) {
+        manager.mInitService.submit(() -> {
+          try {
+            manager.restoreOrInit(dir, options.setRootDirs(ImmutableList.of()));
+          } catch (IOException e) {
+            LOG.error("Failed to restore LocalCacheManager", e);
+          }
+        });
+      } else {
+        manager.restoreOrInit(dir, options);
+      }
     }
     return manager;
   }
@@ -542,7 +527,7 @@ public class LocalCacheManager implements CacheManager {
    * If restore process fails, cleanup the location and create a new page store.
    * This method is synchronized to ensure only one thread can enter and operate.
    */
-  private void restoreOrInit(PageStoreOptions options) throws IOException {
+  private void restoreOrInit(LocalCacheDir dir, PageStoreOptions options) throws IOException {
     synchronized (LocalCacheManager.class) {
       Preconditions.checkState(mState.get() == READ_ONLY);
       if (!restore(options)) {
@@ -550,9 +535,7 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.reset();
         }
         try {
-          mPageStore.close();
-          // when cache is large, e.g. millions of pages, initialize may take a while on deletion
-          mPageStore = PageStore.create(options);
+          dir.resetPageStore(options.setRootDirs(ImmutableList.of(dir.getPath())));
         } catch (Exception e) {
           LOG.error("Cache is in NOT_IN_USE.");
           mState.set(NOT_IN_USE);

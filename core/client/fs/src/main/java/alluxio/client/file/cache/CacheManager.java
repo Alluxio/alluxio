@@ -98,19 +98,21 @@ public interface CacheManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
-     * @param metaStore
+     * @param metaStore meta store for pages
+     * @param dirs directories for local cache
      * @return an instance of {@link CacheManager}
      */
-    public static CacheManager create(AlluxioConfiguration conf,
-                                      MetaStore metaStore) throws IOException {
+    public static CacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
+                                      List<LocalCacheDir> dirs) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore), conf));
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore, dirs),
+                  conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore));
+        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore, dirs));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);

@@ -43,7 +43,28 @@ public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
-   * Creates a new {@link PageStore}. Previous state in the samme cache dir will be overwritten.
+   * Open or create a page store.
+   *
+   * @param options the options to instantiate the page store
+   * @return a PageStore instance
+   * @return
+   */
+  static PageStore openOrCreatePageStore(PageStoreOptions options) {
+    PageStore pageStore;
+    try {
+      pageStore = PageStore.open(options);
+    } catch (IOException e) {
+      try {
+        pageStore = PageStore.create(options);
+      } catch (IOException ex) {
+        throw new RuntimeException("Failed to create page store", e);
+      }
+    }
+    return pageStore;
+  }
+
+  /**
+   * Creates a new {@link PageStore}. Previous state in the same cache dir will be overwritten.
    *
    * @param options the options to instantiate the page store
    * @return a PageStore instance

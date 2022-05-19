@@ -26,24 +26,29 @@ public class PageInfo {
   private final PageId mPageId;
   private final long mPageSize;
   private final CacheScope mCacheScope;
+  private final LocalCacheDir mLocalCacheDir;
 
   /**
    * @param pageId page id
    * @param pageSize page size in bytes
+   * @param localCacheDir directory of this page
    */
-  public PageInfo(PageId pageId, long pageSize) {
-    this(pageId, pageSize, CacheScope.GLOBAL);
+  public PageInfo(PageId pageId, long pageSize, LocalCacheDir localCacheDir) {
+    this(pageId, pageSize, CacheScope.GLOBAL, localCacheDir);
   }
 
   /**
    * @param pageId page id
    * @param pageSize page size in bytes
    * @param cacheScope scope of this page
+   * @param localCacheDir directory of this page
    */
-  public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope) {
+  public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope,
+                  LocalCacheDir localCacheDir) {
     mPageId = pageId;
     mPageSize = pageSize;
     mCacheScope = cacheScope;
+    mLocalCacheDir = localCacheDir;
   }
 
   /**
@@ -65,6 +70,13 @@ public class PageInfo {
    */
   public CacheScope getScope() {
     return mCacheScope;
+  }
+
+  /**
+   * @return directory of this page
+   */
+  public LocalCacheDir getLocalCacheDir() {
+    return mLocalCacheDir;
   }
 
   @Override
