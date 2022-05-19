@@ -13,6 +13,7 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
@@ -206,6 +207,9 @@ public class AlluxioStatusException extends IOException {
   public static AlluxioStatusException fromThrowable(Throwable t) {
     if (t instanceof StatusRuntimeException) {
       return fromStatusRuntimeException((StatusRuntimeException) t);
+    }
+    if (t instanceof AlluxioRuntimeException) {
+      return AlluxioStatusException.from(((AlluxioRuntimeException) t).getStatus());
     }
     if (t instanceof Error || t instanceof RuntimeException) {
       return new InternalException(t);

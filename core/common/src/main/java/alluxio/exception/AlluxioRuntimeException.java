@@ -55,7 +55,7 @@ public class AlluxioRuntimeException extends RuntimeException {
     super(message, cause);
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
-    mStatus = status;
+    mStatus = status.withCause(cause).withDescription(message);
     mDetails = details;
   }
 
