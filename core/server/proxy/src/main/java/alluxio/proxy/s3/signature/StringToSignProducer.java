@@ -19,7 +19,6 @@ import static alluxio.proxy.s3.S3Constants.TIME_FORMATTER;
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.S3RestUtils;
-import alluxio.proxy.s3.S3RestUtils.LowerCaseKey;
 
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
@@ -79,8 +78,9 @@ public final class StringToSignProducer {
         context.getUriInfo().getRequestUri().getScheme(),
         context.getMethod(),
         context.getUriInfo().getRequestUri().getPath(),
-        S3RestUtils.lowerCaseKeyMap(context.getHeaders()),
-        S3RestUtils.fromMultiValueToSingleValueMap(context.getUriInfo().getQueryParameters()));
+        S3RestUtils.fromMultiValueToSingleValueMap(context.getHeaders(), true),
+        S3RestUtils.fromMultiValueToSingleValueMap(
+            context.getUriInfo().getQueryParameters(), false));
   }
 
   /**
@@ -110,7 +110,7 @@ public final class StringToSignProducer {
        String scheme,
        String method,
        String uri,
-       Map<LowerCaseKey, String> headers,
+       Map<String, String> headers,
        Map<String, String> queryParams
   ) throws Exception {
     StringBuilder strToSign = new StringBuilder();
@@ -168,7 +168,7 @@ public final class StringToSignProducer {
       String method,
       String uri,
       String signedHeaders,
-      Map<LowerCaseKey, String> headers,
+      Map<String, String> headers,
       Map<String, String> queryParams,
       boolean unsignedPayload
   ) throws S3Exception {
@@ -182,8 +182,8 @@ public final class StringToSignProducer {
     for (String header : signedHeaders.split(";")) {
       canonicalHeaders.append(header);
       canonicalHeaders.append(":");
-      if (headers.containsKey(LowerCaseKey.valueOf(header))) {
-        String headerValue = headers.get(LowerCaseKey.valueOf(header));
+      if (headers.containsKey(header)) {
+        String headerValue = headers.get(header);
         canonicalHeaders.append(headerValue);
         canonicalHeaders.append(NEWLINE);
 
@@ -196,11 +196,11 @@ public final class StringToSignProducer {
     }
 
     String payloadHash;
-    if (UNSIGNED_PAYLOAD.equals(headers.get(LowerCaseKey.valueOf(S3_SIGN_CONTENT_SHA256)))
+    if (UNSIGNED_PAYLOAD.equals(headers.get(S3_SIGN_CONTENT_SHA256))
             || unsignedPayload) {
       payloadHash = UNSIGNED_PAYLOAD;
     } else {
-      payloadHash = headers.get(LowerCaseKey.valueOf(S3_SIGN_CONTENT_SHA256));
+      payloadHash = headers.get(S3_SIGN_CONTENT_SHA256);
     }
     StringJoiner canonicalRequestJoiner = new StringJoiner(NEWLINE);
     canonicalRequestJoiner.add(method)

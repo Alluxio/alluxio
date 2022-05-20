@@ -17,7 +17,6 @@ import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3Exception;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
-import alluxio.proxy.s3.S3RestUtils.LowerCaseKey;
 import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4QueryParserUtils;
@@ -40,7 +39,7 @@ public class AwsSignatureProcessor {
             LoggerFactory.getLogger(AwsSignatureProcessor.class);
   private static final String AUTHORIZATION = "Authorization";
 
-  private ContainerRequestContext mContext;
+  private final ContainerRequestContext mContext;
 
   /**
    * Create a new {@link AwsSignatureProcessor}.
@@ -57,11 +56,12 @@ public class AwsSignatureProcessor {
    * @throws S3Exception
    */
   public SignatureInfo parseSignature() throws S3Exception {
-    Map<LowerCaseKey, String> headers = S3RestUtils.lowerCaseKeyMap(mContext.getHeaders());
-    String authHeader = headers.get(LowerCaseKey.valueOf(AUTHORIZATION));
-    String dateHeader = headers.get(LowerCaseKey.valueOf(S3_SIGN_DATE));
+    Map<String, String> headers = S3RestUtils.fromMultiValueToSingleValueMap(
+        mContext.getHeaders(), true);
+    String authHeader = headers.get(AUTHORIZATION);
+    String dateHeader = headers.get(S3_SIGN_DATE);
     Map<String, String> queryParameters = S3RestUtils.fromMultiValueToSingleValueMap(
-            mContext.getUriInfo().getQueryParameters());
+            mContext.getUriInfo().getQueryParameters(), false);
 
     SignatureInfo signatureInfo;
     if ((signatureInfo =

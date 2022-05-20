@@ -39,8 +39,8 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -307,84 +307,20 @@ public final class S3RestUtils {
   }
 
   /**
-   * Convert header map key to lower case key.
-   * @param rawHeaders header map
-   * @return lower case key map
-   */
-  public static Map<LowerCaseKey, String> lowerCaseKeyMap(MultivaluedMap<String,
-                                                                String> rawHeaders) {
-    final Map<LowerCaseKey, String> headers = new HashMap<>();
-
-    for (Map.Entry<String, List<String>> headerEntry : rawHeaders.entrySet()) {
-      if (0 < headerEntry.getValue().size()) {
-        String headerKey = headerEntry.getKey();
-        if (!headers.containsKey(LowerCaseKey.valueOf(headerKey))) {
-          headers.put(new LowerCaseKey(headerKey), headerEntry.getValue().get(0));
-        }
-      }
-    }
-    return headers;
-  }
-
-  /**
    * Convert MultivaluedMap to a single value map.
    *
-   * @param queryParameters
+   * @param queryParameters MultivaluedMap
+   * @param lowerCase whether to use lower case
    * @return a single value map
    */
   public static Map<String, String> fromMultiValueToSingleValueMap(
-      MultivaluedMap<String, String> queryParameters) {
-    Map<String, String> result = new HashMap<>();
+      MultivaluedMap<String, String> queryParameters, boolean lowerCase) {
+    Map<String, String> result = lowerCase
+        ? new TreeMap<>(new HeaderCaseComparator()) : new HashMap<>();
     for (String key : queryParameters.keySet()) {
       result.put(key, queryParameters.getFirst(key));
     }
     return result;
-  }
-
-  /**
-   * A class which get lowercase key.
-   */
-  public static class LowerCaseKey {
-    String mKey;
-
-    /**
-     * Constructs a new instance of {@link LowerCaseKey}.
-     * @param key header key
-     */
-    public LowerCaseKey(String key) {
-      mKey = key;
-    }
-
-    /**
-     * Constructs a new instance of {@link LowerCaseKey}.
-     * @param key
-     * @return LowerCaseKey instance
-     */
-    public static LowerCaseKey valueOf(String key) {
-      return new LowerCaseKey(key);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      LowerCaseKey that = (LowerCaseKey) o;
-      return mKey.equalsIgnoreCase(that.mKey);
-    }
-
-    @Override
-    public int hashCode() {
-      return mKey != null ? mKey.toLowerCase().hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-      return mKey.toLowerCase();
-    }
   }
 
   /**
@@ -399,6 +335,19 @@ public final class S3RestUtils {
       long part1 = Long.parseLong(o1.getName());
       long part2 = Long.parseLong(o2.getName());
       return Long.compare(part1, part2);
+    }
+  }
+
+  /**
+   * Comparator based on header key which ignore case differences.
+   */
+  public static class HeaderCaseComparator implements Comparator<String>, Serializable {
+
+    private static final long serialVersionUID = -467064693238901187L;
+
+    @Override
+    public int compare(String o1, String o2) {
+      return o1.compareToIgnoreCase(o2);
     }
   }
 
