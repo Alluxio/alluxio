@@ -21,7 +21,7 @@ import alluxio.util.FormatUtils;
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
-import org.apache.ratis.util.TimeDuration;
+import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,42 +39,26 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
-  // How long to wait for a response from the cluster before giving up and trying again.
-  private final long mWriteTimeoutMs;
-  private final long mEntrySizeMax;
-  private final long mFlushBatchBytes;
 
   private final AtomicLong mNextSequenceNumberToWrite;
-  private final AtomicLong mLastSubmittedSequenceNumber;
-  private final AtomicLong mLastCommittedSequenceNumber;
+  private final AtomicLong mLastSubmittedSequenceNumber = new AtomicLong(-1);
+  private final AtomicLong mLastCommittedSequenceNumber = new AtomicLong(-1);
 
   private final RaftJournalAppender mClient;
 
-  private volatile boolean mClosed;
-  private JournalEntry.Builder mJournalEntryBuilder;
-  private final AtomicLong mCurrentJournalEntrySize;
+  private volatile boolean mClosed = false;
+  private JournalEntry.Builder mJournalEntryBuilder; // gets build across successive writes
+  private final AtomicLong mCurrentJournalEntrySize = new AtomicLong(0);
 
   /**
    * @param nextSequenceNumberToWrite the sequence number for the writer to begin writing at
    * @param client client for writing entries to the journal; the constructed journal writer owns
    *               this client and is responsible for closing it
    */
-  public RaftJournalWriter(long nextSequenceNumberToWrite,
-      RaftJournalAppender client) {
+  public RaftJournalWriter(long nextSequenceNumberToWrite, RaftJournalAppender client) {
     LOG.debug("Journal writer created starting at SN#{}", nextSequenceNumberToWrite);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
-    mLastSubmittedSequenceNumber = new AtomicLong(-1);
-    mLastCommittedSequenceNumber = new AtomicLong(-1);
-    mCurrentJournalEntrySize = new AtomicLong(0);
     mClient = client;
-    mClosed = false;
-    mWriteTimeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
-    // journal entry size max is the hard limit set by underlying ratis
-    // use a smaller value to guarantee we don't pass the hard limit
-    mEntrySizeMax = ServerConfiguration
-        .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
-    mFlushBatchBytes = mEntrySizeMax / 3;
   }
 
   @Override
@@ -84,7 +68,10 @@ public class RaftJournalWriter implements JournalWriter {
     }
     Preconditions.checkState(entry.getAllFields().size() <= 2,
         "Raft journal entries should never set multiple fields, but found %s", entry);
-    if (mCurrentJournalEntrySize.get() > mFlushBatchBytes) {
+    // journal entry size max is the hard limit set by underlying ratis
+    // we use a smaller value to guarantee we don't pass the hard limit
+    if (mCurrentJournalEntrySize.get()
+        > ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX) / 3) {
       flush();
     }
     if (mJournalEntryBuilder == null) {
@@ -95,9 +82,11 @@ public class RaftJournalWriter implements JournalWriter {
     mJournalEntryBuilder.addJournalEntries(entry.toBuilder()
         .setSequenceNumber(mNextSequenceNumberToWrite.getAndIncrement()).build());
     long size = entry.getSerializedSize();
-    if (size > mEntrySizeMax) {
+    long entrySizeMax =
+        ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+    if (size > entrySizeMax) {
       LOG.error("Journal entry size ({}) is bigger than the max allowed size ({}) defined by {}",
-          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(mEntrySizeMax),
+          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(entrySizeMax),
           PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.getName());
     }
     mCurrentJournalEntrySize.addAndGet(size);
@@ -110,21 +99,22 @@ public class RaftJournalWriter implements JournalWriter {
     }
     if (mJournalEntryBuilder != null) {
       long flushSN = mNextSequenceNumberToWrite.get() - 1;
+      final long writeTimeoutMs =
+          ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
       try {
         // It is ok to submit the same entries multiple times because we de-duplicate by sequence
         // number when applying them. This could happen if submit fails and we re-submit the same
         // entry on retry.
         JournalEntry entry = mJournalEntryBuilder.build();
-        Message message = RaftJournalSystem.toRaftMessage(entry);
+        Message message = Message.valueOf(UnsafeByteOperations.unsafeWrap(entry.toByteArray()));
         mLastSubmittedSequenceNumber.set(flushSN);
         LOG.trace("Flushing entry {} ({})", entry, message);
-        RaftClientReply reply = mClient
-            .sendAsync(message, TimeDuration.valueOf(mWriteTimeoutMs, TimeUnit.MILLISECONDS))
-            .get(mWriteTimeoutMs, TimeUnit.MILLISECONDS);
-        mLastCommittedSequenceNumber.set(flushSN);
+        RaftClientReply reply = mClient.sendAsync(message)
+            .get(writeTimeoutMs, TimeUnit.MILLISECONDS);
         if (reply.getException() != null) {
           throw reply.getException();
         }
+        mLastCommittedSequenceNumber.set(flushSN);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new IOException(e);
@@ -133,7 +123,7 @@ public class RaftJournalWriter implements JournalWriter {
       } catch (TimeoutException e) {
         throw new IOException(String.format(
             "Timed out after waiting %s milliseconds for journal entries to be processed",
-            mWriteTimeoutMs), e);
+            writeTimeoutMs), e);
       }
       mJournalEntryBuilder = null;
     }
