@@ -3869,9 +3869,9 @@ public class DefaultFileSystemMaster extends CoreMaster
             if (ownerGroupChanged) {
               try {
                 owner =
-                    protoOptions.getOwner() != null ? protoOptions.getOwner() : inode.getOwner();
+                    protoOptions.hasOwner() ? protoOptions.getOwner() : inode.getOwner();
                 group =
-                    protoOptions.getGroup() != null ? protoOptions.getGroup() : inode.getGroup();
+                    protoOptions.hasGroup() ? protoOptions.getGroup() : inode.getGroup();
                 ufs.setOwner(ufsUri, owner, group);
               } catch (IOException e) {
                 throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
