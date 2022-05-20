@@ -66,9 +66,12 @@ public class RocksBlockStore implements BlockStore {
   private static final String ROCKS_STORE_NAME = "BlockStore";
 
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
-  private final WriteOptions mDisableWAL;
-  private final ReadOptions mIteratorOption;
-  private final ReadOptions mReadPrefixSameAsStart;
+  private final WriteOptions mDisableWAL = new WriteOptions().setDisableWAL(true);
+  private final ReadOptions mIteratorOption = new ReadOptions()
+      .setReadaheadSize(ServerConfiguration.getBytes(
+          PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
+      .setTotalOrderSeek(true);
+  private final ReadOptions mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
 
   private final List<RocksObject> mToClose = new ArrayList<>();
 
@@ -85,13 +88,6 @@ public class RocksBlockStore implements BlockStore {
    */
   public RocksBlockStore(String baseDir) {
     RocksDB.loadLibrary();
-    mDisableWAL = new WriteOptions().setDisableWAL(true);
-    mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
-    mIteratorOption = new ReadOptions()
-        .setReadaheadSize(ServerConfiguration.getBytes(
-            PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
-        .setTotalOrderSeek(true);
-
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
     if (ServerConfiguration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {

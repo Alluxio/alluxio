@@ -738,16 +738,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ROCKS_INODE_CONF_FILE =
       stringBuilder(Name.ROCKS_INODE_CONF_FILE)
-          .setDescription("Path of file containing RocksDB inode store configuration."
+          .setDescription(format("Path of file containing RocksDB inode store configuration."
+              + " A template configuration cab be found at ${%s}/rocks-inode.ini.template."
+              + " See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini"
+              + " for more information on RocksDB configuration files."
               + " If unset then a default configuration will"
-              + " be used.")
+              + " be used.", Name.CONF_DIR))
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ROCKS_BLOCK_CONF_FILE =
       stringBuilder(Name.ROCKS_BLOCK_CONF_FILE)
-          .setDescription("Path of file containing RocksDB block store configuration."
+          .setDescription(format("Path of file containing RocksDB block store configuration."
+              + " A template configuration cab be found at ${%s}/rocks-block.ini.template."
+              + " See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini"
+              + " for more information on RocksDB configuration files."
               + " If unset then a default configuration will"
-              + " be used.")
+              + " be used.", Name.CONF_DIR))
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey NETWORK_IP_ADDRESS_USED =
@@ -2316,7 +2322,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER)
           .setDescription("Whether or not to use a bloom filter in the Block meta"
-              + "table in RocksDB. If unset, the RocksDB default will be used")
+              + " table in RocksDB. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter")
           .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2324,8 +2331,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
-              + "cache. If unset, the RocksDB default will be used."
-              + "See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+              + " cache. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2340,14 +2347,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX, IndexType.class)
           .setDescription("The index type to be used in the RocksDB block metadata table."
-              + " If unset, the RocksDB default will be used")
+              + " If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Index-Block-Format")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER)
           .setDescription("Whether or not to use a bloom filter in the Block location"
-              + "table in RocksDB. If unset, the RocksDB default will be used")
+              + " table in RocksDB. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter")
           .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2371,14 +2380,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX, IndexType.class)
           .setDescription("The index type to be used in the RocksDB block location table. "
-              + "If unset, the RocksDB default will be used")
+              + "If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Index-Block-Format")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER)
           .setDescription("Whether or not to use a bloom filter in the Inode edge"
-              + "table in RocksDB. If unset, the RocksDB default will be used")
+              + " table in RocksDB. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter")
           .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2393,7 +2404,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX, DataBlockIndexType.class)
-          .setDefaultValue(DataBlockIndexType.kDataBlockBinaryAndHash)
           .setDescription("The block index type to be used in the RocksDB inode edge table."
               + " If unset, the RocksDB default will be used."
               + " See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
@@ -2403,14 +2413,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_INDEX, IndexType.class)
           .setDescription("The index type to be used in the RocksDB Inode edge table."
-              + " If unset, the RocksDB default will be used")
+              + " If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Index-Block-Format")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER)
           .setDescription("Whether or not to use a bloom filter in the Inode"
-              + "table in RocksDB. If unset, the RocksDB default will be used")
+              + " table in RocksDB. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter")
           .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2434,7 +2446,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_INDEX =
       enumBuilder(Name.MASTER_METASTORE_ROCKS_INODE_INDEX, IndexType.class)
           .setDescription("The index type to be used in the RocksDB Inode table. "
-              + "If unset, the RocksDB default will be used")
+              + "If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Index-Block-Format")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
