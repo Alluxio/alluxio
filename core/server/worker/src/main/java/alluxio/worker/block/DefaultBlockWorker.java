@@ -404,19 +404,25 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
+    UnderFileSystemBlockStore.BlockAccessToken block =
+        mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options)
+            .orElseThrow(() -> new UnavailableException(
+                String.format("Failed to read from UFS, the block has already been acquired from "
+                + "another thread, sessionId=%d, blockId=%d, offset=%d, positionShort=%s, "
+                + "options=%s", sessionId, blockId, offset, positionShort, options)));
     try {
-      BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
+      BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(block, offset,
           positionShort, options);
       return new DelegatingBlockReader(reader, () -> {
         try {
-          closeUfsBlock(sessionId, blockId);
+          closeUfsBlock(block);
         } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
           throw new IOException(e);
         }
       });
     } catch (Exception e) {
       try {
-        closeUfsBlock(sessionId, blockId);
+        closeUfsBlock(block);
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
@@ -471,19 +477,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * Closes a UFS block for a client session. It also commits the block to Alluxio block store
    * if the UFS block has been cached successfully.
    *
-   * @param sessionId the session ID
-   * @param blockId the block ID
+   * @param block the UFS block
    * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
    *         because the block exists in the Alluxio block store
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   *         UFS block store
-   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
+   * @throws WorkerOutOfSpaceException the worker does not have enough space to commit the block
    */
   @VisibleForTesting
-  public void closeUfsBlock(long sessionId, long blockId)
+  public void closeUfsBlock(UnderFileSystemBlockStore.BlockAccessToken block)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+    long sessionId = block.getSessionId();
+    long blockId = block.getBlockId();
     try {
-      mUnderFileSystemBlockStore.close(sessionId, blockId);
+      mUnderFileSystemBlockStore.close(block);
       if (mLocalBlockStore.hasTempBlockMeta(blockId)) {
         try {
           commitBlock(sessionId, blockId, false);
@@ -499,15 +504,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           LOG.debug("Invalid worker state while committing block.", e);
         }
       } else {
-        // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
-        // Counter will not be decrement in the commitblock().
+        // When no such temp block exists, such as a block readType NO_CACHE writeType THROUGH.
+        // Counter will not be decremented in commitBlock().
         // So we should decrement counter here.
-        if (mUnderFileSystemBlockStore.isNoCache(sessionId, blockId)) {
+        if (block.isNoCache()) {
           Metrics.WORKER_ACTIVE_CLIENTS.dec();
         }
       }
     } finally {
-      mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
+      mUnderFileSystemBlockStore.releaseAccess(block);
     }
   }
 

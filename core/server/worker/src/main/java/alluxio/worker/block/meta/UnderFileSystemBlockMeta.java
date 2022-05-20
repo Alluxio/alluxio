@@ -16,7 +16,7 @@ import alluxio.proto.dataserver.Protocol;
 /**
  * This class represents the metadata of a block that is in UFS. This class is immutable.
  */
-public final class UnderFileSystemBlockMeta {
+public class UnderFileSystemBlockMeta {
   private final long mSessionId;
   private final long mBlockId;
   private final String mUnderFileSystemPath;
@@ -35,7 +35,7 @@ public final class UnderFileSystemBlockMeta {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @param options the {@link Protocol.OpenUfsBlUfsInputStreamCacheTestockOptions}
+   * @param options the {@link Protocol.OpenUfsBlockOptions}
    */
   public UnderFileSystemBlockMeta(long sessionId, long blockId,
       Protocol.OpenUfsBlockOptions options) {

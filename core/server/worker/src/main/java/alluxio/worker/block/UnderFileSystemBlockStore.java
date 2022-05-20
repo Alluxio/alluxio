@@ -12,9 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -27,9 +24,9 @@ import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +34,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -47,9 +45,10 @@ import javax.annotation.concurrent.GuardedBy;
  * This class manages the virtual blocks in the UFS for delegated UFS reads/writes.
  *
  * The usage pattern:
- *  acquireAccess(sessionId, blockId, options)
- *  closeReaderOrWriter(sessionId, blockId)
- *  releaseAccess(sessionId, blockId)
+ *  acquire token from acquireAccess(sessionId, blockId, options)
+ *  createBlockReader(token, options)
+ *  closeReaderOrWriter(token)
+ *  releaseAccess(token)
  *
  * If the client is lost before releasing or cleaning up the session, the session cleaner will
  * clean the data.
@@ -66,12 +65,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * same block. If the client do that, the client can see failures but the worker won't crash.
    */
   private final ReentrantLock mLock = new ReentrantLock();
-  /** Maps from the {@link Key} to the {@link BlockInfo}. */
+  /** Maps from the {@link BlockAccessToken} to the {@link BlockInfo}. */
   @GuardedBy("mLock")
-  private final Map<Key, BlockInfo> mBlocks = new HashMap<>();
+  private final Map<BlockAccessToken, BlockInfo> mBlocks = new HashMap<>();
   /** Maps from the session ID to the block IDs. */
   @GuardedBy("mLock")
-  private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
+  private final Map<Long, Set<BlockAccessToken>> mSessionIdToBlocks = new HashMap<>();
 
   private final ConcurrentMap<BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
       new ConcurrentHashMap<>();
@@ -101,31 +100,35 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   }
 
   /**
-   * Acquires access for a UFS block given a {@link UnderFileSystemBlockMeta} and the limit on
-   * the maximum concurrency on the block. If the number of concurrent readers on this UFS block
-   * exceeds a threshold, the token is not granted and this method returns false.
+   * Grants access for a UFS block given the session ID and its block ID.
+   * If access to this block has been acquired during this session, empty is returned.
+   * <p>
+   * This is the only place where an {@link BlockAccessToken} token is granted to client code.
    *
    * @param sessionId the session ID
-   * @param blockId maximum concurrency
+   * @param blockId the block ID
    * @param options the options
-   * @return whether an access token is acquired
-   * @throws BlockAlreadyExistsException if the block already exists for a session ID
+   * @return an access token, otherwise empty if the token has already been acquired and not
+   *         released by {@link #releaseAccess(BlockAccessToken)}
    */
-  @VisibleForTesting
-  public boolean acquireAccess(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
-      throws BlockAlreadyExistsException {
-    UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
+  public Optional<BlockAccessToken> acquireAccess(
+      long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
     try (LockResource lr = new LockResource(mLock)) {
-      Key key = new Key(sessionId, blockId);
-      if (mBlocks.containsKey(key)) {
-        throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
-            blockId, blockMeta.getUnderFileSystemPath(), sessionId);
+      BlockAccessToken block = new BlockAccessToken(sessionId, blockId, options);
+      if (mBlocks.containsKey(block)) {
+        return Optional.empty();
       }
-      mBlocks.put(key, new BlockInfo(blockMeta));
-      Set<Long> blockIds = mSessionIdToBlockIds.computeIfAbsent(sessionId, k -> new HashSet<>());
-      blockIds.add(blockId);
+      mBlocks.put(block, new BlockInfo(block));
+      Set<BlockAccessToken> blocks =
+          mSessionIdToBlocks.computeIfAbsent(sessionId, k -> new HashSet<>());
+      blocks.add(block);
+      return Optional.of(block);
     }
-    return true;
+  }
+
+  private static void checkTokenNotReleased(BlockAccessToken block) {
+    Preconditions.checkArgument(!block.isReleased(),
+        "reuse of a ufs block token which has been released");
   }
 
   /**
@@ -135,73 +138,67 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * During UFS block read, this is triggered when the block is unlocked.
    * During UFS block write, this is triggered when the UFS block is committed.
    *
-   * @param sessionId the session ID
-   * @param blockId the block ID
+   * @param block the block acquired
+   *              from {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}
    */
-  public void close(long sessionId, long blockId) throws IOException {
+  public void close(BlockAccessToken block) throws IOException {
+    checkTokenNotReleased(block);
     BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
-      blockInfo = mBlocks.get(new Key(sessionId, blockId));
-      if (blockInfo == null) {
-        LOG.warn("Key (block ID: {}, session ID {}) is not found when cleaning up the UFS block.",
-            blockId, sessionId);
-        return;
-      }
+      blockInfo = mBlocks.get(block);
     }
     blockInfo.close();
   }
 
   /**
-   * Releases the access token of this block by removing this (sessionId, blockId) pair from the
-   * store.
+   * Releases the access token of this block.
    *
-   * @param sessionId the session ID
-   * @param blockId the block ID
+   * @param block the block acquired
+   *              from {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}
    */
-  public void releaseAccess(long sessionId, long blockId) {
+  public void releaseAccess(BlockAccessToken block) {
+    checkTokenNotReleased(block);
     try (LockResource lr = new LockResource(mLock)) {
-      Key key = new Key(sessionId, blockId);
-      if (!mBlocks.containsKey(key)) {
-        LOG.warn("Key (block ID: {}, session ID {}) is not found when releasing the UFS block.",
-            blockId, sessionId);
-      }
-      mBlocks.remove(key);
-      Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
-      if (blockIds != null) {
-        blockIds.remove(blockId);
-        if (blockIds.isEmpty()) {
-          mSessionIdToBlockIds.remove(sessionId);
+      long sessionId = block.getSessionId();
+      block.markAsReleased();
+      mBlocks.remove(block);
+      Set<BlockAccessToken> blocks = mSessionIdToBlocks.get(sessionId);
+      if (blocks != null) {
+        blocks.remove(block);
+        if (blocks.isEmpty()) {
+          mSessionIdToBlocks.remove(sessionId);
         }
       }
     }
   }
 
   /**
-   * Cleans up all the block information(e.g. block reader/writer) that belongs to this session.
+   * Cleans up and releases all the block information(e.g. block reader/writer)
+   * that belongs to this session.
    *
    * @param sessionId the session ID
    */
   @Override
   public void cleanupSession(long sessionId) {
-    Set<Long> blockIds;
+    Set<BlockAccessToken> blocks;
     try (LockResource lr = new LockResource(mLock)) {
-      blockIds = mSessionIdToBlockIds.get(sessionId);
-      if (blockIds == null) {
+      blocks = mSessionIdToBlocks.get(sessionId);
+      if (blocks == null) {
         return;
       }
     }
-    // Note that, there can be a race condition that blockIds can be stale when we release the
+    // Note that, there can be a race condition that blocks can be stale when we release the
     // access. The race condition only has a minimal negative consequence (printing extra logging
     // message), and is expected very rare to trigger.
-    for (Long blockId : blockIds) {
+    for (BlockAccessToken block : blocks) {
       try {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Local block store because they will be cleanup by the session cleaner in the
         // Local block store.
-        close(sessionId, blockId);
-        releaseAccess(sessionId, blockId);
+        close(block);
+        releaseAccess(block);
       } catch (Exception e) {
-        LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
+        LOG.warn("Failed to cleanup UFS block {}, session {}.", block, sessionId);
       }
     }
   }
@@ -210,29 +207,27 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * Creates a block reader that reads from UFS and optionally caches the block to the Alluxio
    * block store.
    *
-   * @param sessionId the client session ID that requested this read
-   * @param blockId the ID of the block to read
+   * @param block the block to read
    * @param offset the read offset within the block (NOT the file)
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param options the open ufs options
    * @return the block reader instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   * {@link UnderFileSystemBlockStore}
    */
-  public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
+  public BlockReader createBlockReader(BlockAccessToken block, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException, BlockAlreadyExistsException {
+      throws IOException {
+    checkTokenNotReleased(block);
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
       // flag.mUnderFileSystemBlockStore
       UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
       options = options.toBuilder()
-          .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
+          .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, block.getBlockId()))
+          .build();
     }
-    acquireAccess(sessionId, blockId, options);
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
-      blockInfo = getBlockInfo(sessionId, blockId);
+      blockInfo = mBlocks.get(block);
       BlockReader blockReader = blockInfo.getBlockReader();
       if (blockReader != null) {
         return blockReader;
@@ -266,66 +261,26 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   }
 
   /**
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @return true if mNoCache is set
+   * A token for a block that has been granted access via
+   * {@link #acquireAccess(long, long, Protocol.OpenUfsBlockOptions)}.
    */
-  public boolean isNoCache(long sessionId, long blockId) {
-    Key key = new Key(sessionId, blockId);
-    BlockInfo blockInfo = mBlocks.get(key);
-    UnderFileSystemBlockMeta mMeta = blockInfo.getMeta();
-    return mMeta.isNoCache();
-  }
-
-  /**
-   * Gets the {@link UnderFileSystemBlockMeta} for a session ID and block ID pair.
-   *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @return the {@link UnderFileSystemBlockMeta} instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   * {@link UnderFileSystemBlockStore}
-   */
-  private BlockInfo getBlockInfo(long sessionId, long blockId) throws BlockDoesNotExistException {
-    Key key = new Key(sessionId, blockId);
-    BlockInfo blockInfo = mBlocks.get(key);
-    if (blockInfo == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
-          blockId, sessionId);
-    }
-    return blockInfo;
-  }
-
-  /**
-   * This class is to wrap session ID amd block ID.
-   */
-  private static class Key {
-    private final long mSessionId;
-    private final long mBlockId;
+  public static final class BlockAccessToken extends UnderFileSystemBlockMeta {
+    /** Whether this token has been released. */
+    private volatile boolean mReleased = false;
 
     /**
-     * Creates an instance of the Key class.
-     *
-     * @param sessionId the session ID
-     * @param blockId the block ID
+     * Private constructor that only acquireAccess should call to create new instances.
      */
-    public Key(long sessionId, long blockId) {
-      mSessionId = sessionId;
-      mBlockId = blockId;
+    private BlockAccessToken(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options) {
+      super(sessionId, blockId, options);
     }
 
-    /**
-     * @return the block ID
-     */
-    public long getBlockId() {
-      return mBlockId;
+    private boolean isReleased() {
+      return mReleased;
     }
 
-    /**
-     * @return the session ID
-     */
-    public long getSessionId() {
-      return mSessionId;
+    private void markAsReleased() {
+      mReleased = true;
     }
 
     @Override
@@ -333,22 +288,25 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       if (this == o) {
         return true;
       }
-      if (!(o instanceof Key)) {
+      if (!(o instanceof BlockAccessToken)) {
         return false;
       }
 
-      Key that = (Key) o;
-      return Objects.equal(mBlockId, that.mBlockId) && Objects.equal(mSessionId, that.mSessionId);
+      BlockAccessToken that = (BlockAccessToken) o;
+      return Objects.equal(getBlockId(), that.getBlockId())
+          && Objects.equal(getSessionId(), that.getSessionId());
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mBlockId, mSessionId);
+      return Objects.hashCode(getBlockId(), getSessionId());
     }
 
     @Override
     public String toString() {
-      return MoreObjects.toStringHelper(this).add("blockId", mBlockId).add("sessionId", mSessionId)
+      return MoreObjects.toStringHelper(this)
+          .add("blockId", getBlockId())
+          .add("sessionId", getSessionId())
           .toString();
     }
   }
@@ -389,7 +347,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    *    {@link UnderFileSystemBlockMeta}.
    */
   private static class BlockInfo {
-    private final UnderFileSystemBlockMeta mMeta;
+    private final BlockAccessToken mMeta;
 
     private BlockReader mBlockReader;
 
@@ -398,14 +356,14 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
      *
      * @param meta the UFS block meta
      */
-    public BlockInfo(UnderFileSystemBlockMeta meta) {
+    public BlockInfo(BlockAccessToken meta) {
       mMeta = meta;
     }
 
     /**
      * @return the UFS block meta
      */
-    public UnderFileSystemBlockMeta getMeta() {
+    public BlockAccessToken getMeta() {
       return mMeta;
     }
 
