@@ -1,0 +1,24 @@
+{
+  "databases": [
+    {
+      "name": "db1",
+      "tables": [
+        {
+          "name" : "table1",
+          "maxCachedPartitions": 10
+        },{
+          "name" : "table2",
+          "maxCachedPartitions": 1
+        }, {
+          "name" : "table3",
+          "maxCachedPartitions": 99999
+        }
+      ]
+    },
+    {
+      "name": "db2",
+      "tables" : []
+    }
+  ]
+}
+

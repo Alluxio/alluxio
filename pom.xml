@@ -168,6 +168,7 @@
     <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
     <libcephfs.version>0.0.1</libcephfs.version>
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
+    <joda-time.version>2.10.13</joda-time.version>
   </properties>
 
   <modules>
@@ -868,6 +869,11 @@
       <artifactId>xstream</artifactId>
       <groupId>com.thoughtworks.xstream</groupId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>${joda-time.version}</version>
     </dependency>
   </dependencies>
 
