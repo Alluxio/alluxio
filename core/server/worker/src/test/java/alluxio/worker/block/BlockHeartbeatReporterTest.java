@@ -47,11 +47,11 @@ public final class BlockHeartbeatReporterTest {
   private void moveBlock(long blockId, BlockStoreLocation newLocation) {
     BlockStoreLocation unusedOldLocation =
         new BlockStoreLocation(Constants.MEDIUM_MEM, 0, Constants.MEDIUM_MEM);
-    mReporter.onMoveBlockByWorker(SESSION_ID, blockId, unusedOldLocation, newLocation);
+    mReporter.onMoveBlockByWorker(blockId, unusedOldLocation, newLocation);
   }
 
   private void removeBlock(long blockId) {
-    mReporter.onRemoveBlockByWorker(SESSION_ID, blockId);
+    mReporter.onRemoveBlockByWorker(blockId);
   }
 
   /**

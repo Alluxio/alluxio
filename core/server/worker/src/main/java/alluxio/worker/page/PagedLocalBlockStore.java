@@ -115,7 +115,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+        listener.onCommitBlock(blockId, dummyLoc);
       }
     }
     throw new UnsupportedOperationException();
@@ -129,7 +129,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+        listener.onCommitBlock(blockId, dummyLoc);
       }
     }
     throw new UnsupportedOperationException();
@@ -144,7 +144,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     if (blockAborted) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAbortBlock(sessionId, blockId);
+          listener.onAbortBlock(blockId);
         }
       }
     }
@@ -161,8 +161,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       BlockStoreLocation evictedBlockLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onRemoveBlockByWorker(sessionId, evictedBlockId);
-          listener.onRemoveBlock(sessionId, evictedBlockId, evictedBlockLocation);
+          listener.onRemoveBlockByWorker(evictedBlockId);
+          listener.onRemoveBlock(evictedBlockId, evictedBlockLocation);
         }
       }
     }
@@ -198,7 +198,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onMoveBlockByClient(sessionId, blockId, srcLocation, destLocation);
+        listener.onMoveBlockByClient(blockId, srcLocation, destLocation);
       }
     }
     throw new UnsupportedOperationException();
@@ -212,10 +212,10 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     boolean removeSuccess = true;
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onRemoveBlockByClient(sessionId, blockId);
+        listener.onRemoveBlockByClient(blockId);
         if (removeSuccess) {
           BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
-          listener.onRemoveBlock(sessionId, blockId, removedFrom);
+          listener.onRemoveBlock(blockId, removedFrom);
         }
       }
     }
@@ -229,8 +229,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAccessBlock(sessionId, blockId);
-          listener.onAccessBlock(sessionId, blockId, dummyLoc);
+          listener.onAccessBlock(blockId);
+          listener.onAccessBlock(blockId, dummyLoc);
         }
       }
     }
