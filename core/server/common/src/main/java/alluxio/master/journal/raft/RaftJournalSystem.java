@@ -255,37 +255,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @VisibleForTesting
   RaftJournalSystem(URI path, InetSocketAddress localAddress,
       List<InetSocketAddress> clusterAddresses) {
+    Preconditions.checkState(clusterAddresses.contains(localAddress)
+        || NetworkAddressUtils.containsLocalIp(clusterAddresses, ServerConfiguration.global()),
+        "The cluster addresses (%s) must contain the local master address (%s)",
+        clusterAddresses, localAddress);
+
     mPath = new File(path.getPath());
     mLocalAddress = localAddress;
     mClusterAddresses = clusterAddresses;
-
-    // Override election/heartbeat timeouts for single master cluster if election timeout is not
-    // set explicitly. This is to speed up single master cluster boot-up.
-    if (mClusterAddresses.size() == 1
-        && !ServerConfiguration.isSetByUser(
-        PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
-        && !ServerConfiguration.isSetByUser(
-        PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
-      LOG.info("Overriding election timeout to {}ms for single master cluster.",
-          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT,
-          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT,
-          2 * SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-    }
-
-    if (!(mClusterAddresses.contains(mLocalAddress)
-        || NetworkAddressUtils.containsLocalIp(mClusterAddresses, ServerConfiguration.global()))) {
-      LOG.error("The cluster addresses ({}) must contain the local master address ({})",
-          mClusterAddresses, mLocalAddress);
-    }
-
-    long min = ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
-    long max = ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
-    if (min >= max) {
-      LOG.error("Min election timeout ({}ms) should be less than max election timeout ({}ms)",
-          min, max);
-    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -361,13 +338,28 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) ServerConfiguration
         .global().getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX));
 
+    // Override election/heartbeat timeouts for single master cluster if election timeout is not
+    // set explicitly. This is to speed up single master cluster boot-up.
+    long min = ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
+    long max = ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+    if (mClusterAddresses.size() == 1
+        && !ServerConfiguration.isSetByUser(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+        && !ServerConfiguration.isSetByUser(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
+      LOG.info("Overriding election timeout to {}ms for single master cluster.",
+          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      min = SINGLE_MASTER_ELECTION_TIMEOUT_MS;
+      max = 2 * min;
+    }
+    Preconditions.checkState(min < max,
+        "Min election timeout (%sms) should be less than max election timeout (%sms)", min, max);
+
     // election timeout, heartbeat timeout is automatically 1/2 of the value
-    RaftServerConfigKeys.Rpc.setTimeoutMin(properties, TimeDuration.valueOf(
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT),
-        TimeUnit.MILLISECONDS));
-    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, TimeDuration.valueOf(
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT),
-        TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
+        TimeDuration.valueOf(min, TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
+        TimeDuration.valueOf(max, TimeUnit.MILLISECONDS));
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties, TimeDuration.valueOf(
