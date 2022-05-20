@@ -394,13 +394,22 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * enable the MountTableTrie by setting the given rootInode.
+   * Enable the MountTableTrie by setting the given rootInode.
    *
    * @param rootInode the rootInode set in MountTableTrie
    */
   public void enableMountTableTrie(InodeView rootInode) {
     try (LockResource r = new LockResource(mWriteLock)) {
       mState.getMountTableTrie().setRootInode(rootInode);
+    }
+  }
+
+  /**
+   * Disable the MountTableTrie
+   */
+  public void disableMountTableTrie() {
+    try (LockResource r = new LockResource(mWriteLock)) {
+      mState.getMountTableTrie().reset();
     }
   }
 
@@ -799,6 +808,15 @@ public final class MountTable implements DelegatingJournaled {
 
       mRootTrieInode = mRootTrieNode.insert(Arrays.asList(rootInode), true);
       mMountPointTrieTable.put(mRootTrieInode, ROOT);
+    }
+
+    /**
+     * Reset the MountTableTrie, this will disable the Trie
+     */
+    public void reset() {
+      mRootTrieInode = null;
+      mMountPointTrieTable.clear();
+      mRootTrieNode = new MountPointInodeTrieNode<>();
     }
 
     /**
