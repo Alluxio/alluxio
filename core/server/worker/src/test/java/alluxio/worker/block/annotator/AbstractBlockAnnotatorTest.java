@@ -35,7 +35,6 @@ public abstract class AbstractBlockAnnotatorTest {
 
   private HashMap<Long, StorageDir> mBlockLocation;
   private Long mUserSession = 1L;
-  private Long mInternalSession = Long.MIN_VALUE;
 
   protected BlockMetadataManager mMetaManager;
   protected BlockIterator mBlockIterator;

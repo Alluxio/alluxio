@@ -27,7 +27,6 @@ import java.util.Map;
  * Unit tests for {@link BlockHeartbeatReporter}.
  */
 public final class BlockHeartbeatReporterTest {
-  private static final int SESSION_ID = 1;
   private static final BlockStoreLocation MEM_LOC =
       new BlockStoreLocation(Constants.MEDIUM_MEM, 0, Constants.MEDIUM_MEM);
   private static final BlockStoreLocation SSD_LOC =
