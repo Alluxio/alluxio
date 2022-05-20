@@ -32,6 +32,7 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -52,6 +53,23 @@ public class MountTableBench {
     public List<LockedInodePath> mAlluxioWidthMountPath = new ArrayList<>();
     public List<String> mUfsDepthMountedPaths = new ArrayList<>();
     public List<String> mUfsWidthMountedPaths = new ArrayList<>();
+
+    @Param({"0", "2", "4"})
+    public int mTargetDepthGetMountPointIndex;
+
+    @Param({"0", "2", "4"})
+    public int mTargetWidthGetMountPointIndex;
+
+    @Param({"0"})
+    public int mTargetDepthFindChildrenMountPointsIndex;
+
+    @Param({"0", "2", "4"})
+    public int mTargetWidthFindChildrenMountPointsIndex;
+
+    public LockedInodePath mTargetWidthGetMountPoint = null;
+    public LockedInodePath mTargetDepthGetMountPoint = null;
+    public LockedInodePath mTargetWidthFindChildrenMountPointsTarget = null;
+    public LockedInodePath mTargetDepthFindChildrenMountPointsTarget = null;
 
     private int mMountId = 2;
 
@@ -91,13 +109,12 @@ public class MountTableBench {
       }
       // mount (/mnt/0/1/2/3/4, hdfs://localhost:1234/0/1/2/3/4)
       String prevPath = ALLUXIO_DEPTH_MOUNT_PARENT;
-      String ufsPrevPath = MOUNT_UFS_DEPTH_PARENT;
       for (int i = 0; i < DEPTH; i++) {
         prevPath = PathUtils.concatPath(prevPath, Integer.toString(i));
-        ufsPrevPath = PathUtils.concatUfsPath(ufsPrevPath, Integer.toString(i));
-        LockedInodePath lockedPath = addMount(prevPath, ufsPrevPath, mMountId++);
+        String ufsPath = PathUtils.concatUfsPath(MOUNT_UFS_DEPTH_PARENT, Integer.toString(i));
+        LockedInodePath lockedPath = addMount(prevPath, ufsPath, mMountId++);
         mAlluxioDepthMountPath.add(lockedPath);
-        mUfsDepthMountedPaths.add(ufsPrevPath);
+        mUfsDepthMountedPaths.add(ufsPath);
       }
 
       // create /mnt/width
@@ -120,6 +137,13 @@ public class MountTableBench {
         mAlluxioWidthMountPath.add(lockedAlluxioPath);
         mUfsWidthMountedPaths.add(ufsPath);
       }
+      // initialize the test targets
+      mTargetWidthGetMountPoint = mAlluxioWidthMountPath.get(mTargetWidthGetMountPointIndex);
+      mTargetDepthGetMountPoint = mAlluxioDepthMountPath.get(mTargetDepthGetMountPointIndex);
+      mTargetWidthFindChildrenMountPointsTarget =
+          mAlluxioWidthMountPath.get(mTargetWidthFindChildrenMountPointsIndex);
+      mTargetDepthFindChildrenMountPointsTarget =
+          mAlluxioDepthMountPath.get(mTargetDepthFindChildrenMountPointsIndex);
     }
 
     private LockedInodePath addMount(String alluxio, String ufs, long id) throws Exception {
@@ -139,9 +163,26 @@ public class MountTableBench {
   }
 
   @Benchmark @BenchmarkMode(Mode.Throughput)
-  public void testGetMountPoint(BenchState state) throws InvalidPathException {
-    for (LockedInodePath alluxioPath : state.mAlluxioWidthMountPath) {
-      state.mMountTable.getMountPoint(alluxioPath.getUri(), alluxioPath.getInodeViewList());
-    }
+  public void testWidthGetMountPoint(BenchState state) throws InvalidPathException {
+    state.mMountTable.getMountPoint(state.mTargetWidthGetMountPoint.getUri(),
+        state.mTargetWidthGetMountPoint.getInodeViewList());
+  }
+
+  @Benchmark @BenchmarkMode(Mode.Throughput)
+  public void testDepthGetMountPoint(BenchState state) throws InvalidPathException {
+    state.mMountTable.getMountPoint(state.mTargetDepthGetMountPoint.getUri(),
+        state.mTargetDepthGetMountPoint.getInodeViewList());
+  }
+
+  @Benchmark @BenchmarkMode(Mode.Throughput)
+  public void testWidthFindChildrenMountPoint(BenchState state) throws InvalidPathException {
+    state.mMountTable.findChildrenMountPoints(state.mTargetWidthFindChildrenMountPointsTarget,
+        true);
+  }
+
+  @Benchmark @BenchmarkMode(Mode.Throughput)
+  public void testDepthFindChildrenMountPoint(BenchState state) throws InvalidPathException {
+    state.mMountTable.findChildrenMountPoints(state.mTargetDepthFindChildrenMountPointsTarget,
+        true);
   }
 }
