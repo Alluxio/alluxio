@@ -57,13 +57,13 @@ public class MountTableBench {
     @Param({"0", "2", "4"})
     public int mTargetDepthGetMountPointIndex;
 
-    @Param({"0", "2", "4"})
+    @Param({"2"})
     public int mTargetWidthGetMountPointIndex;
 
     @Param({"0"})
     public int mTargetDepthFindChildrenMountPointsIndex;
 
-    @Param({"0", "2", "4"})
+    @Param({"0"})
     public int mTargetWidthFindChildrenMountPointsIndex;
 
     public LockedInodePath mTargetWidthGetMountPoint = null;
@@ -92,7 +92,7 @@ public class MountTableBench {
       mMountTable = new MountTable(ufsManager,
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
-      mMountTable.enableMountTableTrie(mRootDir);
+//      mMountTable.enableMountTableTrie(mRootDir);
 
       // create /mnt/width
       mDirDepth = inodeDir(mInodes.size(), mDirMnt.getId(), "depth");

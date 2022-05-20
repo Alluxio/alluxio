@@ -626,7 +626,12 @@ public class DefaultFileSystemMaster extends CoreMaster
                   root.getOwner(), serverOwner)));
         }
         // enable MountTableTrie here
-        mMountTable.enableMountTableTrie(root);
+        // TODO(Jiadong): find a better way to handle exception
+        try {
+          mMountTable.recoverMountTableTrie(mInodeTree);
+        } catch (InvalidPathException e) {
+          e.printStackTrace();
+        }
       }
 
       // Initialize the ufs manager from the mount table.

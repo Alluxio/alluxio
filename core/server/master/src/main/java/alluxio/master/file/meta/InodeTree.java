@@ -58,7 +58,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
