@@ -88,7 +88,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 ```
 
-Note that the ordering of the medium types must match with the ordering of the paths.
+Note that the ordering of the medium types must match the ordering of the paths.
 Here, MEM and SSD are two preconfigured types in Alluxio.
 `alluxio.master.tieredstore.global.mediumtype` is a configuration parameter that has a list of
 all available medium types and by default it is set to `MEM, SSD, HDD`.
@@ -108,7 +108,7 @@ directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on e
 alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 ```
 
-Note that the ordering of the quotas must match with the ordering of the paths.
+Note that the ordering of the quotas must match the ordering of the paths.
 
 Alluxio will provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. 
 This ramdisk will have its size determined by `alluxio.worker.ramdisk.size` 
@@ -139,7 +139,7 @@ If eviction cannot free up new space, then the write will fail.
 
 **Note:** Alluxio's eviction model is synchronous and is executed when a client requires free space when writing a block.
 `alluxio.worker.tieredstore.free.ahead.bytes`(Default: 0) can be configured to free up more bytes than necessary per eviction attempt
-to reduce the numbers of evictions triggered. This changed starting in Alluxio 2.3.0 which deprecated [the old watermark-based eviction process](#evictor-emulation).
+to reduce the number of evictions triggered. This changed starting in Alluxio 2.3.0 which deprecated [the old watermark-based eviction process](#evictor-emulation).
 
 The user can also specify the tier that the data will be written to via
 [configuration settings](#configuring-tiered-storage).
@@ -227,7 +227,7 @@ The allocation policy defines which storage directory to allocate the new block 
 
 This is configured by worker property `alluxio.worker.allocator.class`. Out-of-the-box implementations include:
 
-- **MaxFreeAllocator**: Start trying from tier 0 to the lowest tier, try to allocate the block to the storage directory
+- **MaxFreeAllocator**: Start trying from tier 0 to the lowest tier, and try to allocate the block to the storage directory
 that currently has the most availability. **This is the default behavior.**
 
 - **RoundRobinAllocator**: Start trying from tier 0 to the lowest tier. On each tier, maintain a Round Robin order
@@ -258,7 +258,7 @@ a directory is filled up, because the existing blocks in the directory can expan
 Leaving a buffer in each directory can reduce the chance of eviction. **This is the default behavior.**
 
 - **AcceptingReviewer**: This reviewer accepts every block allocation. So the behavior will be exactly the same
-to Alluxio before 2.4.1.
+as Alluxio before 2.4.1.
 
 ### Block Annotation Policies
 
@@ -296,7 +296,7 @@ Currently, the available options are:
 The old eviction policies are now removed and Alluxio provided implementations are replaced with appropriate annotation policies.
 Configuring old Alluxio evictors will cause worker startup failure with `java.lang.ClassNotFoundException`.
 Also, **the old watermark based configuration is no longer usable**.
-Using previous configuration options are ineffective:
+Using previous configuration options is ineffective:
 - `alluxio.worker.tieredstore.levelX.watermark.low.ratio`
 - `alluxio.worker.tieredstore.levelX.watermark.high.ratio`
 
@@ -304,7 +304,7 @@ However, Alluxio supports an emulation mode which annotates blocks based on cust
 The emulation assumes the configured eviction policy creates an eviction plan based on some kind of
 order and works by regularly extracting this order to be used in annotation activities.
 
-The old evictor configurations should be changes as below.
+The old evictor configurations should be changed as below.
 (Failing to change the left-over configuration will cause class load exceptions as old evictor implementations are removed.)
 - LRUEvictor -> LRUAnnotator
 - GreedyEvictor -> LRUAnnotator
@@ -320,7 +320,7 @@ However, it also requires Alluxio to dynamically manage block placement.
 To enforce the assumption that tiers are configured from fastest to slowest, Alluxio now moves
 blocks around tiers based on block annotation policies.
 
-Below configuration is honoured by each individual tier management task:
+Below configuration is honored by each individual tier management task:
 - `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default: `CPU core count`)
 - `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. (Default:`CPU core count`/ 2)
 
@@ -329,7 +329,7 @@ Below configuration is honoured by each individual tier management task:
 Alluxio will dynamically move blocks across tiers in order to achieve a block storage composition
 that is in line with the configured block annotation policy.
 
-To compensate this, Alluxio watches I/O patterns and reorganizes blocks across tiers to make sure
+To compensate for this, Alluxio watches I/O patterns and reorganizes blocks across tiers to make sure
 **the lowest block of a higher tier has higher order than the highest block of a tier below**.
 
 This is achieved by `align` management task. This task, upon detecting blocks within tiers being out
@@ -345,26 +345,26 @@ To control tier aligning:
 directories by default when multiple tiers are configured. (Default:`1GB`)
 This is used for internal block movements.
 - `alluxio.worker.management.tier.swap.restore.enabled`: This controls a special task that is used
-to unblock tier alignment when internal reserved space was exhausted. (Default:`true`)
-Reserved space can be exhausted due to fact that Alluxio supports variable block sizes, so swapping
+to unblock tier alignment when internal reserved space is exhausted. (Default:`true`)
+Reserved space can be exhausted due to the fact that Alluxio supports variable block sizes, so swapping
 blocks between tiers during aligning can decrease reserved space on a directory when block sizes don't match.
 
 #### Block Promotions
 
-When a higher tier has free space, blocks from a lower tier is moved up in order to better utilize
+When a higher tier has free space, blocks from a lower tier are moved up in order to better utilize
 faster disks as it's assumed the higher tiers are configured with faster disks.
 
 To control dynamic tier promotion:
 - `alluxio.worker.management.tier.promote.enabled` : Whether tier promotion task is enabled. (Default:`true`)
 - `alluxio.worker.management.tier.promote.range`: How many blocks to promote in a single task run. (Default:`100`)
 - `alluxio.worker.management.tier.promote.quota.percent`: The max percentage of each tier that could be used for promotions.
-Promotions will be stopped to a tier once its used space go over this value. (0 means never promote, and, 100 means always promote.)
+Promotions will be stopped to a tier once its used space goes over this value. (0 means never promote, and, 100 means always promote.)
 
 #### Management Task Back-Off
 
 Tier management tasks (align/promote) are respectful to user I/O and back off whenever a worker or
 disk is under load.
-This behaviour is to make sure Alluxio storage management doesn't negatively impact user I/O performance.
+This behavior is to make sure Alluxio storage management doesn't negatively impact user I/O performance.
 
 There are two back-off types available, `ANY` and `DIRECTORY`, that can be set in the
 `alluxio.worker.management.backoff.strategy` property.
@@ -374,7 +374,7 @@ This mode will ensure low management task overhead in order to favor immediate u
 However, making progress on management tasks will require quiet periods on the worker.
 
 - `DIRECTORY`; management tasks will back off from directories with ongoing user I/O.
-This mode will give better chance of making progress on management tasks
+This mode will give a better chance of making progress on management tasks
 However, immediate user I/O throughput might be decreased due to increased management task activity.
 
 An additional property that effects both back-off strategies is
@@ -529,7 +529,7 @@ $ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
 ```
 
 For this example, ensure the `alluxio.master.ttl.checker.interval` is set to a short
-duration, such as a minute, in order for the the master to quickly identify the expired files.
+duration, such as a minute, in order for the master to quickly identify the expired files.
 
 ## Managing Data Replication in Alluxio
 
