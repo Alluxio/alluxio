@@ -74,11 +74,9 @@ public class RocksInodeStore implements InodeStore {
   private static final String ROCKS_STORE_NAME = "InodeStore";
 
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
-  private final WriteOptions mDisableWAL = new WriteOptions().setDisableWAL(true);
-  private final ReadOptions mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
-  private final ReadOptions mIteratorOption = new ReadOptions().setTotalOrderSeek(true)
-      .setReadaheadSize(ServerConfiguration.getBytes(
-          PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+  private final WriteOptions mDisableWAL;
+  private final ReadOptions mReadPrefixSameAsStart;
+  private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
   private final List<RocksObject> mToClose = new ArrayList<>();
@@ -93,6 +91,11 @@ public class RocksInodeStore implements InodeStore {
    */
   public RocksInodeStore(String baseDir) {
     RocksDB.loadLibrary();
+    mDisableWAL = new WriteOptions().setDisableWAL(true);
+    mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mIteratorOption = new ReadOptions().setTotalOrderSeek(true)
+        .setReadaheadSize(ServerConfiguration.getBytes(
+            PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
 
