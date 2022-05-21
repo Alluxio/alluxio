@@ -20,7 +20,10 @@ public class FuseFillDir {
 
   public static int apply(long fillerAddr, long bufaddr, String name, FileStat stbuf, long off) {
     if (stbuf != null) {
-      return fill(fillerAddr, bufaddr, name, stbuf.getBuffer(), off);
+      ByteBuffer buffer = stbuf.getBuffer();
+      buffer.position(0);
+      buffer.limit(buffer.capacity());
+      return fill(fillerAddr, bufaddr, name, buffer, off);
     } else {
       return fill(fillerAddr, bufaddr, name, null, off);
     }

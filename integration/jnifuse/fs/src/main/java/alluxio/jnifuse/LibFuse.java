@@ -33,6 +33,8 @@ public class LibFuse {
 
   public native ByteBuffer fuse_get_context();
 
+  public native int fuse_get_stat_size();
+
   public static void loadLibrary(VersionPreference preference) {
     if (libraryLoaded.get() == LibraryState.LOADED) {
       return;

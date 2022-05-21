@@ -96,11 +96,19 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
   LOGD("enter fill");
   fuse_fill_dir_t filler = (fuse_fill_dir_t)(void *)address;
   const char *fn = env->GetStringUTFChars(name, 0);
-
+  int ret;
 #if FUSE_USE_VERSION >= 30
-  int ret = filler((void *)bufaddr, fn, NULL, 0, fuse_fill_dir_flags::FUSE_FILL_DIR_PLUS);
+  if (stbuf) {
+    ret = filler((void *)bufaddr, fn, NULL, 0, fuse_fill_dir_flags::FUSE_FILL_DIR_PLUS);
+  } else {
+    ret = filler((void *)bufaddr, fn, (struct stat*)stbuf, 0, fuse_fill_dir_flags::FUSE_FILL_DIR_PLUS);
+  }
 #else
-  int ret = filler((void *)bufaddr, fn, NULL, 0);
+  if (stbuf) {
+    ret = filler((void *)bufaddr, fn, NULL, 0);
+  } else {
+    ret = filler((void *)bufaddr, fn, (struct stat*)stbuf, 0);
+  }
 #endif
   env->ReleaseStringUTFChars(name, fn);
 
@@ -113,6 +121,10 @@ jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1context(JNIEnv *env, job
   jobject fibuf =
       env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
   return fibuf;
+}
+
+jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1stat_1size(JNIEnv *env, jobject obj) {
+  return sizeof(struct stat);
 }
 
 #ifdef __cplusplus
