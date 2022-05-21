@@ -120,7 +120,7 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException {
-    mDelegatedFileSystem.mount(alluxioPath, ufsPath);
+    mDelegatedFileSystem.mount(alluxioPath, ufsPath, options);
   }
 
   @Override
@@ -173,7 +173,7 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.setAcl(path, action, entries);
+    mDelegatedFileSystem.setAcl(path, action, entries, options);
   }
 
   @Override
