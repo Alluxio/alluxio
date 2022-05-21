@@ -87,7 +87,7 @@ public final class LocalCacheManagerTest {
   public void before() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, mTemp.getRoot().getAbsolutePath());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, 0);
@@ -96,7 +96,7 @@ public final class LocalCacheManagerTest {
     // default setting in prestodb
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "60s");
     mPageStoreOptions = PageStoreOptions.create(mConf);
-    mPageStore = PageStore.create(mPageStoreOptions);
+    mPageStore = PageStore.create(this, mPageStoreOptions);
     mEvictor = new FIFOCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mEvictor);
     mCacheManager = createLocalCacheManager();
@@ -115,7 +115,7 @@ public final class LocalCacheManagerTest {
    */
   private LocalCacheManager createLocalCacheManager() throws Exception {
     mPageStoreOptions = PageStoreOptions.create(mConf);
-    mPageStore = PageStore.create(mPageStoreOptions);
+    mPageStore = PageStore.create(this, mPageStoreOptions);
     return createLocalCacheManager(mConf, mMetaStore, mPageStore);
   }
 
@@ -134,7 +134,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void createNonexistentRootDirSyncRestore() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR,
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
     assertNotNull(LocalCacheManager.create(mConf, mMetaStore));
   }
@@ -142,7 +142,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void createNonexistentRootDirAsyncRestore() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR,
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS,
         PathUtils.concatPath(mTemp.getRoot().getAbsolutePath(), UUID.randomUUID().toString()));
     assertNotNull(LocalCacheManager.create(mConf, mMetaStore));
   }
@@ -151,7 +151,7 @@ public final class LocalCacheManagerTest {
   public void createUnwriableRootDirSyncRestore() throws Exception {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, root.getAbsolutePath());
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     try {
       root.setWritable(false);
       LocalCacheManager.create(mConf, mMetaStore);
@@ -167,7 +167,7 @@ public final class LocalCacheManagerTest {
   public void createUnwriableRootDirAsyncRestore() throws Exception {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, root.getAbsolutePath());
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     try {
       root.setWritable(false);
       mCacheManager = LocalCacheManager.create(mConf, mMetaStore);
@@ -420,7 +420,7 @@ public final class LocalCacheManagerTest {
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStore = PageStore.create(PageStoreOptions.create(mConf));
+      mPageStore = PageStore.create(this, PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota =
           new CacheQuota(ImmutableMap.of(cacheScope.level(),
@@ -446,7 +446,7 @@ public final class LocalCacheManagerTest {
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStore = PageStore.create(PageStoreOptions.create(mConf));
+      mPageStore = PageStore.create(this, PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(cacheScope.level(),
           (long) CACHE_SIZE_BYTES + 1));
@@ -476,7 +476,7 @@ public final class LocalCacheManagerTest {
     CacheScope[] quotaCacheScopes = {tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStore = PageStore.create(PageStoreOptions.create(mConf));
+      mPageStore = PageStore.create(this, PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(
           partitionCacheScope1.level(), (long) PAGE1.length + PAGE2.length,

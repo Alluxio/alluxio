@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -86,7 +87,8 @@ public interface CacheManager extends AutoCloseable {
       if (CACHE_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
           if (CACHE_MANAGER.get() == null) {
-            CACHE_MANAGER.set(create(conf, MetaStore.create(conf)));
+            CACHE_MANAGER.set(
+                create(conf, MetaStore.create(conf), PageStoreDir.createPageStoreDirs(conf)));
           }
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
@@ -103,10 +105,11 @@ public interface CacheManager extends AutoCloseable {
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf, MetaStore metaStore,
-                                      List<LocalCacheDir> dirs) throws IOException {
+                                      List<PageStoreDir> dirs) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
               new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore, dirs),

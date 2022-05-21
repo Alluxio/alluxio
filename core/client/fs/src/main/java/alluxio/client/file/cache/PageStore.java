@@ -29,10 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -47,7 +43,6 @@ public interface PageStore extends AutoCloseable {
    *
    * @param options the options to instantiate the page store
    * @return a PageStore instance
-   * @return
    */
   static PageStore openOrCreatePageStore(PageStoreOptions options) {
     PageStore pageStore;
@@ -65,7 +60,6 @@ public interface PageStore extends AutoCloseable {
 
   /**
    * Creates a new {@link PageStore}. Previous state in the same cache dir will be overwritten.
-   *
    * @param options the options to instantiate the page store
    * @return a PageStore instance
    * @throws IOException if I/O error happens
@@ -106,19 +100,6 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
-   * Gets store path given root directory and store type.
-   *
-   * @param storeType the type of the page store
-   * @param rootDir the root directory path
-   * @return the store directory path
-   */
-  static List<Path> getStorePath(PageStoreType storeType, String rootDir) {
-    String[] rootDirs = rootDir.split(",");
-    return Arrays.stream(rootDirs).map(dir -> Paths.get(dir, storeType.name())).collect(
-        Collectors.toList());
-  }
-
-  /**
    * Initializes a page store at the configured location.
    * Data from different store type will be removed.
    *
@@ -130,20 +111,19 @@ public interface PageStore extends AutoCloseable {
       // Do not need to delete files when page store type is memory
       return;
     }
-    for (Path rootPath : options.getRootDirs()) {
-      Files.createDirectories(rootPath);
-      LOG.info("Cleaning cache directory {}", rootPath);
-      try (Stream<Path> stream = Files.list(rootPath)) {
-        stream.forEach(path -> {
-          try {
-            FileUtils.deletePathRecursively(path.toString());
-          } catch (IOException e) {
-            Metrics.CACHE_CLEAN_ERRORS.inc();
-            LOG.warn("failed to delete {} in cache directory: {}", path,
-                e.toString());
-          }
-        });
-      }
+    Path rootPath = options.getRootDir();
+    Files.createDirectories(rootPath);
+    LOG.info("Cleaning cache directory {}", rootPath);
+    try (Stream<Path> stream = Files.list(rootPath)) {
+      stream.forEach(path -> {
+        try {
+          FileUtils.deletePathRecursively(path.toString());
+        } catch (IOException e) {
+          Metrics.CACHE_CLEAN_ERRORS.inc();
+          LOG.warn("failed to delete {} in cache directory: {}", path,
+              e.toString());
+        }
+      });
     }
   }
 
@@ -194,20 +174,6 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    */
   void delete(PageId pageId) throws IOException, PageNotFoundException;
-
-  /**
-   * Gets a stream of all pages from the page store. This stream needs to be closed as it may
-   * open IO resources.
-   *
-   * @return a stream of all pages from page store
-   * @throws IOException if any error occurs
-   */
-  Stream<PageInfo> getPages() throws IOException;
-
-  /**
-   * @return an estimated cache size in bytes
-   */
-  long getCacheSize();
 
   /**
    * Metrics.

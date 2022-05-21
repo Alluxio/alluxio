@@ -71,7 +71,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, 0);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.MEM);
     mPageStoreOptions = PageStoreOptions.create(mConf);
-    mPageStore = PageStore.create(mPageStoreOptions);
+    mPageStore = PageStore.create(this, mPageStoreOptions);
     mEvictor = new FIFOCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mEvictor);
     mCacheManager = createLocalCacheManager();
@@ -90,7 +90,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
    */
   private LocalCacheManager createLocalCacheManager() throws Exception {
     mPageStoreOptions = PageStoreOptions.create(mConf);
-    mPageStore = PageStore.create(mPageStoreOptions);
+    mPageStore = PageStore.create(this, mPageStoreOptions);
     return createLocalCacheManager(mConf, mMetaStore, mPageStore);
   }
 
@@ -347,7 +347,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStore = PageStore.create(PageStoreOptions.create(mConf));
+      mPageStore = PageStore.create(this, PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota =
           new CacheQuota(ImmutableMap.of(cacheScope.level(),
@@ -373,7 +373,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStore = PageStore.create(PageStoreOptions.create(mConf));
+      mPageStore = PageStore.create(this, PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(cacheScope.level(),
           (long) CACHE_SIZE_BYTES + 1));
@@ -403,7 +403,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     CacheScope[] quotaCacheScopes = {tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
       mMetaStore = new QuotaMetaStore(mConf);
-      mPageStore = PageStore.create(PageStoreOptions.create(mConf));
+      mPageStore = PageStore.create(this, PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
       CacheQuota quota = new CacheQuota(ImmutableMap.of(
           partitionCacheScope1.level(), (long) PAGE1.length + PAGE2.length,
