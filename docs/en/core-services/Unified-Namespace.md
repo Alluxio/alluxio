@@ -38,7 +38,7 @@ void unmount(AlluxioURI path);
 void unmount(AlluxioURI path, UnmountOptions options);
 ```
 
-For example, mount a S3 bucket to the `Data` directory through the Java API
+For example, mount an S3 bucket to the `Data` directory through the Java API
 
 ```java
 mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3://bucket/directory"));
@@ -178,7 +178,7 @@ When Alluxio scans a UFS directory and loads metadata for its sub-paths,
 it creates a copy of the metadata so that future operations do not need to load from the UFS.
 Alluxio keeps a fingerprint of each UFS file so that Alluxio can update the file if it changes.
 The fingerprint includes information such as file size and last modified time.
-If a file is modified in the UFS, Alluxio will detect this from the fingerprint, free the existing
+If a file is modified in the UFS, Alluxio will detect this from the fingerprint, and free the existing
 data for that file. The next time the data is read, it will pull the newer version of the file from
 the UFS. If a file is added or deleted in the UFS, Alluxio will update the metadata in its namespace
 as well.
@@ -307,7 +307,7 @@ and the UFS when the UFS is HDFS. The feature, called active sync, listens for H
 periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on
 the master.
 Because active sync feature depends on HDFS events being pushed to the Alluxio master, this feature
-is only available when the UFS HDFS versions is later than 2.6.1.
+is only available when the UFS HDFS versions are later than 2.6.1.
 You may need to change the value for `alluxio.underfs.version` in your configuration file.
 Please refer to
 [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of
@@ -444,7 +444,7 @@ hello
 
 This example will mount multiple under storages of different types to showcase the unified
 file system namespace abstraction. This example will use two S3 buckets owned by different AWS
-accounts and a HDFS service.
+accounts and an HDFS service.
 
 Mount the first S3 bucket into Alluxio using its corresponding credentials `<accessKeyId1>` and `<secretKey1>` :
 
