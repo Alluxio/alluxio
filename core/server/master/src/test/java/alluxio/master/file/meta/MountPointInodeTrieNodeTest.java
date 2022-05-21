@@ -15,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,34 +27,11 @@ public class MountPointInodeTrieNodeTest {
   public void insertAndCheckChildren() {
     MountPointInodeTrieNode<Long> root = new MountPointInodeTrieNode<>();
 
-    List<Long> ids1 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-        add(4L);
-      }
-    };
-    List<Long> ids2 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-      }
-    };
-    List<Long> ids3 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(5L);
-      }
-    };
-    List<Long> ids4 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-      }
-    };
+    List<Long> ids1 = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 4L));
+    List<Long> ids2 = new ArrayList<>(Arrays.asList(1L, 2L));
+    List<Long> ids3 = new ArrayList<>(Arrays.asList(1L, 2L, 5L));
+    List<Long> ids4 = new ArrayList<>(Arrays.asList(1L, 2L, 3L));
+
     root.insert(ids1, true);
     root.insert(ids2, true);
     root.insert(ids4, true);
@@ -68,63 +46,19 @@ public class MountPointInodeTrieNodeTest {
   @Test
   public void removeAndCheck() {
     MountPointInodeTrieNode<Long> root = new MountPointInodeTrieNode<>();
-    List<Long> ids0 = new ArrayList<Long>() {
-      {
-        add(1L);
-      }
-    };
-    List<Long> ids1 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-        add(4L);
-      }
-    };
-    List<Long> ids2 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(5L);
-      }
-    };
-    List<Long> idsn = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-      }
-    };
-    List<Long> idsToRemove = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(20L);
-      }
-    };
-    MountPointInodeTrieNode<Long> node = root.insert(ids0, true);
+    List<Long> ids0 = new ArrayList<>(Arrays.asList(1L));
+    List<Long> ids1 = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 4L));
+    List<Long> ids2 = new ArrayList<>(Arrays.asList(1L, 2L, 5L));
+    List<Long> idsn = new ArrayList<>(Arrays.asList(1L, 2L));
+    List<Long> idsToRemove = new ArrayList<>(Arrays.asList(1L, 20L));
+    root.insert(ids0, true);
     root.insert(ids1, true);
     root.insert(ids2, true);
     root.insert(idsn, true);
     root.insert(idsToRemove, true);
-    List<Long> ids3 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-      }
-    };
-    List<Long> ids4 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(5L);
-      }
-    };
-    List<Long> ids5 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(10L);
-      }
-    };
+    List<Long> ids3 = new ArrayList<>(Arrays.asList(1L, 2L, 3L));
+    List<Long> ids4 = new ArrayList<>(Arrays.asList(1L, 2L, 5L));
+    List<Long> ids5 = new ArrayList<>(Arrays.asList(1L, 10L));
     MountPointInodeTrieNode<Long> node1 = root.remove(ids5, n -> true);
     Assert.assertNull(node1);
     MountPointInodeTrieNode<Long> node2 = root.remove(ids3, n -> true);
@@ -134,13 +68,7 @@ public class MountPointInodeTrieNodeTest {
     MountPointInodeTrieNode<Long> node4 = root.remove(idsToRemove,
         MountPointInodeTrieNode::isTerminal);
     Assert.assertNotNull(node4);
-    List<Long> ids6 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(23L);
-        add(24L);
-      }
-    };
+    List<Long> ids6 = new ArrayList<>(Arrays.asList(1L, 23L, 24L));
     root.insert(ids6, true);
     Assert.assertNotNull(root.remove(ids6, n -> true));
   }
@@ -148,56 +76,14 @@ public class MountPointInodeTrieNodeTest {
   @Test
   public void matchInodes() {
     MountPointInodeTrieNode<Long> root = new MountPointInodeTrieNode<>();
-    List<Long> ids1 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-        add(4L);
-        add(5L);
-      }
-    };
-    List<Long> ids2 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(6L);
-        add(7L);
-      }
-    };
-    List<Long> ids3 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-      }
-    };
-    List<Long> ids4 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-        add(10L);
-      }
-    };
-    List<Long> ids5 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-      }
-    };
-    List<Long> ids6 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(3L);
-      }
-    };
-    List<Long> ids7 = new ArrayList<Long>() {
-      {
-        add(12L);
-        add(13L);
-      }
-    };
+    List<Long> ids1 = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 4L, 5L));
+    List<Long> ids2 = new ArrayList<>(Arrays.asList(1L, 2L, 6L, 7L));
+    List<Long> ids3 = new ArrayList<>(Arrays.asList(1L, 2L, 3L));
+    List<Long> ids4 = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 10L));
+    List<Long> ids5 = new ArrayList<>(Arrays.asList(1L, 2L));
+    List<Long> ids6 = new ArrayList<>(Arrays.asList(1L, 3L));
+    List<Long> ids7 = new ArrayList<>(Arrays.asList(12L, 13L));
+
     MountPointInodeTrieNode<Long> n1 = root.insert(ids1, true);
     root.insert(ids2, true);
     root.insert(ids3, false);
@@ -235,34 +121,11 @@ public class MountPointInodeTrieNodeTest {
 
   @Test
   public void allChildren() {
-    List<Long> ids1 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(3L);
-        add(4L);
-      }
-    };
-    List<Long> ids2 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(5L);
-      }
-    };
-    List<Long> ids3 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-        add(6L);
-      }
-    };
-    List<Long> ids4 = new ArrayList<Long>() {
-      {
-        add(1L);
-        add(2L);
-      }
-    };
+    List<Long> ids1 = new ArrayList<>(Arrays.asList(1L, 2L, 3L, 4L));
+    List<Long> ids2 = new ArrayList<>(Arrays.asList(1L, 2L, 5L));
+    List<Long> ids3 = new ArrayList<>(Arrays.asList(1L, 2L, 6L));
+    List<Long> ids4 = new ArrayList<>(Arrays.asList(1L, 2L));
+
     MountPointInodeTrieNode<Long> root = new MountPointInodeTrieNode<>();
     MountPointInodeTrieNode<Long> n1 = root.insert(ids1, true);
     root.insert(ids2, true);

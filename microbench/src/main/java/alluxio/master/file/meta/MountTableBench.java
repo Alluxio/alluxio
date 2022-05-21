@@ -92,7 +92,7 @@ public class MountTableBench {
       mMountTable = new MountTable(ufsManager,
           new MountInfo(new AlluxioURI(MountTable.ROOT), new AlluxioURI(ROOT_UFS),
               IdUtils.ROOT_MOUNT_ID, MountContext.defaults().getOptions().build()));
-//      mMountTable.enableMountTableTrie(mRootDir);
+      mMountTable.enableMountTableTrie(mRootDir);
 
       // create /mnt/width
       mDirDepth = inodeDir(mInodes.size(), mDirMnt.getId(), "depth");

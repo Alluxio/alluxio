@@ -117,7 +117,7 @@ public final class MountTable implements DelegatingJournaled {
    * under an existing mount point.
    *
    * @param journalContext the journal context
-   * @param alluxioUri an Alluxio path URI
+   * @param alluxioLockedPath an Alluxio Locked Path
    * @param ufsUri a UFS path URI
    * @param mountId the mount id
    * @param options the mount options
@@ -240,13 +240,13 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * Unmounts the given Alluxio path. The path should match an existing mount point.
    *
-   * @param journalContext journal context
-   * @param uri an Alluxio path URI
-   * @param checkNestedMount whether to check nested mount points before delete
+   * @param journalContext    journal context
+   * @param alluxioLockedPath an Alluxio Locked Path
+   * @param checkNestedMount  whether to check nested mount points before delete
    * @return whether the operation succeeded or not
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
-                        boolean checkNestedMount) {
+      boolean checkNestedMount) {
     Preconditions.checkArgument(
         !mState.getMountTableTrie().isEnabled() || alluxioLockedPath.fullPathExists());
     return delete(journalContext, alluxioLockedPath.getInodeViewList(),
@@ -306,7 +306,7 @@ public final class MountTable implements DelegatingJournaled {
    * Update the mount point with new options and mount ID.
    *
    * @param journalContext the journal context
-   * @param alluxioUri an Alluxio path URI
+   * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @param newMountId the mount id
    * @param newOptions the mount options
    * @throws FileAlreadyExistsException if the mount point already exists
@@ -395,8 +395,20 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Enable the MountTableTrie by setting the given rootInode.
+   * Enable the MountTableTrie based on given InodeTree. This will trigger the recovering of
+   * MountTableTrie.
    *
+   * @param inodeTree the rootInode set in MountTableTrie
+   */
+  public void enableMountTableTrie(InodeTree inodeTree) throws InvalidPathException {
+    try (LockResource r = new LockResource(mWriteLock)) {
+      recoverMountTableTrie(inodeTree);
+    }
+  }
+
+  /**
+   * Enable the MountTableTrie based on the given rootInode. It will not trigger the recovering
+   * of MountTableTrie.
    * @param rootInode the rootInode set in MountTableTrie
    */
   public void enableMountTableTrie(InodeView rootInode) {
@@ -416,8 +428,8 @@ public final class MountTable implements DelegatingJournaled {
 
   /**
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
-   * @param containsSelf           cause method to return true when given uri itself is a mount
-   *                               point
+   * @param containsSelf cause method to return true when given uri itself is a mount point
+   *
    * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
    */
   public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
@@ -447,7 +459,7 @@ public final class MountTable implements DelegatingJournaled {
    * Returns the mount points under the specified path.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
-   * @param containsSelf           if the given uri itself can be a mount point and included in
+   * @param containsSelf if the given uri itself can be a mount point and included in
    *                               the return
    * @return the mount points found
    */
@@ -603,7 +615,7 @@ public final class MountTable implements DelegatingJournaled {
    * if it is under a readonly mount point.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
-   * @throws InvalidPathException   if the Alluxio path is invalid
+   * @throws InvalidPathException if the Alluxio path is invalid
    * @throws AccessControlException if the Alluxio path is under a readonly mount point
    */
   public void checkUnderWritableMountPoint(LockedInodePath alluxioLockedInodePath)
@@ -754,7 +766,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * This class represents a Alluxio path after reverse resolution.
+   * This class represents an Alluxio path after reverse resolution.
    */
   public static final class ReverseResolution {
     private final MountInfo mMountInfo;
@@ -796,10 +808,9 @@ public final class MountTable implements DelegatingJournaled {
   public static final class MountTableTrie {
     // The root of Trie of current MountTable
     private MountPointInodeTrieNode<InodeView> mRootTrieNode;
-    // The trie node of the root inode, if it is null, then the Trie is regarded as not enabled
     // Map from TrieNode to the alluxio path literal
     private Map<MountPointInodeTrieNode<InodeView>, String> mMountPointTrieTable;
-
+    // indicate whether the MountTableTrie is enabled,
     private boolean mIsEnabled = false;
 
     /**
@@ -975,9 +986,6 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkNotNull(inodeTree.getRoot());
       mRootTrieNode = new MountPointInodeTrieNode<>();
       mMountPointTrieTable = new HashMap<>(10);
-//      MountPointInodeTrieNode<InodeView> rootTrieInode =
-//          mRootTrieNode.insert(Arrays.asList(inodeTree.getRoot()), true);
-//      mMountPointTrieTable.put(rootTrieInode, ROOT);
       Iterator<String> iterator = mountPoints.iterator();
       while (iterator.hasNext()) {
         String mountPoint = iterator.next();
