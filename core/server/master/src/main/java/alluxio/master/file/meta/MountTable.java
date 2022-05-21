@@ -797,9 +797,10 @@ public final class MountTable implements DelegatingJournaled {
     // The root of Trie of current MountTable
     private MountPointInodeTrieNode<InodeView> mRootTrieNode;
     // The trie node of the root inode, if it is null, then the Trie is regarded as not enabled
-    private MountPointInodeTrieNode<InodeView> mRootTrieInode = null;
     // Map from TrieNode to the alluxio path literal
     private Map<MountPointInodeTrieNode<InodeView>, String> mMountPointTrieTable;
+
+    private boolean mIsEnabled = false;
 
     /**
      * Constructor of MountTableTrie.
@@ -818,15 +819,18 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkNotNull(mMountPointTrieTable);
       Preconditions.checkArgument(mRootTrieNode.isLastTrieNode());
 
-      mRootTrieInode = mRootTrieNode.insert(Arrays.asList(rootInode), true);
-      mMountPointTrieTable.put(mRootTrieInode, ROOT);
+      MountPointInodeTrieNode<InodeView> rootTrieInode =
+          mRootTrieNode.insert(Arrays.asList(rootInode), true);
+      mMountPointTrieTable.put(rootTrieInode, ROOT);
+      mIsEnabled = true;
     }
 
     /**
      * Reset the MountTableTrie, this will disable the Trie.
      */
     public void reset() {
-      mRootTrieInode = null;
+      Preconditions.checkArgument(isEnabled());
+      mIsEnabled = false;
       mMountPointTrieTable.clear();
       mRootTrieNode = new MountPointInodeTrieNode<>();
     }
@@ -955,7 +959,7 @@ public final class MountTable implements DelegatingJournaled {
      * @return true if the MountTableTrie is enabled
      */
     public boolean isEnabled() {
-      return mRootTrieInode != null;
+      return mIsEnabled;
     }
 
     /**
@@ -971,21 +975,20 @@ public final class MountTable implements DelegatingJournaled {
       Preconditions.checkNotNull(inodeTree.getRoot());
       mRootTrieNode = new MountPointInodeTrieNode<>();
       mMountPointTrieTable = new HashMap<>(10);
-      mRootTrieInode = mRootTrieNode.insert(Arrays.asList(inodeTree.getRoot()), true);
-      mMountPointTrieTable.put(mRootTrieInode, ROOT);
+//      MountPointInodeTrieNode<InodeView> rootTrieInode =
+//          mRootTrieNode.insert(Arrays.asList(inodeTree.getRoot()), true);
+//      mMountPointTrieTable.put(rootTrieInode, ROOT);
       Iterator<String> iterator = mountPoints.iterator();
       while (iterator.hasNext()) {
         String mountPoint = iterator.next();
-        if (mountPoint != ROOT) {
-          LockedInodePath lockedInodePath =
-              inodeTree.lockInodePath(new LockingScheme(new AlluxioURI(mountPoint),
-                  InodeTree.LockPattern.READ, false));
+        List<InodeView> inodeViews = inodeTree.getInodesByPath(mountPoint);
+        if (!inodeViews.isEmpty()) {
           MountPointInodeTrieNode<InodeView> node =
-              mRootTrieNode.insert(lockedInodePath.getInodeViewList(),
-              true);
+              mRootTrieNode.insert(inodeViews, true);
           mMountPointTrieTable.put(node, mountPoint);
         }
       }
+      mIsEnabled = true;
     }
   }
 

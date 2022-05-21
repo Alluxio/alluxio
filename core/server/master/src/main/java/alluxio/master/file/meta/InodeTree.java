@@ -58,6 +58,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
@@ -373,6 +374,31 @@ public class InodeTree implements DelegatingJournaled {
    */
   public boolean inodeIdExists(long id) {
     return mInodeStore.get(id).isPresent();
+  }
+
+  /**
+   * Acquires the corresponding inodes along the given path.
+   * @param path the target alluxio path
+   * @return non-empty list if all inodes are successfully loaded
+   * @throws InvalidPathException handle invalid path when getting components
+   */
+  public List<InodeView> getInodesByPath(String path) throws InvalidPathException {
+    String[] components = PathUtils.getPathComponents(path);
+    List<InodeView> inodeViews = new ArrayList<>();
+    InodeView currentDirectory = mInodeStore.get(0).orElse(null);
+    for (int i = 1; i < components.length; i++) {
+      if (currentDirectory == null) {
+        return new ArrayList<>();
+      }
+      inodeViews.add(currentDirectory);
+      currentDirectory =
+          mInodeStore.getChild((InodeDirectoryView) currentDirectory, components[i]).orElse(null);
+    }
+    if (currentDirectory == null) {
+      return new ArrayList<>();
+    }
+    inodeViews.add(currentDirectory);
+    return inodeViews;
   }
 
   /**
