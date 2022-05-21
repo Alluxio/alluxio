@@ -30,6 +30,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +44,7 @@ import java.util.concurrent.RejectedExecutionException;
 /**
  * Control UFS IO.
  */
-public class UfsIOManager {
+public class UfsIOManager implements Closeable {
   private static final int IO_THREADS =
       ServerConfiguration.getInt(PropertyKey.UNDERFS_IO_THREADS);
   private static final int READ_CAPACITY =
@@ -61,43 +62,79 @@ public class UfsIOManager {
   private final ExecutorService mScheduleExecutor = Executors
       .newSingleThreadExecutor(ThreadFactoryUtils.build("UfsIOManager-Scheduler-%d", true));
 
+  /**
+   * @param ufsClient ufs client
+   */
   public UfsIOManager(UfsManager.UfsClient ufsClient) {
     mUfsClient = ufsClient;
   }
 
+  /**
+   * start ufs io manager.
+   * @throws IOException
+   */
   public void start() throws IOException {
     mScheduleExecutor.submit(this::schedule);
   }
 
+  /**
+   * close.
+   */
+  @Override
+  public void close(){
+    mScheduleExecutor.shutdownNow();
+    mUfsIoExecutor.shutdownNow();
+  }
+
+  /**
+   * set throughput quota for specific user.
+   * @param user the client name or tag
+   * @param throughput throughput limit
+   */
   public void setQuota(String user, int throughput) {
     mThroughputQuota.put(user, throughput);
   }
 
   private void schedule() {
-    while (!Thread.currentThread().isInterrupted() && !mReadQueue.isEmpty()) {
-      ReadTask task = mReadQueue.poll();
-      int quota = mThroughputQuota.getOrDefault(task.getOptions().getUser(), -1);
-      Meter ufsBytesReadThroughput =
-          mUfsBytesReadThroughputMetrics.computeIfAbsent(mUfsClient.getUfsMountPointUri(),
-              uri -> MetricsSystem.meterWithTags(
-                  MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
-                  MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(),
-                  MetricInfo.TAG_UFS, MetricsSystem.escape(uri)));
-      if (quota == -1 || quota > ufsBytesReadThroughput.getMeanRate()) {
-        // submit read
-        try {
-          mUfsIoExecutor.submit(task);
-          return;
-        } catch (RejectedExecutionException e) {
-          // or throw error?
+    while (!Thread.currentThread().isInterrupted()) {
+      ReadTask task = null;
+      try {
+        task = mReadQueue.take();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      if (task != null) {
+        int quota = mThroughputQuota.getOrDefault(task.getOptions().getUser(), -1);
+        Meter ufsBytesReadThroughput = mUfsBytesReadThroughputMetrics.computeIfAbsent(
+            mUfsClient.getUfsMountPointUri(),
+            uri -> MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
+                MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(),
+                MetricInfo.TAG_UFS, MetricsSystem.escape(uri)));
+        if (quota == -1 || quota > ufsBytesReadThroughput.getMeanRate()) {
+          try {
+            mUfsIoExecutor.submit(task);
+            return;
+          } catch (RejectedExecutionException e) {
+            // or throw error?
+            mReadQueue.add(task);
+          }
+        } else { // resubmit to queue
           mReadQueue.add(task);
         }
-      } else { // resubmit to queue
-        mReadQueue.add(task);
       }
     }
   }
 
+  /**
+   * read
+   * @param blockMeta
+   * @param offset
+   * @param length
+   * @param positionShort
+   * @param options
+   * @return
+   * @throws IOException
+   */
   public CompletableFuture<byte[]> read(UnderFileSystemBlockMeta blockMeta, long offset,
       long length, boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
 
@@ -106,6 +143,8 @@ public class UfsIOManager {
 
     return future;
   }
+
+
 
   private class ReadTask implements Runnable {
     private final Protocol.OpenUfsBlockOptions mOptions;
