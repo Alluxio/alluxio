@@ -74,9 +74,6 @@ public final class MountTable implements DelegatingJournaled {
 
   public static final String ROOT = "/";
 
-  private final TrieNode<String> mMountPointTrieNodeRoot =
-      new TrieNode<>();
-
   private final Lock mReadLock;
   private final Lock mWriteLock;
 
@@ -240,9 +237,9 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * Unmounts the given Alluxio path. The path should match an existing mount point.
    *
-   * @param journalContext    journal context
+   * @param journalContext journal context
    * @param alluxioLockedPath an Alluxio Locked Path
-   * @param checkNestedMount  whether to check nested mount points before delete
+   * @param checkNestedMount whether to check nested mount points before delete
    * @return whether the operation succeeded or not
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
@@ -459,13 +456,11 @@ public final class MountTable implements DelegatingJournaled {
    * Returns the mount points under the specified path.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
-   * @param containsSelf if the given uri itself can be a mount point and included in
-   *                               the return
+   * @param containsSelf if the given uri itself can be a mount point and included in the return
    * @return the mount points found
    */
   public List<MountInfo> findChildrenMountPoints(LockedInodePath alluxioLockedInodePath,
-                                                 boolean containsSelf)
-      throws InvalidPathException {
+      boolean containsSelf) throws InvalidPathException {
     AlluxioURI uri = alluxioLockedInodePath.getUri();
     String path = uri.getPath();
     List<MountInfo> childrenMountPoints = new ArrayList<>();
@@ -567,6 +562,9 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(LockedInodePath alluxioLockedInodePath) throws InvalidPathException {
+    if(!alluxioLockedInodePath.fullPathExists()) {
+      return resolve(alluxioLockedInodePath.getUri(), new ArrayList<>());
+    }
     return resolve(alluxioLockedInodePath.getUri(), alluxioLockedInodePath.getInodeViewList());
   }
 

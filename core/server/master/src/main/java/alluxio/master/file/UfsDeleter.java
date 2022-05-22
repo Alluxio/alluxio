@@ -27,6 +27,6 @@ public interface UfsDeleter {
    * @param alluxioLockedInodePath Alluxio path to delete
    * @param inode to delete
    */
-  void delete(LockedInodePath alluxioLockedInodePath, Inode inode) throws IOException,
-      InvalidPathException;
+  void delete(LockedInodePath alluxioLockedInodePath, Inode inode)
+      throws IOException, InvalidPathException;
 }

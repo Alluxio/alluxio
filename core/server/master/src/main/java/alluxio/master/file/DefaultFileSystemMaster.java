@@ -2166,7 +2166,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Therefore, we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
         if (bypassPermCheck) {
-          // TODO(Jiadong): why not directly call getAlluxioUri()?
           inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
         } else {
           try {
@@ -2989,7 +2988,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             break;
           }
         }
-        // TODO(Jiadong): discuss it
         while (!sameMountDirs.empty()) {
           InodeDirectory dir = sameMountDirs.pop();
           if (!dir.isPersisted()) {
@@ -4332,7 +4330,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Lookup relevant file information.
       AlluxioURI uri;
       String tempUfsPath;
-      // TODO(Jiadong): can this implementation avoid variable release?
       MountTable.Resolution resolution;
       try (LockedInodePath inodePath
                = mInodeTree.lockFullInodePath(
@@ -4895,6 +4892,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   /**
    * Check if the specified operation type is allowed to the ufs based on inodes.
+   *
    * @param uri alluxio uri of target alluxioPath
    * @param inodes list of inodes of target alluxioPath
    * @param opType the operation type
