@@ -459,7 +459,7 @@ In order to configure the Alluxio Master pod for use, you will need to format th
 
 #### Format Journal
 
-The master Pods in the StatefulSet use a `initContainer` to format the journal on startup.
+The master Pods in the StatefulSet use an `initContainer` to format the journal on startup.
 This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
@@ -769,7 +769,7 @@ The command above allocates a port on the local node `<local-port>` and forwards
 on `<local-port>` to port 19999 of pod `alluxio-master-$i`.
 The pod `alluxio-master-$i` does NOT have to be on the node you are running this command.
 
-> Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+> Note: `i=0` for the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
 
 For example, you are on a node with hostname `master-node-1` and you would like to serve
@@ -1163,11 +1163,11 @@ containers:
 
 Short-circuit access enables clients to perform read and write operations directly against the
 worker bypassing the networking interface.
-For performance-critical applications it is recommended to enable short-circuit operations
+For performance-critical applications, it is recommended to enable short-circuit operations
 against Alluxio because it can increase a client's read and write throughput when co-located with
 an Alluxio worker.
 
-This feature is enabled by default (see next section to disable this feature), however requires extra configuration to work properly in
+This feature is enabled by default (see next section to disable this feature), however, it requires extra configuration to work properly in
 Kubernetes environments.
 
 There are two modes for using short-circuit.
@@ -1285,7 +1285,7 @@ You can also directly define the workers to use a `hostPath Volume` for domain s
 {% navtabs domainSocketHostPath %}
 {% navtab helm %}
 
-You can switch to directly use a `hostPath` volume for the domain socket.
+You can switch to directly using a `hostPath` volume for the domain socket.
 This is done by changing the `shortCircuit.volumeType` field to `hostPath`.
 Note that you also need to define the path to use for the `hostPath` volume.
 
