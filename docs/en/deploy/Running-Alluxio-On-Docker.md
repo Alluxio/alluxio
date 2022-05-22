@@ -35,7 +35,7 @@ with Alluxio Master RPC processes.
 with Alluxio Worker RPC processes.
 + 30000 for the IP address of your browser:  Allow you to access the Alluxio worker web UI.
 
-To set up Docker after provisioning the instance, which will be referred as the Docker Host, run
+To set up Docker after provisioning the instance, which will be referred to as the Docker Host, run
 
 ```console
 $ sudo yum install -y docker
@@ -345,7 +345,7 @@ $ docker run -d \
   alluxio master
 ```
 
-Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
+Set the master rpc addresses for all the workers so that they can query the master nodes to find out the leader master.
 
 ```console
 $ docker run -d \
