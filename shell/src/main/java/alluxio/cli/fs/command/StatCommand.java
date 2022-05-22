@@ -64,9 +64,10 @@ public final class StatCommand extends AbstractFileSystemCommand {
             .desc("format")
             .build()
     ).addOption(
-        Option.builder("fileId")
+        Option.builder()
+            .longOpt("file-id")
             .required(false)
-            .desc("fileId")
+            .desc("specify a file by file-id")
             .build()
     );
   }
@@ -102,11 +103,13 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path;
-    if (cl.hasOption("fileId")) {
+    if (cl.hasOption("file-id")) {
+      long fileId = Long.parseLong(args[0]);
       try (CloseableResource<FileSystemMasterClient> client =
           mFsContext.acquireMasterClientResource()) {
-        path = new AlluxioURI(client.get().getFilePath(Long.parseLong(args[0])));
+        path = new AlluxioURI(client.get().getFilePath(fileId));
       }
+      System.out.println("The specified file ID " + fileId + " is " + path);
     } else {
       path = new AlluxioURI(args[0]);
     }
