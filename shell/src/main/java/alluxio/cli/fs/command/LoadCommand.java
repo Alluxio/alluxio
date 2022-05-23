@@ -118,15 +118,12 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         System.out.println(filePath + " already in Alluxio fully");
         return;
       }
-      if (!runLoadTask(filePath, status, local)) {
-        System.out.println(filePath + " load failed");
-        return;
-      }
+      runLoadTask(filePath, status, local);
     }
     System.out.println(filePath + " loaded");
   }
 
-  private boolean runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
+  private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
       throws IOException {
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
     OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
@@ -147,11 +144,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
-      if (!cacheBlock(blockId, dataSource, status, openUfsBlockOptions)) {
-        return false;
-      }
+      cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
-    return true;
   }
 
   @Override
@@ -169,7 +163,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
-  private boolean cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
+  private void cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
       Protocol.OpenUfsBlockOptions options) {
     BlockInfo info = status.getBlockInfo(blockId);
     long blockLength = info.getLength();
@@ -188,8 +182,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     } catch (Exception e) {
       throw new RuntimeException(String.format("Failed to complete cache request for block %d of file %s: %s", blockId,
           status.getPath(), e), e);
-     }
-     return true;
     }
   }
 }
