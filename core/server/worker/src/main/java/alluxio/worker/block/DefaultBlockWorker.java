@@ -25,10 +25,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
@@ -289,29 +287,19 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+  public void abortBlock(long sessionId, long blockId) throws IOException {
     mLocalBlockStore.abortBlock(sessionId, blockId);
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
-    OptionalLong lockId = OptionalLong.empty();
-    try {
-      lockId = OptionalLong.of(mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate));
-    } catch (BlockAlreadyExistsException e) {
-      LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
-          + "failure, therefore ignore the exception", blockId, e);
-    }
+      throws IOException {
+    OptionalLong lockId = OptionalLong.of(
+        mLocalBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate));
 
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
-    if (!lockId.isPresent()) {
-      lockId = mLocalBlockStore.pinBlock(sessionId, blockId);
-    }
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       BlockMeta meta = mLocalBlockStore.getVolatileBlockMeta(blockId).get();
@@ -345,7 +333,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public String createBlock(long sessionId, long blockId, int tier,
       CreateBlockOptions createBlockOptions)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     String tierAlias = WORKER_STORAGE_TIER_ASSOC.getAlias(tier);
     if (Strings.isNullOrEmpty(createBlockOptions.getMedium())) {
@@ -375,8 +363,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException {
+      throws IOException {
     return mLocalBlockStore.createBlockWriter(sessionId, blockId);
   }
 
@@ -408,11 +395,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
       return new DelegatingBlockReader(reader, () -> {
-        try {
-          closeUfsBlock(sessionId, blockId);
-        } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
-          throw new IOException(e);
-        }
+        closeUfsBlock(sessionId, blockId);
       });
     } catch (Exception e) {
       try {
@@ -428,13 +411,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+      throws IOException {
     mLocalBlockStore.removeBlock(sessionId, blockId);
   }
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     mLocalBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 
@@ -473,26 +456,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @throws BlockAlreadyExistsException if it fails to commit the block to Alluxio block store
-   *         because the block exists in the Alluxio block store
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   *         UFS block store
-   * @throws WorkerOutOfSpaceException the the worker does not have enough space to commit the block
    */
   @VisibleForTesting
   public void closeUfsBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws IOException {
     try {
       mUnderFileSystemBlockStore.close(sessionId, blockId);
       if (mLocalBlockStore.hasTempBlockMeta(blockId)) {
         try {
           commitBlock(sessionId, blockId, false);
-        }
-        catch (BlockDoesNotExistException e) {
-          // This can only happen if the session is expired. Ignore this exception if that happens.
-          LOG.warn("Block {} does not exist while being committed.", blockId);
-        }
-        catch (InvalidWorkerStateException e) {
+        } catch (IllegalStateException e) {
           // This can happen if there are multiple sessions writing to the same block.
           // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
           // the sessionId.

@@ -11,12 +11,12 @@
 
 package alluxio.worker.block.meta;
 
+import static com.google.common.base.Preconditions.checkState;
+
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
@@ -98,13 +98,11 @@ public final class DefaultStorageDir implements StorageDir {
    * @param dirPath filesystem path of this dir for actual storage
    * @param dirMedium the medium type of the storage dir
    * @return the new created {@link StorageDir}
-   * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
    * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
       long reservedBytes, String dirPath, String dirMedium)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException,
-      InvalidPathException {
+      throws IOException, WorkerOutOfSpaceException {
     DefaultStorageDir dir =
         new DefaultStorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
     dir.initializeMeta();
@@ -121,11 +119,9 @@ public final class DefaultStorageDir implements StorageDir {
    * {@link DefaultBlockMeta#commitPath(StorageDir, long)} are legal, should be in format like
    * {dir}/{blockId}. other paths will be deleted.
    *
-   * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
    * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
-  private void initializeMeta() throws BlockAlreadyExistsException, IOException,
-      WorkerOutOfSpaceException, InvalidPathException {
+  private void initializeMeta() throws IOException, WorkerOutOfSpaceException {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
         ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
@@ -234,8 +230,7 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException {
+  public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException {
     Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
@@ -244,30 +239,25 @@ public final class DefaultStorageDir implements StorageDir {
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
           blockSize, getAvailableBytes(), blockMeta.getBlockLocation().tierAlias());
     }
-    if (hasBlockMeta(blockId)) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, blockMeta
-          .getBlockLocation().tierAlias());
-    }
+    checkState(!hasBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(
+        blockId, blockMeta.getBlockLocation().tierAlias()));
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
   }
 
   @Override
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
-    if (getAvailableBytes() + getReservedBytes() < blockSize) {
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias());
-    }
-    if (hasTempBlockMeta(blockId)) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId,
-          tempBlockMeta.getBlockLocation().tierAlias());
-    }
+    checkState(getAvailableBytes() + getReservedBytes() >= blockSize,
+        ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(blockId,
+            blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias()));
+    checkState(!hasTempBlockMeta(blockId),
+        ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(
+            blockId, tempBlockMeta.getBlockLocation().tierAlias()));
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
@@ -290,20 +280,18 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
+  public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) {
     Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     final long blockId = tempBlockMeta.getBlockId();
     final long sessionId = tempBlockMeta.getSessionId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
-    if (deletedTempBlockMeta == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
-    }
+    checkState(deletedTempBlockMeta != null,
+        ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId));
     Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
-    if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId,
-          mTier.getTierAlias(), sessionId);
-    }
-    Preconditions.checkState(sessionBlocks.remove(blockId));
+    checkState(sessionBlocks != null && sessionBlocks.remove(blockId),
+        ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION.getMessage(blockId, mTier.getTierAlias(),
+            sessionId));
     if (sessionBlocks.isEmpty()) {
       mSessionIdToTempBlockIdsMap.remove(sessionId);
     }
@@ -379,7 +367,7 @@ public final class DefaultStorageDir implements StorageDir {
   private void reclaimSpace(long size, boolean committed) {
     mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
       long newAvailableBytes = oldAvailableBytes + size;
-      Preconditions.checkState(mCapacityBytes >= newAvailableBytes,
+      checkState(mCapacityBytes >= newAvailableBytes,
               "Available bytes should always be less than total capacity bytes");
       return newAvailableBytes;
     });
@@ -390,7 +378,7 @@ public final class DefaultStorageDir implements StorageDir {
 
   private void reserveSpace(long size, boolean committed) {
     mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
-      Preconditions.checkState(size <= oldAvailableBytes + getReservedBytes(),
+      checkState(size <= oldAvailableBytes + getReservedBytes(),
               "Available bytes should always be non-negative");
       return oldAvailableBytes - size;
     });

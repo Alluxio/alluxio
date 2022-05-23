@@ -26,7 +26,6 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.proto.dataserver.Protocol;
@@ -107,8 +106,7 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 0,
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     mBlockWorker.abortBlock(sessionId, blockId);
-    assertThrows(BlockDoesNotExistException.class,
-        () -> mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId));
+    assertFalse(mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).isPresent());
   }
 
   @Test
@@ -161,7 +159,7 @@ public class DefaultBlockWorkerTest {
         new CreateBlockOptions(null, Constants.MEDIUM_MEM, 1));
     try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
       blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
-      TempBlockMeta meta = mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId);
+      TempBlockMeta meta = mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).get();
       assertEquals(Constants.MEDIUM_MEM, meta.getBlockLocation().mediumType());
     }
     mBlockWorker.abortBlock(sessionId, blockId);
@@ -239,15 +237,15 @@ public class DefaultBlockWorkerTest {
     mBlockWorker.createBlock(sessionId, blockId, 1, new CreateBlockOptions(null, "", initialBytes));
     mBlockWorker.requestSpace(sessionId, blockId, additionalBytes);
     assertEquals(initialBytes + additionalBytes,
-        mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).getBlockSize());
+        mBlockWorker.getLocalBlockStore().getTempBlockMeta(blockId).get().getBlockSize());
   }
 
   @Test
-  public void requestSpaceNoBlock() throws Exception {
+  public void requestSpaceNoBlock() {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = 1;
-    assertThrows(BlockDoesNotExistException.class,
+    assertThrows(IllegalStateException.class,
         () -> mBlockWorker.requestSpace(sessionId, blockId, additionalBytes)
     );
   }

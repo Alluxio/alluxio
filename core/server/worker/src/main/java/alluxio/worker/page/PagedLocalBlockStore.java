@@ -16,9 +16,7 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -93,7 +91,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -103,14 +101,13 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
+      throws IOException {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -123,8 +120,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
+      throws IOException {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -137,8 +133,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void abortBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException {
+      throws IOException {
     // TODO(bowen): implement actual abortion and replace placeholder values
     boolean blockAborted = true;
     if (blockAborted) {
@@ -153,7 +148,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual space allocation and replace placeholder values
     boolean blockEvicted = true;
     if (blockEvicted) {
@@ -171,8 +166,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException {
+      throws IOException {
     return null;
   }
 
@@ -191,8 +185,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual move and replace placeholder values
     BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
@@ -205,8 +198,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, IOException {
+  public void removeBlock(long sessionId, long blockId) throws IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
     // TODO(bowen): implement actual removal and replace placeholder values
     boolean removeSuccess = true;
@@ -222,7 +214,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+  public void accessBlock(long sessionId, long blockId) {
     // TODO(bowen): implement actual access and replace placeholder values
     boolean blockExists = true;
     if (blockExists) {
