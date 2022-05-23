@@ -14,31 +14,19 @@ package alluxio.cli.table.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.cli.fs.command.AbstractDistributedJobCommand;
 import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.table.common.CatalogPathUtils;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
