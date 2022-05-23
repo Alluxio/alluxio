@@ -93,6 +93,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -260,9 +261,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         "The cluster addresses (%s) must contain the local master address (%s)",
         clusterAddresses, localAddress);
 
-    mPath = new File(path.getPath());
-    mLocalAddress = localAddress;
-    mClusterAddresses = clusterAddresses;
+    mPath = new File(Objects.requireNonNull(path).getPath());
+    mLocalAddress = Objects.requireNonNull(localAddress);
+    mClusterAddresses = Objects.requireNonNull(clusterAddresses);
   }
 
   private void maybeMigrateOldJournal() {

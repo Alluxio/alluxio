@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -39,6 +40,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
+  // How long to wait for a response from the cluster before giving up and trying again.
+  private static final long MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
+      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
+  private static final long MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+  // journal entry size max is the hard limit set by underlying ratis
+  // we use a smaller value to guarantee we don't pass the hard limit
+  private static final long FLUSH_BATCH_SIZE = MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX / 3;
 
   private final AtomicLong mNextSequenceNumberToWrite;
   private final AtomicLong mLastSubmittedSequenceNumber = new AtomicLong(-1);
@@ -58,7 +67,7 @@ public class RaftJournalWriter implements JournalWriter {
   public RaftJournalWriter(long nextSequenceNumberToWrite, RaftJournalAppender client) {
     LOG.debug("Journal writer created starting at SN#{}", nextSequenceNumberToWrite);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
-    mClient = client;
+    mClient = Objects.requireNonNull(client);
   }
 
   @Override
@@ -68,10 +77,7 @@ public class RaftJournalWriter implements JournalWriter {
     }
     Preconditions.checkState(entry.getAllFields().size() <= 2,
         "Raft journal entries should never set multiple fields, but found %s", entry);
-    // journal entry size max is the hard limit set by underlying ratis
-    // we use a smaller value to guarantee we don't pass the hard limit
-    if (mCurrentJournalEntrySize.get()
-        > ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX) / 3) {
+    if (mCurrentJournalEntrySize.get() > FLUSH_BATCH_SIZE) {
       flush();
     }
     if (mJournalEntryBuilder == null) {
@@ -82,11 +88,10 @@ public class RaftJournalWriter implements JournalWriter {
     mJournalEntryBuilder.addJournalEntries(entry.toBuilder()
         .setSequenceNumber(mNextSequenceNumberToWrite.getAndIncrement()).build());
     long size = entry.getSerializedSize();
-    long entrySizeMax =
-        ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
-    if (size > entrySizeMax) {
+    if (size > MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX) {
       LOG.error("Journal entry size ({}) is bigger than the max allowed size ({}) defined by {}",
-          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(entrySizeMax),
+          FormatUtils.getSizeFromBytes(size),
+          FormatUtils.getSizeFromBytes(MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX),
           PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.getName());
     }
     mCurrentJournalEntrySize.addAndGet(size);
@@ -99,8 +104,6 @@ public class RaftJournalWriter implements JournalWriter {
     }
     if (mJournalEntryBuilder != null) {
       long flushSN = mNextSequenceNumberToWrite.get() - 1;
-      final long writeTimeoutMs =
-          ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
       try {
         // It is ok to submit the same entries multiple times because we de-duplicate by sequence
         // number when applying them. This could happen if submit fails and we re-submit the same
@@ -110,7 +113,7 @@ public class RaftJournalWriter implements JournalWriter {
         mLastSubmittedSequenceNumber.set(flushSN);
         LOG.trace("Flushing entry {} ({})", entry, message);
         RaftClientReply reply = mClient.sendAsync(message)
-            .get(writeTimeoutMs, TimeUnit.MILLISECONDS);
+            .get(MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT, TimeUnit.MILLISECONDS);
         if (reply.getException() != null) {
           throw reply.getException();
         }
@@ -123,7 +126,7 @@ public class RaftJournalWriter implements JournalWriter {
       } catch (TimeoutException e) {
         throw new IOException(String.format(
             "Timed out after waiting %s milliseconds for journal entries to be processed",
-            writeTimeoutMs), e);
+            MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT), e);
       }
       mJournalEntryBuilder = null;
     }

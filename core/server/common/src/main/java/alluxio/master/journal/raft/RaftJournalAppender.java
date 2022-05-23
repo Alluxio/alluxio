@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
@@ -36,6 +37,8 @@ import java.util.function.Supplier;
  */
 public class RaftJournalAppender implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalAppender.class);
+  private static final boolean MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
+      ServerConfiguration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
   /** Hosting server for the appender. Used by default for appending log entries. */
   private final RaftServer mServer;
   /** local client ID, provided along with hosting server.  */
@@ -51,9 +54,9 @@ public class RaftJournalAppender implements Closeable {
    */
   public RaftJournalAppender(RaftServer server, Supplier<RaftClient> clientSupplier,
       ClientId localClientId) {
-    mServer = server;
-    mClientSupplier = clientSupplier;
-    mLocalClientId = localClientId;
+    mServer = Objects.requireNonNull(server, "RaftServer is null");
+    mClientSupplier = Objects.requireNonNull(clientSupplier, "clientSupplier is null");
+    mLocalClientId = Objects.requireNonNull(localClientId, "clientId is null");
   }
 
   /**
@@ -63,7 +66,7 @@ public class RaftJournalAppender implements Closeable {
    * @throws IOException if an exception occurred while sending the request
    */
   public CompletableFuture<RaftClientReply> sendAsync(Message message) throws IOException {
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED)) {
+    if (MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED) {
       return sendRemoteRequest(message);
     } else {
       return sendLocalRequest(message);
