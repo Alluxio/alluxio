@@ -97,7 +97,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       mStream = FuseFileInStream.create(mFileSystem, mUri,
           OpenFlags.O_RDONLY.intValue(), mStatus);
     } else if (!isRead()) {
-      throw new IOException("Alluxio does not support reading while writing");
+      throw new UnsupportedOperationException(
+          "Alluxio does not support reading while writing/truncating");
     }
     return mStream.read(buf, size, offset);
   }
@@ -108,7 +109,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       mStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
           OpenFlags.O_WRONLY.intValue(), mMode, mStatus);
     } else if (isRead()) {
-      throw new IOException("Alluxio does not support reading while writing");
+      throw new UnsupportedOperationException(
+          "Alluxio does not support reading while writing/truncating");
     }
     mStream.write(buf, size, offset);
   }
@@ -143,7 +145,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (size == 0) {
       mFileSystem.delete(mUri);
       mStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
-          OpenFlags.O_WRONLY.intValue(), mMode, mStatus);
+          OpenFlags.O_WRONLY.intValue(), mMode, null);
     }
   }
 

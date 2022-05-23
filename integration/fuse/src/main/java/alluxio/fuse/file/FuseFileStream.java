@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * This interface should be implemented by all fuse file streams.
  */
-public interface FuseFileStream {
+public interface FuseFileStream extends AutoCloseable {
   long MODE_NOT_SET = -1;
 
   /**

@@ -100,7 +100,7 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     if (mOutStream == null) {
       throw new IOException(
-          "Cannot overwrite existing file without O_TRUNC flag or truncate(0) operation");
+          "Cannot overwrite/extending existing file without O_TRUNC flag or truncate(0) operation");
     }
     int sz = (int) size;
     long bytesWritten = mOutStream.getBytesWritten();
@@ -146,7 +146,8 @@ public class FuseFileOutStream implements FuseFileStream {
       mOutStream = AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode);
       return;
     }
-    throw new IOException(String.format("Cannot truncate file %s to size %s", mURI, size));
+    throw new UnsupportedOperationException(
+        String.format("Cannot truncate file %s to size %s", mURI, size));
   }
 
   @Override
