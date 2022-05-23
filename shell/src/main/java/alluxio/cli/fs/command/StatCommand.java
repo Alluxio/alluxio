@@ -29,6 +29,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -127,18 +128,16 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public String getDescription() {
     return String.join("\n", Arrays.asList(
         "Displays info for the specified file or directory.",
-        "Specify -fileId to treat the first positional argument as a file ID.",
-        "Specify -f with a template string to display info in the given format. These format placeholders are available:",
-        "  %N: name of the file",
-        "  %z: size of file in bytes",
-        ...
-    ));
-        + "   \"%u\": owner;"
-        + "   \"%g\": group name of owner;"
-        + "   \"%y\" or \"%Y\": modification time,"
-        + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
-        + " %Y it shows milliseconds since January 1, 1970 UTC;"
-        + "   \"%b\": Number of blocks allocated for file";
+        "Specify -file-id to treat the first positional argument as a file ID.",
+        "Specify -f to display info in given format:",
+        "   \"%N\": name of the file;",
+        "   \"%z\": size of file in bytes;",
+        "   \"%u\": owner;",
+        "   \"%g\": group name of owner;",
+        "   \"%y\" or \"%Y\": modification time,",
+        " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),",
+        " %Y it shows milliseconds since January 1, 1970 UTC;",
+        "   \"%b\": Number of blocks allocated for file"));
   }
 
   @Override
