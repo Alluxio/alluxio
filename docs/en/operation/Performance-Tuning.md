@@ -38,11 +38,11 @@ The following is a checklist to run through to address common problems when tuni
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
 
-   Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to
+   Note: In order to retrieve metrics for short circuit IO, the client metrics collection needs to
    be enabled by setting `alluxio.user.metrics.collection.enabled=true` in
    `alluxio-site.properties` or corresponding application configuration.
 
-1. Is data is well-distributed across Alluxio workers?
+1. Is data well-distributed across Alluxio workers?
 
    By default, Alluxio clients will use the `LocalFirstPolicy` to write data to their local
    Alluxio worker. This is efficient for applications which write data from many nodes concurrently.
@@ -77,7 +77,7 @@ ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+Prin
    Restart the Alluxio servers and check the output in `${ALLUXIO_HOME}/logs/master.out` or
    `${ALLUXIO_HOME}/logs/worker.out` for masters and workers respectively.
 
-Also check out the [metrics system][2] for better insight in how the Alluxio service is performing.
+Also check out the [metrics system][2] for better insight into how the Alluxio service is performing.
 
 [1]: {{ '/en/api/FS-API.html' | relativize_url }}#location-policy
 [2]: {{ '/en/operation/Metrics-System.html' | relativize_url }}
@@ -119,7 +119,7 @@ When applications read directly from the UFS, multiple clients may try to read t
 of the input data simultaneously.
 For example, at the start of a SparkSQL query, all Spark executors will read the same parquet
 footer metadata.
-This potentially results in Alluxio caching the same block on every node, which is can
+This potentially results in Alluxio caching the same block on every node, which can
 waste both UFS bandwidth and Alluxio storage capacity.
 
 One way to avoid this situation is to apply a deterministic hashing policy by specifying the
@@ -231,7 +231,7 @@ If this is set to 0, the cache is disabled and the `ONCE` setting will behave li
 
 ### Metadata Sync
 
-If the content on the UFS are modified without going through Alluxio, Alluxio needs to sync its metadata with the UFS to reflect those changes in Alluxio namespace. 
+If the content on the UFS is modified without going through Alluxio, Alluxio needs to sync its metadata with the UFS to reflect those changes in Alluxio namespace. 
 The cost of metadata sync scales linearly with the number of files in the directory that is being synced. 
 If metadata sync operation happens frequently on large directories, more threads may be allocated to speed up this process. 
 Two configurations are relevant here. 
@@ -252,7 +252,7 @@ reading files.
 
 ### Async block caching
 
-When a worker requests for data from a portion of a block, the worker reads as much data as requested
+When a worker requests data from a portion of a block, the worker reads as much data as requested
 and immediately returns the requested data to the client.
 The worker will asynchronously continue to read the remainder of the block without blocking the client request.
 
@@ -264,7 +264,7 @@ This is most commonly effective in cases where the files being cached are relati
 However, increase this number sparingly, as it will consume more CPU resources on the worker node
 as the number is increased.
 
-Another important property related to async caching is `alluxio.worker.network.async.cache.manager.queue.max`. When a sudden surge of async caching traffic arrives, and Alluxio can no longer hold all the request in the queue, it will start to drop some async caching request, as async caching is strictly an performance optimization.
+Another important property related to async caching is `alluxio.worker.network.async.cache.manager.queue.max`. When a sudden surge of async caching traffic arrives, and Alluxio can no longer hold all the request in the queue, it will start to drop some async caching request, as async caching is strictly a performance optimization.
 Increase this if Alluxio drops many async cache requests.
 Monitor `Worker.AsyncCacheRequests` and `Worker.AsyncCacheSucceededBlocks` to see if the number of blocks cached matches expectations.
 
@@ -274,7 +274,7 @@ Alluxio workers use a pool of open input streams to the UFS controlled by the pa
 `alluxio.worker.ufs.instream.cache.max.size`. A high number reduces the overhead of opening a new
 stream to the UFS. However, it also places greater load on the UFS. For HDFS as the UFS, the
 parameter should be set based on `dfs.datanode.handler.count`. For instance, if the number of
-Alluxio workers matches the the number of HDFS datanodes, set
+Alluxio workers matches the number of HDFS datanodes, set
 `alluxio.worker.ufs.instream.cache.max.size=<value of HDFS setting dfs.datanode.handler.count>`
 under the assumption that the workload is spread evenly over Alluxio workers.
 
@@ -313,12 +313,12 @@ dataset is large compared to the capacity of a single Alluxio worker.
 Running with optimized commits through Alluxio can provide an order of magnitude improvement in the
 overall runtime of compute jobs.
 
-Computation frameworks that leverage the Hadoop MapReduce committer pattern (ie. Spark, Hive) are
+Computation frameworks that leverage the Hadoop MapReduce committer pattern (i.e. Spark, Hive) are
 not optimally designed for interacting with storages that provide slow renames (mainly Object
 Stores). This is most common when using stacks such as Spark on S3 or Hive on Ceph.
 
 The Hadoop MapReduce committer leverages renames to commit data from a staging directory (usually
-`output/_temporary`) to the final output directory (ie. `output`). When writing data with
+`output/_temporary`) to the final output directory (i.e. `output`). When writing data with
 `CACHE_THROUGH` or `THROUGH` this protocol translates to the following:
 1. Write temporary data to Alluxio and Object Store
     - Data is written to Alluxio storage quickly
@@ -394,7 +394,7 @@ Unexpectedly large `Cluster.BytesReadUfs` metric is observed.
 When Alluxio is going to UFS for the data, it is sacrificing performance and incurring additional cost. This is usually the biggest red flag. 
 
 Reason:
-There are many possible reasons for this. Here is a partial list to check if it is the root cause for your problem.
+There are many possible reasons for this. Here is a partial list to check if it is the root cause of your problem.
 
 1. Not enough cache space
    * Check eviction stats
