@@ -89,7 +89,7 @@ Presto coordinator’s connections.
 
 If a maximum latency of 1 second is expected at absolute peak capacity, the master would need to
 support about 11050 operations per second. The typical operation to benchmark is `getFileInfo` for
-OLAP frameworks. Note that although the number of potential concurrent clients are high, it is
+OLAP frameworks. Note that although the number of potential concurrent clients is high, it is
 unlikely for all clients to simultaneously hit the master. The steady state number of concurrent
 clients to the master is generally much lower.
 
@@ -120,7 +120,7 @@ Using the same example as the master, in a deployment with 2 users, 50 Presto wo
 * 50 (Presto workers) x 200 (task concurrency) / (50 (workers) x 0.5 (distribution)) = 400
 
 The distribution factor is an estimate of how well the data is distributed among the workers. It can
-be thought of the probability of a random worker being able to serve the data. If all the data is on
+be thought of as the probability of a random worker being able to serve the data. If all the data is on
 one node, the distribution factor is 1 / # workers, if the data is likely to be on half of the
 workers, the distribution factor is 1 / 2, and if the given dataset is likely to be on all workers,
 the distribution factor is 1.
@@ -176,7 +176,7 @@ ALLUXIO_JAVA_OPTS+=" -XX:MaxDirectMemorySize=10g "
 ### Number of Cores
 
 The Alluxio Master’s ability to handle concurrent requests and parallelize recursive operations
-(ie. full sync, check consistency) scales with the number of cores available. In addition,
+(i.e. full sync, check consistency) scales with the number of cores available. In addition,
 background processes of the Alluxio Master also require cores.
 
 Alluxio microbenchmarks, show the following operation throughput on 4vCores (r5.xlarge) on the
@@ -225,7 +225,7 @@ example, if Alluxio is run under user `alluxio`: `alluxio soft nproc 4096`.
 example, if Alluxio is run under user `alluxio`: `alluxio soft nofile 4096`.
 - User specific pid_max limit: Run command `sudo echo <new value> > /sys/fs/cgroup/pids/user.slice/user-<userid>.slice/pids.max` as root
 
-These limits are often set for the particular user that launch the Alluxio process.
+These limits are often set for the particular user that launches the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
 as set by `alluxio.master.rpc.executor.max.pool.size`.
 
@@ -399,7 +399,7 @@ The total amount of memory consumed by these two applications are roughly
 Alluxio JVM size + Presto/Spark JVM size  + System resource memory size
 Linux also needs some memory for its own kernel data structures and other system programs as well.
 So it is recommended to leave at least 10-15GB for that purpose as well.
-If the sum of these values are near the system total available memory, Out-of-memory killer may be triggered.
+If the sum of these values is near the system total available memory, Out-of-memory killer may be triggered.
 It will choose the process with the highest badness score (frequently the process using the most memory) and kill it.
 This would likely kill the Alluxio master and lead to system downtime.
 
@@ -416,7 +416,7 @@ Similar to the master's case, the total memory consumption is
 ALLUXIO_RAM_DISK_SIZE + ALLUXIO_WORKER_HEAP_SIZE + COMPUTE_WORKER_HEAP_SIZE + SYSTEM RESOURCE REQUIREMENT
 
 When the worker memory is constrained, we recommend the following prioritization.
-System resources contains file descriptor tables and thread allocations, and are limited on the workers, because workers tend to have fewer concurrent accesses compared to master. But we recommend leaving 10-15 GB at least for this purpose as well.
+System resources contain file descriptor tables and thread allocations, and are limited to the workers, because workers tend to have fewer concurrent accesses compared to master. But we recommend leaving 10-15 GB at least for this purpose as well.
 The next priority should be COMPUTE_WORKER_HEAP_SIZE.
 If the compute worker's heap is too small, some queries will simply fail.
 Unfortunately, it is difficult to know much memory a query will need unless you run it.
