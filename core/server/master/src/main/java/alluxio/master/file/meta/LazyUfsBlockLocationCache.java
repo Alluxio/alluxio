@@ -73,6 +73,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
       return locations;
     }
     try {
+      // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
       MountTable.Resolution resolution = mMountTable.resolve(fileUri, new ArrayList<>());
       String ufsUri = resolution.getUri().toString();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {

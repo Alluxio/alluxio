@@ -703,6 +703,7 @@ public class ActiveSyncManager implements Journaled {
     }
     try {
       // the init sync thread has been removed, to reestablish sync, we need to sync again
+      // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
       MountTable.Resolution resolution = mMountTable.resolve(uri, new ArrayList<>());
       startInitialFullSync(uri, resolution);
       launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);

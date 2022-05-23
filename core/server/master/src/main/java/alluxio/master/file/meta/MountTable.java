@@ -111,7 +111,9 @@ public final class MountTable implements DelegatingJournaled {
 
   /**
    * Mounts the given UFS path at the given Alluxio path. The Alluxio path should not be nested
-   * under an existing mount point.
+   * under an existing mount point. It will first check the state of MountTableTrie and the
+   * lockedPath, and call
+   * {@link MountTable#add(Supplier, List, AlluxioURI, AlluxioURI, long, MountPOptions)}.
    *
    * @param journalContext the journal context
    * @param alluxioLockedPath an Alluxio Locked Path
@@ -244,6 +246,7 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
       boolean checkNestedMount) {
+    // TODO(Jiadong): should we remove this check?
     Preconditions.checkArgument(
         !mState.getMountTableTrie().isEnabled() || alluxioLockedPath.fullPathExists());
     return delete(journalContext, alluxioLockedPath.getInodeViewList(),
@@ -336,7 +339,8 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Returns the closest ancestor mount point the given path is nested under.
+   * Returns the closest ancestor mount point the given path is nested under. It will call
+   * {@link MountTable#getMountPoint(AlluxioURI, List)}.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return mount point the given Alluxio path is nested under
@@ -348,7 +352,7 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * getMountPoint based on uri and inodeViewList, if inodeViewList is empty, then use string
+   * getMountPoint based on uri and inodeViewList, if inodeViewList is empty, then use String
    * comparison.
    *
    * @param uri target Alluxio uri
@@ -359,6 +363,8 @@ public final class MountTable implements DelegatingJournaled {
   public String getMountPoint(AlluxioURI uri, List<InodeView> inodeViewList)
       throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
+      // if MountTableTrie is enabled and inodeViewList is a non-empty list, use the Trie
+      // version of getMountPoint.
       if (mState.getMountTableTrie().isEnabled() && inodeViewList != null
           && !inodeViewList.isEmpty()) {
         return mState.getMountTableTrie().getMountPoint(inodeViewList);
@@ -367,8 +373,8 @@ public final class MountTable implements DelegatingJournaled {
         String lastMount = ROOT;
         for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
           String mount = entry.getKey();
-          // we choose a new candidate path if the previous candidatepath is a prefix
-          // of the current alluxioPath and the alluxioPath is a prefix of the path
+          // we choose a new candidate path if the previous candidate path is a prefix
+          // of the current alluxioPath and the alluxioPath is a prefix of the path.
           if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
               && PathUtils.hasPrefix(mount, lastMount)) {
             lastMount = mount;
@@ -424,6 +430,9 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
+   * Check if the given lockedInodePath has a descendant which is a mount point. It will call
+   * {@link MountTable#containsMountPoint(List, AlluxioURI, boolean)}.
+   *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @param containsSelf cause method to return true when given uri itself is a mount point
    *
@@ -431,12 +440,29 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean containsMountPoint(LockedInodePath alluxioLockedInodePath, boolean containsSelf)
       throws InvalidPathException {
+    if (alluxioLockedInodePath.fullPathExists()) {
+      return containsMountPoint(alluxioLockedInodePath.getInodeViewList(),
+          alluxioLockedInodePath.getUri(), containsSelf);
+    }
+    return containsMountPoint(new ArrayList<>(), alluxioLockedInodePath.getUri(), containsSelf);
+  }
+
+  /**
+   * Check if the given Alluxio inodes and Alluxio uri have a descendant which is a mount point.
+   * It will check the state of MountTableTrie and whether the inodes list is empty.
+   * @param alluxioInodes the target Alluxio inodes
+   * @param uri the target Alluxio uri
+   * @param containsSelf cause method to return true when given uri itself is a mount point
+   * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
+   * @throws InvalidPathException could be thrown by hasPrefix
+   */
+  public boolean containsMountPoint(List<InodeView> alluxioInodes, AlluxioURI uri,
+      boolean containsSelf) throws InvalidPathException {
     try (LockResource r = new LockResource(mReadLock)) {
-      if (mState.getMountTableTrie().isEnabled()) {
-        return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioLockedInodePath,
+      if (mState.getMountTableTrie().isEnabled() && !alluxioInodes.isEmpty()) {
+        return mState.getMountTableTrie().hasChildrenContainsMountPoints(alluxioInodes,
             containsSelf);
       } else {
-        AlluxioURI uri = alluxioLockedInodePath.getUri();
         String path = uri.getPath();
         for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
           String mountPath = entry.getKey();
@@ -466,6 +492,7 @@ public final class MountTable implements DelegatingJournaled {
     List<MountInfo> childrenMountPoints = new ArrayList<>();
 
     try (LockResource r = new LockResource(mReadLock)) {
+      // Here, we can guarantee that the alluxioLockedInodePath is fullPathExists
       if (mState.getMountTableTrie().isEnabled()) {
         List<String> mountPointsPath =
             mState.getMountTableTrie().findChildrenMountPoints(alluxioLockedInodePath,
@@ -555,7 +582,7 @@ public final class MountTable implements DelegatingJournaled {
   /**
    * Resolves the given Alluxio path. If the given Alluxio path is nested under a mount point, the
    * resolution maps the Alluxio path to the corresponding UFS path. Otherwise, the resolution is a
-   * no-op.
+   * no-op. It will call {@link MountTable#resolve(AlluxioURI, List)}.
    *
    * @param alluxioLockedInodePath an Alluxio LockedInodePath
    * @return the {@link Resolution} representing the UFS path
@@ -620,7 +647,6 @@ public final class MountTable implements DelegatingJournaled {
       throws InvalidPathException, AccessControlException {
     try (LockResource r = new LockResource(mReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
-
       String mountPoint = getMountPoint(alluxioLockedInodePath);
       MountInfo mountInfo = mState.getMountTable().get(mountPoint);
       if (mountInfo.getOptions().getReadOnly()) {
@@ -851,7 +877,7 @@ public final class MountTable implements DelegatingJournaled {
      */
     public void addMountPoint(AlluxioURI uri, List<InodeView> inodes) {
       Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
-      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode =
           mRootTrieNode.insert(inodes, true);
@@ -864,7 +890,7 @@ public final class MountTable implements DelegatingJournaled {
      */
     public void removeMountPoint(List<InodeView> inodes) {
       Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
-      Preconditions.checkArgument(isTrieEnable());
+      Preconditions.checkArgument(isEnabled());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode =
           mRootTrieNode.remove(inodes, n -> n.isTerminal() && n.isMountPoint());
@@ -931,17 +957,6 @@ public final class MountTable implements DelegatingJournaled {
         mountPoints.add(mMountPointTrieTable.get(node));
       }
       return mountPoints;
-    }
-
-    /**
-     * Checks if the given path contains children paths that are mountPoint.
-     * @param path the target path
-     * @param isContainSelf true if the search targets will include the given path
-     * @return true if the target path contains at least one mountPoint
-     */
-    public boolean hasChildrenContainsMountPoints(LockedInodePath path, boolean isContainSelf) {
-      Preconditions.checkArgument(path.fullPathExists());
-      return hasChildrenContainsMountPoints(path.getInodeViewList(), isContainSelf);
     }
 
     /**

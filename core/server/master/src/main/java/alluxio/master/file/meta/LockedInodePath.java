@@ -566,16 +566,19 @@ public class LockedInodePath implements Closeable {
     if (fullPathExists() && potentialPrefix.fullPathExists()) {
       List<InodeView> currentInodes = getInodeViewList();
       List<InodeView> targetInodes = potentialPrefix.getInodeViewList();
+      // potentialPrefix clearly need to be shorter than or equal to the current path.
       if (currentInodes.size() < targetInodes.size()) {
         return false;
       }
       for (int i = 0; i < targetInodes.size(); i++) {
+        // once there is a difference on inodeId, return false.
         if (currentInodes.get(i).getId() != targetInodes.get(i).getId()) {
           return false;
         }
       }
       return true;
     }
+    // if lockedPaths cannot guarantee the fullPathExists, call PathUtils.hasPrefix.
     return PathUtils.hasPrefix(getUri().getPath(), potentialPrefix.getUri().getPath());
   }
 
