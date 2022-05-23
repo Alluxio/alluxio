@@ -30,7 +30,7 @@ existing S3 workloads to use Alluxio.
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
 before being completed.
-Alluxio provides users two different Filesystem APIs to access the same file system:
+Alluxio provides users with two different Filesystem APIs to access the same file system:
 
 1. [Alluxio file system API](#alluxio-java-api) and
 1. [Hadoop compatible file system API](#hadoop-compatible-java-client)
@@ -60,8 +60,8 @@ Alternatively, an application can also depend on the `alluxio-core-client-fs` ar
 the [Alluxio file system interface](#alluxio-java-api)
 or the `alluxio-core-client-hdfs` artifact for the
 [Hadoop compatible file system interface](#hadoop-compatible-java-client) of Alluxio.
-These two artifacts do not include transitive dependencies and therefore much smaller in size,
-also both included in `alluxio-shaded-client` artifact.
+These two artifacts do not include transitive dependencies and therefore much smaller in size.
+They also both include in `alluxio-shaded-client` artifact.
 
 ### Alluxio Java API
 
@@ -303,7 +303,7 @@ For additional API information, please refer to the
 ### Hadoop-Compatible Java Client
 
 On top of [Alluxio file system](#java-client), Alluxio also has a convenience class
-`alluxio.hadoop.FileSystem` to provide applications a
+`alluxio.hadoop.FileSystem` to provide applications with a
 [Hadoop compatible `FileSystem` interface](https://cwiki.apache.org/confluence/display/HADOOP2/HCFS).
 This client translates Hadoop file operations to Alluxio file system operations,
 allowing users to reuse previous code written for Hadoop without modification.
