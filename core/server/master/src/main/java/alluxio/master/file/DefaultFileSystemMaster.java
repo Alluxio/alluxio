@@ -4885,7 +4885,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param alluxioPath the Alluxio path
    * @param opType the operation type
    */
-  private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
+  private void checkUfsMode(LockedInodePath alluxioPath, OperationType opType)
       throws AccessControlException, InvalidPathException {
     checkUfsMode(alluxioPath.getUri(), alluxioPath.getInodeViewList(), opType);
   }

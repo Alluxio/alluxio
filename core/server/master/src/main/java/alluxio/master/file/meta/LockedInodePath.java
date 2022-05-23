@@ -556,6 +556,29 @@ public class LockedInodePath implements Closeable {
     mLockList.lockInode(mRoot, inodeLock);
   }
 
+  /**
+   * Checks if the given inode path is the prefix of current path.
+   * @param potentialPrefix the target inode path
+   * @return true if the given path is the prefix
+   * @throws InvalidPathException could be thrown by PathUtils.hasPrefix
+   */
+  public boolean hasPrefix(LockedInodePath potentialPrefix) throws InvalidPathException {
+    if (fullPathExists() && potentialPrefix.fullPathExists()) {
+      List<InodeView> currentInodes = getInodeViewList();
+      List<InodeView> targetInodes = potentialPrefix.getInodeViewList();
+      if (currentInodes.size() < targetInodes.size()) {
+        return false;
+      }
+      for (int i = 0; i < targetInodes.size(); i++) {
+        if (currentInodes.get(i).getId() != targetInodes.get(i).getId()) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return PathUtils.hasPrefix(getUri().getPath(), potentialPrefix.getUri().getPath());
+  }
+
   @Override
   public void close() {
     try {
