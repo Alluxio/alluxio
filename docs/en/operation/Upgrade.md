@@ -19,7 +19,7 @@ There are two cases where master journals are not backward compatible and additi
 This document goes over how to upgrade Alluxio to a non-backward compatible version.
 Even when upgrading to a backward-compatible version, it is still recommended to follow the steps below to create a backup before upgrading.
 
-## Create a backup on the current version
+## Create a backup of the current version
 
 alluxio-1.8.1 introduced a journal backup feature. 
 Please note that the Alluxio binaries should not be changed before taking the backup.
@@ -75,7 +75,7 @@ $ ./bin/alluxio-stop.sh workers -c ${CACHE_PATH}
 ```
 - **WARNING:** This will overwrite and replace any existing contents in the provided `${CACHE_PATH}`
 
-Afterwards, use the `-c` flag with `alluxio-start.sh` to specify the directory containing
+Afterward, use the `-c` flag with `alluxio-start.sh` to specify the directory containing
 the workers' ramdisk caches.
 ```
 $ ./bin/alluxio-start.sh workers NoMount -c ${CACHE_PATH}
