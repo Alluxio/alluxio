@@ -30,6 +30,7 @@ import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
@@ -91,6 +92,7 @@ public class RocksInodeStore implements InodeStore {
    */
   public RocksInodeStore(String baseDir) {
     RocksDB.loadLibrary();
+    // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
     mIteratorOption = new ReadOptions().setTotalOrderSeek(true)
@@ -106,14 +108,13 @@ public class RocksInodeStore implements InodeStore {
         OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
             PropertyKey.ROCKS_INODE_CONF_FILE), Env.getDefault(), opts, columns, false);
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        throw new IllegalArgumentException(e);
       }
-      if (columns.size() != 3
-          || !new String(columns.get(1).getName()).equals(INODES_COLUMN)
-          || !new String(columns.get(2).getName()).equals(EDGES_COLUMN)) {
-        throw new RuntimeException(String.format("Invalid RocksDB inode store table configuration,"
-            + "expected 3 columns, default, %s, and %s", INODES_COLUMN, EDGES_COLUMN));
-      }
+      Preconditions.checkArgument(columns.size() == 3
+              && new String(columns.get(1).getName()).equals(INODES_COLUMN)
+              && new String(columns.get(2).getName()).equals(EDGES_COLUMN),
+          String.format("Invalid RocksDB inode store table configuration,"
+              + "expected 3 columns, default, %s, and %s", INODES_COLUMN, EDGES_COLUMN));
       // Remove the default column as it is created in RocksStore
       columns.remove(0).getOptions().close();
     } else {

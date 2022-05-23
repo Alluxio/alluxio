@@ -24,6 +24,7 @@ import alluxio.resource.CloseableIterator;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
@@ -85,6 +86,7 @@ public class RocksBlockStore implements BlockStore {
    */
   public RocksBlockStore(String baseDir) {
     RocksDB.loadLibrary();
+    // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
     mIteratorOption = new ReadOptions()
@@ -100,15 +102,14 @@ public class RocksBlockStore implements BlockStore {
             PropertyKey.ROCKS_BLOCK_CONF_FILE), Env.getDefault(), opts, columns,
             false);
       } catch (RocksDBException e) {
-        throw new RuntimeException(e);
+        throw new IllegalArgumentException(e);
       }
-      if (columns.size() != 3
-          || !new String(columns.get(1).getName()).equals(BLOCK_META_COLUMN)
-          || !new String(columns.get(2).getName()).equals(BLOCK_LOCATIONS_COLUMN)) {
-        throw new RuntimeException(String.format("Invalid RocksDB block store table configuration,"
-            + "expected 3 columns, default, %s, and %s",
-            BLOCK_META_COLUMN, BLOCK_LOCATIONS_COLUMN));
-      }
+      Preconditions.checkArgument(columns.size() == 3
+              && new String(columns.get(1).getName()).equals(BLOCK_META_COLUMN)
+              && new String(columns.get(2).getName()).equals(BLOCK_LOCATIONS_COLUMN),
+          String.format("Invalid RocksDB block store table configuration,"
+                  + " expected 3 columns, default, %s, and %s",
+              BLOCK_META_COLUMN, BLOCK_LOCATIONS_COLUMN));
       // Remove the default column as it is created in RocksStore
       columns.remove(0).getOptions().close();
     } else {
