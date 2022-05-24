@@ -83,6 +83,7 @@ class InodeBenchBase {
     mRegistry.stop();
     mBlockMaster.close();
     mInodeLockManager.close();
+    mInodeStore.clear();
     mInodeStore.close();
   }
 

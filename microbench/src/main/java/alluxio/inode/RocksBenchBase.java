@@ -42,6 +42,7 @@ public class RocksBenchBase {
   }
 
   void after() {
+    mRocksInodeStore.clear();
     mRocksInodeStore.close();
   }
 
