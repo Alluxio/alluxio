@@ -20,7 +20,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,7 +70,7 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    List<BlockWorkerInfo> allWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
+    List<BlockWorkerInfo> allWorkers = options.getBlockWorkerInfos();
     // Prefer workers with enough availability.
     List<BlockWorkerInfo> workers = allWorkers.stream()
         .filter(worker -> getAvailableBytes(worker) >= options.getBlockInfo().getLength())

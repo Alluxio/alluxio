@@ -5604,6 +5604,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey
+      USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES =
+      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES)
+          .setDefaultValue(2000)
+          .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
+              + "alluxio.client.block.policy.ConsistentHashPolicy, this specifies the number of "
+              + "virtual nodes")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
       intBuilder(Name.USER_UFS_BLOCK_READ_CONCURRENCY_MAX)
           .setDefaultValue(Integer.MAX_VALUE)
@@ -7428,6 +7438,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
+    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CONSISTENT_HASH_VIRTUAL_NODES =
+        "alluxio.user.ufs.block.read.location.policy.consistent.hash.virtual.nodes";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =

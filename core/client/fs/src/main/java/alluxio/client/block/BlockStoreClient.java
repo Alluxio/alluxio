@@ -40,7 +40,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -342,7 +341,7 @@ public final class BlockStoreClient {
 
     // Select N workers on different hosts where N is the value of initialReplicas for this block
     List<WorkerNetAddress> workerAddressList = new ArrayList<>();
-    List<BlockWorkerInfo> updatedInfos = Lists.newArrayList(workerOptions.getBlockWorkerInfos());
+    List<BlockWorkerInfo> updatedInfos = workerOptions.getBlockWorkerInfos();
     for (int i = 0; i < initialReplicas; i++) {
       address = locationPolicy.getWorker(workerOptions);
       if (address == null) {

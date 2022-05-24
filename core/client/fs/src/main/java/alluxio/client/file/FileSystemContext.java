@@ -11,7 +11,7 @@
 
 package alluxio.client.file;
 
-import static java.util.stream.Collectors.toList;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
@@ -649,7 +649,7 @@ public class FileSystemContext implements Closeable {
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
+          .collect(toImmutableList());
     }
   }
 
