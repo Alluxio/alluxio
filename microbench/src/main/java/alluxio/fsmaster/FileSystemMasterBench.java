@@ -14,9 +14,17 @@ package alluxio.fsmaster;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.infra.ThreadParams;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -25,6 +33,7 @@ import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,9 +45,52 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.Throughput)
 public class FileSystemMasterBench {
 
+  @State(Scope.Thread)
+  public static class ThreadState {
+    private static final long RAND_SEED = 12345;
+    long mNxtFileId;
+    int mMyId = 0;
+    int mThreadCount = 0;
+    int mFileCount;
+
+    private long getNxtId() {
+      mNxtFileId++;
+      return mNxtFileId % mFileCount;
+    }
+
+    @Setup(Level.Trial)
+    public void setup(FileSystem fs, ThreadParams params) {
+      mMyId = params.getThreadIndex();
+      mNxtFileId = new Random(RAND_SEED + mMyId).nextInt(fs.mFileCount);
+      mThreadCount = params.getThreadCount();
+      mFileCount = fs.mFileCount;
+    }
+  }
+
   @Benchmark
-  public void baseline() {
-    // intentionally left blank
+  public void getFileInfoBench(FileSystem fs, ThreadState ts, Blackhole bh) throws Exception {
+    bh.consume(fs.mBase.getFileInfo(ts.getNxtId()));
+  }
+
+  @State(Scope.Benchmark)
+  public static class FileSystem {
+    @Param({"100", "10000", "1000000"})
+    public int mFileCount;
+
+    public FileSystemMasterBase mBase;
+
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+      mBase = new FileSystemMasterBase();
+      for (int i = 0; i < mFileCount; i++) {
+        mBase.createFile(i);
+      }
+    }
+
+    @TearDown
+    public void tearDown() throws Exception {
+      mBase.tearDown();
+    }
   }
 
   public static void main(String[] args) throws RunnerException, CommandLineOptionException {

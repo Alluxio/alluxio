@@ -1,7 +1,9 @@
 package alluxio.fsmaster;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.CoreMasterContext;
@@ -14,8 +16,10 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.TestUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -24,17 +28,16 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
 import java.net.URI;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class FileSystemMasterBase {
-  private final String mJournalFolder = Paths.get("/tmp", "fsmasterbench").toString();
+  private final TemporaryFolder mFolder = new TemporaryFolder();
   private final MasterRegistry mRegistry = new MasterRegistry();
   private final ExecutorService mExecutorService = Executors
       .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
@@ -48,9 +51,25 @@ public class FileSystemMasterBase {
   FileSystemMaster mFsMaster;
 
   FileSystemMasterBase() throws Exception {
-    new File(mJournalFolder).mkdirs();
+    mFolder.create();
+
+    ConfigurationRule config = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+        put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+        put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 20);
+        put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);
+        put(PropertyKey.WORK_DIR, mFolder.newFolder().getAbsolutePath());
+        put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+            mFolder.newFolder("FileSystemMasterTest").getAbsolutePath());
+        put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
+      }
+    }, ServerConfiguration.global());
+    config.before();
+    AuthenticatedClientUser.set("test");
+
     mJournalSystem = new JournalSystem.Builder()
-        .setLocation(new URI(mJournalFolder))
+        .setLocation(new URI(mFolder.newFolder().getAbsolutePath()))
         .setQuietTimeMs(0)
         .build(CommonUtils.ProcessType.MASTER);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
@@ -87,11 +106,20 @@ public class FileSystemMasterBase {
         ImmutableMap.of(), new HashMap<>(), RegisterWorkerPOptions.getDefaultInstance());
   }
 
-  public FileInfo createFile(int id) throws Exception {
+  public void tearDown() throws Exception {
+    mRegistry.stop();
+    mJournalSystem.stop();
+    mFsMaster.close();
+    mFsMaster.stop();
+    mFolder.delete();
+    ServerConfiguration.reset();
+  }
+
+  public FileInfo createFile(long id) throws Exception {
     return mFsMaster.createFile(new AlluxioURI("/file" + id), CreateFileContext.defaults());
   }
 
-  public FileInfo getFileInfo(int id) throws Exception {
+  public FileInfo getFileInfo(long id) throws Exception {
     return mFsMaster.getFileInfo(new AlluxioURI("/file" + id), GetStatusContext.defaults());
   }
 }
