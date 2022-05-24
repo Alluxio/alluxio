@@ -316,7 +316,12 @@ public final class S3RestUtils {
   public static Map<String, String> fromMultiValueToSingleValueMap(
       MultivaluedMap<String, String> queryParameters, boolean lowerCase) {
     Map<String, String> result = lowerCase
-        ? new TreeMap<>(new HeaderCaseComparator()) : new HashMap<>();
+        ? new TreeMap<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+              return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
     for (String key : queryParameters.keySet()) {
       result.put(key, queryParameters.getFirst(key));
     }
@@ -335,19 +340,6 @@ public final class S3RestUtils {
       long part1 = Long.parseLong(o1.getName());
       long part2 = Long.parseLong(o2.getName());
       return Long.compare(part1, part2);
-    }
-  }
-
-  /**
-   * Comparator based on header key which ignore case differences.
-   */
-  public static class HeaderCaseComparator implements Comparator<String>, Serializable {
-
-    private static final long serialVersionUID = -467064693238901187L;
-
-    @Override
-    public int compare(String o1, String o2) {
-      return o1.compareToIgnoreCase(o2);
     }
   }
 
