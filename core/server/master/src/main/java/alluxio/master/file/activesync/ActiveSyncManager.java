@@ -172,6 +172,8 @@ public class ActiveSyncManager implements Journaled {
   public boolean isUnderSyncPoint(AlluxioURI path) {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
+        // empty ArrayList is a placeholder to let MountTable.getMountPoint based on the path
+        // literal.
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
             && mMountTable.getMountPoint(path, new ArrayList<>())
             .equals(mMountTable.getMountPoint(syncedPath, new ArrayList<>()))) {
@@ -193,6 +195,7 @@ public class ActiveSyncManager implements Journaled {
     for (AlluxioURI syncPoint : mSyncPathList) {
       MountTable.Resolution resolution;
       try {
+        // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
         resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
       } catch (InvalidPathException e) {
         LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
@@ -225,6 +228,8 @@ public class ActiveSyncManager implements Journaled {
                   syncPoint -> {
                     MountTable.Resolution resolution;
                     try {
+                      // empty ArrayList is a placeholder to let MountTable resolve based on the
+                      // path literal.
                       resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
                     } catch (InvalidPathException e) {
                       LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
@@ -572,6 +577,7 @@ public class ActiveSyncManager implements Journaled {
    * @throws InvalidPathException throw an invalid path exception
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
+    // empty ArrayList is a placeholder to let MountTable resolve based on the path literal.
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint, new ArrayList<>());
     // Remove initial sync thread
     Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);

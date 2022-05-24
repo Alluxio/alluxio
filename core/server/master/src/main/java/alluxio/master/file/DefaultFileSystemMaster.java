@@ -3277,8 +3277,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       prepareForMount(ufsPath, newMountId, context);
       // old ufsClient is removed as part of the mount table update process.
       // here, inodePath is sure to be fullPathExists
-      mMountTable.update(journalContext, inodePath, newMountId,
-          context.getOptions().build());
+      mMountTable.update(journalContext, inodePath, newMountId, context.getOptions().build());
     } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
       // revert everything
       mUfsManager.removeMount(newMountId);
@@ -3349,6 +3348,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
         mMountTable.checkUnderWritableMountPoint(inodePath);
+
         mountInternal(rpcContext, inodePath, ufsPath, context);
         auditContext.setSucceeded(true);
         Metrics.PATHS_MOUNTED.inc();
