@@ -466,9 +466,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         try {
           commitBlock(sessionId, blockId, false);
         } catch (IllegalStateException e) {
-          // This can happen if there are multiple sessions writing to the same block.
-          // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
-          // the sessionId.
+          // If there are multiple sessions writing to the same block, we can get sessionId
+          // does not match because LocalBlockStore#hasTempBlockMeta does not check
+          // whether the temp block belongs to the sessionId.
+          // If the session expired, we can get block does not exist.
           LOG.debug("Invalid worker state while committing block.", e);
         }
       } else {
