@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -309,6 +310,7 @@ public final class AlluxioFuseUtils {
    * @return the file status, null if the path does not exist in Alluxio
    * @throws Exception when failed to get path status
    */
+  @Nullable
   public static URIStatus getPathStatus(FileSystem fileSystem, AlluxioURI uri) throws Exception {
     try {
       return fileSystem.getStatus(uri);
