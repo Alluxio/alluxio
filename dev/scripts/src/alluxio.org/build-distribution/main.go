@@ -12,11 +12,35 @@
 package main
 
 import (
-	"v.io/x/lib/cmdline"
+	"fmt"
+	"os"
 
 	"alluxio.org/build-distribution/cmd"
 )
 
+const (
+	generateTarball        = "single"
+	generateReleaseTarball = "release"
+)
+
 func main() {
-	cmdline.Main(cmd.Root)
+	if err := runSubcmd(os.Args); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func runSubcmd(args []string) error {
+	subcmdNames := []string{generateTarball, generateReleaseTarball}
+	if len(args) < 2 {
+		return fmt.Errorf("expected a subcommand in arguments. use one of %v", subcmdNames)
+	}
+	subcmd := args[1]
+	if subcmd == generateTarball {
+		return cmd.Single(args)
+	} else if subcmd == generateReleaseTarball {
+		return cmd.Release(args)
+	} else {
+		return fmt.Errorf("unknown subcommand %q. use one of %v", args[1], subcmdNames)
+	}
+	return nil
 }

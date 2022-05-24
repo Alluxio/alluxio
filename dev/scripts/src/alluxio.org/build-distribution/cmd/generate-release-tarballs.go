@@ -12,27 +12,14 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"strings"
-
-	"v.io/x/lib/cmdline"
 )
 
 var (
-	cmdRelease = &cmdline.Command{
-		Name:   "release",
-		Short:  "Generates all release tarballs",
-		Long:   "Generates all release tarballs",
-		Runner: cmdline.RunnerFunc(release),
-	}
-
 	hadoopDistributionsFlag string
 )
-
-func init() {
-	cmdRelease.Flags.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
-	cmdRelease.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
-}
 
 func checkReleaseFlags() error {
 	if err := checkRootFlags(); err != nil {
@@ -47,7 +34,14 @@ func checkReleaseFlags() error {
 	return nil
 }
 
-func release(_ *cmdline.Env, _ []string) error {
+func Release(args []string) error {
+	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
+	// flags
+	releaseCmd.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
+	generateFlags(releaseCmd)
+	additionalFlags(releaseCmd)
+	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
+
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
