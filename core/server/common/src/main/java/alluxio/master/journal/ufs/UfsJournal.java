@@ -431,8 +431,13 @@ public class UfsJournal implements Journal {
   /**
    * @return whether the journal has been formatted
    */
-  public boolean isFormatted() throws IOException {
-    UfsStatus[] files = mUfs.listStatus(mLocation.toString());
+  public boolean isFormatted() {
+    UfsStatus[] files;
+    try {
+      files = mUfs.listStatus(mLocation.toString());
+    } catch (IOException e) {
+      return false;
+    }
     if (files == null) {
       return false;
     }

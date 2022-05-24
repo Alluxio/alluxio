@@ -198,7 +198,7 @@ public interface JournalSystem {
   /**
    * @return whether the journal system has been formatted
    */
-  boolean isFormatted() throws IOException;
+  boolean isFormatted();
 
   /**
    * @param master the master for which to add the journal sink
