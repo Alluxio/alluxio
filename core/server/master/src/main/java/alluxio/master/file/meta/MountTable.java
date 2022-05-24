@@ -422,11 +422,13 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   *
+   * Change MountTableTrie directly, only if the State is not DISABLED can be enabled.
    */
   public void enableMountTableTrie() {
-    try (LockResource r = new LockResource(mWriteLock)) {
-      mState.getMountTableTrie().enable();
+    if (!mState.getMountTableTrie().isDisabled()) {
+      try (LockResource r = new LockResource(mWriteLock)) {
+        mState.getMountTableTrie().enable();
+      }
     }
   }
 
@@ -440,11 +442,13 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Only pend the MountTableTrie, leave the data inside intact
+   * Only pend the MountTableTrie, leave the data inside intact.
    */
   public void pendMountTableTrie() {
     try (LockResource r = new LockResource(mWriteLock)) {
-      mState.getMountTableTrie().pend();
+      if (mState.getMountTableTrie().isEnabled()) {
+        mState.getMountTableTrie().pend();
+      }
     }
   }
 
@@ -892,6 +896,7 @@ public final class MountTable implements DelegatingJournaled {
       // ENABLED if MountTable.addMountPointIntoMountTableTrie is called or no more updates.
       ENABLED
     }
+
     private MountTableState mMountTableState = MountTableState.DISABLED;
 
     /**
@@ -928,15 +933,18 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     /**
-     * Pend the MountTableTrie, this will preserve the data.
+     * Pend the MountTableTrie, this will preserve the data; only ENABLE can be set to PENDING.
      */
     public void pend() {
       Preconditions.checkArgument(isEnabled());
       mMountTableState = MountTableState.PENDING;
     }
 
+    /**
+     * Only PENDING/ENABLE can go to ENABLE.
+     */
     public void enable() {
-      Preconditions.checkArgument(!isEnabled());
+      Preconditions.checkArgument(!isDisabled());
       mMountTableState = MountTableState.ENABLED;
     }
 
@@ -947,7 +955,7 @@ public final class MountTable implements DelegatingJournaled {
      */
     public void addMountPoint(AlluxioURI uri, List<InodeView> inodes) {
       Preconditions.checkArgument(inodes != null && !inodes.isEmpty());
-      Preconditions.checkArgument(isEnabled());
+      Preconditions.checkArgument(isEnabled() || isPending());
       Preconditions.checkNotNull(mRootTrieNode);
       TrieNode<InodeView> trieNode =
           mRootTrieNode.insert(inodes, true);
@@ -1049,15 +1057,27 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     /**
-     * Checks if MountTableTrie is enabled.
-     * @return true if the MountTableTrie is enabled
+     * Checks if MountTableTrie is ENABLED.
+     * @return true if the MountTableTrie is ENABLED
      */
     public boolean isEnabled() {
       return mMountTableState == MountTableState.ENABLED;
     }
 
+    /**
+     * Checks if MountTableTrie is PENDING.
+     * @return true if the MountTableTrie is PENDING
+     */
     public boolean isPending() {
       return mMountTableState == MountTableState.PENDING;
+    }
+
+    /**
+     * Checks if MountTableTrie is DISABLED.
+     * @return true if the MountTableTrie is DISABLED
+     */
+    public boolean isDisabled() {
+      return mMountTableState == MountTableState.DISABLED;
     }
 
     /**

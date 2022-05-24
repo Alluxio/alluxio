@@ -3349,7 +3349,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
         mMountTable.checkUnderWritableMountPoint(inodePath);
-
         mountInternal(rpcContext, inodePath, ufsPath, context);
         auditContext.setSucceeded(true);
         Metrics.PATHS_MOUNTED.inc();
