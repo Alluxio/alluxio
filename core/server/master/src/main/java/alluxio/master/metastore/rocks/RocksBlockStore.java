@@ -98,9 +98,9 @@ public class RocksBlockStore implements BlockStore {
     DBOptions opts = new DBOptions();
     if (ServerConfiguration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
       try {
-        OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
-            PropertyKey.ROCKS_BLOCK_CONF_FILE), Env.getDefault(), opts, columns,
-            false);
+        String confPath = ServerConfiguration.getString(PropertyKey.ROCKS_BLOCK_CONF_FILE);
+        LOG.info("Opening RocksDB Block table configuration file {}", confPath);
+        OptionsUtil.loadOptionsFromFile(confPath, Env.getDefault(), opts, columns, false);
       } catch (RocksDBException e) {
         throw new IllegalArgumentException(e);
       }
