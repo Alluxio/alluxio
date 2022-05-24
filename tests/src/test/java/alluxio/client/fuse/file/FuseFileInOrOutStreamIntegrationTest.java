@@ -54,7 +54,7 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     URIStatus status = mFileSystem.getStatus(alluxioURI);
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isCompleted());
-    Assert.assertEquals(15, status.getLength());
+    Assert.assertEquals(DEFAULT_FILE_LEN, status.getLength());
   }
 
   @Test

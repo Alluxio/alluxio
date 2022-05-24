@@ -32,6 +32,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
   @Test
   public void createEmpty() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
+    mFileSystem.createDirectory(alluxioURI.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     FuseFileOutStream.create(mFileSystem, mAuthPolicy, alluxioURI,
         OpenFlags.O_WRONLY.intValue(), MODE, null).close();
     URIStatus status = mFileSystem.getStatus(alluxioURI);
