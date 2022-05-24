@@ -44,6 +44,8 @@ import alluxio.master.GraceMode;
 import alluxio.master.ZookeeperConnectionErrorPolicy;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
+import alluxio.master.metastore.rocks.DataBlockIndexType;
+import alluxio.master.metastore.rocks.IndexType;
 import alluxio.network.ChannelType;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.FormatUtils;
@@ -63,8 +65,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
-import org.rocksdb.DataBlockIndexType;
-import org.rocksdb.IndexType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8555,9 +8555,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       if (!matcher.matches()) {
         switch (type) {
           case ENUM:
-            // Keep configuration backwards compatible: ALLUXIO-3402
-            // Allow String value and try to use upper case to resolve enum.
-            value = Enum.valueOf(enumType.get(), stringValue.toUpperCase());
+            // First try to load the enum without changing the input string
+            // in case the enum uses non-standard formatting.
+            try {
+              value = Enum.valueOf(enumType.get(), stringValue);
+            } catch (IllegalArgumentException e) {
+              // Keep configuration backwards compatible: ALLUXIO-3402
+              // Allow String value and try to use upper case to resolve enum.
+              value = Enum.valueOf(enumType.get(), stringValue.toUpperCase());
+            }
             break;
           case DURATION:
             FormatUtils.parseTimeSize(stringValue);
@@ -8594,9 +8600,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         case DOUBLE:
           return Double.parseDouble(stringValue);
         case ENUM:
-          // Keep configuration backwards compatible: ALLUXIO-3402
-          // Allow String value and try to use upper case to resolve enum.
-          return Enum.valueOf(getEnumType(), stringValue.toUpperCase());
+          // First try to load the enum without changing the input string
+          // in case the enum uses non-standard formatting.
+          try {
+            return Enum.valueOf(getEnumType(), stringValue);
+          } catch (IllegalArgumentException e) {
+            // Keep configuration backwards compatible: ALLUXIO-3402
+            // Allow String value and try to use upper case to resolve enum.
+            return Enum.valueOf(getEnumType(), stringValue.toUpperCase());
+          }
         case DURATION:
         case DATASIZE:
         case STRING:

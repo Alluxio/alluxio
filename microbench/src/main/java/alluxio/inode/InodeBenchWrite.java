@@ -57,6 +57,10 @@ public class InodeBenchWrite {
     @Param({HEAP, ROCKS, ROCKSCACHE})
     public String mType;
 
+    @Param({RocksBenchConfig.NO_CONFIG, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.BLOOM_CONFIG})
+    public String mRocksConfig;
+
     @Param({"0", "1", "10"})
     public int mDepth;
 
@@ -64,7 +68,7 @@ public class InodeBenchWrite {
 
     @Setup(Level.Iteration)
     public void setup() throws Exception {
-      mBase = new InodeBenchBase(mType);
+      mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
     }
 

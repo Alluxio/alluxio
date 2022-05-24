@@ -1,6 +1,7 @@
 package alluxio.inode;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Inode;
@@ -9,6 +10,7 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 
+import java.io.IOException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -21,10 +23,11 @@ public class RocksBenchBase {
 
   RocksInodeStore mRocksInodeStore;
 
-  RocksBenchBase() {
+  RocksBenchBase(String confType) throws IOException {
     Logger.getRootLogger().setLevel(Level.ERROR);
     String dir =
         AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
+    RocksBenchConfig.setRocksConfig(confType, dir, ServerConfiguration.global());
     mRocksInodeStore = new RocksInodeStore(dir);
   }
 

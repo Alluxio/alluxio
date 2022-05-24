@@ -261,16 +261,47 @@ public final class RocksStore implements Closeable {
     }
     if (ServerConfiguration.isSet(indexType)) {
       shoudSetConfig = true;
-      blockConfig.setIndexType(ServerConfiguration.getEnum(indexType, IndexType.class));
+      blockConfig.setIndexType(toRocksIndexType(ServerConfiguration.getEnum(
+          indexType, alluxio.master.metastore.rocks.IndexType.class)));
     }
     if (ServerConfiguration.isSet(blockIndexType)) {
       shoudSetConfig = true;
-      blockConfig.setDataBlockIndexType(ServerConfiguration.getEnum(
-          blockIndexType, DataBlockIndexType.class));
+      blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(ServerConfiguration.getEnum(
+          blockIndexType, alluxio.master.metastore.rocks.DataBlockIndexType.class)));
     }
     if (shoudSetConfig) {
       return Optional.of(blockConfig);
     }
     return Optional.empty();
+  }
+
+  // helper function to convert alluxio enum to rocksDb enum
+  private static DataBlockIndexType toRocksDataBlockIndexType(
+      alluxio.master.metastore.rocks.DataBlockIndexType index) {
+    switch (index) {
+      case kDataBlockBinarySearch:
+        return DataBlockIndexType.kDataBlockBinarySearch;
+      case kDataBlockBinaryAndHash:
+        return DataBlockIndexType.kDataBlockBinaryAndHash;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown DataBlockIndexType %s", index));
+    }
+  }
+
+  // helper function to convert alluxio enum to rocksDb enum
+  private static IndexType toRocksIndexType(
+      alluxio.master.metastore.rocks.IndexType index) {
+    switch (index) {
+      case kBinarySearch:
+        return IndexType.kBinarySearch;
+      case kHashSearch:
+        return IndexType.kHashSearch;
+      case kBinarySearchWithFirstKey:
+        return IndexType.kBinarySearchWithFirstKey;
+      case kTwoLevelIndexSearch:
+        return IndexType.kTwoLevelIndexSearch;
+      default:
+        throw new IllegalArgumentException(String.format("Unknown IndexType %s", index));
+    }
   }
 }

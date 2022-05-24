@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -36,6 +37,7 @@ import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.underfs.UfsManager;
 
+import com.google.common.base.Preconditions;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -59,7 +61,7 @@ class InodeBenchBase {
   private final BlockMaster mBlockMaster;
   private final InodeLockManager mInodeLockManager = new InodeLockManager();
 
-  InodeBenchBase(String inodeStoreType) throws Exception {
+  InodeBenchBase(String inodeStoreType, String rocksConfig) throws Exception {
     Logger.getRootLogger().setLevel(Level.ERROR);
     mRegistry = new MasterRegistry();
     CoreMasterContext context = MasterTestUtils.testMasterContext();
@@ -70,7 +72,7 @@ class InodeBenchBase {
         new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager mUfsManager = mock(UfsManager.class);
     MountTable mMountTable = new MountTable(mUfsManager, mock(MountInfo.class));
-    mInodeStore = getInodeStore(inodeStoreType, mInodeLockManager);
+    mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
     mTree = new InodeTree(mInodeStore, mBlockMaster, mInodeDirectoryIdGenerator,
         mMountTable, mInodeLockManager);
     mRegistry.start(true);
@@ -84,13 +86,19 @@ class InodeBenchBase {
     mInodeStore.close();
   }
 
-  static InodeStore getInodeStore(String inodeStoreType, InodeLockManager lockManager) {
+  static InodeStore getInodeStore(
+      String inodeStoreType, String rocksConfig,
+      InodeLockManager lockManager) throws IOException {
     switch (inodeStoreType) {
       case HEAP:
+        Preconditions.checkArgument(rocksConfig.equals(RocksBenchConfig.NO_CONFIG),
+            String.format("Heap inode store does not expect a configuration for rocksDB,"
+                + " instead should be %s", RocksBenchConfig.NO_CONFIG));
         return new HeapInodeStore();
       case ROCKS:
         String dir =
             AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
+        RocksBenchConfig.setRocksConfig(rocksConfig, dir, ServerConfiguration.global());
         return new RocksInodeStore(dir);
       case ROCKSCACHE:
         dir =

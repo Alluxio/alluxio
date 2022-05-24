@@ -24,6 +24,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import site.ycsb.generator.ZipfianGenerator;
 
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -83,17 +84,21 @@ public class RocksBenchRead {
     @Param({"true", "false"})
     public boolean mIsDirectory;
 
+    @Param({RocksBenchConfig.NO_CONFIG, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.BLOOM_CONFIG})
+    public String mRocksConfig;
+
     RocksBenchBase mBase;
 
     ZipfianGenerator mDist;
 
     @Setup(Level.Trial)
-    public void setup() {
+    public void setup() throws IOException {
       if (mUseZipf) {
         mDist = new ZipfianGenerator(mFileCount);
       }
       MutableInode<?> inode = genInode(mIsDirectory);
-      mBase = new RocksBenchBase();
+      mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {
         mBase.writeInode(i, 1, 1, inode);
       }

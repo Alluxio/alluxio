@@ -59,11 +59,15 @@ public class RocksBenchWrite {
     @Param({"true", "false"})
     public boolean mUserSerialization;
 
+    @Param({RocksBenchConfig.NO_CONFIG, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.BLOOM_CONFIG})
+    public String mRocksConfig;
+
     RocksBenchBase mBase;
 
     @Setup(Level.Iteration)
     public void setup() throws Exception {
-      mBase = new RocksBenchBase();
+      mBase = new RocksBenchBase(mRocksConfig);
     }
 
     @TearDown(Level.Iteration)
