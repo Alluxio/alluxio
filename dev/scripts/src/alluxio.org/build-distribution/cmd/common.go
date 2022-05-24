@@ -25,6 +25,8 @@ const versionMarker = "${VERSION}"
 
 // hadoopDistributions maps hadoop distributions to versions
 var hadoopDistributions = map[string]version{
+	"hadoop-1.0": parseVersion("1.0.4"),
+	"hadoop-1.2": parseVersion("1.2.1"),
 	"hadoop-2.2": parseVersion("2.2.0"),
 	"hadoop-2.3": parseVersion("2.3.0"),
 	"hadoop-2.4": parseVersion("2.4.1"),
@@ -35,9 +37,8 @@ var hadoopDistributions = map[string]version{
 	"hadoop-2.9": parseVersion("2.9.0"),
 	"hadoop-3.0": parseVersion("3.0.3"),
 	"hadoop-3.1": parseVersion("3.1.1"),
-	"hadoop-3.2": parseVersion("3.2.0"),
-	// This distribution type is built with 2.7.3, but doesn't include the hadoop version in the name.
-	"default": parseVersion("2.7.3"),
+	// This distribution type is built with 2.2.0, but doesn't include the hadoop version in the name.
+	"default": parseVersion("2.2.0"),
 }
 
 type module struct {
@@ -48,6 +49,8 @@ type module struct {
 
 // ufsModules is a map from ufs module to information for building the module.
 var ufsModules = map[string]module{
+	"ufs-hadoop-1.0": {"hadoop-1.0", false, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.0.4"},
+	"ufs-hadoop-1.2": {"hadoop-1.2", true, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.1"},
 	"ufs-hadoop-2.2": {"hadoop-2.2", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
 	"ufs-hadoop-2.3": {"hadoop-2.3", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
 	"ufs-hadoop-2.4": {"hadoop-2.4", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
@@ -57,7 +60,6 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-2.8": {"hadoop-2.8", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.0": {"hadoop-3.0", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.1": {"hadoop-3.1", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.0 -PhdfsActiveSync"},
-	"ufs-hadoop-3.2": {"hadoop-3.2", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.0 -PhdfsActiveSync"},
 }
 
 func validModules(modules map[string]module) []string {
