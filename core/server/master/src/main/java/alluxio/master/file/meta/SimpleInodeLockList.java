@@ -260,6 +260,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public List<InodeView> getLockedInodeViews() {
+    // Override the default implementation to avoid an additional copy.
     return new ArrayList<>(mInodes);
   }
 

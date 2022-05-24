@@ -2212,6 +2212,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         } else if (inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
+          // Here, the lockedInodePathToDelete can be sure to be fullPathExists
           if (mMountTable.isMountPoint(alluxioUriToDelete)) {
             mMountTable.delete(rpcContext, lockedInodePathToDelete, true);
           } else {
@@ -3274,7 +3275,8 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.global(), context.getOptions().getReadOnly())
               .createMountSpecificConf(context.getOptions().getPropertiesMap()));
       prepareForMount(ufsPath, newMountId, context);
-      // old ufsClient is removed as part of the mount table update process
+      // old ufsClient is removed as part of the mount table update process.
+      // here, inodePath is sure to be fullPathExists
       mMountTable.update(journalContext, inodePath, newMountId,
           context.getOptions().build());
     } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
@@ -3449,7 +3451,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           + " the path is an existing mount point.");
     }
     mSyncManager.stopSyncForMount(mountInfo.getMountId());
-
+    // Here, inodePath is sure to be fullPathExists
     if (!mMountTable.delete(rpcContext, inodePath, true)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point and not root.");

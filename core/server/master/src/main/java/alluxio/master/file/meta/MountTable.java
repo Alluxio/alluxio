@@ -246,9 +246,10 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean delete(Supplier<JournalContext> journalContext, LockedInodePath alluxioLockedPath,
       boolean checkNestedMount) {
-    // TODO(Jiadong): should we remove this check?
-    Preconditions.checkArgument(
-        !mState.getMountTableTrie().isEnabled() || alluxioLockedPath.fullPathExists());
+    if (!mState.getMountTableTrie().isEnabled() || !alluxioLockedPath.fullPathExists()) {
+      return delete(journalContext, new ArrayList<>(), alluxioLockedPath.getUri(),
+          checkNestedMount);
+    }
     return delete(journalContext, alluxioLockedPath.getInodeViewList(),
         alluxioLockedPath.getUri(), checkNestedMount);
   }
@@ -421,11 +422,55 @@ public final class MountTable implements DelegatingJournaled {
   }
 
   /**
-   * Disable the MountTableTrie.
+   *
+   */
+  public void enableMountTableTrie() {
+    try (LockResource r = new LockResource(mWriteLock)) {
+      mState.getMountTableTrie().enable();
+    }
+  }
+
+  /**
+   * Disable the MountTableTrie and reset the data inside.
    */
   public void disableMountTableTrie() {
     try (LockResource r = new LockResource(mWriteLock)) {
-      mState.getMountTableTrie().reset();
+      mState.getMountTableTrie().disable();
+    }
+  }
+
+  /**
+   * Only pend the MountTableTrie, leave the data inside intact
+   */
+  public void pendMountTableTrie() {
+    try (LockResource r = new LockResource(mWriteLock)) {
+      mState.getMountTableTrie().pend();
+    }
+  }
+
+  /**
+   * Inserts a path into MountTableTrie.
+   * @param path target path to be inserted
+   */
+  public void addMountPointIntoMountTableTrie(LockedInodePath path) {
+    // if MountTableTrie's state is disabled, then we won't update the MountTableTrie
+    // TODO(Jiadong): if it is enabled, should we throw an exception?
+    if (mState.getMountTableTrie().isPending()) {
+      try (LockResource r = new LockResource(mWriteLock)) {
+        mState.getMountTableTrie().addMountPoint(path.getUri(), path.getInodeViewList());
+        mState.getMountTableTrie().enable();
+      }
+    }
+  }
+
+  /**
+   * Removes a path from MountTableTrie.
+   * @param path
+   */
+  public void removeMountPointFromMountTableTrie(LockedInodePath path) {
+    Preconditions.checkArgument(mState.getMountTableTrie().isEnabled());
+    try (LockResource r = new LockResource(mWriteLock)) {
+      mState.getMountTableTrie().removeMountPoint(path.getInodeViewList());
     }
   }
 
@@ -492,7 +537,7 @@ public final class MountTable implements DelegatingJournaled {
     List<MountInfo> childrenMountPoints = new ArrayList<>();
 
     try (LockResource r = new LockResource(mReadLock)) {
-      // Here, we can guarantee that the alluxioLockedInodePath is fullPathExists
+      // Here, we can guarantee that the alluxioLockedInodePath is fullPathExists.
       if (mState.getMountTableTrie().isEnabled()) {
         List<String> mountPointsPath =
             mState.getMountTableTrie().findChildrenMountPoints(alluxioLockedInodePath,
@@ -835,7 +880,19 @@ public final class MountTable implements DelegatingJournaled {
     // Map from TrieNode to the alluxio path literal
     private Map<TrieNode<InodeView>, String> mMountPointTrieTable;
     // indicate whether the MountTableTrie is enabled,
-    private boolean mIsEnabled = false;
+
+    private enum MountTableState {
+      // DISABLED if both recoverFromInodeTreeAndMountPoints and setRootInode are not called.
+      DISABLED,
+
+      // PENDING if MountTable.add is called but MountTable.addMountPointIntoMountTableTrie is
+      // not called
+      PENDING,
+
+      // ENABLED if MountTable.addMountPointIntoMountTableTrie is called or no more updates.
+      ENABLED
+    }
+    private MountTableState mMountTableState = MountTableState.DISABLED;
 
     /**
      * Constructor of MountTableTrie.
@@ -857,17 +914,30 @@ public final class MountTable implements DelegatingJournaled {
       TrieNode<InodeView> rootTrieInode =
           mRootTrieNode.insert(Arrays.asList(rootInode), true);
       mMountPointTrieTable.put(rootTrieInode, ROOT);
-      mIsEnabled = true;
+      mMountTableState = MountTableState.ENABLED;
     }
 
     /**
      * Reset the MountTableTrie, this will disable the Trie.
      */
-    public void reset() {
+    public void disable() {
       Preconditions.checkArgument(isEnabled());
-      mIsEnabled = false;
+      mMountTableState = MountTableState.DISABLED;
       mMountPointTrieTable.clear();
       mRootTrieNode = new TrieNode<>();
+    }
+
+    /**
+     * Pend the MountTableTrie, this will preserve the data.
+     */
+    public void pend() {
+      Preconditions.checkArgument(isEnabled());
+      mMountTableState = MountTableState.PENDING;
+    }
+
+    public void enable() {
+      Preconditions.checkArgument(!isEnabled());
+      mMountTableState = MountTableState.ENABLED;
     }
 
     /**
@@ -983,7 +1053,11 @@ public final class MountTable implements DelegatingJournaled {
      * @return true if the MountTableTrie is enabled
      */
     public boolean isEnabled() {
-      return mIsEnabled;
+      return mMountTableState == MountTableState.ENABLED;
+    }
+
+    public boolean isPending() {
+      return mMountTableState == MountTableState.PENDING;
     }
 
     /**
@@ -1009,7 +1083,7 @@ public final class MountTable implements DelegatingJournaled {
           mMountPointTrieTable.put(node, mountPoint);
         }
       }
-      mIsEnabled = true;
+      mMountTableState = MountTableState.ENABLED;
     }
   }
 
@@ -1106,7 +1180,7 @@ public final class MountTable implements DelegatingJournaled {
         }
       }
       if (mMountTableTrie.isEnabled()) {
-        mMountTableTrie.reset();
+        mMountTableTrie.disable();
       }
     }
 
