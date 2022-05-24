@@ -233,8 +233,13 @@ public final class DefaultStorageTier implements StorageTier {
     return new ArrayList<>(mLostStorage);
   }
 
+  /**
+   * @throws IllegalArgumentException if dir does not belong to this tier
+   */
   @Override
   public void removeStorageDir(StorageDir dir) {
+    Preconditions.checkArgument(this == dir.getParentTier(),
+        "storage dir %s does not belong to tier %s", dir.getDirPath(), getTierAlias());
     if (mDirs.remove(dir.getDirIndex()) != null) {
       mCapacityBytes -=  dir.getCapacityBytes();
     }
