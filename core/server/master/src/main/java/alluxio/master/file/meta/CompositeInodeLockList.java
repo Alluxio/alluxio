@@ -140,6 +140,15 @@ public class CompositeInodeLockList implements InodeLockList {
   }
 
   @Override
+  public void replace(int index, Inode newInode) {
+    if (index < mBaseListSize) {
+      mBaseLockList.replace(index, newInode);
+    } else {
+      mSubLockList.replace(index - mBaseListSize, newInode);
+    }
+  }
+
+  @Override
   public int numInodes() {
     return mBaseListSize + mSubLockList.numInodes();
   }

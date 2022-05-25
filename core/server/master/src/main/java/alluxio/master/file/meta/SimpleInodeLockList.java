@@ -264,6 +264,11 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   @Override
+  public void replace(int index, Inode newInode) {
+    mInodes.set(index, newInode);
+  }
+
+  @Override
   public int numInodes() {
     return mInodes.size();
   }

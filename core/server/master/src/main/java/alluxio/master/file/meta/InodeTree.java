@@ -308,17 +308,19 @@ public class InodeTree implements DelegatingJournaled {
   /**
    * @param context journal context supplier
    * @param entry an entry representing an update inode file operation
+   * @return the updated inode
    */
-  public void updateInodeFile(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
-    mState.applyAndJournal(context, entry);
+  public Inode updateInodeFile(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
+    return mState.applyAndJournal(context, entry);
   }
 
   /**
    * @param context journal context supplier
    * @param entry an entry representing an update inode operation
+   * @return the updated inode if there is one
    */
-  public void updateInode(Supplier<JournalContext> context, UpdateInodeEntry entry) {
-    mState.applyAndJournal(context, entry);
+  public Optional<Inode> updateInode(Supplier<JournalContext> context, UpdateInodeEntry entry) {
+    return mState.applyAndJournal(context, entry);
   }
 
   /**
@@ -333,17 +335,19 @@ public class InodeTree implements DelegatingJournaled {
   /**
    * @param context journal context supplier
    * @param entry an entry representing a rename operation
+   * @return the updated inode
    */
-  public void rename(Supplier<JournalContext> context, RenameEntry entry) {
-    mState.applyAndJournal(context, entry);
+  public Inode rename(Supplier<JournalContext> context, RenameEntry entry) {
+    return mState.applyAndJournal(context, entry);
   }
 
   /**
    * @param context journal context supplier
    * @param entry an entry representing a set acl operation
+   * @return the updated inode
    */
-  public void setAcl(Supplier<JournalContext> context, SetAclEntry entry) {
-    mState.applyAndJournal(context, entry);
+  public Inode setAcl(Supplier<JournalContext> context, SetAclEntry entry) {
+    return mState.applyAndJournal(context, entry);
   }
 
   /**
@@ -1057,7 +1061,7 @@ public class InodeTree implements DelegatingJournaled {
         .setPinned(pinned)
         .addAllMediumType(mediumSet)
         .setLastModificationTimeMs(opTimeMs)
-        .build());
+        .build()).ifPresent(inodePath::replaceInode);
 
     if (inode.isDirectory()) {
       assert inode instanceof InodeDirectory;
@@ -1115,7 +1119,7 @@ public class InodeTree implements DelegatingJournaled {
           .setPinned(newMin > 0)
           .addAllMediumType(inode.getMediumTypes())
           .setLastModificationTimeMs(opTimeMs)
-          .build());
+          .build()).ifPresent(inodePath::replaceInode);
     } else {
       for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath tempInodePath =

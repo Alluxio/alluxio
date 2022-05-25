@@ -257,16 +257,18 @@ public class InodeTreePersistentState implements Journaled {
    *
    * @param context journal context supplier
    * @param entry rename entry
+   * @return the updated inode
    */
-  public void applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
+  public Inode applyAndJournal(Supplier<JournalContext> context, RenameEntry entry) {
     try {
-      applyRename(entry);
+      Inode updated = applyRename(entry);
       JournalEntry.Builder builder = JournalEntry.newBuilder().setRename(entry);
       OperationId opId = getOpId(context);
       if (opId != null) {
         builder.setOperationId(opId.toJournalProto());
       }
       context.get().append(builder.build());
+      return updated;
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -278,11 +280,13 @@ public class InodeTreePersistentState implements Journaled {
    *
    * @param context journal context supplier
    * @param entry set acl entry
+   * @return the updated inode
    */
-  public void applyAndJournal(Supplier<JournalContext> context, SetAclEntry entry) {
+  public Inode applyAndJournal(Supplier<JournalContext> context, SetAclEntry entry) {
     try {
-      applySetAcl(entry);
+      Inode updated = applySetAcl(entry);
       context.get().append(JournalEntry.newBuilder().setSetAcl(entry).build());
+      return updated;
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -294,16 +298,18 @@ public class InodeTreePersistentState implements Journaled {
    *
    * @param context journal context supplier
    * @param entry update inode entry
+   * @return the updated inode
    */
-  public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeEntry entry) {
+  public Optional<Inode> applyAndJournal(Supplier<JournalContext> context, UpdateInodeEntry entry) {
     try {
-      applyUpdateInode(entry);
+      Optional<Inode> updated = applyUpdateInode(entry);
       JournalEntry.Builder builder = JournalEntry.newBuilder().setUpdateInode(entry);
       OperationId opId = getOpId(context);
       if (opId != null) {
         builder.setOperationId(opId.toJournalProto());
       }
       context.get().append(builder.build());
+      return updated;
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -331,11 +337,13 @@ public class InodeTreePersistentState implements Journaled {
    *
    * @param context journal context supplier
    * @param entry update inode file entry
+   * @return the updated inode
    */
-  public void applyAndJournal(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
+  public Inode applyAndJournal(Supplier<JournalContext> context, UpdateInodeFileEntry entry) {
     try {
-      applyUpdateInodeFile(entry);
+      Inode updated = applyUpdateInodeFile(entry);
       context.get().append(JournalEntry.newBuilder().setUpdateInodeFile(entry).build());
+      return updated;
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
       throw t; // fatalError will usually system.exit
@@ -436,7 +444,7 @@ public class InodeTreePersistentState implements Journaled {
     return newBlockId;
   }
 
-  private void applySetAcl(SetAclEntry entry) {
+  private Inode applySetAcl(SetAclEntry entry) {
     MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     List<AclEntry> entries = StreamUtils.map(ProtoUtils::fromProto, entry.getEntriesList());
     switch (entry.getAction()) {
@@ -460,14 +468,15 @@ public class InodeTreePersistentState implements Journaled {
         LOG.warn("Unrecognized acl action: " + entry.getAction());
     }
     mInodeStore.writeInode(inode);
+    return Inode.wrap(inode);
   }
 
-  private void applyUpdateInode(UpdateInodeEntry entry) {
+  private Optional<Inode> applyUpdateInode(UpdateInodeEntry entry) {
     Optional<MutableInode<?>> inodeOpt = mInodeStore.getMutable(entry.getId());
     if (!inodeOpt.isPresent()) {
       if (isJournalUpdateAsync(entry)) {
         // do not throw if the entry is journaled asynchronously
-        return;
+        return Optional.empty();
       }
       throw new IllegalStateException("Inode " + entry.getId() + " not found");
     }
@@ -486,6 +495,7 @@ public class InodeTreePersistentState implements Journaled {
     }
     mInodeStore.writeInode(inode);
     updateToBePersistedIds(inode);
+    return Optional.of(Inode.wrap(inode));
   }
 
   private void setReplicationForPin(MutableInode<?> inode, boolean pinned) {
@@ -538,7 +548,7 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.writeInode(inode);
   }
 
-  private void applyUpdateInodeFile(UpdateInodeFileEntry entry) {
+  private Inode applyUpdateInodeFile(UpdateInodeFileEntry entry) {
     MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
     Preconditions.checkState(inode.isFile(), "Encountered non-file id in update file entry %s",
         entry);
@@ -555,6 +565,7 @@ public class InodeTreePersistentState implements Journaled {
     inode.asFile().updateFromEntry(entry);
     mInodeStore.writeInode(inode);
     mBucketCounter.insert(inode.asFile().getLength());
+    return Inode.wrap(inode);
   }
 
   ////
@@ -658,7 +669,7 @@ public class InodeTreePersistentState implements Journaled {
     }
   }
 
-  private void applyRename(RenameEntry entry) {
+  private Inode applyRename(RenameEntry entry) {
     if (entry.hasDstPath()) {
       entry = rewriteDeprecatedRenameEntry(entry);
     }
@@ -679,6 +690,7 @@ public class InodeTreePersistentState implements Journaled {
       updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), -1);
       updateTimestampsAndChildCount(newParent, entry.getOpTimeMs(), 1);
     }
+    return Inode.wrap(inode);
   }
 
   /**

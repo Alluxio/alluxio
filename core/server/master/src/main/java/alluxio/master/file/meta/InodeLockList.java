@@ -161,6 +161,13 @@ public interface InodeLockList extends AutoCloseable {
   Inode get(int index);
 
   /**
+   * Replaces the inode at the given index in the list.
+   * @param index the index in the list
+   * @param newInode the new inode to place at the index
+   */
+  void replace(int index, Inode newInode);
+
+  /**
    * @return the size of the list in terms of locked inodes
    */
   int numInodes();

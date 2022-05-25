@@ -146,6 +146,14 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
+   * Replaces the target inode with a new one.
+   * @param newInode the updated inode
+   */
+  public void replaceInode(Inode newInode) {
+    mLockList.replace(mLockList.numInodes() - 1, newInode);
+  }
+
+  /**
    * @return the target inode, or null if it does not exist
    */
   @Nullable

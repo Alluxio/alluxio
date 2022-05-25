@@ -1624,7 +1624,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         .setLastAccessTimeMs(opTimeMs)
         .setOverwriteModificationTime(true)
         .build());
-    mInodeTree.updateInodeFile(rpcContext, entry.build());
+    inodePath.replaceInode(mInodeTree.updateInodeFile(rpcContext, entry.build()));
 
     Metrics.FILES_COMPLETED.inc();
   }
@@ -2480,7 +2480,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(inodeDirectory.getId())
           .setUfsFingerprint(ufsFingerprint)
-          .build());
+          .build()).ifPresent(inodePath::replaceInode);
 
       if (context.isPersisted()) {
         // The path exists in UFS, so it is no longer absent.
@@ -2649,7 +2649,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-          .build());
+          .build()).ifPresent(srcInodePath::replaceInode);
       long shouldPersistTime = srcInode.asFile().getShouldPersistTime();
       long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
           : getPersistenceWaitTime(shouldPersistTime);
@@ -2675,7 +2675,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
                 .setId(childInode.getId())
                 .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-                .build());
+                .build()).ifPresent(childPath::replaceInode);
             long shouldPersistTime = childInode.asFile().getShouldPersistTime();
             long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
                 : getPersistenceWaitTime(shouldPersistTime);
@@ -2723,14 +2723,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
     }
 
-    mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
+    srcInodePath.replaceInode(mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
         .setId(srcInode.getId())
         .setOpTimeMs(context.getOperationTimeMs())
         .setNewParentId(dstParentInode.getId())
         .setNewName(dstName)
         .setPath(srcPath.getPath())
         .setNewPath(dstPath.getPath())
-        .build());
+        .build()));
 
     // 3. Do UFS operations if necessary.
     // If the source file is persisted, rename it in the UFS.
@@ -3391,12 +3391,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
 
-    mInodeTree.setAcl(rpcContext, SetAclEntry.newBuilder()
+    inodePath.replaceInode(mInodeTree.setAcl(rpcContext, SetAclEntry.newBuilder()
         .setId(inode.getId())
         .setOpTimeMs(opTimeMs)
         .setAction(ProtoUtils.toProto(action))
         .addAllEntries(entries.stream().map(ProtoUtils::toProto).collect(Collectors.toList()))
-        .build());
+        .build()));
 
     try {
       if (!replay && inode.isPersisted()) {
@@ -3565,7 +3565,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     if (shouldPersistPath(inodePath.toString())) {
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
-          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build())
+          .ifPresent(inodePath::replaceInode);
       mPersistRequests.put(inode.getId(),
           new alluxio.time.ExponentialTimer(
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
@@ -3917,7 +3918,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (modeChanged) {
       entry.setMode(ModeUtils.protoToShort(protoOptions.getMode()));
     }
-    mInodeTree.updateInode(rpcContext, entry.build());
+    mInodeTree.updateInode(rpcContext, entry.build()).ifPresent(inodePath::replaceInode);
   }
 
   @Override
@@ -4069,11 +4070,12 @@ public class DefaultFileSystemMaster extends CoreMaster
                 .setId(inode.getId())
                 .setPersistenceState(PersistenceState.NOT_PERSISTED.name())
                 .build());
-            mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
-                .setId(inode.getId())
-                .setPersistJobId(Constants.PERSISTENCE_INVALID_JOB_ID)
-                .setTempUfsPath(Constants.PERSISTENCE_INVALID_UFS_PATH)
-                .build());
+            inodePath.replaceInode(mInodeTree.updateInodeFile(journalContext,
+                UpdateInodeFileEntry.newBuilder()
+                    .setId(inode.getId())
+                    .setPersistJobId(Constants.PERSISTENCE_INVALID_JOB_ID)
+                    .setTempUfsPath(Constants.PERSISTENCE_INVALID_UFS_PATH)
+                    .build()));
             break;
           default:
             throw new IllegalStateException(
@@ -4153,11 +4155,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           LockedInodePath inodePath = mInodeTree
               .lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
         InodeFile inode = inodePath.getInodeFile();
-        mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
-            .setId(inode.getId())
-            .setPersistJobId(jobId)
-            .setTempUfsPath(tempUfsPath)
-            .build());
+        inodePath.replaceInode(mInodeTree.updateInodeFile(
+            journalContext, UpdateInodeFileEntry.newBuilder()
+                .setId(inode.getId())
+                .setPersistJobId(jobId)
+                .setTempUfsPath(tempUfsPath)
+                .build()));
       }
     }
 
@@ -4340,7 +4343,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             mInodeTree.updateInode(journalContext, builder
                 .setId(inode.getId())
                 .setPersistenceState(PersistenceState.PERSISTED.name())
-                .build());
+                .build()).ifPresent(inodePath::replaceInode);
             propagatePersistedInternal(journalContext, inodePath);
             Metrics.FILES_PERSISTED.inc();
 
