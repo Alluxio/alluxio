@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.Factory.class})
-public class FileSystemMasterSyncMetaDataMetricsTest {
+public class FileSystemMasterSyncMetadataMetricsTest {
   @Rule
   public TemporaryFolder mTempDir = new TemporaryFolder();
   private String mUfsUri;
@@ -407,7 +407,7 @@ public class FileSystemMasterSyncMetaDataMetricsTest {
     // add a 3-children list
     List<UfsStatus> statusList = ImmutableList.of("1", "2", "3")
         .stream()
-        .map(FileSystemMasterSyncMetaDataMetricsTest::createUfsStatusWithName)
+        .map(FileSystemMasterSyncMetadataMetricsTest::createUfsStatusWithName)
         .collect(Collectors.toList());
     ufsStatusCache.addChildren(path2, statusList);
     assertEquals(4, cacheSizeTotal.getCount());
@@ -416,7 +416,7 @@ public class FileSystemMasterSyncMetaDataMetricsTest {
     // replace with a 4-children list
     statusList = ImmutableList.of("1", "2", "3", "4")
         .stream()
-        .map(FileSystemMasterSyncMetaDataMetricsTest::createUfsStatusWithName)
+        .map(FileSystemMasterSyncMetadataMetricsTest::createUfsStatusWithName)
         .collect(Collectors.toList());
     ufsStatusCache.addChildren(path2, statusList);
     assertEquals(5, cacheSizeTotal.getCount());
