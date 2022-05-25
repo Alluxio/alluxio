@@ -284,3 +284,17 @@ message UpdateUfsModeEntry {
   optional string ufsPath = 1;
   optional UfsMode ufsMode = 2 [default = READ_WRITE];
 }
+
+enum CommandType {
+  DIST_LOAD = 1;
+  DIST_CP = 2;
+  UNKNOWN = 3;
+}
+
+message UpdateCmdEntry {
+  optional string srcFilePath = 1;
+  optional CommandType type = 2;
+  optional int64 id = 3;
+  optional int64 bandWidth = 4;
+  optional int64 destFilePath = 5;
+}
