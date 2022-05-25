@@ -2328,7 +2328,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
+  public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
               + " cache. If unset, the RocksDB default will be used."
@@ -2361,7 +2361,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
+  public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block location table LRU "
               + "cache. If unset, the RocksDB default will be used."
@@ -2394,8 +2394,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
-      intBuilder(Name.MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE)
+  public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB Inode edge table LRU "
               + "cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -2427,8 +2427,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_INODE_CACHE_SIZE =
-      intBuilder(Name.MATER_METASTORE_ROCKS_INODE_CACHE_SIZE)
+  public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB Inode table LRU "
               + "cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -6965,7 +6965,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.block.location.index";
     public static final String MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER =
         "alluxio.master.metastore.rocks.edge.bloom.filter";
-    public static final String MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
+    public static final String MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
         "alluxio.master.metastore.rocks.edge.cache.size";
     public static final String MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.edge.block.index";
@@ -6973,7 +6973,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.edge.index";
     public static final String MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER =
         "alluxio.master.metastore.rocks.inode.bloom.filter";
-    public static final String MATER_METASTORE_ROCKS_INODE_CACHE_SIZE =
+    public static final String MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE =
         "alluxio.master.metastore.rocks.inode.cache.size";
     public static final String MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.inode.block.index";

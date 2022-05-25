@@ -135,12 +135,12 @@ public class RocksBlockStore implements BlockStore {
 
     // The following options are set by property keys as they are not able to be
     // set using configuration files.
-    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE,
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX, mToClose)
         .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
-    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE,
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX, mToClose)

@@ -80,6 +80,7 @@ Users familiar with the internals of RocksDB can configure the inode and edge ta
 file by setting `{alluxio.site.conf.rocks.inode.file}` with the file path. The block metadata and block locations
 tables can be configured by setting `{alluxio.site.conf.rocks.block.file}` with the configuration file path.
 Template configuration files can be found at `conf/rocks-inode.ini.template` and `conf/rocks-block.ini.template`.
+A RocksDB example configuration file can be found [here](https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini).
 Along with the RocksDB metrics described above, the [RocksDB Tuning Guide](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide)
 can assist users with designing an appropriate configuration for their workload.
 The current defaults are set using the following options in java
@@ -101,6 +102,76 @@ must be set using the property keys with the prefix `alluxio.master.metastore.ro
 and `alluxio.master.metastore.rocks.edge` for the inode tables and `alluxio.master.metastore.rocks.block.meta`
 and `alluxio.master.metastore.rocks.block.location` for the block tables. For any property key
 that is not set, the default RocksDB value will be used.
+
+### Some Configuration Options
+The best way to tune RockDB is by running benchmarks and tuning parameters individually for your workload,
+but here are some options to get started with.
+
+Enabling [Bloom filters](https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter)
+can increase the speed of point lookups
+in the tables, but will also incur increased CPU and memory usage.
+Point lookups are performed when traversing the inode tree, looking up inode metadata,
+and looking up block metadata information,
+but not when listing directories, or listing the workers for a block id.
+Bloom filters can be enabled or disabled using the property keys
+`alluxio.master.metastore.rocks.*.bloom.filter`
+where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
+
+In the RocksDB SST files the key/value pairs are stored in blocks.
+Each time a key or value is read the entire block is loaded from disk, thus
+decreasing block size will decrease disk IO, but will also increase
+[memory usage](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB#indexes-and-filter-blocks)
+as each block has index information stored in memory.
+The default block size is 4KB and can be changed for each column family
+using the `block_size` configuration option in the configuration files.
+
+Data blocks can also be configured to use a [hash index](https://github.com/facebook/rocksdb/wiki/Data-Block-Hash-Index)
+to improve the speed of point lookups at the cost of increase space usage.
+These can be enabled by setting the property key
+`alluxio.master.metastore.rocks.*.block.index` to `kDataBlockBinaryAndHash`
+where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
+
+Alluxio uses a fixed length [prefix extractor](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide#prefix-databases)
+for each RocksDB column family. The prefix is either the inode ID or the block ID.
+To improve the speed of prefix lookups we can include a hash index in the table files
+at the cost of increased memory usage.
+This can be done by setting `alluxio.master.metastore.rocks.*.index` to
+`kHashSearch` where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
+
+RocksDB will cache some uncompressed blocks in memory, by
+default this will use an 8MB LRU cache. Increasing the size of this
+cache may increase read performance. Note that changing the size
+of this cache may have unexpected impacts on total memory usage and IO
+as page cache is also used
+([see memory usage in RocksDB](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB)).
+The size of the block cache can be changed using the property keys
+`alluxio.master.metastore.rocks.*.cache.size`
+where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
+
+Alluxio has disabled compression in RockDB, this reduces CPU overhead
+at the cost of additional space amplification and IO. Compression can
+be enabled through the `compression` and `compression_per_level` options
+in the RocksDB configuration files. See the [tuning](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide)
+and [compression](https://github.com/facebook/rocksdb/wiki/Compression)
+wikis for more information.
+
+RocksDB stores recently modified key-value pairs in memory in a memtable for each column family
+(block metadata, block locations, inodes, and inode edges) before flushing them to disk.
+By default, this is a 64MB hashtable with linked lists as buckets.
+Increasing the memtable size may increase read performance and decrease write amplification,
+but the L1 size should also be increased in this case.
+Memtable configuration can be done through the RocksDB configuration files.
+See [MemTable](https://github.com/facebook/rocksdb/wiki/MemTable) and
+[memory usage](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB) for more information
+on tuning memtables.
+
+The RocksDB metastore edges column family maps an inode to its children.
+By default, the memtable for this is a hashtable with the key being
+an inode and the value being a linked list of its children.
+If the filesystem creates directories with many children
+then lookup performance may be increased by using skip lists instead of linked lists.
+This can be enabled by setting the `memtable_factory` option in the RocksDB
+configuration file to use the `HashSkipListRepFactory`.
 
 ## Heap Metastore
 

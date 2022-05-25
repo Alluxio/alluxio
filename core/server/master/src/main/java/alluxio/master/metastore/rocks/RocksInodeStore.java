@@ -140,12 +140,12 @@ public class RocksInodeStore implements InodeStore {
 
     // The following options are set by property keys as they are not able to be
     // set using configuration files.
-    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_INODE_CACHE_SIZE,
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE,
         PropertyKey.MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER,
         PropertyKey.MASTER_METASTORE_ROCKS_INODE_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX, mToClose)
         .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
-    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE,
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE,
         PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER,
         PropertyKey.MASTER_METASTORE_ROCKS_EDGE_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX, mToClose)
