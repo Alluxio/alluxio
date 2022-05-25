@@ -13,7 +13,7 @@ package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.LocalBlockStore;
@@ -105,11 +105,11 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
   private TierManagementTaskType findNextTask() {
     // Fetch the configuration for supported tasks types.
     boolean alignEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED);
+        Configuration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED);
     boolean swapRestoreEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED);
+        Configuration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED);
     boolean promotionEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED);
+        Configuration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED);
 
     // Return swap-restore task if marked.
     if (swapRestoreEnabled && sSwapRestoreRequired) {
@@ -140,7 +140,7 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
         double currentUsedRatio =
             1.0 - (double) highTier.getAvailableBytes() / highTier.getCapacityBytes();
         // Configured promotion quota percent for tiers.
-        double quotaRatio = (double) ServerConfiguration
+        double quotaRatio = (double) Configuration
             .getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT) / 100;
         // Check if the high tier allows for promotions.
         if (currentUsedRatio < quotaRatio) {

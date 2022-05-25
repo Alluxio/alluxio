@@ -31,7 +31,8 @@ import java.util.Random;
 /**
  * Unit tests for {@link ServerConfigurationStore}.
  */
-public class ServerConfigurationStoreTest {
+public class ConfigurationStoreTest
+{
   private List<ConfigProperty> mConfigListOne;
   private List<ConfigProperty> mConfigListTwo;
   private Address mAddressOne;

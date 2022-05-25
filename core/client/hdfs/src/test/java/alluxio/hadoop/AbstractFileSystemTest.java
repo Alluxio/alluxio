@@ -492,7 +492,7 @@ public class AbstractFileSystemTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost:2181");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      ConfigurationUtils.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio:///");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
 
@@ -507,7 +507,7 @@ public class AbstractFileSystemTest {
     // those in the URI has the highest priority.
     try (Closeable p = new SystemPropertyRule(
          PropertyKey.ZOOKEEPER_ENABLED.getName(), "false").toResource()) {
-      ConfigurationUtils.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio://zk@zkHost:2181");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
       assertTrue(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
@@ -519,14 +519,14 @@ public class AbstractFileSystemTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost1:2181");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      ConfigurationUtils.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio://zk@zkHost2:2181");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
       assertTrue(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
       assertEquals("zkHost2:2181", fs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
       fs.close();
     }
-    ConfigurationUtils.reloadProperties();
+    alluxio.conf.Configuration.reloadProperties();
   }
 
   @Test

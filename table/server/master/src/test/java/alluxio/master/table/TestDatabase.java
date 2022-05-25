@@ -13,7 +13,7 @@ package alluxio.master.table;
 
 import alluxio.client.file.FileSystem;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.PrincipalType;
 import alluxio.table.common.udb.UdbBypassSpec;
@@ -129,7 +129,7 @@ public class TestDatabase implements UnderDatabase {
     DATABASE.mUdbTables.clear();
     FileSystem fs = null;
     if (generateFiles) {
-      fs = FileSystem.Factory.create(ServerConfiguration.global());
+      fs = FileSystem.Factory.create(Configuration.global());
     }
     for (int i = 0; i < numOfTable; i++) {
       DATABASE.mUdbTables.put(getTableName(i),

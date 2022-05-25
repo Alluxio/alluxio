@@ -13,7 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
@@ -162,7 +162,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         }
         return true;
       }, WaitForOptions.defaults().setTimeoutMs(
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
+          (int) Configuration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
           .setInterval(Constants.SECOND_MS));
     } catch (InterruptedException | TimeoutException e) {
       LOG.info("Journal catchup is interrupted or timeout", e);

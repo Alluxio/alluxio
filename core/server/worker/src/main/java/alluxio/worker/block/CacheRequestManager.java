@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
@@ -57,7 +57,7 @@ public class CacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(CacheRequestManager.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final int NETWORK_HOST_RESOLUTION_TIMEOUT =
-      (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
 
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mCacheExecutor;

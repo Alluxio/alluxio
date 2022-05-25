@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -46,7 +46,7 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder, SetA
    * @return the instance of {@link SetAclContext} with default values for master
    */
   public static SetAclContext mergeFrom(SetAclPOptions.Builder optionsBuilder) {
-    SetAclPOptions masterOptions = FileSystemOptions.setAclDefaults(ServerConfiguration.global());
+    SetAclPOptions masterOptions = FileSystemOptions.setAclDefaults(Configuration.global());
     SetAclPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -56,7 +56,7 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder, SetA
    * @return the instance of {@link SetAclContext} with default values for master
    */
   public static SetAclContext defaults() {
-    return create(FileSystemOptions.setAclDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptions.setAclDefaults(Configuration.global()).toBuilder());
   }
 
   @Override

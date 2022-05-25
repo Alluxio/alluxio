@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
@@ -64,7 +64,7 @@ public final class UfsJournalLogWriterTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito
-        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+        .spy(UnderFileSystem.Factory.create(location.toString(), Configuration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
     mJournal.start();
     mJournal.gainPrimacy();
@@ -73,7 +73,7 @@ public final class UfsJournalLogWriterTest {
   @After
   public void after() throws Exception {
     mJournal.close();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -181,7 +181,7 @@ public final class UfsJournalLogWriterTest {
   @Test
   public void writeJournalEntryRotate() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1");
 
     long nextSN = 0x20;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);

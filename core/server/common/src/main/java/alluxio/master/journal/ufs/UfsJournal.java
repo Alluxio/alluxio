@@ -12,7 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
@@ -137,8 +137,8 @@ public class UfsJournal implements Journal {
    */
   public static UnderFileSystemConfiguration getJournalUfsConf() {
     Map<String, Object> ufsConf =
-        ServerConfiguration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
-    return UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+        Configuration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
+    return UnderFileSystemConfiguration.defaults(Configuration.global())
                .createMountSpecificConf(ufsConf);
   }
 
@@ -426,7 +426,7 @@ public class UfsJournal implements Journal {
         return false;
       }
       // Search for the format file.
-      String filePrefix = ServerConfiguration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+      String filePrefix = Configuration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
       return Arrays.stream(files).anyMatch(file -> file.getName().startsWith(filePrefix));
     } catch (IOException e) {
       return false;
@@ -461,7 +461,7 @@ public class UfsJournal implements Journal {
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
-        ServerConfiguration.getString(
+        Configuration.getString(
             PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }

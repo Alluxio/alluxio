@@ -41,7 +41,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
@@ -140,7 +140,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
           .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
-          .build(), ServerConfiguration.global());
+          .build(), Configuration.modifiableGlobal());
 
   private ExecutorService mExecutorService;
 
@@ -150,10 +150,10 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   @Before
   public void before() throws Exception {
     // Set the config properties
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
-    ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, "3s");
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
+    Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT, "3s");
 
     // Prepare test data
     mTierAliases = getTierAliases(parseTierConfig(TIER_CONFIG));
@@ -428,7 +428,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
     // Prepare the block worker to use the overriden stream
     MasterClientContext context = MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
+            .newBuilder(ClientContext.create(Configuration.global())).build();
     // On heartbeat, the expected values will be checked against
     List<Long> expectedLostBlocks = ImmutableList.of(blockToRemove);
     Map<BlockStoreLocation, List<Long>> expectedAddedBlocks = ImmutableMap.of();

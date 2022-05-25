@@ -14,6 +14,8 @@ package alluxio.cli.fs;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -52,7 +54,7 @@ public final class FileSystemShell extends AbstractShell {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
     if (!ConfigurationUtils.masterHostConfigured(conf)
         && argv.length > 0 && !argv[0].equals("help")) {
       System.out.println(ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio fs shell"));
@@ -72,7 +74,7 @@ public final class FileSystemShell extends AbstractShell {
    *
    * @param alluxioConf Alluxio configuration
    */
-  public FileSystemShell(InstancedConfiguration alluxioConf) {
+  public FileSystemShell(AlluxioConfiguration alluxioConf) {
     super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 

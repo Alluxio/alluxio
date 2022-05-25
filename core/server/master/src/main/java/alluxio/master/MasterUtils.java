@@ -12,9 +12,8 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.MetastoreType;
@@ -64,7 +63,7 @@ public final class MasterUtils {
    */
   public static BlockStore.Factory getBlockStoreFactory(String baseDir) {
     MetastoreType type =
-        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+        Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
         return HeapBlockStore::new;
@@ -81,13 +80,12 @@ public final class MasterUtils {
    */
   public static InodeStore.Factory getInodeStoreFactory(String baseDir) {
     MetastoreType type =
-        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+        Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
         return lockManager -> new HeapInodeStore();
       case ROCKS:
-        InstancedConfiguration conf = ServerConfiguration.global();
-        if (conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
+        if (Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
           return lockManager -> new RocksInodeStore(baseDir);
         } else {
           return lockManager -> new CachingInodeStore(new RocksInodeStore(baseDir), lockManager);

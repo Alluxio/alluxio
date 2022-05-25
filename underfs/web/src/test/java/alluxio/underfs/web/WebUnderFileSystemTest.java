@@ -15,9 +15,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,8 +29,7 @@ import java.io.IOException;
 public class WebUnderFileSystemTest {
   private String mWebUfsRoot;
   private UnderFileSystem mWebUfs;
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   @Before
   public void before() throws IOException {

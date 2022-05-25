@@ -13,7 +13,7 @@ package alluxio.master.job;
 
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
@@ -69,7 +69,7 @@ public final class JobMasterClientRestServiceHandler {
   public Response getServiceName() {
     // Need to encode the string as JSON because Jackson will not do it automatically.
     return RestUtils.call(() -> Constants.JOB_MASTER_CLIENT_SERVICE_NAME,
-        ServerConfiguration.global());
+        Configuration.global());
   }
 
   /**
@@ -79,7 +79,7 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.SERVICE_VERSION)
   public Response getServiceVersion() {
     return RestUtils.call(() -> Constants.JOB_MASTER_CLIENT_SERVICE_VERSION,
-        ServerConfiguration.global());
+        Configuration.global());
   }
 
   /**
@@ -94,7 +94,7 @@ public final class JobMasterClientRestServiceHandler {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       mJobMaster.cancel(jobId);
       return null;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -108,7 +108,7 @@ public final class JobMasterClientRestServiceHandler {
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
   @ApiOperation(value = "Gets the status of a job", response = JobInfo.class)
   public Response getStatus(@QueryParam("jobId") final long jobId) {
-    return RestUtils.call(() -> mJobMaster.getStatus(jobId), ServerConfiguration.global());
+    return RestUtils.call(() -> mJobMaster.getStatus(jobId), Configuration.global());
   }
 
   /**
@@ -134,7 +134,7 @@ public final class JobMasterClientRestServiceHandler {
       } else {
         return mJobMaster.list(ListAllPOptions.getDefaultInstance());
       }
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -147,6 +147,6 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.RUN)
   @Consumes(MediaType.APPLICATION_JSON)
   public Response run(final JobConfig jobConfig) {
-    return RestUtils.call(() -> mJobMaster.run(jobConfig), ServerConfiguration.global());
+    return RestUtils.call(() -> mJobMaster.run(jobConfig), Configuration.global());
   }
 }

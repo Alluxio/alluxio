@@ -20,7 +20,7 @@ import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
@@ -165,8 +165,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    String underfsAddress = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
+    String underfsAddress = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
     UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
@@ -175,18 +175,18 @@ public abstract class AbstractLocalAlluxioCluster {
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
 
     // Creates storage dirs for worker
-    int numLevel = ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = ServerConfiguration.getString(tierLevelDirPath).split(",");
+      String[] dirPaths = Configuration.getString(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         FileUtils.createDir(dirPath);
       }
     }
 
     // Formats the journal
-    Format.format(Format.Mode.MASTER, ServerConfiguration.global());
+    Format.format(Format.Mode.MASTER, Configuration.global());
   }
 
   /**
@@ -195,7 +195,7 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     reset();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -214,7 +214,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void formatAndRestartMasters() throws Exception {
     stopMasters();
-    Format.format(Format.Mode.MASTER, ServerConfiguration.global());
+    Format.format(Format.Mode.MASTER, Configuration.global());
     startMasters();
   }
 
@@ -274,7 +274,7 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Creates a default {@link ServerConfiguration} for testing.
+   * Creates a default {@link Configuration} for testing.
    *
    * @param name the name of the test/cluster
    */
@@ -316,7 +316,7 @@ public abstract class AbstractLocalAlluxioCluster {
       throws TimeoutException, InterruptedException, IOException {
     try (MetaMasterClient client =
              new RetryHandlingMetaMasterClient(MasterClientContext
-                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+                 .newBuilder(ClientContext.create(Configuration.global())).build())) {
       CommonUtils.waitFor("workers registered", () -> {
         try {
           return client.getMasterInfo(Collections.emptySet())
@@ -334,15 +334,15 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the cluster to original state.
    */
   protected void reset() {
-    ClientTestUtils.resetClient(ServerConfiguration.global());
+    ClientTestUtils.resetClient(Configuration.modifiableGlobal());
     GroupMappingServiceTestUtils.resetCache();
   }
 
   /**
    * Resets the client pools to the original state.
    */
-  protected void resetClientPools() throws IOException {
-    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+  protected void resetClientPools() {
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   /**

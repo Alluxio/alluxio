@@ -12,10 +12,10 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -35,7 +35,7 @@ public final class ConfigurationTestUtils {
    * @return the default configuration
    */
   public static InstancedConfiguration copyDefaults() {
-    return new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+    return Configuration.copyGlobal();
   }
 
   /**
@@ -149,7 +149,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
 
     // faster I/O retries.
-    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
     conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 

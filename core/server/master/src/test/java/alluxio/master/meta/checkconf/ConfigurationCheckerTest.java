@@ -31,7 +31,8 @@ import java.util.Random;
 /**
  * Unit tests for {@link ServerConfigurationChecker}.
  */
-public class ServerConfigurationCheckerTest {
+public class ConfigurationCheckerTest
+{
   private ServerConfigurationStore mRecordOne;
   private ServerConfigurationStore mRecordTwo;
   private ServerConfigurationChecker mConfigChecker;

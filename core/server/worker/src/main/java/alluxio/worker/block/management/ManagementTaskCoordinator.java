@@ -12,7 +12,7 @@
 package alluxio.worker.block.management;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
@@ -38,16 +38,16 @@ public class ManagementTaskCoordinator implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ManagementTaskCoordinator.class);
   /** Duration to sleep when a) load detected on worker. b) no work to do. */
   private static final long LOAD_DETECTION_COOL_DOWN_TIME =
-      ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
+      Configuration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
   /** The back-off strategy. */
-  private static final BackoffStrategy BACKOFF_STRATEGY = ServerConfiguration
+  private static final BackoffStrategy BACKOFF_STRATEGY = Configuration
       .getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_STRATEGY, BackoffStrategy.class);
 
   /** Runner thread for launching management tasks. */
   private final Thread mRunnerThread;
   /** Executor that will run the management tasks. */
   private final ExecutorService mTaskExecutor = Executors.newFixedThreadPool(
-      ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
+      Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
         ThreadFactoryUtils.build("block-management-task-%d", true));
 
   private final LocalBlockStore mBlockStore;
@@ -108,7 +108,7 @@ public class ManagementTaskCoordinator implements Closeable {
    */
   private void initializeTaskProviders() {
     mTaskProviders = new ArrayList<>(1);
-    if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+    if (Configuration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
       LOG.warn("Tier management tasks will be disabled under eviction emulation mode.");
     } else {
       // TODO(ggezer): Improve on views per task type.

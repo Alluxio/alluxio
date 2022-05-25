@@ -23,7 +23,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -84,7 +84,7 @@ public final class AccessTimeUpdaterTest {
   public final void before() throws Exception {
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     when(mFileSystemMaster.getName()).thenReturn(Constants.FILE_SYSTEM_MASTER_NAME);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mContext = MasterTestUtils.testMasterContext(journalSystem);
@@ -102,8 +102,8 @@ public final class AccessTimeUpdaterTest {
     journalSystem.gainPrimacy();
     mBlockMaster.start(true);
 
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
-    ServerConfiguration
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+    Configuration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     mInodeTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_MODE, NoopJournalContext.INSTANCE);
     mScheduler = new ControllableScheduler();

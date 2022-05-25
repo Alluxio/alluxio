@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -44,7 +44,7 @@ public interface Allocator {
     public static Allocator create(BlockMetadataView view) {
       BlockMetadataView metadataView = Preconditions.checkNotNull(view, "view");
       return CommonUtils.createNewClassInstance(
-          ServerConfiguration.getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
+          Configuration.getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
           new Class[] {BlockMetadataView.class}, new Object[] {metadataView});
     }
   }

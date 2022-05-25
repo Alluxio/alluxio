@@ -27,7 +27,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
@@ -120,7 +120,7 @@ public final class JobUtils {
   public static void loadBlock(URIStatus status, FileSystemContext context, long blockId,
       WorkerNetAddress address, boolean directCache)
       throws AlluxioException, IOException {
-    AlluxioConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     // Explicitly specified a worker to load
     WorkerNetAddress localNetAddress = address;
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
