@@ -154,7 +154,7 @@ public final class ConfigurationUtilsTest {
   }
 
   private AlluxioConfiguration createConf(Map<PropertyKey, Object> properties) {
-    AlluxioProperties props = ConfigurationUtils.defaults();
+    AlluxioProperties props = ConfigurationUtils.copyDefaults();
     for (PropertyKey key : properties.keySet()) {
       props.set(key, properties.get(key));
     }

@@ -63,7 +63,7 @@ public final class ServerConfiguration {
    */
   public static void reset() {
     ConfigurationUtils.reloadProperties();
-    sConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    sConf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**

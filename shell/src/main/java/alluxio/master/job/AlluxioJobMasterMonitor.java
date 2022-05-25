@@ -14,7 +14,6 @@ package alluxio.master.job;
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.master.AlluxioMasterMonitor;
 import alluxio.master.MasterHealthCheckClient;
 import alluxio.util.ConfigurationUtils;
@@ -40,7 +39,7 @@ public final class AlluxioJobMasterMonitor {
           AlluxioJobMasterMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = ConfigurationUtils.defaults();
     HealthCheckClient client;
     // Only the primary master serves RPCs, so if we're configured for HA, fall back to simply
     // checking for the running process.

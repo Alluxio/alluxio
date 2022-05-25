@@ -14,7 +14,6 @@ package alluxio.master.journal;
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterFactory;
@@ -246,8 +245,7 @@ public final class JournalUpgrader {
     }
 
     for (String master : masters) {
-      Upgrader upgrader = new Upgrader(master,
-          new InstancedConfiguration(ConfigurationUtils.defaults()));
+      Upgrader upgrader = new Upgrader(master, ConfigurationUtils.defaults());
       try {
         upgrader.upgrade();
       } catch (IOException e) {

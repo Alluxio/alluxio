@@ -73,7 +73,7 @@ public class RunOperation {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.defaults()))
+    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.copyDefaults()))
         .run(args));
   }
 

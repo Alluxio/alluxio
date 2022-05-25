@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.io.Closer;
@@ -42,7 +42,7 @@ public abstract class AbstractShell implements Closeable {
   private Map<String, String[]> mCommandAlias;
   private Set<String> mUnstableAlias;
   private Map<String, Command> mCommands;
-  protected InstancedConfiguration mConfiguration;
+  protected AlluxioConfiguration mConfiguration;
   protected Closer mCloser;
 
   /**
@@ -53,7 +53,7 @@ public abstract class AbstractShell implements Closeable {
    * @param conf Alluxio configuration
    */
   public AbstractShell(Map<String, String[]> commandAlias,
-      Set<String> unstableAlias, InstancedConfiguration conf) {
+      Set<String> unstableAlias, AlluxioConfiguration conf) {
     mCloser = Closer.create();
     mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
     // the configuration
