@@ -1061,7 +1061,7 @@ public class InodeTree implements DelegatingJournaled {
         .setPinned(pinned)
         .addAllMediumType(mediumSet)
         .setLastModificationTimeMs(opTimeMs)
-        .build()).ifPresent(inodePath::replaceInode);
+        .build()).ifPresent(inodePath::replaceWithUpdatedInode);
 
     if (inode.isDirectory()) {
       assert inode instanceof InodeDirectory;
@@ -1119,7 +1119,7 @@ public class InodeTree implements DelegatingJournaled {
           .setPinned(newMin > 0)
           .addAllMediumType(inode.getMediumTypes())
           .setLastModificationTimeMs(opTimeMs)
-          .build()).ifPresent(inodePath::replaceInode);
+          .build()).ifPresent(inodePath::replaceWithUpdatedInode);
     } else {
       for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
         try (LockedInodePath tempInodePath =

@@ -88,7 +88,6 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
