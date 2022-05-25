@@ -250,12 +250,13 @@ public class FileSystemMasterSyncMetaDataMetricsTest {
 
   @Test
   public void testMetadataPrefetchMetrics() throws Exception {
-    Counter prefetchOpsCount = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT;
-    Counter prefetchSuccess = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS;
-    Counter prefetchFail = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL;
-    Counter prefetchCancel = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL;
-    Counter prefetchPaths = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS;
-    Counter prefetchRetries = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_RETRIES;
+    final Counter prefetchOpsCount =
+        DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT;
+    final Counter prefetchSuccess = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_SUCCESS;
+    final Counter prefetchFail = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_FAIL;
+    final Counter prefetchCancel = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_CANCEL;
+    final Counter prefetchPaths = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS;
+    final Counter prefetchRetries = DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_RETRIES;
     UfsStatusCache ufsStatusCache = new UfsStatusCache(Executors
         .newSingleThreadExecutor(ThreadFactoryUtils.build("prefetch-%d", true)),
         new NoopUfsAbsentPathCache(), UfsAbsentPathCache.ALWAYS);
