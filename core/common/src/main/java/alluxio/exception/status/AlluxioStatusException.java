@@ -171,32 +171,6 @@ public class AlluxioStatusException extends IOException {
   }
 
   /**
-   * Converts checked throwables to Alluxio status exceptions. Unchecked throwables should not be
-   * passed to this method. Use Throwables.propagateIfPossible before passing a Throwable to this
-   * method.
-   *
-   * @param throwable a throwable
-   * @return the converted {@link AlluxioStatusException}
-   */
-  public static AlluxioStatusException fromCheckedException(Throwable throwable) {
-    try {
-      throw throwable;
-    } catch (IOException e) {
-      return fromIOException(e);
-    } catch (AlluxioException e) {
-      return fromAlluxioException(e);
-    } catch (InterruptedException e) {
-      return new CancelledException(e);
-    } catch (RuntimeException e) {
-      throw new IllegalStateException("Expected a checked exception but got " + e);
-    } catch (Exception e) {
-      return new UnknownException(e);
-    } catch (Throwable t) {
-      throw new IllegalStateException("Expected a checked exception but got " + t);
-    }
-  }
-
-  /**
    * Converts an arbitrary throwable to an Alluxio status exception. This method should be used with
    * caution because it could potentially convert an unchecked exception (indicating a bug) to a
    * checked Alluxio status exception.
@@ -205,13 +179,22 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromThrowable(Throwable t) {
+    if (t instanceof IOException) {
+      return fromIOException((IOException) t);
+    }
+    if (t instanceof AlluxioException) {
+      return fromAlluxioException((AlluxioException) t);
+    }
     if (t instanceof StatusRuntimeException) {
       return fromStatusRuntimeException((StatusRuntimeException) t);
+    }
+    if (t instanceof InterruptedException) {
+      return new CancelledException(t);
     }
     if (t instanceof Error || t instanceof RuntimeException) {
       return new InternalException(t);
     }
-    return fromCheckedException(t);
+    return new UnknownException(t);
   }
 
   /**

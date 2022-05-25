@@ -19,8 +19,8 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -234,7 +234,7 @@ public final class AlluxioMasterProcessTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
-        RaftJournalSystem.create(RaftJournalConfiguration.defaults(ServiceType.MASTER_RAFT)));
+        new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT));
     Thread t = new Thread(() -> {
       try {
         master.start();

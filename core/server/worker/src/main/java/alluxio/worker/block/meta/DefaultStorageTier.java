@@ -14,7 +14,6 @@ package alluxio.worker.block.meta;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -64,7 +63,7 @@ public final class DefaultStorageTier implements StorageTier {
   }
 
   private void initStorageTier(boolean isMultiTier)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws WorkerOutOfSpaceException {
     String tmpDir = ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
@@ -99,7 +98,7 @@ public final class DefaultStorageTier implements StorageTier {
         StorageDir dir = DefaultStorageDir.newStorageDir(this, i, capacity, reservedBytes,
             dirPaths.get(i), dirMedium.get(mediumTypeindex));
         mDirs.put(i, dir);
-      } catch (IOException | InvalidPathException e) {
+      } catch (IOException e) {
         LOG.error("Unable to initialize storage directory at {}", dirPaths.get(i), e);
         mLostStorage.add(dirPaths.get(i));
         continue;
@@ -179,11 +178,10 @@ public final class DefaultStorageTier implements StorageTier {
    * @param tierOrdinal the tier ordinal
    * @param isMultiTier whether this tier is part of a multi-tier setup
    * @return a new storage tier
-   * @throws BlockAlreadyExistsException if the tier already exists
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
   public static StorageTier newStorageTier(String tierAlias, int tierOrdinal, boolean isMultiTier)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws WorkerOutOfSpaceException {
     DefaultStorageTier ret = new DefaultStorageTier(tierAlias, tierOrdinal);
     ret.initStorageTier(isMultiTier);
     return ret;
@@ -233,8 +231,13 @@ public final class DefaultStorageTier implements StorageTier {
     return new ArrayList<>(mLostStorage);
   }
 
+  /**
+   * @throws IllegalArgumentException if dir does not belong to this tier
+   */
   @Override
   public void removeStorageDir(StorageDir dir) {
+    Preconditions.checkArgument(this == dir.getParentTier(),
+        "storage dir %s does not belong to tier %s", dir.getDirPath(), getTierAlias());
     mDirs.remove(dir.getDirIndex());
     mLostStorage.add(dir.getDirPath());
   }

@@ -120,7 +120,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mBlockStore.abortBlock(TEST_SESSION_ID, TEST_BLOCK_ID);
     mWriteHandler.write(newFallbackInitRequest(PARTIAL_WRITTEN));
     waitForResponses();
-    checkErrorCode(mResponseObserver, Status.Code.NOT_FOUND);
+    checkErrorCode(mResponseObserver, Status.Code.INTERNAL);
   }
 
   @Test
