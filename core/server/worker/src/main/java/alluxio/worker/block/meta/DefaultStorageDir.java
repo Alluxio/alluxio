@@ -222,8 +222,8 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) {
-    return mBlockIdToTempBlockMap.get(blockId);
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
+    return Optional.ofNullable(mBlockIdToTempBlockMap.get(blockId));
   }
 
   @Override
