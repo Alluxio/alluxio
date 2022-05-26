@@ -11,19 +11,21 @@
 
 package alluxio.exception;
 
+import io.grpc.Status;
+
 /**
- * The exception thrown when a block does not exist in Alluxio.
+ * The exception thrown when a job definition does not exist in Alluxio.
  */
-public class BlockDoesNotExistException extends AlluxioException {
-  private static final long serialVersionUID = -1313208091357063634L;
+public class JobDoesNotExistRuntimeException extends AlluxioRuntimeException {
+  private static final long serialVersionUID = -7291730624984048562L;
+  private static final Status STATUS = Status.UNIMPLEMENTED;
 
   /**
-   * Constructs a new exception with the specified exception message and multiple parameters.
+   * Constructs a new exception with the specified detail message.
    *
-   * @param message the exception message
-   * @param params the parameters
+   * @param message the detail message
    */
-  public BlockDoesNotExistException(ExceptionMessage message, Object... params) {
-    super(message.getMessage(params));
+  public JobDoesNotExistRuntimeException(String message) {
+    super(STATUS, message);
   }
 }

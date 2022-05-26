@@ -11,9 +11,11 @@
 
 package alluxio.worker.block;
 
+import static java.lang.String.format;
+
 import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -216,12 +218,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param options the open ufs options
    * @return the block reader instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException, BlockAlreadyExistsException {
+      throws IOException, BlockAlreadyExistsException {
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
       // flag.mUnderFileSystemBlockStore
@@ -232,7 +233,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     acquireAccess(sessionId, blockId, options);
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
-      blockInfo = getBlockInfo(sessionId, blockId);
+      Key key = new Key(sessionId, blockId);
+      blockInfo = mBlocks.get(key);
+      if (blockInfo == null) {
+        throw new BlockDoesNotExistRuntimeException(
+            format("UFS block %s does not exist for session %s", blockId, sessionId));
+      }
       BlockReader blockReader = blockInfo.getBlockReader();
       if (blockReader != null) {
         return blockReader;
@@ -275,25 +281,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     BlockInfo blockInfo = mBlocks.get(key);
     UnderFileSystemBlockMeta meta = blockInfo.getMeta();
     return meta.isNoCache();
-  }
-
-  /**
-   * Gets the {@link UnderFileSystemBlockMeta} for a session ID and block ID pair.
-   *
-   * @param sessionId the session ID
-   * @param blockId the block ID
-   * @return the {@link UnderFileSystemBlockMeta} instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
-   * {@link UnderFileSystemBlockStore}
-   */
-  private BlockInfo getBlockInfo(long sessionId, long blockId) throws BlockDoesNotExistException {
-    Key key = new Key(sessionId, blockId);
-    BlockInfo blockInfo = mBlocks.get(key);
-    if (blockInfo == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
-          blockId, sessionId);
-    }
-    return blockInfo;
   }
 
   /**
