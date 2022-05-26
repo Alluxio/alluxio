@@ -142,9 +142,9 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   /**
    * Constructor of {@link FileSystemMasterAuditContext}.
    *
-   * @param asyncAuditLogWriter
+   * @param asyncAuditLogWriter the async log writer
    */
-  protected FileSystemMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
+  FileSystemMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mAsyncAuditLogWriter = asyncAuditLogWriter;
     mAllowed = true;
   }

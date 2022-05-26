@@ -44,6 +44,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.RaftConfigKeys;
@@ -292,8 +293,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this,
-        ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX));
+    mStateMachine = new JournalStateMachine(mJournals, this);
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
@@ -637,10 +637,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
-    Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
-    services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
+    return ImmutableMap.of(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
         new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager())));
-    return services;
   }
 
   /**

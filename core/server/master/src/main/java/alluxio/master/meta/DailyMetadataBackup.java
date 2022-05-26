@@ -50,10 +50,12 @@ public final class DailyMetadataBackup {
   private static final Logger LOG = LoggerFactory.getLogger(DailyMetadataBackup.class);
   private static final long SHUTDOWN_TIMEOUT_MS = 5L * Constants.SECOND_MS;
 
-  private final String mBackupDir;
+  private final String mBackupDir =
+      ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
   private final boolean mIsLocal;
   private final MetaMaster mMetaMaster;
-  private final int mRetainedFiles;
+  private final int mRetainedFiles =
+      ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
   private final ScheduledExecutorService mScheduledExecutor;
   private final UfsManager mUfsManager;
 
@@ -69,8 +71,6 @@ public final class DailyMetadataBackup {
   DailyMetadataBackup(MetaMaster metaMaster,
       ScheduledExecutorService service, UfsManager ufsManager) {
     mMetaMaster = metaMaster;
-    mBackupDir = ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    mRetainedFiles = ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = service;
     mUfsManager = ufsManager;
     try (CloseableResource<UnderFileSystem> ufsResource =

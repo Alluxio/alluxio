@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -75,11 +74,11 @@ import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.GrpcCallTracker;
@@ -441,7 +440,7 @@ public final class FileSystemMasterClientServiceHandler
    * @param uriStr transport uri string
    * @return a {@link AlluxioURI} instance
    */
-  private AlluxioURI getAlluxioURI(String uriStr) throws InvalidPathException {
+  private AlluxioURI getAlluxioURI(String uriStr) {
     return new AlluxioURI(uriStr);
   }
 }

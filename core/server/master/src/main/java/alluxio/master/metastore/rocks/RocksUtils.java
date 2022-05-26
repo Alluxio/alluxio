@@ -12,7 +12,6 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.resource.CloseableIterator;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
 import org.rocksdb.RocksIterator;
@@ -29,17 +28,6 @@ public final class RocksUtils {
   private static final Logger LOG = LoggerFactory.getLogger(RocksUtils.class);
 
   private RocksUtils() {} // Utils class.
-
-  /**
-   * Generates a path to use for a RocksDB database.
-   *
-   * @param baseDir the base directory path
-   * @param dbName a name for the database
-   * @return the generated database path
-   */
-  public static String generateDbPath(String baseDir, String dbName) {
-    return PathUtils.concatPath(baseDir, dbName);
-  }
 
   /**
    * @param long1 a long value
@@ -140,8 +128,6 @@ public final class RocksUtils {
       }
     };
 
-    return CloseableIterator.create(iter, (whatever) -> {
-      rocksIterator.close();
-    });
+    return CloseableIterator.create(iter, (whatever) -> rocksIterator.close());
   }
 }

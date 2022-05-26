@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -111,7 +112,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
           if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
             return true;
           }
-          LOG.debug(IOUtils.toString(response.getEntity().getContent()));
+          LOG.debug(IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8));
           return false;
         } catch (IOException e) {
           LOG.debug("Exception: ", e);

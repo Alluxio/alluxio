@@ -11,8 +11,8 @@
 
 package alluxio.master.block.meta;
 
-import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * An object representation of fields relevant to worker usage and capacity.
  * This class is not thread safe so external locking is required.
- * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+ * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
  * with {@link WorkerMetaLockSection#USAGE} specified.
  */
 @NotThreadSafe

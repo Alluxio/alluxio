@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -50,7 +49,7 @@ public final class UfsSyncChecker {
   private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
 
   /** UFS directories for which list was called. */
-  private Map<String, UfsStatus[]> mListedDirectories;
+  private final Map<String, UfsStatus[]> mListedDirectories;
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
@@ -58,7 +57,7 @@ public final class UfsSyncChecker {
   private final ReadOnlyInodeStore mInodeStore;
 
   /** Directories in sync with the UFS. */
-  private Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
+  private final Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -80,7 +79,7 @@ public final class UfsSyncChecker {
    */
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
     // Filter out temporary files
@@ -158,7 +157,7 @@ public final class UfsSyncChecker {
               childrenList.add(newStatus);
             }
           }
-          return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
+          return trimIndirect(childrenList.toArray(new UfsStatus[0]));
         }
         curUri = curUri.getParent();
       }
@@ -187,6 +186,6 @@ public final class UfsSyncChecker {
         childrenList.add(child);
       }
     }
-    return childrenList.toArray(new UfsStatus[childrenList.size()]);
+    return childrenList.toArray(new UfsStatus[0]);
   }
 }

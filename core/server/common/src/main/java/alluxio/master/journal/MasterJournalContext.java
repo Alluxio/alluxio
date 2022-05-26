@@ -88,11 +88,6 @@ public final class MasterJournalContext implements JournalContext {
           LOG.warn("Journal flush failed. retrying...", e);
         }
       } catch (IOException e) {
-        if (e instanceof AlluxioStatusException
-            && ((AlluxioStatusException) e).getStatusCode() == Status.Code.CANCELLED) {
-          throw new UnavailableException(String.format("Failed to complete request: %s",
-              e.getMessage()), e);
-        }
         LOG.warn("Journal flush failed. retrying...", e);
       } catch (Throwable e) {
         ProcessUtils.fatalError(LOG, e, "Journal flush failed");

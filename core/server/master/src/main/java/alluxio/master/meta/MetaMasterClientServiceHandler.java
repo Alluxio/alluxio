@@ -73,17 +73,15 @@ public final class MetaMasterClientServiceHandler
   public void getConfigReport(GetConfigReportPOptions options,
       StreamObserver<GetConfigReportPResponse> responseObserver) {
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
-
-          return GetConfigReportPResponse.newBuilder()
-              .setReport(mMetaMaster.getConfigCheckReport().toProto()).build();
-        }, "getConfigReport", "options=%s", responseObserver, options);
+        () -> GetConfigReportPResponse.newBuilder()
+            .setReport(mMetaMaster.getConfigCheckReport().toProto()).build(),
+        "getConfigReport", "options=%s", responseObserver, options);
   }
 
   @Override
   public void getMasterInfo(GetMasterInfoPOptions options,
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
       for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
@@ -153,8 +151,8 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void checkpoint(CheckpointPOptions options,
       StreamObserver<CheckpointPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
-        CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
+    RpcUtils.call(LOG,
+        () -> CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
         "checkpoint", "options=%s", responseObserver, options);
   }
 }

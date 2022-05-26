@@ -63,9 +63,7 @@ public final class FileSystemMasterWorkerServiceHandler
     final List<Long> persistedFiles = request.getPersistedFilesList();
     FileSystemHeartbeatPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
-        () -> FileSystemHeartbeatPResponse
+    RpcUtils.call(LOG, () -> FileSystemHeartbeatPResponse
             .newBuilder()
             .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
                 persistedFiles, WorkerHeartbeatContext.create(options.toBuilder()))))
@@ -81,8 +79,7 @@ public final class FileSystemMasterWorkerServiceHandler
     final long fileId = request.getFileId();
     GetFileInfoPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+    RpcUtils.call(LOG, () -> GetFileInfoPResponse
             .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
             .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
@@ -94,9 +91,7 @@ public final class FileSystemMasterWorkerServiceHandler
 
     GetPinnedFileIdsPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
-        () -> GetPinnedFileIdsPResponse
+    RpcUtils.call(LOG, () -> GetPinnedFileIdsPResponse
             .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
         "getPinnedFileIds", "options=%s", responseObserver, options);
   }
@@ -108,10 +103,8 @@ public final class FileSystemMasterWorkerServiceHandler
     final long mountId = request.getMountId();
     GetUfsInfoPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
-            .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
-            .build(),
+    RpcUtils.call(LOG, () -> GetUfsInfoPResponse.newBuilder()
+            .setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId))).build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);
   }
 }

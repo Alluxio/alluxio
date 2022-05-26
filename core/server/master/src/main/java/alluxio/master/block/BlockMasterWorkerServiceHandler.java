@@ -86,7 +86,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
+    RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
           capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
@@ -104,7 +104,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
           mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
@@ -115,27 +115,24 @@ public final class BlockMasterWorkerServiceHandler extends
   public void commitBlockInUfs(CommitBlockInUfsPRequest request,
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
-          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
-          return CommitBlockInUfsPResponse.getDefaultInstance();
-        }, "commitBlock", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
+      return CommitBlockInUfsPResponse.getDefaultInstance();
+    }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-      return GetWorkerIdPResponse.newBuilder()
-          .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-          .build();
-    }, "getWorkerId", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> GetWorkerIdPResponse.newBuilder()
+        .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+        .build(), "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override
   public void requestRegisterLease(GetRegisterLeasePRequest request,
                                    StreamObserver<GetRegisterLeasePResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () ->
+    RpcUtils.call(LOG, () ->
         GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request)),
         "getRegisterLease", "request=%s", responseObserver, request);
   }
@@ -151,34 +148,33 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final long workerId = request.getWorkerId();
     RegisterWorkerPOptions options = request.getOptions();
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
-          // The exception will be propagated to the worker side and the worker should retry.
-          if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
-              && !mBlockMaster.hasRegisterLease(workerId)) {
-            String errorMsg = String.format("Worker %s does not have a lease or the lease "
-                + "has expired. The worker should acquire a new lease and retry to register.",
-                workerId);
-            LOG.warn(errorMsg);
-            throw new RegisterLeaseNotFoundException(errorMsg);
-          }
-          LOG.debug("Worker {} proceeding to register...", workerId);
-          final List<String> storageTiers = request.getStorageTiersList();
-          final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
-          final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
-          final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
+    RpcUtils.call(LOG, () -> {
+      // The exception will be propagated to the worker side and the worker should retry.
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+          && !mBlockMaster.hasRegisterLease(workerId)) {
+        String errorMsg = String.format("Worker %s does not have a lease or the lease "
+            + "has expired. The worker should acquire a new lease and retry to register.",
+            workerId);
+        LOG.warn(errorMsg);
+        throw new RegisterLeaseNotFoundException(errorMsg);
+      }
+      LOG.debug("Worker {} proceeding to register...", workerId);
+      final List<String> storageTiers = request.getStorageTiersList();
+      final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
+      final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
+      final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-          final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                  reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
+      final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+              reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
 
-          // If the register is unsuccessful, the lease will be kept around until the expiry.
-          // The worker can retry and use the existing lease.
-          mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options);
-          LOG.info("Worker {} finished registering, releasing its lease.", workerId);
-          mBlockMaster.releaseRegisterLease(workerId);
-          return RegisterWorkerPResponse.getDefaultInstance();
-        }, "registerWorker", true, "request=%s", responseObserver, workerId);
+      // If the register is unsuccessful, the lease will be kept around until the expiry.
+      // The worker can retry and use the existing lease.
+      mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+              currBlocksOnLocationMap, lostStorageMap, options);
+      LOG.info("Worker {} finished registering, releasing its lease.", workerId);
+      mBlockMaster.releaseRegisterLease(workerId);
+      return RegisterWorkerPResponse.getDefaultInstance();
+    }, "registerWorker", true, "request=%s", responseObserver, workerId);
   }
 
   @Override
@@ -201,11 +197,11 @@ public final class BlockMasterWorkerServiceHandler extends
             e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
                 .setMediumType(e.getKey().getMediumType()).setWorkerId(workerId).build(),
             e -> e.getValue().getBlockIdList(),
-            /**
-             * The merger function is invoked on key collisions to merge the values.
-             * In fact this merger should never be invoked because the list is deduplicated
-             * by {@link BlockMasterClient} before sending to the master.
-             * Therefore we just fail on merging.
+            /*
+              The merger function is invoked on key collisions to merge the values.
+              In fact this merger should never be invoked because the list is deduplicated
+              by {@link BlockMasterClient} before sending to the master.
+              Therefore, we just fail on merging.
              */
             (e1, e2) -> {
               String entryReport = entries.stream().map((e) -> e.getKey().toString())

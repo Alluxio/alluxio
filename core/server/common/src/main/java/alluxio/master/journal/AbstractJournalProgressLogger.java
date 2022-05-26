@@ -61,16 +61,14 @@ public abstract class AbstractJournalProgressLogger {
    * This method rate limits itself on when it actually calculates and logs the message. If it is
    * called too frequently, then it will essentially be a no-op. The return value indicates whether
    * a message was logged or not as a result of calling the method.
-   *
-   * @return true is a message is logged, false otherwise
    */
-  public boolean logProgress() {
+  public void logProgress() {
     long now = System.currentTimeMillis();
     long nextLogTime =
         1000L * Math.min(1L << (mLogCount > 30 ? 30 : mLogCount), MAX_LOG_INTERVAL_MS);
     // Exit early if log is called too fast.
     if ((now - mLastMeasuredTime) < nextLogTime) {
-      return false;
+      return;
     }
     long currCommitIdx = getLastAppliedIndex();
     long timeSinceLastMeasure = (now - mLastMeasuredTime);
@@ -96,6 +94,5 @@ public abstract class AbstractJournalProgressLogger {
     LOG.info(logMsg.toString());
     mLastMeasuredTime = now;
     mLastCommitIdx = currCommitIdx;
-    return true;
   }
 }

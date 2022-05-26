@@ -123,8 +123,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
   @Override
   public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-      boolean ownerRequired, boolean writeRequired)
-      throws AccessControlException, InvalidPathException {
+      boolean ownerRequired, boolean writeRequired) throws AccessControlException {
     if (!mPermissionCheckEnabled) {
       return;
     }
@@ -173,10 +172,8 @@ public class DefaultPermissionChecker implements PermissionChecker {
    *
    * @param inodePath path to be checked on
    * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
    */
-  private void checkOwner(LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException {
+  private void checkOwner(LockedInodePath inodePath) throws AccessControlException {
     // collects inodes info on the path
     List<InodeView> inodeList = inodePath.getInodeViewList();
 
@@ -303,7 +300,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
             .append(", ").append("path=").append(path).append(": ").append("failed at ")
             .append(inode.getName().equals("") ? "/" : inode.getName()).append(", inode owner=")
             .append(inode.getOwner()).append(", inode group=").append(inode.getGroup())
-            .append(", inode mode=").append(new Mode(inode.getMode()).toString());
+            .append(", inode mode=").append(new Mode(inode.getMode()));
     return sb.toString();
   }
 }
