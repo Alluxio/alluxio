@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.master.block.BlockId;
@@ -307,14 +306,9 @@ public class TieredBlockStore implements LocalBlockStore
             format("Allocation error: location enforcement failed for location: %s",
                 allocationDir.toBlockStoreLocation()));
       }
-
       // Increase the size of this temp block
-      try {
-        mMetaManager.resizeTempBlockMeta(
-            tempBlockMeta, tempBlockMeta.getBlockSize() + additionalBytes);
-      } catch (InvalidWorkerStateException e) {
-        throw Throwables.propagate(e); // we shall never reach here
-      }
+      mMetaManager.resizeTempBlockMeta(tempBlockMeta,
+          tempBlockMeta.getBlockSize() + additionalBytes);
     }
   }
 
@@ -634,8 +628,7 @@ public class TieredBlockStore implements LocalBlockStore
       }
       return dirView;
     }
-    throw new WorkerOutOfSpaceException(
-        format("Allocation failure. Options: %s. Error:", options.toString()));
+    throw new WorkerOutOfSpaceException(format("Allocation failure. Options: %s. Error:", options));
   }
 
   /**

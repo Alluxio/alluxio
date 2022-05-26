@@ -214,7 +214,7 @@ public final class BlockMetadataManagerTest {
    * Optional.empty() when trying to retrieve metadata of a block which does not exist.
    */
   @Test
-  public void getBlockMetaNotExisting() throws Exception {
+  public void getBlockMetaNotExisting() {
     assertFalse(mMetaManager.getBlockMeta(TEST_BLOCK_ID).isPresent());
   }
 
@@ -223,7 +223,7 @@ public final class BlockMetadataManagerTest {
    * method when trying to retrieve metadata of a temporary block which does not exist.
    */
   @Test
-  public void getTempBlockMetaNotExisting() throws Exception {
+  public void getTempBlockMetaNotExisting() {
     assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID).isPresent());
   }
 
@@ -308,7 +308,7 @@ public final class BlockMetadataManagerTest {
    * Tests the {@link BlockMetadataManager#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
-  public void resizeTempBlockMeta() throws Exception {
+  public void resizeTempBlockMeta() {
     StorageDir dir = mMetaManager.getTier(Constants.MEDIUM_MEM).getDir(0);
     TempBlockMeta tempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);

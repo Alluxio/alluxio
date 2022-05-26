@@ -19,9 +19,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 
 import com.google.common.base.Throwables;
 import org.junit.After;
