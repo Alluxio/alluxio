@@ -167,7 +167,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
     if (!mBaseParameters.mDistributed) {
       // single-node case only has one directory
-      mJobWorkerDirNames = ImmutableList.of(mBaseParameters.mId);
+      mJobWorkerDirNames = Collections.singletonList(mBaseParameters.mId);
       return;
     }
     // for cluster mode, find 0-based id, and make sure directories and job workers are 1-to-1
@@ -181,8 +181,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       throw new IllegalStateException("Some job worker crashed or joined after data are written. "
           + "The test is stopped.");
     }
-    mJobWorkerDirNames =
-        Arrays.stream(jobWorkerDirs).map(File::getName).collect(Collectors.toList());
+    mJobWorkerDirNames = Collections.unmodifiableList(
+        Arrays.stream(jobWorkerDirs).map(File::getName).collect(Collectors.toList()));
     mJobWorkerZeroBasedId = mJobWorkerDirNames.indexOf(mBaseParameters.mId);
     if (mJobWorkerZeroBasedId == -1) {
       throw new IllegalStateException(String.format(
