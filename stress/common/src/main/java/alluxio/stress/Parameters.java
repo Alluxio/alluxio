@@ -130,7 +130,7 @@ public abstract class Parameters {
           if (fieldName.startsWith("m")) {
             fieldName = fieldName.substring(1);
           }
-          description = String.format("%s: %s", fieldName, fieldValue.toString());
+          description = String.format("%s: %s", fieldName, fieldValue);
         }
         descriptions.add(description);
       }

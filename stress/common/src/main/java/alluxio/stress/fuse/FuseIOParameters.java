@@ -64,8 +64,6 @@ public final class FuseIOParameters extends Parameters {
 
   /**
    * Converts from String to FuseIOOperation instance.
-   *
-   * @return FuseIOOperation of this bench
    */
   public static class FuseIOOperationConverter implements IStringConverter<FuseIOOperation> {
     @Override

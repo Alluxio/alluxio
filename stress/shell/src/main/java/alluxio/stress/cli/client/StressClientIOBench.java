@@ -254,7 +254,7 @@ public class StressClientIOBench extends AbstractStressBench
    * @param startMs start time for profiling
    * @param endMs end time for profiling
    * @return TimeToFirstByteStatistics
-   * @throws IOException
+   * @throws IOException exception
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   public synchronized Map<String, SummaryStatistics> addAdditionalResult(
@@ -308,7 +308,7 @@ public class StressClientIOBench extends AbstractStressBench
         responseTime99Percentile, maxResponseTimesMs);
   }
 
-  private final class BenchContext {
+  private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
 

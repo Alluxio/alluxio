@@ -102,7 +102,7 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
    */
   private T computeMaxThroughput(List<String> baseArgs) throws Exception {
 
-    int numWorkers = 0;
+    int numWorkers;
     try (JobMasterClient client = JobMasterClient.Factory.create(
         JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
             ConfigurationUtils.defaults()))).build())) {

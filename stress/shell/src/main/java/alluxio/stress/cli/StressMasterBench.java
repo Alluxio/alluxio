@@ -475,7 +475,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
       CommonUtils.sleepMs(waitMs);
 
-      long localCounter = 0;
+      long localCounter;
       while (true) {
         if (Thread.currentThread().isInterrupted()) {
           break;

@@ -156,7 +156,6 @@ public class MasterMaxThroughput extends
   /**
    * @param requiredCount the number of operations that may happen for a successful run
    * @param args the args
-   * @return the results
    */
   private void prepareBeforeSingleTest(long requiredCount, List<String> args) throws Exception {
     switch (mParameters.mOperation) {

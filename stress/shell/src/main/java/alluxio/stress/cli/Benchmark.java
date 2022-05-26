@@ -181,8 +181,7 @@ public abstract class Benchmark<T extends TaskResult> {
       }
 
       // aggregate the results
-      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toJson();
-      return s;
+      return result.aggregator().aggregate(Collections.singletonList(result)).toJson();
     } else {
       // Spawn a new process
       List<String> command = new ArrayList<>();
@@ -241,7 +240,7 @@ public abstract class Benchmark<T extends TaskResult> {
 
         final long timestamp = timestampNumber.longValue();
         final long duration = durationNumber.longValue();
-        final boolean ttfb = ttfbFlag.booleanValue();
+        final boolean ttfb = ttfbFlag;
 
         if (timestamp <= startMs) {
           continue;
@@ -303,9 +302,9 @@ public abstract class Benchmark<T extends TaskResult> {
   }
 
   protected static final class MethodStatistics {
-    private Histogram mTimeNs;
+    private final Histogram mTimeNs;
     private int mNumSuccess;
-    private long[] mMaxTimeNs;
+    private final long[] mMaxTimeNs;
 
     MethodStatistics() {
       mNumSuccess = 0;
