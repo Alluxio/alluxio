@@ -83,6 +83,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -768,8 +769,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     try {
       mServer.start();
     } catch (IOException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
-          .getMessage(Arrays.toString(mClusterAddresses.toArray()),
+      String errorMessage =
+          MessageFormat.format("Failed to bootstrap raft cluster with addresses {0}: {1}",
+              Arrays.toString(mClusterAddresses.toArray()),
               e.getCause() == null ? e : e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }

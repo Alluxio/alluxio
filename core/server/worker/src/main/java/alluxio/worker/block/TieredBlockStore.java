@@ -42,6 +42,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.protobuf.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -491,8 +493,8 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   private void checkTempBlockDoesNotExist(long blockId) {
-    checkState(!hasTempBlockMeta(blockId),
-        ExceptionMessage.TEMP_BLOCK_ID_EXISTS.getMessage(blockId));
+    checkState(!hasTempBlockMeta(blockId), MessageFormat
+        .format("Temp blockId {0,number,#} is not available, because it already exists", blockId));
   }
 
   /**

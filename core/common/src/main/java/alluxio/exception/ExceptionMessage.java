@@ -26,28 +26,19 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum ExceptionMessage {
   // general
-  INVALID_PREFIX("Parent path \"{0}\" is not a prefix of child {1}."),
-  NOT_SUPPORTED("This method is not supported."),
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
-  PATH_MUST_BE_MOUNT_POINT("Path \"{0}\" must be a mount point."),
   PATH_INVALID("Path \"{0}\" is invalid."),
   STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),
 
   // general block
-  BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
-  BLOCK_SIZE_INVALID("Block size of {0} is invalid. Block size must be > 0 bytes."),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
-  // active sync
-  FAILED_INITIAL_SYNC("IOException encountered during initial syncing of sync point {0}"),
-
 
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
-  GET_DIR_FROM_NON_SPECIFIC_LOCATION("Cannot get path from non-specific dir {0}"),
   TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0,number,#}"),
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
@@ -56,8 +47,6 @@ public enum ExceptionMessage {
   FAILED_CACHE("Failed to cache: {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
 
-  // meta master
-  NO_MASTER_FOUND("No master with masterId {0,number,#} is found"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0,number,#} exists in {1}"),
@@ -68,41 +57,22 @@ public enum ExceptionMessage {
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_SESSION(
       "blockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
-  MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
-  NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE(
       "Failed to free {0,number,#} bytes space at location {1}"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION(
-      "Failed to allocate {0,number,#} bytes on {1} to create blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_MOVE(
       "Failed to find space in {0} to move blockId {1,number,#}"),
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
-  TEMP_BLOCK_ID_EXISTS("Temp blockId {0,number,#} is not available, because it already exists"),
 
-  // ufsBlockStore
-  UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION(
-      "UFS block {0,number,#} from UFS file {1} exists for session {2,number,#}"),
-  UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE(
-      "Failed to acquire an access token for the UFS block {0,number,#} (filename: {1})."),
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
   JOURNAL_WRITE_FAILURE("Failed to write to journal file ({0}): {1}"),
   JOURNAL_FLUSH_FAILURE("Failed to flush journal file ({0}): {1}"),
 
-  // Raft journal
-  FAILED_RAFT_BOOTSTRAP("Failed to bootstrap raft cluster with addresses {0}: {1}"),
 
   // file
-  CANNOT_READ_INCOMPLETE_FILE(
-      "Cannot read from {0} because it is incomplete. Wait for the file to be marked as complete "
-          + "by the writing thread or application."),
-  CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
-  DELETE_FAILED_DIR_CHILDREN(
-      "Cannot delete directory {0}. Failed to delete children: {1}"),
-  DELETE_FAILED_DIR_NONEMPTY("Directory not empty"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_FAILED_UFS_DIR("UFS delete dir failed"),
   DELETE_FAILED_UFS_FILE("UFS delete file failed"),

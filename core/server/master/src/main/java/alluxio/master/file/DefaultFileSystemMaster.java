@@ -197,6 +197,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1795,7 +1796,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException {
     if (!mMountTable.isMountPoint(path)) {
       throw new InvalidPathException(
-          ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
+          MessageFormat.format("Path \"{0}\" must be a mount point.", path));
     }
     return getDisplayMountPointInfo(mMountTable.getMountTable().get(path.toString()), true);
   }
@@ -1896,8 +1897,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
           if (failedChildren.size() > 0) {
             auditContext.setAllowed(false);
-            throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
-                .getMessage(path, StringUtils.join(failedChildren, ",")));
+            throw new AccessControlException(
+                MessageFormat.format("Cannot delete directory {0}. Failed to delete children: {1}",
+                    path, StringUtils.join(failedChildren, ",")));
           }
         }
 
@@ -2022,7 +2024,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
-          failureReason = ExceptionMessage.DELETE_FAILED_DIR_NONEMPTY.getMessage();
+          failureReason = "Directory not empty";
         } else if (inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
