@@ -37,8 +37,8 @@ The following section will require some prerequisite knowledge about [Helm Chart
 
 #### Step 1: Update config.yaml
 
-The Helm templates are configured with `helm/alluxio/values.yaml`.
-We use the `config.yaml` in the corresponding template directory to override the parameters in `helm/alluxio/values.yaml`.
+The Helm templates are configured with `alluxio/values.yaml`.
+We use the `config.yaml` in the corresponding template directory to override the parameters in `alluxio/values.yaml`.
 For example `singleMaster-localJournal/config.yaml` sets parameters specific to its deployment scenario.
 
 You should make sure the following 2 values align with the templates you want to generate:

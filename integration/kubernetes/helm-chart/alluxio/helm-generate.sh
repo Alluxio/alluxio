@@ -40,9 +40,6 @@ function generateTemplates {
   if [[ ! -d "${dir}/logserver" ]]; then
     mkdir -p ${dir}/logserver
   fi
-  if [[ ! -d "${dir}/csi" ]]; then
-    mkdir -p ${dir}/csi
-  fi
 
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
@@ -69,57 +66,63 @@ EOF
 function generateConfigTemplates {
   echo "Generating configmap templates into $dir"
   if [ "$workerFuse" = true ]; then
-    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set worker.fuseEnabled=true --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+    helm template --name-template ${RELEASE_NAME} . --set worker.fuseEnabled=true --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
   else
-    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+    helm template --name-template ${RELEASE_NAME} . --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
   fi
 }
 
 function generateMasterTemplates {
   echo "Generating master templates into $dir"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
 }
 
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
   if [ "$workerFuse" = true ]; then
-    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set worker.fuseEnabled=true --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+    helm template --name-template ${RELEASE_NAME} . --set worker.fuseEnabled=true --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
   else
-    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+    helm template --name-template ${RELEASE_NAME} . --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
   fi
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
 }
 
 function generateFuseTemplates {
-  echo "Generating fuse templates"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.enabled=true --show-only templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.clientEnabled=true --show-only templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
+  echo "Generating fuse templates into fuse/"
+  if [[ ! -d ./fuse ]]; then
+    mkdir -p ./fuse
+  fi
+  helm template --name-template ${RELEASE_NAME} . --set fuse.enabled=true --show-only templates/fuse/daemonset.yaml -f $dir/config.yaml > "fuse/alluxio-fuse.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set fuse.clientEnabled=true --show-only templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "fuse/alluxio-fuse-client.yaml.template"
 }
 
 function generateLoggingTemplates {
   echo "Generating remote logserver templates"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/logserver/deployment.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-deployment.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/logserver/service.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-service.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/logserver/log-pvc.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-pvc.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/logserver/deployment.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-deployment.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/logserver/service.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-service.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/logserver/log-pvc.yaml -f $dir/config.yaml > "$dir/logserver/alluxio-logserver-pvc.yaml.template"
 }
 
 function generateMasterServiceTemplates {
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
 }
 
 function generateCsiTemplates {
   echo "Generating csi templates"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller-rbac.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller-rbac.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/driver.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-driver.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/nodeplugin.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-nodeplugin.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/fuse-configmap.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-fuse-configmap.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/storage-class.yaml -f $dir/config.yaml > "$dir/csi/alluxio-storage-class.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/pvc.yaml -f $dir/config.yaml > "$dir/csi/alluxio-pvc.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/pvc-static.yaml -f $dir/config.yaml > "$dir/csi/alluxio-pvc-static.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/pv.yaml -f $dir/config.yaml > "$dir/csi/alluxio-pv.yaml.template"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/nginx-pod.yaml -f $dir/config.yaml > "$dir/csi/alluxio-nginx-pod.yaml.template"
+    if [[ ! -d ./csi ]]; then
+      mkdir -p ./csi
+    fi
+  helm template --name-template ${RELEASE_NAME} . --set csi.enabled=true --show-only templates/csi/controller-rbac.yaml -f $dir/config.yaml > "csi/alluxio-csi-controller-rbac.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.enabled=true --show-only templates/csi/controller.yaml -f $dir/config.yaml > "csi/alluxio-csi-controller.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.enabled=true --show-only templates/csi/driver.yaml -f $dir/config.yaml > "csi/alluxio-csi-driver.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.enabled=true --show-only templates/csi/nodeplugin.yaml -f $dir/config.yaml > "csi/alluxio-csi-nodeplugin.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.enabled=true --show-only templates/csi/fuse-configmap.yaml -f $dir/config.yaml > "csi/alluxio-csi-fuse-configmap.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/storage-class.yaml -f $dir/config.yaml > "csi/alluxio-storage-class.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc.yaml -f $dir/config.yaml > "csi/alluxio-pvc.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pvc-static.yaml -f $dir/config.yaml > "csi/alluxio-pvc-static.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/pv.yaml -f $dir/config.yaml > "csi/alluxio-pv.yaml.template"
+  helm template --name-template ${RELEASE_NAME} . --set csi.clientEnabled=true --show-only templates/csi/nginx-pod.yaml -f $dir/config.yaml > "csi/alluxio-nginx-pod.yaml.template"
 }
 
 function generateSingleUfsTemplates {

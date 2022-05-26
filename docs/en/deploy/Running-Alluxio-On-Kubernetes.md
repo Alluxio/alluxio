@@ -1434,7 +1434,7 @@ Note that if Alluxio Worker and Alluxio Fuse is co-located in the same node, All
 can read from the worker storage directly to improve read performance. 
 In this case, Alluxio Fuse need to know about the worker storage information.
 This is why worker storage configuration is set in `ALLUXIO_JAVA_OPTS` shared by all Alluxio containers.
-- Alluxio fuse environment variables can be set in `alluxio-fuse.yaml`:
+- Alluxio fuse environment variables can be set in `fuse/alluxio-fuse.yaml`:
 ```yaml
 containers:
   - name: alluxio-fuse
@@ -1486,7 +1486,7 @@ Here are some common properties that you can customize:
 </table>
 
 Then please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
-to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/<deploy-mode>/csi`.
+to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/csi`.
 
 **Step 2: Deploy CSI services**
 
