@@ -13,9 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
@@ -264,27 +262,23 @@ public final class BlockLockManager {
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
-   * @throws InvalidWorkerStateException when session id or block id is not consistent with that
-   *         in the lock record for lock id
+   * @return hold or not
    */
   @VisibleForTesting
-  public void validateLock(long sessionId, long blockId, long lockId)
-      throws InvalidWorkerStateException {
+  public boolean checkLock(long sessionId, long blockId, long lockId) {
     try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new BlockDoesNotExistRuntimeException(
-            ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
+        return false;
       }
       if (sessionId != record.getSessionId()) {
-        throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,
-            lockId, record.getSessionId(), sessionId);
+        return false;
       }
       if (blockId != record.getBlockId()) {
-        throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
-            record.getBlockId(), blockId);
+        return false;
       }
     }
+    return true;
   }
 
   /**
