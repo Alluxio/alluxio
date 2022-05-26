@@ -28,7 +28,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
@@ -231,8 +230,7 @@ public class AlluxioStatusException extends IOException {
     } catch (ConnectionFailedException | FailedToCheckpointException
         | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       return new UnavailableException(e);
-    } catch (DependencyDoesNotExistException | DirectoryNotEmptyException
-        | InvalidWorkerStateException e) {
+    } catch (DependencyDoesNotExistException | DirectoryNotEmptyException e) {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);

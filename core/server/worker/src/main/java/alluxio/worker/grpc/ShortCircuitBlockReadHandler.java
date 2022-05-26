@@ -13,11 +13,10 @@ package alluxio.worker.grpc;
 
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 
 import alluxio.RpcUtils;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
@@ -78,12 +77,9 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       public OpenLocalBlockResponse call() throws Exception {
         checkState(mRequest == null);
         mRequest = request;
-        if (mLockId.isPresent()) {
-          LOG.warn("Lock block {} without releasing previous block lock {}.",
-              mRequest.getBlockId(), mLockId);
-          throw new InvalidWorkerStateException(
-              ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
-        }
+        checkState(mLockId.isPresent(),
+            format("Lock block %s without releasing previous block lock %s.", mRequest.getBlockId(),
+                mLockId));
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better
         Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
