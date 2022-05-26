@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication;
 
+import static java.util.Objects.requireNonNull;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
@@ -53,17 +54,18 @@ import javax.security.sasl.SaslException;
 public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedChannelClientDriver.class);
   /** Channel key. */
-  private GrpcChannelKey mChannelKey;
+  private final GrpcChannelKey mChannelKey;
+  /** Handshake handler for client. */
+  private final SaslClientHandler mSaslClientHandler;
+  /** Used to wait during authentication handshake. */
+  private final SettableFuture<Void> mChannelAuthenticatedFuture = SettableFuture.create();
+  /** Initiating message for authentication. */
+  private final SaslMessage mInitiateMessage;
+
   /** Server's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver;
-  /** Handshake handler for client. */
-  private SaslClientHandler mSaslClientHandler;
   /** Whether channel is authenticated. */
   private volatile boolean mChannelAuthenticated;
-  /** Used to wait during authentication handshake. */
-  private SettableFuture<Void> mChannelAuthenticatedFuture;
-  /** Initiating message for authentication. */
-  private SaslMessage mInitiateMessage;
 
   /**
    * Creates client driver with given handshake handler.
@@ -73,10 +75,9 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    */
   public AuthenticatedChannelClientDriver(SaslClientHandler saslClientHandler,
       GrpcChannelKey channelKey) throws SaslException {
-    mSaslClientHandler = saslClientHandler;
-    mChannelKey = channelKey;
+    mSaslClientHandler = requireNonNull(saslClientHandler);
+    mChannelKey = requireNonNull(channelKey);
     mChannelAuthenticated = false;
-    mChannelAuthenticatedFuture = SettableFuture.create();
     // Generate the initiating message while sasl handler is valid.
     mInitiateMessage = generateInitialMessage();
   }
@@ -162,9 +163,9 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
       // Utility to return from start when channel is secured.
       waitUntilChannelAuthenticated(timeoutMs);
-    } catch (Throwable t) {
+    } catch (AlluxioStatusException | RuntimeException e) {
       closeAuthenticatedChannel(true);
-      throw AlluxioStatusException.fromThrowable(t);
+      throw AlluxioStatusException.fromThrowable(e);
     }
   }
 
@@ -203,7 +204,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
     if (signalServer) {
       try {
         mRequestObserver.onCompleted();
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
         LogUtils.warnWithException(LOG,
             "Failed signaling server for stream completion for channel: {}.",
             mChannelKey.toString(), e);
