@@ -47,11 +47,6 @@ public final class CsvReader implements TableReader {
   private final Closer mCloser;
   private final CsvSchema mSchema;
 
-  /*
-   * @param inputPath the input path
-   * @param pInfo the partition info
-   * @throws IOException when failed to open the input
-   */
   private CsvReader(JobPath inputPath, PartitionInfo pInfo) throws IOException {
     mCloser = Closer.create();
     try {

@@ -58,7 +58,7 @@ public final class JobContext implements Closeable  {
 
   private JobContext() {} // private constructor to prevent instantiation
 
-  /**
+  /*
    * Initializes the context. Only called in the factory methods and reset.
    */
   private synchronized void init(AlluxioConfiguration alluxioConf, UserState userState) {
