@@ -67,7 +67,7 @@ public class BlockReadHandlerTest {
 
   private BlockReadHandler mReadHandler;
   private ServerCallStreamObserver<ReadResponse> mResponseObserver;
-  private List<ReadResponse> mResponses = new ArrayList<>();
+  private final List<ReadResponse> mResponses = new ArrayList<>();
   private boolean mResponseCompleted;
   private Throwable mError;
   private BlockReader mBlockReader;
@@ -75,9 +75,6 @@ public class BlockReadHandlerTest {
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
-
-  @Rule
-  public ExpectedException mExpectedException = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -111,7 +108,7 @@ public class BlockReadHandlerTest {
           return mBlockReader;
         });
     mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, blockWorker,
-        mResponseObserver, new AuthenticatedUserInfo(), false);
+        mResponseObserver, false);
   }
 
   /**
@@ -198,9 +195,9 @@ public class BlockReadHandlerTest {
         while (length > 0) {
           byte[] buffer = new byte[(int) Math.min(length, Constants.MB)];
           mRandom.nextBytes(buffer);
-          for (int i = 0; i < buffer.length; i++) {
+          for (byte b : buffer) {
             if (pos >= start && pos <= end) {
-              checksum += BufferUtils.byteToInt(buffer[i]);
+              checksum += BufferUtils.byteToInt(b);
             }
             pos++;
           }
@@ -255,9 +252,7 @@ public class BlockReadHandlerTest {
   }
 
   private ReadRequest buildReadRequest(long offset, long len) {
-    ReadRequest readRequest =
-        ReadRequest.newBuilder().setBlockId(1L).setOffset(offset).setLength(len)
-            .setChunkSize(CHUNK_SIZE).build();
-    return readRequest;
+    return ReadRequest.newBuilder().setBlockId(1L).setOffset(offset).setLength(len)
+        .setChunkSize(CHUNK_SIZE).build();
   }
 }

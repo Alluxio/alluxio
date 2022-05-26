@@ -31,12 +31,11 @@ import java.io.IOException;
  */
 public class FuseManager implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FuseManager.class);
-  private static final String FUSE_OPTION_SEPARATOR = ",";
   private final FileSystemContext mFsContext;
   /** Use to umount Fuse application during stop. */
   private FuseUmountable mFuseUmountable;
   /** Use to close resources during stop. */
-  private Closer mResourceCloser;
+  private final Closer mResourceCloser;
 
   /**
    * Constructs a new {@link FuseManager}.

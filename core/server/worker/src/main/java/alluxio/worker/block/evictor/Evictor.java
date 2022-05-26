@@ -52,7 +52,7 @@ public interface Evictor {
      */
     public static Evictor create(BlockMetadataEvictorView view, Allocator allocator) {
       return CommonUtils.createNewClassInstance(
-          ServerConfiguration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
+          ServerConfiguration.getClass(PropertyKey.WORKER_EVICTOR_CLASS),
           new Class[] {BlockMetadataEvictorView.class, Allocator.class},
           new Object[] {view, allocator});
     }

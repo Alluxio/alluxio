@@ -257,7 +257,7 @@ public class CacheRequestManager {
    * @return if the block is cached
    */
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException, AlluxioException {
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException {
     try (BlockReader reader = mBlockWorker.createUfsBlockReader(
         Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store

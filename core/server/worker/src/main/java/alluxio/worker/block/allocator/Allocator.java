@@ -44,7 +44,7 @@ public interface Allocator {
     public static Allocator create(BlockMetadataView view) {
       BlockMetadataView metadataView = Preconditions.checkNotNull(view, "view");
       return CommonUtils.createNewClassInstance(
-          ServerConfiguration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
+          ServerConfiguration.getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
           new Class[] {BlockMetadataView.class}, new Object[] {metadataView});
     }
   }

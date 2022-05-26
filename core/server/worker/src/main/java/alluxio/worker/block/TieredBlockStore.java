@@ -635,7 +635,7 @@ public class TieredBlockStore implements LocalBlockStore
       return dirView;
     }
     throw new WorkerOutOfSpaceException(
-        format("Allocation failure. Options: %s. Error:", options.toString()));
+        format("Allocation failure. Options: %s. Error:", options));
   }
 
   /**

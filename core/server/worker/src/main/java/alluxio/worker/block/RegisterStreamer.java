@@ -59,13 +59,13 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private final Map<String, StorageList> mLostStorageMap;
 
   private int mBatchNumber;
-  private BlockMapIterator mBlockMapIterator;
+  private final BlockMapIterator mBlockMapIterator;
 
   // For internal flow control and state mgmt
   private final CountDownLatch mAckLatch;
   private final CountDownLatch mFinishLatch;
-  private Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
-  private AtomicReference<Throwable> mError = new AtomicReference<>();
+  private final Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
+  private final AtomicReference<Throwable> mError = new AtomicReference<>();
 
   private final int mResponseTimeoutMs;
   private final int mDeadlineMs;

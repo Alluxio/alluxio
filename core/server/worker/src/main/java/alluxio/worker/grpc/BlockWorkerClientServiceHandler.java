@@ -110,8 +110,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mBlockWorker, callStreamObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+        mBlockWorker, callStreamObserver, mDomainSocketEnabled);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }
@@ -135,14 +134,14 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
     return new ShortCircuitBlockReadHandler(
-        mBlockWorker.getLocalBlockStore(), responseObserver, getAuthenticatedUserInfo());
+        mBlockWorker.getLocalBlockStore(), responseObserver);
   }
 
   @Override
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
     ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
-        mBlockWorker, responseObserver, getAuthenticatedUserInfo());
+        mBlockWorker, responseObserver);
     ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
     serverCallStreamObserver.setOnCancelHandler(handler::onCancel);
