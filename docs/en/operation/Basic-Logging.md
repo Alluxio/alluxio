@@ -88,7 +88,7 @@ log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 ```
 
 To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.AlluxioFileInStream` to `DEBUG`),
-add a new line in the end of this file:
+add a new line at the end of this file:
 
 ```properties
 log4j.logger.alluxio.client.file.AlluxioFileInStream=DEBUG
@@ -263,7 +263,7 @@ You need to restart the relevant processes for the log4j properties to take effe
 
 When debugging the performance, it is often useful to understand which RPCs take most of the time
 but without recording all the communication (e.g., enabling all debug logging).
-Alluxio can record slow calls or RPCs in logs with WARN level by setting following properties:
+Alluxio can record slow calls or RPCs in logs with WARN level by setting the following properties:
 
 1. Set `alluxio.user.logging.threshold` to record slow client-side RPCs in application logs.
 1. Set `alluxio.fuse.logging.threshold` to record slow FUSE API calls in fuse logs (`logs/fuse.log`).
@@ -289,10 +289,10 @@ capacityBytesOnTiers={}, freeBytes=11453237930, liveWorkerNum=0, lostWorkerNum=0
 
 ### Redirecting debug log for certain classes
 
-Sometimes it is useful to separate the log for certain classes to a separate log.
+Sometimes it is useful to separate the log for certain classes into a separate log.
 This can be useful for reasons including but not limited to:
 1. Clearly separate the wanted logs for further analysis.
-1. Avoid `master.log` or `worker.log` being too big or have too many files created by log rotation.
+1. Avoid `master.log` or `worker.log` being too big or having too many files created by log rotation.
 1. Use a separate logger to send logs to a remote endpoint like a socket.
 
 This can be achieved by adding a separate logger in the `conf/log4j.properties`.
@@ -314,7 +314,7 @@ log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1}
 
 Sometimes it makes sense to disable certain logs files.
 
-One example use cases is when Alluxio is running in a containerized environment,
+One example of use cases is when Alluxio is running in a containerized environment,
 where logs are written to the writable layer. This has performance penalties
 and the writable layer may grow indefinitely, causing disk pressure on the host.
 In that case you can either mount a volume to the log directory so logs are written to the volume,
