@@ -374,10 +374,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (options.isEnsureConsistency()) {
-      return retryOnException(() -> createInternal(path, options), () -> "create file " + path);
-    }
-    return createInternal(path, options);
+    return retryOnException(() -> {
+      if (options.getCreateParent()
+          && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+          && !mkdirs(getParentPath(path))) {
+        throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+      }
+      return createObject(stripPrefixIfPresent(path));
+    }, () -> "create file " + path, getRetryPolicy(options.isEnsureConsistency()));
   }
 
   @Override
@@ -387,7 +391,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean deleteExistingFile(String path) throws IOException {
-    return retryOnFalse(() -> deleteFile(path), () -> "delete existing file " + path);
+    return retryOnFalse(() -> deleteFile(path), () -> "delete existing file " + path,
+        getRetryPolicy(true));
   }
 
   @Override
@@ -435,13 +440,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean deleteExistingDirectory(String path) throws IOException {
-    return retryOnFalse(() -> deleteDirectory(path), () -> "delete directory " + path);
+    return retryOnFalse(() -> deleteDirectory(path), () -> "delete directory " + path,
+        getRetryPolicy(true));
   }
 
   @Override
   public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
     return retryOnFalse(() -> deleteDirectory(path, options),
-        () -> "delete directory " + path + " with options " + options);
+        () -> "delete directory " + path + " with options " + options, getRetryPolicy(true));
   }
 
   /**
@@ -491,7 +497,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
     return retryOnException(() -> getDirectoryStatus(path),
-        () -> "get status of directory " + path);
+        () -> "get status of directory " + path, getRetryPolicy(true));
   }
 
   // Not supported
@@ -533,7 +539,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
-    return retryOnException(() -> getFileStatus(path), () -> "get status of file " + path);
+    return retryOnException(() -> getFileStatus(path), () -> "get status of file " + path,
+        getRetryPolicy(true));
   }
 
   @Override
@@ -554,7 +561,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public UfsStatus getExistingStatus(String path) throws IOException {
     return retryOnException(() -> getStatus(path),
-        () -> "get status of " + path);
+        () -> "get status of " + path, getRetryPolicy(true));
   }
 
   @Override
@@ -573,7 +580,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isExistingDirectory(String path) throws IOException {
     return retryOnException(() -> isDirectory(path),
-        () -> "check if " + path + " is a directory");
+        () -> "check if " + path + " is a directory", getRetryPolicy(true));
   }
 
   @Override
@@ -642,7 +649,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
-    return openObject(stripPrefixIfPresent(path), options, getRetryPolicy());
+    return openObject(stripPrefixIfPresent(path), options, getRetryPolicy(true));
   }
 
   @Override
@@ -693,7 +700,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean renameRenamableDirectory(String src, String dst) throws IOException {
     return retryOnFalse(() -> renameDirectory(src, dst),
-        () -> "rename directory from " + src + " to " + dst);
+        () -> "rename directory from " + src + " to " + dst, getRetryPolicy(true));
   }
 
   /**
@@ -743,7 +750,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean renameRenamableFile(String src, String dst) throws IOException {
     return retryOnFalse(() -> renameFile(src, dst),
-        () -> "rename file from " + src + " to " + dst);
+        () -> "rename file from " + src + " to " + dst, getRetryPolicy(true));
   }
 
   @Override
@@ -1120,15 +1127,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
   }
 
-  private OutputStream createInternal(String path, CreateOptions options) throws IOException {
-    if (options.getCreateParent()
-        && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
-        && !mkdirs(getParentPath(path))) {
-      throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
-    }
-    return createObject(stripPrefixIfPresent(path));
-  }
-
   /**
    * Represents an object store operation.
    */
@@ -1147,11 +1145,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param op the object store operation to retry
    * @param description the description regarding the operation
+   * @param retryPolicy the retry policy
    * @return the operation result if operation succeed
    */
   private <T> T retryOnException(ObjectStoreOperation<T> op,
-      Supplier<String> description) throws IOException {
-    RetryPolicy retryPolicy = getRetryPolicy();
+      Supplier<String> description, RetryPolicy retryPolicy) throws IOException {
     IOException thrownException = null;
     while (retryPolicy.attempt()) {
       try {
@@ -1171,11 +1169,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param op the object store operation to retry
    * @param description the description regarding the operation
+   * @param retryPolicy the retry policy
    * @return the operation result if operation returned true
    */
   private boolean retryOnFalse(ObjectStoreOperation<Boolean> op,
-      Supplier<String> description) throws IOException {
-    RetryPolicy retryPolicy = getRetryPolicy();
+      Supplier<String> description, RetryPolicy retryPolicy) throws IOException {
     while (retryPolicy.attempt()) {
       if (op.apply()) {
         return true;
@@ -1188,13 +1186,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
+   * Gets a retry policy.
+   *
+   * @param retry true to retry, false otherwise
    * @return the exponential backoff retry policy to use
    */
-  private RetryPolicy getRetryPolicy() {
-    return new ExponentialBackoffRetry(
-        (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS),
-        (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS),
-        mUfsConf.getInt(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM));
+  private RetryPolicy getRetryPolicy(boolean retry) {
+    if (retry) {
+      return new ExponentialBackoffRetry(
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS),
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS),
+          mUfsConf.getInt(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM));
+    }
+    return getRetryOncePolicy();
   }
 
   /**

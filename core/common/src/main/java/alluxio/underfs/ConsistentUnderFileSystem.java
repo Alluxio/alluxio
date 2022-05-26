@@ -12,13 +12,11 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Represents a consistent under filesystem
