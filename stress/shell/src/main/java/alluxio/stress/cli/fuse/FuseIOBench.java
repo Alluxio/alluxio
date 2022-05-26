@@ -167,7 +167,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
     if (!mBaseParameters.mDistributed) {
       // single-node case only has one directory
-      mJobWorkerDirNames = Collections.singletonList(mBaseParameters.mId);
+      mJobWorkerDirNames = ImmutableList.of(mBaseParameters.mId);
       return;
     }
     // for cluster mode, find 0-based id, and make sure directories and job workers are 1-to-1
