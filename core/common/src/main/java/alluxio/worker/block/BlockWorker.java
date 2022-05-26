@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
@@ -129,12 +128,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param positionShort whether the operation is using positioned read to a small buffer size
    * @param options the options
    * @return a block reader to read data from
-   * @throws BlockDoesNotExistException if the requested block does not exist in this worker
    * @throws IOException if it fails to get block reader
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException;
+      throws IOException;
 
   /**
    * Creates a block reader to read a UFS block starting from given block offset.

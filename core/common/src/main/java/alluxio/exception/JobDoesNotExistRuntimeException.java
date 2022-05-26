@@ -13,8 +13,6 @@ package alluxio.exception;
 
 import io.grpc.Status;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * The exception thrown when a job definition does not exist in Alluxio.
  */

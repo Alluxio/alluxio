@@ -13,12 +13,13 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -263,17 +264,17 @@ public final class BlockLockManager {
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
-   * @throws BlockDoesNotExistException when no lock record can be found for lock id
    * @throws InvalidWorkerStateException when session id or block id is not consistent with that
    *         in the lock record for lock id
    */
+  @VisibleForTesting
   public void validateLock(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
+      throws InvalidWorkerStateException {
     try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-            lockId);
+        throw new BlockDoesNotExistRuntimeException(
+            ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
       }
       if (sessionId != record.getSessionId()) {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,

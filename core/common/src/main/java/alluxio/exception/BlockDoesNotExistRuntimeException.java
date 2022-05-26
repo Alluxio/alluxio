@@ -34,16 +34,6 @@ public class BlockDoesNotExistRuntimeException extends AlluxioRuntimeException {
   /**
    * Constructs a new exception with the specified detail message and cause.
    *
-   * @param message the detail message
-   * @param cause the cause
-   */
-  public BlockDoesNotExistRuntimeException(String message, Throwable cause) {
-    super(STATUS, message, cause);
-  }
-
-  /**
-   * Constructs a new exception with the specified detail message and cause.
-   *
    * @param blockId block id
    */
   public BlockDoesNotExistRuntimeException(long blockId) {

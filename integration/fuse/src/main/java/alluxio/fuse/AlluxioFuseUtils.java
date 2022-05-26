@@ -18,7 +18,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -258,7 +258,8 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EEXIST();
     } catch (InvalidPathException ex) {
       return -ErrorCodes.EFAULT();
-    } catch (BlockDoesNotExistException ex) {
+    } catch (BlockDoesNotExistRuntimeException ex) {
+      // TODO(jianjian) handle runtime exception for fuse in base class?
       return -ErrorCodes.ENODATA();
     } catch (DirectoryNotEmptyException ex) {
       return -ErrorCodes.ENOTEMPTY();
