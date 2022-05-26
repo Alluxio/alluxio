@@ -16,7 +16,6 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
@@ -34,8 +33,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -72,10 +69,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -144,7 +138,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     this(new BlockMasterClientPool(),
         new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
-        new Sessions(), LocalBlockStore.create(ufsManager), ufsManager);
+        new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
   /**
@@ -191,18 +185,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public Set<Class<? extends Server>> getDependencies() {
-    return new HashSet<>();
-  }
-
-  @Override
   public String getName() {
     return Constants.BLOCK_WORKER_NAME;
-  }
-
-  @Override
-  public Map<ServiceType, GrpcService> getServices() {
-    return Collections.emptyMap();
   }
 
   @Override

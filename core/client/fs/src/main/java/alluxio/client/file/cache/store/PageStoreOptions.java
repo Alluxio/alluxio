@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache.store;
 
-import alluxio.client.file.cache.PageStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;

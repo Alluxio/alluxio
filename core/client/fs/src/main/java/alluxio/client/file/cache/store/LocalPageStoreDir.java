@@ -21,12 +21,10 @@ import javax.annotation.Nullable;
 /**
  *
  */
-public class LocalPageStoreDir implements PageStoreDir {
+public class LocalPageStoreDir extends AbstractPageStoreDir {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStoreDir.class);
 
   private final LocalPageStoreOptions mPageStoreOptions;
-  private final Path mRootPath;
-  private final long mCapacity;
   private final int mFileBuckets;
   private final Pattern mPagePattern;
 
@@ -40,43 +38,24 @@ public class LocalPageStoreDir implements PageStoreDir {
    */
   public LocalPageStoreDir(LocalPageStoreOptions pageStoreOptions,
                            PageStore pageStore) {
+    super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize());
     mPageStoreOptions = pageStoreOptions;
     mPageStore = pageStore;
-    mCapacity = pageStoreOptions.getCacheSize();
-    mRootPath = pageStoreOptions.getRootDir();
     mFileBuckets = pageStoreOptions.getFileBuckets();
     // pattern encoding root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/
     mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)", Pattern.quote(mRootPath.toString()),
+        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)",
+            Pattern.quote(pageStoreOptions.getRootDir().toString()),
             pageStoreOptions.getPageSize()));
   }
 
   /**
-   * @return root path
-   */
-  @Override
-  public Path getRootPath() {
-    return mRootPath;
-  }
-
-  /**
    * Getter for pageStore.
-   *
    * @return pageStore
    */
   @Override
   public PageStore getPageStore() {
     return mPageStore;
-  }
-
-  /**
-   * Getter for capacity.
-   *
-   * @return capacity
-   */
-  @Override
-  public long getCapacity() {
-    return mCapacity;
   }
 
   /**
@@ -89,7 +68,7 @@ public class LocalPageStoreDir implements PageStoreDir {
       // when cache is large, e.g. millions of pages, initialize may take a while on deletion
       mPageStore = PageStore.create(mPageStoreOptions);
     } catch (Exception e) {
-      throw new RuntimeException("Reset page store failed for dir " + mRootPath.toString(), e);
+      throw new RuntimeException("Reset page store failed for dir " + getRootPath().toString(), e);
     }
   }
 
@@ -101,7 +80,7 @@ public class LocalPageStoreDir implements PageStoreDir {
    */
   @Override
   public void restorePages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
-    Files.walk(mRootPath).filter(Files::isRegularFile).map(this::getPageInfo)
+    Files.walk(getRootPath()).filter(Files::isRegularFile).map(this::getPageInfo)
         .forEach(pageInfoConsumer);
   }
 

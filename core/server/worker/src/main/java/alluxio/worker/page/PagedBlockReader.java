@@ -61,7 +61,7 @@ public class PagedBlockReader extends BlockReader {
    * @param blockId block id
    * @param ufsBlockOptions options to open a ufs block
    */
-  public PagedBlockReader(CacheManager cacheManager, UfsManager ufsManager,
+  PagedBlockReader(CacheManager cacheManager, UfsManager ufsManager,
                           UfsInputStreamCache ufsInStreamCache,
                           AlluxioConfiguration conf,
                           long blockId, Protocol.OpenUfsBlockOptions ufsBlockOptions) {

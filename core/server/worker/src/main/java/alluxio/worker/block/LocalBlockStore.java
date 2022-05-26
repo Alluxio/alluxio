@@ -43,28 +43,6 @@ import java.util.Set;
  */
 public interface LocalBlockStore
     extends SessionCleanable, Closeable {
-  /**
-   * @param ufsManager
-   * @return the instance of LocalBlockStore
-   */
-  static LocalBlockStore create(UfsManager ufsManager) {
-    switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
-      case PAGE:
-        try {
-          InstancedConfiguration conf = ServerConfiguration.global();
-          PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
-          List<PageStoreDir> dirs = PageStoreDir.createPageStoreDirs(conf);
-
-          CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore, dirs);
-          return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to create PagedLocalBlockStore", e);
-        }
-      case FILE:
-      default:
-        return new TieredBlockStore();
-    }
-  }
 
   /**
    * Pins the block indicating subsequent access.
@@ -214,21 +192,6 @@ public interface LocalBlockStore
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException;
-
-  /**
-   * Creates a reader of an existing block to read data from this block.
-   * <p>
-   * The block reader will fetch the data from UFS when the data is not cached by the worker
-   *
-   * @param sessionId the id of the session to get the reader
-   * @param blockId the id of an existing block
-   * @param options the options for UFS fall-back
-   * @return a {@link BlockReader} instance on this block
-   */
-  default BlockReader createBlockReader(long sessionId, long blockId,
-                                        Protocol.OpenUfsBlockOptions options) {
-    throw new UnsupportedOperationException();
-  }
 
   /**
    * Moves an existing block to a new location.

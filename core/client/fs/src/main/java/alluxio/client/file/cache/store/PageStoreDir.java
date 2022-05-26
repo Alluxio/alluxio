@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 /**
  * Directory of page store.
@@ -92,4 +91,28 @@ public interface PageStoreDir {
    * @return cached bytes in this directory
    */
   long getCachedBytes();
+
+  /**
+   * @param fileId
+   * @return if the fileId added
+   */
+  boolean addFileToDir(String fileId);
+
+  /**
+   * @param bytes
+   * @return if the bytes requested could be reserved
+   */
+  boolean reserveSpace(int bytes);
+
+  /**
+   * @param bytes
+   * @return the bytes used after release
+   */
+  long releaseSpace(int bytes);
+
+  /**
+   * @param fileId
+   * @return true if the block is contained, false otherwise
+   */
+  boolean hasFile(String fileId);
 }

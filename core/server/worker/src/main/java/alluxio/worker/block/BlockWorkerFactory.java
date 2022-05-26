@@ -11,13 +11,22 @@
 
 package alluxio.worker.block;
 
+import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
+import alluxio.worker.page.PagedBlockMetaStore;
+import alluxio.worker.page.PagedBlockWorker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,7 +39,8 @@ public final class BlockWorkerFactory implements WorkerFactory {
   /**
    * Constructs a new {@link BlockWorkerFactory}.
    */
-  public BlockWorkerFactory() {}
+  public BlockWorkerFactory() {
+  }
 
   @Override
   public boolean isEnabled() {
@@ -39,8 +49,30 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
-    LOG.info("Creating {} ", BlockWorker.class.getName());
-    BlockWorker blockWorker = new DefaultBlockWorker(ufsManager);
+    BlockWorker blockWorker;
+    switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      case PAGE:
+        LOG.info("Creating PagedBlockWorker");
+        InstancedConfiguration conf = ServerConfiguration.global();
+        PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
+        try {
+          List<PageStoreDir> pageStoreDirs = PageStoreDir.createPageStoreDirs(conf);
+          CacheManager cacheManager =
+              CacheManager.Factory.create(conf, pagedBlockMetaStore, pageStoreDirs);
+          blockWorker =
+              new PagedBlockWorker(ufsManager, pagedBlockMetaStore, cacheManager, pageStoreDirs,
+                  conf);
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to create PagedBlockWorker", e);
+        }
+        break;
+      case FILE:
+        LOG.info("Creating DefaultBlockWorker");
+        blockWorker = new DefaultBlockWorker(ufsManager);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported block store type.");
+    }
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }

@@ -92,11 +92,6 @@ public class PagedLocalBlockStore implements LocalBlockStore {
     return blockMeta;
   }
 
-  private StorageDir allocate(long blockSize) {
-    //TODO: implement allocator for multi directories.
-    return mStorageDirs.get(0);
-  }
-
   @Override
   public Optional<BlockMeta> getVolatileBlockMeta(long blockId)  {
     throw new UnsupportedOperationException();
@@ -145,13 +140,6 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public BlockReader createBlockReader(long sessionId, long blockId,
-                                       Protocol.OpenUfsBlockOptions options) {
-    return new PagedBlockReader(mCacheManager, mUfsManager, mUfsInStreamCache, mConf, blockId,
-        options);
   }
 
   @Override

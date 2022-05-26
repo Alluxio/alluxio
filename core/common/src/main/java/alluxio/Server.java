@@ -14,6 +14,9 @@ package alluxio;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +31,9 @@ public interface Server<T> {
   /**
    * @return the server dependencies
    */
-  Set<Class<? extends Server>> getDependencies();
+  default Set<Class<? extends Server>> getDependencies() {
+    return ImmutableSet.of();
+  }
 
   /**
    * @return the server's name
@@ -38,7 +43,9 @@ public interface Server<T> {
   /**
    * @return a map from service names to gRPC serviced that serve RPCs for this server
    */
-  Map<ServiceType, GrpcService> getServices();
+  default Map<ServiceType, GrpcService> getServices() {
+    return ImmutableMap.of();
+  }
 
   /**
    * Starts the Alluxio server.
