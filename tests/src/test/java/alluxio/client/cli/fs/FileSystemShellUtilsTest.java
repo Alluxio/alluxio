@@ -76,7 +76,7 @@ public final class FileSystemShellUtilsTest {
         new String[] {Constants.HEADER + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = FileSystemShellUtils.getFilePath(path, ConfigurationTestUtils.defaults());
+      String result = FileSystemShellUtils.getFilePath(path, ConfigurationTestUtils.copyDefaults());
       assertEquals(expected, result);
     }
   }

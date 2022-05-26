@@ -29,7 +29,7 @@ public final class SecurityUtilsTest {
 
   @Before
   public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   /**

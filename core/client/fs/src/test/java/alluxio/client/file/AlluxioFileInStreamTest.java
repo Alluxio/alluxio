@@ -90,7 +90,7 @@ public final class AlluxioFileInStreamTest {
   private FileInfo mInfo;
   private URIStatus mStatus;
 
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   private List<TestBlockInStream> mInStreams;
 

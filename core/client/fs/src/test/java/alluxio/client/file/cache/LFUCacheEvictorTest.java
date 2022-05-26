@@ -33,7 +33,7 @@ public final class LFUCacheEvictorTest {
    */
   @Before
   public void before() {
-    mEvictor = new LFUCacheEvictor(ConfigurationTestUtils.defaults());
+    mEvictor = new LFUCacheEvictor(ConfigurationTestUtils.copyDefaults());
   }
 
   @Test

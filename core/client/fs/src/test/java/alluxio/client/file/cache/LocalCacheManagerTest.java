@@ -73,7 +73,7 @@ public final class LocalCacheManagerTest {
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
 
   private LocalCacheManager mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private MetaStore mMetaStore;
   private PageStore mPageStore;
   private CacheEvictor mEvictor;
