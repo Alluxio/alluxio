@@ -43,7 +43,7 @@ import java.util.List;
 public final class JournalCrashTest {
 
   private static InstancedConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   private JournalCrashTest() {} // prevent instantiation
 

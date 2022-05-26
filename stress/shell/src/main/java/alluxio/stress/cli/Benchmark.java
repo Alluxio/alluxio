@@ -14,7 +14,6 @@ package alluxio.stress.cli;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
@@ -161,7 +160,7 @@ public abstract class Benchmark<T extends TaskResult> {
           + "=" + BaseParameters.AGENT_OUTPUT_PATH);
     }
 
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = ConfigurationUtils.defaults();
     String className = this.getClass().getCanonicalName();
 
     if (mBaseParameters.mCluster) {

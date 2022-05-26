@@ -30,7 +30,7 @@ public class OBSUnderFileSystemFactoryTest {
   @Test
   public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("obs://bucket/key",
-        new InstancedConfiguration(ConfigurationUtils.defaults()));
+        new InstancedConfiguration(ConfigurationUtils.copyDefaults()));
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for obs paths when using this module", factory);

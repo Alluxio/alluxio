@@ -103,7 +103,7 @@ public class ClientContext {
           alluxioConf.clusterDefaultsLoaded());
       mClusterConfHash = alluxioConf.hash();
     } else {
-      mClusterConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      mClusterConf = ConfigurationUtils.defaults();
       mClusterConfHash = mClusterConf.hash();
     }
     mPathConf = PathConfiguration.create(new HashMap<>());

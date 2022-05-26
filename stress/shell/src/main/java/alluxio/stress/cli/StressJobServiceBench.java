@@ -21,7 +21,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -88,7 +87,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   @Override
   public void prepare() throws Exception {
     mFsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+        FileSystemContext.create(ConfigurationUtils.defaults());
     final ClientContext clientContext = mFsContext.getClientContext();
     mJobMasterClient =
         JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());

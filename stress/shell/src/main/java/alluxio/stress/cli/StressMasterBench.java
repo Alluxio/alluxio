@@ -180,7 +180,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
-      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.copyDefaults();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 

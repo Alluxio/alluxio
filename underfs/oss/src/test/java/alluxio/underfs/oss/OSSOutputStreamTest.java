@@ -48,7 +48,7 @@ public class OSSOutputStreamTest {
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
   private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   /**
    * The exception expected to be thrown.

@@ -18,7 +18,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.util.ConfigurationUtils;
@@ -321,7 +320,7 @@ public final class LogLevel {
   public static void main(String[] args) {
     int exitCode = 1;
     try {
-      logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      logLevel(args, ConfigurationUtils.defaults());
       exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());
