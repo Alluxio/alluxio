@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -295,7 +296,7 @@ public final class BlockLockManager {
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (record == null) {
-          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
+          LOG.error(MessageFormat.format("lockId {0,number,#} has no lock record", lockId));
           continue;
         }
         Lock lock = record.getLock();
