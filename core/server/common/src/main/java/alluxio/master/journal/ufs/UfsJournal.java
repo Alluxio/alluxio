@@ -338,7 +338,7 @@ public class UfsJournal implements Journal {
    */
   public synchronized CatchupFuture catchup(long sequence) {
     Preconditions.checkState(mSuspended, "journal is not suspended");
-    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state " + mState.get());
+    Preconditions.checkState(mState.get() == State.STANDBY, "unexpected state %s", mState.get());
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
     Preconditions.checkState(sequence >= mSuspendSequence, "can't catch-up before suspend");
     Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
