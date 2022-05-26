@@ -37,7 +37,7 @@ public final class RoundRobinPolicyTest {
   private static final int PORT = 1;
 
   /**
-   * Tests that the correct workers are chosen when round robin is used.
+   * Tests that the correct workers are chosen when round-robin is used.
    */
   @Test
   public void getWorker() {
@@ -54,15 +54,15 @@ public final class RoundRobinPolicyTest {
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     assertNotEquals(
         policy.getWorker(options).orElseThrow(
-            () -> new RuntimeException("Expected worker")).getHost(),
+            () -> new IllegalStateException("Expected worker")).getHost(),
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(123)))
-            .orElseThrow(() -> new RuntimeException("Expected worker")).getHost());
+            .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
 
     assertEquals(
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555)))
-            .orElseThrow(() -> new RuntimeException("Expected worker")).getHost(),
+            .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost(),
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555)))
-            .orElseThrow(() -> new RuntimeException("Expected worker")).getHost());
+            .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
   }
 
   /**
@@ -88,7 +88,7 @@ public final class RoundRobinPolicyTest {
 
     RoundRobinPolicy policy = new RoundRobinPolicy();
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
-        .setBlockInfo(new BlockInfo().setLength((long) Constants.MB));
+        .setBlockInfo(new BlockInfo().setLength(Constants.MB));
     assertNotNull(policy.getWorker(options));
     options.setBlockWorkerInfos(new ArrayList<>());
     assertNull(policy.getWorker(options));

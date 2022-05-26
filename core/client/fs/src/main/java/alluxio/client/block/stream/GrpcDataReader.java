@@ -80,13 +80,13 @@ public final class GrpcDataReader implements DataReader {
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
     AlluxioConfiguration alluxioConf = context.getClusterConf();
-    int mReaderBufferSizeMessages = alluxioConf
-        .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
     mDetailedMetricsEnabled = alluxioConf.getBoolean(PropertyKey.USER_BLOCK_READ_METRICS_ENABLED);
     mMarshaller = new ReadResponseMarshaller();
     mClient = context.acquireBlockWorkerClient(address);
     mCloseWaitMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_READER_CLOSE_TIMEOUT);
+    int readerBufferSizeMessages = alluxioConf
+        .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
 
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
@@ -98,7 +98,7 @@ public final class GrpcDataReader implements DataReader {
               .toString();
         }
         mStream = new GrpcDataMessageBlockingStream<>(mClient.get()::readBlock,
-            mReaderBufferSizeMessages,
+            readerBufferSizeMessages,
             desc, null, mMarshaller);
       } else {
         String desc = "GrpcDataReader";
@@ -108,7 +108,7 @@ public final class GrpcDataReader implements DataReader {
               .add("address", address)
               .toString();
         }
-        mStream = new GrpcBlockingStream<>(mClient.get()::readBlock, mReaderBufferSizeMessages,
+        mStream = new GrpcBlockingStream<>(mClient.get()::readBlock, readerBufferSizeMessages,
             desc);
       }
       mStream.send(mReadRequest, mDataTimeoutMs);

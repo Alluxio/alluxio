@@ -49,7 +49,7 @@ public final class MostAvailableFirstPolicyTest {
         .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker3",
         policy.getWorker(options).orElseThrow(
-            () -> new RuntimeException("Expected worker3")).getHost());
+            () -> new IllegalStateException("Expected worker3")).getHost());
   }
 
   @Test

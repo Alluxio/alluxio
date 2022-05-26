@@ -119,7 +119,6 @@ public final class LocalFileDataReader implements DataReader {
         long localReaderChunkSize, InStreamOptions options) throws IOException {
       AlluxioConfiguration conf = context.getClusterConf();
       mLocalReaderChunkSize = localReaderChunkSize;
-      int mReadBufferSize = conf.getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
       if (conf.getBoolean(PropertyKey.USER_DIRECT_MEMORY_IO_ENABLED)) {
         mBlockWorker = null;
@@ -138,7 +137,8 @@ public final class LocalFileDataReader implements DataReader {
 
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
-        mStream = new GrpcBlockingStream<>(mBlockWorker.get()::openLocalBlock, mReadBufferSize,
+        mStream = new GrpcBlockingStream<>(mBlockWorker.get()::openLocalBlock,
+            conf.getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES),
             MoreObjects.toStringHelper(LocalFileDataReader.class)
                 .add("request", request)
                 .add("address", address)

@@ -114,8 +114,6 @@ public final class GrpcDataWriter implements DataWriter {
     mAddress = address;
     AlluxioConfiguration conf = context.getClusterConf();
     mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_WRITE_TIMEOUT);
-    int mWriterBufferSizeMessages = conf.getInt(
-        PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
     mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT);
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_FLUSH_TIMEOUT);
     // in cases where we know precise block size, make more accurate reservation.
@@ -154,16 +152,17 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    WriteRequestMarshaller mMarshaller = new WriteRequestMarshaller();
+    int writerBufferSizeMessages = conf.getInt(
+        PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
     if (conf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
       mStream = new GrpcDataMessageBlockingStream<>(
-          mClient.get()::writeBlock, mWriterBufferSizeMessages,
+          mClient.get()::writeBlock, writerBufferSizeMessages,
           MoreObjects.toStringHelper(this)
               .add("request", mPartialRequest)
               .add("address", address)
-              .toString(), mMarshaller, null);
+              .toString(), new WriteRequestMarshaller(), null);
     } else {
-      mStream = new GrpcBlockingStream<>(mClient.get()::writeBlock, mWriterBufferSizeMessages,
+      mStream = new GrpcBlockingStream<>(mClient.get()::writeBlock, writerBufferSizeMessages,
           MoreObjects.toStringHelper(this)
               .add("request", mPartialRequest)
               .add("address", address)
