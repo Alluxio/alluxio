@@ -11,8 +11,6 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.util.CommonUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
