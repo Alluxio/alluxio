@@ -19,11 +19,9 @@ public final class NoopBlockDeletionContext implements BlockDeletionContext {
 
   @Override
   public void registerBlockForDeletion(long blockId) {
-    return;
   }
 
   @Override
   public void close() {
-    return;
   }
 }

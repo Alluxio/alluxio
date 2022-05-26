@@ -64,12 +64,11 @@ public final class FileSystemMasterWorkerServiceHandler
     FileSystemHeartbeatPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
-        () -> FileSystemHeartbeatPResponse
-            .newBuilder()
-            .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
-                persistedFiles, WorkerHeartbeatContext.create(options.toBuilder()))))
-            .build(),
+            () -> FileSystemHeartbeatPResponse
+                .newBuilder()
+                .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
+                    persistedFiles, WorkerHeartbeatContext.create(options.toBuilder()))))
+                .build(),
         "workerHeartbeat", "workerId=%s, persistedFiles=%s, options=%s", responseObserver, workerId,
         persistedFiles, options);
   }
@@ -82,9 +81,9 @@ public final class FileSystemMasterWorkerServiceHandler
     GetFileInfoPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
-            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
-            .build(),
+            () -> GetFileInfoPResponse
+                .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
+                .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
   }
 
@@ -95,9 +94,8 @@ public final class FileSystemMasterWorkerServiceHandler
     GetPinnedFileIdsPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
-        () -> GetPinnedFileIdsPResponse
-            .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
+            () -> GetPinnedFileIdsPResponse
+                .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
         "getPinnedFileIds", "options=%s", responseObserver, options);
   }
 
@@ -109,9 +107,9 @@ public final class FileSystemMasterWorkerServiceHandler
     GetUfsInfoPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
-            .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
-            .build(),
+            () -> GetUfsInfoPResponse
+                .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
+                .build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);
   }
 }
