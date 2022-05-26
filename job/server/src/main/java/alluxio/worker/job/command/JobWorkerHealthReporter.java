@@ -68,7 +68,6 @@ public class JobWorkerHealthReporter {
    * Computes all of the metrics needed for JobWorkerHealthReporter.
    */
   public void compute() {
-    long mLastComputed = CommonUtils.getCurrentMs();
     mCpuLoadAverage = DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
         .collect(Collectors.toList());
     mLogicalProcessorCount = mHardware.getProcessor().getLogicalProcessorCount();

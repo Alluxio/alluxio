@@ -74,15 +74,15 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     }
     FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
     FileSystem fileSystem = FileSystem.Factory.create(fsContext);
-    UfsManager mUfsManager = new JobUfsManager();
+    UfsManager ufsManager = new JobUfsManager();
     try {
       if (!mJournalSystem.isFormatted()) {
         mJournalSystem.format();
       }
       // Create master.
       mJobMaster = new JobMaster(
-          new MasterContext(mJournalSystem, null, mUfsManager), fileSystem, fsContext,
-          mUfsManager);
+          new MasterContext(mJournalSystem, null, ufsManager), fileSystem, fsContext,
+          ufsManager);
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
       throw Throwables.propagate(e);
