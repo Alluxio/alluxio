@@ -71,7 +71,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  /** The connect address for the rpc server. */
+  /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress =
       NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
 
@@ -79,7 +79,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected final SafeModeManager mSafeModeManager = new DefaultSafeModeManager();
 
   /** Master context. */
-  protected final MasterContext mContext;
+  protected final CoreMasterContext mContext;
 
   /** The manager for creating and restoring backups. */
   private final BackupManager mBackupManager = new BackupManager(mRegistry);
@@ -404,19 +404,16 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Waits until the web server is ready to serve requests.
    *
    * @param timeoutMs how long to wait in milliseconds
-   * @return whether the web server became ready before the specified timeout
    */
   @VisibleForTesting
-  public boolean waitForWebServerReady(int timeoutMs) {
+  public void waitForWebServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
           this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      return false;
     } catch (TimeoutException e) {
-      return false;
+      // do nothing
     }
   }
 
