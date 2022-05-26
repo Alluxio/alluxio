@@ -107,16 +107,6 @@ that is not set, the default RocksDB value will be used.
 The best way to tune RockDB is by running benchmarks and tuning parameters individually for your workload,
 but here are some options to get started with.
 
-Enabling [Bloom filters](https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter)
-can increase the speed of point lookups
-in the tables, but will also incur increased CPU and memory usage.
-Point lookups are performed when traversing the inode tree, looking up inode metadata,
-and looking up block metadata information,
-but not when listing directories, or listing the workers for a block id.
-Bloom filters can be enabled or disabled using the property keys
-`alluxio.master.metastore.rocks.*.bloom.filter`
-where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
-
 In the RocksDB SST files the key/value pairs are stored in blocks.
 Each time a key or value is read the entire block is loaded from disk, thus
 decreasing block size will decrease disk IO, but will also increase
@@ -124,6 +114,16 @@ decreasing block size will decrease disk IO, but will also increase
 as each block has index information stored in memory.
 The default block size is 4KB and can be changed for each column family
 using the `block_size` configuration option in the configuration files.
+
+Enabling [Bloom filters](https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter)
+in the blocks can increase the speed of point lookups
+in the tables, but will also incur increased CPU and memory usage.
+Point lookups are performed when traversing the inode tree, looking up inode metadata,
+and looking up block metadata information,
+but not when listing directories, or listing the workers for a block id.
+Bloom filters can be enabled or disabled using the property keys
+`alluxio.master.metastore.rocks.*.bloom.filter`
+where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
 
 Data blocks can also be configured to use a [hash index](https://github.com/facebook/rocksdb/wiki/Data-Block-Hash-Index)
 to improve the speed of point lookups at the cost of increase space usage.
@@ -137,6 +137,17 @@ To improve the speed of prefix lookups we can include a hash index in the table 
 at the cost of increased memory usage.
 This can be done by setting `alluxio.master.metastore.rocks.*.index` to
 `kHashSearch` where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
+Furthermore, Bloom filters can be added to the memtable to increase the speed
+of prefix lookups by setting the `memtable_prefix_bloom_size_ratio` to a value larger
+than 0 and less than 0.25 in the configuration files
+(see [the option](https://github.com/facebook/rocksdb/blob/master/java/src/main/java/org/rocksdb/AdvancedMutableColumnFamilyOptionsInterface.java#L57-L67)
+for more details).
+The memtable Bloom filters can be per key or per prefix by setting
+`memtable_whole_key_filtering` to `true` or `false` respectively
+in the configuration file.
+This can also be configured for the block based Bloom filters
+using the `whole_key_filtering` option.
+
 
 RocksDB will cache some uncompressed blocks in memory, by
 default this will use an 8MB LRU cache. Increasing the size of this
