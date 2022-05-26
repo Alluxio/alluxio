@@ -257,7 +257,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the batch size.
+     * Gets the batch size.
      *
      * @return a positive integer denoting the batch size
      */
