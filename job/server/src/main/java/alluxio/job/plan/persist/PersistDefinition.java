@@ -171,9 +171,10 @@ public final class PersistDefinition
           }
         }
         OutputStream out = closer.register(
-            ufs.createNonexistingFile(dstPath.toString(),
-                CreateOptions.defaults(ServerConfiguration.global()).setOwner(uriStatus.getOwner())
-                .setGroup(uriStatus.getGroup()).setMode(new Mode((short) uriStatus.getMode()))));
+            ufs.create(dstPath.toString(),
+                CreateOptions.defaults(ServerConfiguration.global()).setEnsureConsistency(true)
+                    .setOwner(uriStatus.getOwner()).setGroup(uriStatus.getGroup())
+                    .setMode(new Mode((short) uriStatus.getMode()))));
         URIStatus status = context.getFileSystem().getStatus(uri);
         List<AclEntry> allAcls = Stream.concat(status.getDefaultAcl().getEntries().stream(),
             status.getAcl().getEntries().stream()).collect(Collectors.toList());

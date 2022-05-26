@@ -46,10 +46,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system.
  *
- * There are two sets of APIs in the under file system:
- * (1) normal operations (e.g. create, renameFile, deleteFile)
- * (2) operations deal with the eventual consistency issue
- * (e.g. createNonexistingFile, renameRenamableFile)
  * When confirmed by Alluxio metadata that an operation should succeed but may fail because of the
  * under filesystem eventual consistency issue, use the second set of APIs.
  */
@@ -222,29 +218,6 @@ public interface UnderFileSystem extends Closeable {
    * @return A {@code OutputStream} object
    */
   OutputStream create(String path, CreateOptions options) throws IOException;
-
-  /**
-   * Creates a file in the under file system with the indicated name.
-   *
-   * Similar to {@link #create(String)} but
-   * deals with the delete-then-create eventual consistency issue.
-   *
-   * @param path the file name
-   * @return A {@code OutputStream} object
-   */
-  OutputStream createNonexistingFile(String path) throws IOException;
-
-  /**
-   * Creates a file in the under file system with the specified {@link CreateOptions}.
-   *
-   * Similar to {@link #create(String, CreateOptions)} but
-   * deals with the delete-then-create eventual consistency issue.
-   *
-   * @param path the file name
-   * @param options the options for create
-   * @return A {@code OutputStream} object
-   */
-  OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException;
 
   /**
    * Deletes a directory from the under file system with the indicated name non-recursively. A

@@ -246,9 +246,9 @@ public final class UfsFallbackBlockWriteHandler
     UnderFileSystem ufs = ufsResource.get();
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
-        ufs.createNonexistingFile(ufsPath,
+        ufs.create(ufsPath,
             CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
-                .setCreateParent(true));
+                .setCreateParent(true).setEnsureConsistency(true));
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
 

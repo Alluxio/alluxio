@@ -374,23 +374,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (options.getCreateParent()
-        && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
-        && !mkdirs(getParentPath(path))) {
-      throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+    if (options.isEnsureConsistency()) {
+      return retryOnException(() -> createInternal(path, options), () -> "create file " + path);
     }
-    return createObject(stripPrefixIfPresent(path));
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return retryOnException(() -> create(path), () -> "create file " + path);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return retryOnException(() -> create(path, options),
-        () -> "create file " + path + " with options " + options);
+    return createInternal(path, options);
   }
 
   @Override
@@ -1131,6 +1118,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
+  }
+
+  private OutputStream createInternal(String path, CreateOptions options) throws IOException {
+    if (options.getCreateParent()
+        && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+        && !mkdirs(getParentPath(path))) {
+      throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
+    }
+    return createObject(stripPrefixIfPresent(path));
   }
 
   /**

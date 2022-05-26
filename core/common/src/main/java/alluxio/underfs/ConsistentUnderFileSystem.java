@@ -37,16 +37,6 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return create(path);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return create(path, options);
-  }
-
-  @Override
   public boolean deleteExistingDirectory(String path) throws IOException {
     return deleteDirectory(path);
   }
