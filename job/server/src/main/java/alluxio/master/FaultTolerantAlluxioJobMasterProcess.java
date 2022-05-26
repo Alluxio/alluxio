@@ -32,7 +32,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioJobMasterProcess.class);
 
-  private PrimarySelector mLeaderSelector;
+  private final PrimarySelector mLeaderSelector;
   private Thread mServingThread;
 
   /**

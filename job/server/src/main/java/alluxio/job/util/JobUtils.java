@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
  */
 public final class JobUtils {
   // a read buffer that should be ignored
-  private static byte[] sIgnoredReadBuf = new byte[8 * Constants.MB];
+  private static final byte[] READ_BUF = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
       new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
         @Override
@@ -235,7 +235,7 @@ public final class JobUtils {
         LocalFirstPolicy.class, conf));
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
     try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
-      while (inputStream.read(sIgnoredReadBuf) != -1) {}
+      while (inputStream.read(READ_BUF) != -1) {}
     }
   }
 

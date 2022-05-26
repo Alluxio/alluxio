@@ -57,20 +57,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
-  /** FileSystem client for jobs. */
-  private final FileSystem mFileSystem;
-
-  /** FileSystemContext for jobs. */
-  private final FileSystemContext mFsContext;
-
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
   /** The connect address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
-
-  /** The manager for all ufs. */
-  private UfsManager mUfsManager;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
@@ -81,16 +72,16 @@ public class AlluxioJobMasterProcess extends MasterProcess {
           NetworkAddressUtils.getLocalHostName(
               (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     }
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
-    mFileSystem = FileSystem.Factory.create(mFsContext);
-    mUfsManager = new JobUfsManager();
+    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    FileSystem fileSystem = FileSystem.Factory.create(fsContext);
+    UfsManager mUfsManager = new JobUfsManager();
     try {
       if (!mJournalSystem.isFormatted()) {
         mJournalSystem.format();
       }
       // Create master.
       mJobMaster = new JobMaster(
-          new MasterContext(mJournalSystem, null, mUfsManager), mFileSystem, mFsContext,
+          new MasterContext(mJournalSystem, null, mUfsManager), fileSystem, fsContext,
           mUfsManager);
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
