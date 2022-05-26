@@ -105,7 +105,9 @@ spec:
           - name: alluxio-journal
             mountPath: {{ .Values.journal.folder }}
       {{- end}}
+      shareProcessNamespace: {{ .Values.master.shareProcessNamespace }}
       containers:
+{{- include "alluxio.extraContainers" (dict "extraContainers" .Values.master.extraContainers) | indent 8 }}
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -172,6 +174,7 @@ spec:
             name: embedded
           {{- end }}
           volumeMounts:
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.master.extraVolumeMounts) | indent 12 }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -261,6 +264,7 @@ spec:
             name: job-embedded
           {{- end }}
           volumeMounts:
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.master.extraVolumeMounts) | indent 12 }}
           {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -278,6 +282,7 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
+{{- include "alluxio.extraVolumes" (dict "extraVolumes" .Values.master.extraVolumes) | indent 8 }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume
           configMap:

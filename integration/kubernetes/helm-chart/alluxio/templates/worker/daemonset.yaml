@@ -63,6 +63,7 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      shareProcessNamespace: {{ .Values.worker.shareProcessNamespace }}
       tolerations:
       {{- if .Values.worker.tolerations }}
 {{ toYaml .Values.worker.tolerations | trim | indent 8  }}
@@ -88,6 +89,7 @@ spec:
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
       containers:
+{{ include "alluxio.extraContainers" (dict "extraContainers" .Values.worker.extraContainers) | indent 8 }}
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -158,6 +160,7 @@ spec:
           - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.worker.extraVolumeMounts) | indent 12 }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -245,6 +248,7 @@ spec:
           - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.worker.extraVolumeMounts) | indent 12 }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -266,6 +270,7 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
+{{- include "alluxio.extraVolumes" (dict "extraVolumes" .Values.worker.extraVolumes) | indent 8 }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume
           configMap:

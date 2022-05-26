@@ -99,6 +99,11 @@ master:
     web: 19999
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
+  extraServicePorts: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -276,6 +281,10 @@ worker:
   # hostPID requires escalated privileges
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
