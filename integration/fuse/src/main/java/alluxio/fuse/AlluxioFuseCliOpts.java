@@ -22,6 +22,7 @@ import org.apache.commons.cli.ParseException;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * An object that holds all the options from the command line
@@ -30,47 +31,40 @@ import java.util.List;
 public final class AlluxioFuseCliOpts {
   private final String mMountPoint;
   private final String mAlluxioPath;
-  private final List<String> mFuseOptions;
+  private final List<String> mLibfuseOptions;
 
   private AlluxioFuseCliOpts(@Nullable String mountPoint, @Nullable String alluxioPath,
-      @Nullable List<String> fuseOptions) {
+      @Nullable List<String> libfuseOptions) {
     mMountPoint = mountPoint;
     mAlluxioPath = alluxioPath;
-    mFuseOptions = fuseOptions;
-  }
-
-  /**
-   * Gives the command line arguments to parser.
-   * Gets and returns the created AlluxioFuseCliOpts.
-   * @param args the fuse command line arguments
-   * @return an AlluxioFuseCliOpts object holding all command line arguments
-   */
-  public static AlluxioFuseCliOpts parseAndCreateAlluxioFuseCliOpts(String[] args) {
-    return AlluxioFuseCliParser.parseAndCreateAlluxioFuseCliOpts(args);
+    mLibfuseOptions = libfuseOptions;
   }
 
   /**
    * @return The path to where the FS should be mounted
    */
-  public String getMountPoint() {
-    return mMountPoint;
+  public Optional<String> getMountPoint() {
+    return mMountPoint == null ? Optional.empty() : Optional.of(mMountPoint);
   }
 
   /**
    * @return The path within alluxio that will be mounted to the local mount point
    */
-  public String getMountAlluxioPath() {
-    return mAlluxioPath;
+  public Optional<String> getMountAlluxioPath() {
+    return mAlluxioPath == null ? Optional.empty() : Optional.of(mAlluxioPath);
   }
 
   /**
    * @return extra options to pass to the FUSE mount command
    */
-  public List<String> getFuseOptions() {
-    return mFuseOptions;
+  public Optional<List<String>> getFuseOptions() {
+    return mLibfuseOptions == null ? Optional.empty() : Optional.of(mLibfuseOptions);
   }
 
-  private static class AlluxioFuseCliParser {
+  /**
+   * A parser that parses the CLI when Fuse is launched through command line.
+   */
+  public static class AlluxioFuseCliParser {
 
     private static final CommandLineParser PARSER = new DefaultParser();
 
@@ -91,7 +85,7 @@ public final class AlluxioFuseCliOpts {
         .required(false)
         .longOpt("alluxio-path")
         .desc("The Alluxio path to mount to the given Fuse mount point "
-                  + "(e.g., /users/foo; defaults to /)")
+              + "(e.g., /users/foo; defaults to /)")
         .build();
     private static final Option MOUNT_OPTIONS = Option.builder(MOUNT_OPTIONS_OPTION_NAME)
         .valueSeparator(',')
@@ -109,7 +103,13 @@ public final class AlluxioFuseCliOpts {
         .addOption(MOUNT_OPTIONS)
         .addOption(HELP_OPTION);
 
-    protected static AlluxioFuseCliOpts parseAndCreateAlluxioFuseCliOpts(String[] args) {
+    /**
+     * Constructs a {@link AlluxioFuseCliOpts} based on user command line input.
+     *
+     * @param args     the fuse command line arguments
+     * @return an AlluxioFuseCliOpts object holding all command line arguments
+     */
+    public static AlluxioFuseCliOpts parseAndCreateAlluxioFuseCliOpts(String[] args) {
       try {
         CommandLine cli = PARSER.parse(OPTIONS, args);
 
@@ -121,10 +121,10 @@ public final class AlluxioFuseCliOpts {
 
         String mountPoint = cli.getOptionValue(MOUNT_POINT_OPTION_NAME);
         String mountAlluxioPath = cli.getOptionValue(MOUNT_ALLUXIO_PATH_OPTION_NAME);
-        List<String> fuseOpts = cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)
+        List<String> libfuseOpts = cli.hasOption(MOUNT_OPTIONS_OPTION_NAME)
             ? Arrays.asList(cli.getOptionValues(MOUNT_OPTIONS_OPTION_NAME)) : null;
 
-        return new AlluxioFuseCliOpts(mountPoint, mountAlluxioPath, fuseOpts);
+        return new AlluxioFuseCliOpts(mountPoint, mountAlluxioPath, libfuseOpts);
       } catch (ParseException e) {
         System.err.println("Error while parsing CLI: " + e.getMessage());
         final HelpFormatter fmt = new HelpFormatter();
@@ -134,4 +134,3 @@ public final class AlluxioFuseCliOpts {
     }
   }
 }
-

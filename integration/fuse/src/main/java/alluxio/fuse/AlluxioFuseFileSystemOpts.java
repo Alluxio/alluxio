@@ -19,31 +19,22 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * This is an object containing all fuse-related options that
- * either can be configured through command line when launching Alluxio fuse,
- * or can be passed to Libfuse,
- * or both.
+ * Constructs an {@link AlluxioFuseFileSystemOpts} that contains
+ * all fuse-related options used by libfuse, and the alluxioPath used by Alluxio.
  */
 public final class AlluxioFuseFileSystemOpts {
   private final String mAlluxioPath;
-  private final List<String> mFuseOptions;
+  private final List<String> mLibfuseOptions;
   private final boolean mIsDebug;
   private final String mMountPoint;
-
-  private AlluxioFuseFileSystemOpts(
-      String alluxioPath, String mountPoint, List<String> fuseOptions, boolean isDebug) {
-    mAlluxioPath = alluxioPath;
-    mMountPoint = mountPoint;
-    mFuseOptions = fuseOptions;
-    mIsDebug = isDebug;
-  }
 
   /**
    * Constructs an AlluxioFuseFileSystemOpts with only Alluxio cluster configuration.
    *
-   * @param conf Alluxio cluster configuration
+   * @param conf     Alluxio cluster configuration
    * @return AlluxioFuseFileSystemOpts
    */
   public static AlluxioFuseFileSystemOpts create(AlluxioConfiguration conf) {
@@ -62,46 +53,56 @@ public final class AlluxioFuseFileSystemOpts {
    * Constructs an AlluxioFuseFileSystemOpts with Alluxio cluster configuration and command line.
    * Command line input has higher precedence if a property is set both in config and command.
    *
-   * @param conf Alluxio cluster configuration
-   * @param fuseCliOpts Alluxio fuse command line input
+   * @param conf     Alluxio cluster configuration
+   * @param fuseCliOpts     Alluxio fuse command line input
    * @return AlluxioFuseFileSystemOpts
    */
   public static AlluxioFuseFileSystemOpts create(
       AlluxioConfiguration conf, AlluxioFuseCliOpts fuseCliOpts) {
-    String alluxioPath = fuseCliOpts.getMountAlluxioPath();
-    if (alluxioPath == null) {
-      alluxioPath = conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
-    }
-    String mountPoint = fuseCliOpts.getMountPoint();
-    if (mountPoint == null) {
-      mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
-    }
-    List<String> fuseOptions = fuseCliOpts.getFuseOptions();
-    if (fuseOptions == null) {
+    Optional<String> alluxioPathFromCli = fuseCliOpts.getMountAlluxioPath();
+    String alluxioPath = alluxioPathFromCli.orElseGet(
+        () -> conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
+    Optional<String> mountPointFromCli = fuseCliOpts.getMountPoint();
+    String mountPoint = mountPointFromCli.orElseGet(
+        () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
+    Optional<List<String>> libfuseOptionsFromCli = fuseCliOpts.getFuseOptions();
+    List<String> libfuseOptions;
+    if (libfuseOptionsFromCli.isPresent()) {
+      libfuseOptions = libfuseOptionsFromCli.get();
+    } else {
       if (conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)) {
-        fuseOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS);
+        libfuseOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS);
       } else {
-        fuseOptions = ImmutableList.of();
+        libfuseOptions = ImmutableList.of();
       }
     }
-    fuseOptions = optimizeAndFormatFuseOptions(fuseOptions);
+    libfuseOptions = optimizeAndFormatFuseOptions(libfuseOptions);
     boolean isDebug = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
-    return new AlluxioFuseFileSystemOpts(alluxioPath, mountPoint, fuseOptions, isDebug);
+    return new AlluxioFuseFileSystemOpts(alluxioPath, mountPoint, libfuseOptions, isDebug);
   }
 
   /**
    * Constructs an AlluxioFuseFileSystemOpts solely for testing purpose.
-   * @param alluxioPath
-   * @param mountPoint
-   * @param fuseOptions
-   * @param isDebug
+   *
+   * @param  alluxioPath
+   * @param  mountPoint
+   * @param  fuseOptions
+   * @param  isDebug
    * @return AlluxioFuseFileSystemOpts
    */
   @VisibleForTesting
   public static AlluxioFuseFileSystemOpts create(
       String alluxioPath, String mountPoint, List<String> fuseOptions, boolean isDebug) {
     return new AlluxioFuseFileSystemOpts(alluxioPath, mountPoint, fuseOptions, isDebug);
+  }
+
+  private AlluxioFuseFileSystemOpts(
+      String alluxioPath, String mountPoint, List<String> fuseOptions, boolean isDebug) {
+    mAlluxioPath = alluxioPath;
+    mMountPoint = mountPoint;
+    mLibfuseOptions = fuseOptions;
+    mIsDebug = isDebug;
   }
 
   /**
@@ -122,7 +123,7 @@ public final class AlluxioFuseFileSystemOpts {
    * @return options for Libfuse
    */
   public List<String> getFuseOptions() {
-    return mFuseOptions;
+    return mLibfuseOptions;
   }
 
   /**

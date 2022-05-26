@@ -61,7 +61,8 @@ public final class AlluxioFuse {
     FileSystemContext fsContext = FileSystemContext.create(conf);
     conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(conf, fsContext);
 
-    final AlluxioFuseCliOpts cliOpts = AlluxioFuseCliOpts.parseAndCreateAlluxioFuseCliOpts(args);
+    final AlluxioFuseCliOpts cliOpts = AlluxioFuseCliOpts.AlluxioFuseCliParser
+        .parseAndCreateAlluxioFuseCliOpts(args);
     if (cliOpts == null) {
       System.exit(1);
     }
