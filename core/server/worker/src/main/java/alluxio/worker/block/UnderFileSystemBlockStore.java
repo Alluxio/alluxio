@@ -273,8 +273,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public boolean isNoCache(long sessionId, long blockId) {
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
-    UnderFileSystemBlockMeta mMeta = blockInfo.getMeta();
-    return mMeta.isNoCache();
+    UnderFileSystemBlockMeta meta = blockInfo.getMeta();
+    return meta.isNoCache();
   }
 
   /**
