@@ -695,7 +695,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
               PERSIST_CHECKER_POOL_THREADS, 1, java.util.concurrent.TimeUnit.MINUTES,
-                  new LinkedBlockingQueue<>(),
+              new LinkedBlockingQueue<>(),
               alluxio.util.ThreadFactoryUtils.build("Persist-Checker-%d", true));
       mPersistCheckerPool.allowCoreThreadTimeOut(true);
       getExecutorService().submit(
