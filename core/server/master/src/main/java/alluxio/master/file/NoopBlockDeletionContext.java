@@ -18,12 +18,8 @@ public final class NoopBlockDeletionContext implements BlockDeletionContext {
   public static final NoopBlockDeletionContext INSTANCE = new NoopBlockDeletionContext();
 
   @Override
-  public void registerBlockForDeletion(long blockId) {
-    // It's a noop thus no implementation.
-  }
+  public void registerBlockForDeletion(long blockId) {}
 
   @Override
-  public void close() {
-    // It's a noop thus no implementation.
-  }
+  public void close() {}
 }

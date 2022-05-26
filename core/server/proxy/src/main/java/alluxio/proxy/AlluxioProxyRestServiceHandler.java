@@ -80,13 +80,11 @@ public final class AlluxioProxyRestServiceHandler {
       if (rawConfiguration != null) {
         rawConfig = rawConfiguration;
       }
-      AlluxioProxyInfo result =
-          new AlluxioProxyInfo()
-              .setConfiguration(getConfigurationInternal(rawConfig))
-              .setStartTimeMs(mProxyProcess.getStartTimeMs())
-              .setUptimeMs(mProxyProcess.getUptimeMs())
-              .setVersion(RuntimeConstants.VERSION);
-      return result;
+      return new AlluxioProxyInfo()
+          .setConfiguration(getConfigurationInternal(rawConfig))
+          .setStartTimeMs(mProxyProcess.getStartTimeMs())
+          .setUptimeMs(mProxyProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION);
     }, ServerConfiguration.global());
   }
 

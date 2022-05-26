@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class ListStatusResultStream implements ResultStream<FileInfo> {
   /** List of file infos. */
-  private final List<FileInfo> mInfos;
+  private final List<FileInfo> mInfos = new ArrayList<>();
   /** Batch size. */
   private final int mBatchSize;
   /** Cliet-side gRPC stream observer. */
@@ -47,7 +47,6 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
     Preconditions.checkArgument(batchSize > 0);
     mBatchSize = batchSize;
     mClientObserver = clientObserver;
-    mInfos = new ArrayList<>();
   }
 
   @Override

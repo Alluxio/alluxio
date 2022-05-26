@@ -59,9 +59,9 @@ public final class AsyncJournalWriter {
   /**
    * Used to manage and keep track of pending callers of ::flush.
    */
-  private class FlushTicket implements ForkJoinPool.ManagedBlocker {
+  private static class FlushTicket implements ForkJoinPool.ManagedBlocker {
     private final long mTargetCounter;
-    private SettableFuture<Void> mIsCompleted;
+    private final SettableFuture<Void> mIsCompleted;
     private Throwable mError;
 
     public FlushTicket(long targetCounter) {
@@ -86,10 +86,10 @@ public final class AsyncJournalWriter {
     /**
      * Waits until the ticket has been processed.
      *
-     * PS: Blocking on this method goes through FokrJoinPool's managed blocking
+     * PS: Blocking on this method goes through {@link ForkJoinPool}'s managed blocking
      * in order to compensate the pool with more workers while it is blocked.
      *
-     * @throws Throwable
+     * @throws Throwable error
      */
     public void waitCompleted() throws Throwable {
       ForkJoinPoolHelper.safeManagedBlock(this);
@@ -202,22 +202,22 @@ public final class AsyncJournalWriter {
   public long appendEntry(JournalEntry entry) {
     // TODO(gpang): handle bounding the queue if it becomes too large.
 
-    /**
-     * Protocol for appending entries
-     *
-     * This protocol is lock free, to reduce the overhead in critical sections. It uses
-     * {@link AtomicLong} and {@link ConcurrentLinkedQueue} which are both lock-free.
-     *
-     * The invariant that must be satisfied is that the 'counter' that is returned must be
-     * greater than or equal to the actual counter of the entry in the queue.
-     *
-     * In order to guarantee the invariant, the {@link #mCounter} is incremented before adding the
-     * entry to the {@link #mQueue}. AFTER the counter is incremented, whenever the counter is
-     * read, it is guaranteed to be greater than or equal to the counter for the queue entries.
-     *
-     * Therefore, the {@link #mCounter} must be read AFTER the entry is added to the queue. The
-     * resulting read of the counter AFTER the entry is added is guaranteed to be greater than or
-     * equal to the counter for the entries in the queue.
+    /*
+      Protocol for appending entries
+
+      This protocol is lock free, to reduce the overhead in critical sections. It uses
+      {@link AtomicLong} and {@link ConcurrentLinkedQueue} which are both lock-free.
+
+      The invariant that must be satisfied is that the 'counter' that is returned must be
+      greater than or equal to the actual counter of the entry in the queue.
+
+      In order to guarantee the invariant, the {@link #mCounter} is incremented before adding the
+      entry to the {@link #mQueue}. AFTER the counter is incremented, whenever the counter is
+      read, it is guaranteed to be greater than or equal to the counter for the queue entries.
+
+      Therefore, the {@link #mCounter} must be read AFTER the entry is added to the queue. The
+      resulting read of the counter AFTER the entry is added is guaranteed to be greater than or
+      equal to the counter for the entries in the queue.
      */
     mCounter.incrementAndGet();
     mQueue.offer(entry);
@@ -234,7 +234,7 @@ public final class AsyncJournalWriter {
   }
 
   @VisibleForTesting
-  protected void stop() {
+  void stop() {
     // Set termination flag.
     mStopFlushing = true;
     // Give a permit for flush thread to run, in case it was blocked on permit.
@@ -244,7 +244,6 @@ public final class AsyncJournalWriter {
       mFlushThread.join();
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      return;
     } finally {
       mFlushThread = null;
       // Try to reacquire the permit.
@@ -253,7 +252,7 @@ public final class AsyncJournalWriter {
   }
 
   @VisibleForTesting
-  protected void start() {
+  void start() {
     if (mFlushThread != null) {
       close();
     }
@@ -272,12 +271,12 @@ public final class AsyncJournalWriter {
     // Runs the loop until ::stop() is called.
     while (!mStopFlushing) {
 
-      /**
-       * Stand still unless;
-       * - queue has items
-       * - permit is given by:
-       *   - clients
-       *   -::stop()
+      /*
+        Stand still unless;
+        - queue has items
+        - permit is given by:
+          - clients
+          -::stop()
        */
       while (mQueue.isEmpty() && !mStopFlushing) {
         try {

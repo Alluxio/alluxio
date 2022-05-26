@@ -12,10 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.DefaultStorageTierAssoc;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
@@ -121,8 +120,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.of(MetricsMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(MetricsMaster.class);
 
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
@@ -253,12 +251,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
-
-  /**
-   * The service that detects lost worker nodes, and tries to restart the failed workers.
-   * We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
 
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
@@ -626,8 +618,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
-                  + "Supported worker names: %s%n",
-                  addresses, workerNames);
+                  + "Supported worker names: %s%n", addresses, workerNames);
           throw new InvalidArgumentException(info);
         }
         break;
@@ -1214,7 +1205,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
-    Command workerCommand = null;
+    Command workerCommand;
     try (LockResource r = worker.lockWorkerMeta(
         EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
       worker.addLostStorage(lostStorage);
@@ -1586,30 +1577,30 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
-              master::getUniqueBlockCount);
+          master::getUniqueBlockCount);
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCK_REPLICA_COUNT.getName(),
-              master::getBlockReplicaCount);
+          master::getBlockReplicaCount);
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
         // TODO(lu) Add template to dynamically construct metric key
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + alias,
-                () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L));
+            () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias,
-                () -> master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
+            () -> master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias,
-                () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
+            () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
                 - master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
       }
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_WORKERS.getName(),
-              master::getWorkerCount);
+          master::getWorkerCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
-              master::getLostWorkerCount);
+          master::getLostWorkerCount);
     }
 
     private Metrics() {} // prevent instantiation

@@ -94,15 +94,12 @@ public final class StreamsRestServiceHandler {
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response read(@PathParam("id") final Integer id) {
     // TODO(jiri): Support reading a file range.
-    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
-      @Override
-      public InputStream call() throws Exception {
-        FileInStream is = mStreamCache.getInStream(id);
-        if (is != null) {
-          return is;
-        }
-        throw new IllegalArgumentException("stream does not exist");
+    return RestUtils.call((RestUtils.RestCallable<InputStream>) () -> {
+      FileInStream is = mStreamCache.getInStream(id);
+      if (is != null) {
+        return is;
       }
+      throw new IllegalArgumentException("stream does not exist");
     }, ServerConfiguration.global());
   }
 

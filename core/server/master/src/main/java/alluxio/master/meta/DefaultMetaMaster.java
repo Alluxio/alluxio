@@ -90,8 +90,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
-  private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
@@ -112,9 +111,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   /** Core master context. */
   private final CoreMasterContext mCoreMasterContext;
-
-  /** Handle to the block master. */
-  private final BlockMaster mBlockMaster;
 
   /** The clock to use for determining the time. */
   private final Clock mClock = new SystemClock();
@@ -143,7 +139,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private boolean mNewerVersionAvailable;
 
   /** The address of this master. */
-  private Address mMasterAddress;
+  private final Address mMasterAddress;
 
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
@@ -152,10 +148,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private DailyMetadataBackup mDailyBackup;
 
   /** Path level properties. */
-  private PathProperties mPathProperties;
+  private final PathProperties mPathProperties;
 
   /** Persisted state for MetaMaster. */
-  private State mState;
+  private final State mState;
 
   /** Value to be used for the cluster ID when not assigned. */
   public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
@@ -249,10 +245,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new Address().setHost(ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
             .setRpcPort(mPort);
-    mBlockMaster = blockMaster;
-    mBlockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
-    mBlockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
-    mBlockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+    /* Handle to the block master. */
+    blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+    blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+    blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
 
     mUfsManager = masterContext.getUfsManager();
 

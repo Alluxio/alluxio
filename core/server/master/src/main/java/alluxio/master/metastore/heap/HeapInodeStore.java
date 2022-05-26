@@ -127,7 +127,7 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public Set<EdgeEntry> allEdges() {
-    return mEdges.flattenEntries((a, b, c) -> new EdgeEntry(a, b, c));
+    return mEdges.flattenEntries(EdgeEntry::new);
   }
 
   @Override

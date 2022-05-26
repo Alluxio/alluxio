@@ -40,9 +40,9 @@ public final class ProxyWebServer extends WebServer {
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
 
-  private FileSystem mFileSystem;
+  private final FileSystem mFileSystem;
 
-  private InstancedConfiguration mSConf;
+  private final InstancedConfiguration mSConf;
 
   /**
    * Creates a new instance of {@link ProxyWebServer}.

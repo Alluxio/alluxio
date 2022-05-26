@@ -66,7 +66,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
   private final long mBackupAbandonTimeout;
 
   /** Metadata state pause lock. */
-  private StateLockManager mStateLockManager;
+  private final StateLockManager mStateLockManager;
 
   /** Scheduled future to time-put backups on leader. */
   private ScheduledFuture<?> mTimeoutBackupFuture;
@@ -80,13 +80,14 @@ public class BackupLeaderRole extends AbstractBackupRole {
   private GrpcMessagingConnection mRemoteBackupConnection;
 
   /** Backup-worker connections with the leader. */
-  private Set<GrpcMessagingConnection> mBackupWorkerConnections = new ConcurrentHashSet<>();
+  private final Set<GrpcMessagingConnection> mBackupWorkerConnections = new ConcurrentHashSet<>();
 
   /** Used to store host names for backup-worker connections. */
-  private Map<GrpcMessagingConnection, String> mBackupWorkerHostNames = new ConcurrentHashMap<>();
+  private final Map<GrpcMessagingConnection, String> mBackupWorkerHostNames =
+      new ConcurrentHashMap<>();
 
   /** Used to prevent concurrent scheduling of backups. */
-  private Lock mBackupInitiateLock = new ReentrantLock(true);
+  private final Lock mBackupInitiateLock = new ReentrantLock(true);
 
   /**
    * Creates a new backup leader.
@@ -142,7 +143,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
                         NetworkAddressUtils.getConnectAddress(
                             NetworkAddressUtils.ServiceType.MASTER_RPC,
                             ServerConfiguration.global()),
-                        (conn) -> activateWorkerConnection(conn), mGrpcMessagingContext,
+                        this::activateWorkerConnection, mGrpcMessagingContext,
                         mExecutorService, mCatalystRequestTimeout),
                     new ClientIpAddressInjector())).withCloseable(this));
     return services;
@@ -214,7 +215,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
   }
 
   @Override
-  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException {
+  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) {
     return mBackupTracker.getStatus(UUID.fromString(statusPRequest.getBackupId()));
   }
 
@@ -231,9 +232,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
     // Register heartbeat message handler.
     workerConnection.handler(BackupHeartbeatMessage.class, this::handleHeartbeatMessage);
     // Register connection error listener.
-    workerConnection.onException((error) -> {
-      LOG.warn(String.format("Backup-worker connection failed for %s.", workerConnection), error);
-    });
+    workerConnection.onException((error) -> LOG.warn(
+        String.format("Backup-worker connection failed for %s.", workerConnection), error));
     // Register connection close listener.
     workerConnection.onClose((conn) -> {
       LOG.info("Backup-worker connection closed for {}.", workerConnection);
