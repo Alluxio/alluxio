@@ -303,8 +303,7 @@ public class TransformManager implements DelegatingJournaled {
     public void heartbeat() throws InterruptedException {
       for (TransformJobInfo job : mState.getRunningJobs()) {
         if (Thread.currentThread().isInterrupted()) {
-          throw new InterruptedException(ExceptionMessage.TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED
-              .getMessage());
+          throw new InterruptedException("TransformManager's heartbeat was interrupted");
         }
         long jobId = job.getJobId();
         try {

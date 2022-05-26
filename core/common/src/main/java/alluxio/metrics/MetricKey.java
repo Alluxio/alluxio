@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,7 +100,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     if (key != null) {
       return key;
     }
-    throw new IllegalArgumentException(ExceptionMessage.INVALID_METRIC_KEY.getMessage(name));
+    throw new IllegalArgumentException(MessageFormat.format("Invalid metric key {0}", name));
   }
 
   /**

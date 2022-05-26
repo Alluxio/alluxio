@@ -33,6 +33,7 @@ import org.apache.commons.cli.Option;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -286,7 +287,7 @@ public final class FileSystemShellUtils {
     try {
       return FormatUtils.parseTimeSize(time);
     } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.INVALID_TIME.getMessage(time));
+      throw new RuntimeException(MessageFormat.format("{0} is not valid time", time));
     }
   }
 

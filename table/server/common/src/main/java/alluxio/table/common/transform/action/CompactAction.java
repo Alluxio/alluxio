@@ -72,7 +72,7 @@ public class CompactAction implements TransformAction {
       }
 
       Preconditions.checkArgument(numFiles > 0,
-          ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES.getMessage());
+          "Write action must have positive number of files");
       return new CompactAction(numFiles, fileSize);
     }
 

@@ -31,6 +31,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -285,8 +286,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
             SORT_FIELD_COMPARATORS.get(sortField));
 
     if (!sortToUse.isPresent()) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_SORT_FIELD
-          .getMessage(sortField));
+      throw new InvalidArgumentException(
+          MessageFormat.format("Invalid sort option `{0}` for --sort", sortField));
     }
 
     Comparator<URIStatus> sortBy = sortToUse.get();
