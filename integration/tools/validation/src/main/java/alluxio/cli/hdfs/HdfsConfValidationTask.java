@@ -12,9 +12,9 @@
 package alluxio.cli.hdfs;
 
 import alluxio.cli.AbstractValidationTask;
+import alluxio.cli.ApplicableUfsType;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.ApplicableUfsType;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 
 /**
@@ -79,7 +78,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   protected Pair<String, String> getHdfsConfPaths() {
     // If ServerConfiguration does not contain the key, then a {@link RuntimeException} will be
     // thrown before calling the {@link String#split} method.
-    String confVal = mConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
+    String confVal = mConf.getString(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
     String[] clientHadoopConfFilePaths = confVal.split(SEPARATOR);
     mMsg.append(String.format(
         "%d file path(s) detected in for HDFS configuration files for \"%s\"%n",

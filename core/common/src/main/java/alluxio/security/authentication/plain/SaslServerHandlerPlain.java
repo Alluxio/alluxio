@@ -14,9 +14,9 @@ package alluxio.security.authentication.plain;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AbstractSaslServerHandler;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ImpersonationAuthenticator;
 import alluxio.security.authentication.SaslServerHandler;
 
@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.security.Security;
 import java.util.HashMap;
-
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 

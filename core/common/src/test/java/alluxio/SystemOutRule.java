@@ -12,7 +12,6 @@
 package alluxio;
 
 import java.io.OutputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

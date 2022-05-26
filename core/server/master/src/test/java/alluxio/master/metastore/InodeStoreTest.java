@@ -67,7 +67,7 @@ public class InodeStoreTest {
   @Rule
   public ConfigurationRule mConf =
       new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
-          Long.toString(CACHE_SIZE), ServerConfiguration.global());
+          CACHE_SIZE, ServerConfiguration.global());
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 

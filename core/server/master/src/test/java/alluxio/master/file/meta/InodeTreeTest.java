@@ -105,8 +105,8 @@ public final class InodeTreeTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
-          .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
+          .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true)
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup")
           .build(), ServerConfiguration.global());
 

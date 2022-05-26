@@ -139,7 +139,7 @@ If eviction cannot free up new space, then the write will fail.
 
 **Note:** Alluxio's eviction model is synchronous and is executed when a client requires free space when writing a block.
 `alluxio.worker.tieredstore.free.ahead.bytes`(Default: 0) can be configured to free up more bytes than necessary per eviction attempt
-to reduce the number of evictions triggered. This changed starting in Alluxio 2.3.0 which deprecated [the old watermark-based eviction process](#evictor-emulation).
+to reduce the number of evictions triggered. This changed starting in Alluxio 2.3.0 which decommissioned [the old watermark-based eviction process](#evictor-emulation).
 
 The user can also specify the tier that the data will be written to via
 [configuration settings](#configuring-tiered-storage).
@@ -321,8 +321,12 @@ To enforce the assumption that tiers are configured from fastest to slowest, All
 blocks around tiers based on block annotation policies.
 
 Below configuration is honored by each individual tier management task:
-- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. (Default: `CPU core count`)
-- `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. (Default:`CPU core count`/ 2)
+- `alluxio.worker.management.task.thread.count`: How many threads to use for management tasks. 
+  (Default: the maximum value of `4` and `CPU core count`.
+  Check the up-to-date [reference]({{ '/en/reference/Properties-List.html#alluxio.worker.management.task.thread.count' | relativize_url }}).)
+- `alluxio.worker.management.block.transfer.concurrency.limit`: How many block transfers can execute concurrently. 
+  (Default: the maximum value of  `2` and `CPU core count / 2`. 
+  Check the up-to-date [reference]({{ '/en/reference/Properties-List.html#alluxio.worker.management.block.transfer.concurrency.limit' | relativize_url }}).)
 
 #### Block Aligning (Dynamic Block Placement)
 

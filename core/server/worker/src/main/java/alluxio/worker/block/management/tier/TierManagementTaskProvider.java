@@ -16,13 +16,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.management.BlockManagementTask;
 import alluxio.worker.block.management.ManagementTaskProvider;
 import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.annotator.BlockOrder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 public class TierManagementTaskProvider implements ManagementTaskProvider {
   private static final Logger LOG = LoggerFactory.getLogger(TierManagementTaskProvider.class);
 
-  private final BlockStore mBlockStore;
+  private final LocalBlockStore mBlockStore;
   private final BlockMetadataManager mMetadataManager;
   private final Supplier<BlockMetadataEvictorView> mEvictorViewSupplier;
   private final StoreLoadTracker mLoadTracker;
@@ -70,9 +70,9 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
    * @param loadTracker the load tracker
    * @param executor the executor
    */
-  public TierManagementTaskProvider(BlockStore blockStore, BlockMetadataManager metadataManager,
-      Supplier<BlockMetadataEvictorView> evictorViewSupplier, StoreLoadTracker loadTracker,
-      ExecutorService executor) {
+  public TierManagementTaskProvider(LocalBlockStore blockStore,
+      BlockMetadataManager metadataManager, Supplier<BlockMetadataEvictorView> evictorViewSupplier,
+      StoreLoadTracker loadTracker, ExecutorService executor) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mEvictorViewSupplier = evictorViewSupplier;

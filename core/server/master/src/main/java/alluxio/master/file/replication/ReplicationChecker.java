@@ -53,7 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -120,8 +119,20 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.MASTER_HEARTBEAT_TRIGGERED_ACTIVE_JOB_SIZE.getName()),
+        MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
         mActiveJobToInodeID::size);
+  }
+
+  private boolean shouldRun() {
+    // In unit tests there may not be workers, but we still want the ReplicationChecker to execute
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      return true;
+    }
+    if (mSafeModeManager.isInSafeMode() || mBlockMaster.getWorkerCount() == 0) {
+      LOG.debug("Skip the ReplicationChecker in safe mode and when there are no workers");
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -137,8 +148,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() throws InterruptedException {
-    // skips replication in safe mode when not all workers are registered
-    if (mSafeModeManager.isInSafeMode()) {
+    if (!shouldRun()) {
       return;
     }
     final Set<Long> activeJobIds = new HashSet<>();
@@ -326,7 +336,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas > maxReplicas) {
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    currentReplicas - maxReplicas));
+                    maxReplicas));
               }
               break;
             case REPLICATE:
@@ -341,7 +351,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    minReplicas - currentReplicas));
+                    minReplicas));
               }
               break;
             default:
@@ -359,11 +369,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         try {
           long jobId;
           switch (mode) {
-            case EVICT:
-              jobId = handler.evict(uri, blockId, numReplicas);
-              break;
+            case EVICT :
             case REPLICATE:
-              jobId = handler.replicate(uri, blockId, numReplicas);
+              jobId = handler.setReplica(uri, blockId, numReplicas);
               break;
             default:
               throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));

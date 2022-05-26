@@ -43,9 +43,13 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-csi-controller
     spec:
+      serviceAccount: csi-controller-sa
       hostNetwork: {{ .Values.csi.controllerPlugin.hostNetwork }}
       dnsPolicy: {{ .Values.csi.controllerPlugin.dnsPolicy }}
       serviceAccountName: csi-controller-sa
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: csi-provisioner
           image: {{ .Values.csi.controllerPlugin.provisioner.image }}
@@ -74,10 +78,11 @@ spec:
             {{- end }}
           {{- end }}
         - name: csi-controller
-          image: {{ .Values.csi.image }}:{{ .Values.csi.imageTag }}
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.csi.imagePullPolicy }}
-          command: ["/usr/local/bin/alluxio-csi"]
+          command: ["tini", "--", "/entrypoint.sh"]
           args:
+            - csiserver
             - --v=5
             - "--nodeid=$(NODE_ID)"
             - "--endpoint=$(CSI_ENDPOINT)"

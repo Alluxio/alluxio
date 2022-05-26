@@ -11,9 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Sessions;
 import alluxio.collections.Pair;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -24,13 +22,12 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
+import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -41,7 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @Deprecated
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;
   protected BlockMetadataEvictorView mMetadataView;
 
@@ -78,12 +74,10 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    */
   protected StorageDirEvictorView cascadingEvict(long bytesToBeAvailable,
       BlockStoreLocation location, EvictionPlan plan, Mode mode) {
-    location = updateBlockStoreLocation(bytesToBeAvailable, location);
-
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
     // StorageDirView
-    StorageDirEvictorView candidateDirView = (StorageDirEvictorView)
-        EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mMetadataView);
+    StorageDirEvictorView candidateDirView = selectDirWithRequestedSpace(
+        bytesToBeAvailable, location, mMetadataView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
@@ -95,22 +89,21 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     Iterator<Long> it = getBlockIterator();
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next();
-      try {
-        BlockMeta block = mMetadataView.getBlockMeta(blockId);
-        if (block != null) { // might not present in this view
-          if (block.getBlockLocation().belongsTo(location)) {
-            String tierAlias = block.getParentDir().getParentTier().getTierAlias();
-            int dirIndex = block.getParentDir().getDirIndex();
-            StorageDirView dirView = mMetadataView.getTierView(tierAlias).getDirView(dirIndex);
-            if (dirView != null) {
-              dirCandidates.add((StorageDirEvictorView) dirView, blockId, block.getBlockSize());
-            }
-          }
-        }
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn("Remove block {} from evictor cache because {}", blockId, e);
+      Optional<BlockMeta> optionalBlockMeta = mMetadataView.getBlockMeta(blockId);
+      if (!optionalBlockMeta.isPresent()) {
         it.remove();
         onRemoveBlockFromIterator(blockId);
+        continue;
+      }
+      BlockMeta block = optionalBlockMeta.get();
+      // might not present in this view
+      if (block.getBlockLocation().belongsTo(location)) {
+        String tierAlias = block.getParentDir().getParentTier().getTierAlias();
+        int dirIndex = block.getParentDir().getDirIndex();
+        StorageDirView dirView = mMetadataView.getTierView(tierAlias).getDirView(dirIndex);
+        if (dirView != null) {
+          dirCandidates.add((StorageDirEvictorView) dirView, blockId, block.getBlockSize());
+        }
       }
     }
 
@@ -132,46 +125,39 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
       for (Long blockId : candidateBlocks) {
-        try {
-          BlockMeta block = mMetadataView.getBlockMeta(blockId);
-          if (block != null) {
-            candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
-            plan.toEvict().add(new Pair<>(blockId, candidateDirView.toBlockStoreLocation()));
-          }
-        } catch (BlockDoesNotExistException e) {
-          continue;
+        Optional<BlockMeta> block = mMetadataView.getBlockMeta(blockId);
+        if (block.isPresent()) {
+          candidateDirView.markBlockMoveOut(blockId, block.get().getBlockSize());
+          plan.toEvict().add(new Pair<>(blockId, candidateDirView.toBlockStoreLocation()));
         }
       }
     } else {
       for (Long blockId : candidateBlocks) {
-        try {
-          BlockMeta block = mMetadataView.getBlockMeta(blockId);
-          if (block == null) {
-            continue;
-          }
-          StorageDirEvictorView nextDirView
-              = (StorageDirEvictorView) mAllocator.allocateBlockWithView(
-                  Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()),
-                  mMetadataView, true);
-          if (nextDirView == null) {
-            nextDirView = cascadingEvict(block.getBlockSize(),
-                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
-          }
-          if (nextDirView == null) {
-            // If we failed to find a dir in the next tier to move this block, evict it and
-            // continue. Normally this should not happen.
-            plan.toEvict().add(new Pair<>(blockId, block.getBlockLocation()));
-            candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
-            continue;
-          }
-          plan.toMove().add(BlockTransferInfo.createMove(block.getBlockLocation(), blockId,
-              nextDirView.toBlockStoreLocation()));
-          candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
-          nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
-        } catch (BlockDoesNotExistException e) {
+        Optional<BlockMeta> optionalBlock = mMetadataView.getBlockMeta(blockId);
+        if (!optionalBlock.isPresent()) {
           continue;
         }
+        BlockMeta block = optionalBlock.get();
+        StorageDirEvictorView nextDirView =
+            (StorageDirEvictorView) mAllocator.allocateBlockWithView(
+                block.getBlockSize(),
+                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()),
+                mMetadataView, true);
+        if (nextDirView == null) {
+          nextDirView = cascadingEvict(block.getBlockSize(),
+              BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
+        }
+        if (nextDirView == null) {
+          // If we failed to find a dir in the next tier to move this block, evict it and
+          // continue. Normally this should not happen.
+          plan.toEvict().add(new Pair<>(blockId, block.getBlockLocation()));
+          candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+          continue;
+        }
+        plan.toMove().add(BlockTransferInfo.createMove(block.getBlockLocation(), blockId,
+            nextDirView.toBlockStoreLocation()));
+        candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+        nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
       }
     }
 
@@ -218,14 +204,41 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
   protected void onRemoveBlockFromIterator(long blockId) {}
 
   /**
-   * Updates the block store location if the evictor wants to free space in a specific location.
+   * Finds a directory in the given location range with capacity upwards of the given bound.
    *
-   * @param bytesToBeAvailable bytes to be available after eviction
-   * @param location the original block store location
-   * @return the updated block store location
+   * @param bytesToBeAvailable the capacity bound
+   * @param location the location range
+   * @param mManagerView the storage manager view
+   * @return a {@link StorageDirEvictorView} in the range of location that already
+   *         has availableBytes larger than bytesToBeAvailable, otherwise null
    */
-  protected BlockStoreLocation updateBlockStoreLocation(long bytesToBeAvailable,
-      BlockStoreLocation location) {
-    return location;
+  @Nullable
+  private static StorageDirEvictorView selectDirWithRequestedSpace(long bytesToBeAvailable,
+      BlockStoreLocation location, BlockMetadataEvictorView mManagerView) {
+    if (location.hasNoRestriction()) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
+            return (StorageDirEvictorView) dirView;
+          }
+        }
+      }
+      return null;
+    }
+
+    String tierAlias = location.tierAlias();
+    StorageTierView tierView = mManagerView.getTierView(tierAlias);
+    if (location.isAnyDir() && location.isAnyMedium()) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
+          return (StorageDirEvictorView) dirView;
+        }
+      }
+      return null;
+    }
+
+    StorageDirView dirView = tierView.getDirView(location.dir());
+    return (dirView != null && dirView.getAvailableBytes() >= bytesToBeAvailable)
+        ? (StorageDirEvictorView) dirView : null;
   }
 }

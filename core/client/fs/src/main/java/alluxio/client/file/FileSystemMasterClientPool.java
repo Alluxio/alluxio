@@ -13,13 +13,16 @@ package alluxio.client.file;
 
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
+
+import com.codahale.metrics.Counter;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -34,6 +37,8 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(FS_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("FileSystemMasterClientPoolGcThreads-%d", true));
+  private static final Counter COUNTER = MetricsSystem.counter(
+      MetricKey.CLIENT_FILE_SYSTEM_MASTER_CLIENT_COUNT.getName());
 
   /**
    * Creates a new file system master client pool.
@@ -71,6 +76,11 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
   @Override
   protected boolean isHealthy(FileSystemMasterClient client) {
     return client.isConnected();
+  }
+
+  @Override
+  protected Counter getMetricCounter() {
+    return COUNTER;
   }
 
   @Override

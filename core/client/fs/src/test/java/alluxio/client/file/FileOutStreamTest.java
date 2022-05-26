@@ -17,10 +17,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -33,7 +33,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockOutStream;
@@ -82,7 +82,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Tests for the {@link FileOutStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, BlockStoreClient.class,
     UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
 
@@ -92,7 +92,7 @@ public class FileOutStreamTest {
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
 
   private FileSystemContext mFileSystemContext;
-  private AlluxioBlockStore mBlockStore;
+  private BlockStoreClient mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private Map<Long, TestBlockOutStream> mAlluxioOutStreamMap;
@@ -117,11 +117,11 @@ public class FileOutStreamTest {
     when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
-    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    mBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mFileSystemContext)).thenReturn(mBlockStore);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(mFileSystemContext)).thenReturn(mBlockStore);
 
     when(mFileSystemContext.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mFileSystemMasterClient));

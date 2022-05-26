@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -241,7 +240,7 @@ public final class UIFileInfo {
       return "";
     }
     return CommonUtils.convertMsToDate(mCreationTimeMs,
-        mAlluxioConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+        mAlluxioConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
@@ -251,7 +250,7 @@ public final class UIFileInfo {
    */
   public String getModificationTime() {
     return CommonUtils.convertMsToDate(mLastModificationTimeMs,
-        mAlluxioConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+        mAlluxioConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**

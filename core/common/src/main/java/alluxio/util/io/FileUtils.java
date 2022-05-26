@@ -38,7 +38,6 @@ import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -23,8 +23,8 @@ The Job Workers queues tasks from the Job Master and manages a configurable fixe
 
 ### Load
 
-Load Job is used as part of the `fs distributedLoad` CLI command and loads a single file to Alluxio 
-with specified amount of replication.
+Load Job is used as part of the `fs distributedLoad` CLI command and loads files to Alluxio 
+with specified amount of replication
 
 ### Migrate
 

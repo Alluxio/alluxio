@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -58,7 +57,7 @@ public final class UfsJournalCheckpointThread extends Thread {
   /** If not journal log is found, sleep for this amount of time and check again. */
   private final int mJournalCheckpointSleepTimeMs;
   /** Writes a new checkpoint after processing this many journal entries. */
-  private final long mCheckpointPeriodEntries;
+  private final int mCheckpointPeriodEntries;
   /** Object for sycnhronizing accesses to mCheckpointing. */
   private final Object mCheckpointingLock = new Object();
   /** Whether we are currently creating a checkpoint. */
@@ -125,7 +124,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
     mJournalReader = new UfsJournalReader(mJournal, startSequence, false);
     mCheckpointPeriodEntries =
-        ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+        ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
   }
 

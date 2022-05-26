@@ -64,7 +64,7 @@ public class S3AOutputStreamTest {
     FileOutputStream outputStream = PowerMockito.mock(FileOutputStream.class);
     PowerMockito.whenNew(FileOutputStream.class).withArguments(mFile).thenReturn(outputStream);
     mStream = new S3AOutputStream(BUCKET_NAME, KEY, manager,
-        sConf.getList(PropertyKey.TMP_DIRS, ","),
+        sConf.getList(PropertyKey.TMP_DIRS),
         sConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 

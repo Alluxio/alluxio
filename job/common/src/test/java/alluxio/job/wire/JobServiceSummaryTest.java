@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.junit.Before;
 import org.junit.Test;
 

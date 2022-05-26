@@ -11,18 +11,18 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * SessionCleaner periodically checks if any session have become zombies, removes the zombie session
@@ -92,6 +92,7 @@ public final class SessionCleaner implements Runnable, Closeable {
   /**
    * Stops the checking, once this method is called, the object should be discarded.
    */
+  @Override
   public void close() {
     mRunning = false;
   }

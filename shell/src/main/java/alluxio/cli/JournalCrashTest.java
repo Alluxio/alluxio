@@ -12,10 +12,10 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;

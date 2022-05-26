@@ -15,7 +15,6 @@ import alluxio.concurrent.LockMode;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

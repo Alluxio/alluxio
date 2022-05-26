@@ -22,7 +22,6 @@ import alluxio.worker.job.JobMasterClientContext;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -123,7 +122,7 @@ public final class JobContext implements Closeable  {
   public CloseableResource<JobMasterClient> acquireMasterClientResource() {
     return new CloseableResource<JobMasterClient>(mJobMasterClientPool.acquire()) {
       @Override
-      public void close() {
+      public void closeResource() {
         mJobMasterClientPool.release(get());
       }
     };

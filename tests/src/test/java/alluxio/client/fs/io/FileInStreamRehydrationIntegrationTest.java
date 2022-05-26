@@ -13,11 +13,11 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
 import alluxio.conf.PropertyKey;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;

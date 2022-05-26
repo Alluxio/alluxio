@@ -31,8 +31,7 @@ Files suffixed with `.out` like `master.out` or `worker.out` are the redirection
 `stdout` and `stderr` of the corresponding process. 
 Fatal error messages (e.g., killed by the OS), will most likely go to these files.  
 
-The log location can be customized by setting environment variable `ALLUXIO_LOGS_DIR`
-or appending `alluxio.logs.dir` property through JVM properties (e.g. `ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=/foo"`)
+The log location can be customized by setting environment variable `ALLUXIO_LOGS_DIR`.
 See the
 [configuration settings page]({{ '/en/operation/Configuration.html' | relativize_url }}#environment-variables)
 for more information.
@@ -62,24 +61,24 @@ Here are the documentation to configure individual application logs including
 [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }}#logging-configuration),
 [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }}#logging-configuration).
 
-For [Alluxio commandline]({{ '/en/operation/User-CLI.html' | relativize_url }}),
+For the [Alluxio command line interface]({{ '/en/operation/User-CLI.html' | relativize_url }}),
 the user log is located at `${ALLUXIO_HOME}/logs/user/user_${user_name}.log`.
 
 ## Configuring Log Levels
 
 Alluxio uses the following five logging levels:
 - `TRACE`: verbose information, only useful for debugging a certain method or class
-- `DEBUG`: fine-grained information, most useful for debugging purpose.
-- `INFO`: messages that highlight the status of progress.
-- `WARN`: potentially harmful events that users may need to know but the process will still continue running.
-- `ERROR`: system errors that users should pay attention to.
+- `DEBUG`: fine-grained information, most useful for debugging purposes
+- `INFO`: messages that highlight the status or progress
+- `WARN`: potentially harmful events that users may need to know about, but the process will still continue running
+- `ERROR`: system errors that users should pay attention to
 
-By default, Alluxio server processes write logs at level `INFO`, which includes all events at level `INFO`, `WARN` and `ERROR`.
+By default, Alluxio server processes write logs at `INFO` level, which includes all events at `INFO`, `WARN` and `ERROR` levels.
 
 ### Modifying Logging with `log4j.properties`
 
 You can modify `${ALLUXIO_HOME}/conf/log4j.properties` to customize logging levels and restart
-corresponding server processes.
+corresponding server processes to apply new changes. This is the recommended way to modify logging configurations.
 
 For example, to modify the level for all logs to `DEBUG`, change the
 `rootLogger` level by modifying the first line of `log4j.properties` as the following:
@@ -104,13 +103,10 @@ log4j.logger.alluxio=DEBUG
 
 ### Modifying Server Logging at Runtime
 
-It is recommended to modify the `log4j.properties` file, however if there is a need to modify
-logging parameters without stopping nodes in the cluster, then you may modify some parameters at
-runtime.
-
-The Alluxio shell comes with a `logLevel` command that returns the current value of
-or updates the log level of a particular class on specific instances.
-Users are able to change Alluxio server-side log levels at runtime.
+An alternative way to modify logging configurations is use the `logLevel` command.
+This allows someone to modify the configuration at runtime without needing to restart processes.
+This is not the recommended way as any modifications will not be persisted across restart,
+and causes a configuration mismatch between the running process and its `log4j.properties` file.
 See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }})
 for the command options.
 
@@ -169,7 +165,7 @@ Set in `conf/log4j.properties`:
 log4j.logger.alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
 ```
 
-You will see debug logs at the beginning and the end of each FUSE API call with its arguments and result
+You will see debug logs at both the start and end of each FUSE API call with its arguments and result
 in `logs/fuse.log`:
 
 ```
@@ -270,12 +266,11 @@ but without recording all the communication (e.g., enabling all debug logging).
 Alluxio can record slow calls or RPCs in logs with WARN level by setting the following properties:
 
 1. Set `alluxio.user.logging.threshold` to record slow client-side RPCs in application logs.
-1. Set `alluxio.fuse.logging.threshold` to record slow FUSE API calls in fuse logs (`logs/fuse
-.log`).
+1. Set `alluxio.fuse.logging.threshold` to record slow FUSE API calls in fuse logs (`logs/fuse.log`).
 1. Set `alluxio.underfs.logging.threshold` to record slow under storage RPCs (`logs/master.log` or `logs/worker.log`).
 
-For example, the following setting in `conf/alluxio-site.properties` will log each client-side RPC
-slower than 200ms, each FUSE API call slower than 1s and each UFS call slower than 10s:
+For example, the following setting in `conf/alluxio-site.properties` will log each FUSE API call slower than 1s,
+each UFS call slower than 10s, and each client-side RPC slower than 200ms:
 
 ```properties
 alluxio.fuse.logging.threshold=1s
@@ -302,7 +297,7 @@ This can be useful for reasons including but not limited to:
 
 This can be achieved by adding a separate logger in the `conf/log4j.properties`.
 For example, the below example redirects debug logs of `alluxio.master.StateLockManager` to a separate set of files,
-so the `master.log` will not be full of the DEBUG logs created by `alluxio.master.StateLockManager`.
+so the `master.log` will not be full of DEBUG logs created by `alluxio.master.StateLockManager`.
 
 ```properties
 log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
@@ -319,9 +314,9 @@ log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1}
 
 Sometimes it makes sense to disable certain logs files.
 
-One example of use case is, Alluxio is running in a containerized environment,
+One example of use cases is when Alluxio is running in a containerized environment,
 where logs are written to the writable layer. This has performance penalties
-and the writable layer may grow indefinitely and cause disk pressure on the host.
+and the writable layer may grow indefinitely, causing disk pressure on the host.
 In that case you can either mount a volume to the log directory so logs are written to the volume,
 or rely on the [Remote Logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }})
 and disable local logs.

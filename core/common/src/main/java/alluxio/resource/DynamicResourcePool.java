@@ -13,8 +13,8 @@ package alluxio.resource;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
-import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -222,6 +221,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // any performance overhead.
   private final ConcurrentHashMap<T, ResourceInternal<T>> mResources =
       new ConcurrentHashMap<>(32);
+  private final Counter mCounter;
 
   // Thread to scan mAvailableResources to close those resources that are old.
   private ScheduledExecutorService mExecutor;
@@ -236,11 +236,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   public DynamicResourcePool(Options options) {
     mExecutor = Preconditions.checkNotNull(options.getGcExecutor(), "executor");
-
+    mCounter = Preconditions.checkNotNull(getMetricCounter(),
+        "cannot find resource count metric for %s", getClass().getName());
     mMaxCapacity = options.getMaxCapacity();
     mMinCapacity = options.getMinCapacity();
     mAvailableResources = new ArrayDeque<>(Math.min(mMaxCapacity, 32));
-
     mGcFuture = mExecutor.scheduleAtFixedRate(() -> {
       List<T> resourcesToGc = new ArrayList<>();
 
@@ -257,6 +257,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
             resourcesToGc.add(next.mResource);
             iterator.remove();
             mResources.remove(next.mResource);
+            mCounter.dec();
             currentSize--;
             if (currentSize <= mMinCapacity) {
               break;
@@ -276,15 +277,9 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
       }
     }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
-
-    registerGauges();
   }
 
-  private void registerGauges() {
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getResourcePoolMetricName(this),
-        () -> size());
-  }
+  protected abstract Counter getMetricCounter();
 
   /**
    * Acquires a resource of type {code T} from the pool.
@@ -437,6 +432,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         return false;
       } else {
         mResources.put(resource.mResource, resource);
+        mCounter.inc();
         return true;
       }
     } finally {
@@ -453,6 +449,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     try {
       mLock.lock();
       mResources.remove(resource);
+      mCounter.dec();
     } finally {
       mLock.unlock();
     }

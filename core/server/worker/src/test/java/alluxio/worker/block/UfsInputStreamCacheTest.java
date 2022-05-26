@@ -113,7 +113,7 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void expire() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
@@ -133,7 +133,7 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void releaseExpiredSameFile() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
@@ -158,7 +158,7 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void releaseExpiredDifferentFile() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
@@ -183,7 +183,7 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void concurrency() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         // use very large number
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "200000");
@@ -226,7 +226,7 @@ public final class UfsInputStreamCacheTest {
 
   @Test
   public void concurrencyWithExpiration() throws Exception {
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "20");
       }

@@ -76,10 +76,11 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, CAPACITY_BYTES)
-        .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+        .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED,
+                Boolean.parseBoolean(shortCircuitEnabled))
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2)
         .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
-        .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false)
         .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
             .format(1), Constants.MEDIUM_SSD)

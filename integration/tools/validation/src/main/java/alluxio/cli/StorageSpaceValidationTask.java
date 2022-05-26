@@ -25,6 +25,7 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,24 +58,22 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
-      String alias = mConf.get(tierAliasConf);
+      String alias = mConf.getString(tierAliasConf);
 
       PropertyKey tierDirPathConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = mConf.get(tierDirPathConf).split(",");
+      String[] dirPaths = mConf.getString(tierDirPathConf).split(",");
 
       PropertyKey tierDirCapacityConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
-      String rawDirQuota = mConf.get(tierDirCapacityConf);
-      if (rawDirQuota.isEmpty()) {
+      List<String> dirQuotas = mConf.getList(tierDirCapacityConf);
+      if (dirQuotas.isEmpty()) {
         msg.append(String.format("Tier %d: Quota cannot be empty.%n", level));
         advice.append(String.format("Please check your setting for %s.%n",
-                tierDirCapacityConf.toString()));
+                tierDirCapacityConf));
         return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
                 msg.toString(), advice.toString());
       }
-
-      String[] dirQuotas = rawDirQuota.split(",");
 
       try {
         Map<String, MountedStorage> storageMap = new HashMap<>();
@@ -87,14 +86,14 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
         boolean hasRamfsLocation = false;
         for (int i = 0; i < dirPaths.length; i++) {
-          int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
+          int index = i >= dirQuotas.size() ? dirQuotas.size() - 1 : i;
           if (ShellUtils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
             msg.append(String.format("ramfs mounted at %s does not report space information,"
                 + " skip validation.%n", dirPaths[i]));
             hasRamfsLocation = true;
             break;
           }
-          long quota = FormatUtils.parseSpaceSize(dirQuotas[index]);
+          long quota = FormatUtils.parseSpaceSize(dirQuotas.get(index));
           success &= addDirectoryInfo(dirPaths[i], quota, storageMap);
         }
         if (hasRamfsLocation) {
@@ -120,7 +119,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
                     + "Available: %s (Additional %s free space required).%n",
                 level, storageEntry.getKey(),
                 FormatUtils.getSizeFromBytes(quota),
-                builder.toString(),
+                builder,
                 FormatUtils.getSizeFromBytes(used),
                 FormatUtils.getSizeFromBytes(available),
                 FormatUtils.getSizeFromBytes(quota - used - available)));

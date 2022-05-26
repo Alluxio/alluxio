@@ -54,9 +54,7 @@ public final class FuseIOTaskResult implements TaskResult {
       long ioBytes = 0;
       FuseIOParameters fuseIOParameters = null;
       BaseParameters baseParameters = null;
-      List<String> nodes = new ArrayList<>();
-      Map<String, List<String>> errors = new HashMap<>();
-      Map<String, Float> individualThroughput = new HashMap<>();
+      Map<String, FuseIOTaskResult> nodes = new HashMap<>();
 
       for (FuseIOTaskResult taskResult: results) {
         recordStartMs = taskResult.getRecordStartMs();
@@ -66,15 +64,13 @@ public final class FuseIOTaskResult implements TaskResult {
         baseParameters = taskResult.getBaseParameters();
 
         String jobWorkerUniqueId = taskResult.getBaseParameters().mId;
-        nodes.add(jobWorkerUniqueId);
-        individualThroughput.put(jobWorkerUniqueId, taskResult.getIOMBps());
-        errors.put(jobWorkerUniqueId, taskResult.getErrors());
+        nodes.put(jobWorkerUniqueId, taskResult);
       }
 
       float ioMBps = (float) ioBytes / (endMs - recordStartMs) * 1000.0f / Constants.MB;
 
-      return new FuseIOSummary(fuseIOParameters, baseParameters, nodes, errors, recordStartMs,
-          endMs, ioBytes, ioMBps, individualThroughput);
+      return new FuseIOSummary(fuseIOParameters, baseParameters, nodes, recordStartMs,
+          endMs, ioBytes, ioMBps);
     }
   }
 
@@ -90,9 +86,7 @@ public final class FuseIOTaskResult implements TaskResult {
     mErrors.addAll(result.mErrors);
   }
 
-  /**
-   * @return the base parameters
-   */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -184,9 +178,7 @@ public final class FuseIOTaskResult implements TaskResult {
     mEndMs = endMs;
   }
 
-  /**
-   * @return the list of errors
-   */
+  @Override
   public List<String> getErrors() {
     return Collections.unmodifiableList(mErrors);
   }

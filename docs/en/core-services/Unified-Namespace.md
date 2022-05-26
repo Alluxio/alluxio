@@ -111,8 +111,8 @@ Mount options for the root mount point are configured using the configuration pr
 For example, the following configuration adds AWS credentials for the root mount point.
 
 ```
-alluxio.master.mount.table.root.option.aws.accessKeyId=<AWS_ACCESS_KEY_ID>
-alluxio.master.mount.table.root.option.aws.secretKey=<AWS_SECRET_ACCESS_KEY>
+alluxio.master.mount.table.root.option.s3a.accessKeyId=<AWS_ACCESS_KEY_ID>
+alluxio.master.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
 ```
 
 The following configuration shows how to set other parameters for the root mount point.
@@ -136,7 +136,7 @@ to the mount operation, such as credentials.
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 # the following command mounts an s3 path to the Alluxio path `/mnt/s3` with additional options specifying the credentials
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey> \
+  --option s3a.accessKeyId=<accessKeyId> --option s3a.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
 ```
 
@@ -312,6 +312,9 @@ You may need to change the value for `alluxio.underfs.version` in your configura
 Please refer to
 [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of
 supported Hdfs versions.
+If building Alluxio from source, please refer to
+[HDFS prerequisites]({{ '/en/ufs/HDFS.html#prerequisites' | relativize_url}}) for instructions
+on how to build Alluxio with active sync enabled.
 
 To enable active sync on a directory, issue the following Alluxio command.
 
@@ -391,7 +394,7 @@ $ cd ${ALLUXIO_HOME}
 $ ./bin/alluxio fs mount /demo file:///tmp/alluxio-demo
 Mounted file:///tmp/alluxio-demo at /demo
 $ ./bin/alluxio fs ls -R /
-... # note that the output should show /demo but not /demo/hello
+... # note that the output should show /demo and /demo/hello
 ```
 
 Verify that the metadata for content not created through Alluxio is loaded into Alluxio the first time it is accessed:
@@ -451,8 +454,8 @@ Mount the first S3 bucket into Alluxio using its corresponding credentials `<acc
 ```console
 $ ./bin/alluxio fs mkdir /mnt
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId1> \
-  --option aws.secretKey=<secretKey1> \
+  --option s3a.accessKeyId=<accessKeyId1> \
+  --option s3a.secretKey=<secretKey1> \
   /mnt/s3bucket1 s3://data-bucket1/
 ```
 
@@ -460,8 +463,8 @@ Mount the second S3 bucket into Alluxio using its corresponding credentials `<ac
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId2> \
-  --option aws.secretKey=<secretKey2> \
+  --option s3a.accessKeyId=<accessKeyId2> \
+  --option s3a.secretKey=<secretKey2> \
   /mnt/s3bucket2 s3://data-bucket2/
 ```
 

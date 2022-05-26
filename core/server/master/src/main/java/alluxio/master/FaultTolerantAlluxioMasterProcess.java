@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricKey;
@@ -33,11 +34,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
+ * The fault-tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
  */
 @NotThreadSafe
 final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
@@ -47,7 +47,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private final long mServingThreadTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
-  private PrimarySelector mLeaderSelector;
+  private final PrimarySelector mLeaderSelector;
   private Thread mServingThread;
 
   /** An indicator for whether the process is running (after start() and before stop()). */
@@ -56,7 +56,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
    */
-  protected FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem,
+  FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem,
       PrimarySelector leaderSelector) {
     super(journalSystem);
     try {
@@ -67,23 +67,27 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mServingThread = null;
     mRunning = false;
+    LOG.info("New process created.");
   }
 
   @Override
   public void start() throws Exception {
+    LOG.info("Process starting.");
     mRunning = true;
+    startCommonServices();
     mJournalSystem.start();
-
     startMasters(false);
-    LOG.info("Secondary started");
+    startJvmMonitorProcess();
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      LOG.info("Waiting for journals to catch up.");
       mJournalSystem.waitForCatchup();
     }
 
     try {
+      LOG.info("Starting leader selector.");
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -92,17 +96,21 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     while (!Thread.interrupted()) {
       if (!mRunning) {
+        LOG.info("FT is not running. Breaking out");
         break;
       }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+        LOG.info("Waiting for journals to catch up.");
         mJournalSystem.waitForCatchup();
       }
+
+      LOG.info("Started in stand-by mode.");
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;
       }
       if (gainPrimacy()) {
-        mLeaderSelector.waitForState(State.SECONDARY);
+        mLeaderSelector.waitForState(State.STANDBY);
         if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
           stop();
         } else {
@@ -119,41 +127,56 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
    * Upgrades the master to primary mode.
    *
    * If the master loses primacy during the journal upgrade, this method will clean up the partial
-   * upgrade, leaving the master in secondary mode.
+   * upgrade, leaving the master in standby mode.
    *
    * @return whether the master successfully upgraded to primary
    */
   private boolean gainPrimacy() throws Exception {
+    LOG.info("Becoming a leader.");
     // Don't upgrade if this master's primacy is unstable.
     AtomicBoolean unstable = new AtomicBoolean(false);
     try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
       if (mLeaderSelector.getState() != State.PRIMARY) {
+        LOG.info("Lost leadership while becoming a leader.");
         unstable.set(true);
       }
       stopMasters();
-      LOG.info("Secondary stopped");
+      LOG.info("Standby stopped");
       try (Timer.Context ctx = MetricsSystem
           .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
         mJournalSystem.gainPrimacy();
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
-        losePrimacy();
+        LOG.info("Terminating an unstable attempt to become a leader.");
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          losePrimacy();
+        }
         return false;
       }
     }
-    startMasters(true);
+    try {
+      startMasters(true);
+    } catch (UnavailableException e) {
+      LOG.warn("Error starting masters: {}", e.toString());
+      stopMasters();
+      return false;
+    }
     mServingThread = new Thread(() -> {
       try {
-        startServing(" (gained leadership)", " (lost leadership)");
+        startCommonServices();
+        startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
-        if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+        if (root instanceof InterruptedException || Thread.interrupted()) {
           return;
         }
         ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
       }
     }, "MasterServingThread");
+    LOG.info("Starting a server thread.");
     mServingThread.start();
     if (!waitForReady(10 * Constants.MINUTE_MS)) {
       ThreadUtils.logAllThreads();
@@ -164,10 +187,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   private void losePrimacy() throws Exception {
+    LOG.info("Losing the leadership.");
     if (mServingThread != null) {
-      stopServing();
+      stopLeaderServing();
+      stopCommonServicesIfNecessary();
     }
-    // Put the journal in secondary mode ASAP to avoid interfering with the new primary. This must
+    // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
     // which could cause NPEs for outstanding RPC threads. We need to first close all client
     // sockets in stopServing so that clients don't see NPEs.
@@ -184,11 +209,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LOG.info("Primary stopped");
     }
     startMasters(false);
-    LOG.info("Secondary started");
+    LOG.info("Standby started");
   }
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping...");
     mRunning = false;
     super.stop();
     if (mLeaderSelector != null) {
@@ -199,14 +225,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   /**
    * @return whether the master is running
    */
-  protected boolean isRunning() {
+  boolean isRunning() {
     return mRunning;
   }
 
   @Override
-  public boolean waitForReady(int timeoutMs) {
+  public boolean waitForGrpcServerReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
+      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isGrpcServing()),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
@@ -214,6 +240,50 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       return false;
     } catch (TimeoutException e) {
       return false;
+    }
+  }
+
+  @Override
+  protected void startCommonServices() {
+    boolean standbyMetricsSinkEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
+    boolean standbyWebEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
+    // Masters will always start from standby state, and later be elected to primary.
+    // If standby masters are enabled to start metric sink service,
+    // the service will have been started before the master is promoted to primary.
+    // Thus, when the master is primary, no need to start metric sink service again.
+    //
+    // Vice versa, if the standby masters do not start the metric sink service,
+    // the master should start the metric sink when it is primacy.
+    //
+    LOG.info("state is {}, standbyMetricsSinkEnabled is {}, standbyWebEnabled is {}",
+        mLeaderSelector.getState(), standbyMetricsSinkEnabled, standbyWebEnabled);
+    if ((mLeaderSelector.getState() == State.STANDBY && standbyMetricsSinkEnabled)
+        || (mLeaderSelector.getState() == State.PRIMARY && !standbyMetricsSinkEnabled)) {
+      LOG.info("Start metric sinks.");
+      MetricsSystem.startSinks(
+          ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+    }
+
+    // Same as the metrics sink service
+    if ((mLeaderSelector.getState() == State.STANDBY && standbyWebEnabled)
+        || (mLeaderSelector.getState() == State.PRIMARY && !standbyWebEnabled)) {
+      LOG.info("Start web server.");
+      startServingWebServer();
+    }
+  }
+
+  void stopCommonServicesIfNecessary() throws Exception {
+    if (!ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
+      LOG.info("Stop metric sinks.");
+      MetricsSystem.stopSinks();
+    }
+    if (!ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
+      LOG.info("Stop web server.");
+      stopServingWebServer();
     }
   }
 }

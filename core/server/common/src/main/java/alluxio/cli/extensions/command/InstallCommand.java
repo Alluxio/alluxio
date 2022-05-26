@@ -11,12 +11,12 @@
 
 package alluxio.cli.extensions.command;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -64,7 +63,7 @@ public final class InstallCommand implements Command {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     AlluxioConfiguration conf = ServerConfiguration.global();
-    String extensionsDir = conf.get(PropertyKey.EXTENSIONS_DIR);
+    String extensionsDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     File dir = new File(extensionsDir);
     if (!dir.exists() && !dir.mkdirs()) {
       System.err.println("Failed to create extensions directory " + extensionsDir);

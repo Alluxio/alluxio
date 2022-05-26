@@ -18,6 +18,8 @@ import alluxio.proto.client.Cache.PRocksPageStoreOptions;
 import com.google.common.base.MoreObjects;
 import org.rocksdb.CompressionType;
 
+import java.util.ArrayList;
+
 /**
  * Options used to instantiate {@link RocksPageStore}.
  */
@@ -43,7 +45,7 @@ public class RocksPageStoreOptions extends PageStoreOptions {
    * Creates a new instance of {@link RocksPageStoreOptions}.
    */
   public RocksPageStoreOptions() {
-    mRootDir = "";
+    mRootDirs = new ArrayList<>();
     mMaxPageSize = Constants.MB;
     mWriteBufferSize = 64 * Constants.MB;
     mMaxBufferPoolSize = 32;
@@ -143,7 +145,7 @@ public class RocksPageStoreOptions extends PageStoreOptions {
         .add("MaxPageSize", mMaxPageSize)
         .add("OverheadRatio", mOverheadRatio)
         .add("PageSize", mPageSize)
-        .add("RootDir", mRootDir)
+        .add("RootDirs", mRootDirs)
         .add("TimeoutDuration", mTimeoutDuration)
         .add("TimeoutThreads", mTimeoutThreads)
         .add("WriteBufferSize", mWriteBufferSize)

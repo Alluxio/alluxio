@@ -17,8 +17,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Interface for providers that annotates blocks for sorting.

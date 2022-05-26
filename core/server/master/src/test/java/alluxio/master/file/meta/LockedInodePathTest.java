@@ -17,19 +17,28 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.TestLoggerRule;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 
+import io.netty.util.ResourceLeakDetector;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Unit tests for {@link LockedInodePath}.
  */
 public class LockedInodePathTest extends BaseInodeLockingTest {
   private LockedInodePath mPath;
+
+  @Rule
+  public TestLoggerRule mLogger = new TestLoggerRule();
 
   @After
   public void after() {
@@ -576,6 +585,30 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesWriteLocked();
     checkOnlyIncomingEdgesReadLocked(mRootDir);
     checkOnlyIncomingEdgesWriteLocked(mDirA);
+  }
+
+  @Ignore
+  @Test
+  public void testLeakTrackingLog() throws Exception {
+    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.SIMPLE);
+    for (int i = 0; i < 200; i++) {
+      create("/" + RandomStringUtils.randomAlphanumeric(10),
+          LockPattern.READ);
+    }
+    for (int i = 0; i < 10; i++) {
+      byte[] mem = new byte[1024 * 1024 * 1024];
+      if (mem[0] == 0x7a) {
+        continue;
+      }
+      mem[ThreadLocalRandom.current().nextInt(1024 * 1024)] += 1;
+    }
+    for (int i = 0; i < 200; i++) {
+      create("/" + RandomStringUtils.randomAlphanumeric(10),
+          LockPattern.READ);
+    }
+    System.gc();
+    assertTrue(mLogger.wasLogged("LockedInodePath\\.close\\(\\) was not called before "
+        + "resource is garbage-collected"));
   }
 
   private LockedInodePath create(String path, LockPattern lockPattern) throws InvalidPathException {

@@ -24,7 +24,6 @@ import alluxio.master.MasterClientContext;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -166,7 +165,8 @@ public interface TableMasterClient extends Client {
    * @param tableName table name
    * @param partitionNames partition names
    * @param columnNames column names
-   * @return Map<String partitionName, Map<String columnName, columnStatistics>>
+   * @return <code>Map&lt;String partitionName, Map&lt;String columnName,
+   * columnStatistics&gt;&gt;</code>
    * @throws AlluxioStatusException
    */
   Map<String, List<ColumnStatisticsInfo>> getPartitionColumnStatistics(

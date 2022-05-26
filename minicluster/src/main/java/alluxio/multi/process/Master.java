@@ -22,7 +22,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,7 +33,7 @@ public final class Master implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Master.class);
 
   private final File mLogsDir;
-  private final Map<PropertyKey, String> mProperties;
+  private final Map<PropertyKey, Object> mProperties;
 
   private ExternalProcess mProcess;
 
@@ -42,7 +41,7 @@ public final class Master implements Closeable {
    * @param logsDir logs directory
    * @param properties alluxio properties
    */
-  public Master(File logsDir, Map<PropertyKey, String> properties) throws IOException {
+  public Master(File logsDir, Map<PropertyKey, Object> properties) throws IOException {
     mLogsDir = logsDir;
     mProperties = properties;
   }
@@ -54,7 +53,7 @@ public final class Master implements Closeable {
    * @param key the conf key to update
    * @param value the value to set, or null to unset the key
    */
-  public void updateConf(PropertyKey key, @Nullable String value) {
+  public void updateConf(PropertyKey key, @Nullable Object value) {
     if (value == null) {
       mProperties.remove(key);
     } else {
@@ -80,7 +79,7 @@ public final class Master implements Closeable {
   /**
    * @return the configuration used by this master
    */
-  public Map<PropertyKey, String> getConf() {
+  public Map<PropertyKey, Object> getConf() {
     return ImmutableMap.copyOf(mProperties);
   }
 

@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
 import javax.security.auth.Subject;
 
 /**
@@ -108,7 +107,7 @@ public interface UserState {
         }
       }
       throw new UnsupportedOperationException(
-          "No factory could create a UserState with authType: " + authType.getAuthName()
+          "No factory could create a UserState with authType: " + authType
               + ". factories: " + String.join(", ",
               FACTORIES.stream().map((factory) -> factory.getClass().getName())
                   .collect(Collectors.toList())));

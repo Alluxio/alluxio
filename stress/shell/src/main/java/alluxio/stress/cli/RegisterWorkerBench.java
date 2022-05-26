@@ -17,6 +17,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
@@ -24,6 +25,7 @@ import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
@@ -63,7 +65,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-        "A benchmarking tool for the RegisterWorker RPC.",
+        "A benchmarking tool for the RegisterWorker unary RPC.",
         "The test will generate a specified number of blocks in the master (without associated "
             + "files). Then it will trigger the specified number of simulated workers to register "
             + "at once.",
@@ -99,10 +101,14 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
                     .build());
     mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
 
-    // Prepare these block IDs concurrently
-    LOG.info("Preparing blocks at the master");
-    RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
-    LOG.info("Created all blocks at the master");
+    // The preparation is done by the invoking shell process to ensure the preparation is only
+    // done once, so skip preparation when running in job worker
+    if (!mBaseParameters.mDistributed) {
+      // Prepare these block IDs concurrently
+      LOG.info("Preparing blocks at the master");
+      RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap);
+      LOG.info("Created all blocks at the master");
+    }
 
     // Prepare worker IDs
     int numWorkers = mParameters.mConcurrency;
@@ -151,6 +157,18 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
                        RpcTaskResult result, long i, long workerId) {
     try {
       Instant s = Instant.now();
+
+      if (mConf.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
+        LOG.info("Acquiring lease for {}", workerId);
+        int blockCount = 0;
+        for (LocationBlockIdListEntry entry : mLocationBlockIdList) {
+          blockCount += entry.getValue().getBlockIdCount();
+        }
+        client.acquireRegisterLeaseWithBackoff(workerId, blockCount,
+            BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
+        LOG.info("Lease acquired for {}", workerId);
+      }
+
       // TODO(jiacheng): The 1st reported RPC time is always very long, this does
       //  not match with the time recorded by Jaeger.
       //  I suspect it's the time spend in establishing the connection.
@@ -164,6 +182,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
               ImmutableMap.of(),
               LOST_STORAGE, // lost storage
               EMPTY_CONFIG); // extra config
+      LOG.info("Worker {} registered", workerId);
 
       Instant e = Instant.now();
       RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());

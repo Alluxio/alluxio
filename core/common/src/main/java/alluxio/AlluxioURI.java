@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.annotation.PublicApi;
-
 import alluxio.exception.InvalidPathException;
 import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
@@ -21,14 +20,11 @@ import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -54,8 +50,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private static final long serialVersionUID = -1207227692436086387L;
-
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioURI.class);
 
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
@@ -249,8 +243,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     String path = mUri.getPath();
     int lastSlash = path.lastIndexOf('/');
     int start = hasWindowsDrive(path, true) ? 3 : 0;
-    if ((path.length() == start) || // empty path
-        (lastSlash == start && path.length() == start + 1)) { // at root
+    if ((path.length() == start) // empty path
+        || (lastSlash == start && path.length() == start + 1)) { // at root
       return null;
     }
     String parent;
@@ -490,9 +484,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     }
     if (mUri.getPath() != null) {
       String path = mUri.getPath();
-      if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) && // has windows drive
-          mUri.getScheme() == null && // but no scheme
-          mUri.getAuthority() == null) { // or authority
+      if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) // has windows drive
+          && mUri.getScheme() == null // but no scheme
+          && (mUri.getAuthority() == null
+              || mUri.getAuthority() instanceof NoAuthority)) { // or authority
         path = path.substring(1); // remove slash before drive
       }
       sb.append(path);

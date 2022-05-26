@@ -16,7 +16,7 @@
     <option name="MAIN_CLASS_NAME" value="alluxio.cli.fs.FileSystemShell" />
     <module name="alluxio-shell" />
     <option name="PROGRAM_PARAMETERS" value="ls /" />
-    <option name="VM_PARAMETERS" value=" -Xbootclasspath/a:$PROJECT_DIR$/conf" />
+    <option name="VM_PARAMETERS" value="-Xbootclasspath/a:$PROJECT_DIR$/conf  -Dalluxio.logger.type=Console -Dalluxio.home=$PROJECT_DIR$" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="alluxio.cli.fs.*" />

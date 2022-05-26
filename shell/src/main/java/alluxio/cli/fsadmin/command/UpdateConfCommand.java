@@ -18,11 +18,11 @@ import alluxio.conf.PropertyKey;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Update config for an existing service.

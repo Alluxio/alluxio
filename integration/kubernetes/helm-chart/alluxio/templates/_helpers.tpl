@@ -329,3 +329,9 @@ hostAliases:
 {{- end }}
 {{- end -}}
 
+{{- define "alluxio.imagePullSecrets" -}}
+imagePullSecrets:
+{{- range $name := .Values.imagePullSecrets }}
+  - name: {{ $name }}
+{{- end -}}
+{{- end -}}

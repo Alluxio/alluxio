@@ -96,7 +96,7 @@ public class RunOperation {
     try {
       jc.parse(args);
     } catch (Exception e) {
-      System.out.println(e.toString());
+      System.out.println(e);
       System.out.println();
       jc.usage();
       return -1;

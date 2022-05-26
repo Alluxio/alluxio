@@ -19,11 +19,11 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The configuration of loading a file.
@@ -39,6 +39,7 @@ public class LoadConfig implements PlanConfig {
   private final Set<String> mExcludedWorkerSet;
   private final Set<String> mLocalityIds;
   private final Set<String> mExcludedLocalityIds;
+  private final boolean mDirectCache;
 
   /**
    * @param filePath the file path
@@ -47,13 +48,18 @@ public class LoadConfig implements PlanConfig {
    * @param excludedWorkerSet the excluded worker set
    * @param localityIds the locality identify set
    * @param excludedLocalityIds the excluded locality identify set
-   */
+   * @param directCache Use passive-cache or direct cache request
+   *
+   * @deprecated directCache param will be deprecated after cache request graduate from experimental
+   **/
+  @Deprecated
   public LoadConfig(@JsonProperty("filePath") String filePath,
       @JsonProperty("replication") Integer replication,
       @JsonProperty("workerSet") Set<String> workerSet,
       @JsonProperty("excludedWorkerSet") Set<String> excludedWorkerSet,
       @JsonProperty("localityIds") Set<String> localityIds,
-      @JsonProperty("excludedLocalityIds") Set<String> excludedLocalityIds) {
+      @JsonProperty("excludedLocalityIds") Set<String> excludedLocalityIds,
+      @JsonProperty("directCache") Boolean directCache) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
@@ -62,6 +68,7 @@ public class LoadConfig implements PlanConfig {
     mLocalityIds = localityIds == null ? Collections.EMPTY_SET : new HashSet(localityIds);
     mExcludedLocalityIds = excludedLocalityIds == null ? Collections.EMPTY_SET
         : new HashSet(excludedLocalityIds);
+    mDirectCache = directCache == null ? false : directCache;
   }
 
   /**
@@ -142,5 +149,15 @@ public class LoadConfig implements PlanConfig {
    */
   public Set<String> getExcludedLocalityIds() {
     return mExcludedLocalityIds;
+  }
+
+  /**
+   * @return  use direct cache request or not
+   *
+   * @deprecated directCache will be deprecated after cache request graduate from experimental
+   */
+  @Deprecated
+  public boolean isDirectCache() {
+    return mDirectCache;
   }
 }

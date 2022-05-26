@@ -15,6 +15,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/golang/glog"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -23,11 +24,13 @@ const (
 )
 
 type driver struct {
-	csiDriver        *csicommon.CSIDriver
-	nodeId, endpoint string
+	csiDriver *csicommon.CSIDriver
+	endpoint  string
+	client    kubernetes.Clientset
+	nodeId    string
 }
 
-func NewDriver(nodeID, endpoint string) *driver {
+func NewDriver(nodeID, endpoint string, client kubernetes.Clientset) *driver {
 	glog.Infof("Driver: %v version: %v", driverName, version)
 	csiDriver := csicommon.NewCSIDriver(driverName, version, nodeID)
 	csiDriver.AddControllerServiceCapabilities([]csi.ControllerServiceCapability_RPC_Type{csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME})
@@ -37,6 +40,7 @@ func NewDriver(nodeID, endpoint string) *driver {
 		nodeId:    nodeID,
 		endpoint:  endpoint,
 		csiDriver: csiDriver,
+		client:    client,
 	}
 }
 
@@ -49,6 +53,7 @@ func (d *driver) newNodeServer() *nodeServer {
 	return &nodeServer{
 		nodeId:            d.nodeId,
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d.csiDriver),
+		client:            d.client,
 	}
 }
 

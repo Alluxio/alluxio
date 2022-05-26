@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.util.URIUtils;
 
 import java.net.URISyntaxException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

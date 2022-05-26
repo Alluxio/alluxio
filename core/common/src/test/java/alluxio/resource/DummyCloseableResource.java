@@ -20,5 +20,5 @@ public final class DummyCloseableResource<T> extends CloseableResource<T> {
   }
 
   @Override
-  public void close() {}
+  public void closeResource() {}
 }

@@ -11,17 +11,19 @@
 
 package alluxio.web;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.ThreadUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * Stacks servlet to display the stacks of this process.
@@ -38,6 +40,8 @@ public class StacksServlet extends HttpServlet {
         resp.getOutputStream(), false, "UTF-8")) {
       ThreadUtils.printThreadInfo(out, "");
     }
-    ThreadUtils.logThreadInfo(LOG, "jsp requested", 1);
+    if (ServerConfiguration.getBoolean(PropertyKey.WEB_THREAD_DUMP_TO_LOG)) {
+      ThreadUtils.logThreadInfo(LOG, "jsp requested", 1);
+    }
   }
 }

@@ -16,15 +16,13 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -110,7 +108,7 @@ public final class UnderFileSystemFactoryRegistry {
       UnderFileSystemConfiguration ufsConf) {
     List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf);
     if (eligibleFactories.isEmpty() && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
-      String configuredVersion = ufsConf.get(PropertyKey.UNDERFS_VERSION);
+      String configuredVersion = ufsConf.getString(PropertyKey.UNDERFS_VERSION);
       List<String> supportedVersions = getSupportedVersions(path, ufsConf);
       if (!supportedVersions.isEmpty()) {
         LOG.warn("Versions [{}] are supported for path {} but you have configured version: {}",

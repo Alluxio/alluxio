@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.7.0-SNAPSHOT
+imageTag: 2.9.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -29,6 +29,16 @@ fsGroup: 1000
 #   If not specified, Kubernetes will assign the 'default'
 #   ServiceAccount used for the namespace
 serviceAccount:
+
+# Image Pull Secret
+#   The secrets will need to be created externally from
+#   this Helm chart, but you can configure the Alluxio
+#   Pods to use the following list of secrets
+# eg:
+# imagePullSecrets:
+#   - ecr
+#   - dev
+imagePullSecrets:
 
 # Site properties for all the components
 properties:
@@ -60,6 +70,7 @@ properties:
 ## Master ##
 
 master:
+  enabled: true
   count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
   replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
   env:
@@ -182,27 +193,47 @@ jobMaster:
 # UFS journal with HDFS example
 # journal:
 #   type: "UFS"
+#   ufsType: "HDFS"
 #   folder: "hdfs://{$hostname}:{$hostport}/journal"
 # EMBEDDED journal to /journal example
 # journal:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  type: "UFS" # "UFS" or "EMBEDDED"
-  ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
-  folder: "/journal" # Master journal folder
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: persistentVolumeClaim
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
+  ufsType: "local"
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # Attributes to use when the journal is persistentVolumeClaim
+  ### Unique attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
-  # Attributes to use when the journal is emptyDir
+  ### Unique attributes to use when the journal is emptyDir
   medium: ""
-  # Configuration for journal formatting job
-  format:
+  #
+  # [ Optional values ]
+  format: # Configuration for journal formatting job
     runFormat: false # Change to true to format journal
 
 
@@ -222,6 +253,7 @@ journal:
 ## Worker ##
 
 worker:
+  enabled: true
   env:
     # Extra environment variables for the worker pod
     # Example:
@@ -407,14 +439,13 @@ fuse:
   user: 0
   group: 0
   fsGroup: 0
-  # fuse args specific to standalone fuse
-  args:
-    - fuse
-    - --fuse-opts=allow_other
-  # fuse options specific to fuse embedded in the worker process, separated by comma without whitespace
+  # Default fuse mount options separated by commas, shared by all fuse containers
   mountOptions: allow_other
-  # Mount path in the host
-  mountPath: /mnt/alluxio-fuse
+  # Default fuse mount point inside fuse container, shared by all fuse containers.
+  # Non-empty value is required.
+  mountPoint: /mnt/alluxio-fuse
+  # Default alluxio path to be mounted, shared by all fuse containers.
+  alluxioPath: /
   resources:
     requests:
       cpu: "0.5"
@@ -593,15 +624,13 @@ logserver:
 # kubernetes CSI plugin
 csi:
   enabled: false
-  image: alluxio/alluxio
-  imageTag: 2.7.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     provisioner:
-      # for kubernetes 1.13 or above
-      image: quay.io/k8scsi/csi-provisioner:v1.4.0
+      # for kubernetes 1.17 or above
+      image: k8s.gcr.io/sig-storage/csi-provisioner:v2.0.5
       resources:
         limits:
           cpu: 100m
@@ -617,13 +646,15 @@ csi:
         requests:
           cpu: 10m
           memory: 20Mi
-  # Will run fuse daemon inside csi nodeserver
+  # Run alluxio fuse process inside csi nodeserver container if mountInPod = false
+  # Run alluxio fuse process inside a separate pod if mountInPod = true
+  mountInPod: false
   nodePlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     nodeserver:
       resources:
-        # The default xmx is 8G
+        # fuse in nodeserver container needs more resources
         limits:
           cpu: "4"
           memory: "8G"
@@ -631,7 +662,7 @@ csi:
           cpu: "1"
           memory: "1G"
     driverRegistrar:
-      image: quay.io/k8scsi/csi-node-driver-registrar:v1.0.2
+      image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.0
       resources:
         limits:
           cpu: 100m
@@ -639,11 +670,10 @@ csi:
         requests:
           cpu: 10m
           memory: 20Mi
-
   # for csi client
   clientEnabled: false
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   quota: 100Gi
   mountPath: /data
   alluxioPath: /

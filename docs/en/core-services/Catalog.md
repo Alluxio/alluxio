@@ -32,7 +32,7 @@ The service itself is not responsible for retaining all data, but is rather a ca
 metadata that originates in another location (i.e. MySQL, Hive).
 The locations where the metadata originates from are called **UDBs** (**U**nder **D**ata**B**ase).
 UDBs are responsible for the management and storage of the metadata.
-Currently, Hive is the only supported UDB.
+Currently, Hive and Glue are supported UDBs.
 The Alluxio Catalog Service caches and makes the metadata available universally through the Alluxio
 filesystem namespace.
 

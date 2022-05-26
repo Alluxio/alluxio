@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -116,9 +115,7 @@ public abstract class AbstractShell implements Closeable {
           throw new InvalidArgumentException("Unknown sub-command: " + currArgs[1]);
         }
         command = command.getSubCommands().get(currArgs[1]);
-        if (currArgs.length >= 2) {
-          currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
-        }
+        currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
       }
       currArgs = Arrays.copyOfRange(currArgs, 1, currArgs.length);
 

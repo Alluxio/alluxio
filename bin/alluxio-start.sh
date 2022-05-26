@@ -273,7 +273,7 @@ start_worker() {
     fi
     if [[ -z $(ls -a "${cache}" ) ]]; then
       echo "Cache path ${cache} is an empty directory; skipping cache population"
-    else 
+    else
       echo "Populating worker ramcache(s) with contents from ${cache}"
 
       get_ramdisk_array # see alluxio-common.sh
@@ -316,8 +316,7 @@ start_worker() {
   fi
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_WORKER_JAVA_OPTS} \
-     nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
+  (nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
 
 start_workers() {
@@ -329,10 +328,6 @@ start_workers() {
 }
 
 restart_worker() {
-  if [[ -z ${ALLUXIO_WORKER_JAVA_OPTS} ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  fi
-
   RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
@@ -581,6 +576,7 @@ main() {
       ;;
     secondary_master)
       ALLUXIO_MASTER_SECONDARY=true
+      async=true # there does not exist a monitor process for secondary_master
       start_master
       ALLUXIO_MASTER_SECONDARY=false
       ;;

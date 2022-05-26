@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -61,7 +60,7 @@ public class AlluxioMasterInfoTest {
     Random random = new Random();
 
     Capacity capacity = CapacityTest.createRandom();
-    Map<String, String> configuration = new HashMap<>();
+    Map<String, Object> configuration = new HashMap<>();
     long numConfiguration = random.nextInt(10);
     for (int i = 0; i < numConfiguration; i++) {
       configuration.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),

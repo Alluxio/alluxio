@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import static alluxio.conf.PropertyKey.PropertyType.STRING;
+
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -101,7 +103,7 @@ public final class UnderFileSystemContractTest {
     }
 
     // Set common properties
-    mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+    mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
     mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
@@ -144,7 +146,7 @@ public final class UnderFileSystemContractTest {
       }
 
       // Set common properties
-      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, "50");
+      mConf.set(PropertyKey.UNDERFS_LISTING_LENGTH, 50);
       mConf.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "512B");
       // Increase the buffer time of journal writes to speed up tests
       mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
@@ -178,7 +180,8 @@ public final class UnderFileSystemContractTest {
     return UnderFileSystemConfiguration.defaults(mConf)
         .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
             .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
-            .filter(entry -> mConf.isSet(entry.getKey()) && !entry.getValue().isEmpty())
+            .filter(entry -> mConf.isSet(entry.getKey()) && (entry.getKey().getType() != STRING
+                || !((String) entry.getValue()).isEmpty()))
             .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
   }
 
@@ -199,8 +202,8 @@ public final class UnderFileSystemContractTest {
 
   private int runS3Operations(PrintStream msgStream,
                               PrintStream adviceStream, PrintStream errStream) throws Exception {
-    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, "true");
-    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, "true");
+    mConf.set(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1, true);
+    mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED, true);
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
@@ -321,7 +324,7 @@ public final class UnderFileSystemContractTest {
         + "fulfill the minimum S3 compatibility requirements in order to "
         + "work well with Alluxio through Alluxio's integration with S3. \n"
         + "Command line example: 'bin/alluxio runUfsTests --path s3://testPath "
-        + "-Daws.accessKeyId=<accessKeyId> -Daws.secretKeyId=<secretKeyId>"
+        + "-Ds3a.accessKeyId=<accessKeyId> -Ds3a.secretKeyId=<secretKeyId>"
         + "-Dalluxio.underfs.s3.endpoint=<endpoint_url> "
         + "-Dalluxio.underfs.s3.disable.dns.buckets=true'";
   }

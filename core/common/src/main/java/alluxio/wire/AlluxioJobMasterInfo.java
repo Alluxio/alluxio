@@ -22,7 +22,7 @@ import java.util.Map;
  * Alluxio job master information.
  */
 public final class AlluxioJobMasterInfo {
-  private Map<String, String> mConfiguration;
+  private Map<String, Object> mConfiguration;
   private long mStartTimeMs;
   private long mUptimeMs;
   private String mVersion;
@@ -37,7 +37,7 @@ public final class AlluxioJobMasterInfo {
    * @return the configuration
    */
   @ApiModelProperty(value = "Configuration of the Job Master")
-  public Map<String, String> getConfiguration() {
+  public Map<String, Object> getConfiguration() {
     return mConfiguration;
   }
 
@@ -77,7 +77,7 @@ public final class AlluxioJobMasterInfo {
    * @param configuration the configuration to use
    * @return the Alluxio job master information
    */
-  public AlluxioJobMasterInfo setConfiguration(Map<String, String> configuration) {
+  public AlluxioJobMasterInfo setConfiguration(Map<String, Object> configuration) {
     mConfiguration = configuration;
     return this;
   }

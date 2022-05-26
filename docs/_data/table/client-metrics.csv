@@ -1,5 +1,7 @@
 metricName,metricType
+Client.BlockMasterClientCount,COUNTER
 Client.BlockReadChunkRemote,TIMER
+Client.BlockWorkerClientCount,COUNTER
 Client.BytesReadLocal,COUNTER
 Client.BytesReadLocalThroughput,METER
 Client.BytesWrittenLocal,COUNTER
@@ -50,4 +52,6 @@ Client.CacheStoreDeleteTimeout,COUNTER
 Client.CacheStoreGetTimeout,COUNTER
 Client.CacheStorePutTimeout,COUNTER
 Client.CacheStoreThreadsRejected,COUNTER
+Client.DefaultHiveClientCount,COUNTER
+Client.FileSystemMasterClientCount,COUNTER
 Client.MetadataCacheSize,GAUGE

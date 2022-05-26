@@ -19,11 +19,11 @@ import static org.mockito.Mockito.when;
 
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
-import alluxio.job.JobServerContext;
-import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.collect.Lists;

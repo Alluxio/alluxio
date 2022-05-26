@@ -12,6 +12,11 @@
 package alluxio.test.util;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import alluxio.util.LogUtils;
+
+import com.google.common.base.Throwables;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,6 +74,12 @@ public final class ConcurrencyUtils {
     } finally {
       threadPool.shutdownNow();
     }
-    assertTrue("Failed with exception(s) " + exceptions, exceptions.isEmpty());
+    if (!exceptions.isEmpty()) {
+      fail(String.format(
+          "%d out of %d threads failed.\nException(s): %s\ndetails of the first exception: %s",
+          exceptions.size(), numThreads,
+          LogUtils.truncateMessageLineLength(exceptions.toString(), 1000),
+          Throwables.getStackTraceAsString(exceptions.get(0))));
+    }
   }
 }

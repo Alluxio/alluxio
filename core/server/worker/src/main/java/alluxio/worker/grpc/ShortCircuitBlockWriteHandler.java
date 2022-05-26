@@ -12,8 +12,6 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -23,6 +21,7 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Context;
@@ -47,7 +46,6 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   /** The block worker. */
   private final BlockWorker mBlockWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final StreamObserver<CreateLocalBlockResponse> mResponseObserver;
   private CreateLocalBlockRequest mRequest = null;
 
@@ -88,7 +86,8 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           if (mSessionId == INVALID_SESSION_ID) {
             mSessionId = IdUtils.createSessionId();
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
-                request.getTier(), request.getMediumType(), request.getSpaceToReserve());
+                request.getTier(),
+                new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
             CreateLocalBlockResponse response =
                 CreateLocalBlockResponse.newBuilder().setPath(path).build();
             return response;

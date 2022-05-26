@@ -11,13 +11,14 @@
 
 package alluxio.web;
 
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.client.file.FileSystem;
 import alluxio.StreamCache;
+import alluxio.client.file.FileSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.proxy.ProxyProcess;
+import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -25,7 +26,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 
@@ -80,6 +80,7 @@ public final class ProxyWebServer extends WebServer {
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    addHandler(new CompleteMultipartUploadHandler(mFileSystem));
   }
 
   @Override

@@ -21,24 +21,27 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.ListAllPOptions;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
-import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.MasterContext;
+import alluxio.master.NoopUfsManager;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.job.plan.PlanCoordinator;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
@@ -63,7 +66,7 @@ import java.util.function.Consumer;
  * Tests {@link JobMaster}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({PlanCoordinator.class, FileSystemContext.class})
+@PrepareForTest({PlanCoordinator.class, FileSystemContext.class, FileSystem.Factory.class})
 public final class JobMasterTest {
   private static final int TEST_JOB_MASTER_JOB_CAPACITY = 100;
   private JobMaster mJobMaster;
@@ -75,7 +78,11 @@ public final class JobMasterTest {
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
     ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
-    mJobMaster = new JobMaster(new MasterContext(new NoopJournalSystem()),
+    mockStatic(FileSystem.Factory.class);
+    FileSystem fs = mock(FileSystem.class);
+    when(FileSystem.Factory.create(any(FileSystemContext.class)))
+            .thenReturn(fs);
+    mJobMaster = new JobMaster(new MasterContext<>(new NoopJournalSystem(), new NoopUfsManager()),
         mock(FileSystem.class), mock(FileSystemContext.class), mock(UfsManager.class));
     mJobMaster.start(true);
   }
@@ -103,11 +110,8 @@ public final class JobMasterTest {
         Lists.newArrayList(new DummyPlanConfig()), true);
 
     CompositeConfig jobConfig = new CompositeConfig(Lists.newArrayList(innerJobConfig), true);
-
     long jobId = mJobMaster.run(jobConfig);
-
     JobInfo status = mJobMaster.getStatus(jobId);
-
     Assert.assertEquals(Status.FAILED, status.getStatus());
     List<JobInfo> children = status.getChildren();
     Assert.assertEquals(1, children.size());
@@ -198,6 +202,21 @@ public final class JobMasterTest {
     long jobId = mJobMaster.run(config);
     mJobMaster.cancel(jobId);
     verify(coordinator).cancel();
+  }
+
+  @Test
+  public void submitAndList() throws Exception {
+    CmdConfig config = new LoadCliConfig("/path/to/load", 3, 1, Collections.EMPTY_SET,
+            Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
+    List<Long> jobIdList = new ArrayList<>();
+    for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
+      long jobControlId = mJobMaster.submit(config);
+      jobIdList.add(jobControlId);
+    }
+    final List<Long> list = mJobMaster.listCmds(ListAllPOptions.getDefaultInstance());
+    Assert.assertEquals(jobIdList, list);
+    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY,
+            mJobMaster.listCmds(ListAllPOptions.getDefaultInstance()).size());
   }
 
   private static class DummyPlanConfig implements PlanConfig {

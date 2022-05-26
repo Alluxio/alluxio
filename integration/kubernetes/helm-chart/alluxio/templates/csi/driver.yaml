@@ -10,7 +10,7 @@
 #
 
 {{ if .Values.csi.enabled -}}
-apiVersion: storage.k8s.io/v1beta1
+apiVersion: {{ ternary "storage.k8s.io/v1" "storage.k8s.io/v1beta1" (semverCompare ">=1.18.0-0" .Capabilities.KubeVersion.Version) }}
 kind: CSIDriver
 metadata:
   name: alluxio

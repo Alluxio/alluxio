@@ -11,10 +11,10 @@
 
 package alluxio.stress.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.AlluxioURI;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
@@ -43,6 +43,7 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
@@ -95,7 +96,18 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public String getBenchDescription() {
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the job service.",
+        "This test will measure the different aspects of job service performance with different "
+            + "operations.",
+        "",
+        "Example:",
+        "# This invokes the DistributedLoad jobs to job master",
+        "# 256 requests would be sent concurrently to job master",
+        "# Each request contains 1000 files with file size 1k",
+        "$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --file-size 1k \\"
+            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad --cluster",
+        ""));
   }
 
   @Override
@@ -162,7 +174,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         mResult.merge(threadResult);
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
     }
 
@@ -212,7 +224,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         runInternal();
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
@@ -242,8 +254,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           mResult.setRecordStartMs(mContext.getStartMs());
           long startNs = System.nanoTime();
           // send distributed load task to job service and wait for result
-          runDistributedLoad(dirPath);
-          long endNs = System.nanoTime();
+          long endNs = runDistributedLoad(dirPath);
           // record response times
           recordResponseTimeInfo(startNs, endNs);
           break;
@@ -253,7 +264,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           deletePath(fileSystem, dirPath);
           long deleteEnd = CommonUtils.getCurrentMs();
           LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
-          int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+          long fileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
+          mResult.setRecordStartMs(mContext.getStartMs());
           createFiles(fileSystem, mParameters.mNumFilesPerDir, dirPath, fileSize);
           long createEnd = CommonUtils.getCurrentMs();
           LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
@@ -294,37 +306,43 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private void runDistributedLoad(String dirPath) throws AlluxioException, IOException {
+    private long runDistributedLoad(String dirPath) throws AlluxioException, IOException {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
+      long stopTime;
       try {
-        DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
-            new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), false);
+        long jobControlId = DistributedLoadUtils.runDistLoad(cmd, new AlluxioURI(dirPath),
+                numReplication, mParameters.mBatchSize,
+                new HashSet<>(), new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), false);
+        cmd.waitForCmd(jobControlId);
+        stopTime = System.nanoTime();
+        cmd.postProcessing(jobControlId);
       } finally {
         mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
+      return stopTime;
     }
-  }
 
-  private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
-      throws IOException, AlluxioException {
-    CreateFilePOptions options =
-        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(WritePType.THROUGH).build();
+    private void createFiles(FileSystem fs, int numFiles, String dirPath, long fileSize)
+        throws IOException, AlluxioException {
+      CreateFilePOptions options = CreateFilePOptions.newBuilder()
+          .setRecursive(true).setWriteType(WritePType.THROUGH).build();
 
-    for (int fileId = 0; fileId < numFiles; fileId++) {
-      String filePath = String.format("%s/%d", dirPath, fileId);
-      createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
-    }
-  }
-
-  private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
-      int len) throws IOException, AlluxioException {
-    try (FileOutStream os = fs.createFile(fileURI, options)) {
-      byte[] arr = new byte[len];
-      for (int k = 0; k < len; k++) {
-        arr[k] = (byte) k;
+      byte[] buf = new byte[Constants.MB];
+      Arrays.fill(buf, (byte) 'A');
+      for (int fileId = 0; fileId < numFiles; fileId++) {
+        String filePath = String.format("%s/%d", dirPath, fileId);
+        try (FileOutStream os = fs.createFile(new AlluxioURI(filePath), options)) {
+          long bytesWritten = 0;
+          while (bytesWritten < fileSize) {
+            int toWrite = (int) Math.min(buf.length, fileSize - bytesWritten);
+            os.write(buf, 0, toWrite);
+            bytesWritten += toWrite;
+          }
+        }
       }
-      os.write(arr);
+      mResult.incrementNumSuccess(numFiles);
     }
   }
 

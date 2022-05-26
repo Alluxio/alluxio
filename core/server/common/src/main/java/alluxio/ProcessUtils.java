@@ -60,7 +60,7 @@ public final class ProcessUtils {
    * @param args args for the format string
    */
   public static void fatalError(Logger logger, String format, Object... args) {
-    fatalError(logger, null, format, args);
+    fatalError(logger, new Throwable(), format, args);
   }
 
   /**

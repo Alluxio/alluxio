@@ -11,8 +11,8 @@
 
 package alluxio.security.authentication;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
@@ -24,7 +24,6 @@ import org.junit.Test;
 import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslServer;

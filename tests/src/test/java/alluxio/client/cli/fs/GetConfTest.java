@@ -11,8 +11,9 @@
 
 package alluxio.client.cli.fs;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.ClientContext;
 import alluxio.SystemOutRule;
@@ -66,16 +67,16 @@ public final class GetConfTest {
     assertEquals("2MB\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, "Nonsense");
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, 2048);
     ctx = ClientContext.create(ServerConfiguration.global());
     assertEquals(0, GetConf.getConf(ctx,
         PropertyKey.WORKER_RAMDISK_SIZE.toString()));
-    assertEquals("Nonsense\n", mOutputStream.toString());
+    assertEquals("2048\n", mOutputStream.toString());
   }
 
   @Test
   public void getConfByAlias() {
-    PropertyKey testProperty = new PropertyKey.Builder("alluxio.test.property")
+    PropertyKey testProperty = stringBuilder("alluxio.test.property")
         .setAlias(new String[] {"alluxio.test.property.alias"})
         .setDefaultValue("testValue")
         .build();

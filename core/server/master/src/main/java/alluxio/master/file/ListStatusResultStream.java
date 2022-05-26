@@ -18,10 +18,10 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Used to define a single batch of listing.

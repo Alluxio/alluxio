@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CheckAccessPOptions;
@@ -35,7 +36,6 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.OperationId;
 
@@ -63,13 +63,24 @@ public class FileSystemOptions {
    * @return options based on the configuration
    */
   public static CreateDirectoryPOptions createDirectoryDefaults(AlluxioConfiguration conf) {
+    return createDirectoryDefaults(conf, true);
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @param withOpId Whether to include unique operation-ID in options
+   * @return options based on the configuration
+   */
+  public static CreateDirectoryPOptions createDirectoryDefaults(AlluxioConfiguration conf,
+      boolean withOpId) {
     return CreateDirectoryPOptions.newBuilder()
         .setAllowExists(false)
-        .setCommonOptions(commonDefaults(conf, true))
+        .setCommonOptions(commonDefaults(conf, withOpId))
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults(),
-            conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+            conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
-        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
+        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+            .toProto())
         .build();
   }
 
@@ -98,18 +109,28 @@ public class FileSystemOptions {
    * @return options based on the configuration
    */
   public static CreateFilePOptions createFileDefaults(AlluxioConfiguration conf) {
+    return createFileDefaults(conf, true);
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @param withOpId Whether to include unique operation-ID in options
+   * @return options based on the configuration
+   */
+  public static CreateFilePOptions createFileDefaults(AlluxioConfiguration conf, boolean withOpId) {
     return CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
-        .setCommonOptions(commonDefaults(conf, true))
+        .setCommonOptions(commonDefaults(conf, withOpId))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
-            conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+            conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setPersistenceWaitTime(conf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME))
         .setRecursive(false)
         .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
         .setReplicationMin(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
         .setWriteTier(conf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
-        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
+        .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+            .toProto())
         .build();
   }
 
@@ -118,9 +139,18 @@ public class FileSystemOptions {
    * @return options based on the configuration
    */
   public static DeletePOptions deleteDefaults(AlluxioConfiguration conf) {
+    return deleteDefaults(conf, true);
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @param withOpId Whether to include unique operation-ID in options
+   * @return options based on the configuration
+   */
+  public static DeletePOptions deleteDefaults(AlluxioConfiguration conf, boolean withOpId) {
     return DeletePOptions.newBuilder()
         .setAlluxioOnly(false)
-        .setCommonOptions(commonDefaults(conf, true))
+        .setCommonOptions(commonDefaults(conf, withOpId))
         .setRecursive(false)
         .setUnchecked(conf.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
         .build();
@@ -243,8 +273,17 @@ public class FileSystemOptions {
    * @return options based on the configuration
    */
   public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
+    return renameDefaults(conf, true);
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @param withOpId Whether to include unique operation-ID in options
+   * @return options based on the configuration
+   */
+  public static RenamePOptions renameDefaults(AlluxioConfiguration conf, boolean withOpId) {
     return RenamePOptions.newBuilder()
-        .setCommonOptions(commonDefaults(conf, true))
+        .setCommonOptions(commonDefaults(conf, withOpId))
         .setPersist(conf.getBoolean(PropertyKey.USER_FILE_PERSIST_ON_RENAME))
         .build();
   }

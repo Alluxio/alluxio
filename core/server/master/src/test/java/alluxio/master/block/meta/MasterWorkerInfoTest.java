@@ -16,8 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -39,8 +39,8 @@ import java.util.Set;
 public final class MasterWorkerInfoTest {
   private static final List<String> STORAGE_TIER_ALIASES =
       Lists.newArrayList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD);
-  private static final StorageTierAssoc GLOBAL_STORAGE_TIER_ASSOC = new MasterStorageTierAssoc(
-      STORAGE_TIER_ALIASES);
+  private static final StorageTierAssoc GLOBAL_STORAGE_TIER_ASSOC =
+      new DefaultStorageTierAssoc(STORAGE_TIER_ALIASES);
   private static final Map<String, Long> TOTAL_BYTES_ON_TIERS =
       ImmutableMap.of(Constants.MEDIUM_MEM, Constants.KB * 3L,
           Constants.MEDIUM_SSD, Constants.KB * 3L);
@@ -128,7 +128,7 @@ public final class MasterWorkerInfoTest {
     mInfo.addBlock(3L);
     assertTrue(mInfo.getBlocks().contains(3L));
     // remove block
-    mInfo.removeBlock(3L);
+    mInfo.removeBlockFromWorkerMeta(3L);
     assertFalse(mInfo.getBlocks().contains(3L));
   }
 
@@ -162,7 +162,7 @@ public final class MasterWorkerInfoTest {
     assertTrue(mInfo.getToRemoveBlocks().isEmpty());
     // actually remove 1 for real
     mInfo.updateToRemovedBlock(true, 1L);
-    mInfo.removeBlock(1L);
+    mInfo.removeBlockFromWorkerMeta(1L);
     assertTrue(mInfo.getToRemoveBlocks().isEmpty());
   }
 

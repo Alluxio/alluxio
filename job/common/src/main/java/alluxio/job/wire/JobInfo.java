@@ -11,12 +11,12 @@
 
 package alluxio.job.wire;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * The Job Info. {@link JobInfo} can currently be either {@link TaskInfo}, {@link PlanInfo},

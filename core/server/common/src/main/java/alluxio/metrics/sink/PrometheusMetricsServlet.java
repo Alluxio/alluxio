@@ -12,14 +12,13 @@
 package alluxio.metrics.sink;
 
 import com.codahale.metrics.MetricRegistry;
-import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.util.Properties;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

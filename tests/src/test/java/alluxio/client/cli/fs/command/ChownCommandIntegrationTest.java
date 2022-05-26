@@ -13,12 +13,12 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;

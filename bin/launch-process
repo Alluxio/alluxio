@@ -99,13 +99,15 @@ print_help() {
 #         2: the main class to launch
 #         3.... Additional arguments to the java program
 launch_process() {
+  local attach_opts
   local java_opts
   local main_class
 
-  java_opts=${1}
-  main_class=${2}
+  attach_opts=${1}
+  java_opts=${2}
+  main_class=${3}
 
-  exec ${JAVA} -cp ${ALLUXIO_SERVER_CLASSPATH} ${java_opts} "${main_class}" ${@:3}
+  exec ${JAVA} ${attach_opts} -cp ${ALLUXIO_SERVER_CLASSPATH} ${java_opts} "${main_class}" ${@:4}
 }
 
 # Launch a master process
@@ -130,7 +132,8 @@ launch_master() {
     ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
   fi
 
-  launch_process "${ALLUXIO_MASTER_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_MASTER_ATTACH_OPTS}" \
+                 "${ALLUXIO_MASTER_JAVA_OPTS}" \
                  "alluxio.master.AlluxioMaster"
 }
 
@@ -141,13 +144,15 @@ launch_secondary_master() {
   if [[ "${res}" -eq "0" ]]; then
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
   fi
-  launch_process "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS}" \
+                 "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" \
                  "alluxio.master.AlluxioSecondaryMaster"
 }
 
 # Launch a job master process
 launch_job_master() {
-  launch_process "${ALLUXIO_JOB_MASTER_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_JOB_MASTER_ATTACH_OPTS}" \
+                 "${ALLUXIO_JOB_MASTER_JAVA_OPTS}" \
                  "alluxio.master.AlluxioJobMaster"
 }
 
@@ -165,19 +170,22 @@ launch_worker() {
     ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
   fi
 
-  launch_process "${ALLUXIO_WORKER_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_WORKER_ATTACH_OPTS}" \
+                 "${ALLUXIO_WORKER_JAVA_OPTS}" \
                  "alluxio.worker.AlluxioWorker"
 }
 
 # Launch a job worker process
 launch_job_worker() {
-  launch_process "${ALLUXIO_JOB_WORKER_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_JOB_WORKER_ATTACH_OPTS}" \
+                 "${ALLUXIO_JOB_WORKER_JAVA_OPTS}" \
                  "alluxio.worker.AlluxioJobWorker"
 }
 
 # Launch a proxy process
 launch_proxy() {
-  launch_process "${ALLUXIO_PROXY_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_PROXY_ATTACH_OPTS}" \
+                 "${ALLUXIO_PROXY_JAVA_OPTS}" \
                  "alluxio.proxy.AlluxioProxy"
 }
 
@@ -188,7 +196,8 @@ launch_proxy() {
 #                                 directory where the logserver will
 #                                 store logs.
 launch_logserver() {
-  launch_process "${ALLUXIO_LOGSERVER_JAVA_OPTS}" \
+  launch_process "${ALLUXIO_LOGSERVER_ATTACH_OPTS}" \
+                 "${ALLUXIO_LOGSERVER_JAVA_OPTS}" \
                  "alluxio.logserver.AlluxioLogServer" \
                  "${ALLUXIO_LOGSERVER_LOGS_DIR}"
 }

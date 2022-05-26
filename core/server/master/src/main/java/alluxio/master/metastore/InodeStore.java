@@ -20,7 +20,6 @@ import alluxio.master.journal.checkpoint.Checkpointed;
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.Function;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

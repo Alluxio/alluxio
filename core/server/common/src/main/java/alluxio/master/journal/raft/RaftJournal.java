@@ -21,7 +21,6 @@ import alluxio.master.journal.MasterJournalContext;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

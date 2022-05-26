@@ -9,10 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef FUSE_USE_VERSION
-#define FUSE_USE_VERSION 26
-#endif
-
 #include <errno.h>
 #include <fcntl.h>
 #include <fuse.h>
@@ -34,7 +30,8 @@ static struct fuse_operations jnifuse_oper;
 JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     JNIEnv *env, jobject libfuseobj, jobject obj, jint jargc,
     jobjectArray jargv) {
-  LOGD("enter fuse_main_real");
+  LOGI("Start initializing JNIFuse");
+  LOGE("Validate standard errors can be logged as expected");
   jnifuse::JniFuseFileSystem::init(env, obj);
 
   int argc = jargc;
@@ -46,6 +43,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     LOGD("argv[%d]=%s", i, argv[i]);
   }
 
+  jnifuse_oper.init = init_wrapper;
   jnifuse_oper.chmod = chmod_wrapper;
   jnifuse_oper.chown = chown_wrapper;
   jnifuse_oper.create = create_wrapper;
@@ -58,19 +56,36 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.read = read_wrapper;
   jnifuse_oper.readdir = readdir_wrapper;
   jnifuse_oper.release = release_wrapper;
-  jnifuse_oper.removexattr =removexattr_wrapper;
+  jnifuse_oper.removexattr = removexattr_wrapper;
   jnifuse_oper.rename = rename_wrapper;
   jnifuse_oper.rmdir = rmdir_wrapper;
   jnifuse_oper.setxattr = setxattr_wrapper;
+  jnifuse_oper.statfs = statfs_wrapper;
   jnifuse_oper.symlink = symlink_wrapper;
   jnifuse_oper.truncate = truncate_wrapper;
   jnifuse_oper.unlink = unlink_wrapper;
   jnifuse_oper.utimens = utimens_wrapper;
   jnifuse_oper.write = write_wrapper;
 
+ // libfuse3: conn_info_opts can no longer be passed into fuse_main directly
+ // for details, search for "The treatment of low-level options has been made more consistent" in 
+ // https://github.com/libfuse/libfuse/blob/master/ChangeLog.rst#libfuse-300-2016-12-08
+#if FUSE_USE_VERSION >= 30
+  jnifuse_oper.init = init_wrapper;
+  struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+
+  conn_info_opts = fuse_parse_conn_info_opts(&args);
+
+  LOGD("%d", args.argc);
+
+  int ret = fuse_main_real(args.argc, args.argv, &jnifuse_oper,
+                           sizeof(struct fuse_operations), NULL);
+#else
   int ret = fuse_main_real(argc, argv, &jnifuse_oper,
                            sizeof(struct fuse_operations), NULL);
+#endif
   free(argv);
+  LOGI("JNIFuse initialized");
   return ret;
 }
 
@@ -82,7 +97,11 @@ jint JNICALL Java_alluxio_jnifuse_FuseFillDir_fill(JNIEnv *env, jclass cls,
   fuse_fill_dir_t filler = (fuse_fill_dir_t)(void *)address;
   const char *fn = env->GetStringUTFChars(name, 0);
 
+#if FUSE_USE_VERSION >= 30
+  int ret = filler((void *)bufaddr, fn, NULL, 0, fuse_fill_dir_flags::FUSE_FILL_DIR_PLUS);
+#else
   int ret = filler((void *)bufaddr, fn, NULL, 0);
+#endif
   env->ReleaseStringUTFChars(name, fn);
 
   return ret;
@@ -92,7 +111,7 @@ jobject JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1get_1context(JNIEnv *env, job
   LOGD("enter get_fuse_context");
   struct fuse_context *cxt = fuse_get_context();
   jobject fibuf =
-    env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
+      env->NewDirectByteBuffer((void *)cxt, sizeof(struct fuse_context));
   return fibuf;
 }
 

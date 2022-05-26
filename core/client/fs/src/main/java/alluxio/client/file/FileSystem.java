@@ -67,7 +67,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-
 import javax.security.auth.Subject;
 
 /**
@@ -109,6 +108,12 @@ public interface FileSystem extends Closeable {
       return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
     }
 
+    /**
+     * Get a FileSystem from the cache with a given subject.
+     * @param subject The subject to use for security-related client operations
+     * @param conf the Alluxio configuration
+     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
+     */
     public static FileSystem get(Subject subject, AlluxioConfiguration conf) {
       Preconditions.checkNotNull(subject, "subject");
       // TODO(gpang): should this key use the UserState instead of subject?
@@ -144,7 +149,7 @@ public interface FileSystem extends Closeable {
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
-          String value = conf.getOrDefault(key, null);
+          Object value = conf.getOrDefault(key, null);
           Source source = conf.getSource(key);
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }

@@ -16,7 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.management.tier.TierManagementTaskProvider;
 
@@ -46,7 +46,7 @@ public class ManagementTaskCoordinator implements Closeable {
   /** Executor that will running the management tasks. */
   private final ExecutorService mTaskExecutor;
 
-  private final BlockStore mBlockStore;
+  private final LocalBlockStore mBlockStore;
   private final BlockMetadataManager mMetadataManager;
   private final StoreLoadTracker mLoadTracker;
 
@@ -67,7 +67,7 @@ public class ManagementTaskCoordinator implements Closeable {
    * @param loadTracker load tracker
    * @param evictionViewSupplier eviction view supplier
    */
-  public ManagementTaskCoordinator(BlockStore blockStore, BlockMetadataManager metadataManager,
+  public ManagementTaskCoordinator(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
       StoreLoadTracker loadTracker, Supplier<BlockMetadataEvictorView> evictionViewSupplier) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
@@ -190,23 +190,16 @@ public class ManagementTaskCoordinator implements Closeable {
             Thread.sleep(mLoadDetectionCoolDownMs);
           }
         } catch (Exception e) {
-          LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
+          LOG.error("Management task failed: {}. Error: ", currentTask.getClass().getSimpleName(),
               e);
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
       } catch (Throwable t) {
-        LOG.error("Unexpected error during block management: {}", t);
+        LOG.error("Unexpected error during block management: ", t);
       }
     }
     LOG.debug("Block management coordinator exited.");
-  }
-
-  /**
-   * Used to specify from where to back-off.
-   */
-  enum BackoffStrategy {
-    ANY, DIRECTORY
   }
 }

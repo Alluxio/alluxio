@@ -12,13 +12,13 @@
 package alluxio.master.block.meta;
 
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An object representation of fields relevant to worker usage and capacity.
@@ -56,7 +56,7 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *   EnumSet&lt;WorkerMetaLockSection&gt; lockTypes =
    *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, false);
    *   try {
@@ -82,7 +82,7 @@ public class WorkerUsageMeta {
       }
     }
 
-    WorkerStorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
+    StorageTierAssoc storageTierAssoc = new DefaultStorageTierAssoc(storageTierAliases);
     // validate the number of tiers
     if (storageTierAssoc.size() != totalBytesOnTiers.size()
             || storageTierAssoc.size() != usedBytesOnTiers.size()) {
@@ -112,7 +112,7 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *   EnumSet&lt;WorkerMetaLockSection&gt; lockTypes =
    *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, true);
    *   try {

@@ -11,10 +11,10 @@
 
 package alluxio.web;
 
-import alluxio.client.file.FileSystem;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 
@@ -47,7 +46,7 @@ public final class WorkerWebServer extends WebServer {
   public static final String ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY =
       "Alluxio Worker FileSystem Client";
 
-  private FileSystem mFileSystem;
+  private final FileSystem mFileSystem;
 
   /**
    * Creates a new instance of {@link WorkerWebServer}.
@@ -55,11 +54,9 @@ public final class WorkerWebServer extends WebServer {
    * @param webAddress the service address
    * @param workerProcess the Alluxio worker process
    * @param blockWorker block worker to manage blocks
-   * @param connectHost the connect host for the web server
-   * @param startTimeMs start time milliseconds
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-      BlockWorker blockWorker, String connectHost, long startTimeMs) {
+      BlockWorker blockWorker) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
     // REST configuration
@@ -89,7 +86,7 @@ public final class WorkerWebServer extends WebServer {
       // If the Web UI is disabled, disable the resources and servlet together.
       if (ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
         String resourceDirPathString =
-                ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
+                ServerConfiguration.getString(PropertyKey.WEB_RESOURCES) + "/worker/build/";
         File resourceDir = new File(resourceDirPathString);
         mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
         mServletContextHandler.setWelcomeFiles(new String[]{"index.html"});

@@ -13,11 +13,11 @@ package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
+import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.block.policy.LocalFirstPolicy;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -58,9 +58,9 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, CAPACITY_BYTES)
-          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false")
-          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false")
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false)
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 3)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
               .format(1), Constants.MEDIUM_SSD)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS

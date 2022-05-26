@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.UfsConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
@@ -70,7 +70,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -97,6 +96,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /** Name of the class for the HDFS EC Codec Registry. **/
   private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
       "org.apache.hadoop.io.erasurecode.CodecRegistry";
+
+  private static final String JAVAX_WS_RS_CORE_MEDIA_TYPE =
+      "javax.ws.rs.core.MediaType";
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
@@ -142,7 +144,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs is not supported, "
+          + "Please upgrade to an HDFS version > 2.4 to enable support for ACL");
+      LOG.debug("Exception:", e);
     }
     mHdfsAclProvider = hdfsAclProvider;
 
@@ -163,8 +167,17 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
         } catch (ClassNotFoundException e) {
           LOG.warn("Cannot initialize HDFS EC CodecRegistry. "
-              + "HDFS EC will not be supported: {}", e.toString());
+              + "HDFS EC will not be supported:", e);
         }
+      }
+
+      try {
+        // If this class is not loaded here, it will be later loaded by the system classloader
+        // from alluxio server jar, but will be called by a class loaded with extension
+        // classloader.
+        Class.forName(JAVAX_WS_RS_CORE_MEDIA_TYPE);
+      } catch (ClassNotFoundException e) {
+        LOG.warn("Cannot initialize javax.ws.rs.MediaType.", e);
       }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
@@ -208,8 +221,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider."
-          + "HDFS ActiveSync will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
+          + "HDFS ActiveSync will not be supported. "
+          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
+      LOG.debug("Exception:", e);
     }
 
     mHdfsActiveSyncer = hdfsActiveSyncProvider;
@@ -238,7 +253,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    for (String path : conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
+    for (String path : conf.getString(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
       if (!path.isEmpty()) {
         hdfsConf.addResource(new Path(path));
       }
@@ -248,7 +263,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = conf.get(PropertyKey.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = conf.getString(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hdfsConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
@@ -259,8 +274,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
     // Set all parameters passed through --option
-    for (Map.Entry<String, String> entry : conf.getMountSpecificConf().entrySet()) {
-      hdfsConf.set(entry.getKey(), entry.getValue());
+    for (Map.Entry<String, Object> entry : conf.getMountSpecificConf().entrySet()) {
+      hdfsConf.set(entry.getKey(),
+          entry.getValue() == null ? null : entry.getValue().toString());
     }
     return hdfsConf;
   }
@@ -292,7 +308,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         OutputStream outputStream = new HdfsUnderFileOutputStream(
             FileSystem.create(hdfs, new Path(path),
-            new FsPermission(options.getMode().toShort())));
+              new FsPermission(options.getMode().toShort())));
         if (options.getAcl() != null) {
           setAclEntries(path, options.getAcl().getEntries());
         }
@@ -363,7 +379,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       throws IOException {
     // If the user has hinted the underlying storage nodes are not co-located with Alluxio
     // workers, short circuit without querying the locations.
-    if (Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_HDFS_REMOTE))) {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
       return null;
     }
     FileSystem hdfs = getFs();
@@ -499,8 +515,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         || !mUfsConf.isSet(PropertyKey.MASTER_PRINCIPAL)) {
       return;
     }
-    String masterKeytab = mUfsConf.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
-    String masterPrincipal = mUfsConf.get(PropertyKey.MASTER_PRINCIPAL);
+    String masterKeytab = mUfsConf.getString(PropertyKey.MASTER_KEYTAB_KEY_FILE);
+    String masterPrincipal = mUfsConf.getString(PropertyKey.MASTER_PRINCIPAL);
 
     login(PropertyKey.MASTER_KEYTAB_KEY_FILE, masterKeytab, PropertyKey.MASTER_PRINCIPAL,
         masterPrincipal, host);
@@ -512,8 +528,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         || !mUfsConf.isSet(PropertyKey.WORKER_PRINCIPAL)) {
       return;
     }
-    String workerKeytab = mUfsConf.get(PropertyKey.WORKER_KEYTAB_FILE);
-    String workerPrincipal = mUfsConf.get(PropertyKey.WORKER_PRINCIPAL);
+    String workerKeytab = mUfsConf.getString(PropertyKey.WORKER_KEYTAB_FILE);
+    String workerPrincipal = mUfsConf.getString(PropertyKey.WORKER_PRINCIPAL);
 
     login(PropertyKey.WORKER_KEYTAB_FILE, workerKeytab, PropertyKey.WORKER_PRINCIPAL,
         workerPrincipal, host);

@@ -15,20 +15,20 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.WriteType;
+import alluxio.client.block.BlockStoreClient;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.client.WriteType;
-import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -183,7 +183,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
     FindFirstBlockLocationPolicy.sWorkerAddress = address;
-    String previousPolicy = ServerConfiguration.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
+    Class<?> previousPolicy = ServerConfiguration.getClass(
+        PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
     // This only works because the client instance hasn't been created yet.
     ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
         FindFirstBlockLocationPolicy.class.getName());
@@ -195,7 +196,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
     FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
-    AlluxioBlockStore store = AlluxioBlockStore.create(fsContext);
+    BlockStoreClient store = BlockStoreClient.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
     List<BlockWorkerInfo> workers = fsContext.getCachedWorkers();

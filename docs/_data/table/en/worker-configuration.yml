@@ -34,12 +34,6 @@ alluxio.worker.free.space.timeout:
   'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.fuse.enabled:
   'If true, launch worker embedded Fuse application.'
-alluxio.worker.fuse.mount.alluxio.path:
-  'The Alluxio path to mount to the given Fuse mount point configured by alluxio.worker.fuse.mount.point in this worker.'
-alluxio.worker.fuse.mount.options:
-  'The platform specific Fuse mount options to mount the given Fuse mount point. If multiple mount options are provided, separate them with comma.'
-alluxio.worker.fuse.mount.point:
-  'The absolute local filesystem path that this worker will mount Alluxio path to.'
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
 alluxio.worker.jvm.monitor.enabled:
@@ -99,7 +93,9 @@ alluxio.worker.network.netty.watermark.high:
 alluxio.worker.network.netty.watermark.low:
   'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
 alluxio.worker.network.netty.worker.threads:
-  'How many threads to use for processing requests. Zero defaults to #cpuCores * 2.'
+  'Number of threads to use for processing requests in worker'
+alluxio.worker.network.permit.keepalive.time:
+  'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
 alluxio.worker.network.reader.buffer.size:
   'When a client reads from a remote worker, the maximum amount of data not received by client allowed before the worker pauses sending more data. If this value is lower than read chunk size, read performance may be impacted as worker waits more often for buffer to free up. Higher value will increase the memory consumed by each read request.'
 alluxio.worker.network.reader.max.chunk.size.bytes:
@@ -114,6 +110,24 @@ alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
 alluxio.worker.ramdisk.size:
   'The allocated memory for each worker node''s ramdisk(s). It is recommended to set this value explicitly.'
+alluxio.worker.register.lease.enabled:
+  'Whether the worker requests a lease from the master before registering.This should be consistent with alluxio.master.worker.register.lease.enabled'
+alluxio.worker.register.lease.retry.max.duration:
+  'The total time on retrying to get a register lease, before giving up.'
+alluxio.worker.register.lease.retry.sleep.max:
+  'The maximum time to sleep before retrying to get a register lease.'
+alluxio.worker.register.lease.retry.sleep.min:
+  'The minimum time to sleep before retrying to get a register lease.'
+alluxio.worker.register.stream.batch.size:
+  'When the worker registers with the master using a stream, this defines the metadata of how many blocks should be send to the master in each batch.'
+alluxio.worker.register.stream.complete.timeout:
+  'When the worker registers the master with streaming, after all messages have been sent to the master, the worker will wait for the registration to complete on the master side. If the master is unable to finish the registration and return success to the worker within this timeout, the worker will consider the registration failed.'
+alluxio.worker.register.stream.deadline:
+  'When the worker registers with the master using a stream, this defines the total deadline for the full stream to finish.'
+alluxio.worker.register.stream.enabled:
+  'When the worker registers with the master, whether the request should be broken into a stream of smaller batches. This is useful when the worker''s storage is large and we expect a large number of blocks. '
+alluxio.worker.register.stream.response.timeout:
+  'When the worker registers the master with streaming, the worker will be sending messages to the master during the streaming.During an active stream if the master have not responded to the worker for more than this timeout, the worker will consider the master is hanging and close the stream.'
 alluxio.worker.remote.io.slow.threshold:
   'The time threshold for when a worker remote IO (read or write) of a single buffer is considered slow. When slow IO occurs, it is logged by a sampling logger.'
 alluxio.worker.reviewer.class:
@@ -122,10 +136,30 @@ alluxio.worker.reviewer.probabilistic.hardlimit.bytes:
   'This is used by the `alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. When the free space in a storage dir falls below this hard limit, the ProbabilisticBufferReviewer will stop accepting new blocks into it.This is because we may load more data into existing blocks in the directory and their sizes may expand.'
 alluxio.worker.reviewer.probabilistic.softlimit.bytes:
   'This is used by the `alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. We attempt to leave a buffer in each storage directory. When the free space in a certain storage directory on the worker falls below this soft limit, the chance that the Reviewer accepts new blocks into this directory goes down. This chance keeps falling linearly until it reaches 0, when the available space reaches the hard limit.'
+alluxio.worker.rpc.executor.core.pool.size:
+  'The number of threads to keep in thread pool of worker RPC ExecutorService.'
+alluxio.worker.rpc.executor.fjp.async:
+  'This property is effective when alluxio.worker.rpc.executor.type is set to ForkJoinPool. if true, it establishes local first-in-first-out scheduling mode for forked tasks that are never joined. This mode may be more appropriate than default locally stack-based mode in applications in which worker threads only process event-style asynchronous tasks.'
+alluxio.worker.rpc.executor.fjp.min.runnable:
+  'This property is effective when alluxio.worker.rpc.executor.type is set to ForkJoinPool. It controls the minimum allowed number of core threads not blocked. A value of 1 ensures liveness. A larger value might improve throughput but might also increase overhead.'
+alluxio.worker.rpc.executor.fjp.parallelism:
+  'This property is effective when alluxio.worker.rpc.executor.type is set to ForkJoinPool. It controls the parallelism level (internal queue count) of master RPC ExecutorService.'
+alluxio.worker.rpc.executor.keepalive:
+  'The keep alive time of a thread in worker RPC ExecutorServicelast used before this thread is terminated (and replaced if necessary).'
+alluxio.worker.rpc.executor.max.pool.size:
+  'The maximum number of threads allowed for worker RPC ExecutorService. When the maximum is reached, attempts to replace blocked threads fail.'
+alluxio.worker.rpc.executor.tpe.allow.core.threads.timeout:
+  'This property is effective when alluxio.worker.rpc.executor.type is set to ThreadPoolExecutor. It controls whether core threads can timeout and terminate when there is no work.'
+alluxio.worker.rpc.executor.tpe.queue.type:
+  'This property is effective when alluxio.worker.rpc.executor.type is set to TPE. It specifies the internal task queue that''s used by RPC ExecutorService. Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, ARRAY_BLOCKING_QUEUE and SYNCHRONOUS_BLOCKING_QUEUE'
+alluxio.worker.rpc.executor.type:
+  'Type of ExecutorService for Alluxio worker gRPC server. Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).'
 alluxio.worker.rpc.port:
   'The port for Alluxio worker''s RPC service.'
 alluxio.worker.session.timeout:
   'Timeout between worker and client connection indicating a lost session connection.'
+alluxio.worker.startup.timeout:
+  'Maximum time to wait for worker startup.'
 alluxio.worker.storage.checker.enabled:
   'Whether periodic storage health checker is enabled on Alluxio workers.'
 alluxio.worker.tieredstore.block.lock.readers:
@@ -186,3 +220,5 @@ alluxio.worker.web.hostname:
   'The hostname Alluxio worker''s web UI binds to.'
 alluxio.worker.web.port:
   'The port Alluxio worker''s web UI runs on.'
+alluxio.worker.whitelist:
+  'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'

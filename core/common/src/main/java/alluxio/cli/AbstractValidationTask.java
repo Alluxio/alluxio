@@ -29,12 +29,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
   protected abstract ValidationTaskResult validateImpl(Map<String, String> optionMap)
       throws InterruptedException;
 
-  /**
-   * validate a test and return the result.
-   *
-   * @param optionMap contains string representation of <key, value> pairs
-   * @return return test result
-   */
+  @Override
   public ValidationTaskResult validate(Map<String, String> optionMap)
       throws InterruptedException {
     try {

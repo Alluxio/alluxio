@@ -17,8 +17,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.annotator.BlockOrder;
+import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Assert;
 import org.junit.Before;

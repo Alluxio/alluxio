@@ -38,6 +38,7 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
@@ -46,11 +47,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * Default implementation of {@link BlockWorkerClient}.
@@ -58,6 +62,10 @@ import java.util.concurrent.TimeUnit;
 public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
+
+  private static final ResourceLeakDetector<DefaultBlockWorkerClient> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance()
+          .newResourceLeakDetector(DefaultBlockWorkerClient.class);
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
@@ -67,6 +75,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+
+  @Nullable
+  private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -118,6 +129,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    mTracker = DETECTOR.track(this);
   }
 
   @Override
@@ -141,6 +153,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       closer.register(() -> {
         if (mRpcChannel != null) {
           mRpcChannel.shutdown();
+        }
+      });
+      closer.register(() -> {
+        if (mTracker != null) {
+          mTracker.close(this);
         }
       });
     }

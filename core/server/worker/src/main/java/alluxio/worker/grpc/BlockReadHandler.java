@@ -11,10 +11,12 @@
 
 package alluxio.worker.grpc;
 
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.Constants;
+import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -29,7 +31,9 @@ import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
@@ -43,14 +47,15 @@ import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -87,6 +92,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
+  private static final boolean IS_READER_BUFFER_POOLED =
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
       MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),
@@ -97,7 +104,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   /** A serializing executor for sending responses. */
   private Executor mSerializingExecutor;
   /** The Block Worker. */
-  private final BlockWorker mWorker;
+  private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
   private final AuthenticatedUserInfo mUserInfo;
@@ -120,7 +127,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
-      BlockWorker blockWorker,
+      DefaultBlockWorker blockWorker,
       StreamObserver<ReadResponse> responseObserver,
       AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
@@ -138,7 +145,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
-    LOG.debug("Received read request {}.", request);
+    LOG.debug("Received read request {}.",
+        RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(LOG, request));
     try (LockResource lr = new LockResource(mLock)) {
       if (request.hasOffsetReceived()) {
         mContext.setPosReceived(request.getOffsetReceived());
@@ -396,7 +404,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           Preconditions.checkState(chunkSize > 0);
         }
 
-        DataBuffer chunk = null;
+        DataBuffer chunk;
         try {
           // Once we get the data buffer, the lock on the block has been acquired.
           // If there are any stream errors during this time, we must unlock the block
@@ -504,6 +512,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       BlockReader blockReader = null;
       // timings
       long openMs = -1;
+      long startTransferMs = -1;
       long transferMs = -1;
       long startMs = System.currentTimeMillis();
       try {
@@ -511,18 +520,22 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         openMs = System.currentTimeMillis() - startMs;
         blockReader = context.getBlockReader();
         Preconditions.checkState(blockReader != null);
-        ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
-        try {
-          long startTransferMs = System.currentTimeMillis();
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        startTransferMs = System.currentTimeMillis();
+        if (IS_READER_BUFFER_POOLED) {
+          ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+          try {
+            while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+            }
+            return new NettyDataBuffer(buf.retain());
+          } finally {
+            buf.release();
           }
-          transferMs = System.currentTimeMillis() - startTransferMs;
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+        } else {
+          ByteBuffer buf = blockReader.read(offset, len);
+          return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
         }
       } finally {
+        transferMs = System.currentTimeMillis() - startTransferMs;
         long durationMs = System.currentTimeMillis() - startMs;
         if (durationMs >= SLOW_BUFFER_MS) {
           // This buffer took much longer than expected
@@ -555,14 +568,16 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
-          mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
-        } catch (BlockDoesNotExistException e) {
-          LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
+          mWorker.getLocalBlockStore()
+              .moveBlock(request.getSessionId(), request.getId(),
+                  AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(
+                      WORKER_STORAGE_TIER_ASSOC.getAlias(0))));
         } catch (Exception e) {
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
         }
       }
-      BlockReader reader = mWorker.createBlockReader(request);
+      BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
+          request.getStart(), request.isPositionShort(), request.getOpenUfsBlockOptions());
       context.setBlockReader(reader);
     }
 

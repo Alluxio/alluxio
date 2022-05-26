@@ -18,17 +18,17 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
 import alluxio.cli.fs.FileSystemShell;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -88,7 +88,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   public void persistOnRenameDirectory() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
 
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
@@ -119,7 +119,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   public void persistOnRenameDirectoryBlacklist() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, true);
     // MASTER_PERSISTENCE_BLACKLIST is set to "foobar_blacklist" for the server configuration
 
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {

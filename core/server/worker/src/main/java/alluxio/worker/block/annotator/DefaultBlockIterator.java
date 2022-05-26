@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.annotator;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
@@ -20,12 +22,12 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -43,10 +45,11 @@ public class DefaultBlockIterator implements BlockIterator {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockIterator.class);
 
   /** Map of sorted block set collections per directory. */
-  private final Map<BlockStoreLocation, SortedBlockSet<BlockSortedField>> mPerDirOrderedSets;
+  private final Map<BlockStoreLocation, SortedBlockSet<BlockSortedField>> mPerDirOrderedSets
+      = new ConcurrentHashMap<>();
 
   /** Used to update total order for offline sorting schemes. */
-  private final Set<BlockStoreLocation> mUnorderedLocations;
+  private final Set<BlockStoreLocation> mUnorderedLocations = new ConcurrentHashSet<>();
 
   /** Configured block annotator class. */
   private final BlockAnnotator mBlockAnnotator;
@@ -55,7 +58,7 @@ public class DefaultBlockIterator implements BlockIterator {
   private final BlockMetadataManager mMetaManager;
 
   /** Block store delegate listener. */
-  private BlockStoreEventListener mListener;
+  private final BlockStoreEventListener mListener = new Listener();
 
   /**
    * Creates default block iterator instance.
@@ -64,12 +67,8 @@ public class DefaultBlockIterator implements BlockIterator {
    * @param blockAnnotator block annotator
    */
   public DefaultBlockIterator(BlockMetadataManager metaManager, BlockAnnotator blockAnnotator) {
-    mMetaManager = metaManager;
-    mBlockAnnotator = blockAnnotator;
-
-    mPerDirOrderedSets = new ConcurrentHashMap<>();
-    mUnorderedLocations = new ConcurrentHashSet<>();
-    mListener = new Listener();
+    mMetaManager = requireNonNull(metaManager, "metaManager is null");
+    mBlockAnnotator = requireNonNull(blockAnnotator, "blockAnnotator is null");
 
     initialize();
   }
@@ -163,7 +162,7 @@ public class DefaultBlockIterator implements BlockIterator {
 
   @Override
   public List<BlockStoreEventListener> getListeners() {
-    return Arrays.asList(new BlockStoreEventListener[] {mListener});
+    return ImmutableList.of(mListener);
   }
 
   @Override

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
@@ -61,12 +60,12 @@ public final class ImpersonationAuthenticator {
     mConfiguration = conf;
 
     for (PropertyKey key : conf.keySet()) {
-      String value = conf.getOrDefault(key, null);
       // Process impersonation groups
       Matcher matcher =
           PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(key.getName());
       if (matcher.matches()) {
         String connectionUser = matcher.group(1);
+        String value = conf.getOrDefault(key, null);
         if (connectionUser != null) {
           mImpersonationGroups.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
         }
@@ -76,6 +75,7 @@ public final class ImpersonationAuthenticator {
       matcher = PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION.match(key.getName());
       if (matcher.matches()) {
         String connectionUser = matcher.group(1);
+        String value = conf.getOrDefault(key, null);
         if (connectionUser != null) {
           mImpersonationUsers.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
         }

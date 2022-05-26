@@ -14,7 +14,9 @@ package alluxio.logserver;
 import alluxio.AlluxioRemoteLogFilter;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Hierarchy;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -28,7 +30,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,6 +50,16 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private final String mBaseLogsDir;
   private final Socket mSocket;
 
+  @VisibleForTesting
+  static void setAcceptList(ValidatingObjectInputStream validatingObjectInputStream) {
+    validatingObjectInputStream.accept(java.util.Hashtable.class);
+    validatingObjectInputStream.accept("java.lang.*", "[Ljava.lang.*");
+    validatingObjectInputStream.accept(org.apache.log4j.spi.LoggingEvent.class);
+    validatingObjectInputStream.accept(org.apache.log4j.spi.LocationInfo.class);
+    validatingObjectInputStream.accept(org.apache.log4j.spi.RootLogger.class);
+    validatingObjectInputStream.accept(org.apache.log4j.spi.ThrowableInformation.class);
+  }
+
   /**
    * Constructor of {@link AlluxioLog4jSocketNode}.
    *
@@ -66,13 +77,14 @@ public class AlluxioLog4jSocketNode implements Runnable {
 
   @Override
   public void run() {
-    try (ObjectInputStream objectInputStream = new ObjectInputStream(
+    try (ValidatingObjectInputStream validatingObjectInputStream = new ValidatingObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()))) {
       LoggerRepository hierarchy = null;
+      setAcceptList(validatingObjectInputStream);
       while (!Thread.currentThread().isInterrupted()) {
         LoggingEvent event;
         try {
-          event = (LoggingEvent) objectInputStream.readObject();
+          event = (LoggingEvent) validatingObjectInputStream.readObject();
         } catch (ClassNotFoundException e) {
           throw new RuntimeException("Class of serialized object cannot be found.", e);
         } catch (IOException e) {

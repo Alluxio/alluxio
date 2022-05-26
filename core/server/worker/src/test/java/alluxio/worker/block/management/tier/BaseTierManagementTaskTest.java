@@ -18,13 +18,12 @@ import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
-import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.LRUAnnotator;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Rule;
-
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -88,7 +87,8 @@ public abstract class BaseTierManagementTaskTest {
   protected void startSimulateLoad() throws Exception {
     mBlockStore.createBlock(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID,
         AllocateOptions.forCreate(0, BlockStoreLocation.anyTier()));
-    mSimulateWriter = mBlockStore.getBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
+    mSimulateWriter =
+        mBlockStore.createBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
   }
 
   /**

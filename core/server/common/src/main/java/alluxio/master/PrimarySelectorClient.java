@@ -12,10 +12,11 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
+import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -28,12 +29,10 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -41,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PrimarySelectorClient extends AbstractPrimarySelector
-    implements Closeable, LeaderSelectorListener {
+    implements LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(PrimarySelectorClient.class);
 
   /** A constant session Id for when selector is not a leader. */
@@ -60,7 +59,9 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   /** The sessionID under which leadership is granted. */
   private long mLeaderZkSessionId;
   /** Configured connection error policy for leader election. */
-  private ZookeeperConnectionErrorPolicy mConnectionErrorPolicy;
+  private final ZookeeperConnectionErrorPolicy mConnectionErrorPolicy;
+  /** Lifecycle state of the PrimarySelectorClient. */
+  private LifecycleState mLifecycleState = LifecycleState.INIT;
 
   /**
    * Constructs a new {@link PrimarySelectorClient}.
@@ -91,20 +92,11 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   }
 
   @Override
-  public void close() throws IOException {
-    try {
+  public synchronized void stop() throws IOException {
+    if (mLifecycleState == LifecycleState.STARTED) {
       mLeaderSelector.close();
-    } catch (IllegalStateException e) {
-      // TODO(hy): This should not happen in unit tests.
-      if (!e.getMessage().equals("Already closed or has not been started")) {
-        throw e;
-      }
     }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    close();
+    mLifecycleState = LifecycleState.STOPPED;
   }
 
   /**
@@ -136,7 +128,10 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * gets closed, the calling thread will be interrupted.
    */
   @Override
-  public void start(InetSocketAddress address) throws IOException {
+  public synchronized void start(InetSocketAddress address) throws IOException {
+    Preconditions.checkState(mLifecycleState == LifecycleState.INIT,
+        "Failed to transition from INIT to STARTED: current state is " + mLifecycleState);
+    mLifecycleState = LifecycleState.STARTED;
     mName = address.getHostName() + ":" + address.getPort();
     mLeaderSelector.setId(mName);
     mLeaderSelector.start();
@@ -167,7 +162,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * Used to handle state change under STANDARD connection error policy.
    */
   private void handleStateChangeStandard(CuratorFramework client, ConnectionState newState) {
-    setState(State.SECONDARY);
+    setState(State.STANDBY);
   }
 
   /**
@@ -178,7 +173,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     switch (newState) {
       case CONNECTED:
       case LOST:
-        setState(State.SECONDARY);
+        setState(State.STANDBY);
         break;
       case SUSPENDED:
         break;
@@ -197,7 +192,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
                   "Curator reconnected under a different session. "
                       + "Old sessionId: %x, New sessionId: %x",
                   mLeaderZkSessionId, reconnectSessionId));
-              setState(State.SECONDARY);
+              setState(State.STANDBY);
             } else {
               LOG.info(String.format(
                   "Retaining leader state after zookeeper reconnected with sessionId: %x.",
@@ -205,7 +200,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
             }
           } catch (Exception e) {
             LOG.warn("Cannot query session Id after session is reconnected.", e);
-            setState(State.SECONDARY);
+            setState(State.STANDBY);
           }
         }
         break;
@@ -228,7 +223,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     try {
       mLeaderZkSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
       LOG.info(String.format("Taken leadership under session Id: %x", mLeaderZkSessionId));
-      waitForState(State.SECONDARY);
+      waitForState(State.STANDBY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
@@ -277,10 +272,12 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   }
 
   /**
-   * Defines supported connection error policies for leader election.
+   * Defines the lifecycle state that the PrimarySelectorClient is in.
+   * Possible state transitions: INIT -> STARTED, INIT -> STOPPED, STARTED -> STOPPED.
    */
-  protected enum ZookeeperConnectionErrorPolicy {
-    STANDARD, // Treat each state change as error.
-    SESSION   // Treat state change as error when session is lost.
+  private enum LifecycleState {
+    INIT,
+    STARTED,
+    STOPPED
   }
 }

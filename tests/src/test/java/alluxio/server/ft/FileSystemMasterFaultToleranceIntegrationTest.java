@@ -110,7 +110,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
           () -> leadingFsMaster.createFile(testPath1, context2));
     }
 
-    // Promote secondary to be a leader and reset test state.
+    // Promote standby to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
     mAuthenticatedUser.resetUser();
@@ -165,7 +165,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
           () -> leadingFsMaster.completeFile(testPath1, context2));
     }
 
-    // Promote secondary to be a leader and reset test state.
+    // Promote standby to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
     mAuthenticatedUser.resetUser();
@@ -219,7 +219,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
           () -> leadingFsMaster.delete(testPath1, context2));
     }
 
-    // Promote secondary to be a leader and reset test state.
+    // Promote standby to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
     mAuthenticatedUser.resetUser();
@@ -273,7 +273,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
           () -> leadingFsMaster.delete(testPath1, context2));
     }
 
-    // Promote secondary to be a leader and reset test state.
+    // Promote standby to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
     mAuthenticatedUser.resetUser();
@@ -329,7 +329,7 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
           () -> leadingFsMaster.rename(testPath1, testPath2, context2));
     }
 
-    // Promote secondary to be a leader and reset test state.
+    // Promote standby to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
     mAuthenticatedUser.resetUser();

@@ -80,8 +80,8 @@ alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 例如，以下配置为根挂载点添加AWS凭证。
 
 ```
-alluxio.master.mount.table.root.option.aws.accessKeyId=<AWS_ACCESS_KEY_ID>
-alluxio.master.mount.table.root.option.aws.secretKey=<AWS_SECRET_ACCESS_KEY>
+alluxio.master.mount.table.root.option.s3a.accessKeyId=<AWS_ACCESS_KEY_ID>
+alluxio.master.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
 ```
 
 以下配置显示了如何为根挂载点设置其他参数。
@@ -103,7 +103,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 # the following command mounts an s3 path to the Alluxio path `/mnt/s3` with additional options specifying the credentials
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey> \
+  --option s3a.accessKeyId=<accessKeyId> --option s3a.secretKey=<secretKey> \
   /mnt/s3 s3://data-bucket/
 ```
 
@@ -177,7 +177,7 @@ $ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /path/to/s
 
 注意，需要重新启动master节点以便启用新配置。
 
-###其他加载新UFS文件的方法
+### 其他加载新UFS文件的方法
 
 建议使用前面讨论的UFS同步的方法来同步UFS中的更改。
 这是是其他一些加载文件的方法：
@@ -333,8 +333,8 @@ alluxio.master.ufs.active.sync.max.age=5
 ```console
 $ ./bin/alluxio fs mkdir /mnt
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId1> \
-  --option aws.secretKey=<secretKey1> \
+  --option s3a.accessKeyId=<accessKeyId1> \
+  --option s3a.secretKey=<secretKey1> \
   /mnt/s3bucket1 s3://data-bucket1/
 ```
 
@@ -342,8 +342,8 @@ $ ./bin/alluxio fs mount \
 
 ```console
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<accessKeyId2> \
-  --option aws.secretKey=<secretKey2> \
+  --option s3a.accessKeyId=<accessKeyId2> \
+  --option s3a.secretKey=<secretKey2> \
   /mnt/s3bucket2 s3://data-bucket2/
 ```
 

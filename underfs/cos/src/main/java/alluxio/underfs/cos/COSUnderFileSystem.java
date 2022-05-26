@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -81,10 +80,10 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to COS", PropertyKey.COS_REGION);
     Preconditions.checkArgument(conf.isSet(PropertyKey.COS_APP_ID),
         "Property %s is required to connect to COS", PropertyKey.COS_APP_ID);
-    String accessKey = conf.get(PropertyKey.COS_ACCESS_KEY);
-    String secretKey = conf.get(PropertyKey.COS_SECRET_KEY);
-    String regionName = conf.get(PropertyKey.COS_REGION);
-    String appId = conf.get(PropertyKey.COS_APP_ID);
+    String accessKey = conf.getString(PropertyKey.COS_ACCESS_KEY);
+    String secretKey = conf.getString(PropertyKey.COS_SECRET_KEY);
+    String regionName = conf.getString(PropertyKey.COS_REGION);
+    String appId = conf.getString(PropertyKey.COS_APP_ID);
 
     COSCredentials cred = new BasicCOSCredentials(accessKey, secretKey);
     ClientConfig clientConfig = createCOSClientConfig(regionName, conf);
@@ -150,7 +149,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new COSOutputStream(mBucketNameInternal, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

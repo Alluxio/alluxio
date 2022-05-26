@@ -6,6 +6,11 @@ group: Operations
 priority: 15
 ---
 
+* Table of Contents
+{:toc}
+
+## Basic upgrading procedure
+
 In normal cases, users can directly shutdown the current Alluxio processes, change
 the Alluxio binaries to a newer version, configure Alluxio clusters similar to before,
 and start Alluxio processes with the existing journal folder/address for upgrading.
@@ -37,11 +42,15 @@ One can also backup to the local filesystem of the current leading master node w
 
 ## Upgrade and start from backup
 
-Next, download and untar the newer version Alluxio. First format the cluster with
+After stopping your existing Alluxio cluster, download and untar the newer version of Alluxio.
+Copy over the old configuration files from the `/conf` directory. Then format the cluster with
 
 ```console
 $ ./bin/alluxio format
 ```
+- **WARNING:** This will re-format the ramdisks on the Alluxio workers (i.e: wipe their contents).
+If you wish to preserve the worker ramdisks please see
+[Alluxio worker ramdisk cache persistence]({{ '/en/operation/Upgrade.html' | relativize_url}}#alluxio-worker-ramdisk-cache-persistence).
 
 Then start the cluster with the `-i ${BACKUP_PATH}` argument, replacing
 `${BACKUP_PATH}` with your specific backup path.

@@ -18,15 +18,17 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
 
 import java.io.Closeable;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -55,6 +57,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class LockedInodePath implements Closeable {
+
+  private static final ResourceLeakDetector<LockedInodePath> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance().newResourceLeakDetector(LockedInodePath.class);
   /**
    * The root inode of the inode tree. This is needed to bootstrap the inode path.
    */
@@ -72,6 +77,9 @@ public class LockedInodePath implements Closeable {
   protected LockPattern mLockPattern;
   /** Whether to use {@link Lock#tryLock()} or {@link Lock#lock()}. */
   private final boolean mUseTryLock;
+  /** Tracker used for logging leaked resources. */
+  @Nullable
+  private final ResourceLeakTracker<LockedInodePath> mTracker;
 
   /**
    * Creates a new locked inode path.
@@ -94,6 +102,7 @@ public class LockedInodePath implements Closeable {
     mRoot = root;
     mUseTryLock = tryLock;
     mLockList = new SimpleInodeLockList(inodeLockManager, mUseTryLock);
+    mTracker = DETECTOR.track(this);
   }
 
   /**
@@ -114,6 +123,7 @@ public class LockedInodePath implements Closeable {
     mLockPattern = lockPattern;
     mRoot = path.mLockList.get(0);
     mUseTryLock = tryLock;
+    mTracker = DETECTOR.track(this);
   }
 
   /**
@@ -462,6 +472,9 @@ public class LockedInodePath implements Closeable {
 
   @Override
   public void close() {
+    if (mTracker != null) {
+      mTracker.close(this);
+    }
     mLockList.close();
   }
 

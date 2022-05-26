@@ -22,7 +22,6 @@ import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

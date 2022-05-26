@@ -12,13 +12,16 @@
 package alluxio.client.fuse;
 
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
-import alluxio.fuse.FuseMountOptions;
+import alluxio.fuse.FuseMountConfig;
+
+import com.google.common.collect.ImmutableList;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
  * Integration tests for JNR-FUSE based {@link AlluxioFuseFileSystem}.
@@ -32,15 +35,27 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   }
 
   @Override
-  public void mountFuse(FileSystem fileSystem, String mountPoint, String alluxioRoot) {
-    FuseMountOptions options =
-        new FuseMountOptions(mountPoint, alluxioRoot, false, new ArrayList<>());
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options, ServerConfiguration.global());
+  public void mountFuse(FileSystemContext context,
+      FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+    InstancedConfiguration conf = ServerConfiguration.global();
+    FuseMountConfig options =
+        FuseMountConfig.create(mountPoint, alluxioRoot, ImmutableList.of(), conf);
+    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, options, conf);
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 
   @Override
-  public void umountFuse(String mountPath) throws Exception {
-    mFuseFileSystem.umount();
+  public void beforeStop() throws Exception {
+    try {
+      mFuseFileSystem.umount();
+    } catch (Exception e) {
+      // will try umounting from shell
+    }
+    umountFromShellIfMounted();
+  }
+
+  @Override
+  public void afterStop() throws Exception {
+    // noop
   }
 }

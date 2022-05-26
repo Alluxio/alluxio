@@ -44,7 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -64,7 +63,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
    * names are appended to the base location. The created journals all function independently.
    *
    * @param base the base location for journals created by this factory
-   * @param quietTimeMs before upgrading from SECONDARY to PRIMARY mode, the journal will wait until
+   * @param quietTimeMs before upgrading from STANDBY to PRIMARY mode, the journal will wait until
    *        this duration has passed without any journal entries being written.
    */
   public UfsJournalSystem(URI base, long quietTimeMs) {
@@ -111,18 +110,14 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void losePrimacy() {
-    // Make all journals secondary as soon as possible
+    // Make all journals standby as soon as possible
     for (UfsJournal journal : mJournals.values()) {
       journal.signalLosePrimacy();
     }
 
-    // Wait for all journals to transition to secondary
-    try {
-      for (UfsJournal journal : mJournals.values()) {
-        journal.awaitLosePrimacy();
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to downgrade journal to secondary", e);
+    // Wait for all journals to transition to standby
+    for (UfsJournal journal : mJournals.values()) {
+      journal.awaitLosePrimacy();
     }
   }
 

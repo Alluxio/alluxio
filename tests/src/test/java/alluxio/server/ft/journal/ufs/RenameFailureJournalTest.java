@@ -14,9 +14,9 @@ package alluxio.server.ft.journal.ufs;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
@@ -67,7 +67,7 @@ public class RenameFailureJournalTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_JOURNAL_FOLDER,
               DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH)
-          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(128))
+          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 128)
           .setProperty(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 0)
           .setProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
           .setProperty(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL, "0")

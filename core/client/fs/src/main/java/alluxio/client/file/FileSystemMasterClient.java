@@ -22,6 +22,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -120,6 +121,15 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    */
   void delete(AlluxioURI path, DeletePOptions options) throws AlluxioStatusException;
+
+  /**
+   * Checks whether a file or directory exists.
+   *
+   * @param path the file path to check existence
+   * @param options the method options
+   * @return whether the file path exists
+   */
+  boolean exists(AlluxioURI path, ExistsPOptions options) throws AlluxioStatusException;
 
   /**
    * Frees a file.

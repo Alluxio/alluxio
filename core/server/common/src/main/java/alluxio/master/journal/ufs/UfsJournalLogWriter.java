@@ -30,7 +30,6 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +40,11 @@ import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for writing journal edit log entries from the primary master. It marks the current log
- * complete (so that it is visible to the secondary masters) when the current log is large enough.
+ * complete (so that it is visible to the standby masters) when the current log is large enough.
  *
  * When a new journal writer is created, it also marks the current log complete if there is one.
  *
@@ -112,6 +110,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     mEntriesToFlush = new ArrayDeque<>();
   }
 
+  @Override
   public synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     checkIsWritable();
     try {
@@ -216,8 +215,8 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    name encodes this information, i.e. S-0x7fffffffffffffff.
    * 2. Sequentially scan the incomplete journal file, and identify the last journal
    *    entry that has been persisted in UFS. Suppose it is X.
-   * 3. Rename the incomplete journal file to S-<X+1>. Future journal writes will write to
-   *    a new file named <X+1>-0x7fffffffffffffff.
+   * 3. Rename the incomplete journal file to S-&lt;X+1&gt;. Future journal writes will write to
+   *    a new file named &lt;X+1&gt;-0x7fffffffffffffff.
    * 4. If the incomplete journal does not exist or no entry can be found in the incomplete
    *    journal, check the last complete journal file for the last persisted journal entry.
    *
@@ -358,6 +357,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
+  @Override
   public synchronized void flush() throws IOException, JournalClosedException {
     checkIsWritable();
     maybeRecoverFromUfsFailures();
@@ -395,13 +395,19 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   @Override
-  public synchronized void close() throws IOException {
-    Closer closer = Closer.create();
-    if (mJournalOutputStream != null) {
-      closer.register(mJournalOutputStream);
+  public synchronized void close() {
+    if (mClosed) {
+      return;
     }
-    closer.register(mGarbageCollector);
-    closer.close();
+    mGarbageCollector.close();
+    if (mJournalOutputStream != null) {
+      try {
+        mJournalOutputStream.close();
+      } catch (Throwable error) {
+        LOG.warn(String.format("Failed to close underlying UFS journal stream for: %s", mJournal),
+            error);
+      }
+    }
     mClosed = true;
   }
 

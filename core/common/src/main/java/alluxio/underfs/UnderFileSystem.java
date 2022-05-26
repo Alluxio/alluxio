@@ -12,12 +12,12 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.SyncInfo;
+import alluxio.annotation.PublicApi;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.annotation.PublicApi;
-import alluxio.SyncInfo;
-import alluxio.collections.Pair;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -39,7 +39,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -130,10 +129,10 @@ public interface UnderFileSystem extends Closeable {
      * @return the instance of under file system for Alluxio root directory
      */
     public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {
-      String ufsRoot = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String ufsRoot = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean readOnly = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
       boolean shared = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
-      Map<String, String> ufsConf =
+      Map<String, Object> ufsConf =
           conf.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       return create(ufsRoot, UnderFileSystemConfiguration.defaults(conf).setReadOnly(readOnly)
           .setShared(shared).createMountSpecificConf(ufsConf));
@@ -412,10 +411,29 @@ public interface UnderFileSystem extends Closeable {
    * file is only renamed (identical content and permissions). Returns
    * {@link alluxio.Constants#INVALID_UFS_FINGERPRINT} if there is any error.
    *
+   * @deprecated
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint
    */
+  @Deprecated
   String getFingerprint(String path);
+
+  /**
+   * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
+   * UFS files are identical. The fingerprint must be deterministic, and must not change if a
+   * file is only renamed (identical content and permissions). Returns
+   * {@link Fingerprint#INVALID_FINGERPRINT} if there is any error.
+   *
+   * The default implementation relies on {@link #getFingerprint(String)} and there is one extra
+   * parsing. This default implementation is mainly for backward compatibility.
+   * Override this for performance.
+   *
+   * @param path the path to compute the fingerprint for
+   * @return the string representing the fingerprint
+   */
+  default Fingerprint getParsedFingerprint(String path) {
+    return Fingerprint.parse(getFingerprint(path));
+  }
 
   /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used

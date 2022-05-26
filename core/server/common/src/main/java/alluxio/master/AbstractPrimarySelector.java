@@ -25,7 +25,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * This class handles the synchronization logic of getting the current state, waiting for a certain
  * state, or registering a state change listener. Subclasses just need to call
- * {@link #setState(State)} when they detect a state change. The selector starts off in SECONDARY
+ * {@link #setState(State)} when they detect a state change. The selector starts off in STANDBY
  * state.
  */
 @ThreadSafe
@@ -47,7 +46,7 @@ public abstract class AbstractPrimarySelector implements PrimarySelector {
   private final Lock mStateLock = new ReentrantLock();
   private final Condition mStateCond = mStateLock.newCondition();
   @GuardedBy("mStateLock")
-  private State mState = State.SECONDARY;
+  private State mState = State.STANDBY;
 
   protected final void setState(State state) {
     try (LockResource lr = new LockResource(mStateLock)) {

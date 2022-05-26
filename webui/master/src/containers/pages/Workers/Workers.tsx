@@ -47,7 +47,13 @@ export class WorkersPresenter extends React.Component<AllProps> {
               <Table hover={true}>
                 <thead>
                   <tr>
-                    <th>Node Name</th>
+                    <th id="id-nodename">
+                      {/* When workers start with kubernetes. `nodeInfo.host` is `hostIp (podIp)`,
+                          So it should be displayed as Node Name(Container Host). */}
+                      {workersData.normalNodeInfos.some((nodeInfo: INodeInfo) => nodeInfo.host.includes('('))
+                        ? 'Node Name(Container Host)'
+                        : 'Node Name'}
+                    </th>
                     {initData.debug && (
                       <React.Fragment>
                         <th>[D]Worker Id</th>
@@ -67,6 +73,7 @@ export class WorkersPresenter extends React.Component<AllProps> {
                     <tr key={nodeInfo.workerId}>
                       <td>
                         <a
+                          id={`id-${nodeInfo.workerId}-link`}
                           href={
                             // When workers start with kubernetes. `nodeInfo.host` is `hostIp (podIp)`
                             nodeInfo.host.includes('(')

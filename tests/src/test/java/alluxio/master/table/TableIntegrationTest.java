@@ -56,7 +56,7 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
   private static final String DB_NAME = "test";
   private static final String DB_NAME_ERRORS = "test_ERRORS";
   private static final File WAREHOUSE_DIR = AlluxioTestDirectory
-      .createTemporaryDirectory(new File("/tmp/alluxio-tests"), "TableIntegrationTest");
+      .createTemporaryDirectory("TableIntegrationTest");
   /** The docker image name and tag. */
   private static final String HMS_IMAGE = "<REPLACE WITH DOCKER IMAGE/TAG OF HMS>";
   private static final String TEST_TABLE = "test_table";

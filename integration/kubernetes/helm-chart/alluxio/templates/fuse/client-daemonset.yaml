@@ -46,6 +46,9 @@ spec:
       {{- end }}
     {{- end }}
     spec:
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: alluxio-fuse-client
           image: alpine:latest
@@ -60,11 +63,11 @@ spec:
           args: ["while true; do sleep 30 && echo .; done;"]
           volumeMounts:
             - name: alluxio-fuse-mount
-              mountPath: {{ .Values.fuse.mountPath | dir }}
+              mountPath: {{ .Values.fuse.mountPoint | dir }}
       restartPolicy: Always
       volumes:
         - name: alluxio-fuse-mount
           hostPath:
-            path: {{ .Values.fuse.mountPath | dir }}
+            path: {{ .Values.fuse.mountPoint | dir }}
             type: Directory
 {{- end }}

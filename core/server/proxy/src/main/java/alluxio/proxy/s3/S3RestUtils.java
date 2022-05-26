@@ -12,8 +12,17 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.grpc.WritePType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
@@ -24,10 +33,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
@@ -35,6 +49,13 @@ import javax.ws.rs.core.Response;
  */
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
+
+  /**
+   * Bucket must be a directory directly under a mount point. If it is under a non-root mount point,
+   * the bucket separator must be used as the separator in the bucket name, for example,
+   * mount:point:bucket represents Alluxio directory /mount/point/bucket.
+   */
+  public static final String BUCKET_SEPARATOR = ":";
 
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.
@@ -144,7 +165,7 @@ public final class S3RestUtils {
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
-        ServerConfiguration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+        ServerConfiguration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
     return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 
@@ -166,6 +187,160 @@ public final class S3RestUtils {
       return etag;
     }
     return "\"" + etag + "\"";
+  }
+
+  /**
+   * Format bucket path.
+   *
+   * @param bucketPath bucket path
+   * @return bucket path after format
+   */
+  public static String parsePath(String bucketPath) {
+    String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+    return normalizedBucket;
+  }
+
+  /**
+   * Convert an exception to instance of {@link S3Exception}.
+   *
+   * @param exception Exception thrown when process s3 object rest request
+   * @param resource complete bucket path
+   * @return instance of {@link S3Exception}
+   */
+  public static S3Exception toBucketS3Exception(Exception exception, String resource) {
+    try {
+      throw exception;
+    } catch (S3Exception e) {
+      e.setResource(resource);
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_NOT_EMPTY);
+    } catch (FileAlreadyExistsException e) {
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
+    } catch (InvalidPathException e) {
+      return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Convert an exception to instance of {@link S3Exception}.
+   *
+   * @param exception Exception thrown when process s3 object rest request
+   * @param resource object complete path
+   * @return instance of {@link S3Exception}
+   */
+  public static S3Exception toObjectS3Exception(Exception exception, String resource) {
+    try {
+      throw exception;
+    } catch (S3Exception e) {
+      e.setResource(resource);
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  /**
+   * Check if a path in alluxio is a directory.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param bucketPath bucket complete path
+   */
+  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath)
+      throws S3Exception {
+    try {
+      URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
+      if (!status.isFolder()) {
+        throw new InvalidPathException(
+            String.format("Bucket %s is not a valid Alluxio directory.", bucketPath));
+      }
+    } catch (Exception e) {
+      throw toBucketS3Exception(e, bucketPath);
+    }
+  }
+
+  /**
+   * Check if uploadId equals directory id.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param multipartTemporaryDir multipart upload tmp directory
+   * @param uploadId multipart upload Id
+   */
+  public static void checkUploadId(FileSystem fs, AlluxioURI multipartTemporaryDir, long uploadId)
+      throws S3Exception {
+    try {
+      if (!fs.exists(multipartTemporaryDir)) {
+        throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
+      }
+      long tmpDirId = fs.getStatus(multipartTemporaryDir).getFileId();
+      if (uploadId != tmpDirId) {
+        throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
+      }
+    } catch (Exception e) {
+      throw toObjectS3Exception(e, multipartTemporaryDir.getPath());
+    }
+  }
+
+  /**
+   * @return s3 WritePType
+   */
+  public static WritePType getS3WriteType() {
+    return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+  }
+
+  /**
+   * Checks if authentication is enabled.
+   *
+   * @param conf Alluxio configuration
+   * @return true if authentication is enabled, false otherwise
+   */
+  public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
+  }
+
+  /**
+   * Convert MultivaluedMap to a single value map.
+   *
+   * @param queryParameters MultivaluedMap
+   * @param lowerCase whether to use lower case
+   * @return a single value map
+   */
+  public static Map<String, String> fromMultiValueToSingleValueMap(
+      MultivaluedMap<String, String> queryParameters, boolean lowerCase) {
+    Map<String, String> result = lowerCase
+        ? new TreeMap<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+              return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
+    for (String key : queryParameters.keySet()) {
+      result.put(key, queryParameters.getFirst(key));
+    }
+    return result;
+  }
+
+  /**
+   * Comparator based on uri name， treat uri name as a Long number.
+   */
+  public static class URIStatusNameComparator implements Comparator<URIStatus>, Serializable {
+
+    private static final long serialVersionUID = 733270188584155565L;
+
+    @Override
+    public int compare(URIStatus o1, URIStatus o2) {
+      long part1 = Long.parseLong(o1.getName());
+      long part2 = Long.parseLong(o2.getName());
+      return Long.compare(part1, part2);
+    }
   }
 
   private S3RestUtils() {} // prevent instantiation

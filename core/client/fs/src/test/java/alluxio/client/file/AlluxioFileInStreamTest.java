@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -79,13 +79,13 @@ import java.util.List;
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({AlluxioBlockStore.class})
+@PrepareForTest({BlockStoreClient.class})
 public final class AlluxioFileInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private final BlockInStreamSource mBlockSource;
   private final long mFileSize;
   private final long mNumBlocks;
-  private AlluxioBlockStore mBlockStore;
+  private BlockStoreClient mBlockStore;
   private FileSystemContext mContext;
   private FileInfo mInfo;
   private URIStatus mStatus;
@@ -149,11 +149,11 @@ public final class AlluxioFileInStreamTest {
     when(mContext.acquireBlockWorkerClient(any()))
         .thenReturn(new CloseableResource<BlockWorkerClient>(client) {
           @Override
-          public void close() {}
+          public void closeResource() {}
         });
-    mBlockStore = mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
+    mBlockStore = mock(BlockStoreClient.class);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(mContext)).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
     mInStreams = new ArrayList<>();
@@ -601,7 +601,7 @@ public final class AlluxioFileInStreamTest {
   }
 
   /**
-   * Tests that {@link IOException}s thrown by the {@link AlluxioBlockStore} are properly
+   * Tests that {@link IOException}s thrown by the {@link BlockStoreClient} are properly
    * propagated.
    */
   @Test

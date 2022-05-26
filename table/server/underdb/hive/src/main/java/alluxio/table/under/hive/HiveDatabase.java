@@ -28,8 +28,8 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
-import alluxio.table.under.hive.util.HiveClientPoolCache;
 import alluxio.table.under.hive.util.AbstractHiveClientPool;
+import alluxio.table.under.hive.util.HiveClientPoolCache;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;

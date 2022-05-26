@@ -48,14 +48,14 @@ public class ConcurrentRecursiveCreateIntegrationTest extends BaseIntegrationTes
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString()).build();
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS).build();
 
   @Test
   public void createDuringUfsRename() throws Exception {
     FileSystem fs = mClusterResource.get().getClient();
     ExecutorService executor = Executors.newCachedThreadPool();
     UnderFileSystem ufs = Factory.createForRoot(ServerConfiguration.global());
-    String ufsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     List<String> paths = new ArrayList<>();
     for (int i = 0; i < NUM_TOP_LEVEL_DIRS / 2; i++) {
       String alluxioPath = PathUtils.concatPath("/dir" + i, "a", "b", "c");

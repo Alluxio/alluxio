@@ -14,10 +14,10 @@ package alluxio.master;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.ManualClock;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;

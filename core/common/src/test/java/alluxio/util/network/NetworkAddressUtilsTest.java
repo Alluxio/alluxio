@@ -21,6 +21,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
+import alluxio.util.network.NetworkAddressUtils.ServiceAttributeProvider;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
@@ -73,9 +74,35 @@ public class NetworkAddressUtilsTest {
     assertFalse(NetworkAddressUtils.containsLocalIp(clusterAddresses, mConfiguration));
   }
 
+  @Test
+  public void TestisLocalAddress() {
+    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    String localHostName = NetworkAddressUtils.getLocalHostName(resolveTimeout);
+    String localIp = NetworkAddressUtils.getLocalIpAddress(resolveTimeout);
+
+    assertTrue(NetworkAddressUtils.isLocalAddress(localHostName, resolveTimeout));
+    assertTrue(NetworkAddressUtils.isLocalAddress(localIp, resolveTimeout));
+
+    assertFalse(NetworkAddressUtils.isLocalAddress(localHostName + "false", resolveTimeout));
+    assertFalse(NetworkAddressUtils.isLocalAddress(localIp + "false", resolveTimeout));
+  }
+
+  @Test
+  public void TestisNotLocalAddress() {
+    List<InetSocketAddress> clusterAddresses = new ArrayList<>();
+    InetSocketAddress raftNodeAddress1 = new InetSocketAddress("host1", 10);
+    InetSocketAddress raftNodeAddress2 = new InetSocketAddress("host2", 20);
+    InetSocketAddress raftNodeAddress3 = new InetSocketAddress("host3", 30);
+    clusterAddresses.add(raftNodeAddress1);
+    clusterAddresses.add(raftNodeAddress2);
+    clusterAddresses.add(raftNodeAddress3);
+    assertFalse(NetworkAddressUtils.containsLocalIp(clusterAddresses, mConfiguration));
+  }
+
   /**
    * Tests the
-   * {@link NetworkAddressUtils#getConnectAddress(ServiceType, alluxio.conf.AlluxioConfiguration)}
+   * {@link NetworkAddressUtils#getConnectAddress(ServiceAttributeProvider,
+   *                                              alluxio.conf.AlluxioConfiguration)}
    * method.
    */
   @Test
@@ -91,7 +118,8 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the
-   * {@link NetworkAddressUtils#getConnectAddress(ServiceType, alluxio.conf.AlluxioConfiguration)}
+   * {@link NetworkAddressUtils#getConnectAddress(ServiceAttributeProvider,
+   *                                              alluxio.conf.AlluxioConfiguration)}
    * method
    * for specific
    * service under different conditions.
@@ -140,7 +168,7 @@ public class NetworkAddressUtilsTest {
         masterAddress);
 
     // connect host and wildcard bind host with port
-    mConfiguration.set(service.getPortKey(), "10000");
+    mConfiguration.set(service.getPortKey(), 10000);
     masterAddress = NetworkAddressUtils.getConnectAddress(service, mConfiguration);
     assertEquals(InetSocketAddress.createUnresolved("connect.host", 10000), masterAddress);
 
@@ -162,7 +190,8 @@ public class NetworkAddressUtilsTest {
 
    /**
     * Tests the
-    * {@link NetworkAddressUtils#getBindAddress(ServiceType, alluxio.conf.AlluxioConfiguration)}
+    * {@link NetworkAddressUtils#getBindAddress(ServiceAttributeProvider,
+  *                                             alluxio.conf.AlluxioConfiguration)}
     * method.
    */
   @Test
@@ -177,7 +206,7 @@ public class NetworkAddressUtilsTest {
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType,
+   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceAttributeProvider,
    * alluxio.conf.AlluxioConfiguration)} method for specific service under different conditions.
    *
    * @param service the service name used to connect
@@ -223,40 +252,40 @@ public class NetworkAddressUtilsTest {
     // connect host and wildcard bind host with port
     switch (service) {
       case FUSE_WEB:
-        mConfiguration.set(PropertyKey.FUSE_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.FUSE_WEB_PORT, 20000);
         break;
       case JOB_MASTER_RAFT:
-        mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 20000);
         break;
       case MASTER_RAFT:
-        mConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 20000);
         break;
       case JOB_MASTER_RPC:
-        mConfiguration.set(PropertyKey.JOB_MASTER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_RPC_PORT, 20000);
         break;
       case JOB_MASTER_WEB:
-        mConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT, 20000);
         break;
       case JOB_WORKER_RPC:
-        mConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, 20000);
         break;
       case JOB_WORKER_WEB:
-        mConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, 20000);
         break;
       case MASTER_RPC:
-        mConfiguration.set(PropertyKey.MASTER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_RPC_PORT, 20000);
         break;
       case MASTER_WEB:
-        mConfiguration.set(PropertyKey.MASTER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.MASTER_WEB_PORT, 20000);
         break;
       case PROXY_WEB:
-        mConfiguration.set(PropertyKey.PROXY_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.PROXY_WEB_PORT, 20000);
         break;
       case WORKER_RPC:
-        mConfiguration.set(PropertyKey.WORKER_RPC_PORT, "20000");
+        mConfiguration.set(PropertyKey.WORKER_RPC_PORT, 20000);
         break;
       case WORKER_WEB:
-        mConfiguration.set(PropertyKey.WORKER_WEB_PORT, "20000");
+        mConfiguration.set(PropertyKey.WORKER_WEB_PORT, 20000);
         break;
       default:
         Assert.fail("Unrecognized service type: " + service.toString());

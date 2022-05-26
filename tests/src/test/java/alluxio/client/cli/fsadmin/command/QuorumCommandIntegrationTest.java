@@ -42,6 +42,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
 public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(
-      PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false", ServerConfiguration.global());
+      PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, ServerConfiguration.global());
 
   public MultiProcessCluster mCluster;
 
@@ -77,7 +78,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   public void quorumInfo() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_INFO)
         .setClusterName("QuorumShellInfo").setNumMasters(3).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -95,9 +96,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
           String.format(QuorumInfoCommand.OUTPUT_HEADER_DOMAIN, JournalDomain.MASTER.name())));
       Assert.assertTrue(
           output.contains(String.format(QuorumInfoCommand.OUTPUT_HEADER_QUORUM_SIZE, 3)));
-      String journalAddresses =
-          ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
-      for (String address : journalAddresses.split(",")) {
+      List<String> journalAddresses =
+          ServerConfiguration.getList(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+      for (String address : journalAddresses) {
         String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
                 QuorumServerState.AVAILABLE.name(), "0", address).trim();
         Assert.assertTrue(output.contains(format));
@@ -121,7 +122,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   public void quorumRemove() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
         .setClusterName("QuorumShellRemove").setNumMasters(5).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -188,7 +189,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
             .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
-            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
             // To make the test run faster.
             .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
@@ -207,8 +208,48 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       String output = mOutput.toString().trim();
-      String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr);
+      String expected = String.format("%s\n%s\n%s\n%s",
+          String.format(QuorumElectCommand.TRANSFER_INIT, newLeaderAddr),
+          String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr),
+          String.format(QuorumElectCommand.RESET_INIT, "successful"),
+          QuorumElectCommand.RESET_SUCCESS);
       Assert.assertEquals(expected, output);
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void infoAfterElect() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
+    int numMasters = 3;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
+        .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
+      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+      // we can therefore access to the new leader's address this ways
+      MasterNetAddress netAddress = mCluster.getMasterAddresses().get(newLeaderIdx);
+      String newLeaderAddr = String.format("%s:%s", netAddress.getHostname(),
+          netAddress.getEmbeddedJournalPort());
+
+      int success = shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
+      Assert.assertEquals("elect command failed", 0, success);
+      mOutput.reset();
+      shell.run("journal", "quorum", "info", "-domain", "MASTER");
+      String output = mOutput.toString().trim();
+      for (MasterNetAddress masterAddr : mCluster.getMasterAddresses()) {
+        String expected = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO, "AVAILABLE", "1",
+            String.format("%s:%d", masterAddr.getHostname(), masterAddr.getEmbeddedJournalPort()));
+        Assert.assertTrue(output.contains(expected.trim()));
+      }
     }
     mCluster.notifySuccess();
   }
@@ -217,7 +258,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   public void quorumCommand() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL)
         .setClusterName("QuorumShell").setNumMasters(3).setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")

@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -23,7 +24,10 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -31,7 +35,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
-import alluxio.grpc.GrpcUtils;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -44,8 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -55,7 +59,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
-  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -84,6 +89,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }
 
   /**
@@ -217,6 +223,52 @@ public class BlockMasterClient extends AbstractMasterClient {
         .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
+  private GetRegisterLeasePResponse acquireRegisterLease(
+      final long workerId, final int estimatedBlockCount) throws IOException {
+    return retryRPC(() -> {
+      LOG.info("Requesting lease with workerId {}, blockCount {}", workerId, estimatedBlockCount);
+      return mClient.requestRegisterLease(GetRegisterLeasePRequest.newBuilder()
+              .setWorkerId(workerId).setBlockCount(estimatedBlockCount).build());
+    }, LOG, "GetRegisterLease", "workerId=%d, estimatedBlockCount=%d",
+    workerId, estimatedBlockCount);
+  }
+
+  /**
+   * Acquires a {@link alluxio.wire.RegisterLease} from the master with
+   * the {@link RetryPolicy} specified.
+   * If all the retry attempts have been exhaused, a {@link FailedToAcquireRegisterLeaseException}
+   * will be thrown.
+   *
+   * @param workerId the worker ID
+   * @param estimatedBlockCount the number of blocks this worker currently holds
+   *    There is a gap between acquiring a lease and generating the {@link RegisterWorkerPRequest}
+   *    so the real block count may be different. But this is a good hint for the master to
+   *    guess how much resource the registration will take.
+   * @param retry a retry policy
+   */
+  public void acquireRegisterLeaseWithBackoff(
+      final long workerId, final int estimatedBlockCount, final RetryPolicy retry)
+      throws IOException, FailedToAcquireRegisterLeaseException {
+    boolean leaseAcquired = false;
+    GetRegisterLeasePResponse response = null;
+    while (!leaseAcquired && retry.attempt()) {
+      LOG.debug("Worker {} attempting to grant registration lease from the master, iter {}",
+          workerId, retry.getAttemptCount());
+      response = acquireRegisterLease(workerId, estimatedBlockCount);
+      LOG.debug("Worker {} lease response: {}", workerId, response);
+      leaseAcquired = response.getAllowed();
+    }
+
+    if (response == null || !response.getAllowed()) {
+      throw new FailedToAcquireRegisterLeaseException(
+          String.format("Failed to acquire a register lease from master after %d attempts",
+              retry.getAttemptCount()));
+    }
+
+    LOG.info("Worker {} acquired lease after {} attempts: {}",
+        workerId, retry.getAttemptCount(), response);
+  }
+
   /**
    * The method the worker should execute to register with the block master.
    *
@@ -256,5 +308,47 @@ public class BlockMasterClient extends AbstractMasterClient {
       mClient.registerWorker(request);
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
+  }
+
+  /**
+   * Registers with the master in a stream.
+   *
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param currentBlocksOnLocation the blocks in each tier/dir
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   */
+  public void registerWithStream(final long workerId, final List<String> storageTierAliases,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList) throws IOException {
+    AtomicReference<IOException> ioe = new AtomicReference<>();
+    // The retry logic only takes care of connection issues.
+    // If the master side sends back an error,
+    // no retry will be attempted and the worker will quit.
+    retryRPC(() -> {
+      // The gRPC stream lifecycle is managed internal to the RegisterStreamer
+      // When an exception is thrown, the stream has been closed and error propagated
+      // to the other side, so no extra handling is required here.
+      RegisterStreamer stream = new RegisterStreamer(mAsyncClient,
+          workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+          currentBlocksOnLocation, lostStorage, configList);
+      try {
+        stream.registerWithMaster();
+      } catch (IOException e) {
+        ioe.set(e);
+      } catch (InterruptedException e) {
+        ioe.set(new IOException(e));
+      }
+      return null;
+    }, LOG, "Register", "workerId=%d", workerId);
+
+    if (ioe.get() != null) {
+      throw ioe.get();
+    }
   }
 }

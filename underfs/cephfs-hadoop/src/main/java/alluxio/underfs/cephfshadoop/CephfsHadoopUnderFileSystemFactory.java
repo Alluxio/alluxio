@@ -12,9 +12,9 @@
 package alluxio.underfs.cephfshadoop;
 
 import alluxio.Constants;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemConfiguration;
 
 import javax.annotation.concurrent.ThreadSafe;
 

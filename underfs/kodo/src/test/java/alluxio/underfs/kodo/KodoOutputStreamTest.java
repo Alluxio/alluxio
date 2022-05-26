@@ -41,7 +41,7 @@ import java.util.List;
 public class KodoOutputStreamTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
-  private static List<String> sTmpDirs = sConf.getList(PropertyKey.TMP_DIRS, ",");
+  private static List<String> sTmpDirs = sConf.getList(PropertyKey.TMP_DIRS);
 
   /**
    * The exception expected to be thrown.

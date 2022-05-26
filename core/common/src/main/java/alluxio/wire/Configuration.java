@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,7 +65,7 @@ public final class Configuration {
      * @param value property value
      * @param source property source
      */
-    public void addClusterProperty(String name, @Nullable String value, Source source) {
+    public void addClusterProperty(String name, @Nullable Object value, Source source) {
       mClusterConf.add(new Property(name, value, source));
     }
 

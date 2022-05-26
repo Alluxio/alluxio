@@ -25,8 +25,4 @@ public class FuseFillDir {
       return fill(fillerAddr, bufaddr, name, null, off);
     }
   }
-
-  static {
-    LibFuse.loadLibrary();
-  }
 }

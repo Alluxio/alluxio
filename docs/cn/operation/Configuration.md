@@ -136,6 +136,14 @@ Alluxio通过环境变量来支持一些常用的配置设置，包括:
   <td>对Worker配置的额外Java虚拟机配置选项</td>
 </tr>
 <tr>
+  <td><code class="highlighter-rouge">ALLUXIO_JOB_MASTER_JAVA_OPTS</code></td>
+  <td>对Job Master配置的额外Java虚拟机配置选项</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_JOB_WORKER_JAVA_OPTS</code></td>
+  <td>对Job Worker配置的额外Java虚拟机配置选项</td>
+</tr>
+<tr>
   <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
   <td>对Alluxio Shell配置的额外Java虚拟机配置选项</td>
 </tr>

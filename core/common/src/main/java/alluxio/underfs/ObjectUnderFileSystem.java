@@ -50,7 +50,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -102,27 +101,26 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
-    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
-    private static final long INVALID_MODIFIED_TIME = -1L;
 
     private final String mContentHash;
     private final long mContentLength;
-    private final long mLastModifiedTimeMs;
+    /** Last modified epoch time in ms, or null if it is not available. */
+    private final Long mLastModifiedTimeMs;
     private final String mName;
 
     public ObjectStatus(String name, String contentHash, long contentLength,
-        long lastModifiedTimeMs) {
-      mContentHash = contentHash;
+        @Nullable Long lastModifiedTimeMs) {
+      mContentHash = contentHash == null ? UfsFileStatus.INVALID_CONTENT_HASH : contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
-      mContentHash = INVALID_CONTENT_HASH;
+      mContentHash = UfsFileStatus.INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
-      mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
+      mLastModifiedTimeMs = null;
       mName = name;
     }
 
@@ -147,7 +145,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      *
      * @return modification time in milliseconds
      */
-    public long getLastModifiedTimeMs() {
+    @Nullable
+    public Long getLastModifiedTimeMs() {
       return mLastModifiedTimeMs;
     }
 
@@ -258,7 +257,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the batch size.
+     * Gets the batch size.
      *
      * @return a positive integer denoting the batch size
      */
@@ -273,7 +272,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     protected abstract List<T> operate(List<T> paths) throws IOException;
 
     /**
-     * Add a new input to be operated on.
+     * Adds a new input to be operated on.
      *
      * @param input the input to operate on
      * @throws IOException if a non-Alluxio error occurs
@@ -288,7 +287,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the combined result from all batches.
+     * Gets the combined result from all batches.
      *
      * @return a list of inputs for successful operations
      * @throws IOException if a non-Alluxio error occurs
@@ -945,11 +944,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
+    if (objs != null
+        && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // Do not recreate the breadcrumb if it already exists
       String folderName = convertToFolderName(dir);
-      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled && !isRoot(dir)
           && Arrays.stream(objs.getObjectStatuses()).noneMatch(
               x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
         mkdirsInternal(dir);

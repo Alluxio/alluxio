@@ -12,10 +12,12 @@
 package alluxio.stress.jobservice;
 
 import alluxio.stress.common.AbstractMaxThroughputSummary;
+import alluxio.stress.common.GeneralBenchSummary;
 
 /**
  * The summary for the max throughput test.
  */
-public final class JobServiceMaxThroughputSummary
-    extends AbstractMaxThroughputSummary<JobServiceBenchParameters, JobServiceBenchSummary> {
+public final class JobServiceMaxThroughputSummary extends
+    AbstractMaxThroughputSummary<JobServiceBenchParameters, GeneralBenchSummary
+    <JobServiceBenchTaskResult>> {
 }

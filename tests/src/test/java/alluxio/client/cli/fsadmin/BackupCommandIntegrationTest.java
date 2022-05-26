@@ -37,7 +37,7 @@ import java.nio.file.Paths;
 public final class BackupCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void defaultDirectory() throws IOException {
-    Path dir = Paths.get(ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY));
+    Path dir = Paths.get(ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
     Files.createDirectories(dir);
     assertEquals(0, Files.list(dir).count());
     int errCode = mFsAdminShell.run("backup");

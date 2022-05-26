@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -51,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
   public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
-
+  private final String mName;
   private final String mDbPath;
   private final String mDbCheckpointPath;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
@@ -60,23 +59,29 @@ public final class RocksStore implements Closeable {
   private RocksDB mDb;
   private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
-  private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
+  private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
+   * @param name a name to distinguish what store this is
    * @param dbPath a path for the rocks database
    * @param checkpointPath a path for taking database checkpoints
    * @param columnFamilyDescriptors columns to create within the rocks database
-   * @param dbOpts db options
    * @param columnHandles column handle references to populate
    */
-  public RocksStore(String dbPath, String checkpointPath,
-      Collection<ColumnFamilyDescriptor> columnFamilyDescriptors, DBOptions dbOpts,
+  public RocksStore(String name, String dbPath, String checkpointPath,
+      Collection<ColumnFamilyDescriptor> columnFamilyDescriptors,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
+    mName = name;
     mDbPath = dbPath;
     mDbCheckpointPath = checkpointPath;
     mColumnFamilyDescriptors = columnFamilyDescriptors;
-    mDbOpts = dbOpts;
+    mDbOpts = new DBOptions()
+            // Concurrent memtable write is not supported for hash linked list memtable
+            .setAllowConcurrentMemtableWrite(false)
+            .setMaxOpenFiles(-1)
+            .setCreateIfMissing(true)
+            .setCreateMissingColumnFamilies(true);
     mColumnHandles = columnHandles;
     try {
       resetDb();
@@ -102,6 +107,7 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
+    LOG.info("Cleared store at {}", mDbPath);
   }
 
   private void resetDb() throws RocksDBException {
@@ -111,12 +117,15 @@ public final class RocksStore implements Closeable {
   }
 
   private void stopDb() {
+    LOG.info("Closing {} rocks database", mName);
     if (mDb != null) {
       try {
         // Column handles must be closed before closing the db, or an exception gets thrown.
         mColumnHandles.forEach(handle -> {
-          handle.get().close();
-          handle.set(null);
+          if (handle != null) {
+            handle.get().close();
+            handle.set(null);
+          }
         });
         mDb.close();
         mCheckpoint.close();
@@ -217,5 +226,7 @@ public final class RocksStore implements Closeable {
   @Override
   public synchronized void close() {
     stopDb();
+    mDbOpts.close();
+    LOG.info("Closed store at {}", mDbPath);
   }
 }

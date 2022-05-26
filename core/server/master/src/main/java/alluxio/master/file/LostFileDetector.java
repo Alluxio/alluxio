@@ -14,9 +14,9 @@ package alluxio.master.file;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
@@ -45,7 +45,7 @@ final class LostFileDetector implements HeartbeatExecutor {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_LOST_FILE_COUNT.getName(),
-        mFileSystemMaster.getLostFiles()::size);
+        () -> mFileSystemMaster.getLostFiles().size());
   }
 
   @Override

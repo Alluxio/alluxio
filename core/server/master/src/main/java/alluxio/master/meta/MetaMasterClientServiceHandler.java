@@ -28,6 +28,7 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.master.StateLockOptions;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +88,9 @@ public final class MetaMasterClientServiceHandler
       for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
+          case CLUSTER_ID:
+            masterInfo.setClusterId(mMetaMaster.getClusterID());
+            break;
           case LEADER_MASTER_ADDRESS:
             masterInfo.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;
@@ -118,8 +123,24 @@ public final class MetaMasterClientServiceHandler
           case ZOOKEEPER_ADDRESSES:
             if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+                  Arrays.asList(ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ADDRESS)
+                      .split(",")));
             }
+            break;
+          case RAFT_ADDRESSES:
+            if (mMetaMaster.getMasterContext().getJournalSystem() instanceof RaftJournalSystem) {
+              List<String> raftAddresses =
+                  ((RaftJournalSystem) mMetaMaster.getMasterContext().getJournalSystem())
+                      .getQuorumServerInfoList().stream().map(info -> String.format("%s:%d",
+                          info.getServerAddress().getHost(),
+                          info.getServerAddress().getRpcPort()))
+                      .collect(Collectors.toList());
+              masterInfo.addAllRaftAddress(raftAddresses);
+            }
+            break;
+          case RAFT_JOURNAL:
+            masterInfo.setRaftJournal(mMetaMaster.getMasterContext().getJournalSystem()
+                instanceof RaftJournalSystem);
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);

@@ -15,6 +15,9 @@ kind: Pod
 metadata:
   name: nginx
 spec:
+  {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 2 }}
+  {{- end}}
   containers:
   - image: nginx
     imagePullPolicy: Always

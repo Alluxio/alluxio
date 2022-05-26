@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
@@ -21,7 +22,6 @@ import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
@@ -30,8 +30,8 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
 
-import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -50,6 +50,7 @@ public interface BlockWorkerClient extends Closeable {
      *
      * @param userState the user subject
      * @param address the address of the worker
+     * @param alluxioConf Alluxio configuration
      * @return a new {@link BlockWorkerClient}
      */
     public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
@@ -59,7 +60,7 @@ public interface BlockWorkerClient extends Closeable {
         return new DefaultBlockWorkerClient(userState, address, alluxioConf);
       } catch (Exception e) {
         throw new IOException(
-            String.format("Failed to connect to remote block worker: %s", address), e);
+            String.format("Failed to connect to block worker (%s)", address), e);
       }
     }
   }

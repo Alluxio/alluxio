@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.master.enabled false) -}}
+
 {{ $masterCount := int .Values.master.count }}
 {{- $release := .Release }}
 {{- $name := include "alluxio.name" . }}
@@ -48,4 +50,5 @@ spec:
     release: {{ $release.Name }}
     statefulset.kubernetes.io/pod-name: {{ $fullName }}-{{ $masterName }}
 ---
+{{- end }}
 {{- end }}

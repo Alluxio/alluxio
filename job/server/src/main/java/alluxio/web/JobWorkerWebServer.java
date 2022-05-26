@@ -20,7 +20,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 

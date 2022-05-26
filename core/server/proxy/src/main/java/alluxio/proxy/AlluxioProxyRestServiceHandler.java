@@ -11,10 +11,10 @@
 
 package alluxio.proxy;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.ServerConfiguration;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
@@ -23,7 +23,6 @@ import io.swagger.annotations.ApiOperation;
 
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -91,7 +90,7 @@ public final class AlluxioProxyRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }

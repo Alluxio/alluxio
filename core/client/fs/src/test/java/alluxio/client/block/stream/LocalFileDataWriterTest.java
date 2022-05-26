@@ -31,7 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -72,8 +72,8 @@ public class LocalFileDataWriterTest {
     PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
 
     mStream = mock(GrpcBlockingStream.class);
-    PowerMockito.doNothing().when(mStream).send(Matchers.any(), Matchers.anyLong());
-    PowerMockito.when(mStream.receive(Matchers.anyLong()))
+    PowerMockito.doNothing().when(mStream).send(ArgumentMatchers.any(), ArgumentMatchers.anyLong());
+    PowerMockito.when(mStream.receive(ArgumentMatchers.anyLong()))
         .thenReturn(CreateLocalBlockResponse.newBuilder()
             .setPath(PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(),
                 PathUtils.concatPath(mWorkDirectory, BLOCK_ID)))

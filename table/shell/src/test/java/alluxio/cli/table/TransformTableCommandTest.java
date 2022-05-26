@@ -23,7 +23,7 @@ import alluxio.util.ConfigurationUtils;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 /**
  * Test cases for TransformTableCommand.
@@ -38,8 +38,8 @@ public class TransformTableCommandTest {
 
   private void transformInternal(String definition, String expected) throws Exception {
     TableMasterClient client = mock(TableMasterClient.class);
-    when(client.transformTable(Matchers.anyString(), Matchers.anyString(), Matchers.anyString()))
-        .thenReturn(0L);
+    when(client.transformTable(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString())).thenReturn(0L);
     TransformTableCommand command =
         new TransformTableCommand(new InstancedConfiguration(ConfigurationUtils.defaults()),
             client, null);
@@ -52,7 +52,8 @@ public class TransformTableCommandTest {
       command.run(command.parseAndValidateArgs("db", "table"));
     }
     verify(client)
-        .transformTable(Matchers.anyString(), Matchers.anyString(), argumentCaptor.capture());
+        .transformTable(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+            argumentCaptor.capture());
     assertEquals(expected, argumentCaptor.getValue());
   }
 }

@@ -11,9 +11,9 @@
 
 package alluxio.underfs.gcs;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
@@ -24,7 +24,7 @@ import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
 
@@ -59,8 +59,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
@@ -73,8 +73,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
@@ -87,8 +87,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);

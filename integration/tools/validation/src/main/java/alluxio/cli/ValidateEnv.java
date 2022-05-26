@@ -34,14 +34,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Utility for checking Alluxio environment.
@@ -255,7 +255,7 @@ public final class ValidateEnv {
 
     // args is not null.
     String argStr = String.join(" ", cmd.getArgs());
-    String homeDir = mConf.get(PropertyKey.HOME);
+    String homeDir = mConf.getString(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
@@ -365,7 +365,7 @@ public final class ValidateEnv {
       throws InterruptedException {
     // Validate against root path
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
-    String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String rootPath = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     ValidateEnv validate = new ValidateEnv(rootPath, conf);
 
     boolean success;
@@ -440,7 +440,7 @@ public final class ValidateEnv {
     if (command.equals("list")) {
       // Validate against root path
       AlluxioConfiguration conf = InstancedConfiguration.defaults();
-      String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootPath = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       ValidateEnv task = new ValidateEnv(rootPath, conf);
       task.printTasks();
       return 0;

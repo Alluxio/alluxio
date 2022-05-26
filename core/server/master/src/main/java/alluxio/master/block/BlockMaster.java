@@ -19,22 +19,29 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.util.Collection;
+import java.time.Clock;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -59,6 +66,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
    */
   long getCapacityBytes();
+
+  /**
+   * @return the unique block count on all workers of Alluxio
+   */
+  long getUniqueBlockCount();
+
+  /**
+   * @return the replica block count on all workers of Alluxio
+   */
+  long getBlockReplicaCount();
 
   /**
    * @return the global storage tier mapping
@@ -105,7 +122,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds a list of block ids to remove from Alluxio space
    * @param delete whether to delete blocks' metadata in Master
    */
-  void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException;
+  void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException;
 
   /**
    * Validates the integrity of blocks with respect to the validator. A warning will be printed if
@@ -175,6 +192,32 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the worker id for this worker
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
+
+  /**
+   * Try to acquire a {@link RegisterLease} for the worker.
+   * If the lease is not granted, this will return empty immediately rather than blocking.
+   *
+   * @param request the request with all information for the master to make a decision with
+   * @return if empty, that means the lease is not granted
+   */
+  Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request);
+
+  /**
+   * Verifies if the worker currently holds a {@link RegisterLease}.
+   *
+   * @param workerId the worker ID
+   * @return whether a lease is found
+   */
+  boolean hasRegisterLease(long workerId);
+
+  /**
+   * Releases the {@link RegisterLease} for the specified worker.
+   * If the worker currently does not hold a lease, return without throwing an error.
+   * The lease may have been recycled already.
+   *
+   * @param workerId the worker ID
+   */
+  void releaseRegisterLease(long workerId);
 
   /**
    * Updates metadata when a worker registers with the master.
@@ -260,4 +303,44 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
+
+  /**
+   * Returns the internal {@link MasterWorkerInfo} object to the caller.
+   * This is specifically for the tests and the {@link WorkerRegisterContext}.
+   *
+   * Note that this operations on the object requires locking.
+   * See the javadoc of {@link MasterWorkerInfo} for how the locking should be carefully done.
+   * When in doubt, do not use this API. Find other methods in this class that exposes
+   * necessary information.
+   *
+   * @param workerId the worker ID
+   * @return the {@link MasterWorkerInfo} for the worker
+   */
+  @VisibleForTesting
+  MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
+
+  /**
+   * Handles messages in a register stream.
+   *
+   * @param context the stream context that contains the worker information
+   * @param chunk the message in a stream
+   * @param isFirstMsg whether the message is the 1st in a stream
+   */
+  void workerRegisterStream(
+      WorkerRegisterContext context, RegisterWorkerPRequest chunk, boolean isFirstMsg);
+
+  /**
+   * Completes the worker registration stream.
+   *
+   * @param context the stream context to be closed
+   */
+  void workerRegisterFinish(WorkerRegisterContext context);
+
+  /**
+   * Returns the BlockMaster's clock so other components can align with
+   * the BlockMaster's time.
+   *
+   * @return the current clock
+   */
+  Clock getClock();
 }

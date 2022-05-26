@@ -13,6 +13,11 @@ package alluxio.jnifuse.struct;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.conf.InstancedConfiguration;
+import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.VersionPreference;
+
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
 import org.junit.Test;
@@ -22,6 +27,8 @@ import java.nio.ByteBuffer;
 public class FuseFileInfoTest {
   @Test
   public void offset() {
+    VersionPreference versionPreference = AlluxioFuseUtils.getVersionPreference(InstancedConfiguration.defaults());
+    LibFuse.loadLibrary(versionPreference);
     FuseFileInfo jnifi = FuseFileInfo.of(ByteBuffer.allocate(256));
     ru.serce.jnrfuse.struct.FuseFileInfo jnrfi =
         ru.serce.jnrfuse.struct.FuseFileInfo.of(Pointer.wrap(Runtime.getSystemRuntime(), 0x0));

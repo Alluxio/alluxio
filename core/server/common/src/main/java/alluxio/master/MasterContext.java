@@ -18,6 +18,8 @@ import alluxio.underfs.UfsManager;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nullable;
+
 /**
  * Stores context information for Alluxio masters.
  *
@@ -38,9 +40,10 @@ public class MasterContext<T extends UfsManager> {
    * Creates a new master context, using the global server UserState.
    *
    * @param journalSystem the journal system to use for tracking master operations
+   * @param ufsManager the UFS manager
    */
-  public MasterContext(JournalSystem journalSystem) {
-    this(journalSystem, null, null);
+  public MasterContext(JournalSystem journalSystem, T ufsManager) {
+    this(journalSystem, null, ufsManager);
   }
 
   /**
@@ -50,16 +53,15 @@ public class MasterContext<T extends UfsManager> {
    * @param userState the user state of the server. If null, will use the global server user state
    * @param ufsManager the UFS manager
    */
-  public MasterContext(JournalSystem journalSystem,
-      UserState userState, T ufsManager) {
+  public MasterContext(JournalSystem journalSystem, @Nullable UserState userState, T ufsManager) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+    mUfsManager = Preconditions.checkNotNull(ufsManager, "ufsManager");
     if (userState == null) {
       mUserState = ServerUserState.global();
     } else {
       mUserState = userState;
     }
     mStateLockManager = new StateLockManager();
-    mUfsManager = ufsManager;
   }
 
   /**

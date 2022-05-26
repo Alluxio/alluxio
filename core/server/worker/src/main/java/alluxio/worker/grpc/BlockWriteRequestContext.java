@@ -84,6 +84,7 @@ public final class BlockWriteRequestContext extends WriteRequestContext<BlockWri
   public java.io.OutputStream getOutputStream() {
     return mOutputStream;
   }
+
   /**
    * @return the handler of the UFS
    */

@@ -11,9 +11,9 @@
 
 package alluxio.proxy;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -81,7 +80,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
         this);
     // reset proxy web port
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT,
-        Integer.toString(mWebServer.getLocalPort()));
+        mWebServer.getLocalPort());
     mWebServer.start();
     mLatch.await();
   }

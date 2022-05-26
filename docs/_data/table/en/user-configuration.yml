@@ -13,7 +13,7 @@ alluxio.user.block.master.client.pool.size.min:
 alluxio.user.block.read.metrics.enabled:
   'Whether detailed block read metrics will be recorded and sink.'
 alluxio.user.block.read.retry.max.duration:
-  'N/A'
+  'This duration controls for how long Alluxio clients should tryreading a single block. If a particular block can''t be read within this duration, then the I/O will timeout.'
 alluxio.user.block.read.retry.sleep.base:
   'N/A'
 alluxio.user.block.read.retry.sleep.max:
@@ -44,6 +44,10 @@ alluxio.user.client.cache.evictor.lfu.logbase:
   'The log base for client cache LFU evictor bucket index.'
 alluxio.user.client.cache.evictor.nondeterministic.enabled:
   'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
+alluxio.user.client.cache.filter.class:
+  'The default cache filter caches everything'
+alluxio.user.client.cache.filter.config-file:
+  'The alluxio cache filter config file'
 alluxio.user.client.cache.local.store.file.buckets:
   'The number of file buckets for the local page store of the client-side cache. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
 alluxio.user.client.cache.page.size:
@@ -84,6 +88,8 @@ alluxio.user.file.create.ttl.action:
   'When file''s ttl is expired, the action performs on it. Options: DELETE (default) or FREE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
+alluxio.user.file.include.operation.id:
+  'Whether to send a unique operation id with designated filesystem operations.'
 alluxio.user.file.master.client.pool.gc.interval:
   'The interval at which file system master client GC checks occur.'
 alluxio.user.file.master.client.pool.gc.threshold:
@@ -120,6 +126,12 @@ alluxio.user.file.ufs.tier.enabled:
   'When workers run out of available memory, whether the client can skip writing data to Alluxio but fallback to write to UFS without stopping the application. This property only works when the write type is ASYNC_THROUGH.'
 alluxio.user.file.waitcompleted.poll:
   'The time interval to poll a file for its completion status when using waitCompleted.'
+alluxio.user.file.write.init.max.duration:
+  'Controls how long to retry initialization of a file write, when Alluxio workers are required but not ready.'
+alluxio.user.file.write.init.sleep.max:
+  'N/A'
+alluxio.user.file.write.init.sleep.min:
+  'N/A'
 alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
@@ -132,16 +144,14 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
-alluxio.user.logs.dir:
-  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.user.master.polling.timeout:
   'The maximum time for a rpc client to wait for master to respond.'
 alluxio.user.metadata.cache.enabled:
   'If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.'
 alluxio.user.metadata.cache.expiration.time:
-  'Metadata will expire and be evicted after being cached for this time period. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+  'Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.'
 alluxio.user.metadata.cache.max.size:
-  'Maximum number of paths with cached metadata. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+  'Maximum number of paths with cached metadata. Only valid if alluxio.user.metadata.cache.enabled is set to true.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:

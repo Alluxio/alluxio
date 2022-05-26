@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>2.7.0-SNAPSHOT</version>
+    <version>2.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
@@ -138,7 +138,7 @@
         <groupId>com.salesforce.servicelibs</groupId>
         <artifactId>proto-backwards-compatibility</artifactId>
         <configuration>
-          <protoSourceRoot>${basedir}/target/classes/</protoSourceRoot>
+          <protoSourceRoot>${basedir}/src/main/proto</protoSourceRoot>
         </configuration>
         <executions>
           <execution>

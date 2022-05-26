@@ -12,6 +12,9 @@
 package alluxio.client.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -36,7 +39,9 @@ import alluxio.proxy.s3.ListBucketOptions;
 import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
+import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.proxy.s3.TaggingData;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
@@ -46,6 +51,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
@@ -58,15 +64,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
-import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.security.auth.Subject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
@@ -80,11 +85,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private static final int LARGE_DATA_SIZE = 256 * Constants.KB;
 
   private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
-
-  private static final String S3_SERVICE_PREFIX = "s3";
-  private static final String BUCKET_SEPARATOR = ":";
 
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
@@ -93,8 +94,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
   // fix the test setup in SIMPLE mode.
   @ClassRule
   public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
-      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setIncludeProxy(true)
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, false)
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL)
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .build();
 
@@ -111,6 +113,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
     mFileSystem = sResource.get().getClient();
+    mBaseUri = String.format("%s/%s", mBaseUri, S3RestServiceHandler.SERVICE_PREFIX);
   }
 
   @Test
@@ -122,40 +125,43 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("user0"));
-    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
-        .createDirectory(new AlluxioURI("/bucket0"));
+    AlluxioURI bucketPath = new AlluxioURI("/bucket0");
+    FileSystem fs1 = sResource.get().getClient(FileSystemContext.create(subject,
+            ServerConfiguration.global()));
+    fs1.createDirectory(bucketPath);
     SetAttributePOptions setAttributeOptions =
         SetAttributePOptions.newBuilder().setOwner("user0").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
+    URIStatus bucket0Status = fs1.getStatus(bucketPath);
 
     subject = new Subject();
     subject.getPrincipals().add(new User("user1"));
-    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
-        .createDirectory(new AlluxioURI("/bucket1"));
+    AlluxioURI bucket1Path = new AlluxioURI("/bucket1");
+    FileSystem fs2 = sResource.get().getClient(FileSystemContext.create(subject,
+            ServerConfiguration.global()));
+    fs2.createDirectory(bucket1Path);
     setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user1").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
+    URIStatus bucket1Status = fs2.getStatus(bucket1Path);
 
     ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.emptyList());
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()
         .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
-        HttpMethod.GET, expected, requestOptions).run();
+    new TestCase(mHostname, mPort, mBaseUri,
+        "", NO_PARAMS, HttpMethod.GET,
+        requestOptions).runAndCheckResult(expected);
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList(testStatus("bucket0")));
+    expected = new ListAllMyBucketsResult(Lists.newArrayList(bucket0Status));
     requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user0/20210631");
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
-        HttpMethod.GET, expected, requestOptions).run();
+    new TestCase(mHostname, mPort, mBaseUri,
+        "", NO_PARAMS, HttpMethod.GET,
+        requestOptions).runAndCheckResult(expected);
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList(testStatus("bucket1")));
+    expected = new ListAllMyBucketsResult(Lists.newArrayList(bucket1Status));
     requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user1/20210631");
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
-        HttpMethod.GET, expected, requestOptions).run();
-  }
-
-  private URIStatus testStatus(String name) {
-    FileInfo f = new FileInfo().setName(name)
-        .setCreationTimeMs(System.currentTimeMillis());
-    return new URIStatus(f);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "", NO_PARAMS, HttpMethod.GET,
+        requestOptions).runAndCheckResult(expected);
   }
 
   @Test
@@ -171,36 +177,31 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
 
     //empty parameters
-    ListStatusPOptions options  = ListStatusPOptions.newBuilder().setRecursive(true).build();
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
 
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults());
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", NO_PARAMS,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals(4, expected.getContents().size());
+    assertEquals(6, expected.getContents().size());
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
-    assertEquals("folder0/file0", expected.getContents().get(2).getKey());
-    assertEquals("folder0/file1", expected.getContents().get(3).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertEquals("folder0/", expected.getContents().get(2).getKey());
+    assertEquals("folder0/file0", expected.getContents().get(3).getKey());
+    assertEquals("folder0/file1", expected.getContents().get(4).getKey());
+    assertEquals("folder1/", expected.getContents().get(5).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
     //parameters with delimiter="/"
-    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"));
+    List<URIStatus> delimStatuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(false).build());
 
-    expected = new ListBucketResult("bucket", statuses,
+    expected = new ListBucketResult("bucket", delimStatuses,
         ListBucketOptions.defaults().setDelimiter(AlluxioURI.SEPARATOR));
-
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("delimiter", AlluxioURI.SEPARATOR);
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
     assertEquals(2, expected.getContents().size());
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
@@ -208,96 +209,104 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
     assertEquals("folder1/", expected.getCommonPrefixes().get(1).getPrefix());
 
-    //parameters with delimiter="old"
-    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
-
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setDelimiter("old"));
-
-    parameters.clear();
-    parameters.put("delimiter", "old");
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals(2, expected.getContents().size());
-    assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals("file1", expected.getContents().get(1).getKey());
-    assertEquals(1, expected.getCommonPrefixes().size());
-    assertEquals("fold", expected.getCommonPrefixes().get(0).getPrefix());
-
-    //parameters with delimiter="file"
-    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
-
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setDelimiter("file"));
-
-    parameters.clear();
-    parameters.put("delimiter", "file");
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals(0, expected.getContents().size());
-    assertEquals(2, expected.getCommonPrefixes().size());
-    assertEquals("file", expected.getCommonPrefixes().get(0).getPrefix());
-    assertEquals("folder0/file", expected.getCommonPrefixes().get(1).getPrefix());
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
     //parameters with prefix="folder0"
-    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
-
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setPrefix("folder0"));
+    assertEquals(3, expected.getContents().size());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
+    assertEquals("folder0/file0", expected.getContents().get(1).getKey());
+    assertEquals("folder0/file1", expected.getContents().get(2).getKey());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.clear();
     parameters.put("prefix", "folder0");
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals(2, expected.getContents().size());
-    assertEquals("folder0/file0", expected.getContents().get(0).getKey());
-    assertEquals("folder0/file1", expected.getContents().get(1).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
-
-    //parameters with prefix="fold" and delimiter="f"
-    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
-
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setPrefix("fold").setDelimiter("f"));
-
-    parameters.clear();
-    parameters.put("prefix", "fold");
-    parameters.put("delimiter", "f");
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals(0, expected.getContents().size());
-    assertEquals(1, expected.getCommonPrefixes().size());
-    assertEquals("folder0/f", expected.getCommonPrefixes().get(0).getPrefix());
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
     //parameters with list-type=2 start-after="folder0/file0"
-    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
-
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setListType(2).setStartAfter("file0"));
+    assertEquals(5, expected.getContents().size());
+    assertEquals("file1", expected.getContents().get(0).getKey());
+    assertEquals("folder0/", expected.getContents().get(1).getKey());
+    assertEquals("folder0/file0", expected.getContents().get(2).getKey());
+    assertEquals("folder0/file1", expected.getContents().get(3).getKey());
+    assertEquals("folder1/", expected.getContents().get(4).getKey());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.clear();
     parameters.put("list-type", "2");
     parameters.put("start-after", "file0");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+  }
 
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+  @Test
+  public void listBucketCommonPrefixes() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/c_first_folder"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/d_next_folder"));
 
-    assertEquals(3, expected.getContents().size());
-    assertEquals("folder0/file1", expected.getContents().get(2).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    mFileSystem.createFile(new AlluxioURI("/bucket/a_first_file"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/b_next_file"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/c_first_folder/file"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/d_next_folder/file"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/z_last_file"));
+
+    List<URIStatus> delimStatuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(false).build());
+
+    //parameters with max-keys=3
+    ListBucketResult expected = new ListBucketResult("bucket", delimStatuses,
+        ListBucketOptions.defaults().setMaxKeys(3).setDelimiter(AlluxioURI.SEPARATOR));
+    String nextMarker = expected.getNextMarker();
+    assertEquals(3, expected.getMaxKeys());
+    assertTrue(expected.isTruncated());
+    assertEquals("c_first_folder/", nextMarker);
+    assertEquals(2, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("a_first_file", expected.getContents().get(0).getKey());
+    assertEquals("b_next_file", expected.getContents().get(1).getKey());
+    assertEquals("c_first_folder/" , expected.getCommonPrefixes().get(0).getPrefix());
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("max-keys", "3");
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    //subsequent request using next-marker
+    expected = new ListBucketResult("bucket", delimStatuses,
+        ListBucketOptions.defaults().setMarker(nextMarker).setDelimiter(AlluxioURI.SEPARATOR));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getNextMarker());
+    assertEquals(1, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("d_next_folder/" , expected.getCommonPrefixes().get(0).getPrefix());
+    assertEquals("z_last_file", expected.getContents().get(0).getKey());
+
+    parameters.remove("max-keys");
+    parameters.put("marker", nextMarker);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
   }
 
   @Test
@@ -313,100 +322,280 @@ public final class S3ClientRestApiTest extends RestApiTest {
     mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
     mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
 
-    ListStatusPOptions options  = ListStatusPOptions.newBuilder().setRecursive(true).build();
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
 
     //parameters with max-keys=1
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1));
+    assertNull(expected.getContinuationToken()); // only used in V2 API
+    assertNull(expected.getStartAfter()); // only used in V2 API
+    String priorMarker;
     String nextMarker = expected.getNextMarker();
-    assertEquals("/bucket/file0", nextMarker);
+    assertEquals("", expected.getMarker());
+    assertEquals("file0", nextMarker);
+    assertNull(expected.getKeyCount());
+    assertEquals(1, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertNull(expected.getCommonPrefixes());
 
     final Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "1");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
-
-    parameters.put("marker", nextMarker);
+    priorMarker = nextMarker;
 
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
     nextMarker = expected.getNextMarker();
-
+    assertEquals(priorMarker, expected.getMarker());
+    assertNull(expected.getKeyCount());
     assertEquals(1, expected.getContents().size());
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
     assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
-    parameters.put("marker", nextMarker);
+    parameters.put("marker", priorMarker);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    priorMarker = nextMarker;
 
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
     nextMarker = expected.getNextMarker();
+    assertEquals(priorMarker, expected.getMarker());
+    assertNull(expected.getKeyCount());
+    assertEquals(1, expected.getContents().size());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
+    assertNull(expected.getCommonPrefixes());
 
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals("folder0/file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    parameters.put("marker", priorMarker);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
     //parameters with list-type=2 and max-key=1
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1).setListType(2));
+    assertNull(expected.getMarker()); // we only use ContinuationToken / StartAfter for V2
+    String priorContinuationToken;
     String nextContinuationToken = expected.getNextContinuationToken();
-    assertEquals(ListBucketResult.encodeToken("/bucket/file0"), nextContinuationToken);
-
-    parameters.remove("marker");
-    parameters.put("list-type", "2");
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-
-    assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
-
-    parameters.put("continuation-token", nextContinuationToken);
-
-    expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setMaxKeys(1)
-            .setListType(2).setContinuationToken(nextContinuationToken));
-    nextContinuationToken = expected.getNextContinuationToken();
-    assertEquals(ListBucketResult.encodeToken("/bucket/file1"), nextContinuationToken);
-
+    assertNull(expected.getContinuationToken());
+    assertEquals(ListBucketResult.encodeToken("file0"), nextContinuationToken);
+    assertEquals(1, expected.getKeyCount().intValue());
     assertEquals(1, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertNull(expected.getCommonPrefixes());
 
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+    parameters.clear();
+    parameters.put("max-keys", "1");
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
-    assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
-
-    parameters.put("continuation-token", nextContinuationToken);
+    priorContinuationToken = nextContinuationToken;
 
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1)
             .setListType(2).setContinuationToken(nextContinuationToken));
     nextContinuationToken = expected.getNextContinuationToken();
-    assertEquals(ListBucketResult.encodeToken("/bucket/folder0/file0"), nextContinuationToken);
+    assertEquals(priorContinuationToken, expected.getContinuationToken());
+    assertEquals(ListBucketResult.encodeToken("file1"), nextContinuationToken);
+    assertEquals(1, expected.getKeyCount().intValue());
+    assertEquals(1, expected.getContents().size());
+    assertEquals("file1", expected.getContents().get(0).getKey());
+    assertNull(expected.getCommonPrefixes());
 
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+    parameters.put("continuation-token", priorContinuationToken);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
 
-    assertEquals("folder0/file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().size());
+    priorContinuationToken = nextContinuationToken;
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1)
+            .setListType(2).setContinuationToken(nextContinuationToken));
+    nextContinuationToken = expected.getNextContinuationToken();
+    assertEquals(priorContinuationToken, expected.getContinuationToken());
+    assertEquals(ListBucketResult.encodeToken("folder0/"), nextContinuationToken);
+    assertEquals(1, expected.getKeyCount().intValue());
+    assertEquals(1, expected.getContents().size());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    parameters.put("continuation-token", priorContinuationToken);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+  }
+
+  @Test
+  public void listBucketExactlyMaxKeys() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+
+    // ListObjects v1
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter()); // only used in V2 API
+    assertNull(expected.getContinuationToken()); // only used in V2 API
+    assertNull(expected.getNextContinuationToken()); // only used in V2 API
+    assertEquals("", expected.getMarker());
+    assertNull(expected.getNextMarker());
+    assertNull(expected.getKeyCount()); // only used in V2 API
+    assertEquals(2, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("max-keys", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // ListObjectsV2
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(2).setListType(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter());
+    assertNull(expected.getContinuationToken());
+    assertNull(expected.getNextContinuationToken());
+    assertNull(expected.getMarker()); // only used in V1 API
+    assertNull(expected.getNextMarker()); // only used in V1 API
+    assertEquals(2, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+    parameters.remove("list-type");
+
+    // Create a directory to test with common prefixes
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
+
+    List<URIStatus> delimStatuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(false).build());
+
+    // ListObjects v1
+    expected = new ListBucketResult("bucket", delimStatuses,
+        ListBucketOptions.defaults().setMaxKeys(3).setDelimiter(AlluxioURI.SEPARATOR));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter()); // only used in V2 API
+    assertNull(expected.getContinuationToken()); // only used in V2 API
+    assertNull(expected.getNextContinuationToken()); // only used in V2 API
+    assertEquals("", expected.getMarker());
+    assertNull(expected.getNextMarker());
+    assertNull(expected.getKeyCount()); // only used in V2 API
+    assertEquals(AlluxioURI.SEPARATOR, expected.getDelimiter());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
+
+    parameters.put("max-keys", "3");
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // ListObjectsV2
+    expected = new ListBucketResult("bucket", delimStatuses,
+        ListBucketOptions.defaults().setMaxKeys(3).setDelimiter(AlluxioURI.SEPARATOR)
+            .setListType(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter());
+    assertNull(expected.getContinuationToken());
+    assertNull(expected.getNextContinuationToken());
+    assertNull(expected.getMarker()); // only used in V1 API
+    assertNull(expected.getNextMarker()); // only used in V1 API
+    assertEquals(3, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getContents().size());
+    assertEquals(1, expected.getCommonPrefixes().size());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
+
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+  }
+
+  @Test
+  public void listBucketZeroMaxKeys() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+
+    // ListObjects v1
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(0));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter()); // only used in V2 API
+    assertNull(expected.getContinuationToken()); // only used in V2 API
+    assertNull(expected.getNextContinuationToken()); // only used in V2 API
+    assertEquals("", expected.getMarker());
+    assertNull(expected.getNextMarker());
+    assertNull(expected.getKeyCount()); // only used in V2 API
+    assertEquals(0, expected.getContents().size());
+    assertNull(expected.getCommonPrefixes());
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("max-keys", "0");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
+
+    // ListObjectsV2
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(0).setListType(2));
+    assertFalse(expected.isTruncated());
+    assertNull(expected.getStartAfter());
+    assertNull(expected.getContinuationToken());
+    assertNull(expected.getNextContinuationToken());
+    assertNull(expected.getMarker()); // only used in V1 API
+    assertNull(expected.getNextMarker()); // only used in V1 API
+    assertEquals(0, expected.getKeyCount().intValue());
+    assertEquals(0, expected.getContents().size());
+    assertNull(expected.getCommonPrefixes());
+
+    parameters.put("list-type", "2");
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected);
   }
 
   @Test
@@ -456,6 +645,23 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getNonExistingBucket() throws Exception {
+    final String bucketName = "root-level-file";
+    mFileSystem.createFile(new AlluxioURI("/" + bucketName));
+
+    try {
+      // GET on a non-existing bucket should fail.
+      new TestCase(mHostname, mPort, mBaseUri,
+          bucketName, NO_PARAMS, HttpMethod.GET,
+          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+          .runAndGetResponse();
+    } catch (AssertionError e) {
+      return; // expected
+    }
+    Assert.fail("GET on a non-existing bucket should fail");
+  }
+
+  @Test
   public void deleteNonEmptyBucket() throws Exception {
     final String bucketName = "non-empty-bucket";
 
@@ -488,7 +694,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     if (partNumber != null) {
       params.put("partNumber", partNumber.toString());
     }
-    createObjectRestCall(objectKey, object, null, params);
+    createObjectRestCall(objectKey, params,
+        TestCaseOptions.defaults()
+            .setBody(object)
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(object)));
   }
 
   private void putObjectTest(String bucket, String objectKey, byte[] object, Long uploadId,
@@ -557,7 +767,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     String message = "hello world";
     try {
-      createObjectRestCall(objectKey, message.getBytes(), null, NO_PARAMS);
+      createObjectRestCall(objectKey, NO_PARAMS,
+          TestCaseOptions.defaults()
+              .setBody(message.getBytes())
+              .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+              .setMD5(computeObjectChecksum(message.getBytes())));
     } catch (AssertionError e) {
       // expected
       return;
@@ -574,7 +788,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectContent = "hello world";
     try {
       String wrongMD5 = BaseEncoding.base64().encode(objectContent.getBytes());
-      createObjectRestCall(objectKey, objectContent.getBytes(), wrongMD5, NO_PARAMS);
+      createObjectRestCall(objectKey, NO_PARAMS,
+          TestCaseOptions.defaults()
+              .setBody(objectContent.getBytes())
+              .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+              .setMD5(wrongMD5));
     } catch (AssertionError e) {
       // expected
       return;
@@ -589,33 +807,23 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     String objectContent = "no md5 set";
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
     TestCaseOptions options = TestCaseOptions.defaults();
-    options.setInputStream(new ByteArrayInputStream(objectContent.getBytes()));
-    new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null, options).run();
-  }
-
-  @Test
-  public void getNonExistingBucket() throws Exception {
-    final String bucketName = "non-existing-bucket";
-
-    try {
-      // Delete a non-existing bucket should fail.
-      new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName,
-          NO_PARAMS, HttpMethod.GET, null,
-          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("get a non-existing bucket should fail");
+    options.setBody(objectContent.getBytes());
+    options.setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE);
+    new TestCase(mHostname, mPort, mBaseUri,
+        objectKey, NO_PARAMS, HttpMethod.PUT,
+        options).runAndCheckResult();
   }
 
   private void getObjectTest(byte[] expectedObject) throws Exception {
     final String bucket = "bucket";
     createBucketRestCall(bucket);
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
-    createObjectRestCall(objectKey, expectedObject, null, NO_PARAMS);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(expectedObject)
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(expectedObject)));
     Assert.assertArrayEquals(expectedObject, getObjectRestCall(objectKey).getBytes());
   }
 
@@ -648,7 +856,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     final byte[] objectContent = CommonUtils.randomAlphaNumString(10).getBytes();
-    createObjectRestCall(objectKey, objectContent, null, NO_PARAMS);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectContent)
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectContent)));
 
     HttpURLConnection connection = getObjectMetadataRestCall(objectKey);
     URIStatus status = mFileSystem.getStatus(
@@ -734,13 +946,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertFalse(mFileSystemMaster
         .listStatus(dirUri, ListStatusContext.defaults()).isEmpty());
 
-    try {
-      deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("delete non-empty directory as an object should fail");
+    deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
   }
 
   @Test
@@ -749,13 +955,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucketName);
 
     String objectName = "non-existing-object";
-    try {
-      deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("delete non-existing object should fail");
+    deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
   }
 
   @Test
@@ -967,7 +1167,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectPath = AlluxioURI.SEPARATOR + objectKey;
     CompleteMultipartUploadResult completeMultipartUploadResult =
         new CompleteMultipartUploadResult(objectPath, bucketName, objectName, etag);
-    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult), result);
+    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult),
+        result.trim());
+    Assert.assertEquals(XML_MAPPER.readValue(result, CompleteMultipartUploadResult.class),
+        completeMultipartUploadResult);
 
     // Verify that the temporary directory is deleted.
     Assert.assertFalse(mFileSystem.exists(tmpDir));
@@ -979,82 +1182,315 @@ public final class S3ClientRestApiTest extends RestApiTest {
     }
   }
 
-  private void createBucketRestCall(String bucketName) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName;
-    new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null,
-        TestCaseOptions.defaults()).run();
+  @Test
+  public void testObjectContentType() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData)
+            .setContentType(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes())));
+
+    HttpURLConnection connection = getObjectMetadataRestCall(objectKey);
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE,
+        connection.getHeaderField(TestCaseOptions.CONTENT_TYPE_HEADER));
   }
 
-  private HttpURLConnection deleteBucketRestCall(String bucketName) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName;
-    return new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.DELETE, null,
-        TestCaseOptions.defaults()).execute();
+  @Test
+  public void testBucketTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+    testTagging(bucketName, ImmutableMap.of());
   }
 
-  private void createObjectRestCall(String objectKey, byte[] objectContent, String md5,
-      Map<String, String> params) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    TestCaseOptions options = TestCaseOptions.defaults();
-    if (md5 == null) {
-      MessageDigest md5Hash = MessageDigest.getInstance("MD5");
-      byte[] md5Digest = md5Hash.digest(objectContent);
-      md5 = BaseEncoding.base64().encode(md5Digest);
+  @Test
+  public void testObjectTagsHeader() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=bar&baz"));
+
+    testTagging(objectKey, ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ));
+  }
+
+  @Test
+  public void testCopyObjectTagsHeader() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = "text data";
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData)
+            .setContentType(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=bar&baz"));
+
+    TaggingData newTags = getTagsRestCall(objectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ), newTags.getTagMap());
+
+    // metadata directive = COPY, tagging directive = COPY
+    String copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "copyMeta_copyTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)).runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ), newTags.getTagMap());
+    HttpURLConnection connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+
+    // metadata directive = REPLACE, tagging directive = COPY
+    copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "replaceMeta_copyTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)
+            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE))
+        .runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "bar",
+        "baz", ""
+    ), newTags.getTagMap());
+    connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+
+    // metadata directive = COPY, tagging directive = REPLACE
+    copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "copyMeta_replaceTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)
+            .addHeader(S3Constants.S3_TAGGING_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=new"))
+        .runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "new"
+    ), newTags.getTagMap());
+    connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+
+    // metadata directive = REPLACE, tagging directive = REPLACE
+    copiedObjectKey = String.format("%s%s%s", bucketName, AlluxioURI.SEPARATOR,
+        "replaceMeta_replaceTags_object");
+    new TestCase(mHostname, mPort, mBaseUri,
+        copiedObjectKey,
+        NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, objectKey)
+            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .addHeader(S3Constants.S3_TAGGING_DIRECTIVE_HEADER,
+                S3Constants.Directive.REPLACE.name())
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=new"))
+        .runAndGetResponse();
+    newTags = getTagsRestCall(copiedObjectKey);
+    Assert.assertEquals(ImmutableMap.of(
+        "foo", "new"
+    ), newTags.getTagMap());
+    connection = getObjectMetadataRestCall(copiedObjectKey);
+    Assert.assertEquals(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE, connection.getContentType());
+    assertEquals(objectData, getObjectRestCall(copiedObjectKey));
+  }
+
+  @Test
+  public void testObjectTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes())));
+
+    testTagging(objectKey, ImmutableMap.of());
+  }
+
+  @Test
+  public void testFolderTagging() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String folderName = "folder";
+    String folderKey = bucketName + AlluxioURI.SEPARATOR + folderName;
+    final String objectName = "object";
+    String objectKey = folderKey + AlluxioURI.SEPARATOR + objectName;
+    String objectData = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    createObjectRestCall(objectKey, NO_PARAMS,
+        TestCaseOptions.defaults()
+            .setBody(objectData.getBytes())
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setMD5(computeObjectChecksum(objectData.getBytes()))
+            .addHeader(S3Constants.S3_TAGGING_HEADER, "foo=bar"));
+
+    // Ensure that folders are not populated with tags from children
+    testTagging(folderKey, ImmutableMap.of());
+  }
+
+  private void testTagging(String resource, ImmutableMap<String, String> expectedTags)
+      throws Exception {
+    // Get{...}Tagging
+    TaggingData tagData = getTagsRestCall(resource);
+    if (expectedTags != null) { // allow skipping checking of initial tags
+      Assert.assertEquals(expectedTags, tagData.getTagMap());
     }
-    options.setMD5(md5);
-    options.setInputStream(new ByteArrayInputStream(objectContent));
-    new TestCase(mHostname, mPort, uri, params, HttpMethod.PUT, null, options)
-        .run();
+
+    // Put{...}Tagging
+    Map<String, String> tagMap = ImmutableMap.of(
+        "foo", "bar",
+        "fu", "bar",
+        "baz", ""
+    );
+    tagData.addTags(tagMap);
+    putTagsRestCall(resource, tagData);
+
+    // Get{...}Tagging
+    TaggingData newTags = getTagsRestCall(resource);
+    Assert.assertEquals(tagMap, newTags.getTagMap());
+
+    // Delete{...}Tagging
+    deleteTagsRestCall(resource);
+    TaggingData deletedTags = getTagsRestCall(resource);
+    Assert.assertEquals(0, deletedTags.getTagMap().size());
   }
 
-  private String initiateMultipartUploadRestCall(String objectKey) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    Map<String, String> params = new HashMap<>();
-    params.put("uploads", "");
-    return new TestCase(mHostname, mPort, uri, params, HttpMethod.POST, null,
-        TestCaseOptions.defaults()).call();
+  private void createBucketRestCall(String bucketUri) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, NO_PARAMS, HttpMethod.PUT,
+        TestCaseOptions.defaults()).runAndCheckResult();
   }
 
-  private String completeMultipartUploadRestCall(String objectKey, long uploadId) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    Map<String, String> params = new HashMap<>();
-    params.put("uploadId", Long.toString(uploadId));
-    return new TestCase(mHostname, mPort, uri, params, HttpMethod.POST, null,
-        TestCaseOptions.defaults()).call();
-  }
-
-  private HttpURLConnection abortMultipartUploadRestCall(String objectKey, long uploadId)
-      throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    Map<String, String> params = new HashMap<>();
-    params.put("uploadId", Long.toString(uploadId));
-    return new TestCase(mHostname, mPort, uri, params, HttpMethod.DELETE, null,
+  private HttpURLConnection deleteBucketRestCall(String bucketUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, NO_PARAMS, HttpMethod.DELETE,
         TestCaseOptions.defaults()).execute();
   }
 
-  private String listPartsRestCall(String objectKey, long uploadId)
-      throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    Map<String, String> params = new HashMap<>();
-    params.put("uploadId", Long.toString(uploadId));
-    return new TestCase(mHostname, mPort, uri, params, HttpMethod.GET, null,
-        TestCaseOptions.defaults()).call();
+  private String computeObjectChecksum(byte[] objectContent) throws Exception {
+    MessageDigest md5Hash = MessageDigest.getInstance("MD5");
+    byte[] md5Digest = md5Hash.digest(objectContent);
+    return BaseEncoding.base64().encode(md5Digest);
   }
 
-  private HttpURLConnection getObjectMetadataRestCall(String objectKey) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    return new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.HEAD, null,
+  private void createObjectRestCall(String objectUri, @NotNull Map<String, String> params,
+                                    @NotNull TestCaseOptions options) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri, objectUri, params, HttpMethod.PUT, options)
+        .runAndCheckResult();
+  }
+
+  private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
+    Map<String, String> params = ImmutableMap.of("uploads", "");
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, params, HttpMethod.POST,
+        TestCaseOptions.defaults()).runAndGetResponse();
+  }
+
+  private String completeMultipartUploadRestCall(String objectUri, long uploadId) throws Exception {
+    Map<String, String> params = ImmutableMap.of("uploadId", Long.toString(uploadId));
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, params, HttpMethod.POST,
+        TestCaseOptions.defaults()).runAndGetResponse();
+  }
+
+  private HttpURLConnection abortMultipartUploadRestCall(String objectUri, long uploadId)
+      throws Exception {
+    Map<String, String> params = ImmutableMap.of("uploadId", Long.toString(uploadId));
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, params, HttpMethod.DELETE,
         TestCaseOptions.defaults()).execute();
   }
 
-  private String getObjectRestCall(String objectKey) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    return new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.GET, null,
-        TestCaseOptions.defaults()).call();
+  private String listPartsRestCall(String objectUri, long uploadId)
+      throws Exception {
+    Map<String, String> params = ImmutableMap.of("uploadId", Long.toString(uploadId));
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
   }
 
-  private void deleteObjectRestCall(String objectKey) throws Exception {
-    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
-    new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.DELETE, null,
-        TestCaseOptions.defaults()).run();
+  private HttpURLConnection getObjectMetadataRestCall(String objectUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, NO_PARAMS, HttpMethod.HEAD,
+        TestCaseOptions.defaults()).execute();
+  }
+
+  private String getObjectRestCall(String objectUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, NO_PARAMS, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
+  }
+
+  private void deleteObjectRestCall(String objectUri) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        objectUri, NO_PARAMS, HttpMethod.DELETE,
+        TestCaseOptions.defaults()).runAndCheckResult();
+  }
+
+  private void deleteTagsRestCall(String uri) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.DELETE,
+        TestCaseOptions.defaults()).runAndCheckResult();
+  }
+
+  private TaggingData getTagsRestCall(String uri) throws Exception {
+    String res = new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.GET,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)
+    ).runAndGetResponse();
+    XmlMapper mapper = new XmlMapper();
+    return mapper.readValue(res, TaggingData.class);
+  }
+
+  private void putTagsRestCall(String uri, @NotNull TaggingData tags) throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        uri, ImmutableMap.of("tagging", ""), HttpMethod.PUT,
+        TestCaseOptions.defaults()
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setCharset(S3Constants.TAGGING_CHARSET)
+            .setBody(TaggingData.serialize(tags).toByteArray()))
+        .runAndCheckResult();
   }
 }

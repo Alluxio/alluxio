@@ -11,13 +11,14 @@
 
 package alluxio.master.meta.checkconf;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
+
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.wire.Address;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class is responsible for recording server-side configuration.
@@ -80,7 +82,7 @@ public class ServerConfigurationStore {
     } else {
       // Worker might have properties that the master doesn't yet know about, e.g. UFS specific
       // properties, or properties from a different version of Alluxio.
-      return new PropertyKey.Builder(name).setIsBuiltIn(false).buildUnregistered();
+      return stringBuilder(name).setIsBuiltIn(false).buildUnregistered();
     }
   }
 

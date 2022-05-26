@@ -8,6 +8,7 @@ package alluxio.grpc.file;
 
 import "grpc/common.proto";
 import "grpc/fscommon.proto";
+import "proto/journal/file.proto";
 
 enum WritePType {
   MUST_CACHE = 1;
@@ -68,6 +69,14 @@ message CheckConsistencyPRequest {
   optional CheckConsistencyPOptions options = 2;
 }
 
+message ExistsPRequest {
+  optional string path = 1;
+  optional ExistsPOptions options = 2;
+}
+message ExistsPResponse {
+  optional bool exists = 1;
+}
+
 message CompleteFilePResponse {}
 message CompleteFilePOptions {
   optional int64 ufsLength = 1;
@@ -87,6 +96,15 @@ message OpenFilePOptions {
   optional bool updateLastAccessTime = 4 [default = true];
 }
 
+// XAttrPropagationStrategy controls the behaviour for assigning xAttr
+// on Inodes within nested directories
+// - NEW_PATHS: Assign xAttr for any missing nodes along the filepath
+// - LEAF_NODE: Only assign xAttr on the leaf node of the filepath
+enum XAttrPropagationStrategy {
+  NEW_PATHS = 1;
+  LEAF_NODE = 2;
+}
+
 message CreateDirectoryPResponse {}
 message CreateDirectoryPOptions {
   optional bool recursive = 1;
@@ -94,6 +112,8 @@ message CreateDirectoryPOptions {
   optional PMode mode = 3;
   optional WritePType writeType = 4;
   optional FileSystemMasterCommonPOptions commonOptions = 5;
+  map<string, bytes> xattr = 6;
+  optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -115,6 +135,8 @@ message CreateFilePOptions {
   optional WritePType writeType = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   optional int64 persistenceWaitTime = 10;
+  map<string, bytes> xattr = 11;
+  optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -389,6 +411,8 @@ message SetAttributePOptions {
   optional int32 replicationMin = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   repeated string pinnedMedia = 10;
+  map<string, bytes> xattr = 11;
+  optional alluxio.proto.journal.XAttrUpdateStrategy xattrUpdateStrategy = 12;
 }
 message SetAttributePRequest {
   /** the path of the file */
@@ -510,6 +534,11 @@ service FileSystemMasterClientService {
    * Checks the consistency of the files and directores with the path as the root of the subtree
    */
   rpc CheckConsistency(CheckConsistencyPRequest) returns (CheckConsistencyPResponse);
+
+  /**
+   * Checks the existence of the file or directory.
+   */
+  rpc Exists(ExistsPRequest) returns (ExistsPResponse);
 
   /**
    * Marks a file as completed.

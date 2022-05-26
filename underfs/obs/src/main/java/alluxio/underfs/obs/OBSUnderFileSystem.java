@@ -38,8 +38,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -83,10 +83,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to OBS", PropertyKey.OBS_ENDPOINT);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_BUCKET_TYPE),
         "Property %s is required to connect to OBS", PropertyKey.OBS_BUCKET_TYPE);
-    String accessKey = conf.get(PropertyKey.OBS_ACCESS_KEY);
-    String secretKey = conf.get(PropertyKey.OBS_SECRET_KEY);
-    String endPoint = conf.get(PropertyKey.OBS_ENDPOINT);
-    String bucketType = conf.get(PropertyKey.OBS_BUCKET_TYPE);
+    String accessKey = conf.getString(PropertyKey.OBS_ACCESS_KEY);
+    String secretKey = conf.getString(PropertyKey.OBS_SECRET_KEY);
+    String endPoint = conf.getString(PropertyKey.OBS_ENDPOINT);
+    String bucketType = conf.getString(PropertyKey.OBS_BUCKET_TYPE);
 
     ObsClient obsClient = new ObsClient(accessKey, secretKey, endPoint);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
@@ -157,7 +157,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new OBSOutputStream(mBucketName, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override
@@ -245,8 +245,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (ObsObject obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getObjectKey(), obj.getMetadata().getEtag(),
-            obj.getMetadata().getContentLength(), obj.getMetadata().getLastModified().getTime());
+        ObjectMetadata meta = obj.getMetadata();
+        Date lastModifiedDate = meta.getLastModified();
+        Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
+        ret[i++] = new ObjectStatus(obj.getObjectKey(), meta.getEtag(),
+            meta.getContentLength(), lastModifiedTime);
       }
       return ret;
     }
@@ -292,8 +295,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
           return null;
         }
       }
+      Date lastModifiedDate = meta.getLastModified();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, meta.getEtag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+          lastModifiedTime);
     } catch (ObsException e) {
       LOG.warn("Failed to get Object {}, return null", key, e);
       return null;

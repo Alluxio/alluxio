@@ -52,6 +52,9 @@ spec:
       {{- if .Values.tolerations }}
 {{ toYaml .Values.tolerations | trim | indent 8  }}
       {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: alluxio-logserver
           image: {{ .Values.image }}:{{ .Values.imageTag }}

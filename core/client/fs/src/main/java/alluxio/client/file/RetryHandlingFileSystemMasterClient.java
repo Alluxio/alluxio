@@ -27,6 +27,8 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
@@ -80,7 +82,6 @@ import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -179,6 +180,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> mClient.remove(DeletePRequest.newBuilder().setPath(getTransportPath(path))
         .setOptions(options).build()), RPC_LOG, "Delete",
+        "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public boolean exists(final AlluxioURI path, final ExistsPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> mClient.exists(ExistsPRequest.newBuilder()
+        .setPath(getTransportPath(path))
+        .setOptions(options).build()).getExists(), RPC_LOG, "Exists",
         "path=%s,options=%s", path, options);
   }
 

@@ -45,8 +45,8 @@ alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3.inherit.acl=false
-aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
-aws.secretKey=<MINIO_SECRET_KEY_ID>
+s3a.accessKeyId=<MINIO_ACCESS_KEY_ID>
+s3a.secretKey=<MINIO_SECRET_KEY_ID>
 ```
 
 对于这些参数，将`<MINIO_ENDPOINT>`替换为你的MinIO服务的主机名和端口，
@@ -122,8 +122,8 @@ ion refused)) from the under file system
 
 如果遇到包含有关禁止访问的消息的异常，则可能
 Alluxio master凭证配置不正确。
-检查[`aws.accessKeyId`]({{ '/en/reference/Properties-List.html' | relativize_url}}#aws.accessKeyId)
-和[`aws.secretKey`]({{ '/en/reference/Properties-List.html' | relativize_url}}#aws.secretKey)。
+检查[`s3a.accessKeyId`]({{ '/en/reference/Properties-List.html' | relativize_url}}#s3a.accessKeyId)
+和[`s3a.secretKey`]({{ '/en/reference/Properties-List.html' | relativize_url}}#s3a.secretKey)。
 如果出现此错误，请仔细检查这两个属性的设置是否正确。
 
 ```

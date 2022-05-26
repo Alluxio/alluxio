@@ -50,11 +50,11 @@ public final class AbstractPrimarySelectorTest {
 
   @Test
   public void getState() {
-    assertEquals(State.SECONDARY, mSelector.getState());
+    assertEquals(State.STANDBY, mSelector.getState());
     mSelector.setState(State.PRIMARY);
     assertEquals(State.PRIMARY, mSelector.getState());
-    mSelector.setState(State.SECONDARY);
-    assertEquals(State.SECONDARY, mSelector.getState());
+    mSelector.setState(State.STANDBY);
+    assertEquals(State.STANDBY, mSelector.getState());
   }
 
   @Test(timeout = TIMEOUT)
@@ -62,33 +62,33 @@ public final class AbstractPrimarySelectorTest {
     mExecutor.schedule(() -> mSelector.setState(State.PRIMARY), 30, TimeUnit.MILLISECONDS);
     mSelector.waitForState(State.PRIMARY);
     assertEquals(State.PRIMARY, mSelector.getState());
-    mExecutor.schedule(() -> mSelector.setState(State.SECONDARY), 30, TimeUnit.MILLISECONDS);
-    mSelector.waitForState(State.SECONDARY);
-    assertEquals(State.SECONDARY, mSelector.getState());
+    mExecutor.schedule(() -> mSelector.setState(State.STANDBY), 30, TimeUnit.MILLISECONDS);
+    mSelector.waitForState(State.STANDBY);
+    assertEquals(State.STANDBY, mSelector.getState());
   }
 
   @Test(timeout = TIMEOUT)
   public void onStateChange() {
     AtomicInteger primaryCounter = new AtomicInteger(0);
-    AtomicInteger secondaryCounter = new AtomicInteger(0);
+    AtomicInteger standbyCounter = new AtomicInteger(0);
     Scoped listener = mSelector.onStateChange(state -> {
       if (state.equals(State.PRIMARY)) {
         primaryCounter.incrementAndGet();
       } else {
-        secondaryCounter.incrementAndGet();
+        standbyCounter.incrementAndGet();
       }
     });
     for (int i = 0; i < 10; i++) {
       mSelector.setState(State.PRIMARY);
-      mSelector.setState(State.SECONDARY);
+      mSelector.setState(State.STANDBY);
     }
     assertEquals(10, primaryCounter.get());
-    assertEquals(10, secondaryCounter.get());
+    assertEquals(10, standbyCounter.get());
     listener.close();
     mSelector.setState(State.PRIMARY);
-    mSelector.setState(State.SECONDARY);
+    mSelector.setState(State.STANDBY);
     assertEquals(10, primaryCounter.get());
-    assertEquals(10, secondaryCounter.get());
+    assertEquals(10, standbyCounter.get());
   }
 
   static class TestSelector extends AbstractPrimarySelector {

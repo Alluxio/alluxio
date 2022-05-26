@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-integration-jnifuse</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>2.7.0-SNAPSHOT</version>
+    <version>2.9.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-native</artifactId>
@@ -55,12 +55,12 @@
                     </exec>
                     <copy todir="${project.build.directory}/classes">
                       <fileset dir="${project.build.directory}/native/">
-                        <include name="libjnifuse.*"/>
+                        <include name="libjnifuse*"/>
                       </fileset>
                     </copy>
                     <copy todir="${project.basedir}/src/main/resources">
                       <fileset dir="${project.build.directory}/native/">
-                        <include name="libjnifuse.*"/>
+                        <include name="libjnifuse*"/>
                       </fileset>
                     </copy>
                   </target>

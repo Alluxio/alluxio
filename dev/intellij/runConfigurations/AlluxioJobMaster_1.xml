@@ -14,7 +14,7 @@
   <configuration default="false" name="AlluxioJobMaster-1" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="alluxio.master.AlluxioJobMaster" />
     <module name="alluxio-job-server" />
-    <option name="VM_PARAMETERS" value="-Dalluxio.job.master.rpc.port=20011 -Dalluxio.job.master.web.port=20012 -Dalluxio.job.master.embedded.journal.port=20013 -Dalluxio.work.dir=/tmp/alluxio-tmp/alluxio-1 -Xbootclasspath/a:$PROJECT_DIR$/conf  -Dalluxio.logger.type=Console " />
+    <option name="VM_PARAMETERS" value="-Dalluxio.job.master.rpc.port=20011 -Dalluxio.job.master.web.port=20012 -Dalluxio.job.master.embedded.journal.port=20013 -Dalluxio.work.dir=/tmp/alluxio-tmp/alluxio-1 -Xbootclasspath/a:$PROJECT_DIR$/conf  -Dalluxio.logger.type=Console -Dalluxio.home=$PROJECT_DIR$" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="alluxio.master.*" />

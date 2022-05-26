@@ -41,7 +41,6 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import javax.annotation.Nullable;
 
 /**
@@ -49,7 +48,7 @@ import javax.annotation.Nullable;
  */
 public class FileUtilsTest {
 
-  private String mWorkerDataFolderPerms = ConfigurationUtils.defaults()
+  private String mWorkerDataFolderPerms = (String) ConfigurationUtils.defaults()
       .get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
 
   /**

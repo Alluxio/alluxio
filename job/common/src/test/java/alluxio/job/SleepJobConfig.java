@@ -17,9 +17,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.Collections;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Job configuration for the sleep job.

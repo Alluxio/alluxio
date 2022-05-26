@@ -50,6 +50,10 @@ Cluster.CapacityTotal:
   'Total capacity (in bytes) on all tiers, on all workers of Alluxio'
 Cluster.CapacityUsed:
   'Total used bytes on all tiers, on all workers of Alluxio'
+Cluster.LeaderId:
+  'Display current leader id'
+Cluster.LeaderIndex:
+  'Index of current leader'
 Cluster.LostWorkers:
   'Total number of lost workers inside the cluster'
 Cluster.RootUfsCapacityFree:

@@ -12,18 +12,18 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -109,7 +109,8 @@ public class BlockMasterIntegrityIntegrationTest {
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, LockPattern.WRITE_EDGE);
     RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
-    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, DeleteContext.defaults());
+    ((DefaultFileSystemMaster) fsm).deleteInternal(
+        rpcContext, path, DeleteContext.defaults(), false);
     path.close();
     rpcContext.close();
   }

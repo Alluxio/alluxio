@@ -30,7 +30,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -62,7 +61,7 @@ public final class LocalAlluxioMaster {
   private LocalAlluxioMaster(boolean includeSecondary) {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
         ServerConfiguration.global());
-    mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    mJournalFolder = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     mIncludeSecondary = includeSecondary;
   }
 
@@ -153,7 +152,7 @@ public final class LocalAlluxioMaster {
    * @return true if the master is serving, false otherwise
    */
   public boolean isServing() {
-    return mMasterProcess.isServing();
+    return mMasterProcess.isGrpcServing();
   }
 
   /**

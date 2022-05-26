@@ -22,6 +22,7 @@ export interface IOverview {
   };
   usageOnTiers: IStorageTierInfo[];
   storageDirs: IStorageTierInfo[];
+  blockCount: string;
   version: string;
 }
 

@@ -23,13 +23,8 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-
-If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getting Started tutorial:
-
-<p align="center">
-<a href="https://www.alluxio.io/alluxio-presto-sandbox-docker/">
- <img src="https://www.alluxio.io/app/uploads/2019/07/laptop-docker.png" width="250" alt="Laptop with Docker"/></a>
-</p>
+If you are trying to speedup SQL analytics, you can try the 
+[Presto Alluxio Getting Started](https://www.alluxio.io/alluxio-presto-sandbox-docker/) tutorial.
 
 ## Prerequisites
 
@@ -75,8 +70,8 @@ configuration in `conf/alluxio-site.properties`. The following commands update t
 configuration.
 
 ```console
-$ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
-$ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
+$ echo "s3a.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
+$ echo "s3a.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
 Replace **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
@@ -93,7 +88,7 @@ $ ./bin/alluxio validateEnv local
 
 This reports potential problems that might prevent Alluxio from starting locally.
 
-Check out [this page]({{ '/en/operation/User-CLI.html' | relativize_url }}) for detailed
+Check out [this page]({{ '/en/operation/User-CLI.html' | relativize_url }}#validateenv) for detailed
 usage information regarding the `validateEnv` command.
 
 ## Starting Alluxio
@@ -284,7 +279,7 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
 ```
 
-The output shows that the file is **Not In Memory**. This file is a sample of tweets.
+The `0%` in the output shows that the file is **Not In Memory**. This file is a sample of tweets.
 Count the number of tweets with the word "kitten" and time the duration of the operation.
 
 ```console
@@ -307,8 +302,8 @@ $ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
 -r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
 ```
 
-The output shows that the file is now 100% loaded to Alluxio, so reading the file should be
-significantly faster.
+`100%` in the output shows that the file is now fully loaded to Alluxio, so reading the file 
+from now on should be significantly faster.
 
 Now count the number of tweets with the word "puppy".
 
@@ -359,37 +354,33 @@ mounting existing storage systems, and configuring existing applications to inte
 
 ### Deploying Alluxio
 
-Alluxio can be deployed in many different environments.
-
+Alluxio can be deployed in many different environments, such as:
 * [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 * [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 * [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
+* [Alluxio on Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+
+Check the `Install Alluxio` dropdown on the left sidebar for more available options.
 
 ### Under Storage Systems
 
-Various under storage systems can be accessed through Alluxio.
+Various under storage systems can be accessed through Alluxio, such as:
+* [Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
+* [AWS S3]({{ '/en/ufs/S3.html' | relativize_url }})
+* [GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
+* [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
+* [NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
 
-* [Alluxio with Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
-* [Alluxio with S3]({{ '/en/ufs/S3.html' | relativize_url }})
-* [Alluxio with GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
-* [Alluxio with Minio]({{ '/en/ufs/Minio.html' | relativize_url }})
-* [Alluxio with CephFS]({{ '/en/ufs/CephFS.html' | relativize_url }})
-* [Alluxio with CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})
-* [Alluxio with Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
-* [Alluxio with GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
-* [Alluxio with HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
-* [Alluxio with OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
-* [Alluxio with NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
+Check the `Storage Integrations` dropdown on the left sidebar for more available options.
 
 ### Frameworks and Applications
 
-Different frameworks and applications work with Alluxio.
+Different frameworks and applications work with Alluxio, such as:
+* [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }})
+* [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }})
+* [Presto]({{ '/en/compute/Presto.html' | relativize_url }})
 
-* [Apache Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
-* [Apache Hadoop MapReduce with Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
-* [Apache HBase with Alluxio]({{ '/en/compute/HBase.html' | relativize_url }})
-* [Apache Hive with Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
-* [Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
+Check the `Compute integrations` dropdown on the left sidebar for more available options.
 
 ## FAQ
 

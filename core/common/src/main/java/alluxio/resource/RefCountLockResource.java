@@ -41,7 +41,8 @@ public class RefCountLockResource extends RWLockResource {
   public RefCountLockResource(ReentrantReadWriteLock lock, LockMode mode, boolean acquireLock,
       AtomicInteger refCount, boolean useTryLock) {
     super(lock, mode, acquireLock, useTryLock);
-    mRefCount = Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
+    mRefCount = Preconditions.checkNotNull(refCount,
+        "Reference Counter can not be null");
   }
 
   /**
@@ -50,6 +51,7 @@ public class RefCountLockResource extends RWLockResource {
    */
   @Override
   public void close() {
+    // Make sure all super classes are properly closed
     super.close();
     mRefCount.decrementAndGet();
   }

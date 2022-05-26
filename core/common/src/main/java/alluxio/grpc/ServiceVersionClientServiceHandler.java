@@ -12,7 +12,6 @@
 package alluxio.grpc;
 
 import alluxio.Constants;
-
 import alluxio.annotation.SuppressFBWarnings;
 
 import io.grpc.Status;

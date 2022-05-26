@@ -60,7 +60,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -246,7 +245,7 @@ public class FileSystemContext implements Closeable {
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
-        mId, mBlockWorker == null);
+        mId, mBlockWorker != null);
   }
 
   /**
@@ -267,7 +266,7 @@ public class FileSystemContext implements Closeable {
         .setMasterInquireClient(masterInquireClient).build();
     mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
     if (mMetricsEnabled) {
-      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
+      MetricsSystem.startSinks(getClusterConf().getString(PropertyKey.METRICS_CONF_FILE));
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
@@ -282,6 +281,7 @@ public class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
+  @Override
   public synchronized void close() throws IOException {
     LOG.debug("Closing context with id: {}", mId);
     mReinitializer.close();
@@ -505,7 +505,7 @@ public class FileSystemContext implements Closeable {
     try {
       return new CloseableResource<T>(pool.acquire()) {
         @Override
-        public void close() {
+        public void closeResource() {
           pool.release(get());
         }
       };
@@ -549,7 +549,7 @@ public class FileSystemContext implements Closeable {
         .acquire()) {
       // Save the reference to the original pool map.
       @Override
-      public void close() {
+      public void closeResource() {
         releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
       }
     };

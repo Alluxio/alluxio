@@ -16,7 +16,6 @@ import alluxio.conf.AlluxioConfiguration;
 
 import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 

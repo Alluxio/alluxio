@@ -12,6 +12,7 @@
 package alluxio.worker.grpc;
 
 import alluxio.Constants;
+import alluxio.RpcSensitiveConfigMask;
 import alluxio.client.block.stream.GrpcDataWriter;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -38,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Semaphore;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -110,7 +110,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     mSerializingExecutor.execute(() -> {
       try {
         if (mContext == null) {
-          LOG.debug("Received write request {}.", writeRequest);
+          LOG.debug("Received write request {}.",
+              RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(LOG, writeRequest));
           try {
             mContext = createRequestContext(writeRequest);
           } catch (Exception e) {

@@ -82,7 +82,7 @@ $ ./integration/fuse/bin/alluxio-fuse stat
 
 ```console
 $ ./bin/alluxio fs mount /training-data/imagenet/ s3://alluxio-tensorflow-imagenet/ \
-  --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+  --option s3a.accessKeyID=<ACCESS_KEY_ID> --option s3a.secretKey=<SECRET_KEY>
 ```
 
 注意，此命令可以接受选项来传递存储桶的S3凭证。 
@@ -138,8 +138,8 @@ earthstar (score = 0.00117)
 ```console
 $ ./bin/alluxio fs mount /training-data/imagenet/ \
   s3://alluxio-tensorflow-imagenet/ \
-  --option aws.accessKeyID=<ACCESS_KEY_ID> \
-  --option aws.secretKey=<SECRET_KEY>
+  --option s3a.accessKeyID=<ACCESS_KEY_ID> \
+  --option s3a.secretKey=<SECRET_KEY>
 ```
 
 要使用Alluxio POSIX API通过Alluxio访问S3中的训练数据，

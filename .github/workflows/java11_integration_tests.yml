@@ -19,7 +19,7 @@ jobs:
           - >-
             alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
           - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
+            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
           - >-
@@ -56,7 +56,7 @@ jobs:
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/abfs,!underfs/cosn,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
-          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.6-jdk11 \
+          ALLUXIO_DOCKER_IMAGE=alluxio/alluxio-maven:0.0.7-jdk11 \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
 

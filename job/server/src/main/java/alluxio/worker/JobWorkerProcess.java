@@ -15,7 +15,6 @@ import alluxio.Process;
 import alluxio.wire.WorkerNetAddress;
 
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

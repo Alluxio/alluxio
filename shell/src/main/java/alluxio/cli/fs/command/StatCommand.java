@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -78,7 +77,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
       } else {
         System.out.println(path + " is a file path.");
         System.out.println(status);
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
+        BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
         List<Long> blockIds = status.getBlockIds();
         if (blockIds.isEmpty()) {
           System.out.println("This file does not contain any blocks.");

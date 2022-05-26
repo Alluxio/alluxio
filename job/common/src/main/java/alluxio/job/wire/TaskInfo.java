@@ -33,7 +33,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -231,9 +230,7 @@ public class TaskInfo implements JobInfo {
     return this;
   }
 
-  /**
-   * @return the error message
-   */
+  @Override
   public String getErrorMessage() {
     return mErrorMessage;
   }
@@ -247,9 +244,7 @@ public class TaskInfo implements JobInfo {
     return this;
   }
 
-  /**
-   * @return the result
-   */
+  @Override
   public Serializable getResult() {
     return mResult;
   }
@@ -272,10 +267,7 @@ public class TaskInfo implements JobInfo {
     return this;
   }
 
-  /**
-   * @return proto representation of the task info
-   * @throws IOException if serialization fails
-   */
+  @Override
   public alluxio.grpc.JobInfo toProto() {
     ByteBuffer result = null;
     try {

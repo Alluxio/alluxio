@@ -18,7 +18,6 @@ import alluxio.retry.RetryPolicy;
 
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

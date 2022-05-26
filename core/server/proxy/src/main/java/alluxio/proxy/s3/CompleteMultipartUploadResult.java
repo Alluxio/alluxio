@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.util.Objects;
+
 /**
  * Result returned after requests for completing a multipart upload.
  * It is defined in http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html.
@@ -31,6 +33,11 @@ public class CompleteMultipartUploadResult {
   private String mKey;
   /* Entity tag of the object. */
   private String mETag;
+
+  /* Error Code */
+  private String mCode;
+  /* Error Message */
+  private String mMessage;
 
   /**
    * Constructs an {@link CompleteMultipartUploadResult} with fields initialized to empty strings.
@@ -55,6 +62,17 @@ public class CompleteMultipartUploadResult {
     mBucket = bucket;
     mKey = key;
     mETag = S3RestUtils.quoteETag(etag);
+  }
+
+  /**
+   * Constructs an {@link CompleteMultipartUploadResult} with the specified values.
+   *
+   * @param code error code
+   * @param message error message
+   */
+  public CompleteMultipartUploadResult(String code, String message) {
+    mCode = code;
+    mMessage = message;
   }
 
   /**
@@ -119,5 +137,74 @@ public class CompleteMultipartUploadResult {
   @JacksonXmlProperty(localName = "ETag")
   public void setETag(String etag) {
     mETag = S3RestUtils.quoteETag(etag);
+  }
+
+  /**
+   * @return the entity error code
+   */
+  @JacksonXmlProperty(localName = "Code")
+  public String getCode() {
+    return mCode;
+  }
+
+  /**
+   * @param code the entity error code
+   */
+  @JacksonXmlProperty(localName = "Code")
+  public void setCode(String code) {
+    mCode = code;
+  }
+
+  /**
+   * @return the entity error message
+   */
+  @JacksonXmlProperty(localName = "Message")
+  public String getMessage() {
+    return mMessage;
+  }
+
+  /**
+   * @param message the entity error message
+   */
+  @JacksonXmlProperty(localName = "Message")
+  public void setMessage(String message) {
+    mMessage = message;
+  }
+
+  @Override
+  public String toString() {
+    return "CompleteMultipartUploadResult{"
+        + "mLocation='" + mLocation + '\''
+        + ", mBucket='" + mBucket + '\''
+        + ", mKey='" + mKey + '\''
+        + ", mETag='" + mETag + '\''
+        + ", mCode='" + mCode + '\''
+        + ", mMessage='" + mMessage + '\''
+        + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CompleteMultipartUploadResult result = (CompleteMultipartUploadResult) o;
+    return Objects.equals(mLocation, result.mLocation)
+        && Objects.equals(mBucket, result.mBucket)
+        && Objects.equals(mKey, result.mKey)
+        && Objects.equals(mETag, result.mETag)
+        && Objects.equals(mCode, result.mCode)
+        && Objects.equals(mMessage, result.mMessage);
+  }
+
+  @Override
+  public int hashCode() {
+    if (mCode == null) {
+      return Objects.hash(mLocation, mBucket, mKey, mETag);
+    }
+    return Objects.hash(mCode, mMessage);
   }
 }

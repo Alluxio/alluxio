@@ -12,7 +12,6 @@
 package alluxio.stress.master;
 
 import alluxio.stress.Parameters;
-import alluxio.stress.common.FileSystemParameters;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
@@ -25,62 +24,42 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class MasterBenchParameters extends FileSystemParameters {
-  /** The stop count value that is invalid. */
-  public static final int STOP_COUNT_INVALID = -1;
+public final class MasterBenchParameters extends MasterBenchBaseParameters {
+  public static final String OPERATION_OPTION_NAME = "--operation";
+  public static final String TARGET_THROUGHPUT_OPTION_NAME = "--target-throughput";
+  public static final String BASE_ALIAS_OPTION_NAME = "--base-alias";
+  public static final String TAG_OPTION_NAME = "--tag";
+  public static final String DURATION_OPTION_NAME = "--duration";
+  public static final String FIXED_COUNT_OPTION_NAME = "--fixed-count";
+  public static final String CONF_OPTION_NAME = "--conf";
+  public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
 
-  @Parameter(names = {"--operation"},
+  @Parameter(names = {OPERATION_OPTION_NAME},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
       converter = OperationConverter.class,
       required = true)
   public Operation mOperation;
 
-  @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
-  public int mClients = 1;
-
-  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
-  public int mThreads = 256;
-
-  @Parameter(names = {"--target-throughput"},
+  @Parameter(names = {TARGET_THROUGHPUT_OPTION_NAME},
       description = "the target throughput to issue operations. (ops / s)")
   public int mTargetThroughput = 1000;
 
-  @Parameter(names = {"--base"},
-      description = "The base directory path URI to perform operations in")
-  @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
-  public String mBasePath = "alluxio://localhost:19998/stress-master-base";
-
-  @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
+  @Parameter(names = {BASE_ALIAS_OPTION_NAME},
+      description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription
   public String mBaseAlias = "";
 
-  @Parameter(names = {"--tag"}, description = "optional human-readable string to identify this run")
+  @Parameter(names = {TAG_OPTION_NAME},
+      description = "optional human-readable string to identify this run")
   @Parameters.KeylessDescription
   public String mTag = "";
 
-  @Parameter(names = {"--create-file-size"},
-      description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
-  public String mCreateFileSize = "0";
-
-  @Parameter(names = {"--duration"},
+  @Parameter(names = {DURATION_OPTION_NAME},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";
 
-  @Parameter(names = {"--warmup"},
-      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
-          + "10000ms, etc.)")
-  public String mWarmup = "30s";
-
-  @Parameter(names = {"--stop-count"},
-      description = "The benchmark will stop after this number of paths. If -1, it is not used and "
-          + "the benchmark will stop after the duration. If this is used, duration will be "
-          + "ignored. This is typically used for creating files in preparation for another "
-          + "benchmark, since the results may not be reliable with a non-duration-based "
-          + "termination condition.")
-  public int mStopCount = STOP_COUNT_INVALID;
-
-  @Parameter(names = {"--fixed-count"},
+  @Parameter(names = {FIXED_COUNT_OPTION_NAME},
       description = "The number of paths in the fixed portion. Must be greater than 0. The first "
           + "'fixed-count' paths are in the fixed portion of the namespace. This means all tasks "
           + "are guaranteed to have the same number of paths in the fixed portion. This is "
@@ -88,16 +67,17 @@ public final class MasterBenchParameters extends FileSystemParameters {
           + "operation. For example, if fixed-count is set to 1000, and CreateFile is run, each "
           + "task will create files with exactly 1000 paths in the fixed directory. A subsequent "
           + "ListDir task will list that directory, knowing every task/thread will always read a "
-          + "directory with exactly 1000 paths.")
+          + "directory with exactly 1000 paths. A task such as OpenFile will repeatedly read the "
+          + "1000 files so that the task will not end before the desired duration time.")
   public int mFixedCount = 100;
 
-  @DynamicParameter(names = "--conf",
+  @DynamicParameter(names = CONF_OPTION_NAME,
       description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
           + "configuration values.")
 
   public Map<String, String> mConf = new HashMap<>();
 
-  @Parameter(names = {"--skip-prepare"},
+  @Parameter(names = {SKIP_PREPARE_OPTION_NAME},
       description = "If true, skip the prepare.")
   public boolean mSkipPrepare = false;
 

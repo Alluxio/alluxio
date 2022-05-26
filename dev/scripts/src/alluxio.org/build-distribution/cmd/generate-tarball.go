@@ -35,8 +35,8 @@ func Single(args []string) error {
 	// flags
 	generateFlags(singleCmd)
 	singleCmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
-		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
-			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
+		"a percent-separated list of custom ufs modules which has the form of a pipe-separated triplet of module name, ufs type, and its comma-separated maven arguments."+
+			" e.g. hadoop-a.b|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
 	singleCmd.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
 		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
 	singleCmd.BoolVar(&skipHelmFlag, "skip-helm", true, fmt.Sprintf("set this flag to skip using Helm to generate YAML templates for K8s deployment scenarios"))
@@ -46,9 +46,12 @@ func Single(args []string) error {
 		customUfsModules := strings.Split(customUfsModuleFlag, "%")
 		for _, customUfsModule := range customUfsModules {
 			customUfsModuleFlagArray := strings.Split(customUfsModule, "|")
-			if len(customUfsModuleFlagArray) == 2 {
+			if len(customUfsModuleFlagArray) == 3 {
+				customUfsModuleFlagArray[2] = strings.ReplaceAll(customUfsModuleFlagArray[2], ",", " ")
+				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], customUfsModuleFlagArray[1], true, customUfsModuleFlagArray[2]}
+			} else if len(customUfsModuleFlagArray) == 2 {
 				customUfsModuleFlagArray[1] = strings.ReplaceAll(customUfsModuleFlagArray[1], ",", " ")
-				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], true, customUfsModuleFlagArray[1]}
+				ufsModules["ufs-"+customUfsModuleFlagArray[0]] = module{customUfsModuleFlagArray[0], "hdfs", true, customUfsModuleFlagArray[1]}
 			} else {
 				fmt.Fprintf(os.Stderr, "customUfsModuleFlag specified, but invalid: %s\n", customUfsModuleFlag)
 				os.Exit(1)
@@ -104,7 +107,7 @@ func chdir(path string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"-T", "1", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter", "-Prelease"}
+	args := []string{"-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pno-webui-linter", "-Prelease"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
@@ -112,14 +115,12 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	}
 
 	args = append(args, fmt.Sprintf("-Dhadoop.version=%v", hadoopVersion), fmt.Sprintf("-P%v", hadoopVersion.hadoopProfile()))
-	if includeYarnIntegration(hadoopVersion) {
-		args = append(args, "-Pyarn")
-	}
-	return args
-}
 
-func includeYarnIntegration(hadoopVersion version) bool {
-	return hadoopVersion.compare(2, 4, 0) >= 0
+	// Ensure that the "-T" parameter passed from "-mvn_args" can take effect,
+	// because only the first -T parameter in "mvn" command will take effect.
+	// If the -T parameter is not given in "-mvn_args", this configuration will take effect.
+	args = append(args, "-T", "1")
+	return args
 }
 
 func getVersion() (string, error) {
@@ -145,7 +146,7 @@ func addModules(srcPath, dstPath, name, moduleFlag, version string, modules map[
 	}
 }
 
-func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules map[string]module, mvnArgs []string) {
+func buildModules(srcPath, name, moduleFlag, version string, modules map[string]module, mvnArgs []string) {
 	// Compile modules for the main build
 	for _, moduleName := range strings.Split(moduleFlag, ",") {
 		moduleEntry := modules[moduleName]
@@ -153,18 +154,18 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
-		var versionMvnArg = "3.3.0"
-		for _, arg := range moduleMvnArgs {
-			if strings.Contains(arg, "ufs.hadoop.version") {
-				versionMvnArg = strings.Split(arg, "=")[1]
-			}
-		}
 		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
 		var srcJar string
-		if ufsType == "hdfs" {
-			srcJar = fmt.Sprintf("alluxio-%v-%v-%v-%v.jar", name, ufsType, versionMvnArg, version)
+		if moduleEntry.ufsType == "hdfs" {
+			var versionMvnArg = "3.3.1"
+			for _, arg := range moduleMvnArgs {
+				if strings.Contains(arg, "ufs.hadoop.version") {
+					versionMvnArg = strings.Split(arg, "=")[1]
+				}
+			}
+			srcJar = fmt.Sprintf("alluxio-%v-%v-%v-%v.jar", name, moduleEntry.ufsType, versionMvnArg, version)
 		} else {
-			srcJar = fmt.Sprintf("alluxio-%v-%v-%v.jar", name, ufsType, version)
+			srcJar = fmt.Sprintf("alluxio-%v-%v-%v.jar", name, moduleEntry.ufsType, version)
 		}
 		dstJar := fmt.Sprintf("alluxio-%v-%v-%v.jar", name, moduleEntry.name, version)
 		run(fmt.Sprintf("saving %v module %v", name, moduleName), "mv", filepath.Join(srcPath, "lib", srcJar), filepath.Join(srcPath, "lib", dstJar))
@@ -219,16 +220,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
 	}
 
-	if includeYarnIntegration(hadoopVersion) {
-		pathsToCopy = append(pathsToCopy, []string{
-			"integration/yarn/bin/alluxio-application-master.sh",
-			"integration/yarn/bin/alluxio-master-yarn.sh",
-			"integration/yarn/bin/alluxio-worker-yarn.sh",
-			"integration/yarn/bin/alluxio-yarn.sh",
-			"integration/yarn/bin/alluxio-yarn-setup.sh",
-			"integration/yarn/bin/common.sh",
-		}...)
-	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
 		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
@@ -291,7 +282,7 @@ func generateTarball(skipUI, skipHelm bool) error {
 	}
 
 	// Compile ufs modules for the main build
-	buildModules(srcPath, "underfs", "hdfs", ufsModulesFlag, version, ufsModules, mvnArgs)
+	buildModules(srcPath, "underfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
 	versionString := version
 	if skipUI {
@@ -321,7 +312,6 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
 	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))
@@ -339,13 +329,6 @@ func generateTarball(skipUI, skipHelm bool) error {
 		workerWebappDir := "webui/worker"
 		run("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
 		run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
-	}
-	if includeYarnIntegration(hadoopVersion) {
-		// Update the YARN jar path
-		replace("integration/yarn/bin/alluxio-yarn.sh", "target/alluxio-integration-yarn-${VERSION}-jar-with-dependencies.jar", "alluxio-yarn-${VERSION}.jar")
-		// Create directories for the yarn integration
-		mkdir(filepath.Join(dstPath, "integration", "yarn"))
-		run("adding Alluxio YARN jar", "mv", fmt.Sprintf("integration/yarn/target/alluxio-integration-yarn-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "yarn", fmt.Sprintf("alluxio-yarn-%v.jar", version)))
 	}
 
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)

@@ -18,9 +18,9 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
 
 /**
  * This contains all the properties for Glue UDB.
@@ -215,16 +215,12 @@ public class Property extends UdbProperty {
           .setDescription("Enable Glue partition column statistics.")
           .build();
 
-  /**
-   * @return the name of alluxio.table.under.glue.Property
-   */
+  @Override
   public String getName() {
     return mName;
   }
 
-  /**
-   * @return the description of a property
-   */
+  @Override
   public String getDescription() {
     return mDescription;
   }

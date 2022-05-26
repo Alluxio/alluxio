@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.master.enabled false) -}}
+
 {{- $masterCount := int .Values.master.count }}
 {{- $isSingleMaster := eq $masterCount 1 }}
 {{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
@@ -87,15 +89,21 @@ spec:
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["alluxio","formatJournal"]
+        envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
         volumeMounts:
           - name: alluxio-journal
-            mountPath: /journal
+            mountPath: {{ .Values.journal.folder }}
       {{- end}}
       containers:
         - name: alluxio-master
@@ -170,7 +178,7 @@ spec:
             {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
-              mountPath: /journal
+              mountPath: {{ .Values.journal.folder }}
             {{- end }}
             {{- if .Values.metastore }}
             - name: alluxio-metastore
@@ -212,8 +220,8 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- range $key, $value := .Values.jobMaster.env }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:
@@ -254,8 +262,8 @@ spec:
           {{- end }}
           volumeMounts:
           {{- if .Values.metrics.enabled }}
-          - name: {{ $fullName }}-metrics-volume
-            mountPath: /config/metrics
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
           {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
@@ -264,8 +272,8 @@ spec:
           {{- end }}
           {{- if .Values.mounts }}
             {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
+          - name: "{{ .name }}"
+            mountPath: "{{ .path }}"
             {{- end }}
           {{- end }}
       restartPolicy: Always
@@ -331,3 +339,4 @@ spec:
             storage: {{ .Values.metastore.size }}
     {{- end }}
   {{- end }}
+{{- end }}

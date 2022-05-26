@@ -116,7 +116,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
   }
 
   /**
-   * @return an ascending iterator of "<BlockId,SortedField>" pairs
+   * @return an ascending iterator of "&lt;BlockId,SortedField&gt;" pairs
    */
   public Iterator<Pair<Long, T>> getAscendingIterator() {
     return Iterators.transform(mSortedSet.iterator(),
@@ -124,7 +124,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
   }
 
   /**
-   * @return a descending iterator of "<BlockId,SortedField>" pairs
+   * @return a descending iterator of "&lt;BlockId,SortedField&gt;" pairs
    */
   public Iterator<Pair<Long, T>> getDescendingIterator() {
     return Iterators.transform(mSortedSet.descendingIterator(),

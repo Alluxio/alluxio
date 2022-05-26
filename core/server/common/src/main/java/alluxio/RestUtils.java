@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
 

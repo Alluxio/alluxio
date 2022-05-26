@@ -257,7 +257,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   @Override
   public void startSync(AlluxioURI ufsUri) {
-    LOG.debug("Add {} as a sync point", ufsUri.toString());
+    LOG.debug("Add {} as a sync point", ufsUri);
     mUfsUriList.add(ufsUri);
   }
 
@@ -268,7 +268,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   @Override
   public void stopSync(AlluxioURI ufsUri) {
-    LOG.debug("attempt to remove {} from sync point list", ufsUri.toString());
+    LOG.debug("attempt to remove {} from sync point list", ufsUri);
     mUfsUriList.remove(ufsUri);
   }
 
@@ -389,11 +389,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     }
   }
 
-  /**
-   * Get the activity sync info.
-   *
-   * @return SyncInfo object which encapsulates the necessary information about changes
-   */
+  @Override
   public SyncInfo getActivitySyncInfo() {
     // The overview of this method is
     // 1. setup a source of event
@@ -410,7 +406,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     try (LockResource r = new LockResource(mWriteLock)) {
       initNextWindow();
       if (mEventMissed) {
-        // force sync every syncpoint
+        // force sync every sync point
         for (AlluxioURI uri : mUfsUriList) {
           syncPointFiles.put(uri, null);
           syncSyncPoint(uri.toString());
@@ -434,8 +430,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
       }
       txId = getLastTxId();
     }
-    LOG.debug("Syncing {} files", syncPointFiles.size());
-    LOG.debug("Last transaction id {}", txId);
+    LOG.debug("Syncing {} files with last transaction id {}", syncPointFiles.size(), txId);
 
     SyncInfo syncInfo = new SyncInfo(syncPointFiles, false, txId);
     return syncInfo;

@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
 import alluxio.cli.ValidationTestUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -57,7 +57,7 @@ public class HdfsProxyUserValidationTaskTest {
 
   @Test
   public void skipped() {
-    mConf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mConf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());

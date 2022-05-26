@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

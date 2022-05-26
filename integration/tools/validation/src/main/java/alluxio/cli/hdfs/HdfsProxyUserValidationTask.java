@@ -11,9 +11,9 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.ApplicableUfsType;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
@@ -91,7 +91,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
   public ValidationTaskResult validateImpl(Map<String, String> optionMap) {
     // Skip this test if NOSASL
     if (mConf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE)
-            .equals(AuthType.NOSASL.getAuthName())) {
+            .equals(AuthType.NOSASL)) {
       return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               String.format("Impersonation validation is skipped for NOSASL"), "");
     }

@@ -5,8 +5,8 @@
 package alluxio.concurrent.jsr;
 
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;

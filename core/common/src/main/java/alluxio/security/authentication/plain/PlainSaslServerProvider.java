@@ -12,7 +12,6 @@
 package alluxio.security.authentication.plain;
 
 import java.security.Provider;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

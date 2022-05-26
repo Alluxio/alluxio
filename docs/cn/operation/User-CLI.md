@@ -391,8 +391,8 @@ $ ./bin/alluxio fs mkdir /users/Bob
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
 $ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
 $ ./bin/alluxio fs mount \
---option aws.accessKeyId=<accessKeyId> \
---option aws.secretKey=<secretKey> \
+--option s3a.accessKeyId=<accessKeyId> \
+--option s3a.secretKey=<secretKey> \
 /mnt/s3 s3://data-bucket/
 ```
 

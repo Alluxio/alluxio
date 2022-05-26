@@ -26,16 +26,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
- * mostly consists of journal operations, like initialization, journal tailing when in secondary
+ * mostly consists of journal operations, like initialization, journal tailing when in standby
  * mode, or journal writing when the master is the primary.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
@@ -44,12 +43,12 @@ public abstract class AbstractMaster implements Master {
   private static final long SHUTDOWN_TIMEOUT_MS = 10L * Constants.SECOND_MS;
 
   /** A factory for creating executor services when they are needed. */
-  private ExecutorServiceFactory mExecutorServiceFactory;
+  private final ExecutorServiceFactory mExecutorServiceFactory;
   /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService;
   /** A handler to the journal for this master. */
-  private Journal mJournal;
-  /** true if this master is in primary mode, and not secondary mode. */
+  private final Journal mJournal;
+  /** true if this master is in primary mode, and not standby mode. */
   private boolean mIsPrimary = false;
 
   /** The clock to use for determining the time. */
@@ -75,7 +74,7 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public Set<Class<? extends Server>> getDependencies() {
-    return new HashSet<>();
+    return Collections.emptySet();
   }
 
   @Override
@@ -122,7 +121,7 @@ public abstract class AbstractMaster implements Master {
         mExecutorService = null;
       }
     }
-    LOG.info("{}: Stopped {} master.", getName(), mIsPrimary ? "primary" : "secondary");
+    LOG.info("{}: Stopped {} master.", getName(), mIsPrimary ? "primary" : "standby");
   }
 
   /**
@@ -135,7 +134,7 @@ public abstract class AbstractMaster implements Master {
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
     // Use the state change lock for the journal context, since all modifications to journaled
-    // state must happen inside of a journal context.
+    // state must happen inside a journal context.
     LockResource sharedLockResource;
     try {
       sharedLockResource = mMasterContext.getStateLockManager().lockShared();

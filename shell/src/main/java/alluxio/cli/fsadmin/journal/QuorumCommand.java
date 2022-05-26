@@ -15,7 +15,6 @@ import alluxio.cli.Command;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
-
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.NetAddress;
@@ -60,11 +59,6 @@ public class QuorumCommand extends AbstractFsAdminCommand {
   public static String description() {
     return "Manage embedded journal quorum configuration. "
         + "See sub-commands' descriptions for more details.";
-  }
-
-  @Override
-  public boolean hasSubCommand() {
-    return true;
   }
 
   @Override

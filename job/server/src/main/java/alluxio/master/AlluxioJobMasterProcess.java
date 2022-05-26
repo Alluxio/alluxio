@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -150,11 +149,11 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   @Override
   public void stop() throws Exception {
     stopRejectingServers();
-    if (isServing()) {
+    if (isGrpcServing()) {
       stopServing();
     }
-    stopMaster();
     mJournalSystem.stop();
+    stopMaster();
   }
 
   protected void startMaster(boolean isLeader) {
@@ -252,7 +251,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   protected void stopServing() throws Exception {
-    if (isServing()) {
+    if (isGrpcServing()) {
       LOG.info("Stopping Alluxio job master RPC server on {} @ {}", this, mRpcBindAddress);
       if (!mGrpcServer.shutdown()) {
         LOG.warn("Alluxio job master RPC server shutdown timed out.");

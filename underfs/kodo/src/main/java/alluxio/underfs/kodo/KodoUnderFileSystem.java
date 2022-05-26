@@ -28,11 +28,9 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.util.Auth;
-
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 
 /**
@@ -74,10 +71,10 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to Kodo", PropertyKey.KODO_DOWNLOAD_HOST);
     Preconditions.checkArgument(conf.isSet(PropertyKey.KODO_ENDPOINT),
         "Property %s is required to connect to Kodo", PropertyKey.KODO_ENDPOINT);
-    String accessKey = conf.get(PropertyKey.KODO_ACCESS_KEY);
-    String secretKey = conf.get(PropertyKey.KODO_SECRET_KEY);
-    String endPoint = conf.get(PropertyKey.KODO_ENDPOINT);
-    String souceHost = conf.get(PropertyKey.KODO_DOWNLOAD_HOST);
+    String accessKey = conf.getString(PropertyKey.KODO_ACCESS_KEY);
+    String secretKey = conf.getString(PropertyKey.KODO_SECRET_KEY);
+    String endPoint = conf.getString(PropertyKey.KODO_ENDPOINT);
+    String souceHost = conf.getString(PropertyKey.KODO_DOWNLOAD_HOST);
     Auth auth = Auth.create(accessKey, secretKey);
     Configuration configuration = new Configuration();
     OkHttpClient.Builder okHttpBuilder = initializeKodoClientConfig(conf);
@@ -132,7 +129,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

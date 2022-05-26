@@ -28,13 +28,11 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.AllocateOptions;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.NoopBlockWorker;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.TempBlockMeta;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -60,27 +58,14 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   private static final int PARTIAL_WRITTEN = 512;
 
   private OutputStream mOutputStream;
-  private BlockWorker mBlockWorker;
-  private BlockStore mBlockStore;
+  private LocalBlockStore mBlockStore;
   /** The file used to hold the data written by the test. */
   private File mFile;
   private long mPartialChecksum;
 
-  class MockBlockWorker extends NoopBlockWorker {
-    @Override
-    public AtomicReference<Long> getWorkerId() {
-      return new AtomicReference<>(TEST_WORKER_ID);
-    }
-
-    @Override
-    public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-      return mBlockStore.getTempBlockMeta(sessionId, blockId);
-    }
-  }
-
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new HashMap<PropertyKey, String>() {
+      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
         {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory(
@@ -89,7 +74,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
           put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, AlluxioTestDirectory
               .createTemporaryDirectory("UfsFallbackBlockWriteHandlerTest-WorkerDataFolder")
               .getAbsolutePath());
-          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1");
+          put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
         }
       }, ServerConfiguration.global());
 
@@ -98,7 +83,9 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mFile = mTestFolder.newFile();
     mOutputStream = new FileOutputStream(mFile);
     mBlockStore = new TieredBlockStore();
-    mBlockWorker = new MockBlockWorker();
+    DefaultBlockWorker blockWorker = Mockito.mock(DefaultBlockWorker.class);
+    Mockito.when(blockWorker.getWorkerId()).thenReturn(new AtomicReference<>(TEST_WORKER_ID));
+    Mockito.when(blockWorker.getLocalBlockStore()).thenReturn(mBlockStore);
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
@@ -108,14 +95,14 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
         .thenReturn(new FileOutputStream(mFile, true));
 
     mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler = new UfsFallbackBlockWriteHandler(mBlockWorker, ufsManager, mResponseObserver,
+    mWriteHandler = new UfsFallbackBlockWriteHandler(blockWorker, ufsManager, mResponseObserver,
         mUserInfo, false);
     setupResponseTrigger();
 
     // create a partial block in block store first
     mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID, AllocateOptions
         .forCreate(CHUNK_SIZE, BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM)));
-    BlockWriter writer = mBlockStore.getBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
+    BlockWriter writer = mBlockStore.createBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
     DataBuffer buffer = newDataBuffer(PARTIAL_WRITTEN);
     mPartialChecksum = getChecksum(buffer);
     writer.append((ByteBuf) buffer.getNettyOutput());
@@ -133,7 +120,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mBlockStore.abortBlock(TEST_SESSION_ID, TEST_BLOCK_ID);
     mWriteHandler.write(newFallbackInitRequest(PARTIAL_WRITTEN));
     waitForResponses();
-    checkErrorCode(mResponseObserver, Status.Code.NOT_FOUND);
+    checkErrorCode(mResponseObserver, Status.Code.INTERNAL);
   }
 
   @Test
@@ -160,10 +147,9 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
         newWriteRequestCommand(0).getCommand().getCreateUfsBlockOptions().toBuilder()
             .setBytesInBlockStore(bytesInBlockStore)
             .build();
-    WriteRequest request = super.newWriteRequestCommand(0).toBuilder().setCommand(
+    return super.newWriteRequestCommand(0).toBuilder().setCommand(
         super.newWriteRequestCommand(0).getCommand().toBuilder()
         .setCreateUfsBlockOptions(createUfsBlockOptions)).build();
-    return request;
   }
 
   @Override

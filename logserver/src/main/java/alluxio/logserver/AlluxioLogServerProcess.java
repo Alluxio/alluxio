@@ -11,9 +11,9 @@
 
 package alluxio.logserver;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Process;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -32,7 +32,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.GuardedBy;
 
 /**

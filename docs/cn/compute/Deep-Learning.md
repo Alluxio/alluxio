@@ -60,8 +60,8 @@ $ ./bin/alluxio fs mkdir /training-data
 ```console
 $ ./bin/alluxio fs mount /training-data/imagenet/ \
 s3://alluxio-tensorflow-imagenet/ \
---option aws.accessKeyID=<ACCESS_KEY_ID> \
---option aws.secretKey=<SECRET_KEY>
+--option s3a.accessKeyID=<ACCESS_KEY_ID> \
+--option s3a.secretKey=<SECRET_KEY>
 ```
 
 请注意，此命令需要传递存储桶的S3证书。这些证书与挂载点相关联，这样之后的访问就不需要证书了。

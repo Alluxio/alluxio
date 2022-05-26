@@ -1,5 +1,9 @@
+Client.BlockMasterClientCount:
+  'Number of instances in the BlockMasterClientPool.'
 Client.BlockReadChunkRemote:
   'The timer statistics of reading block data in chunks from remote Alluxio workers via RPC framework. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
+Client.BlockWorkerClientCount:
+  'Number of instances in the BlockWorkerClientPool.'
 Client.BytesReadLocal:
   'Total number of bytes short-circuit read from local storage by this client'
 Client.BytesReadLocalThroughput:
@@ -100,5 +104,9 @@ Client.CacheStorePutTimeout:
   'Number of timeouts when writing new pages to page store.'
 Client.CacheStoreThreadsRejected:
   'Number of rejection of I/O threads on submitting tasks to thread pool, likely due to unresponsive local file system.'
+Client.DefaultHiveClientCount:
+  'Number of instances in the DefaultHiveClientPool.'
+Client.FileSystemMasterClientCount:
+  'Number of instances in the FileSystemMasterClientPool.'
 Client.MetadataCacheSize:
-  'The total number of files and directories whose metadata is cached on the client-side. Only valid if the filesystem isalluxio.client.file.MetadataCachingBaseFileSystem.'
+  'The total number of files and directories whose metadata is cached on the client-side. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'

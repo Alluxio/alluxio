@@ -119,7 +119,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   }
 
   private String getDisplayTime(long timestamp) {
-    String formatString = ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
+    String formatString = ServerConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
     return CommonUtils.convertMsToDate(timestamp, formatString);
   }
 

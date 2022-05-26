@@ -66,7 +66,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -151,7 +150,7 @@ public final class CommonUtils {
    *
    * @return the worker data folder path after each storage directory, the final path will be like
    * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
-   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   * {@link PropertyKey#WORKER_DATA_FOLDER}.
    */
   public static String getWorkerDataDirectory(String storageDir, AlluxioConfiguration conf) {
     return PathUtils.concatPath(
@@ -674,6 +673,7 @@ public final class CommonUtils {
     JOB_WORKER,
     CLIENT,
     MASTER,
+    PLUGIN,
     PROXY,
     WORKER;
   }
@@ -791,6 +791,7 @@ public final class CommonUtils {
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
       boolean mInitialized;
+      @Override
       public T get() {
         return mDelegate.get();
       }

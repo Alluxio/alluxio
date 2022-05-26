@@ -33,16 +33,9 @@ public final class CustomAuthenticationProvider implements AuthenticationProvide
   /**
    * Constructs a new custom authentication provider.
    *
-   * @param providerName the name of the provider
+   * @param customProviderClass the provider class
    */
-  public CustomAuthenticationProvider(String providerName) {
-    Class<?> customProviderClass;
-    try {
-      customProviderClass = Class.forName(providerName);
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException(providerName + " not found");
-    }
-
+  public CustomAuthenticationProvider(Class<?> customProviderClass) {
     mCustomProvider = (AuthenticationProvider) CommonUtils
         .createNewClassInstance(customProviderClass, null, null);
   }

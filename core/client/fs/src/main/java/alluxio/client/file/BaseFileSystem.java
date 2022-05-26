@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
@@ -45,7 +45,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
@@ -81,7 +80,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -95,7 +93,7 @@ public class BaseFileSystem implements FileSystem {
   /** Used to manage closeable resources. */
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
-  protected final AlluxioBlockStore mBlockStore;
+  protected final BlockStoreClient mBlockStore;
 
   protected volatile boolean mClosed = false;
 
@@ -106,7 +104,7 @@ public class BaseFileSystem implements FileSystem {
    */
   public BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
-    mBlockStore = AlluxioBlockStore.create(fsContext);
+    mBlockStore = BlockStoreClient.create(fsContext);
     mCloser.register(mFsContext);
   }
 
@@ -199,17 +197,11 @@ public class BaseFileSystem implements FileSystem {
   public boolean exists(AlluxioURI path, final ExistsPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
-    try {
-      return rpc(client -> {
-        ExistsPOptions mergedOptions = FileSystemOptions.existsDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        // TODO(calvin): Make this more efficient
-        client.getStatus(path, GrpcUtils.toGetStatusOptions(mergedOptions));
-        return true;
-      });
-    } catch (FileDoesNotExistException | InvalidPathException e) {
-      return false;
-    }
+    return rpc(client -> {
+      ExistsPOptions mergedOptions = FileSystemOptions.existsDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.exists(path, mergedOptions);
+    });
   }
 
   @Override
@@ -278,7 +270,7 @@ public class BaseFileSystem implements FileSystem {
       return client.getStatus(path, mergedOptions);
     });
     if (!status.isCompleted()) {
-      LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.", path);
+      LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", path);
     }
     return status;
   }

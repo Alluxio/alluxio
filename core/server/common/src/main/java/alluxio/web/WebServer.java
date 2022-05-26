@@ -11,9 +11,11 @@
 
 package alluxio.web;
 
+import static alluxio.Constants.REST_API_PREFIX;
+
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -36,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -46,6 +47,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
   private static final String DISABLED_METHODS = "TRACE,OPTIONS";
+  private static final String THREAD_DUMP_PATH = REST_API_PREFIX + "/common/thread_dump";
+  private static final String JMX_PATH = "/metrics/jmx";
 
   private final Server mServer;
   private final String mServiceName;
@@ -106,8 +109,8 @@ public abstract class WebServer {
     for (String s : DISABLED_METHODS.split(",")) {
       disableMethod(s);
     }
-
-    mServletContextHandler.addServlet(StacksServlet.class, "/stacks");
+    mServletContextHandler.addServlet(StacksServlet.class, THREAD_DUMP_PATH);
+    mServletContextHandler.addServlet(JmxServlet.class, JMX_PATH);
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
         mServletContextHandler, new DefaultHandler()});

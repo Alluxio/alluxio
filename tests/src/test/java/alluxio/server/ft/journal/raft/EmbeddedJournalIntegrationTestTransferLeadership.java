@@ -12,6 +12,7 @@
 package alluxio.server.ft.journal.raft;
 
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerState;
 import alluxio.master.journal.JournalType;
@@ -36,7 +37,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .setClusterName("EmbeddedJournalTransferLeadership_transferLeadership")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
@@ -59,7 +60,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .setClusterName("EmbeddedJournalTransferLeadership_repeatedTransferLeadership")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
@@ -83,7 +84,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .setClusterName("EmbeddedJournalTransferLeadership_transferWhenAlreadyTransferring")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
@@ -110,7 +111,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .setClusterName("EmbeddedJournalTransferLeadership_transferLeadership")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
@@ -137,7 +138,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToNewMember")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
@@ -158,7 +159,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToUnavailableMaster")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
@@ -181,12 +182,73 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     mCluster.notifySuccess();
   }
 
-  private void transferAndWait(MasterNetAddress newLeaderAddr) throws Exception {
+  @Test
+  public void resetPriorities() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UNAVAILABLE_MASTER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToUnavailableMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
+    boolean match = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+            .stream().allMatch(info -> info.getPriority() == 0);
+    Assert.assertTrue(match);
+
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+      // we can therefore access to the new leader's address this way
+      MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+      transferAndWait(newLeaderAddr);
+      match = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+          .stream().allMatch(info -> info.getPriority() == (info.getIsLeader() ? 2 : 1));
+      Assert.assertTrue(match);
+      mCluster.getJournalMasterClientForMaster().resetPriorities();
+      match = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+          .stream().allMatch(info -> info.getPriority() == 1);
+      Assert.assertTrue(match);
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferToSelfThenToOther() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UNAVAILABLE_MASTER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToUnavailableMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
+    int leaderIdx = mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME);
+    MasterNetAddress leaderAddr = mCluster.getMasterAddresses().get(leaderIdx);
+    String transferId = transferAndWait(leaderAddr);
+    GetTransferLeaderMessagePResponse transferLeaderMessage =
+        mCluster.getJournalMasterClientForMaster().getTransferLeaderMessage(transferId);
+    Assert.assertFalse(transferLeaderMessage.getTransMsg().getMsg().isEmpty());
+
+    int newLeaderIdx = (leaderIdx + 1) % NUM_MASTERS;
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+    transferAndWait(newLeaderAddr);
+    mCluster.notifySuccess();
+  }
+
+  private String transferAndWait(MasterNetAddress newLeaderAddr) throws Exception {
     NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
         .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
-    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
 
     waitForQuorumPropertySize(info -> info.getIsLeader()
         && info.getServerAddress().equals(netAddress), 1);
+    return transferId;
   }
 }

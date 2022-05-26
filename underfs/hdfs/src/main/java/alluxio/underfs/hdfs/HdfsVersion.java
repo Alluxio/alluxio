@@ -12,7 +12,6 @@
 package alluxio.underfs.hdfs;
 
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 /** The set of supported Hdfs versions. */
@@ -27,6 +26,7 @@ public enum HdfsVersion {
   HADOOP_2_7("hadoop-2.7", "(hadoop-?2\\.7(\\.(\\d+))?|2\\.7(\\.(\\d+)(-.*)?)?)"),
   HADOOP_2_8("hadoop-2.8", "(hadoop-?2\\.8(\\.(\\d+))?|2\\.8(\\.(\\d+)(-.*)?)?)"),
   HADOOP_2_9("hadoop-2.9", "(hadoop-?2\\.9(\\.(\\d+))?|2\\.9(\\.(\\d+)(-.*)?)?)"),
+  HADOOP_2_10("hadoop-2.10", "(hadoop-?2\\.10(\\.(\\d+))?|2\\.10(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_0("hadoop-3.0", "(hadoop-?3\\.0(\\.(\\d+))?|3\\.0(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_1("hadoop-3.1", "(hadoop-?3\\.1(\\.(\\d+))?|3\\.1(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_2("hadoop-3.2", "(hadoop-?3\\.2(\\.(\\d+))?|3\\.2(\\.(\\d+)(-.*)?)?)"),

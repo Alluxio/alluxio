@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
@@ -50,8 +50,8 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create(mFsContext);
-    long capacityBytes = alluxioBlockStore.getCapacityBytes();
+    BlockStoreClient blockStoreClient = BlockStoreClient.create(mFsContext);
+    long capacityBytes = blockStoreClient.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
     return 0;
   }

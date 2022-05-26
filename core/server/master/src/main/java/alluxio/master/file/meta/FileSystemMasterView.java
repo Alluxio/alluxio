@@ -24,7 +24,7 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
-
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -71,7 +71,7 @@ public final class FileSystemMasterView {
   /**
    * @return all the files lost on the workers
    */
-  public synchronized List<Long> getLostFiles() {
+  public synchronized Set<Long> getLostFiles() {
     return mFileSystemMaster.getLostFiles();
   }
 

@@ -30,7 +30,6 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,7 +56,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     mPermissionCheckEnabled =
         ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
-        ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+        ServerConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
   }
 
   @Override

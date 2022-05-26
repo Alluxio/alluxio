@@ -8,84 +8,102 @@ priority: 6
 * Table of Contents
 {:toc}
 
-Leading companies around the world run Alluxio in production to extract value
+Many leading companies around the world run Alluxio in production to extract value
 from their data. Some of them are listed in our
 [Powered-By](https://www.alluxio.io/powered-by-alluxio) page.
-In this section, we introduce some of the most common Alluxio use cases.
+In this section, we will introduce some of the most common Alluxio use cases.
 
-## Object Storage Data Acceleration
+## Use Case 1: Accelerate Analytics and AI in the Cloud
 
-In many organizations, an increasingly popular architecture is to leverage object storage as an
-important source of data for data analytics applications like Spark, Presto, Hadoop, or machine
-learning/AI workloads such as Tensorflow etc.
-Object storage can be public object storage services (e.g. AWS S3, Azure blob storage,
-Google Cloud Storage, Aliyun OSS, or Tencent COS) or on-premise object stores (e.g. Ceph or Swift).
+<p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-1-cloud.png"/> </p>
 
-Though object stores are often more cost-effective, easier to scale, and easier to maintain, they
-do not have the same capabilities as a file system, even if a filesystem-like interface is provided.
-Some missing capabilities include:
+Many organizations are running analytics and machine learning workloads (Spark, Presto, Hive, Tensorflow, etc.)
+on object storage in the public cloud (AWS S3, Google Cloud, or Microsoft Azure).
 
-- Lack of filesystem-level data caching: Multiple jobs accessing the same data set cannot benefit
-from caching frequently accessed data.
+Though cloud object stores are often more cost-effective, easier to use, and easier to scale, there are some challenges:
+- Performance is variable and consistent SLAs are hard
+- Metadata operations are expensive and slowdown workloads
+- Embedded caching is ineffective for ephemeral clusters
 
-- Lack of node-level data locality on computation: Data is always read remotely and never
-node-local to the compute tasks.
+Alluxio addresses these challenges by providing intelligent multi-tiered caching and metadata management.
+Deploying Alluxio on the compute cluster helps:
+- Achieve consistent performance for analytics engines
+- Reduce AI training time and cost
+- Eliminate repeated storage access costs
+- Achieve off-cluster caching for ephemeral workloads
 
-- Different performance implications: Operations to list objects can be slow
-especially when there are many objects in the bucket. Operations to rename objects can also be slow
-with weaker consistency guarantees.
+See this example use case from [Electronic Arts](https://www.alluxio.io/blog/building-a-high-performance-platform-on-aws-to-support-real-time-gaming-services-using-presto-and-alluxio/).
 
-- Throughput limitation: Storage systems such as S3 can limit the throughput to a compute node.
+## Use Case 2: Speed-up Analytics and AI for On-premise Object Stores
 
-- Security models: Object stores often employ different Security models than file systems.
+<p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-2-on-prem.png"/> </p>
 
-In such architectures, deploying Alluxio on the compute side where data is configured to persist
-from object stores can significantly benefit applications.
-Alluxio can cache data locally alongside different applications and manage its corresponding
-metadata to avoid particular inefficient metadata operations of object stores.
+Running data-driven applications on top of an object store deployed on-premise brings the following challenges:
+- Poor performance for analytics and AI workloads
+- Lack of enough native support for popular frameworks
+- Expensive and slow metadata operations
 
-See example use cases from
-[BazzarVoice](https://www.slideshare.net/ThaiBui7/hybrid-collaborative-tiered-storage-with-alluxio),
-[Myntra](https://www.alluxio.io/app/uploads/2019/05/myntra-case-study-accelerating-analytics-in-the-cloud-for-mobile-e-commerce.pdf).
+Alluxio solves these problems by providing caching and API translation. Deploying Alluxio on the application side brings:
+- Improved performance for analytics and AI workloads
+- Flexibility of segregated storage
+- Support for multiple APIs with no changes to the end-user experience
+- Reduce the overall storage cost
 
-## Satellite Compute Clusters Enabler
+See this example use case from [DBS](https://www.alluxio.io/resources/presentations/enabling-big-data-ai-workloads-on-the-object-store-at-dbs/).
 
-For reasons such as performance, security, or resource isolation, organizations maintain
-satellite computation clusters that are independent from their main data cluster, using dedicated
-resources for mission-critical applications. These satellite clusters often need to access data
-from the main cluster. This requires either reading data remotely during job execution or
-running ETL pipelines to preload data prior to job execution.
+## Use Case 3: “Zero-Copy” Hybrid Cloud Bursting
 
-Alluxio can accelerate the remote data read from the main data cluster without adding extra ETL steps.
-When deployed on the compute nodes in the satellite cluster and configured to connect to the
-main data cluster, Alluxio serves as a local data proxy layer that provides the same
-namespace as the main data cluster. Alluxio will transparently
-cache frequently accessed data local to the satellite cluster to reduce network traffic,
-decreasing the overall load of the main data cluster.
+<p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-3-hybrid.png"/> </p>
 
-See example use cases from
-[Tencent News](https://www.alluxio.io/app/uploads/2019/05/tencent-case-study-delivering-customized-news-to-over-100-million-montly-users.pdf).
+As more organizations are migrating to the cloud, a common intermediate step is to utilize compute resources
+in the cloud while retrieving data from on-premise data sources. However, this hybrid architecture brings the following problems:
+- Data access across the network is slow and inconsistent
+- Copying data to cloud storage is time-consuming, error-prone, and complex
+- Compliance and data sovereignty requirements may prohibit copying data into the cloud
 
-## A Common Data Access Layer
+Alluxio provides “zero-copy” cloud bursting which enables compute engines in the cloud to access data
+on-premise without the need of a persistent copy of the data in the cloud that needs to be periodically
+synchronized to the original data on-premises. This brings the following benefits:
+- Performance as if data is on the cloud compute cluster
+- No changes to end-user experience and security model
+- Common data access layer with access-based or policy-based data movement
+- Utilization of elastic cloud compute resources and cost savings
 
-Users deploy Alluxio as a storage abstraction layer for common data access requests.
-Alluxio supports storage connectors for various storage types including public cloud, such as AWS or Azure,
-and on-premise storage services, such as HDFS or Ceph. As long as applications integrate with
-Alluxio, they are enabled to access different persistent storage systems without binary or
-source code changes in the application. Once connected to Alluxio, applications are
-automatically integrated with the most popular storage options without implementing any connectors.
+See this example use case from [Walmart](https://www.alluxio.io/resources/videos/enterprise-distributed-query-service-powered-by-presto-alluxio-across-clouds-at-walmartlabs/).
 
-See example use cases from
-[TensorFlow on Azure](https://blogs.msdn.microsoft.com/cloudai/2018/05/01/tensorflow-on-azure-enabling-blob-storage-via-alluxio/).
+## Use Case 4: Hybrid Cloud Storage Gateway for Data in the Cloud
 
-## A Single Entry Point for Multiple Data Sources (Data Unification)
+<p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-4-hybrid.png"/> </p>
 
-Alluxio provides a mounting API that enables applications to access data across multiple sources
-in the same filesystem namespace. Applications do not need to individually configure connection
-details for each data source, such as the client library version or different security models.
-From the perspective of an application, it is accessing a "logical filesystem"
-whose data can be backed by multiple different persistent storages.
-This drastically simplifies the development, maintenance and management of an application.
+Another hybrid cloud architecture is to access cloud storage from a private datacenter.
+Using this architecture usually causes the following problems:
+- No unified view for cloud and on-premise storage
+- Prohibitively high network egress costs
+- Inability to utilize compute on-premises for data in the cloud
+- Inadequate performance for analytics and AI
 
-See example use cases from
-[Lenovo](https://www.alluxio.io/app/uploads/2019/05/lenovo-analyzes-petabytes-of-smartphone-data-from-multiple-locations-and-eliminates-etl-with-alluxio.pdf).
+Alluxio solves these problems by acting as a hybrid cloud storage gateway that utilizes on-premise compute for data in the cloud.
+When deployed with the compute on-premise, Alluxio manages the compute cluster’s storage and provides data locality to applications, achieving:
+- High performance for reads and writes using intelligent distributed caching
+- Network cost savings by eliminating replication
+- No changes to the end-user experience with flexible APIs and security model on cloud storage
+
+See this example use case from [Comcast](https://www.alluxio.io/resources/videos/securely-enhancing-data-access-in-hybrid-cloud-with-alluxio/).
+
+## Use Case 5: Enable Cross Datacenter Access
+
+<p align="center"> <img style="text-align: center" width="200" src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/10/overview-case-5-multi-datacenter.png"/> </p>
+
+Many organizations maintain satellite compute clusters that are independent of their main data cluster
+for the purposes of performance, security, or resource isolation. These satellite clusters need to access data remotely from the main cluster, which is challenging because:
+- Cross-datacenter copies are manual and time-consuming
+- Unnecessary network traffic for replication is expensive
+- Replication jobs on an overloaded storage cluster dramatically impact the performance of existing workloads
+
+Alluxio can be deployed on the compute nodes in the satellite cluster and configured to connect to the main data cluster,
+serving as one logical copy of data. Thus:
+- No redundant data copies across datacenters
+- Elimination of complex data synchronization
+- Improved performance compared to remote region data access
+- Self-service data infrastructure across business units
+

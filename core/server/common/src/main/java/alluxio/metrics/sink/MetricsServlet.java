@@ -20,7 +20,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -32,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @NotThreadSafe
 public class MetricsServlet implements Sink {
-  private static final String SERVLET_PATH = "/metrics/json";
+  public static final String SERVLET_PATH = "/metrics/json";
 
   private MetricRegistry mMetricsRegistry;
   private ObjectMapper mObjectMapper;

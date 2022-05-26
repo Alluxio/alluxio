@@ -33,6 +33,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -86,9 +87,9 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
     assertEquals(2, blockInfo.getLength());
     assertFalse(blockInfo.getLocations().isEmpty());
 
-    final BlockWorker bw =
+    final DefaultBlockWorker bw = (DefaultBlockWorker)
         mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class);
-    assertTrue(bw.hasBlockMeta(blockId));
+    assertTrue(bw.getLocalBlockStore().hasBlockMeta(blockId));
     assertEquals(0, bm.getLostBlocksCount());
 
     mFileSystem.free(filePath);
@@ -108,7 +109,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
     assertEquals(2, blockInfo.getLength());
     // Verify the block has been removed from all workers.
     assertTrue(blockInfo.getLocations().isEmpty());
-    assertFalse(bw.hasBlockMeta(blockId));
+    assertFalse(bw.getLocalBlockStore().hasBlockMeta(blockId));
     // Verify the removed block is added to LostBlocks list.
     assertTrue(bm.isBlockLost(blockInfo.getBlockId()));
 
@@ -136,7 +137,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
    * Tests that deleting a directory with number of files larger than maximum lock cache size will
    * not be blocked.
    */
-  @Test(timeout = 3000)
+  @Test(timeout = 10000)
   public void deleteDir() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int file = 0; file < 2 * LOCK_POOL_HIGH_WATERMARK; file++) {

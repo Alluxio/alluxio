@@ -17,6 +17,10 @@ import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetAllWorkerHealthPResponse;
+import alluxio.grpc.GetCmdStatusDetailedRequest;
+import alluxio.grpc.GetCmdStatusDetailedResponse;
+import alluxio.grpc.GetCmdStatusRequest;
+import alluxio.grpc.GetCmdStatusResponse;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobServiceSummaryPResponse;
 import alluxio.grpc.GetJobStatusDetailedPRequest;
@@ -28,6 +32,9 @@ import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.ListAllPResponse;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
+import alluxio.grpc.SubmitRequest;
+import alluxio.grpc.SubmitResponse;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobWorkerHealth;
@@ -138,5 +145,41 @@ public class JobMasterClientServiceHandler
 
       return builder.build();
     }, "getAllWorkerHealth", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void submit(SubmitRequest request, StreamObserver<SubmitResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SubmitResponse>) () -> {
+      try {
+        byte[] cmdConfigBytes = request.getCmdConfig().toByteArray();
+        return SubmitResponse.newBuilder()
+            .setJobControlId(mJobMaster.submit((CmdConfig) SerializationUtils
+                .deserialize(cmdConfigBytes)))
+            .build();
+      } catch (ClassNotFoundException e) {
+        throw new InvalidArgumentException(e);
+      }
+    }, "Submit", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getCmdStatus(GetCmdStatusRequest request,
+                           StreamObserver<GetCmdStatusResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetCmdStatusResponse>) () -> {
+      return GetCmdStatusResponse.newBuilder()
+              .setCmdStatus(mJobMaster.getCmdStatus(request.getJobControlId()).toProto())
+              .build();
+    }, "GetCmdStatus", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getCmdStatusDetailed(GetCmdStatusDetailedRequest request,
+                                   StreamObserver<GetCmdStatusDetailedResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetCmdStatusDetailedResponse>) () -> {
+      return GetCmdStatusDetailedResponse.newBuilder()
+              .setCmdStatusBlock(mJobMaster
+                      .getCmdStatusDetailed(request.getJobControlId()).toProto())
+              .build();
+    }, "getCmdStatusDetailed", "request=%s", responseObserver, request);
   }
 }

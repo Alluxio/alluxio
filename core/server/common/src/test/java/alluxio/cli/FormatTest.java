@@ -11,13 +11,13 @@
 
 package alluxio.cli;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -59,12 +59,12 @@ public final class FormatTest {
       FileUtils.createDir(PathUtils.concatPath(workerDataFolder, "subdir"));
       FileUtils.createFile(PathUtils.concatPath(workerDataFolder, "file"));
     }
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
         put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
     }, ServerConfiguration.global()).toResource()) {
@@ -101,15 +101,16 @@ public final class FormatTest {
           ServerConfiguration.global());
       FileUtils.createFile(workerDataFolder);
     }
-    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
       }
     }, ServerConfiguration.global()).toResource()) {
-      final String perms = ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+      final String perms = ServerConfiguration.getString(
+          PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
       Format.format(Format.Mode.WORKER, ServerConfiguration.global());
       for (File dir : dirs) {
         workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),

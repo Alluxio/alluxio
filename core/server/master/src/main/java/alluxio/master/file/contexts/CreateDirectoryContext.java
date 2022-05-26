@@ -31,6 +31,7 @@ public class CreateDirectoryContext
 
   private UfsStatus mUfsStatus;
   protected List<AclEntry> mDefaultAcl;
+
   /**
    * Creates context with given option data.
    *
@@ -60,7 +61,7 @@ public class CreateDirectoryContext
    */
   public static CreateDirectoryContext mergeFrom(CreateDirectoryPOptions.Builder optionsBuilder) {
     CreateDirectoryPOptions masterOptions =
-        FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global());
+        FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global(), false);
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -71,7 +72,7 @@ public class CreateDirectoryContext
    */
   public static CreateDirectoryContext defaults() {
     return create(FileSystemOptions
-        .createDirectoryDefaults(ServerConfiguration.global()).toBuilder());
+        .createDirectoryDefaults(ServerConfiguration.global(), false).toBuilder());
   }
 
   /**

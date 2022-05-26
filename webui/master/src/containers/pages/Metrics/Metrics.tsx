@@ -126,6 +126,25 @@ export class MetricsPresenter extends React.Component<AllProps> {
           </Table>
         </div>
         <div className="col-12">
+          <h5>Cache Hit and Miss</h5>
+          <Table hover={true}>
+            <tbody>
+              <tr>
+                <th>Cache Hit Local Percentage</th>
+                <td>{data.cacheHitLocal}%</td>
+                <th>Cache Hit Remote Percentage</th>
+                <td>{data.cacheHitRemote}%</td>
+              </tr>
+              <tr>
+                <th>Cache Miss Percentage</th>
+                <td>{data.cacheMiss}%</td>
+                <th />
+                <td />
+              </tr>
+            </tbody>
+          </Table>
+        </div>
+        <div className="col-12">
           <h5>Mounted Under FileSystem Read</h5>
           <Table hover={true}>
             <tbody>

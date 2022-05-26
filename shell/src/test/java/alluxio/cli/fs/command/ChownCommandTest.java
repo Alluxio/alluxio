@@ -74,7 +74,7 @@ public class ChownCommandTest {
 
   private void verifyChownCommandReturnValueAndOutput(ChownCommand command,
       int expectedReturnValue, String expectedOutput, String... args)
-    throws AlluxioException, IOException {
+      throws AlluxioException, IOException {
     mOutput.reset();
     CommandLine cl = command.parseAndValidateArgs(args);
     int ret = command.run(cl);

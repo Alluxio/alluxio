@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.tool;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.RuntimeConstants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -35,7 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * <pre>
  * java -cp \
- *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+ *   assembly/server/target/alluxio-assembly-server-&lt;ALLUXIO-VERSION&gt;
+ *   -jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool -master FileSystemMaster -outputDir my-journal
  * </pre>
  */
@@ -145,7 +145,7 @@ public final class JournalTool {
     if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
       sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
     } else {
-      sInputDir = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+      sInputDir = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();

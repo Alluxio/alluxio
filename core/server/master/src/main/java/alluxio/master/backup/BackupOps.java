@@ -30,7 +30,7 @@ public interface BackupOps {
    * Status for the in-progress backup will be returned. {@link #getBackupStatus} should be called
    * for querying the status of the on-going backup.
    *
-   * Note: When leader has no secondary in an HA cluster, it will reject backup. This could be
+   * Note: When leader has no standby in an HA cluster, it will reject backup. This could be
    * allowed by passing "AllowLeader" option in the request.
    *
    * @param request the backup request

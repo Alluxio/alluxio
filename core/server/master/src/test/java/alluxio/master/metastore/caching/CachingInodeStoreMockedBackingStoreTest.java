@@ -14,9 +14,9 @@ package alluxio.master.metastore.caching;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -56,7 +56,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CachingInodeStoreMockedBackingStoreTest {
-  private static final long CACHE_SIZE = 20;
+  private static final int CACHE_SIZE = 20;
   private static final long TEST_INODE_ID = 5;
   private static final MutableInodeDirectory TEST_INODE_DIR =
       MutableInodeDirectory.create(TEST_INODE_ID, 0, "name", CreateDirectoryContext.defaults());
@@ -66,8 +66,8 @@ public class CachingInodeStoreMockedBackingStoreTest {
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(
-      ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, Long.toString(CACHE_SIZE),
-          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, "5"),
+      ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE,
+          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5),
       ServerConfiguration.global());
 
   @Before

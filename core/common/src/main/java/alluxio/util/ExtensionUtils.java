@@ -14,7 +14,6 @@ package alluxio.util;
 import alluxio.Constants;
 
 import java.io.File;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

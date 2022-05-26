@@ -11,8 +11,8 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -20,6 +20,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
+import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -28,7 +29,6 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The {@link PlanTracker} is used to create, remove, and provide access to the set of currently
@@ -105,8 +105,8 @@ public class PlanTracker {
     Preconditions.checkArgument(retentionMs >= 0);
     mRetentionMs = retentionMs;
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
-    mCoordinators = new ConcurrentHashMap<>(0,
-        0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
+    mCoordinators = new ConcurrentHashMap<>(0, 0.95f,
+        Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
     mFailed = Collections.synchronizedSortedSet(new TreeSet<>((left, right) -> {
       long diffTime = right.getLastStatusChangeMs() - left.getLastStatusChangeMs();
       if (diffTime != 0) {
@@ -180,6 +180,7 @@ public class PlanTracker {
   public synchronized void run(PlanConfig jobConfig, CommandManager manager,
       JobServerContext ctx, List<WorkerInfo> workers, long jobId) throws
       JobDoesNotExistException, ResourceExhaustedException {
+    checkActiveSetReplicaJobs(jobConfig);
     if (removeFinished()) {
       PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
@@ -297,5 +298,22 @@ public class PlanTracker {
                 && (name == null || name.isEmpty()
                 || x.getValue().getPlanInfoWire(false).getName().equals(name)))
         .map(Map.Entry::getKey).collect(Collectors.toSet());
+  }
+
+  private void checkActiveSetReplicaJobs(JobConfig jobConfig) throws JobDoesNotExistException {
+    if (jobConfig instanceof SetReplicaConfig) {
+      Set<Pair<String, Long>> activeJobs = mCoordinators.values().stream()
+          .filter(x -> x.getPlanInfo().getJobConfig() instanceof SetReplicaConfig)
+          .map(x -> ((SetReplicaConfig) x.getPlanInfo().getJobConfig()))
+          .map(x -> new Pair<>(x.getPath(), x.getBlockId())).collect(Collectors.toSet());
+      SetReplicaConfig config = (SetReplicaConfig) jobConfig;
+      String path = config.getPath();
+      long blockId = config.getBlockId();
+      Pair<String, Long> block = new Pair<>(path, blockId);
+      if (activeJobs.contains(block)) {
+        throw new JobDoesNotExistException(String.format(
+            "There's SetReplica job running for path:%s blockId:%s, try later", path, blockId));
+      }
+    }
   }
 }

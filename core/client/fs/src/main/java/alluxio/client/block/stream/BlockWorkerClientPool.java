@@ -14,17 +14,19 @@ package alluxio.client.block.stream;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,6 +43,8 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("BlockWorkerClientPoolGcThreads-%d", true));
+  private static final Counter COUNTER = MetricsSystem.counter(
+      MetricKey.CLIENT_BLOCK_WORKER_CLIENT_COUNT.getName());
   private final AlluxioConfiguration mConf;
 
   /**
@@ -81,6 +85,11 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
   @Override
   protected boolean isHealthy(BlockWorkerClient client) {
     return client.isHealthy();
+  }
+
+  @Override
+  protected Counter getMetricCounter() {
+    return COUNTER;
   }
 
   @Override

@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -109,7 +108,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the proxy.
    */
-  private void startProxy() throws Exception {
+  protected void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
     Runnable runProxy = () -> {
       try {
@@ -167,7 +166,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void setupTest() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    String underfsAddress = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String underfsAddress = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
     UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
@@ -180,7 +179,7 @@ public abstract class AbstractLocalAlluxioCluster {
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = ServerConfiguration.get(tierLevelDirPath).split(",");
+      String[] dirPaths = ServerConfiguration.getString(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         FileUtils.createDir(dirPath);
       }

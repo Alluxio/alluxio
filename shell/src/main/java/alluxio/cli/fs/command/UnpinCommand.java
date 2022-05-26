@@ -22,7 +22,6 @@ import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 import java.util.Collections;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -40,8 +40,8 @@ public class TriggeredCheckpointTest {
     MultiProcessCluster cluster = MultiProcessCluster
         .newBuilder(PortCoordination.TRIGGERED_UFS_CHECKPOINT)
         .setClusterName("TriggeredUfsCheckpointTest")
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
-        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, String.valueOf(numFiles))
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, numFiles)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
@@ -72,8 +72,8 @@ public class TriggeredCheckpointTest {
     MultiProcessCluster cluster = MultiProcessCluster
         .newBuilder(PortCoordination.TRIGGERED_EMBEDDED_CHECKPOINT)
         .setClusterName("TriggeredEmbeddedCheckpointTest")
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
-        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, String.valueOf(Constants.KB))
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Constants.KB)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -62,7 +61,7 @@ public final class AlluxioSecondaryMaster implements Process {
       mBackupManager = new BackupManager(mRegistry);
       mStartTimeMs = System.currentTimeMillis();
       mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
-      String baseDir = ServerConfiguration.get(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
+      String baseDir = ServerConfiguration.getString(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
       // Create masters.
       MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)

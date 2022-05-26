@@ -73,9 +73,8 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 你可以从 [Alluxio 下载页面](https://alluxio.io/download)获取已发布版本。
 每个Alluxio发布版本都提供了与不同 Hadoop 版本兼容的预编译好的二进制文件。
 [从 Master 分支构建 Alluxio页面]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})解释了如何从源代码编译生成Alluxio项目。
-如果你有任何疑问，请联系我们[用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)（
-对于无法使用 Google Group 的用户，请使用它的[镜像](http://alluxio-users.85194.x6.nabble.com/))
-或者我们的[社区Slack频道](https://alluxio.io/slack).。
+如果你有任何疑问，请联系我们[用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+或者我们的[社区Slack频道](https://alluxio.io/slack)。
 
 Alluxio微信公众号二维码（下图）
 <p align="left">

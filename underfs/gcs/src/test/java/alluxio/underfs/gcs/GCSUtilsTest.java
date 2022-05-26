@@ -18,7 +18,6 @@ import org.jets3t.service.acl.GroupGrantee;
 import org.jets3t.service.acl.Permission;
 import org.jets3t.service.acl.gs.GSAccessControlList;
 import org.jets3t.service.model.StorageOwner;
-
 import org.junit.Before;
 import org.junit.Test;
 

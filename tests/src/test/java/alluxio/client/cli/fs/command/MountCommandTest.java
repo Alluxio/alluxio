@@ -13,9 +13,9 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;

@@ -11,18 +11,22 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
-import alluxio.job.plan.PlanDefinition;
-import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.BatchedJobConfig;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.job.metrics.DistributedCmdMetrics;
+import alluxio.retry.CountingRetry;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
@@ -35,11 +39,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -110,8 +114,17 @@ public final class PlanCoordinator {
   private synchronized void start() throws JobDoesNotExistException {
     // get the job definition
     LOG.info("Starting job Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
-    PlanDefinition<JobConfig, ?, ?> definition =
-        PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
+    PlanDefinition<JobConfig, ?, ?> definition;
+    try {
+      definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
+    } catch (JobDoesNotExistException e) {
+      LOG.info("Exception when getting jobDefinition from jobConfig: ", e);
+      mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
+      mPlanInfo.setErrorMessage(e.getMessage());
+      DistributedCmdMetrics.incrementForAllConfigsFailStatus(mPlanInfo.getJobConfig());
+      mPlanInfo.setStatus(Status.FAILED);
+      throw e;
+    }
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
     Set<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;
@@ -137,8 +150,15 @@ public final class PlanCoordinator {
       // create task
       mPlanInfo.addTask(taskId, pair.getFirst(), pair.getSecond());
       // submit commands
-      mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
-          pair.getSecond(), pair.getFirst().getId());
+      JobConfig config;
+      if (mPlanInfo.getJobConfig() instanceof BatchedJobConfig) {
+        BatchedJobConfig planConfig = (BatchedJobConfig) mPlanInfo.getJobConfig();
+        config = new BatchedJobConfig(planConfig.getJobType(), new HashSet<>());
+      } else {
+        config = mPlanInfo.getJobConfig();
+      }
+      mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, config, pair.getSecond(),
+          pair.getFirst().getId());
       mTaskIdToWorkerInfo.put((long) taskId, pair.getFirst());
       mWorkerIdToTaskIds.putIfAbsent(pair.getFirst().getId(), Lists.newArrayList());
       mWorkerIdToTaskIds.get(pair.getFirst().getId()).add((long) taskId);
@@ -193,9 +213,10 @@ public final class PlanCoordinator {
    */
   public synchronized void setJobAsFailed(String errorType, String errorMessage) {
     if (!mPlanInfo.getStatus().isFinished()) {
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(errorType);
       mPlanInfo.setErrorMessage(errorMessage);
+      DistributedCmdMetrics.incrementForAllConfigsFailStatus(mPlanInfo.getJobConfig());
+      mPlanInfo.setStatus(Status.FAILED);
     }
     mWorkersInfoList = null;
   }
@@ -244,20 +265,33 @@ public final class PlanCoordinator {
   }
 
   /**
+   * @return the job info for the job being coordinated
+   */
+  public synchronized PlanInfo getPlanInfo() {
+    return mPlanInfo;
+  }
+
+  /**
    * Updates the status of the job. When all the tasks are completed, run the join method in the
    * definition.
    */
   private synchronized void updateStatus() {
     int completed = 0;
     List<TaskInfo> taskInfoList = mPlanInfo.getTaskInfoList();
+    JobConfig config = mPlanInfo.getJobConfig();
+    Preconditions.checkNotNull(config);
+    FileSystem fileSystem = mJobServerContext.getFileSystem();
     for (TaskInfo info : taskInfoList) {
-      switch (info.getStatus()) {
+      Status status = info.getStatus();
+
+      switch (status) {
         case FAILED:
           setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
             mPlanInfo.setStatus(Status.CANCELED);
+            DistributedCmdMetrics.incrementForAllConfigsCancelStatus(config);
           }
           return;
         case RUNNING:
@@ -285,6 +319,9 @@ public final class PlanCoordinator {
         // Try to join first, so that in case of failure we don't move to a completed state yet
         mPlanInfo.setResult(join(taskInfoList));
         mPlanInfo.setStatus(Status.COMPLETED);
+        //Increment the counter for Complete status when all the tasks in a job are completed.
+        DistributedCmdMetrics
+          .incrementForAllConfigsCompleteStatus(config, fileSystem, new CountingRetry(5));
       } catch (Exception e) {
         LOG.warn("Job error when joining tasks Job Id={} Config={}",
             mPlanInfo.getId(), mPlanInfo.getJobConfig(), e);

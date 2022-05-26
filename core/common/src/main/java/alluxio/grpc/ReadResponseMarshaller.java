@@ -26,7 +26,6 @@ import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

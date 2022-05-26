@@ -4,6 +4,14 @@ Worker.ActiveRpcReadCount:
   'The number of active read-RPCs managed by this worker'
 Worker.ActiveRpcWriteCount:
   'The number of active write-RPCs managed by this worker'
+Worker.BlockReaderCompleteTaskCount:
+  'The approximate total number of block read tasks that have completed execution'
+Worker.BlockReaderThreadActiveCount:
+  'The approximate number of block read threads that are actively executing tasks in reader thread pool'
+Worker.BlockReaderThreadCurrentCount:
+  'The current number of read threads in the reader thread pool'
+Worker.BlockReaderThreadMaxCount:
+  'The maximum allowed number of block read thread in the reader thread pool'
 Worker.BlockRemoverBlocksRemovedCount:
   'The total number of blocks successfully removed from this worker by asynchronous block remover.'
 Worker.BlockRemoverRemovingBlocksSize:
@@ -12,6 +20,14 @@ Worker.BlockRemoverTryRemoveBlocksSize:
   'The number of blocks to be removed from this worker at a moment by asynchronous block remover.'
 Worker.BlockRemoverTryRemoveCount:
   'The total number of blocks this worker attempted to remove with asynchronous block remover.'
+Worker.BlockWriterCompleteTaskCount:
+  'The approximate total number of block write tasks that have completed execution'
+Worker.BlockWriterThreadActiveCount:
+  'The approximate number of block write threads that are actively executing tasks in writer thread pool'
+Worker.BlockWriterThreadCurrentCount:
+  'The current number of write threads in the writer thread pool'
+Worker.BlockWriterThreadMaxCount:
+  'The maximum allowed number of block write thread in the writer thread pool'
 Worker.BlocksAccessed:
   'Total number of times any one of the blocks in this worker is accessed.'
 Worker.BlocksCached:
@@ -88,3 +104,5 @@ Worker.CapacityTotal:
   'Total capacity (in bytes) on all tiers of a specific Alluxio worker'
 Worker.CapacityUsed:
   'Total used bytes on all tiers of a specific Alluxio worker'
+Worker.RpcQueueLength:
+  'Length of the worker rpc queue. Use this metric to monitor the RPC pressure on worker.'

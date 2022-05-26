@@ -12,12 +12,12 @@
 package alluxio.master.job;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobHeartbeatPResponse;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
-import alluxio.grpc.GrpcUtils;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
 
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

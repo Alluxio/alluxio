@@ -67,7 +67,7 @@ public class OSSOutputStreamTest {
   }
 
   /**
-   * Tests to ensure IOException is thrown if {@link FileOutputStream()} throws an IOException.
+   * Tests to ensure IOException is thrown if {@link FileOutputStream}() throws an IOException.
    */
   @Test
   @PrepareForTest(OSSOutputStream.class)
@@ -79,7 +79,7 @@ public class OSSOutputStreamTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
     new OSSOutputStream("testBucketName", "testKey", mOssClient,
-        sConf.getList(PropertyKey.TMP_DIRS, ",")).close();
+        sConf.getList(PropertyKey.TMP_DIRS)).close();
   }
 
   /**
@@ -93,7 +93,7 @@ public class OSSOutputStreamTest {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient,
-        sConf.getList(PropertyKey.TMP_DIRS, ","));
+        sConf.getList(PropertyKey.TMP_DIRS));
     stream.write(1);
     stream.close();
     Mockito.verify(mLocalOutputStream).write(1);
@@ -111,7 +111,7 @@ public class OSSOutputStreamTest {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient,
-        sConf.getList(PropertyKey.TMP_DIRS, ","));
+        sConf.getList(PropertyKey.TMP_DIRS));
     byte[] b = new byte[1];
     stream.write(b, 0, 1);
     stream.close();
@@ -129,7 +129,7 @@ public class OSSOutputStreamTest {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
-        .getList(PropertyKey.TMP_DIRS, ","));
+        .getList(PropertyKey.TMP_DIRS));
     byte[] b = new byte[1];
     stream.write(b);
     stream.close();
@@ -153,7 +153,7 @@ public class OSSOutputStreamTest {
                     Mockito.any(InputStream.class), Mockito.any(ObjectMetadata.class)))
             .thenThrow(new OSSException(errorMessage));
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
-        .getList(PropertyKey.TMP_DIRS, ","));
+        .getList(PropertyKey.TMP_DIRS));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
     stream.close();
@@ -172,7 +172,7 @@ public class OSSOutputStreamTest {
     PowerMockito.whenNew(FileInputStream.class).withArguments(mFile).thenReturn(inputStream);
 
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
-        .getList(PropertyKey.TMP_DIRS, ","));
+        .getList(PropertyKey.TMP_DIRS));
     stream.close();
     Mockito.verify(mFile).delete();
   }
@@ -186,7 +186,7 @@ public class OSSOutputStreamTest {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
-        .getList(PropertyKey.TMP_DIRS, ","));
+        .getList(PropertyKey.TMP_DIRS));
     stream.flush();
     stream.close();
     Mockito.verify(mLocalOutputStream).flush();

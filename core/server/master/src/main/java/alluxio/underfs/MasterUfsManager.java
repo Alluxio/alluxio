@@ -14,10 +14,10 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

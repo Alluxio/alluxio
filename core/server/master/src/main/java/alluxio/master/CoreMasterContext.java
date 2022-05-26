@@ -73,12 +73,11 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
     return mInodeStoreFactory;
   }
 
-  /**
-   * @return the journal system
-   */
+  @Override
   public JournalSystem getJournalSystem() {
     return mJournalSystem;
   }
+
   /**
    * @return the master process start time in milliseconds
    */

@@ -14,7 +14,6 @@ package alluxio.cli;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
-
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;

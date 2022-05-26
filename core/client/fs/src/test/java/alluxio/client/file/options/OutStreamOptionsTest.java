@@ -43,7 +43,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
-
 import javax.security.auth.Subject;
 
 /**
@@ -100,7 +99,7 @@ public class OutStreamOptionsTest {
     assertEquals("test_user", options.getOwner());
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
-        mConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
+        mConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
     assertEquals(Constants.NO_TTL, options.getCommonOptions().getTtl());
     assertEquals(TtlAction.DELETE, options.getCommonOptions().getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());

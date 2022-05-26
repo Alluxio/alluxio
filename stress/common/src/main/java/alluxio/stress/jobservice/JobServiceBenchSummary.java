@@ -12,9 +12,9 @@
 package alluxio.stress.jobservice;
 
 import alluxio.collections.Pair;
-import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
@@ -33,11 +33,10 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the job service stress tests.
  */
-public final class JobServiceBenchSummary extends GeneralBenchSummary {
+public final class JobServiceBenchSummary extends GeneralBenchSummary<JobServiceBenchTaskResult> {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
-  private List<String> mNodes;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -53,10 +52,9 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
    *
    * @param mergedTaskResults the merged task result
    * @param nodes the list of nodes
-   * @param errors the list of errors
    */
-  public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults, List<String> nodes,
-      Map<String, List<String>> errors) throws DataFormatException {
+  public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults,
+      Map<String, JobServiceBenchTaskResult> nodes) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :
@@ -69,8 +67,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
     mParameters = mergedTaskResults.getParameters();
     mDurationMs = mEndTimeMs - mergedTaskResults.getRecordStartMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
-    mNodes = nodes;
-    mErrors = errors;
+    mNodeResults = nodes;
   }
 
   /**
@@ -102,20 +99,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   }
 
   /**
-   * @return the list of nodes
-   */
-  public List<String> getNodes() {
-    return mNodes;
-  }
-
-  /**
-   * @param nodes the list of nodes
-   */
-  public void setNodes(List<String> nodes) {
-    mNodes = nodes;
-  }
-
-  /**
    * @return the end time (in ms)
    */
   public long getEndTimeMs() {
@@ -128,6 +111,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   public void setEndTimeMs(long endTimeMs) {
     mEndTimeMs = endTimeMs;
   }
+
   /**
    * @return the statistics
    */
@@ -158,16 +142,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
 
   private LineGraph.Data computeResponseTimeData() {
     return mStatistics.computeTimeData();
-  }
-
-  private List<String> collectErrors() {
-    List<String> errors = new ArrayList<>();
-    for (Map.Entry<String, List<String>> entry : mErrors.entrySet()) {
-      // add all the errors for this node, with the node appended to prefix
-      errors.addAll(entry.getValue().stream().map(err -> entry.getKey() + ": " + err)
-          .collect(Collectors.toList()));
-    }
-    return errors;
   }
 
   @Override
@@ -214,7 +188,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
         for (JobServiceBenchSummary summary : opSummaries) {
           String series = summary.mParameters.getDescription(fieldNames.getSecond());
           responseTimeGraph.addDataSeries(series, summary.computeResponseTimeData());
-          responseTimeGraph.setErrors(series, summary.collectErrors());
+          responseTimeGraph.setErrors(series, summary.collectErrorsFromAllNodes());
           // add graph for method call
           for (Map.Entry<String, SummaryStatistics> entry :
               summary.getStatisticsPerMethod().entrySet()) {

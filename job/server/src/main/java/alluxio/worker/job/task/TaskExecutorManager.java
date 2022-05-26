@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -241,15 +240,15 @@ public class TaskExecutorManager {
       // job has finished, or failed, or canceled
       return;
     }
-
-    LOG.info("Task {} for job {} canceled", taskId, jobId);
     Future<?> future = mTaskFutures.get(id);
     if (!future.cancel(true)) {
       taskInfo.setStatus(Status.FAILED);
       taskInfo.setErrorType("FailedCancel");
       taskInfo.setErrorMessage("Failed to cancel the task");
+      LOG.info("Failed to cancel task {} for job {}", taskId, jobId);
     } else {
       taskInfo.setStatus(Status.CANCELED);
+      LOG.info("Task {} for job {} canceled", taskId, jobId);
     }
     finishTask(id);
   }

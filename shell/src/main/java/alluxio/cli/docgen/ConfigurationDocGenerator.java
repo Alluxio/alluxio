@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -211,7 +210,7 @@ public final class ConfigurationDocGenerator {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
     String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .get(PropertyKey.HOME);
+        .getString(PropertyKey.HOME);
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);

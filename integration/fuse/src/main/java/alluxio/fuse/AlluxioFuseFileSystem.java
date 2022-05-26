@@ -66,7 +66,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -148,11 +147,11 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
    * @param opts options
    * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
+  public AlluxioFuseFileSystem(FileSystem fs, FuseMountConfig opts, AlluxioConfiguration conf) {
     super();
-    mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
+    mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
-    mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
+    mAlluxioRootPath = Paths.get(opts.getMountAlluxioPath());
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
 
     final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);

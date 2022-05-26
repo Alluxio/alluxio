@@ -96,7 +96,7 @@ public final class BaseFileSystemTest {
     when(mFileContext.acquireMasterClientResource()).thenReturn(
         new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
           @Override
-          public void close() {
+          public void closeResource() {
             // Noop.
           }
         });
@@ -552,7 +552,7 @@ public final class BaseFileSystemTest {
   @Test
   public void uriCheckBadAuthority() throws Exception {
     mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, 19998);
 
     assertBadAuthority("localhost:1234", "Should fail on bad host and port");
     assertBadAuthority("zk@localhost:19998", "Should fail on zk authority");
@@ -567,7 +567,7 @@ public final class BaseFileSystemTest {
   @Test
   public void uriCheckBadScheme() throws Exception {
     mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, 19998);
 
     AlluxioURI uri = new AlluxioURI("hdfs://localhost:19998/root");
     try {
@@ -584,7 +584,7 @@ public final class BaseFileSystemTest {
   @Test
   public void uriCheckGoodSchemeAndAuthority() throws Exception {
     mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, 19998);
     before(); // Resets the filesystem and contexts to use proper configuration.
 
     useUriWithAuthority("localhost:19998");
@@ -600,7 +600,7 @@ public final class BaseFileSystemTest {
   @Test
   public void uriCheckNoSchemeAuthority() throws Exception {
     mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, 19998);
 
     AlluxioURI uri = new AlluxioURI("/root");
     mFileSystem.createDirectory(uri);

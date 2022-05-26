@@ -229,7 +229,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * resources.
    */
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "250ms"})
+      confParams = {PropertyKey.Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "250ms",
+          PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "250ms"})
   @Test
   public void cancelWrite() throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
@@ -239,7 +240,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.cancel();
     }
     long gracePeriod = ServerConfiguration
-        .getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL) * 2;
+        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2;
     CommonUtils.sleepMs(gracePeriod);
     List<WorkerInfo> workers =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()

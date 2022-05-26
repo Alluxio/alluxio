@@ -17,9 +17,9 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
+import alluxio.TestLoggerRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.TestLoggerRule;
 
 import org.junit.After;
 import org.junit.Before;

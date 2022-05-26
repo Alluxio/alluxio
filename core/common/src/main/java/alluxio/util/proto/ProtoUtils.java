@@ -11,6 +11,7 @@
 
 package alluxio.util.proto;
 
+import alluxio.grpc.SetAclAction;
 import alluxio.proto.journal.File;
 import alluxio.proto.shared.Acl;
 import alluxio.proto.status.Status.PStatus;
@@ -21,7 +22,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.ExtendedACLEntries;
-import alluxio.grpc.SetAclAction;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -273,8 +273,8 @@ public final class ProtoUtils {
     } else {
       ret = new AccessControlList();
     }
-    ret.setOwningUser(acl.getOwningUser());
-    ret.setOwningGroup(acl.getOwningGroup());
+    ret.setOwningUser(acl.getOwningUser().intern());
+    ret.setOwningGroup(acl.getOwningGroup().intern());
 
     if (acl.getIsEmpty()) {
       return ret;

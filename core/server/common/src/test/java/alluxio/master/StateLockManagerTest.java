@@ -62,7 +62,7 @@ public class StateLockManagerTest {
     // Expect timeout when the lock is held in shared mode.
     mExpected.expect(TimeoutException.class);
     stateLockManager
-        .lockExclusive(new StateLockOptions(StateLockOptions.GraceMode.TIMEOUT, 10, 0, 100));
+        .lockExclusive(new StateLockOptions(GraceMode.TIMEOUT, 10, 0, 100));
     // Exit the shared holder.
     sharedHolderThread.unlockExit();
     sharedHolderThread.join();
@@ -73,13 +73,13 @@ public class StateLockManagerTest {
     // Expect timeout when the lock is held in exclusive mode.
     mExpected.expect(TimeoutException.class);
     stateLockManager
-        .lockExclusive(new StateLockOptions(StateLockOptions.GraceMode.TIMEOUT, 10, 0, 100));
+        .lockExclusive(new StateLockOptions(GraceMode.TIMEOUT, 10, 0, 100));
     // Exit the exclusive holder.
     exclusiveHolderThread.unlockExit();
     exclusiveHolderThread.join();
     // Now the lock can be acquired within the grace-cycle.
     try (LockResource lr = stateLockManager
-        .lockExclusive(new StateLockOptions(StateLockOptions.GraceMode.TIMEOUT, 10, 0, 100))) {
+        .lockExclusive(new StateLockOptions(GraceMode.TIMEOUT, 10, 0, 100))) {
       // Acquired within the grace-cycle with no active holder.
     }
   }
@@ -96,7 +96,7 @@ public class StateLockManagerTest {
     sharedHolderThread.waitUntilStateLockAcquired();
     // Take the state-lock exclusively with GUARANTEED grace mode.
     try (LockResource lr = stateLockManager
-        .lockExclusive(new StateLockOptions(StateLockOptions.GraceMode.FORCED, 10, 0, 100))) {
+        .lockExclusive(new StateLockOptions(GraceMode.FORCED, 10, 0, 100))) {
       // Holder should have been interrupted.
       Assert.assertTrue(sharedHolderThread.lockInterrupted());
       sharedHolderThread.join();

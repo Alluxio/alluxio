@@ -24,7 +24,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -64,8 +63,10 @@ public interface MasterInquireClient {
      */
     Authority toAuthority();
 
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
   }
 
@@ -80,9 +81,9 @@ public interface MasterInquireClient {
      */
     public static MasterInquireClient create(AlluxioConfiguration conf, UserState userState) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
+        return ZkMasterInquireClient.getClient(conf.getString(PropertyKey.ZOOKEEPER_ADDRESS),
+            conf.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            conf.getString(PropertyKey.ZOOKEEPER_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
             conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
@@ -103,9 +104,9 @@ public interface MasterInquireClient {
     public static MasterInquireClient createForJobMaster(AlluxioConfiguration conf,
         UserState userState) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            conf.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
-            conf.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH),
+        return ZkMasterInquireClient.getClient(conf.getString(PropertyKey.ZOOKEEPER_ADDRESS),
+            conf.getString(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
+            conf.getString(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
             conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
@@ -117,14 +118,15 @@ public interface MasterInquireClient {
         }
       }
     }
+
     /**
      * @param conf configuration for creating the master inquire client
      * @return the connect string represented by the configuration
      */
     public static ConnectDetails getConnectDetails(AlluxioConfiguration conf) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return new ZkMasterConnectDetails(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
-            conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+        return new ZkMasterConnectDetails(conf.getString(PropertyKey.ZOOKEEPER_ADDRESS),
+            conf.getString(PropertyKey.ZOOKEEPER_LEADER_PATH));
       } else if (ConfigurationUtils.getMasterRpcAddresses(conf).size() > 1) {
         return new PollingMasterInquireClient.MultiMasterConnectDetails(
             ConfigurationUtils.getMasterRpcAddresses(conf));

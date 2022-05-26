@@ -14,8 +14,9 @@ package alluxio.web;
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
-import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.metrics.sink.MetricsServlet;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -37,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-
 import javax.ws.rs.HttpMethod;
 
 /**
@@ -67,8 +67,10 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   private void verifyMetricsJson(ServiceType serviceType) throws Exception {
     InetSocketAddress address = getInetSocketAddresss(serviceType);
     Map<String, String> params = new HashMap<>();
-    String result = new TestCase(address.getHostName(), address.getPort(), "metrics/json", params,
-        HttpMethod.GET, null, TestCaseOptions.defaults(), "").call();
+    String result = new TestCase(
+        address.getHostName(), address.getPort(), MetricsServlet.SERVLET_PATH,
+        "", params, HttpMethod.GET,
+        TestCaseOptions.defaults()).runAndGetResponse();
 
     TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
     };

@@ -29,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Base64;
-
 import javax.validation.constraints.NotNull;
 
 /**

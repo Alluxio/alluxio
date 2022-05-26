@@ -18,5 +18,6 @@ export const routePaths = {
   logs: '/logs',
   metrics: '/metrics',
   workers: '/workers',
+  stacks: '/stacks',
   mounttable: '/mounttable',
 };

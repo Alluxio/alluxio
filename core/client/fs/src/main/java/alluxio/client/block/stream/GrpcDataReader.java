@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -200,7 +199,7 @@ public final class GrpcDataReader implements DataReader {
         if (mCloseWaitMs > 0) {
           mStream.waitForComplete(mCloseWaitMs);
         }
-      } catch (Throwable e) {
+      } catch (IOException | RuntimeException e) {
         // ignore any errors
         SLOW_CLOSE_LOG.warn(
             "Closing gRPC read stream took longer than {}ms, moving on. blockId: {}, address: {}",

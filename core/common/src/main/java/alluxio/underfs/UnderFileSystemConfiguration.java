@@ -20,7 +20,6 @@ import alluxio.conf.Source;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -64,8 +63,8 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   /**
    * @return the map of resolved mount specific configuration
    */
-  public Map<String, String> getMountSpecificConf() {
-    Map<String, String> map = new HashMap<>();
+  public Map<String, Object> getMountSpecificConf() {
+    Map<String, Object> map = new HashMap<>();
     keySet().forEach(key -> {
       if (getSource(key) == Source.MOUNT_OPTION) {
         map.put(key.getName(), get(key));
@@ -111,7 +110,8 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
    * @param mountConf the mount specific configuration map
    * @return the updated configuration object
    */
-  public UnderFileSystemConfiguration createMountSpecificConf(Map<String, String> mountConf) {
+  public UnderFileSystemConfiguration createMountSpecificConf(
+      Map<String, ? extends Object> mountConf) {
     UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(mProperties.copy());
     ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
     ufsConf.mReadOnly = mReadOnly;
@@ -127,7 +127,10 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
     Map<String, String> map = new HashMap<>();
     // Cannot use Collectors.toMap because we support null keys.
-    userKeySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
+    userKeySet().forEach(key -> {
+      Object value = getOrDefault(key, null, options);
+      map.put(key.getName(), value == null ? null : String.valueOf(value));
+    });
     return map;
   }
 }

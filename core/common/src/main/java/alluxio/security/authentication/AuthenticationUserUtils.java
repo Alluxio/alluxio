@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -54,7 +53,7 @@ public final class AuthenticationUserUtils {
     // Determine the impersonation user
     String impersonationUser = null;
     if (conf.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
-      impersonationUser = conf.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
+      impersonationUser = conf.getString(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
       LOG.debug("Impersonation: configured: {}", impersonationUser);
       if (Constants.IMPERSONATION_HDFS_USER.equals(impersonationUser)) {
         // Impersonate as the hdfs client user

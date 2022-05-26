@@ -51,7 +51,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Implementation of {@link BackupRole} for secondary mode.
+ * Implementation of {@link BackupRole} for standby mode.
  */
 public class BackupWorkerRole extends AbstractBackupRole {
   private static final Logger LOG = LoggerFactory.getLogger(BackupWorkerRole.class);
@@ -155,7 +155,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   /**
-   * Handler for suspend message. It's used in secondary master.
+   * Handler for suspend message. It's used in standby master.
    */
   private CompletableFuture<Void> handleSuspendJournalsMessage(BackupSuspendMessage suspendMsg) {
     LOG.info("Received suspend message: {}", suspendMsg);
@@ -205,7 +205,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   /**
-   * Handler for backup request message. It's used in secondary master.
+   * Handler for backup request message. It's used in standby master.
    */
   private CompletableFuture<Void> handleRequestMessage(BackupRequestMessage requestMsg) {
     LOG.info("Received backup message: {}", requestMsg);
@@ -375,7 +375,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
       } catch (Throwable t) {
-        LOG.warn("Failed to get backup-leader address. {}. Error:{}. Attempt:{}", t.toString(),
+        LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t.toString(),
             infiniteRetryPolicy.getAttemptCount());
         continue;
       }

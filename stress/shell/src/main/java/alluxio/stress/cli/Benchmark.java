@@ -130,6 +130,11 @@ public abstract class Benchmark<T extends TaskResult> {
    * @return the string result output
    */
   public String run(String[] args) throws Exception {
+    parseParameters(args);
+    return runSingleTask(args);
+  }
+
+  protected void parseParameters(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {
@@ -145,7 +150,9 @@ public abstract class Benchmark<T extends TaskResult> {
       jc.usage();
       throw e;
     }
+  }
 
+  protected String runSingleTask(String[] args) throws Exception {
     // prepare the benchmark.
     prepare();
 

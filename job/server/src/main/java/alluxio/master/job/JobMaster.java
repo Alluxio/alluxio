@@ -19,6 +19,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -30,11 +31,13 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -44,12 +47,20 @@ import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.master.audit.AuditContext;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.job.workflow.WorkflowTracker;
-import alluxio.master.journal.NoopJournaled;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
+import alluxio.master.job.tracker.CmdJobTracker;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.master.job.workflow.WorkflowTracker;
+import alluxio.master.journal.NoopJournaled;
 import alluxio.resource.LockResource;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -59,7 +70,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.grpc.Context;
-import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +78,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -147,6 +159,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    */
   private final JobIdGenerator mJobIdGenerator;
 
+  /** Log writer for user access audit log. */
+  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+
+  /** Distributed command job tracker. */
+  private CmdJobTracker mCmdJobTracker;
+
   /**
    * Creates a new instance of {@link JobMaster}.
    *
@@ -165,12 +183,23 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkflowTracker = new WorkflowTracker(this);
 
     mPlanTracker = new PlanTracker(
-        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY),
         ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();
+
+    mCmdJobTracker = new CmdJobTracker(
+            fsContext, this);
+
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOB_COUNT.getName(),
+        () -> MetricsSystem.counter(MetricKey.MASTER_JOB_CANCELED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_COMPLETED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_CREATED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_FAILED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_RUNNING.getName()).getCount());
   }
 
   /**
@@ -196,7 +225,24 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               new LostWorkerDetectionHeartbeatExecutor(),
               (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
+        mAsyncAuditLogWriter.start();
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+            () -> mAsyncAuditLogWriter != null
+                ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+      }
     }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    if (mAsyncAuditLogWriter != null) {
+      mAsyncAuditLogWriter.stop();
+      mAsyncAuditLogWriter = null;
+    }
+    super.stop();
   }
 
   @Override
@@ -244,13 +290,17 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     // Then restore the current context at the end.
     Context forkedCtx = Context.current().fork();
     Context prevCtx = forkedCtx.attach();
-    try {
+    try (JobMasterAuditContext auditContext =
+        createAuditContext("run")) {
+      auditContext.setJobId(jobId);
       if (jobConfig instanceof PlanConfig) {
         mPlanTracker.run((PlanConfig) jobConfig, mCommandManager, mJobServerContext,
             getWorkerInfoList(), jobId);
+        auditContext.setSucceeded(true);
         return;
       } else if (jobConfig instanceof WorkflowConfig) {
         mWorkflowTracker.run((WorkflowConfig) jobConfig, jobId);
+        auditContext.setSucceeded(true);
         return;
       }
       throw new JobDoesNotExistException(
@@ -261,20 +311,66 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * Submit a job with the given configuration.
+   *
+   * @param cmdConfig the CMD configuration
+   * @return the job control id tracking the progress
+   * @throws JobDoesNotExistException   when the job doesn't exist
+   * @throws ResourceExhaustedException if the job master is too busy to run the job
+   */
+  public synchronized long submit(CmdConfig cmdConfig)
+      throws JobDoesNotExistException, IOException {
+    long jobControlId = getNewJobId();
+    // This RPC service implementation triggers another RPC.
+    // Run the implementation under forked context to avoid interference.
+    // Then restore the current context at the end.
+    Context forkedCtx = Context.current().fork();
+    Context prevCtx = forkedCtx.attach();
+    try (JobMasterAuditContext auditContext =
+         createAuditContext("run")) {
+      auditContext.setJobId(jobControlId);
+      mCmdJobTracker.run(cmdConfig, jobControlId);
+    } finally {
+      forkedCtx.detach(prevCtx);
+    }
+
+    return jobControlId;
+  }
+
+  /**
    * Cancels a job.
    *
    * @param jobId the id of the job
    * @throws JobDoesNotExistException when the job does not exist
    */
   public void cancel(long jobId) throws JobDoesNotExistException {
-    PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
-    if (planCoordinator == null) {
-      if (!mWorkflowTracker.cancel(jobId)) {
-        throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+    try (JobMasterAuditContext auditContext =
+             createAuditContext("cancel")) {
+      auditContext.setJobId(jobId);
+      PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
+      if (planCoordinator == null) {
+        if (!mWorkflowTracker.cancel(jobId)) {
+          throw new JobDoesNotExistException(
+              ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+        }
+        return;
       }
-      return;
+      planCoordinator.cancel();
+      auditContext.setSucceeded(true);
     }
-    planCoordinator.cancel();
+  }
+
+  /**
+   * Get command status.
+   * @param jobControlId
+   * @return status of a distributed commmand
+   */
+  public Status getCmdStatus(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getCmdStatus")) {
+      auditContext.setJobId(jobControlId);
+      return mCmdJobTracker.getCmdStatus(jobControlId);
+    }
   }
 
   /**
@@ -282,32 +378,97 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @param options listing options
    */
   public List<Long> list(ListAllPOptions options) {
-    List<Long> ids = new ArrayList<>();
-    ids.addAll(mPlanTracker.findJobs(options.getName(),
-        options.getStatusList().stream()
-            .map(status -> Status.valueOf(status.name())).collect(Collectors.toList())));
-    ids.addAll(mWorkflowTracker.findJobs(options.getName(),
-        options.getStatusList().stream()
-            .map(status -> Status.valueOf(status.name())).collect(Collectors.toList())));
-    Collections.sort(ids);
-    return ids;
+    try (JobMasterAuditContext auditContext =
+             createAuditContext("list")) {
+      List<Long> ids = new ArrayList<>();
+      ids.addAll(mPlanTracker.findJobs(options.getName(),
+          options.getStatusList().stream()
+              .map(status -> Status.valueOf(status.name()))
+              .collect(Collectors.toList())));
+      ids.addAll(mWorkflowTracker.findJobs(options.getName(),
+          options.getStatusList().stream()
+              .map(status -> Status.valueOf(status.name()))
+              .collect(Collectors.toList())));
+      Collections.sort(ids);
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return list of all command ids
+   * @param options listing options (using existing options)
+   */
+  public List<Long> listCmds(ListAllPOptions options) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("listCmds")) {
+      List<Long> ids = new ArrayList<>();
+      ids.addAll(mCmdJobTracker.findCmdIds(
+              options.getStatusList().stream()
+                      .map(status -> Status.valueOf(status.name()))
+                      .collect(Collectors.toList())));
+      Collections.sort(ids);
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return get a detailed status information for a command
+   * @param jobControlId job control ID of a command
+   */
+  public CmdStatusBlock getCmdStatusDetailed(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getCmdStatusDetailed")) {
+      return mCmdJobTracker.getCmdStatusBlock(jobControlId);
+    }
+  }
+
+  /**
+   * @return all failed paths
+   */
+  public Set<String> getAllFailedPaths() {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getAllFailedPaths")) {
+      Set<String> ids = new HashSet<>();
+      ids.addAll(mCmdJobTracker.findAllFailedPaths());
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return get failed paths for a command
+   * @param jobControlId job control id
+   */
+  public Set<String> getFailedPaths(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getFailedPaths")) {
+      Set<String> ids = new HashSet<>();
+      ids.addAll(mCmdJobTracker.findFailedPaths(jobControlId));
+      auditContext.setSucceeded(true);
+      return ids;
+    }
   }
 
   /**
    * @return list of all job infos
    */
   public List<JobInfo> listDetailed() {
-    List<JobInfo> jobInfos = new ArrayList<>();
+    try (JobMasterAuditContext auditContext =
+             createAuditContext("listDetailed")) {
+      List<JobInfo> jobInfos = new ArrayList<>();
 
-    for (PlanCoordinator coordinator : mPlanTracker.coordinators()) {
-      jobInfos.add(coordinator.getPlanInfoWire(false));
+      for (PlanCoordinator coordinator : mPlanTracker.coordinators()) {
+        jobInfos.add(coordinator.getPlanInfoWire(false));
+      }
+
+      jobInfos.addAll(mWorkflowTracker.getAllInfo());
+
+      jobInfos.sort(Comparator.comparingLong(JobInfo::getId));
+      auditContext.setSucceeded(true);
+      return jobInfos;
     }
-
-    jobInfos.addAll(mWorkflowTracker.getAllInfo());
-
-    jobInfos.sort(Comparator.comparingLong(JobInfo::getId));
-
-    return jobInfos;
   }
 
   /**
@@ -340,7 +501,16 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @throws JobDoesNotExistException if the job does not exist
    */
   public JobInfo getStatus(long jobId) throws JobDoesNotExistException {
-    return getStatus(jobId, true);
+    try (JobMasterAuditContext auditContext =
+             createAuditContext("getStatus")) {
+      auditContext.setJobId(jobId);
+      JobInfo jobInfo = getStatus(jobId, true);
+      if (jobInfo != null) {
+        auditContext.setJobName(jobInfo.getName());
+        auditContext.setSucceeded(true);
+      }
+      return jobInfo;
+    }
   }
 
   /**
@@ -378,9 +548,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return health metrics for each of the job workers
    */
   public List<JobWorkerHealth> getAllWorkerHealth() {
-    ArrayList<JobWorkerHealth> result = Lists.newArrayList(mWorkerHealth.values());
-    Collections.sort(result, Comparator.comparingLong((a) -> a.getWorkerId()));
-    return result;
+    try (JobMasterAuditContext auditContext =
+             createAuditContext("getAllWorkerHealth")) {
+      ArrayList<JobWorkerHealth> result =
+          Lists.newArrayList(mWorkerHealth.values());
+      Collections.sort(result,
+          Comparator.comparingLong((a) -> a.getWorkerId()));
+      auditContext.setSucceeded(true);
+      return result;
+    }
   }
 
   /**
@@ -484,6 +660,49 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     }
     return mCommandManager.pollAllPendingCommands(workerId);
+  }
+
+  /**
+   * Creates a {@link JobMasterAuditContext} instance.
+   *
+   * @param command the command to be logged by this {@link AuditContext}
+   * @return newly-created {@link JobMasterAuditContext} instance
+   */
+  private JobMasterAuditContext createAuditContext(String command) {
+    // Audit log may be enabled during runtime
+    AsyncUserAccessAuditLogWriter auditLogWriter = null;
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+      auditLogWriter = mAsyncAuditLogWriter;
+    }
+    JobMasterAuditContext auditContext =
+        new JobMasterAuditContext(auditLogWriter);
+    if (auditLogWriter != null) {
+      String user = null;
+      String ugi = "";
+      try {
+        user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+      } catch (AccessControlException e) {
+        ugi = "N/A";
+      }
+      if (user != null) {
+        try {
+          String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
+          ugi = user + "," + primaryGroup;
+        } catch (IOException e) {
+          LOG.debug("Failed to get primary group for user {}.", user);
+          ugi = user + ",N/A";
+        }
+      }
+      AuthType authType =
+          ServerConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+      auditContext.setUgi(ugi)
+          .setAuthType(authType)
+          .setIp(ClientIpAddressInjector.getIpAddress())
+          .setCommand(command)
+          .setAllowed(true)
+          .setCreationTimeNs(System.nanoTime());
+    }
+    return auditContext;
   }
 
   /**

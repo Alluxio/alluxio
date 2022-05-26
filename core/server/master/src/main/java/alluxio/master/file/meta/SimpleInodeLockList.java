@@ -24,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -198,7 +197,14 @@ public class SimpleInodeLockList implements InodeLockList {
     if (!endsInWriteLock() && mode == LockMode.WRITE) {
       mFirstWriteLockIndex = mLocks.size();
     }
-    mLocks.add(lock);
+    try {
+      mLocks.add(lock);
+    } catch (Error e) {
+      // If adding to mLocks fails due to OOM, this lock
+      // will not be tracked so we must close it manually
+      lock.close();
+      throw e;
+    }
   }
 
   private void addInodeLock(Inode inode, LockMode mode, RWLockResource lock) {

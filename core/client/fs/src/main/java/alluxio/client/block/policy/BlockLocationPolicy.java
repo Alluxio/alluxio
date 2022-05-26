@@ -47,14 +47,14 @@ public interface BlockLocationPolicy {
      * @param conf Alluxio configuration
      * @return a new instance of {@link BlockLocationPolicy}
      */
-    public static BlockLocationPolicy create(String blockLocationPolicyClass,
+    public static BlockLocationPolicy create(Class<?> blockLocationPolicyClass,
         AlluxioConfiguration conf) {
       try {
-        Class<BlockLocationPolicy> clazz = (Class<BlockLocationPolicy>) Class
-            .forName(blockLocationPolicyClass);
+        Class<? extends BlockLocationPolicy> clazz = blockLocationPolicyClass
+            .asSubclass(BlockLocationPolicy.class);
         return CommonUtils.createNewClassInstance(clazz, new Class[] {AlluxioConfiguration.class},
             new Object[] {conf});
-      } catch (ClassNotFoundException e) {
+      } catch (ClassCastException e) {
         throw new RuntimeException(e);
       }
     }

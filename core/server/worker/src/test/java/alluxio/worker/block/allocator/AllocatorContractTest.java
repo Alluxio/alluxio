@@ -13,8 +13,8 @@ package alluxio.worker.block.allocator;
 
 import static org.junit.Assert.fail;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.reflect.ClassPath;

@@ -12,11 +12,11 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
@@ -43,7 +43,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mUfsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 

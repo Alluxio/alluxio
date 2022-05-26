@@ -11,17 +11,23 @@
 
 package alluxio.worker.block;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
@@ -32,8 +38,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -59,18 +66,21 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * same block. If the client do that, the client can see failures but the worker won't crash.
    */
   private final ReentrantLock mLock = new ReentrantLock();
-  @GuardedBy("mLock")
   /** Maps from the {@link Key} to the {@link BlockInfo}. */
+  @GuardedBy("mLock")
   private final Map<Key, BlockInfo> mBlocks = new HashMap<>();
-  @GuardedBy("mLock")
   /** Maps from the session ID to the block IDs. */
-  private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
   @GuardedBy("mLock")
-  /** Maps from the block ID to the session IDs. */
-  private final Map<Long, Set<Long>> mBlockIdToSessionIds = new HashMap<>();
+  private final Map<Long, Set<Long>> mSessionIdToBlockIds = new HashMap<>();
+
+  private final ConcurrentMap<BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
+      new ConcurrentHashMap<>();
+
+  private final ConcurrentMap<AlluxioURI, Meter> mUfsBytesReadThroughputMetrics =
+      new ConcurrentHashMap<>();
 
   /** The Local block store. */
-  private final BlockStore mLocalBlockStore;
+  private final LocalBlockStore mLocalBlockStore;
 
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
@@ -84,7 +94,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param localBlockStore the local block store
    * @param ufsManager the file manager
    */
-  public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
+  public UnderFileSystemBlockStore(LocalBlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
     mUfsManager = ufsManager;
     mUfsInstreamCache = new UfsInputStreamCache();
@@ -101,6 +111,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @return whether an access token is acquired
    * @throws BlockAlreadyExistsException if the block already exists for a session ID
    */
+  @VisibleForTesting
   public boolean acquireAccess(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     UnderFileSystemBlockMeta blockMeta = new UnderFileSystemBlockMeta(sessionId, blockId, options);
@@ -110,23 +121,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         throw new BlockAlreadyExistsException(ExceptionMessage.UFS_BLOCK_ALREADY_EXISTS_FOR_SESSION,
             blockId, blockMeta.getUnderFileSystemPath(), sessionId);
       }
-      Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
-      if (sessionIds != null && sessionIds.size() >= options.getMaxUfsReadConcurrency()) {
-        return false;
-      }
-      if (sessionIds == null) {
-        sessionIds = new HashSet<>();
-        mBlockIdToSessionIds.put(blockId, sessionIds);
-      }
-      sessionIds.add(sessionId);
-
       mBlocks.put(key, new BlockInfo(blockMeta));
-
-      Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
-      if (blockIds == null) {
-        blockIds = new HashSet<>();
-        mSessionIdToBlockIds.put(sessionId, blockIds);
-      }
+      Set<Long> blockIds = mSessionIdToBlockIds.computeIfAbsent(sessionId, k -> new HashSet<>());
       blockIds.add(blockId);
     }
     return true;
@@ -142,7 +138,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the session ID
    * @param blockId the block ID
    */
-  public void closeReaderOrWriter(long sessionId, long blockId) throws IOException {
+  public void close(long sessionId, long blockId) throws IOException {
     BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = mBlocks.get(new Key(sessionId, blockId));
@@ -152,7 +148,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         return;
       }
     }
-    blockInfo.closeReaderOrWriter();
+    blockInfo.close();
   }
 
   /**
@@ -175,13 +171,6 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         blockIds.remove(blockId);
         if (blockIds.isEmpty()) {
           mSessionIdToBlockIds.remove(sessionId);
-        }
-      }
-      Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
-      if (sessionIds != null) {
-        sessionIds.remove(sessionId);
-        if (sessionIds.isEmpty()) {
-          mBlockIdToSessionIds.remove(blockId);
         }
       }
     }
@@ -209,7 +198,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
         // in Local block store because they will be cleanup by the session cleaner in the
         // Local block store.
-        closeReaderOrWriter(sessionId, blockId);
+        close(sessionId, blockId);
         releaseAccess(sessionId, blockId);
       } catch (Exception e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
@@ -225,13 +214,22 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
    * @param positionShort whether the client op is a positioned read to a small buffer
-   * @param user the user that requests the block reader
+   * @param options the open ufs options
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
-      boolean positionShort, String user) throws BlockDoesNotExistException, IOException {
+  public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
+      boolean positionShort, Protocol.OpenUfsBlockOptions options)
+      throws BlockDoesNotExistException, IOException, BlockAlreadyExistsException {
+    if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
+      // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
+      // flag.mUnderFileSystemBlockStore
+      UfsManager.UfsClient ufsClient = mUfsManager.get(options.getMountId());
+      options = options.toBuilder()
+          .setUfsPath(alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId)).build();
+    }
+    acquireAccess(sessionId, blockId, options);
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
@@ -240,11 +238,43 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         return blockReader;
       }
     }
+    UfsManager.UfsClient ufsClient = mUfsManager.get(blockInfo.getMeta().getMountId());
+    Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
+        new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), options.getUser()),
+        key -> key.mUser == null
+            ? MetricsSystem.counterWithTags(
+                MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
+            : MetricsSystem.counterWithTags(
+                MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
+                MetricInfo.TAG_USER, key.mUser));
+    Meter ufsBytesReadThroughput = mUfsBytesReadThroughputMetrics.computeIfAbsent(
+        ufsClient.getUfsMountPointUri(),
+        uri -> MetricsSystem.meterWithTags(
+              MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
+              MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.isClusterAggregated(),
+              MetricInfo.TAG_UFS,
+              MetricsSystem.escape(uri)));
     BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, positionShort,
-            mLocalBlockStore, mUfsManager, mUfsInstreamCache, user);
+            mLocalBlockStore, ufsClient, mUfsInstreamCache, ufsBytesRead, ufsBytesReadThroughput);
     blockInfo.setBlockReader(reader);
     return reader;
+  }
+
+  /**
+   * @param sessionId the session ID
+   * @param blockId the block ID
+   * @return true if mNoCache is set
+   */
+  public boolean isNoCache(long sessionId, long blockId) {
+    Key key = new Key(sessionId, blockId);
+    BlockInfo blockInfo = mBlocks.get(key);
+    UnderFileSystemBlockMeta meta = blockInfo.getMeta();
+    return meta.isNoCache();
   }
 
   /**
@@ -323,6 +353,34 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
   }
 
+  private static class BytesReadMetricKey {
+    private final AlluxioURI mUri;
+    private final String mUser;
+
+    BytesReadMetricKey(AlluxioURI uri, String user) {
+      mUri = uri;
+      mUser = user;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      BytesReadMetricKey that = (BytesReadMetricKey) o;
+      return mUri.equals(that.mUri) && mUser.equals(that.mUser);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mUri, mUser);
+    }
+  }
+
   /**
    * This class is to wrap block reader/writer and the block meta into one class. The block
    * reader/writer is not part of the {@link UnderFileSystemBlockMeta} because
@@ -333,11 +391,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   private static class BlockInfo {
     private final UnderFileSystemBlockMeta mMeta;
 
-    // A correct client implementation should never access the following reader/writer
-    // concurrently. But just to avoid crashing the server thread with runtime exception when
-    // the client is mis-behaving, we access them with locks acquired.
     private BlockReader mBlockReader;
-    private BlockWriter mBlockWriter;
 
     /**
      * Creates an instance of {@link BlockInfo}.
@@ -373,30 +427,12 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
 
     /**
-     * @return the block writer
-     */
-    public synchronized BlockWriter getBlockWriter() {
-      return mBlockWriter;
-    }
-
-    /**
-     * @param blockWriter the block writer to be set
-     */
-    public synchronized void setBlockWriter(BlockWriter blockWriter) {
-      mBlockWriter = blockWriter;
-    }
-
-    /**
      * Closes the block reader or writer.
      */
-    public synchronized void closeReaderOrWriter() throws IOException {
+    public synchronized void close() throws IOException {
       if (mBlockReader != null) {
         mBlockReader.close();
         mBlockReader = null;
-      }
-      if (mBlockWriter != null) {
-        mBlockWriter.close();
-        mBlockWriter = null;
       }
     }
   }

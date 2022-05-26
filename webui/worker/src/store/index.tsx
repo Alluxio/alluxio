@@ -35,6 +35,9 @@ import { IConfigState } from '@alluxio/common-ui/src/store/config/types';
 import { configReducer } from '@alluxio/common-ui/src/store/config/reducer';
 import { initialConfigState } from '@alluxio/common-ui/src/store/config/reducer';
 import { configSaga } from '@alluxio/common-ui/src/store/config/sagas';
+import { stackSaga } from '@alluxio/common-ui/src/store/stacks/sagas';
+import { IStacksState } from '@alluxio/common-ui/src/store/stacks/types';
+import { initialStacksState, stacksReducer } from '@alluxio/common-ui/src/store/stacks/reducer';
 
 export interface IApplicationState {
   blockInfo: IBlockInfoState;
@@ -45,6 +48,7 @@ export interface IApplicationState {
   overview: IOverviewState;
   refresh: IRefreshState;
   router?: RouterState;
+  stacks: IStacksState;
 }
 
 export const rootReducer = (history: History): Reducer<IApplicationState> =>
@@ -57,6 +61,7 @@ export const rootReducer = (history: History): Reducer<IApplicationState> =>
     overview: overviewReducer,
     refresh: refreshReducer,
     router: connectRouter(history),
+    stacks: stacksReducer,
   });
 
 export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
@@ -67,6 +72,7 @@ export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
     fork(logsSaga),
     fork(metricsSaga),
     fork(overviewSaga),
+    fork(stackSaga),
   ]);
 };
 
@@ -78,4 +84,5 @@ export const initialState: IApplicationState = {
   metrics: initialMetricsState,
   overview: initialOverviewState,
   refresh: initialRefreshState,
+  stacks: initialStacksState,
 };

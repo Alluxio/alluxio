@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -42,7 +42,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -130,7 +129,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
     BlockLocationPolicy policy = Preconditions.checkNotNull(
         BlockLocationPolicy.Factory
-            .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
+            .create(conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
         "UFS read location policy Required when loading files");
     WorkerNetAddress dataSource;
     List<Long> blockIds = status.getBlockIds();
@@ -138,14 +137,14 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       if (local) {
         dataSource = mFsContext.getNodeLocalWorker();
       } else { // send request to data source
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
+        BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
         Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
             .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
-      cacheBlock(blockId, dataSource, local, status, openUfsBlockOptions);
+      cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
     }
   }
 
@@ -164,8 +163,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
-  private void cacheBlock(long blockId, WorkerNetAddress dataSource, boolean local,
-      URIStatus status, Protocol.OpenUfsBlockOptions options) {
+  private void cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
+      Protocol.OpenUfsBlockOptions options) {
     BlockInfo info = status.getBlockInfo(blockId);
     long blockLength = info.getLength();
     String host = dataSource.getHost();
@@ -181,8 +180,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         mFsContext.acquireBlockWorkerClient(dataSource)) {
       blockWorker.get().cache(request);
     } catch (Exception e) {
-      System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
-          status.getPath(), e);
+      System.out.printf("Failed to complete cache request from %s for block %d of file %s: %s",
+          dataSource, blockId, status.getPath(), e);
     }
   }
 }

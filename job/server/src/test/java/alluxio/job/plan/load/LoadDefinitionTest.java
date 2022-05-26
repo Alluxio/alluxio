@@ -11,11 +11,11 @@
 
 package alluxio.job.plan.load;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -58,7 +58,7 @@ import java.util.Set;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystem.class, JobServerContext.class, FileSystemContext.class,
-    AlluxioBlockStore.class})
+    BlockStoreClient.class})
 public class LoadDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
@@ -98,16 +98,16 @@ public class LoadDefinitionTest {
 
   private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;
-  private AlluxioBlockStore mMockBlockStore;
+  private BlockStoreClient mMockBlockStore;
   private FileSystemContext mMockFsContext;
 
   @Before
   public void before() throws Exception {
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mMockFsContext = PowerMockito.mock(FileSystemContext.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(any(FileSystemContext.class)))
         .thenReturn(mMockBlockStore);
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
@@ -115,8 +115,8 @@ public class LoadDefinitionTest {
     PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(ServerConfiguration.global());
     PowerMockito.when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
         .thenReturn(ServerConfiguration.global());
-    mJobServerContext = new JobServerContext(mMockFileSystem, mMockFsContext,
-        Mockito.mock(UfsManager.class));
+    mJobServerContext =
+        new JobServerContext(mMockFileSystem, mMockFsContext, Mockito.mock(UfsManager.class));
   }
 
   @Test
@@ -125,10 +125,9 @@ public class LoadDefinitionTest {
     int replication = 3;
     createFileWithNoLocations(TEST_URI, numBlocks);
     LoadConfig config = new LoadConfig(TEST_URI, replication, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET);
-    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
-        new LoadDefinition().selectExecutors(config,
-            JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
+        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, false);
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments = new LoadDefinition()
+        .selectExecutors(config, JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
 
@@ -145,10 +144,9 @@ public class LoadDefinitionTest {
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET);
-    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
-        new LoadDefinition().selectExecutors(config, JOB_WORKERS,
-            new SelectExecutorsContext(1, mJobServerContext));
+        Collections.EMPTY_SET, Collections.EMPTY_SET, false);
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments = new LoadDefinition()
+        .selectExecutors(config, JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
     Assert.assertEquals(10, assignments.size());
     Assert.assertEquals(1, assignments.iterator().next().getSecond().size());
   }
@@ -157,7 +155,7 @@ public class LoadDefinitionTest {
   public void notEnoughWorkersForReplication() throws Exception {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 5, Collections.EMPTY_SET, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET); // set replication to 5
+        Collections.EMPTY_SET, Collections.EMPTY_SET, false); // set replication to 5
     try {
       new LoadDefinition().selectExecutors(config, JOB_WORKERS,
           new SelectExecutorsContext(1, mJobServerContext));
@@ -176,14 +174,14 @@ public class LoadDefinitionTest {
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET); // set replication to 2
+        Collections.EMPTY_SET, Collections.EMPTY_SET, false); // set replication to 2
     try {
-      new LoadDefinition().selectExecutors(config,
-          JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
+      new LoadDefinition().selectExecutors(config, JOB_WORKERS,
+          new SelectExecutorsContext(1, mJobServerContext));
       Assert.fail();
     } catch (Exception e) {
       Assert.assertThat(e.getMessage(),
-          CoreMatchers.containsString("Available workers without the block: [host0]"));
+          CoreMatchers.containsString("Available workers without the block"));
       Assert.assertThat(e.getMessage(),
           CoreMatchers.containsString("The following workers could not be used because "
               + "they have no local job workers: [otherhost]"));
@@ -216,8 +214,8 @@ public class LoadDefinitionTest {
     Set<String> localityIdentities = new HashSet<>();
     localityIdentities.add("RACK2");
     localityIdentities.add("RACK3");
-    loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.EMPTY_SET,
-        localityIdentities, Collections.singleton("RACK3"), workerIds);
+    loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.EMPTY_SET, localityIdentities,
+        Collections.singleton("RACK3"), workerIds);
   }
 
   @Test
@@ -244,8 +242,8 @@ public class LoadDefinitionTest {
     Set<String> workerSet = new HashSet<>();
     workerSet.add("HOST2");
     workerSet.add("HOST3");
-    loadedBySpecifiedHost(workerSet, Collections.singleton("HOST3"),
-        Collections.EMPTY_SET, Collections.EMPTY_SET, workerIds);
+    loadedBySpecifiedHost(workerSet, Collections.singleton("HOST3"), Collections.EMPTY_SET,
+        Collections.EMPTY_SET, workerIds);
   }
 
   private void loadedBySpecifiedHost(Set<String> workerSet, Set<String> excludedWorkerSet,
@@ -253,11 +251,10 @@ public class LoadDefinitionTest {
       throws Exception {
     int numBlocks = 10;
     createFileWithNoLocations(TEST_URI, numBlocks);
-    LoadConfig config = new LoadConfig(TEST_URI, 1, workerSet, excludedWorkerSet,
-        localityIds, excludedLocalityIds);
-    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
-        new LoadDefinition().selectExecutors(config,
-            JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
+    LoadConfig config = new LoadConfig(TEST_URI, 1, workerSet, excludedWorkerSet, localityIds,
+        excludedLocalityIds, false);
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments = new LoadDefinition()
+        .selectExecutors(config, JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
 

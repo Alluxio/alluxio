@@ -17,7 +17,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import java.io.Serializable;
 import java.util.List;
 import java.util.TreeSet;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

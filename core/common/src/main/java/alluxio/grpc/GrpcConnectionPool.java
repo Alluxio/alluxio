@@ -28,7 +28,6 @@ import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Used to provide gRPC level connection management and pooling facilities.
@@ -162,11 +162,11 @@ public class GrpcConnectionPool {
     // Assign index within the network group.
     long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
     // Find the next slot index within the group.
-    long maxConnectionsForGroup = conf.getLong(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
+    int maxConnectionsForGroup = conf.getInt(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
         .format(channelKey.getNetworkGroup().getPropertyCode()));
     groupIndex %= maxConnectionsForGroup;
     // Create the connection key for the chosen slot.
-    return new GrpcConnectionKey(channelKey, (int) groupIndex);
+    return new GrpcConnectionKey(channelKey, (int) groupIndex % maxConnectionsForGroup);
   }
 
   /**

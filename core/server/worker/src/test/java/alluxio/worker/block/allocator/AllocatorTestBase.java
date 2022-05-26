@@ -96,8 +96,8 @@ public class AllocatorTestBase {
    */
   protected void resetManagerView() throws Exception {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             "alluxio.worker.block.reviewer.MockReviewer");
     // Reviewer will not reject by default.
@@ -121,7 +121,7 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
+        allocator.allocateBlockWithView(blockSize, location,
                 getMetadataEvictorView(), true);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
@@ -150,7 +150,7 @@ public class AllocatorTestBase {
     mTestBlockId++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
+        allocator.allocateBlockWithView(blockSize, location,
                 getMetadataEvictorView(), false);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
@@ -183,7 +183,7 @@ public class AllocatorTestBase {
         mAnyDirInTierLoc2, mAnyDirInTierLoc3};
     for (int i = 0; i < locations.length; i++) {
       StorageDirView dirView =
-              mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1,
+              mAllocator.allocateBlockWithView(1,
                       locations[i], getMetadataEvictorView(), true);
       assertNotNull(dirView);
       assertEquals(TIER_ALIAS[i], dirView.getParentTierView().getTierViewAlias());
@@ -197,7 +197,7 @@ public class AllocatorTestBase {
     for (String medium : MEDIA_TYPES) {
       BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium(medium);
       StorageDirView dirView =
-              mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
+              mAllocator.allocateBlockWithView(1, loc,
                       getMetadataEvictorView(), true);
       assertNotNull(dirView);
       assertEquals(medium, dirView.getMediumType());
@@ -210,7 +210,7 @@ public class AllocatorTestBase {
       for (int j = 0; j < TIER_PATH[i].length; j++) {
         BlockStoreLocation loc = new BlockStoreLocation(tier, j);
         StorageDirView dirView =
-                mAllocator.allocateBlockWithView(AllocatorTestBase.SESSION_ID, 1, loc,
+                mAllocator.allocateBlockWithView(1, loc,
                         getMetadataEvictorView(), true);
         assertNotNull(dirView);
         assertEquals(tier, dirView.getParentTierView().getTierViewAlias());

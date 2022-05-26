@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.Sessions;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
@@ -30,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -141,9 +139,6 @@ public class AsyncBlockRemover {
                 blockToBeRemoved);
           }
           break;
-        } catch (BlockDoesNotExistException e) {
-          // Ignore the case when block is already removed. This could happen when master is asking
-          // worker to remove blocks based on stale information
         } catch (Exception e) {
           LOG.warn("Failed to remove block {} instructed by master. This is best-effort and "
               + "will be tried later. threadName {}, error {}", blockToBeRemoved,

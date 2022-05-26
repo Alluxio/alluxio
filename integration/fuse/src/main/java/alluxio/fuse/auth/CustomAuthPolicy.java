@@ -40,8 +40,8 @@ public class CustomAuthPolicy implements AuthPolicy {
   public CustomAuthPolicy(FileSystem fileSystem, AlluxioConfiguration conf,
       AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
-    mUname = conf.get(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
-    mGname = conf.get(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
+    mUname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
+    mGname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
   }
 
   @Override
@@ -50,8 +50,8 @@ public class CustomAuthPolicy implements AuthPolicy {
       return;
     }
     SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(mUname)
-        .setOwner(mGname)
+        .setGroup(mGname)
+        .setOwner(mUname)
         .build();
     mFileSystem.setAttribute(uri, attributeOptions);
     LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);

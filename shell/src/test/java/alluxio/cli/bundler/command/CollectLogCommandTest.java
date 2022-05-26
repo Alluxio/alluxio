@@ -14,7 +14,7 @@ package alluxio.cli.bundler.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -271,7 +271,7 @@ public class CollectLogCommandTest {
             + "2020-07-09 00:01:59,135 INFO  DefaultMetaMaster - Standby master with address...\n"
             + "2020-07-09 00:03:59,135 INFO  AlluxioMasterProcess - All masters started\n"
             + "2020-07-09 01:12:59,138 INFO  AbstractPrimarySelector - Primary selector..\n"
-            + "2020-07-09 01:53:59,139 INFO  AbstractMaster - TableMaster: Stopped secondary..";
+            + "2020-07-09 01:53:59,139 INFO  AbstractMaster - TableMaster: Stopped standby..";
     writeToFile(masterLog, log);
     masterLog.setLastModified(LocalDateTime.of(2020, 7, 9, 1, 53, 59)
             .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());

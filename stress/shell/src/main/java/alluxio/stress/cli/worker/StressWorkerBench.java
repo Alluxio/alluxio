@@ -13,9 +13,10 @@ package alluxio.stress.cli.worker;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
-import alluxio.stress.cli.Benchmark;
+import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.cli.client.ClientIOWritePolicy;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
@@ -23,7 +24,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -45,11 +46,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Single node stress test.
  */
-public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
+// TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
+public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult,
+    WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
-
-  @ParametersDelegate
-  private WorkerBenchParameters mParameters = new WorkerBenchParameters();
 
   private FileSystem[] mCachedFs;
   private Path mFilePath;
@@ -58,6 +58,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
    * Creates instance.
    */
   public StressWorkerBench() {
+    mParameters = new WorkerBenchParameters();
   }
 
   /**
@@ -69,11 +70,22 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    // TODO(David) Fill in description
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool to measure the read performance of alluxio workers in the cluster",
+        "The test will create one file and repeatedly read the created file to test the "
+            + "performance",
+        "",
+        "Example:",
+        "# This would create a 100MB file with block size of 16KB and then read the file "
+            + "for 30s after 10s warmup",
+        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1 "
+            + "--base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
+            + "--warmup 10s --duration 30s --cluster\n"
+    ));
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     mFilePath = new Path(mParameters.mBasePath, "data");
 
@@ -134,6 +146,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
+
     mCachedFs = new FileSystem[mParameters.mClients];
     for (int i = 0; i < mCachedFs.length; i++) {
       mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
@@ -141,6 +154,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public WorkerBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
@@ -212,6 +226,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
 
     private FSDataInputStream mInStream = null;
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private BenchThread(BenchContext context, FileSystem fs) {
       mContext = context;
       mFs = fs;
@@ -241,6 +256,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
       return null;
     }
 
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);

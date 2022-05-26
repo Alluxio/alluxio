@@ -40,7 +40,7 @@ public final class UserStateTest {
    */
   @Test
   public void getSimpleLoginUser() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
 
     UserState s = UserState.Factory.create(mConfiguration);
     User loginUser = s.getUser();
@@ -55,7 +55,7 @@ public final class UserStateTest {
    */
   @Test
   public void getSimpleLoginUserProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
     UserState s = UserState.Factory.create(mConfiguration);
@@ -71,7 +71,7 @@ public final class UserStateTest {
    */
   @Test
   public void getSimpleLoginUserListProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
 
     UserState s = UserState.Factory.create(mConfiguration);
@@ -89,7 +89,7 @@ public final class UserStateTest {
    */
   @Test
   public void getSimpleLoginUserWhenNotProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
 
     UserState s = UserState.Factory.create(mConfiguration);
@@ -104,7 +104,7 @@ public final class UserStateTest {
    */
   @Test
   public void getCustomLoginUser() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
 
     UserState s = UserState.Factory.create(mConfiguration);
     User loginUser = s.getUser();
@@ -119,7 +119,7 @@ public final class UserStateTest {
    */
   @Test
   public void getCustomLoginUserProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
     UserState s = UserState.Factory.create(mConfiguration);
@@ -136,7 +136,7 @@ public final class UserStateTest {
    */
   @Test
   public void getCustomLoginUserWhenNotProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
     mConfiguration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
 
     UserState s = UserState.Factory.create(mConfiguration);
@@ -150,7 +150,7 @@ public final class UserStateTest {
 
   @Test
   public void securityEnabled() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
 
     // without security, the user will be blank.
     User u = UserState.Factory.create(mConfiguration).getUser();

@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -69,7 +68,7 @@ public class AlluxioFileOutStream extends FileOutStream {
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
-  private final AlluxioBlockStore mBlockStore;
+  private final BlockStoreClient mBlockStore;
   /** Stream to the file in the under storage, null if not writing to the under storage. */
   private final UnderFileSystemFileOutStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
@@ -103,7 +102,7 @@ public class AlluxioFileOutStream extends FileOutStream {
       mAlluxioStorageType = options.getAlluxioStorageType();
       mUnderStorageType = options.getUnderStorageType();
       mOptions = options;
-      mBlockStore = AlluxioBlockStore.create(mContext);
+      mBlockStore = BlockStoreClient.create(mContext);
       mPreviousBlockOutStreams = new ArrayList<>();
       mClosed = false;
       mCanceled = false;
@@ -329,6 +328,9 @@ public class AlluxioFileOutStream extends FileOutStream {
    */
   @ThreadSafe
   private static final class Metrics {
+    // Note that only counter can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
     private static final Counter BYTES_WRITTEN_UFS =
         MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
 

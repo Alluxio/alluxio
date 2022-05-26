@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
-
 import javax.security.auth.Subject;
 
 /**
@@ -80,7 +79,7 @@ public class ChannelAuthenticator {
    * @throws AlluxioStatusException
    */
   public void authenticate() throws AlluxioStatusException {
-    LOG.debug("Authenticating channel: {}. AuthType: {}", mChannelKey.toStringShort(), mAuthType);
+    LOG.debug("Authenticating channel: {}. AuthType: {}", mChannelKey.toString(), mAuthType);
 
     ChannelAuthenticationScheme authScheme = getChannelAuthScheme(mAuthType, mParentSubject,
         mChannelKey.getServerAddress().getSocketAddress());
@@ -109,7 +108,7 @@ public class ChannelAuthenticator {
       // Build a pretty message for authentication failure.
       String message = String.format(
           "Channel authentication failed with code:%s. Channel: %s, AuthType: %s, Error: %s",
-          e.getStatusCode().name(), mChannelKey.toStringShort(), mAuthType, e.toString());
+          e.getStatusCode().name(), mChannelKey.toString(), mAuthType, e.toString());
       throw AlluxioStatusException
           .from(Status.fromCode(e.getStatusCode()).withDescription(message).withCause(t));
     }
@@ -148,7 +147,7 @@ public class ChannelAuthenticator {
         return ChannelAuthenticationScheme.CUSTOM;
       default:
         throw new UnauthenticatedException(String.format(
-            "Configured authentication type is not supported: %s", authType.getAuthName()));
+            "Configured authentication type is not supported: %s", authType));
     }
   }
 

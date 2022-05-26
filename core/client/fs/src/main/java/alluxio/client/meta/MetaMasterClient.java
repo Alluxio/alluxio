@@ -34,7 +34,7 @@ public interface MetaMasterClient extends Client {
    *       Status for the in-progress backup will be returned. {@link #getBackupStatus} should
    *       be called for querying the status of the on-going backup.
    *
-   * Note: When leader has no secondary in an HA cluster, it will reject backup. This could
+   * Note: When leader has no standby in an HA cluster, it will reject backup. This could
    *       be allowed by passing "AllowLeader" option in the request.
    *
    * @param backupRequest the backup request

@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -59,7 +58,7 @@ public final class MetricsDocGenerator {
     Collections.sort(defaultKeys);
 
     String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .get(PropertyKey.HOME);
+        .getString(PropertyKey.HOME);
 
     // Map from metric key prefix to metric category
     Map<String, String> metricTypeMap = new HashMap<>();

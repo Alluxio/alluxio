@@ -83,6 +83,7 @@ public class AlluxioCatalog implements Journaled {
         (key, value) -> value == null ? new ReentrantLock() : value);
     return new LockResource(lock);
   }
+
   /**
    * @return the layout registry
    */

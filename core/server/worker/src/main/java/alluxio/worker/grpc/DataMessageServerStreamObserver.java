@@ -51,7 +51,12 @@ public class DataMessageServerStreamObserver<T> extends CallStreamObserver<T> {
     if (buffer != null) {
       mBufferRepository.offerBuffer(buffer, value.getMessage());
     }
-    mObserver.onNext(value.getMessage());
+    try {
+      mObserver.onNext(value.getMessage());
+    } catch (Throwable e) {
+      mBufferRepository.pollBuffer(value.getMessage());
+      throw e;
+    }
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -24,6 +25,9 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.jnifuse.utils.Environment;
+import alluxio.jnifuse.utils.VersionPreference;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -31,15 +35,14 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import ru.serce.jnrfuse.ErrorCodes;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -52,7 +55,38 @@ public final class AlluxioFuseUtils {
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
+  public static final String DEFAULT_USER_NAME = System.getProperty("user.name");
+  public static final long DEFAULT_UID = getUid(DEFAULT_USER_NAME);
+  public static final String DEFAULT_GROUP_NAME = getGroupName(DEFAULT_USER_NAME);
+  public static final long DEFAULT_GID = getGidFromGroupName(DEFAULT_GROUP_NAME);
+
+  public static final String INVALID_USER_GROUP_NAME = "";
+  public static final long ID_NOT_SET_VALUE = -1;
+  public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
+
   private AlluxioFuseUtils() {}
+
+  /**
+   * Gets the libjnifuse version preference set by user.
+   *
+   * @param conf the configuration object
+   * @return the version preference
+   */
+  public static VersionPreference getVersionPreference(AlluxioConfiguration conf) {
+    if (Environment.isMac()) {
+      LOG.info("osxfuse doesn't support libfuse3 api. Using libfuse version 2.");
+      return VersionPreference.VERSION_2;
+    }
+
+    final int val = conf.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION);
+    if (val == 2) {
+      return VersionPreference.VERSION_2;
+    } else if (val == 3) {
+      return VersionPreference.VERSION_3;
+    } else {
+      return VersionPreference.NO;
+    }
+  }
 
   /**
    * Retrieves the uid of the given user.
@@ -81,20 +115,21 @@ public final class AlluxioFuseUtils {
    * @return gid or -1 on failures
    */
   public static long getGidFromGroupName(String groupName) {
-    String result = "";
     try {
       if (OSUtils.isLinux()) {
         String script = "getent group " + groupName + " | cut -d: -f3";
-        result = ShellUtils.execCommand("bash", "-c", script).trim();
+        String result = ShellUtils.execCommand("bash", "-c", script).trim();
+        return Long.parseLong(result);
       } else if (OSUtils.isMacOS()) {
         String script = "dscl . -read /Groups/" + groupName
             + " | awk '($1 == \"PrimaryGroupID:\") { print $2 }'";
-        result = ShellUtils.execCommand("bash", "-c", script).trim();
+        String result = ShellUtils.execCommand("bash", "-c", script).trim();
+        return Long.parseLong(result);
       }
-      return Long.parseLong(result);
+      return ID_NOT_SET_VALUE;
     } catch (NumberFormatException | IOException e) {
       LOG.error("Failed to get gid from group name {}.", groupName);
-      return -1;
+      return ID_NOT_SET_VALUE;
     }
   }
 
@@ -104,8 +139,13 @@ public final class AlluxioFuseUtils {
    * @param uid user id
    * @return user name
    */
-  public static String getUserName(long uid) throws IOException {
-    return ShellUtils.execCommand("id", "-nu", Long.toString(uid)).trim();
+  public static String getUserName(long uid) {
+    try {
+      return ShellUtils.execCommand("bash", "-c", "id -nu", Long.toString(uid)).trim();
+    } catch (IOException e) {
+      LOG.error("Failed to get user name of uid {}", uid, e);
+      return INVALID_USER_GROUP_NAME;
+    }
   }
 
   /**
@@ -114,8 +154,14 @@ public final class AlluxioFuseUtils {
    * @param userName the user name
    * @return group name
    */
-  public static String getGroupName(String userName) throws IOException {
-    return ShellUtils.execCommand("id", "-ng", userName).trim();
+  public static String getGroupName(String userName) {
+    try {
+      List<String> groups = CommonUtils.getUnixGroups(userName);
+      return groups.isEmpty() ? INVALID_USER_GROUP_NAME : groups.get(0);
+    } catch (IOException e) {
+      LOG.error("Failed to get group name of user name {}", userName, e);
+      return INVALID_USER_GROUP_NAME;
+    }
   }
 
   /**
@@ -124,16 +170,21 @@ public final class AlluxioFuseUtils {
    * @param gid the group id
    * @return group name
    */
-  public static String getGroupName(long gid) throws IOException {
-    if (OSUtils.isLinux()) {
-      String script = "getent group " + gid + " | cut -d: -f1";
-      return ShellUtils.execCommand("bash", "-c", script).trim();
-    } else if (OSUtils.isMacOS()) {
-      String script =
-          "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
-      return ShellUtils.execCommand("bash", "-c", script).trim();
+  public static String getGroupName(long gid) {
+    try {
+      if (OSUtils.isLinux()) {
+        String script = "getent group " + gid + " | cut -d: -f1";
+        return ShellUtils.execCommand("bash", "-c", script).trim();
+      } else if (OSUtils.isMacOS()) {
+        String script =
+            "dscl . list /Groups PrimaryGroupID | awk '($2 == \"" + gid + "\") { print $1 }'";
+        return ShellUtils.execCommand("bash", "-c", script).trim();
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to get group name of gid {}", gid, e);
+      return INVALID_USER_GROUP_NAME;
     }
-    return "";
+    return INVALID_USER_GROUP_NAME;
   }
 
   /**
@@ -165,14 +216,13 @@ public final class AlluxioFuseUtils {
    * @return the uid (-u) or gid (-g) of username
    */
   private static long getIdInfo(String option, String username) {
-    String output;
     try {
-      output = ShellUtils.execCommand("id", option, username).trim();
-    } catch (IOException e) {
+      String output = ShellUtils.execCommand("id", option, username).trim();
+      return Long.parseLong(output);
+    } catch (IOException | NumberFormatException e) {
       LOG.error("Failed to get id from {} with option {}", username, option);
-      return -1;
+      return ID_NOT_SET_VALUE;
     }
-    return Long.parseLong(output);
   }
 
   /**
@@ -274,19 +324,35 @@ public final class AlluxioFuseUtils {
    */
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    logger.debug("Enter: {}({})", methodName, debugDesc);
-    long startMs = System.currentTimeMillis();
-    int ret = callable.call();
-    long durationMs = System.currentTimeMillis() - startMs;
-    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
-    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
-    if (ret < 0) {
-      MetricsSystem.counter(methodName + "Failures").inc();
-    }
-    if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
-          String.format(description, args), ret, durationMs, THRESHOLD);
+    int ret = -1;
+    try {
+      String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+      logger.debug("Enter: {}({})", methodName, debugDesc);
+      long startMs = System.currentTimeMillis();
+      ret = callable.call();
+      long durationMs = System.currentTimeMillis() - startMs;
+      logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+      MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
+      MetricsSystem.timer(MetricKey.FUSE_TOTAL_CALLS.getName())
+          .update(durationMs, TimeUnit.MILLISECONDS);
+      if (ret < 0) {
+        MetricsSystem.counter(methodName + "Failures").inc();
+      }
+      if (durationMs >= THRESHOLD) {
+        logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
+            String.format(description, args), ret, durationMs, THRESHOLD);
+      }
+    } catch (Throwable t) {
+      // native code cannot deal with any throwable
+      // wrap all the logics in try catch
+      String errorMessage = "";
+      try {
+        errorMessage = String.format(description, args);
+      } catch (Throwable inner) {
+        errorMessage = "";
+      }
+      LOG.error("Failed to {}({}) with unexpected throwable: ", methodName, errorMessage, t);
+      return -ErrorCodes.EIO();
     }
     return ret;
   }

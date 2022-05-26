@@ -74,7 +74,7 @@ public interface UfsManager extends Closeable {
       mCounter.inc();
       return new CloseableResource<UnderFileSystem>(mUfs.get()) {
         @Override
-        public void close() {
+        public void closeResource() {
           mCounter.dec();
         }
       };

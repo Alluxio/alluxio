@@ -35,10 +35,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.powermock.reflect.Whitebox;
 
-import javax.security.auth.Subject;
-import javax.security.sasl.AuthenticationException;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import javax.security.auth.Subject;
+import javax.security.sasl.AuthenticationException;
 
 /**
  * Unit test for {@link alluxio.grpc.GrpcChannelBuilder} and {@link alluxio.grpc.GrpcServerBuilder}.
@@ -99,7 +99,7 @@ public class GrpcSecurityTest {
   @Test
   public void testCustomAuthentication() throws Exception {
 
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
@@ -116,7 +116,7 @@ public class GrpcSecurityTest {
 
   @Test
   public void testCustomAuthenticationFails() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
@@ -161,7 +161,7 @@ public class GrpcSecurityTest {
 
   @Test
   public void testAuthenticationClosed() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     GrpcServer server = createServer(AuthType.SIMPLE);
     try {
       server.start();
@@ -194,7 +194,7 @@ public class GrpcSecurityTest {
 
   @Test
   public void testAuthenticationRevoked() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "250ms");
     GrpcServer server = createServer(AuthType.SIMPLE);
     try {
@@ -226,7 +226,7 @@ public class GrpcSecurityTest {
   }
 
   private GrpcServer createServer(AuthType authType) {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType.name());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType);
     InetSocketAddress bindAddress = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(
         (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0);
     UserState us = UserState.Factory.create(mConfiguration);

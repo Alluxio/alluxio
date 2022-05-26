@@ -11,11 +11,11 @@
 
 package alluxio.cli.job;
 
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

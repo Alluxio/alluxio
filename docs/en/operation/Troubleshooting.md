@@ -14,7 +14,7 @@ Alluxio.
 
 > Note: this doc is not intended to be the full list of Alluxio questions.
 Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
-developers, or post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
+developers, or post questions on [Github issues](https://github.com/Alluxio/alluxio/issues).
 
 ## Where are the Alluxio logs?
 
@@ -26,7 +26,7 @@ stdout and stderr of the corresponding process.
 
 The master and worker logs are useful to understand what the Alluxio Master and
 Workers are doing, especially when running into any issues. If you do not understand the error messages,
-search for them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
+search for them in the [Github issues](https://github.com/Alluxio/alluxio/issues),
 in the case the problem has been discussed before. 
 You can also join our [Slack channel](https://slackin.alluxio.io/) and seek help there.
 You can find more details about the Alluxio server logs [here]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}).
@@ -44,25 +44,54 @@ For more information about logging, please check out
 
 ## Alluxio remote debug
 
-Java remote debugging makes it easier to debug Alluxio at the source level without modifying any code. You
-will need to append the JVM remote debugging parameters and start a debugging server. There are several ways to append
-the remote debugging parameters; you can export the following configuration properties in shell or `alluxio-env.sh`:
+### Debugging Alluxio processes
 
-```bash
-export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
-export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6607"
-export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
+Java remote debugging makes it easier to debug Alluxio at the source level without modifying any code. You
+will need to set the JVM remote debugging parameters before starting the process. There are several ways to add
+the remote debugging parameters; you can export the following configuration properties in shell or `conf/alluxio-env.sh`:
+
+```shell
+# Java 8
+export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
+export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
+# Java 11
+
+export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60001"
+export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60002"
 ```
 
-If you want to debug shell commands, you can add the `-debug` flag to start a debug server with the JVM debug
-parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`, such as `alluxio fs -debug ls /`.
+In general, you can use `ALLUXIO_<PROCESS>_ATTACH_OPTS` to specify how an Alluxio process should be attached to.
 
-`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the
-shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` to avoid unnecessary waiting time.
+`suspend={y | n}` will decide whether the JVM process waits until the debugger connects or not.
 
-After starting the master or worker, use Eclipse, IntelliJ IDEA, or another java IDE, create a new java remote configuration,
+`address` determines which port the Alluxio process will use to be attached to by a debugger. If left blank, it will
+choose an open port by itself.
+
+After completing this setup, learn how [to attach](#to-attach).
+
+### Debugging shell commands
+
+If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set the `ALLUXIO_USER_ATTACH_OPTS` in
+`conf/alluxio-env.sh` as above:
+
+```shell
+# Java 8
+export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
+# Java 11
+export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
+```
+
+After setting this parameter, you can add the `-debug` flag to start a debug server such as `bin/alluxio fs -debug ls /`.
+
+After completing this setup, learn how [to attach](#to-attach).
+
+### To attach
+
+There exists a [comprehensive tutorial on how to attach to and debug a Java process in IntelliJ](https://www.jetbrains.com/help/idea/attaching-to-local-process.html).
+
+Start the process or shell command of interest, then create a new java remote configuration,
 set the debug server's host and port, and start the debug session. If you set a breakpoint which can be reached, the IDE
-will enter debug mode and you can inspect the current context's variables, call stack, thread list, and expression
+will enter debug mode. You can inspect the current context's variables, call stack, thread list, and expression
 evaluation.
 
 ## Alluxio collectInfo command
@@ -123,7 +152,7 @@ This will be done multiple times to see if the JVMs are making progress.
 This runs system troubleshooting commands like `env`, `hostname`, `top`, `ps` etc.
 
 > WARNING: If you stored credential fields in environment variables like AWS_ACCESS_KEY or in process start parameters
-like -Daws.access.key=XXX, DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
+like `-Daws.access.key=XXX`, DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect all information mentioned above
 `all` will run all the sub-commands above.
@@ -212,6 +241,34 @@ The parsable datetime formats include below:
 1. `--start-time <datetime>` specifies a datetime before with the log files can be ignored.
 A log file will be ignored if the last modified time is before this start time.
 
+## Resource Leak Detection
+
+If you are operating your Alluxio cluster it is possible you may notice a
+message in the logs like:
+
+```
+LEAK: <>.close() was not called before resource is garbage-collected. See https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html#resource-leak-detection for more information about this message.
+```
+
+Alluxio has a built-in detection mechanism to help identify potential resource
+leaks. This message indicates there is a bug in the Alluxio code which is
+causing a resource leak. If  this message appears during cluster operation,
+please [open a GitHub
+Issue](https://github.com/Alluxio/alluxio/issues/new/choose) as a bug report and
+share your log message and any relevant stack traces that are shared with it.
+
+By default, Alluxio samples a portion of some resource allocations when
+detecting these leaks, and for each tracked resource record the object's recent
+accesses. The sampling rate and access tracking will result in a resource and
+performance penalty. The amount of overhead introduced by the leak detector can
+be controlled through the property `alluxio.leak.detector.level`. Valid values
+are
+
+- `DISABLED`: no leak tracking or logging is performed, lowest overhead
+- `SIMPLE`: samples and tracks only leaks and does not log recent accesses. minimal overhead
+- `ADVANCED`: samples and tracks recent accesses, higher overhead
+- `PARANOID`: tracks for leaks on every resource allocation, highest overhead. 
+
 ## Setup FAQ
 
 ### Q: I'm new to Alluxio and cannot set up Alluxio on my local machine. What should I do?
@@ -285,7 +342,7 @@ See [Spark on Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}) for more
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
-```properties
+```
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
@@ -418,7 +475,10 @@ Please make sure the Alluxio version being deployed is update-to-date and suppor
 
 ## Posting Questions
 
-When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users)
+It is highly recommended searching if your questions have been answered and problem have been resolved already.
+Past Github issues and Slack chat histories are both very good sources. 
+
+When posting questions on the [Github issues](https://github.com/Alluxio/alluxio/issues)
 or [Slack channel](https://alluxio.io/slack), please attach the full environment information, including
 - Alluxio version
 - OS version

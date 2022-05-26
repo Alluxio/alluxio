@@ -58,7 +58,7 @@ public class ValidationToolRegistry {
   public void refresh() {
     Map<String, ValidationToolFactory> map = new HashMap<>();
 
-    String libDir = PathUtils.concatPath(mConf.get(PropertyKey.HOME), "lib");
+    String libDir = PathUtils.concatPath(mConf.getString(PropertyKey.HOME), "lib");
     LOG.info("Loading validation tool jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files

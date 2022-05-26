@@ -43,7 +43,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 /**
@@ -582,6 +581,31 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     } catch (IOException e) {
       // This is not possible.
       return Constants.INVALID_UFS_FINGERPRINT;
+    }
+  }
+
+  @Override
+  public Fingerprint getParsedFingerprint(String path) {
+    try {
+      return call(new UfsCallable<Fingerprint>() {
+        @Override
+        public Fingerprint call() throws IOException {
+          return mUnderFileSystem.getParsedFingerprint(path);
+        }
+
+        @Override
+        public String methodName() {
+          return "GetParsedFingerprint";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s", path);
+        }
+      });
+    } catch (IOException e) {
+      // This is not possible.
+      return Fingerprint.INVALID_FINGERPRINT;
     }
   }
 

@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 
@@ -86,7 +85,7 @@ public final class MasterWebServer extends WebServer {
       // If the Web UI is disabled, disable the resources and servlet together.
       if (ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
         String resourceDirPathString =
-                ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/master/build/";
+                ServerConfiguration.getString(PropertyKey.WEB_RESOURCES) + "/master/build/";
         File resourceDir = new File(resourceDirPathString);
         mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
         mServletContextHandler.setWelcomeFiles(new String[]{"index.html"});

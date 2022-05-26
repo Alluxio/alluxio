@@ -19,12 +19,12 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
-import alluxio.grpc.TtlAction;
 
 import java.util.Arrays;
 

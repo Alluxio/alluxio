@@ -14,6 +14,7 @@ package alluxio.util;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
+import alluxio.master.metastore.MetastoreType;
 
 /**
  * Utilities to detect features that Alluxio is running with.
@@ -25,8 +26,7 @@ public final class FeatureUtils {
    * @return true, if running with embedded journal
    */
   public static boolean isEmbeddedJournal() {
-    return JournalType.EMBEDDED.toString()
-        .equals(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
+    return JournalType.EMBEDDED == ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE);
   }
 
   /**
@@ -35,7 +35,7 @@ public final class FeatureUtils {
    * @return true, if running with rocks
    */
   public static boolean isRocks() {
-    return "ROCKS".equals(ServerConfiguration.get(PropertyKey.MASTER_METASTORE));
+    return ServerConfiguration.get(PropertyKey.MASTER_METASTORE) == MetastoreType.ROCKS;
   }
 
   /**
@@ -72,7 +72,7 @@ public final class FeatureUtils {
    */
   public static boolean isPersistenceBlacklistEmpty() {
     return !ServerConfiguration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        || ServerConfiguration.get(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
+        || ServerConfiguration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
   }
 
   /**
