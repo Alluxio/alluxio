@@ -56,9 +56,6 @@ public final class JobContext implements Closeable  {
     return context;
   }
 
-  /**
-   * Create a job context.
-   */
   private JobContext() {} // private constructor to prevent instantiation
 
   /**
