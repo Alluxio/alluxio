@@ -20,7 +20,6 @@ import alluxio.DefaultStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.BlockAnnotator;
@@ -118,7 +117,7 @@ public final class BlockMetadataManager {
         default:
           //For user defined evictor
           BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-              Collections.<Long>emptySet(), Collections.<Long>emptySet());
+              Collections.emptySet(), Collections.emptySet());
           mBlockIterator = new EmulatingBlockIterator(this,
               Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
       }
@@ -433,10 +432,8 @@ public final class BlockMetadataManager {
    *
    * @param tempBlockMeta the temp block to modify
    * @param newSize new size in bytes
-   * @throws InvalidWorkerStateException when newSize is smaller than current size
    */
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }

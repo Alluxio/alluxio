@@ -17,7 +17,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.BlockStoreLocation;
@@ -299,14 +298,12 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     long oldSize = tempBlockMeta.getBlockSize();
+    checkState(oldSize < newSize, "Shrinking block, not supported!");
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
       tempBlockMeta.setBlockSize(newSize);
-    } else if (newSize < oldSize) {
-      throw new InvalidWorkerStateException("Shrinking block, not supported!");
     }
   }
 
