@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -53,6 +54,7 @@ public final class BlockWorkerDataReader implements DataReader {
    */
   private BlockWorkerDataReader(BlockReader reader,
       long offset, long len, long chunkSize) {
+    Objects.requireNonNull(reader);
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;

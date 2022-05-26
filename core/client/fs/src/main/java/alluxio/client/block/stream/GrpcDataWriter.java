@@ -34,8 +34,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
 import io.netty.buffer.ByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -58,22 +56,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class GrpcDataWriter implements DataWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriter.class);
 
-  private final int mWriterBufferSizeMessages;
   private final long mDataTimeoutMs;
   private final long mWriterCloseTimeoutMs;
   /** Uses a long flush timeout since flush in S3 streaming upload may take a long time. */
   private final long mWriterFlushTimeoutMs;
 
-  private final FileSystemContext mContext;
   private final CloseableResource<BlockWorkerClient> mClient;
   private final WorkerNetAddress mAddress;
-  private final long mLength;
   private final WriteRequestCommand mPartialRequest;
   private final long mChunkSize;
   private final GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
-  private final WriteRequestMarshaller mMarshaller;
 
   /**
    * The next pos to queue to the buffer.
@@ -108,7 +101,7 @@ public final class GrpcDataWriter implements DataWriter {
    *
    * @param context the file system context
    * @param address the data server address
-   * @param id the block or UFS file Id
+   * @param id the block or UFS file ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param chunkSize the chunk size
    * @param type type of the write request
@@ -118,16 +111,15 @@ public final class GrpcDataWriter implements DataWriter {
   private GrpcDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
       long length, long chunkSize, RequestType type, OutStreamOptions options,
       CloseableResource<BlockWorkerClient> client) throws IOException {
-    mContext = context;
     mAddress = address;
-    mLength = length;
     AlluxioConfiguration conf = context.getClusterConf();
     mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_WRITE_TIMEOUT);
-    mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
+    int mWriterBufferSizeMessages = conf.getInt(
+        PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
     mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT);
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_FLUSH_TIMEOUT);
-    // in cases we know precise block size, make more accurate reservation.
-    long reservedBytes = Math.min(mLength, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
+    // in cases where we know precise block size, make more accurate reservation.
+    long reservedBytes = Math.min(length, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
 
     WriteRequestCommand.Builder builder =
         WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
@@ -144,7 +136,7 @@ public final class GrpcDataWriter implements DataWriter {
     // two cases to use UFS_FALLBACK_BLOCK endpoint:
     // (1) this writer is created by the fallback of a short-circuit writer, or
     boolean alreadyFallback = type == RequestType.UFS_FALLBACK_BLOCK;
-    // (2) the write type is async when UFS tier is enabled.
+    // (2) the write-type is async when UFS tier is enabled.
     boolean possibleToFallback = type == RequestType.ALLUXIO_BLOCK
         && options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
         && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
@@ -162,7 +154,7 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    mMarshaller = new WriteRequestMarshaller();
+    WriteRequestMarshaller mMarshaller = new WriteRequestMarshaller();
     if (conf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
       mStream = new GrpcDataMessageBlockingStream<>(
           mClient.get()::writeBlock, mWriterBufferSizeMessages,
@@ -244,7 +236,8 @@ public final class GrpcDataWriter implements DataWriter {
       WriteResponse response = mStream.receive(mWriterFlushTimeoutMs);
       if (response == null) {
         throw new UnavailableException(String.format(
-            "Flush request %s to worker %s is not acked before complete.", writeRequest, mAddress));
+            "Flush request %s to worker %s is not acknowledged before complete.",
+            writeRequest, mAddress));
       }
       posWritten = response.getOffset();
     } while (mPosToQueue != posWritten);

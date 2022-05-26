@@ -69,12 +69,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
-  private GrpcServerAddress mAddress;
+  private final GrpcServerAddress mAddress;
   private final long mRpcTimeoutMs;
 
-  private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
-  private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
@@ -126,7 +125,6 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
-    mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
     mTracker = DETECTOR.track(this);

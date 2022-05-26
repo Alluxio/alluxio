@@ -44,15 +44,16 @@ public final class MostAvailableFirstPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy(null);
+    MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker3",
-        policy.getWorker(options).getHost());
+        policy.getWorker(options).orElseThrow(
+            () -> new RuntimeException("Expected worker3")).getHost());
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     CommonUtils.testEquals(MostAvailableFirstPolicy.class,
         new Class[]{AlluxioConfiguration.class},
         new Object[]{ConfigurationTestUtils.defaults()});

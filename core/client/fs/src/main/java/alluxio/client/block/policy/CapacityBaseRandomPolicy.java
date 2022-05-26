@@ -13,9 +13,9 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
@@ -33,18 +33,16 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link CapacityBaseRandomPolicy}.
-   *
-   * @param conf Alluxio configuration
    */
-  public CapacityBaseRandomPolicy(AlluxioConfiguration conf) {
+  public CapacityBaseRandomPolicy() {
   }
 
   @Nullable
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     Iterable<BlockWorkerInfo> blockWorkerInfos = options.getBlockWorkerInfos();
     // All the capacities will form a ring of continuous intervals
-    // And we throw a dice in the ring and decide which worker to pick
+    // And we throw a die in the ring and decide which worker to pick
     // For example if worker1 has capacity 10, worker2 has 20, worker3 has 40,
     // the ring will look like [0, 10), [10, 30), [30, 70).
     // A key in the map is the LHS of a range.
@@ -58,10 +56,10 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
       }
     });
     if (totalCapacity.get() == 0L) {
-      return null;
+      return Optional.empty();
     }
     long randomLong = randomInCapacity(totalCapacity.get());
-    return rangeStartMap.floorEntry(randomLong).getValue().getNetAddress();
+    return Optional.of(rangeStartMap.floorEntry(randomLong).getValue().getNetAddress());
   }
 
   protected long randomInCapacity(long totalCapacity) {

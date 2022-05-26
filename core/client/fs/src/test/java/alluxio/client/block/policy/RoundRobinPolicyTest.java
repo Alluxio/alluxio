@@ -48,17 +48,21 @@ public final class RoundRobinPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy();
 
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     assertNotEquals(
-        policy.getWorker(options).getHost(),
-        policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(123))).getHost());
+        policy.getWorker(options).orElseThrow(
+            () -> new RuntimeException("Expected worker")).getHost(),
+        policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(123)))
+            .orElseThrow(() -> new RuntimeException("Expected worker")).getHost());
 
     assertEquals(
-        policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555))).getHost(),
-        policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555))).getHost());
+        policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555)))
+            .orElseThrow(() -> new RuntimeException("Expected worker")).getHost(),
+        policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555)))
+            .orElseThrow(() -> new RuntimeException("Expected worker")).getHost());
   }
 
   /**
@@ -66,7 +70,7 @@ public final class RoundRobinPolicyTest {
    */
   @Test
   public void getWorkerNoneEligible() {
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy();
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(new ArrayList<>())
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     assertNull(policy.getWorker(options));
@@ -82,7 +86,7 @@ public final class RoundRobinPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
 
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy();
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength((long) Constants.MB));
     assertNotNull(policy.getWorker(options));
@@ -91,7 +95,7 @@ public final class RoundRobinPolicyTest {
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
         new Object[]{conf});

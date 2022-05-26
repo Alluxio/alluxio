@@ -13,12 +13,12 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Optional;
 
 /**
  * A policy that returns the worker with the most available bytes.
@@ -28,16 +28,14 @@ public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
-   *
-   * @param conf Alluxio configuration
    */
-  public MostAvailableFirstPolicy(AlluxioConfiguration conf) {}
+  public MostAvailableFirstPolicy() {}
 
   /**
    * The policy returns null if no worker is qualified.
    */
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
@@ -46,12 +44,12 @@ public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
         result = workerInfo.getNetAddress();
       }
     }
-    return result;
+    return Optional.ofNullable(result);
   }
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof MostAvailableFirstPolicy;
+    return o instanceof MostAvailableFirstPolicy;
   }
 
   @Override

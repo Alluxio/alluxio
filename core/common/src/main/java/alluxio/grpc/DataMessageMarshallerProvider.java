@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import java.util.Objects;
+
 /**
  * A provider of {@link DataMessageMarshaller} for a gRPC call.
  *
@@ -27,7 +29,9 @@ public class DataMessageMarshallerProvider<ReqT, ResT>  {
    */
   public DataMessageMarshallerProvider(DataMessageMarshaller<ReqT> requestMarshaller,
       DataMessageMarshaller<ResT> responseMarshaller) {
+    Objects.requireNonNull(requestMarshaller);
     mRequestMarshaller = requestMarshaller;
+    Objects.requireNonNull(responseMarshaller);
     mResponseMarshaller = responseMarshaller;
   }
 

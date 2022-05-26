@@ -61,7 +61,7 @@ public class OutStreamOptionsTest {
     public FakeUserGroupsMapping() {}
 
     @Override
-    public List<String> getGroups(String user) throws IOException {
+    public List<String> getGroups(String user) {
       return Lists.newArrayList("test_group");
     }
   }
@@ -114,7 +114,7 @@ public class OutStreamOptionsTest {
   public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
-    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(mConf);
+    BlockLocationPolicy locationPolicy = new RoundRobinPolicy();
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());
@@ -149,7 +149,7 @@ public class OutStreamOptionsTest {
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     ClientContext clientContext = ClientContext.create(mConf);
     new EqualsTester()
         .addEqualityGroup(

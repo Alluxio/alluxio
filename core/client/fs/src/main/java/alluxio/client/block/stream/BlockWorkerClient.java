@@ -109,7 +109,7 @@ public interface BlockWorkerClient extends Closeable {
 
   /**
    * Opens a local block. This is a two stage operations:
-   * 1. Client sends a open request through the request stream. Server will respond with the name
+   * 1. Client sends an open request through the request stream. Server will respond with the name
    *    of the file to read from.
    * 2. When client is done with the file, it should close the stream.
    *
