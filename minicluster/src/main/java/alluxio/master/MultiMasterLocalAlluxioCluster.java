@@ -257,7 +257,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     String path = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
-      ufs.deleteExistingDirectory(path, DeleteOptions.defaults().setRecursive(true));
+      ufs.deleteDirectoryWithRetry(path, DeleteOptions.defaults().setRecursive(true));
     }
     if (!ufs.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);

@@ -64,9 +64,9 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
         }
 
         @Override
-        public boolean deleteExistingFile(String path) throws IOException {
+        public boolean deleteFileWithRetry(String path) throws IOException {
           if (ThreadLocalRandom.current().nextBoolean()) {
-            return mUfs.deleteExistingFile(path);
+            return mUfs.deleteFileWithRetry(path);
           } else {
             return false;
           }

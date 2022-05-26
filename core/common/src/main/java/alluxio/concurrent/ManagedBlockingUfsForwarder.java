@@ -97,21 +97,21 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
+  public OutputStream createWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<OutputStream>() {
       @Override
       public OutputStream execute() throws IOException {
-        return mUfs.createNonexistingFile(path);
+        return mUfs.createWithRetry(path);
       }
     }.get();
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+  public OutputStream createWithRetry(String path, CreateOptions options) throws IOException {
     return new ManagedBlockingUfsMethod<OutputStream>() {
       @Override
       public OutputStream execute() throws IOException {
-        return mUfs.createNonexistingFile(path, options);
+        return mUfs.createWithRetry(path, options);
       }
     }.get();
   }
@@ -137,21 +137,21 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path) throws IOException {
+  public boolean deleteDirectoryWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override
       public Boolean execute() throws IOException {
-        return mUfs.deleteExistingDirectory(path);
+        return mUfs.deleteDirectoryWithRetry(path);
       }
     }.get();
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
+  public boolean deleteDirectoryWithRetry(String path, DeleteOptions options) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override
       public Boolean execute() throws IOException {
-        return mUfs.deleteExistingDirectory(path, options);
+        return mUfs.deleteDirectoryWithRetry(path, options);
       }
     }.get();
   }
@@ -167,11 +167,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingFile(String path) throws IOException {
+  public boolean deleteFileWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override
       public Boolean execute() throws IOException {
-        return mUfs.deleteExistingFile(path);
+        return mUfs.deleteFileWithRetry(path);
       }
     }.get();
   }
@@ -228,11 +228,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+  public UfsDirectoryStatus getDirectoryStatusWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<UfsDirectoryStatus>() {
       @Override
       public UfsDirectoryStatus execute() throws IOException {
-        return mUfs.getExistingDirectoryStatus(path);
+        return mUfs.getDirectoryStatusWithRetry(path);
       }
     }.get();
   }
@@ -269,11 +269,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getExistingFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatusWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<UfsFileStatus>() {
       @Override
       public UfsFileStatus execute() throws IOException {
-        return mUfs.getExistingFileStatus(path);
+        return mUfs.getFileStatusWithRetry(path);
       }
     }.get();
   }
@@ -319,11 +319,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
+  public UfsStatus getStatusWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<UfsStatus>() {
       @Override
       public UfsStatus execute() throws IOException {
-        return mUfs.getExistingStatus(path);
+        return mUfs.getStatusWithRetry(path);
       }
     }.get();
   }
@@ -344,11 +344,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public boolean isExistingDirectory(String path) throws IOException {
+  public boolean isDirectoryWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override
       public Boolean execute() throws IOException {
-        return mUfs.isExistingDirectory(path);
+        return mUfs.isDirectoryWithRetry(path);
       }
     }.get();
   }
@@ -434,21 +434,21 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public InputStream openExistingFile(String path) throws IOException {
+  public InputStream openWithRetry(String path) throws IOException {
     return new ManagedBlockingUfsMethod<InputStream>() {
       @Override
       public InputStream execute() throws IOException {
-        return mUfs.openExistingFile(path);
+        return mUfs.openWithRetry(path);
       }
     }.get();
   }
 
   @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+  public InputStream openWithRetry(String path, OpenOptions options) throws IOException {
     return new ManagedBlockingUfsMethod<InputStream>() {
       @Override
       public InputStream execute() throws IOException {
-        return mUfs.openExistingFile(path, options);
+        return mUfs.openWithRetry(path, options);
       }
     }.get();
   }
@@ -464,11 +464,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+  public boolean renameDirectoryWithRetry(String src, String dst) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override
       public Boolean execute() throws IOException {
-        return mUfs.renameRenamableDirectory(src, dst);
+        return mUfs.renameDirectoryWithRetry(src, dst);
       }
     }.get();
   }
@@ -484,11 +484,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableFile(String src, String dst) throws IOException {
+  public boolean renameFileWithRetry(String src, String dst) throws IOException {
     return new ManagedBlockingUfsMethod<Boolean>() {
       @Override
       public Boolean execute() throws IOException {
-        return mUfs.renameRenamableFile(src, dst);
+        return mUfs.renameFileWithRetry(src, dst);
       }
     }.get();
   }

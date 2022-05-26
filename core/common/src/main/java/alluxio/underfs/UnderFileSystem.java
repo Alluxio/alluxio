@@ -232,19 +232,19 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @return A {@code OutputStream} object
    */
-  OutputStream createNonexistingFile(String path) throws IOException;
+  OutputStream createWithRetry(String path) throws IOException;
 
   /**
    * Creates a file in the under file system with the specified {@link CreateOptions}.
    *
    * Similar to {@link #create(String, CreateOptions)} but
-   * deals with the delete-then-create eventual consistency issue.
+   * adds retry logic if needed to deal with the delete-then-create eventual consistency issue.
    *
    * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
    */
-  OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException;
+  OutputStream createWithRetry(String path, CreateOptions options) throws IOException;
 
   /**
    * Deletes a directory from the under file system with the indicated name non-recursively. A
@@ -268,24 +268,25 @@ public interface UnderFileSystem extends Closeable {
    * Deletes a directory from the under file system.
    *
    * Similar to {@link #deleteDirectory(String)} but
-   * deals with the create-delete eventual consistency issue.
+   * adds retry logic if needed to deal with the create-delete eventual consistency issue.
    *
    * @param path of the directory to delete
    * @return true if directory was found and deleted, false otherwise
    */
-  boolean deleteExistingDirectory(String path) throws IOException;
+  boolean deleteDirectoryWithRetry(String path) throws IOException;
 
   /**
    * Deletes a directory from the under file system with the indicated name.
    *
    * Similar to {@link #deleteDirectory(String, DeleteOptions)} but
-   * deals with the create-then-delete eventual consistency issue.
+   * adds retry logic if needed to deal with the create-then-delete
+   * eventual consistency issue.
    *
    * @param path of the directory to delete
    * @param options for directory delete semantics
    * @return true if directory was found and deleted, false otherwise
    */
-  boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException;
+  boolean deleteDirectoryWithRetry(String path, DeleteOptions options) throws IOException;
 
   /**
    * Deletes a file from the under file system with the indicated name.
@@ -299,12 +300,13 @@ public interface UnderFileSystem extends Closeable {
    * Deletes a file from the under file system with the indicated name.
    *
    * Similar to {@link #deleteFile(String)} but
-   * deals with the create-then-delete eventual consistency issue.
+   * adds retry logic if needed to deal with the create-then-delete
+   * eventual consistency issue.
    *
    * @param path of the file to delete
    * @return true if file was found and deleted, false otherwise
    */
-  boolean deleteExistingFile(String path) throws IOException;
+  boolean deleteFileWithRetry(String path) throws IOException;
 
   /**
    * Checks if a file or directory exists in under file system.
@@ -329,7 +331,7 @@ public interface UnderFileSystem extends Closeable {
    * Gets the block size of a file in under file system, in bytes.
    *
    * @deprecated block size should be returned as part of the {@link UfsFileStatus} from
-   * {@link #getFileStatus(String)} or {@link #getExistingFileStatus(String)}
+   * {@link #getFileStatus(String)} or {@link #getFileStatusWithRetry(String)}
    *
    * @param path the file name
    * @return the block size in bytes
@@ -360,12 +362,13 @@ public interface UnderFileSystem extends Closeable {
    * Gets the directory status.
    *
    * Similar to {@link #getDirectoryStatus(String)} but
-   * deals with the write-then-get-status eventual consistency issue.
+   * adds retry logic if needed to deal with the write-then-get-status
+   * eventual consistency issue.
    *
    * @param path the path to the directory
    * @return the directory status
    */
-  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException;
+  UfsDirectoryStatus getDirectoryStatusWithRetry(String path) throws IOException;
 
   /**
    * Gets the list of locations of the indicated path.
@@ -398,12 +401,12 @@ public interface UnderFileSystem extends Closeable {
    * Gets the file status.
    *
    * Similar to {@link #getFileStatus(String)} but
-   * deals with the write-then-get-status eventual consistency issue.
+   * adds retry logic if needed to deal with the write-then-get-status eventual consistency issue.
    *
    * @param path the path to the file
    * @return the file status
    */
-  UfsFileStatus getExistingFileStatus(String path) throws IOException;
+  UfsFileStatus getFileStatusWithRetry(String path) throws IOException;
 
   /**
    * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
@@ -481,12 +484,12 @@ public interface UnderFileSystem extends Closeable {
    * Gets the file or directory status.
    *
    * Similar to {@link #getStatus(String)} but
-   * deals with the write-then-get-status eventual consistency issue.
+   * adds retry logic if needed to deal with the write-then-get-status eventual consistency issue.
    *
    * @param path the path to get the status
    * @return the file or directory status
    */
-  UfsStatus getExistingStatus(String path) throws IOException;
+  UfsStatus getStatusWithRetry(String path) throws IOException;
 
   /**
    * Returns the name of the under filesystem implementation.
@@ -509,12 +512,13 @@ public interface UnderFileSystem extends Closeable {
    * Checks if a directory exists in under file system.
    *
    * Similar to {@link #isDirectory(String)} but
-   * deals with the write-then-list eventual consistency issue.
+   * adds retry logic if needed to deal with the write-then-list
+   * eventual consistency issue.
    *
    * @param path the absolute directory path
    * @return true if the path exists and is a directory, false otherwise
    */
-  boolean isExistingDirectory(String path) throws IOException;
+  boolean isDirectoryWithRetry(String path) throws IOException;
 
   /**
    * Checks if a file exists in under file system.
@@ -623,24 +627,24 @@ public interface UnderFileSystem extends Closeable {
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
    * Similar to {@link #open(String)} but
-   * deals with the write-then-read eventual consistency issue.
+   * adds retry logic if needed to deal with the write-then-read eventual consistency issue.
    *
    * @param path the file name
    * @return The {@code InputStream} object
    */
-  InputStream openExistingFile(String path) throws IOException;
+  InputStream openWithRetry(String path) throws IOException;
 
   /**
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
    * Similar to {@link #open(String, OpenOptions)} but
-   * deals with the write-then-read eventual consistency issue.
+   * adds retry logic if needed to deal with the write-then-read eventual consistency issue.
    *
    * @param path the file name
    * @param options to open input stream
    * @return The {@code InputStream} object
    */
-  InputStream openExistingFile(String path, OpenOptions options) throws IOException;
+  InputStream openWithRetry(String path, OpenOptions options) throws IOException;
 
   /**
    * Renames a directory from {@code src} to {@code dst} in under file system.
@@ -655,13 +659,14 @@ public interface UnderFileSystem extends Closeable {
    * Renames a directory from {@code src} to {@code dst} in under file system.
    *
    * Similar to {@link #renameDirectory(String, String)} but
-   * deals with the write-src-then-rename and delete-dst-then-rename eventual consistency issue.
+   * adds retry logic if needed to deal with the write-src-then-rename
+   * and delete-dst-then-rename eventual consistency issue.
    *
    * @param src the source directory path
    * @param dst the destination directory path
    * @return true if succeed, false otherwise
    */
-  boolean renameRenamableDirectory(String src, String dst) throws IOException;
+  boolean renameDirectoryWithRetry(String src, String dst) throws IOException;
 
   /**
    * Renames a file from {@code src} to {@code dst} in under file system.
@@ -676,13 +681,14 @@ public interface UnderFileSystem extends Closeable {
    * Renames a file from {@code src} to {@code dst} in under file system.
    *
    * Similar to {@link #renameFile(String, String)} but
-   * deals with the write-src-then-rename and delete-dst-then-rename eventual consistency issue.
+   * adds retry logic if needed to deal with the write-src-then-rename
+   * and delete-dst-then-rename eventual consistency issue.
    *
    * @param src the source file path
    * @param dst the destination file path
    * @return true if succeed, false otherwise
    */
-  boolean renameRenamableFile(String src, String dst) throws IOException;
+  boolean renameFileWithRetry(String src, String dst) throws IOException;
 
   /**
    * Returns an {@link AlluxioURI} representation for the {@link UnderFileSystem} given a base

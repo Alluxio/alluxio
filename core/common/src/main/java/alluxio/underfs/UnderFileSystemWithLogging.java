@@ -195,11 +195,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(final String path) throws IOException {
+  public OutputStream createWithRetry(final String path) throws IOException {
     return call(new UfsCallable<OutputStream>() {
       @Override
       public OutputStream call() throws IOException {
-        return mUnderFileSystem.createNonexistingFile(path);
+        return mUnderFileSystem.createWithRetry(path);
       }
 
       @Override
@@ -215,12 +215,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(final String path,
-      final CreateOptions options) throws IOException {
+  public OutputStream createWithRetry(final String path,
+                                      final CreateOptions options) throws IOException {
     return call(new UfsCallable<OutputStream>() {
       @Override
       public OutputStream call() throws IOException {
-        return mUnderFileSystem.createNonexistingFile(path, options);
+        return mUnderFileSystem.createWithRetry(path, options);
       }
 
       @Override
@@ -277,11 +277,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingDirectory(final String path) throws IOException {
+  public boolean deleteDirectoryWithRetry(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
-        return mUnderFileSystem.deleteExistingDirectory(path);
+        return mUnderFileSystem.deleteDirectoryWithRetry(path);
       }
 
       @Override
@@ -297,12 +297,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingDirectory(final String path, final DeleteOptions options)
+  public boolean deleteDirectoryWithRetry(final String path, final DeleteOptions options)
       throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
-        return mUnderFileSystem.deleteExistingDirectory(path, options);
+        return mUnderFileSystem.deleteDirectoryWithRetry(path, options);
       }
 
       @Override
@@ -338,11 +338,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingFile(final String path) throws IOException {
+  public boolean deleteFileWithRetry(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
-        return mUnderFileSystem.deleteExistingFile(path);
+        return mUnderFileSystem.deleteFileWithRetry(path);
       }
 
       @Override
@@ -459,11 +459,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsDirectoryStatus getExistingDirectoryStatus(final String path) throws IOException {
+  public UfsDirectoryStatus getDirectoryStatusWithRetry(final String path) throws IOException {
     return call(new UfsCallable<UfsDirectoryStatus>() {
       @Override
       public UfsDirectoryStatus call() throws IOException {
-        return mUnderFileSystem.getExistingDirectoryStatus(path);
+        return mUnderFileSystem.getDirectoryStatusWithRetry(path);
       }
 
       @Override
@@ -540,11 +540,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getExistingFileStatus(final String path) throws IOException {
+  public UfsFileStatus getFileStatusWithRetry(final String path) throws IOException {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {
-        return mUnderFileSystem.getExistingFileStatus(path);
+        return mUnderFileSystem.getFileStatusWithRetry(path);
       }
 
       @Override
@@ -655,11 +655,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
+  public UfsStatus getStatusWithRetry(String path) throws IOException {
     return call(new UfsCallable<UfsStatus>() {
       @Override
       public UfsStatus call() throws IOException {
-        return mUnderFileSystem.getExistingStatus(path);
+        return mUnderFileSystem.getStatusWithRetry(path);
       }
 
       @Override
@@ -700,11 +700,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean isExistingDirectory(final String path) throws IOException {
+  public boolean isDirectoryWithRetry(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
-        return mUnderFileSystem.isExistingDirectory(path);
+        return mUnderFileSystem.isDirectoryWithRetry(path);
       }
 
       @Override
@@ -899,11 +899,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public InputStream openExistingFile(final String path) throws IOException {
+  public InputStream openWithRetry(final String path) throws IOException {
     return call(new UfsCallable<InputStream>() {
       @Override
       public InputStream call() throws IOException {
-        return mUnderFileSystem.openExistingFile(path);
+        return mUnderFileSystem.openWithRetry(path);
       }
 
       @Override
@@ -919,12 +919,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public InputStream openExistingFile(final String path, final OpenOptions options)
+  public InputStream openWithRetry(final String path, final OpenOptions options)
       throws IOException {
     return call(new UfsCallable<InputStream>() {
       @Override
       public InputStream call() throws IOException {
-        return mUnderFileSystem.openExistingFile(path, options);
+        return mUnderFileSystem.openWithRetry(path, options);
       }
 
       @Override
@@ -960,11 +960,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableDirectory(final String src, final String dst) throws IOException {
+  public boolean renameDirectoryWithRetry(final String src, final String dst) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
-        return mUnderFileSystem.renameRenamableDirectory(src, dst);
+        return mUnderFileSystem.renameDirectoryWithRetry(src, dst);
       }
 
       @Override
@@ -1000,11 +1000,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableFile(final String src, final String dst) throws IOException {
+  public boolean renameFileWithRetry(final String src, final String dst) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
-        return mUnderFileSystem.renameRenamableFile(src, dst);
+        return mUnderFileSystem.renameFileWithRetry(src, dst);
       }
 
       @Override

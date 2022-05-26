@@ -81,13 +81,13 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return mUfs.createNonexistingFile(path, options);
+  public OutputStream createWithRetry(String path, CreateOptions options) throws IOException {
+    return mUfs.createWithRetry(path, options);
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return mUfs.createNonexistingFile(path);
+  public OutputStream createWithRetry(String path) throws IOException {
+    return mUfs.createWithRetry(path);
   }
 
   @Override
@@ -101,13 +101,13 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path) throws IOException {
-    return mUfs.deleteExistingDirectory(path);
+  public boolean deleteDirectoryWithRetry(String path) throws IOException {
+    return mUfs.deleteDirectoryWithRetry(path);
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
-    return mUfs.deleteExistingDirectory(path, options);
+  public boolean deleteDirectoryWithRetry(String path, DeleteOptions options) throws IOException {
+    return mUfs.deleteDirectoryWithRetry(path, options);
   }
 
   @Override
@@ -116,8 +116,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingFile(String path) throws IOException {
-    return mUfs.deleteExistingFile(path);
+  public boolean deleteFileWithRetry(String path) throws IOException {
+    return mUfs.deleteFileWithRetry(path);
   }
 
   @Override
@@ -147,8 +147,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
-    return mUfs.getExistingDirectoryStatus(path);
+  public UfsDirectoryStatus getDirectoryStatusWithRetry(String path) throws IOException {
+    return mUfs.getDirectoryStatusWithRetry(path);
   }
 
   @Override
@@ -168,8 +168,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getExistingFileStatus(String path) throws IOException {
-    return mUfs.getExistingFileStatus(path);
+  public UfsFileStatus getFileStatusWithRetry(String path) throws IOException {
+    return mUfs.getFileStatusWithRetry(path);
   }
 
   @Override
@@ -203,8 +203,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
-    return mUfs.getExistingStatus(path);
+  public UfsStatus getStatusWithRetry(String path) throws IOException {
+    return mUfs.getStatusWithRetry(path);
   }
 
   @Override
@@ -218,8 +218,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean isExistingDirectory(String path) throws IOException {
-    return mUfs.isExistingDirectory(path);
+  public boolean isDirectoryWithRetry(String path) throws IOException {
+    return mUfs.isDirectoryWithRetry(path);
   }
 
   @Override
@@ -268,13 +268,13 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
-    return mUfs.openExistingFile(path, options);
+  public InputStream openWithRetry(String path, OpenOptions options) throws IOException {
+    return mUfs.openWithRetry(path, options);
   }
 
   @Override
-  public InputStream openExistingFile(String path) throws IOException {
-    return mUfs.openExistingFile(path);
+  public InputStream openWithRetry(String path) throws IOException {
+    return mUfs.openWithRetry(path);
   }
 
   @Override
@@ -283,8 +283,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
-    return mUfs.renameRenamableDirectory(src, dst);
+  public boolean renameDirectoryWithRetry(String src, String dst) throws IOException {
+    return mUfs.renameDirectoryWithRetry(src, dst);
   }
 
   @Override
@@ -293,8 +293,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableFile(String src, String dst) throws IOException {
-    return mUfs.renameRenamableFile(src, dst);
+  public boolean renameFileWithRetry(String src, String dst) throws IOException {
+    return mUfs.renameFileWithRetry(src, dst);
   }
 
   @Override

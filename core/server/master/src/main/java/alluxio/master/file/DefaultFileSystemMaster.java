@@ -2769,9 +2769,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
           if (srcInode.isFile()) {
-            success = ufs.renameRenamableFile(ufsSrcPath, ufsDstUri);
+            success = ufs.renameFileWithRetry(ufsSrcPath, ufsDstUri);
           } else {
-            success = ufs.renameRenamableDirectory(ufsSrcPath, ufsDstUri);
+            success = ufs.renameDirectoryWithRetry(ufsSrcPath, ufsDstUri);
           }
           if (!success) {
             throw new IOException(
@@ -4324,7 +4324,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                 // check if the destination direction is valid, if there isn't exist directory,
                 // create it and it's parents
                 createParentPath(inodePath.getInodeList(), ufsPath, ufs, job.getId());
-                if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
+                if (!ufs.renameFileWithRetry(tempUfsPath, ufsPath)) {
                   throw new IOException(
                       String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
                 }
@@ -4612,7 +4612,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private static void cleanup(UnderFileSystem ufs, String ufsPath) {
     if (!ufsPath.isEmpty()) {
       try {
-        if (!ufs.deleteExistingFile(ufsPath)) {
+        if (!ufs.deleteFileWithRetry(ufsPath)) {
           LOG.warn("Failed to delete UFS file {}.", ufsPath);
         }
       } catch (IOException e) {

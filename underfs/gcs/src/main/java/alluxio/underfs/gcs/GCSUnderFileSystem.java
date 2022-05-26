@@ -134,19 +134,19 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   public void setMode(String path, short mode) throws IOException {}
 
   @Override
-  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+  public UfsDirectoryStatus getDirectoryStatusWithRetry(String path) throws IOException {
     return getDirectoryStatus(path);
   }
 
   // GCS provides strong global consistency for read-after-write and read-after-metadata-update
   @Override
-  public InputStream openExistingFile(String path) throws IOException {
+  public InputStream openWithRetry(String path) throws IOException {
     return open(path);
   }
 
   // GCS provides strong global consistency for read-after-write and read-after-metadata-update
   @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+  public InputStream openWithRetry(String path, OpenOptions options) throws IOException {
     return open(path, options);
   }
 

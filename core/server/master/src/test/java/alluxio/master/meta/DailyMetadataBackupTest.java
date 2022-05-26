@@ -110,13 +110,13 @@ public class DailyMetadataBackupTest {
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
       verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
-      verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
+      verify(mUfs, times(deleteFileNum)).deleteFileWithRetry(any());
 
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
       verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
-      verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
+      verify(mUfs, times(deleteFileNum)).deleteFileWithRetry(any());
     }
   }
 

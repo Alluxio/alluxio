@@ -230,7 +230,7 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.isObjectStorage()).thenReturn(true);
     Mockito.when(mUfs.isDirectory(ufsMount.toString())).thenReturn(true);
     short mode = ModeUtils.getUMask("0700").toShort();
-    Mockito.when(mUfs.getExistingDirectoryStatus(ufsMount.toString()))
+    Mockito.when(mUfs.getDirectoryStatusWithRetry(ufsMount.toString()))
         .thenReturn(new UfsDirectoryStatus(ufsMount.toString(), "", "", mode));
     Mockito.when(mUfs.resolveUri(Mockito.eq(ufsMount), anyString()))
         .thenAnswer(invocation -> new AlluxioURI(ufsMount,

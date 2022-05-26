@@ -128,7 +128,7 @@ public final class UfsFallbackBlockWriteHandler
         context.setOutputStream(null);
       }
       if (context.getUfsResource() != null) {
-        context.getUfsResource().get().deleteExistingFile(context.getUfsPath());
+        context.getUfsResource().get().deleteFileWithRetry(context.getUfsPath());
       }
     }
     if (context.getUfsResource() != null) {
@@ -246,7 +246,7 @@ public final class UfsFallbackBlockWriteHandler
     UnderFileSystem ufs = ufsResource.get();
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
-        ufs.createNonexistingFile(ufsPath,
+        ufs.createWithRetry(ufsPath,
             CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);

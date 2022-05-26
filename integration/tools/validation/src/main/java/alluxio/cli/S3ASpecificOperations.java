@@ -101,7 +101,7 @@ public final class S3ASpecificOperations {
       }
     }
     // Validate data written successfully and content is correct
-    try (InputStream inputStream = mUfs.openExistingFile(testFile)) {
+    try (InputStream inputStream = mUfs.openWithRetry(testFile)) {
       byte[] buf = new byte[numCopies * TEST_BYTES.length];
       int offset = 0;
       while (offset < buf.length) {

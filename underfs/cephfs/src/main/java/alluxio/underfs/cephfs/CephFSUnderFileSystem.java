@@ -578,12 +578,12 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+  public boolean renameDirectoryWithRetry(String src, String dst) throws IOException {
     return renameDirectory(src, dst);
   }
 
   @Override
-  public boolean renameRenamableFile(String src, String dst) throws IOException {
+  public boolean renameFileWithRetry(String src, String dst) throws IOException {
     return renameFile(src, dst);
   }
 

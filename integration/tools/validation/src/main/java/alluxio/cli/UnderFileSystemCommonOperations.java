@@ -249,7 +249,7 @@ public final class UnderFileSystemCommonOperations {
   public void createOpenExistingLargeFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenExistingLargeFile");
     int numCopies = prepareMultiBlockFile(testFile);
-    InputStream inputStream = mUfs.openExistingFile(testFile);
+    InputStream inputStream = mUfs.openWithRetry(testFile);
     byte[] buf = new byte[numCopies * TEST_BYTES.length];
     int offset = 0;
     while (offset < buf.length) {
@@ -355,7 +355,7 @@ public final class UnderFileSystemCommonOperations {
       "listObjectsV2", "getObjectMetadata"})
   public void deleteLargeDirectoryTest() throws Exception {
     LargeDirectoryConfig config = prepareLargeDirectory();
-    mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
+    mUfs.deleteDirectoryWithRetry(config.getTopLevelDirectory(),
         DeleteOptions.defaults().setRecursive(true));
 
     String[] children = config.getChildren();
@@ -388,12 +388,12 @@ public final class UnderFileSystemCommonOperations {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
 
-    mUfs.deleteExistingFile(testFile);
+    mUfs.deleteFileWithRetry(testFile);
     if (mUfs.exists(testFile)) {
       throw new IOException(FILE_EXISTS_CHECK_SHOULD_FAILED);
     }
 
-    OutputStream o = mUfs.createNonexistingFile(testFile);
+    OutputStream o = mUfs.createWithRetry(testFile);
     o.write(TEST_BYTES);
     o.close();
     if (!mUfs.exists(testFile)) {
@@ -408,7 +408,7 @@ public final class UnderFileSystemCommonOperations {
       "listObjectsV2", "getObjectMetadata"})
   public void createThenDeleteExistingDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectory();
-    if (!mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
+    if (!mUfs.deleteDirectoryWithRetry(config.getTopLevelDirectory(),
         DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Failed to delete existing directory");
     }
@@ -458,7 +458,7 @@ public final class UnderFileSystemCommonOperations {
   public void createThenGetExistingDirectoryStatusTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
     mUfs.mkdirs(testDir);
-    UfsStatus status = mUfs.getExistingStatus(testDir);
+    UfsStatus status = mUfs.getStatusWithRetry(testDir);
     if (!(status instanceof UfsDirectoryStatus)) {
       throw new IOException("Failed to get ufs directory status");
     }
@@ -488,9 +488,9 @@ public final class UnderFileSystemCommonOperations {
     String testFileLarge = PathUtils.concatPath(mTopLevelTestDirectory, "testFileLarge");
     createTestBytesFile(testFileNonEmpty);
     int numCopies = prepareMultiBlockFile(testFileLarge);
-    if (TEST_BYTES.length != mUfs.getExistingFileStatus(testFileNonEmpty).getContentLength()
+    if (TEST_BYTES.length != mUfs.getFileStatusWithRetry(testFileNonEmpty).getContentLength()
         || TEST_BYTES.length * numCopies
-        != mUfs.getExistingFileStatus(testFileLarge).getContentLength()) {
+        != mUfs.getFileStatusWithRetry(testFileLarge).getContentLength()) {
       throw new IOException(FILE_STATUS_RESULT_INCORRECT);
     }
   }
@@ -517,7 +517,7 @@ public final class UnderFileSystemCommonOperations {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     createTestBytesFile(testFile);
 
-    UfsStatus status = mUfs.getExistingStatus(testFile);
+    UfsStatus status = mUfs.getStatusWithRetry(testFile);
     if (!(status instanceof UfsFileStatus)) {
       throw new IOException("Failed to get ufs file status");
     }
@@ -1011,7 +1011,7 @@ public final class UnderFileSystemCommonOperations {
     String testFileSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileDst");
     prepareMultiBlockFile(testFileSrc);
-    mUfs.renameRenamableFile(testFileSrc, testFileDst);
+    mUfs.renameFileWithRetry(testFileSrc, testFileDst);
     if (mUfs.isFile(testFileSrc)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_FAILED);
     }
@@ -1106,7 +1106,7 @@ public final class UnderFileSystemCommonOperations {
     mUfs.mkdirs(testDirSrcNested, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
     prepareMultiBlockFile(testDirSrcNestedChild);
 
-    mUfs.renameRenamableDirectory(testDirSrc, testDirDst);
+    mUfs.renameDirectoryWithRetry(testDirSrc, testDirDst);
 
     if (mUfs.isDirectory(testDirSrc) || mUfs.isDirectory(testDirSrcNested)) {
       throw new IOException(IS_DIRECTORY_CHECK_SHOULD_FAILED);

@@ -383,12 +383,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
+  public OutputStream createWithRetry(String path) throws IOException {
     return retryOnException(() -> create(path), () -> "create file " + path);
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+  public OutputStream createWithRetry(String path, CreateOptions options) throws IOException {
     return retryOnException(() -> create(path, options),
         () -> "create file " + path + " with options " + options);
   }
@@ -399,7 +399,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingFile(String path) throws IOException {
+  public boolean deleteFileWithRetry(String path) throws IOException {
     return retryOnFalse(() -> deleteFile(path), () -> "delete existing file " + path);
   }
 
@@ -447,12 +447,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path) throws IOException {
+  public boolean deleteDirectoryWithRetry(String path) throws IOException {
     return retryOnFalse(() -> deleteDirectory(path), () -> "delete directory " + path);
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
+  public boolean deleteDirectoryWithRetry(String path, DeleteOptions options) throws IOException {
     return retryOnFalse(() -> deleteDirectory(path, options),
         () -> "delete directory " + path + " with options " + options);
   }
@@ -502,7 +502,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+  public  UfsDirectoryStatus getDirectoryStatusWithRetry(String path) throws IOException {
     return retryOnException(() -> getDirectoryStatus(path),
         () -> "get status of directory " + path);
   }
@@ -545,7 +545,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
+  public  UfsFileStatus getFileStatusWithRetry(String path) throws IOException {
     return retryOnException(() -> getFileStatus(path), () -> "get status of file " + path);
   }
 
@@ -565,7 +565,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
+  public UfsStatus getStatusWithRetry(String path) throws IOException {
     return retryOnException(() -> getStatus(path),
         () -> "get status of " + path);
   }
@@ -584,7 +584,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean isExistingDirectory(String path) throws IOException {
+  public boolean isDirectoryWithRetry(String path) throws IOException {
     return retryOnException(() -> isDirectory(path),
         () -> "check if " + path + " is a directory");
   }
@@ -649,12 +649,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public InputStream openExistingFile(String path) throws IOException {
-    return openExistingFile(path, OpenOptions.defaults());
+  public InputStream openWithRetry(String path) throws IOException {
+    return openWithRetry(path, OpenOptions.defaults());
   }
 
   @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+  public InputStream openWithRetry(String path, OpenOptions options) throws IOException {
     return openObject(stripPrefixIfPresent(path), options, getRetryPolicy());
   }
 
@@ -704,7 +704,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+  public boolean renameDirectoryWithRetry(String src, String dst) throws IOException {
     return retryOnFalse(() -> renameDirectory(src, dst),
         () -> "rename directory from " + src + " to " + dst);
   }
@@ -754,7 +754,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean renameRenamableFile(String src, String dst) throws IOException {
+  public boolean renameFileWithRetry(String src, String dst) throws IOException {
     return retryOnFalse(() -> renameFile(src, dst),
         () -> "rename file from " + src + " to " + dst);
   }

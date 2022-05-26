@@ -247,7 +247,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
         .thenReturn(new AlluxioURI(ufsBase));
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), "/dir1"))
         .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
-    Mockito.when(mockUfs.getExistingDirectoryStatus(ufsBase))
+    Mockito.when(mockUfs.getDirectoryStatusWithRetry(ufsBase))
         .thenReturn(ufsStatus);
     Mockito.when(mockUfs.mkdirs(ArgumentMatchers.eq(ufsBase + "/dir1"), ArgumentMatchers.any()))
         .thenThrow(new IOException("ufs unavailable"));

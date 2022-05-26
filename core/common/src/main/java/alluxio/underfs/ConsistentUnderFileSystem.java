@@ -37,67 +37,67 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
+  public OutputStream createWithRetry(String path) throws IOException {
     return create(path);
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+  public OutputStream createWithRetry(String path, CreateOptions options) throws IOException {
     return create(path, options);
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path) throws IOException {
+  public boolean deleteDirectoryWithRetry(String path) throws IOException {
     return deleteDirectory(path);
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
+  public boolean deleteDirectoryWithRetry(String path, DeleteOptions options) throws IOException {
     return deleteDirectory(path, options);
   }
 
   @Override
-  public boolean deleteExistingFile(String path) throws IOException {
+  public boolean deleteFileWithRetry(String path) throws IOException {
     return deleteFile(path);
   }
 
   @Override
-  public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+  public  UfsDirectoryStatus getDirectoryStatusWithRetry(String path) throws IOException {
     return getDirectoryStatus(path);
   }
 
   @Override
-  public UfsFileStatus getExistingFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatusWithRetry(String path) throws IOException {
     return getFileStatus(path);
   }
 
   @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
+  public UfsStatus getStatusWithRetry(String path) throws IOException {
     return getStatus(path);
   }
 
   @Override
-  public boolean isExistingDirectory(String path) throws IOException {
+  public boolean isDirectoryWithRetry(String path) throws IOException {
     return isDirectory(path);
   }
 
   @Override
-  public InputStream openExistingFile(String path) throws IOException {
+  public InputStream openWithRetry(String path) throws IOException {
     return open(path);
   }
 
   @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+  public InputStream openWithRetry(String path, OpenOptions options) throws IOException {
     return open(path, options);
   }
 
   @Override
-  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+  public boolean renameDirectoryWithRetry(String src, String dst) throws IOException {
     return renameDirectory(src, dst);
   }
 
   @Override
-  public boolean renameRenamableFile(String src, String dst) throws IOException {
+  public boolean renameFileWithRetry(String src, String dst) throws IOException {
     return renameFile(src, dst);
   }
 }

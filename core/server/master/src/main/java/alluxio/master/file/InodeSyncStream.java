@@ -934,7 +934,7 @@ public class InodeSyncStream {
       UnderFileSystem ufs = ufsResource.get();
 
       if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
+        context.setUfsStatus(ufs.getFileStatusWithRetry(ufsUri.toString()));
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
       long blockSize = ((UfsFileStatus) context.getUfsStatus()).getBlockSize();
@@ -1040,7 +1040,7 @@ public class InodeSyncStream {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
+        context.setUfsStatus(ufs.getDirectoryStatusWithRetry(ufsUri.toString()));
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());

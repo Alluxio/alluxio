@@ -90,7 +90,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
     Mockito.when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
-    Mockito.when(mockUfs.createNonexistingFile(Mockito.anyString(),
+    Mockito.when(mockUfs.createWithRetry(Mockito.anyString(),
         Mockito.any(CreateOptions.class))).thenReturn(mOutputStream)
         .thenReturn(new FileOutputStream(mFile, true));
 
