@@ -170,7 +170,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mFsContext = mResourceCloser.register(
-        FileSystemContext.create(null, ServerConfiguration.global(), this));
+        FileSystemContext.create(ClientContext.create(ServerConfiguration.global()), this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
     mCacheManager = new CacheRequestManager(
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);

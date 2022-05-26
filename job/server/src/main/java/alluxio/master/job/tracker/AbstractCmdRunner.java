@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -53,8 +52,7 @@ public abstract class AbstractCmdRunner {
     mSubmitted = Lists.newArrayList();
     mJobMap = Maps.newHashMap();
     if (fsContext == null) {
-      fsContext =
-        FileSystemContext.create(ConfigurationUtils.defaults());
+      fsContext = FileSystemContext.create();
     }
     mFsContext = fsContext;
     mFileSystem = FileSystem.Factory.create(fsContext);

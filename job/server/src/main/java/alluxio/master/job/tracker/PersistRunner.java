@@ -20,7 +20,6 @@ import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
 import alluxio.retry.CountingRetry;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 
@@ -33,8 +32,8 @@ import javax.annotation.Nullable;
 public class PersistRunner {
   static final long DEFAULT_FILE_COUNT = 1;
 
-  private FileSystem mFileSystem;
-  private JobMaster mJobMaster;
+  private final FileSystem mFileSystem;
+  private final JobMaster mJobMaster;
 
   /**
    * constructor.
@@ -43,7 +42,7 @@ public class PersistRunner {
    */
   public PersistRunner(@Nullable FileSystemContext fsContext, JobMaster jobMaster) {
     if (fsContext == null) {
-      fsContext = FileSystemContext.create(ConfigurationUtils.defaults());
+      fsContext = FileSystemContext.create();
     }
     mFileSystem = FileSystem.Factory.create(fsContext);
     mJobMaster = jobMaster;
