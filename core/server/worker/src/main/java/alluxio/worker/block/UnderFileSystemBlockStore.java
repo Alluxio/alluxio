@@ -16,7 +16,6 @@ import static java.lang.String.format;
 import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

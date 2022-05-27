@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.exception.ExceptionMessage;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;

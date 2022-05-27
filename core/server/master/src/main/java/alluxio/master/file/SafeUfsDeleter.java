@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;

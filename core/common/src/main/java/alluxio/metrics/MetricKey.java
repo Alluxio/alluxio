@@ -12,7 +12,6 @@
 package alluxio.metrics;
 
 import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
 import com.google.common.annotations.VisibleForTesting;

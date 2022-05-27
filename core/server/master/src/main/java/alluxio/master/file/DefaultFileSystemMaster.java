@@ -2604,8 +2604,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Renaming across mount points is not allowed.
     String srcMount = mMountTable.getMountPoint(srcInodePath.getUri());
     String dstMount = mMountTable.getMountPoint(dstInodePath.getUri());
-    if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null) || (
-    srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
+    if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
+        || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
       throw new InvalidPathException(
           MessageFormat.format("Renaming {0} to {1} is a cross mount operation",
               srcInodePath.getUri(), dstInodePath.getUri()));
@@ -3312,16 +3312,15 @@ public class DefaultFileSystemMaster extends CoreMaster
       case REPLACE:
         Set<AclEntryType> types =
             entries.stream().map(AclEntry::getType).collect(Collectors.toSet());
-        Set<AclEntryType> requiredTypes =
-            Sets.newHashSet(AclEntryType.OWNING_USER, AclEntryType.OWNING_GROUP,
-                AclEntryType.OTHER);
+        Set<AclEntryType> requiredTypes = Sets.newHashSet(AclEntryType.OWNING_USER,
+            AclEntryType.OWNING_GROUP, AclEntryType.OTHER);
         requiredTypes.removeAll(types);
 
         // make sure the required entries are present
         if (!requiredTypes.isEmpty()) {
           throw new IOException(MessageFormat.format(
-              "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
-                  + "missing: {0}",
+              "Replacing ACL entries must include the base entries for 'user', 'group',"
+                  + " and 'other'. missing: {0}",
               String.join(", ", requiredTypes.stream().map(AclEntryType::toString)
                   .collect(Collectors.toList()))));
         }

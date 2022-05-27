@@ -11,7 +11,6 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.transform.CompactConfig;
 import alluxio.table.common.Layout;

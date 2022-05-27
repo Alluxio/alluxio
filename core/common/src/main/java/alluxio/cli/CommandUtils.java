@@ -92,11 +92,12 @@ public final class CommandUtils {
    * @param n an integer
    * @throws InvalidArgumentException if the number is smaller than n
    */
-  public static void checkNumOfArgsNoLessThan(Command cmd, CommandLine cl, int n) throws
-      InvalidArgumentException {
+  public static void checkNumOfArgsNoLessThan(Command cmd, CommandLine cl, int n)
+      throws InvalidArgumentException {
     if (cl.getArgs().length < n) {
       throw new InvalidArgumentException(
-          MessageFormat.format("Command {0} requires at least {1} arguments ({2} provided)", cmd.getCommandName(), n, cl.getArgs().length));
+          MessageFormat.format("Command {0} requires at least {1} arguments ({2} provided)",
+              cmd.getCommandName(), n, cl.getArgs().length));
     }
   }
 

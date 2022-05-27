@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
