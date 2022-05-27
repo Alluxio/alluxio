@@ -381,17 +381,17 @@ public class DefaultBlockIterator implements BlockIterator {
    */
   class Listener extends AbstractBlockStoreEventListener {
     @Override
-    public void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location) {
+    public void onAccessBlock(long blockId, BlockStoreLocation location) {
       blockUpdated(blockId, location);
     }
 
     @Override
-    public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {
+    public void onCommitBlock(long blockId, BlockStoreLocation location) {
       blockUpdated(blockId, location);
     }
 
     @Override
-    public void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location) {
+    public void onRemoveBlock(long blockId, BlockStoreLocation location) {
       blockRemoved(blockId, location);
     }
 
@@ -401,13 +401,13 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     @Override
-    public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+    public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
         BlockStoreLocation newLocation) {
       blockMoved(blockId, oldLocation, newLocation);
     }
 
     @Override
-    public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+    public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
         BlockStoreLocation newLocation) {
       blockMoved(blockId, oldLocation, newLocation);
     }

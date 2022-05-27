@@ -21,33 +21,33 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractBlockStoreEventListener implements BlockStoreEventListener {
 
   @Override
-  public void onAccessBlock(long sessionId, long blockId) {}
+  public void onAccessBlock(long blockId) {}
 
   @Override
-  public void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location) {}
+  public void onAccessBlock(long blockId, BlockStoreLocation location) {}
 
   @Override
-  public void onAbortBlock(long sessionId, long blockId) {}
+  public void onAbortBlock(long blockId) {}
 
   @Override
-  public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {}
+  public void onCommitBlock(long blockId, BlockStoreLocation location) {}
 
   @Override
-  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {}
 
   @Override
-  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {}
 
   @Override
-  public void onRemoveBlockByClient(long sessionId, long blockId) {}
+  public void onRemoveBlockByClient(long blockId) {}
 
   @Override
-  public void onRemoveBlockByWorker(long sessionId, long blockId) {}
+  public void onRemoveBlockByWorker(long blockId) {}
 
   @Override
-  public void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location) {}
+  public void onRemoveBlock(long blockId, BlockStoreLocation location) {}
 
   @Override
   public void onBlockLost(long blockId) {}
