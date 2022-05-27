@@ -408,16 +408,12 @@ tieredstore:
 ## Proxy ##
 proxy:
   enabled: false # Enable this to enable the proxy for REST API
-  count: 1
   env:
   # Extra environment variables for the Proxy pod
   # Example:
   # JAVA_HOME: /opt/java
   args:
     - proxy
-  user: 0
-  group: 0
-  fsGroup: 0
   # Properties for the proxy component
   properties:
   resources:

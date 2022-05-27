@@ -10,13 +10,12 @@
 #
 
 {{- if .Values.proxy.enabled }}
-{{- $proxyCount := int .Values.proxy.count }}
 {{- $hostNetwork := .Values.proxy.hostNetwork }}
 {{- $hostPID := .Values.proxy.hostPID }}
 {{- $fullName := include "alluxio.fullname" . }}
 
 apiVersion: apps/v1
-kind: StatefulSet
+kind: DaemonSet
 metadata:
   name: {{ template "alluxio.fullname" . }}-proxy
   labels:
@@ -33,9 +32,6 @@ spec:
       release: {{ .Release.Name }}
       heritage: {{ .Release.Service }}
       role: alluxio-proxy
-  serviceName: {{ $fullName }}-proxy
-  podManagementPolicy: Parallel
-  replicas: {{ $proxyCount }}
   template:
     metadata:
       labels:
@@ -62,28 +58,14 @@ spec:
 {{ toYaml .Values.tolerations | trim | indent 8  }}
       {{- end }}
       securityContext:
-        runAsUser: {{ .Values.proxy.user }}
-        runAsGroup: {{ .Values.proxy.group }}
-        fsGroup: {{ .Values.proxy.fsGroup }}
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
+        fsGroup: {{ .Values.fsGroup }}
     {{- if .Values.proxy.serviceAccount }}
       serviceAccountName: {{ .Values.proxy.serviceAccount }}
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app
-                    operator: In
-                    values:
-                      - {{ template "alluxio.name" . }}
-                  - key: role
-                    operator: In
-                    values:
-                      - alluxio-master
-              topologyKey: kubernetes.io/hostname
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
