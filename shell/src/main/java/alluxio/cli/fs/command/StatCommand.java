@@ -44,6 +44,19 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class StatCommand extends AbstractFileSystemCommand {
+  public static final Option FORMAT_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg()
+          .desc("format")
+          .build();
+  public static final Option FILE_ID_OPTION =
+      Option.builder()
+          .longOpt("file-id")
+          .required(false)
+          .desc("specify a file by file-id")
+          .build();
+
   /**
    * @param fsContext the filesystem of Alluxio
    */
@@ -58,26 +71,16 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(
-        Option.builder("f")
-            .required(false)
-            .hasArg()
-            .desc("format")
-            .build()
-    ).addOption(
-        Option.builder()
-            .longOpt("file-id")
-            .required(false)
-            .desc("specify a file by file-id")
-            .build()
-    );
+    return new Options()
+        .addOption(FORMAT_OPTION)
+        .addOption(FILE_ID_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-    if (cl.hasOption('f')) {
+    if (cl.hasOption(FORMAT_OPTION.getOpt())) {
       System.out.println(formatOutput(cl, status));
     } else {
       if (status.isFolder()) {
@@ -104,7 +107,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path;
-    if (cl.hasOption("file-id")) {
+    if (cl.hasOption(FILE_ID_OPTION.getLongOpt())) {
       long fileId = Long.parseLong(args[0]);
       try (CloseableResource<FileSystemMasterClient> client =
           mFsContext.acquireMasterClientResource()) {
@@ -121,14 +124,14 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "stat [-f <format>] <path>";
+    return "stat [-f <format>] <path> or stat [-f <format>] --file-id <file-id>";
   }
 
   @Override
   public String getDescription() {
     return String.join("\n", Arrays.asList(
         "Displays info for the specified file or directory.",
-        "Specify -file-id to treat the first positional argument as a file ID.",
+        "Specify --file-id to treat the first positional argument as a file ID.",
         "Specify -f to display info in given format:",
         "   \"%N\": name of the file;",
         "   \"%z\": size of file in bytes;",
