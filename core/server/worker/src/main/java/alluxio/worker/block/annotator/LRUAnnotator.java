@@ -84,7 +84,7 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
       if (!(o instanceof LRUSortedField)) {
         return false;
       }
-      return mClockValue == ((LRUSortedField) o).mClockValue;
+      return Long.compare(mClockValue, ((LRUSortedField) o).mClockValue) == 0;
     }
 
     @Override
