@@ -20,9 +20,7 @@ import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.exception.DependencyDoesNotExistException;
 import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.FailedToCheckpointException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -227,10 +225,10 @@ public class AlluxioStatusException extends IOException {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);
-    } catch (ConnectionFailedException | FailedToCheckpointException
+    } catch (ConnectionFailedException
         | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       return new UnavailableException(e);
-    } catch (DependencyDoesNotExistException | DirectoryNotEmptyException e) {
+    } catch (DirectoryNotEmptyException e) {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);
