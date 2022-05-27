@@ -111,6 +111,7 @@ public class AlluxioMasterProcess extends MasterProcess {
             .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
         .setUfsManager(mUfsManager)
         .build();
+    MasterUtils.createMasters(mRegistry, mContext);
   }
 
   @Override
@@ -142,7 +143,6 @@ public class AlluxioMasterProcess extends MasterProcess {
   @Override
   public void start() throws Exception {
     LOG.info("Starting...");
-    MasterUtils.createMasters(mRegistry, mContext);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     startMasters(true);
