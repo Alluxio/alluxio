@@ -44,7 +44,9 @@ spec:
       name: embedded
     - port: 20003
       name: job-embedded
+    {{- if $extraServicePorts }}
 {{- include "alluxio.extraServicePorts" (dict "extraServicePorts" $extraServicePorts) | indent 4 }}
+    {{- end }}
   clusterIP: None
   selector:
     role: alluxio-master
