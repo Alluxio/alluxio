@@ -221,8 +221,7 @@ public final class BlockStoreClient {
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
-      Preconditions.checkNotNull(policy,
-              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      Preconditions.checkNotNull(policy, "The UFS read location policy is not specified");
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()

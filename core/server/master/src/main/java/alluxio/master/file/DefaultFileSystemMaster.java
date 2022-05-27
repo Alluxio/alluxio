@@ -40,7 +40,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -3834,12 +3833,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       } // otherwise, uses the UpdateInodeEntry gRPC message default update strategy
     }
     if (protoOptions.hasPersisted()) {
-      Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
+      Preconditions.checkArgument(inode.isFile(), "Only files can be persisted");
       Preconditions.checkArgument(inode.asFile().isCompleted(),
-          PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
+          "File being persisted must be complete");
       // TODO(manugoyal) figure out valid behavior in the un-persist case
-      Preconditions
-          .checkArgument(protoOptions.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
+      Preconditions.checkArgument(protoOptions.getPersisted(),
+          "Cannot set the state of a file to not-persisted");
       if (!inode.asFile().isPersisted()) {
         entry.setPersistenceState(PersistenceState.PERSISTED.name());
         entry.setLastModificationTimeMs(context.getOperationTimeMs());

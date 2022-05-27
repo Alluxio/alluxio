@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -181,9 +180,9 @@ public final class UnderFileSystemBlockReader extends BlockReader {
 
     // We should always read the number of bytes as expected since the UFS file length (hence block
     // size) should be always accurate.
-    Preconditions
-        .checkState(bytesRead == bytesToRead, PreconditionMessage.NOT_ENOUGH_BYTES_READ.toString(),
-            bytesRead, bytesToRead, mBlockMeta.getUnderFileSystemPath());
+    Preconditions.checkState(bytesRead == bytesToRead,
+        "Not enough bytes have been read [bytesRead: %s, bytesToRead: %s] from the UFS file: %s.",
+        bytesRead, bytesToRead, mBlockMeta.getUnderFileSystemPath());
     if (mBlockWriter != null && mBlockWriter.getPosition() < mInStreamPos) {
       try {
         Preconditions.checkState(mBlockWriter.getPosition() >= offset);
