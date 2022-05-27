@@ -36,7 +36,6 @@ public enum ExceptionMessage {
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
-
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
   TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0,number,#}"),
@@ -46,7 +45,6 @@ public enum ExceptionMessage {
   // instream/outstream
   FAILED_CACHE("Failed to cache: {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
-
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0,number,#} exists in {1}"),
@@ -65,12 +63,10 @@ public enum ExceptionMessage {
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
 
-
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
   JOURNAL_WRITE_FAILURE("Failed to write to journal file ({0}): {1}"),
   JOURNAL_FLUSH_FAILURE("Failed to flush journal file ({0}): {1}"),
-
 
   // file
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
@@ -209,7 +205,7 @@ public enum ExceptionMessage {
   }
 
   /**
-   * Formats the message of the exception with a url to consult.
+   * Formats the message of the exception with an url to consult.
    *
    * @param url the url to consult
    * @param params the parameters for the exception message

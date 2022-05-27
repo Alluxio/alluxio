@@ -350,8 +350,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
       if (planCoordinator == null) {
         if (!mWorkflowTracker.cancel(jobId)) {
-          throw new JobDoesNotExistException(
-              ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+          throw new JobDoesNotExistException(jobId);
         }
         return;
       }
@@ -528,7 +527,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       WorkflowInfo status = mWorkflowTracker.getStatus(jobId, verbose);
 
       if (status == null) {
-        throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+        throw new JobDoesNotExistException(jobId);
       }
       return status;
     }
