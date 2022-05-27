@@ -3011,7 +3011,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Check that the ufsPath exists and is a directory
       if (!ufs.isDirectory(ufsPath.toString())) {
         throw new IOException(
-            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.toString()));
+            MessageFormat.format("Ufs path {0} does not exist", ufsPath.toString()));
       }
       if (UnderFileSystemUtils.isWeb(ufs)) {
         mountOption.setReadOnly(true);
@@ -3178,9 +3178,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           resolution.acquireUfsResource()) {
         String ufsResolvedPath = resolution.getUri().getPath();
         if (ufsResource.get().exists(ufsResolvedPath)) {
-          throw new IOException(
-              ExceptionMessage.MOUNT_PATH_SHADOWS_PARENT_UFS.getMessage(alluxioPath,
-                  ufsResolvedPath));
+          throw new IOException(MessageFormat.format(
+              "Mount path {0} shadows an existing path {1} in the parent underlying filesystem",
+              alluxioPath, ufsResolvedPath));
         }
       }
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
@@ -3319,9 +3319,11 @@ public class DefaultFileSystemMaster extends CoreMaster
 
         // make sure the required entries are present
         if (!requiredTypes.isEmpty()) {
-          throw new IOException(ExceptionMessage.ACL_BASE_REQUIRED.getMessage(
-              String.join(", ", requiredTypes.stream().map(AclEntryType::toString).collect(
-                  Collectors.toList()))));
+          throw new IOException(MessageFormat.format(
+              "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
+                  + "missing: {0}",
+              String.join(", ", requiredTypes.stream().map(AclEntryType::toString)
+                  .collect(Collectors.toList()))));
         }
         break;
       case MODIFY: // fall through

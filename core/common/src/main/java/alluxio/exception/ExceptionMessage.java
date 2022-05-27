@@ -150,51 +150,19 @@ public enum ExceptionMessage {
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
-  ACL_BASE_REQUIRED(
-      "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "
-          + "missing: {0}"),
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
-  AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
-  INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
   INVALID_MODE("Invalid mode {0}"),
   INVALID_MODE_SEGMENT("Invalid mode {0} - contains invalid segment {1}"),
-  INVALID_MODE_PERMISSIONS(
-      "Invalid mode {0} - contains invalid segment {1} which has invalid permissions {2}"),
-  INVALID_MODE_TARGETS(
-      "Invalid mode {0} - contains invalid segment {1} which has invalid targets {2}"),
   PERMISSION_DENIED("Permission denied: {0}"),
-  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
-
-  // yarn
-  YARN_NOT_ENOUGH_HOSTS(
-      "Not enough usable hosts in the cluster to launch {0} {1} containers. Only {2} hosts "
-          + "available"),
-  YARN_NOT_ENOUGH_RESOURCES(
-      "{0} {1} specified above max threshold of cluster, specified={2}, max={3}"),
 
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point target path {0} already exists in Alluxio namespace. "
       + "Try mounting to another path."),
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
-  MOUNT_PATH_SHADOWS_PARENT_UFS(
-      "Mount path {0} shadows an existing path {1} in the parent underlying filesystem"),
   MOUNT_READONLY("A write operation on {0} under a readonly mount point {1} is not allowed"),
-  UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
-  FOREIGN_URI_NOT_MOUNTED("Foreign URI: {0} is not found on Alluxio mounts."),
-
-  // key-value
-  KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
-  KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
-  INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
 
   // migrate job (either move or copy)
   MIGRATE_CANNOT_BE_TO_SUBDIRECTORY("Cannot migrate because {0} is a prefix of {1}"),
-  MIGRATE_DIRECTORY("Cannot migrate directory"),
-  MIGRATE_FILE_TO_DIRECTORY("Cannot migrate a file ({0}) to a directory ({1})"),
-  MIGRATE_NEED_OVERWRITE("Cannot migrate to {0} because it exists and overwrite is set to false"),
-  MIGRATE_OVERWRITE_DIRECTORY(
-      "{0} already exists. The overwrite flag cannot be used to overwrite directories"),
-  MIGRATE_TO_FILE_AS_DIRECTORY("Cannot migrate to {0}. {1} is a file, not a directory"),
 
   // transform job
   TRANSFORM_TABLE_URI_LACKS_SCHEME("URI {0} lacks scheme"),
@@ -211,7 +179,6 @@ public enum ExceptionMessage {
 
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
-  PINNED_TO_MULTIPLE_MEDIUMTYPES("File {0} pinned to multiple medium types"),
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),

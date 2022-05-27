@@ -103,7 +103,7 @@ public final class MigrateDefinition
     }
     List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getCachedWorkers();
     if (status.isFolder()) {
-      throw new RuntimeException(ExceptionMessage.MIGRATE_DIRECTORY.getMessage());
+      throw new RuntimeException("Cannot migrate directory");
     } else {
       WorkerInfo bestJobWorker =
           getBestJobWorker(status, alluxioWorkerInfoList, jobWorkerInfoList, hostnameToWorker);
