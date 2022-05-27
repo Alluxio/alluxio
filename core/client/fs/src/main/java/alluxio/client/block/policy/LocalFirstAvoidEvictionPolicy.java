@@ -98,9 +98,9 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
    * @return the available bytes of the worker
    */
   private long getAvailableBytes(BlockWorkerInfo workerInfo) {
-    long mCapacityBytes = workerInfo.getCapacityBytes();
-    long mUsedBytes = workerInfo.getUsedBytes();
-    return mCapacityBytes - mUsedBytes - mBlockCapacityReserved;
+    long capacityBytes = workerInfo.getCapacityBytes();
+    long usedBytes = workerInfo.getUsedBytes();
+    return capacityBytes - usedBytes - mBlockCapacityReserved;
   }
 
   @Override

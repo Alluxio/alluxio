@@ -92,7 +92,7 @@ import java.util.stream.IntStream;
 @RunWith(Parameterized.class)
 public class LocalCacheFileInStreamTest {
   private static InstancedConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
+      ConfigurationUtils.copyDefaults());
 
   @Parameters(name = "{index}: page_size({0}), in_stream_buffer_size({1})")
   public static Collection<Object[]> data() {

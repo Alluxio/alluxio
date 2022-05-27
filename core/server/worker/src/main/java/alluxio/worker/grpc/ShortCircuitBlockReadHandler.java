@@ -15,7 +15,7 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -88,8 +88,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         // TODO(calvin): Update the locking logic so this can be done better
         Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
         if (!meta.isPresent()) {
-          throw new BlockDoesNotExistException(
-              ExceptionMessage.BLOCK_META_NOT_FOUND, mRequest.getBlockId());
+          throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId());
         }
         if (mRequest.getPromote()) {
           // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible

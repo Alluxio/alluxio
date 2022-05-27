@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.ConfigurationUtils;
@@ -49,8 +47,6 @@ public final class MultiMount {
       System.exit(-1);
     }
 
-    AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-
     AlluxioURI mntPath = new AlluxioURI("/mnt");
     AlluxioURI s3Mount = new AlluxioURI("/mnt/s3");
     AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
@@ -58,7 +54,7 @@ public final class MultiMount {
     AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
     AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
     AlluxioURI hdfsPath = new AlluxioURI(args[0]);
-    FileSystem fileSystem = FileSystem.Factory.create(alluxioConf);
+    FileSystem fileSystem = FileSystem.Factory.create(ConfigurationUtils.defaults());
 
     try {
       // Make sure mount directory exists.

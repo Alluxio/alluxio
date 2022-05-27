@@ -16,7 +16,6 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -172,7 +171,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     throw new UnsupportedOperationException();
   }
 

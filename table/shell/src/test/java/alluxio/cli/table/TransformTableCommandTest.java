@@ -41,7 +41,7 @@ public class TransformTableCommandTest {
     when(client.transformTable(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
         ArgumentMatchers.anyString())).thenReturn(0L);
     TransformTableCommand command =
-        new TransformTableCommand(new InstancedConfiguration(ConfigurationUtils.defaults()),
+        new TransformTableCommand(new InstancedConfiguration(ConfigurationUtils.copyDefaults()),
             client, null);
 
     ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);

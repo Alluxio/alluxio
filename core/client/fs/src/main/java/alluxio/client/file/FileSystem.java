@@ -17,7 +17,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -105,7 +104,7 @@ public interface FileSystem extends Closeable {
      * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get(Subject subject) {
-      return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      return get(subject, ConfigurationUtils.defaults());
     }
 
     /**

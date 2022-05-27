@@ -46,7 +46,7 @@ public class OBSInputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
   private static final String OBJECT_KEY = "testObjectKey";
   private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   private OBSInputStream mOBSInputStream;
   private ObsClient mObsClient;

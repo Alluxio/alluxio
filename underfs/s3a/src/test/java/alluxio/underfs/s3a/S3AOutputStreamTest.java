@@ -41,7 +41,7 @@ public class S3AOutputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
   private static final String KEY = "testKey";
   private static AlluxioConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
+      ConfigurationUtils.copyDefaults());
 
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;

@@ -414,8 +414,8 @@ public abstract class AbstractClient implements Client {
       onRetry.get();
       disconnect();
     }
-    throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
-        + " attempts: ", ex);
+    throw new UnavailableException(String.format("Failed after %d attempts: %s",
+        retryPolicy.getAttemptCount(), ex), ex);
   }
 
   // TODO(calvin): General tag logic should be in getMetricName

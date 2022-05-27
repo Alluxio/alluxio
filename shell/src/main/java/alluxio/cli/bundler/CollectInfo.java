@@ -210,7 +210,7 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Create the shell instance
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
     // Reduce the RPC retry max duration to fail earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);

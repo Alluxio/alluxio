@@ -127,7 +127,7 @@ Concurrent clients can be estimated as below. In a deployment with 2 users, 50 P
 * 50 (Presto workers) x 200 (task concurrency) / (50 (workers) x 0.5 (distribution)) = 400
 
 The distribution factor is an estimate of how well the data is distributed among the workers. It can
-be thought of the probability of a random worker being able to serve the data. If all the data is on
+be thought of as the probability of a random worker being able to serve the data. If all the data is on
 one node, the distribution factor is 1 / # workers, if the data is likely to be on half of the
 workers, the distribution factor is 1 / 2, and if the given dataset is likely to be on all workers,
 the distribution factor is 1.
@@ -207,7 +207,7 @@ ALLUXIO_JAVA_OPTS+=" -XX:MaxDirectMemorySize=10g "
 ### Number of Cores
 
 The Alluxio Master’s ability to handle concurrent requests and parallelize recursive operations
-(ie. full sync, check consistency) scales with the number of cores available. In addition,
+(i.e. full sync, check consistency) scales with the number of cores available. In addition,
 background processes of the Alluxio Master also require cores.
 
 Alluxio microbenchmarks, show the following operation throughput on 4vCores (r5.xlarge) on the
@@ -258,7 +258,7 @@ example, if Alluxio is run under user `alluxio`: `alluxio soft nproc 4096`.
 example, if Alluxio is run under user `alluxio`: `alluxio soft nofile 4096`.
 - User specific pid_max limit: Run command `sudo echo <new value> > /sys/fs/cgroup/pids/user.slice/user-<userid>.slice/pids.max` as root
 
-These limits are often set for the particular user that launch the Alluxio process.
+These limits are often set for the particular user that launches the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
 as set by `alluxio.master.rpc.executor.max.pool.size`.
 
@@ -481,7 +481,7 @@ because workers tend to have fewer concurrent accesses compared to master.
 But we recommend leaving 10-15 GB at least for this purpose as well. 
 
 The next priority should be `COMPUTE_WORKER_JVM_SIZE`.
-If the compute worker's JVM is too small, some queries will simply fail.
+If the compute worker's JVM heap is too small, some queries will simply fail.
 Unfortunately, it is difficult to know much memory a query will need unless you run it.
 So you should monitor the system while your normal workload runs, in order to get better
 estimations on how much resources the compute worker typically needs.

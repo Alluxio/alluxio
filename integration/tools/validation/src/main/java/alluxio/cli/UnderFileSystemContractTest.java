@@ -76,7 +76,7 @@ public final class UnderFileSystemContractTest {
    * A constructor from default.
    * */
   public UnderFileSystemContractTest() {
-    mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**

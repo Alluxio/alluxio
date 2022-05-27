@@ -58,7 +58,7 @@ public class GrpcSecurityTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   @Test

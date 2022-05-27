@@ -74,6 +74,10 @@
       <groupId>org.glassfish.jersey.inject</groupId>
       <artifactId>jersey-hk2</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerby-util</artifactId>
+    </dependency>
     <!-- Required at runtime to decode json objects for rest API -->
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
