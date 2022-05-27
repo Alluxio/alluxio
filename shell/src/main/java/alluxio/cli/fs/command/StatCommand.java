@@ -134,9 +134,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
         "   \"%z\": size of file in bytes;",
         "   \"%u\": owner;",
         "   \"%g\": group name of owner;",
-        "   \"%y\" or \"%Y\": modification time,",
-        " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),",
-        " %Y it shows milliseconds since January 1, 1970 UTC;",
+        "   \"%y\": modification time in UTC in 'yyyy-MM-dd HH:mm:ss' format;",
+        "   \"%Y\": modification time as Unix timestamp in milliseconds;",
         "   \"%b\": Number of blocks allocated for file"));
   }
 
