@@ -1313,6 +1313,10 @@
               {
                 "name": "TIMER",
                 "integer": 3
+              },
+              {
+                "name": "EXECUTOR_SERVICE",
+                "integer": 4
               }
             ]
           },
@@ -3755,6 +3759,43 @@
                 "integer": 3
               }
             ]
+          },
+          {
+            "name": "JobSource",
+            "enum_fields": [
+              {
+                "name": "UNSUPPORTED"
+              },
+              {
+                "name": "CLI",
+                "integer": 1
+              },
+              {
+                "name": "POLICY",
+                "integer": 2
+              },
+              {
+                "name": "SYSTEM",
+                "integer": 3
+              }
+            ]
+          },
+          {
+            "name": "OperationType",
+            "enum_fields": [
+              {
+                "name": "DIST_LOAD",
+                "integer": 1
+              },
+              {
+                "name": "DIST_CP",
+                "integer": 2
+              },
+              {
+                "name": "PERSIST",
+                "integer": 3
+              }
+            ]
           }
         ],
         "messages": [
@@ -3841,6 +3882,107 @@
                 "id": 5,
                 "name": "unused1",
                 "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "JobProgress",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "fileCount",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "fileSize",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "lastUpdateMs",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "errorMsg",
+                "type": "string"
+              },
+              {
+                "id": 6,
+                "name": "errorType",
+                "type": "string"
+              },
+              {
+                "id": 7,
+                "name": "status",
+                "type": "Status"
+              }
+            ]
+          },
+          {
+            "name": "CmdProgress",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobProgress",
+                "type": "JobProgress",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "CmdSummary",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobControlId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "operationType",
+                "type": "OperationType"
+              },
+              {
+                "id": 3,
+                "name": "jobSource",
+                "type": "JobSource"
+              },
+              {
+                "id": 4,
+                "name": "status",
+                "type": "Status"
+              },
+              {
+                "id": 5,
+                "name": "submissionTime",
+                "type": "int64"
+              },
+              {
+                "id": 6,
+                "name": "duration",
+                "type": "int64"
+              },
+              {
+                "id": 7,
+                "name": "errorMessage",
+                "type": "string"
+              },
+              {
+                "id": 8,
+                "name": "cmdProgress",
+                "type": "CmdProgress"
+              },
+              {
+                "id": 9,
+                "name": "progressPercentage",
+                "type": "float"
               }
             ]
           },
@@ -4208,6 +4350,136 @@
             ]
           },
           {
+            "name": "SubmitOptions"
+          },
+          {
+            "name": "SubmitRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "cmdConfig",
+                "type": "bytes"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "SubmitOptions"
+              }
+            ]
+          },
+          {
+            "name": "SubmitResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobControlId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "GetCmdStatusOptions"
+          },
+          {
+            "name": "GetCmdStatusRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobControlId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "GetCmdStatusOptions"
+              }
+            ]
+          },
+          {
+            "name": "GetCmdStatusResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "cmdStatus",
+                "type": "Status"
+              }
+            ]
+          },
+          {
+            "name": "GetCmdStatusDetailedOptions"
+          },
+          {
+            "name": "GetCmdStatusDetailedRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobControlId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "GetCmdStatusOptions"
+              }
+            ]
+          },
+          {
+            "name": "JobStatusBlock",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "jobStatus",
+                "type": "Status"
+              },
+              {
+                "id": 3,
+                "name": "filePath",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "filePathFailed",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "CmdStatusBlock",
+            "fields": [
+              {
+                "id": 1,
+                "name": "jobControlId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "jobStatusBlock",
+                "type": "JobStatusBlock",
+                "is_repeated": true
+              },
+              {
+                "id": 3,
+                "name": "operationType",
+                "type": "OperationType"
+              }
+            ]
+          },
+          {
+            "name": "GetCmdStatusDetailedResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "cmdStatusBlock",
+                "type": "CmdStatusBlock"
+              }
+            ]
+          },
+          {
             "name": "JobHeartbeatPOptions"
           },
           {
@@ -4309,6 +4581,21 @@
                 "name": "GetAllWorkerHealth",
                 "in_type": "GetAllWorkerHealthPRequest",
                 "out_type": "GetAllWorkerHealthPResponse"
+              },
+              {
+                "name": "Submit",
+                "in_type": "SubmitRequest",
+                "out_type": "SubmitResponse"
+              },
+              {
+                "name": "GetCmdStatus",
+                "in_type": "GetCmdStatusRequest",
+                "out_type": "GetCmdStatusResponse"
+              },
+              {
+                "name": "GetCmdStatusDetailed",
+                "in_type": "GetCmdStatusDetailedRequest",
+                "out_type": "GetCmdStatusDetailedResponse"
               }
             ]
           },

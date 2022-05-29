@@ -40,7 +40,7 @@ public final class MkdirsOptionsTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**
@@ -65,7 +65,7 @@ public final class MkdirsOptionsTest {
    */
   @Test
   public void securityEnabled() throws IOException {
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
     conf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".

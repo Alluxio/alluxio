@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
 import alluxio.metrics.MetricKey;
@@ -63,7 +62,7 @@ public class CacheRequestManager {
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mCacheExecutor;
   /** The block worker. */
-  private final BlockWorker mBlockWorker;
+  private final DefaultBlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, CacheRequest> mActiveCacheRequests =
       new ConcurrentHashMap<>();
   private final FileSystemContext mFsContext;
@@ -75,7 +74,7 @@ public class CacheRequestManager {
    * @param blockWorker handler to the block worker
    * @param fsContext context
    */
-  public CacheRequestManager(ExecutorService service, BlockWorker blockWorker,
+  public CacheRequestManager(ExecutorService service, DefaultBlockWorker blockWorker,
       FileSystemContext fsContext) {
     mCacheExecutor = service;
     mBlockWorker = blockWorker;
@@ -229,7 +228,7 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     // Check if the block has already been cached on this worker
-    if (mBlockWorker.hasBlockMeta(blockId)) {
+    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)) {
       LOG.debug("block already cached: {}", blockId);
       return true;
     }
@@ -287,14 +286,13 @@ public class CacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws IOException, AlluxioException {
-    try {
-      mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
-          new CreateBlockOptions(null, "", blockSize));
-    } catch (BlockAlreadyExistsException e) {
+    if (mBlockWorker.getLocalBlockStore().hasBlockMeta(blockId)
+        || mBlockWorker.getLocalBlockStore().hasTempBlockMeta(blockId)) {
       // It is already cached
-      LOG.debug("block already cached: {}", blockId);
       return true;
     }
+    mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0,
+        new CreateBlockOptions(null, "", blockSize));
     try (
         BlockReader reader =
             getRemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
@@ -303,12 +301,12 @@ public class CacheRequestManager {
       BufferUtils.transfer(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
-    } catch (AlluxioException | IOException e) {
+    } catch (IllegalStateException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
           blockId, sourceAddress, e.toString());
       try {
         mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
-      } catch (AlluxioException | IOException ee) {
+      } catch (IOException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
       throw e;

@@ -26,7 +26,7 @@ Alluxio is open sourced under the Apache 2.0 license.
 ## Why is my analytics job not running faster after deploying Alluxio?
 
 Some possible reasons to consider:
-1. The job is computation bound and does not spend significant time in reading or writing data.
+1. The job is computation bound and does not spend significant time reading or writing data.
 Because the bottleneck is not in I/O performance, the benefit from faster Alluxio I/O is small.
 1. The persistent storage is co-located with compute (e.g. Alluxio is connected to a local
 HDFS) and the input data of the job is in the OS

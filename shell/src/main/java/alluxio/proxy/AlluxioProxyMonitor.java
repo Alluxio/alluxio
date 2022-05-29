@@ -13,7 +13,6 @@ package alluxio.proxy;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -41,7 +40,7 @@ public final class AlluxioProxyMonitor {
 
     HealthCheckClient client = new ProxyHealthCheckClient(
         NetworkAddressUtils.getBindAddress(NetworkAddressUtils.ServiceType.PROXY_WEB,
-            new InstancedConfiguration(ConfigurationUtils.defaults())),
+            ConfigurationUtils.defaults()),
         () -> new ExponentialBackoffRetry(50, 100, 2));
     if (!client.isServing()) {
       System.exit(1);

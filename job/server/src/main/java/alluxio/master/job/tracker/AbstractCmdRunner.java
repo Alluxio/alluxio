@@ -13,7 +13,6 @@ package alluxio.master.job.tracker;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.util.CommonUtils;
@@ -55,7 +54,7 @@ public abstract class AbstractCmdRunner {
     mJobMap = Maps.newHashMap();
     if (fsContext == null) {
       fsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+        FileSystemContext.create(ConfigurationUtils.defaults());
     }
     mFsContext = fsContext;
     mFileSystem = FileSystem.Factory.create(fsContext);

@@ -13,7 +13,7 @@ alluxio.user.block.master.client.pool.size.min:
 alluxio.user.block.read.metrics.enabled:
   'Whether detailed block read metrics will be recorded and sink.'
 alluxio.user.block.read.retry.max.duration:
-  'N/A'
+  'This duration controls for how long Alluxio clients should tryreading a single block. If a particular block can''t be read within this duration, then the I/O will timeout.'
 alluxio.user.block.read.retry.sleep.base:
   'N/A'
 alluxio.user.block.read.retry.sleep.max:
@@ -44,6 +44,10 @@ alluxio.user.client.cache.evictor.lfu.logbase:
   'The log base for client cache LFU evictor bucket index.'
 alluxio.user.client.cache.evictor.nondeterministic.enabled:
   'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
+alluxio.user.client.cache.filter.class:
+  'The default cache filter caches everything'
+alluxio.user.client.cache.filter.config-file:
+  'The alluxio cache filter config file'
 alluxio.user.client.cache.local.store.file.buckets:
   'The number of file buckets for the local page store of the client-side cache. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
 alluxio.user.client.cache.page.size:

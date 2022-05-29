@@ -11,13 +11,12 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
@@ -106,10 +105,9 @@ public interface StorageDir {
    * Gets the {@link BlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link BlockMeta} of the given block or null
-   * @throws BlockDoesNotExistException if no block is found
+   * @return {@link BlockMeta} of the given block or empty
    */
-  BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException;
+  Optional<BlockMeta> getBlockMeta(long blockId);
 
   /**
    * Gets the {@link TempBlockMeta} from this storage dir by its block id.
@@ -123,37 +121,30 @@ public interface StorageDir {
    * Adds the metadata of a new block into this storage dir.
    *
    * @param blockMeta the metadata of the block
-   * @throws BlockAlreadyExistsException if blockId already exists
    * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
-  void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException;
+  void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException;
 
   /**
    * Adds the metadata of a new block into this storage dir.
    *
    * @param tempBlockMeta the metadata of a temp block to add
-   * @throws BlockAlreadyExistsException if blockId already exists
-   * @throws WorkerOutOfSpaceException when not enough space to hold block
    */
-  void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException;
+  void addTempBlockMeta(TempBlockMeta tempBlockMeta);
 
   /**
    * Removes a block from this storage dir.
    *
    * @param blockMeta the metadata of the block
-   * @throws BlockDoesNotExistException if no block is found
    */
-  void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException;
+  void removeBlockMeta(BlockMeta blockMeta);
 
   /**
    * Removes a temp block from this storage dir.
    *
    * @param tempBlockMeta the metadata of the temp block to remove
-   * @throws BlockDoesNotExistException if no temp block is found
    */
-  void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException;
+  void removeTempBlockMeta(TempBlockMeta tempBlockMeta);
 
   /**
    * Changes the size of a temp block.

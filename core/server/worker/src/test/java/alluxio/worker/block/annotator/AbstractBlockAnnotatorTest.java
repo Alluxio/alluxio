@@ -35,7 +35,6 @@ public abstract class AbstractBlockAnnotatorTest {
 
   private HashMap<Long, StorageDir> mBlockLocation;
   private Long mUserSession = 1L;
-  private Long mInternalSession = Long.MIN_VALUE;
 
   protected BlockMetadataManager mMetaManager;
   protected BlockIterator mBlockIterator;
@@ -60,22 +59,22 @@ public abstract class AbstractBlockAnnotatorTest {
   }
 
   protected void moveBlock(long blockId, StorageDir destDir) throws Exception {
-    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId));
+    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId).get());
     TieredBlockStoreTestUtils.cache2(mUserSession++, blockId, 1, destDir, mMetaManager,
         (BlockIterator) null);
-    mBlockEventListener.onMoveBlockByWorker(mInternalSession++, blockId,
+    mBlockEventListener.onMoveBlockByWorker(blockId,
         mBlockLocation.get(blockId).toBlockStoreLocation(), destDir.toBlockStoreLocation());
     mBlockLocation.put(blockId, destDir);
   }
 
   protected void removeBlock(long blockId) throws Exception {
-    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId));
-    mBlockEventListener.onRemoveBlock(mUserSession++, blockId,
+    mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId).get());
+    mBlockEventListener.onRemoveBlock(blockId,
         mBlockLocation.remove(blockId).toBlockStoreLocation());
   }
 
   protected void accessBlock(long blockId) throws Exception {
-    mBlockEventListener.onAccessBlock(mUserSession++, blockId,
+    mBlockEventListener.onAccessBlock(blockId,
         mBlockLocation.get(blockId).toBlockStoreLocation());
   }
 

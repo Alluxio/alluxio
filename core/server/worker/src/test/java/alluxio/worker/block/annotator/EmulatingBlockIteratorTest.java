@@ -101,8 +101,8 @@ public class EmulatingBlockIteratorTest {
   }
 
   private void accessBlock(long blockId) throws Exception {
-    mBlockEventListener.onAccessBlock(mUserSession++, blockId);
-    mBlockEventListener.onAccessBlock(mUserSession++, blockId,
+    mBlockEventListener.onAccessBlock(blockId);
+    mBlockEventListener.onAccessBlock(blockId,
         mBlockLocation.get(blockId).toBlockStoreLocation());
   }
 

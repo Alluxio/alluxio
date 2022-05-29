@@ -45,7 +45,7 @@ import java.security.DigestOutputStream;
 @RunWith(PowerMockRunner.class)
 public class OBSOutputStreamTest {
   private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   private ObsClient mObsClient;
   private File mFile;

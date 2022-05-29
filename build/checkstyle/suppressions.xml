@@ -13,4 +13,7 @@
     <suppress files="[\\/]*[\\/]test[\\/].*" checks="MissingJavadocType" />
     <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*" checks="MissingJavadocMethod" />
     <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*" checks="MissingJavadocType" />
+    <!-- Micro bench does not require java doc on methods and types, as they are typically benchmark methods and params. -->
+    <suppress files="[\\/]microbench[\\/]src[\\/]main[\\/].*" checks="MissingJavadocMethod" />
+    <suppress files="[\\/]microbench[\\/]src[\\/]main[\\/].*" checks="MissingJavadocType" />
 </suppressions>

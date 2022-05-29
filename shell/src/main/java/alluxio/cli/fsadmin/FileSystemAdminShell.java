@@ -59,7 +59,7 @@ public final class FileSystemAdminShell extends AbstractShell {
    */
   public static void main(String[] args) throws IOException {
     int ret;
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
     if (!ConfigurationUtils.masterHostConfigured(conf) && args.length > 0) {
       System.out.println(ConfigurationUtils
           .getMasterHostNotConfiguredMessage("Alluxio fsadmin shell"));

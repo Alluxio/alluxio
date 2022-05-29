@@ -45,7 +45,7 @@ public final class AbstractClientTest {
     private long mRemoteServiceVersion;
 
     protected BaseTestClient() {
-      super(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), null,
+      super(ClientContext.create(ConfigurationUtils.defaults()), null,
           () -> new CountingRetry(1));
     }
 
@@ -133,7 +133,7 @@ public final class AbstractClientTest {
   public void confAddress() throws Exception {
     ClientContext context = Mockito.mock(ClientContext.class);
     Mockito.when(context.getClusterConf()).thenReturn(
-        new InstancedConfiguration(ConfigurationUtils.defaults()));
+        new InstancedConfiguration(ConfigurationUtils.copyDefaults()));
 
     InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);

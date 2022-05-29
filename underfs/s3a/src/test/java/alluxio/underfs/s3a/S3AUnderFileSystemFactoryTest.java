@@ -11,11 +11,11 @@
 
 package alluxio.underfs.s3a;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
@@ -47,14 +47,14 @@ public class S3AUnderFileSystemFactoryTest {
 
   @Test
   public void factory() {
-    UnderFileSystemFactory mFactory2 = UnderFileSystemFactoryRegistry.find(
+    UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find(
         mS3Path, mAlluxioConf);
-    UnderFileSystemFactory mFactory3 = UnderFileSystemFactoryRegistry.find(
+    UnderFileSystemFactory factory3 = UnderFileSystemFactoryRegistry.find(
         mS3NPath, mAlluxioConf);
 
     assertNotNull(mFactory1);
-    assertNotNull(mFactory2);
-    assertNull(mFactory3);
+    assertNotNull(factory2);
+    assertNull(factory3);
   }
 
   @Test

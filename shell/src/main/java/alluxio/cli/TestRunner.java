@@ -89,7 +89,7 @@ public final class TestRunner {
    */
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
-    JCommander jCommander = new JCommander(runner, args);
+    JCommander jCommander = new JCommander(runner);
     jCommander.setProgramName("TestRunner");
     if (runner.mHelp) {
       jCommander.usage();
@@ -110,7 +110,7 @@ public final class TestRunner {
 
     AlluxioURI testDir = new AlluxioURI(mDirectory);
     FileSystemContext fsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.copyDefaults()));
     FileSystem fs =
         FileSystem.Factory.create(fsContext);
     if (fs.exists(testDir)) {

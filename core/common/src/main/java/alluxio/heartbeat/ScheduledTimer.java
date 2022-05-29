@@ -76,11 +76,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
     }
   }
 
-  /**
-   * Waits until the heartbeat is scheduled for execution.
-   *
-   * @throws InterruptedException if the thread is interrupted while waiting
-   */
+  @Override
   public void tick() throws InterruptedException {
     try (LockResource r = new LockResource(mLock)) {
       HeartbeatScheduler.addTimer(this);

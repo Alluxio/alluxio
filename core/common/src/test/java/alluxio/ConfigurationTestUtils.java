@@ -35,7 +35,7 @@ public final class ConfigurationTestUtils {
    * @return the default configuration
    */
   public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
+    return new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**

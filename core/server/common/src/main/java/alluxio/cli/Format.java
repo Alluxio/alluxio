@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
@@ -82,7 +81,7 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = ConfigurationUtils.defaults();
     // Set the process type as "MASTER" since format needs to access the journal like the master.
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     Mode mode = null;

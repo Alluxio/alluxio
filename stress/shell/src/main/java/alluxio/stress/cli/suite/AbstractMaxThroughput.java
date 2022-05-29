@@ -105,7 +105,7 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
     int numWorkers = 0;
     try (JobMasterClient client = JobMasterClient.Factory.create(
         JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-            ConfigurationUtils.defaults()))).build())) {
+            ConfigurationUtils.copyDefaults()))).build())) {
       numWorkers = client.getAllWorkerHealth().size();
     }
     if (numWorkers <= 0) {

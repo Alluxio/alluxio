@@ -70,7 +70,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @return an instanced configuration preset with defaults
    */
   public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
+    return new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**
@@ -119,9 +119,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
   }
 
-  /**
-   * @return the properties backing this configuration
-   */
+  @Override
   public AlluxioProperties copyProperties() {
     return mProperties.copy();
   }

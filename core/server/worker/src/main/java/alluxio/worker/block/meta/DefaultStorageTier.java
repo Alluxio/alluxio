@@ -12,10 +12,8 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Constants;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -53,19 +51,19 @@ public final class DefaultStorageTier implements StorageTier {
   private final String mTierAlias;
   /** Ordinal value of this tier in tiered storage, highest level is 0. */
   private final int mTierOrdinal;
-  /** Total capacity of all StorageDirs in bytes. */
-  private long mCapacityBytes;
-  private HashMap<Integer, StorageDir> mDirs;
+  private final HashMap<Integer, StorageDir> mDirs;
   /** The lost storage paths that are failed to initialize or lost. */
-  private List<String> mLostStorage;
+  private final List<String> mLostStorage;
 
-  private DefaultStorageTier(String tierAlias) {
+  private DefaultStorageTier(String tierAlias, int tierOrdinal) {
     mTierAlias = tierAlias;
-    mTierOrdinal = new WorkerStorageTierAssoc().getOrdinal(tierAlias);
+    mTierOrdinal = tierOrdinal;
+    mDirs = new HashMap<>();
+    mLostStorage = new ArrayList<>();
   }
 
   private void initStorageTier(boolean isMultiTier)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws WorkerOutOfSpaceException {
     String tmpDir = ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
@@ -92,10 +90,6 @@ public final class DefaultStorageTier implements StorageTier {
           ServerConfiguration.getBytes(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES);
     }
 
-    mDirs = new HashMap<>(dirPaths.size());
-    mLostStorage = new ArrayList<>();
-
-    long totalCapacity = 0;
     for (int i = 0; i < dirPaths.size(); i++) {
       int index = i >= dirQuotas.size() ? dirQuotas.size() - 1 : i;
       int mediumTypeindex = i >= dirMedium.size() ? dirMedium.size() - 1 : i;
@@ -103,9 +97,8 @@ public final class DefaultStorageTier implements StorageTier {
       try {
         StorageDir dir = DefaultStorageDir.newStorageDir(this, i, capacity, reservedBytes,
             dirPaths.get(i), dirMedium.get(mediumTypeindex));
-        totalCapacity += capacity;
         mDirs.put(i, dir);
-      } catch (IOException | InvalidPathException e) {
+      } catch (IOException e) {
         LOG.error("Unable to initialize storage directory at {}", dirPaths.get(i), e);
         mLostStorage.add(dirPaths.get(i));
         continue;
@@ -121,7 +114,6 @@ public final class DefaultStorageTier implements StorageTier {
         }
       }
     }
-    mCapacityBytes = totalCapacity;
     if (mTierAlias.equals(Constants.MEDIUM_MEM) && mDirs.size() == 1) {
       checkEnoughMemSpace(mDirs.values().iterator().next());
     }
@@ -183,14 +175,14 @@ public final class DefaultStorageTier implements StorageTier {
    * Factory method to create {@link StorageTier}.
    *
    * @param tierAlias the tier alias
+   * @param tierOrdinal the tier ordinal
    * @param isMultiTier whether this tier is part of a multi-tier setup
    * @return a new storage tier
-   * @throws BlockAlreadyExistsException if the tier already exists
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
-  public static StorageTier newStorageTier(String tierAlias, boolean isMultiTier)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    DefaultStorageTier ret = new DefaultStorageTier(tierAlias);
+  public static StorageTier newStorageTier(String tierAlias, int tierOrdinal, boolean isMultiTier)
+      throws WorkerOutOfSpaceException {
+    DefaultStorageTier ret = new DefaultStorageTier(tierAlias, tierOrdinal);
     ret.initStorageTier(isMultiTier);
     return ret;
   }
@@ -207,7 +199,11 @@ public final class DefaultStorageTier implements StorageTier {
 
   @Override
   public long getCapacityBytes() {
-    return mCapacityBytes;
+    long totalCapacity = 0;
+    for (StorageDir dir : mDirs.values()) {
+      totalCapacity += dir.getCapacityBytes();
+    }
+    return totalCapacity;
   }
 
   @Override
@@ -235,11 +231,14 @@ public final class DefaultStorageTier implements StorageTier {
     return new ArrayList<>(mLostStorage);
   }
 
+  /**
+   * @throws IllegalArgumentException if dir does not belong to this tier
+   */
   @Override
   public void removeStorageDir(StorageDir dir) {
-    if (mDirs.remove(dir.getDirIndex()) != null) {
-      mCapacityBytes -=  dir.getCapacityBytes();
-    }
+    Preconditions.checkArgument(this == dir.getParentTier(),
+        "storage dir %s does not belong to tier %s", dir.getDirPath(), getTierAlias());
+    mDirs.remove(dir.getDirIndex());
     mLostStorage.add(dir.getDirPath());
   }
 }

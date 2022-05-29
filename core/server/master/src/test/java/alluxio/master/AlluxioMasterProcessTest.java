@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -18,8 +19,8 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -35,13 +36,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
@@ -75,28 +75,25 @@ public final class AlluxioMasterProcessTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
-
   private int mRpcPort;
   private int mWebPort;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {new ImmutableMap.Builder()
+        {new ImmutableMap.Builder<Object, Boolean>()
             .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true)
             .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true)
             .build()},
-        {new ImmutableMap.Builder()
+        {new ImmutableMap.Builder<Object, Boolean>()
             .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false)
             .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false)
             .build()},
-        {new ImmutableMap.Builder()
+        {new ImmutableMap.Builder<Object, Boolean>()
             .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, true)
             .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, false)
             .build()},
-        {new ImmutableMap.Builder()
+        {new ImmutableMap.Builder<Object, Boolean>()
             .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, false)
             .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, true)
             .build()},
@@ -237,7 +234,7 @@ public final class AlluxioMasterProcessTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
     AlluxioMasterProcess master = new AlluxioMasterProcess(
-        RaftJournalSystem.create(RaftJournalConfiguration.defaults(ServiceType.MASTER_RAFT)));
+        new RaftJournalSystem(JournalUtils.getJournalLocation(), ServiceType.MASTER_RAFT));
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -255,24 +252,25 @@ public final class AlluxioMasterProcessTest {
 
   private void startStopTest(AlluxioMasterProcess master,
       boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
-    waitForAllServingReady(master, 5000);
-    assertTrue(expectWebServiceStarted == master.isWebServing());
-    assertTrue(expectMetricsSinkStarted == master.isMetricSinkServing());
+    waitForAllServingReady(master);
+    assertEquals(expectWebServiceStarted, master.isWebServing());
+    assertEquals(expectMetricsSinkStarted, master.isMetricSinkServing());
     master.stop();
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));
   }
 
-  void waitForAllServingReady(AlluxioMasterProcess master, int timeoutMs)
+  void waitForAllServingReady(AlluxioMasterProcess master)
       throws InterruptedException, TimeoutException {
+    final int TIMEOUT_MS = 5000;
     waitForSocketServing(ServiceType.MASTER_RPC);
     waitForSocketServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
     boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
     ServerConfiguration.set(PropertyKey.TEST_MODE, false);
-    master.waitForGrpcServerReady(timeoutMs);
-    master.waitForWebServerReady(timeoutMs);
+    master.waitForGrpcServerReady(TIMEOUT_MS);
+    master.waitForWebServerReady(TIMEOUT_MS);
     ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
   }
 
