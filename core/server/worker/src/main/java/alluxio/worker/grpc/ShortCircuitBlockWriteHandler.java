@@ -11,10 +11,8 @@
 
 package alluxio.worker.grpc;
 
-import static com.google.common.base.Preconditions.checkState;
-import static java.lang.String.format;
-
 import alluxio.RpcUtils;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -24,6 +22,7 @@ import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 
+import com.google.common.base.Preconditions;
 import io.grpc.Context;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -31,6 +30,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -81,18 +81,22 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           mBlockWorker.requestSpace(mSessionId, request.getBlockId(), request.getSpaceToReserve());
           return CreateLocalBlockResponse.newBuilder().build();
         } else {
-          checkState(mRequest == null);
+          Preconditions.checkState(mRequest == null);
           mRequest = request;
-          checkState(mSessionId == INVALID_SESSION_ID,
-              format("Create block %s without closing the previous session %s.",
-                  request.getBlockId(), mSessionId));
-          mSessionId = IdUtils.createSessionId();
-          String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
-              request.getTier(),
-              new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
-          CreateLocalBlockResponse response =
-              CreateLocalBlockResponse.newBuilder().setPath(path).build();
-          return response;
+          if (mSessionId == INVALID_SESSION_ID) {
+            mSessionId = IdUtils.createSessionId();
+            String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
+                request.getTier(),
+                new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
+            CreateLocalBlockResponse response =
+                CreateLocalBlockResponse.newBuilder().setPath(path).build();
+            return response;
+          } else {
+            LOG.warn("Create block {} without closing the previous session {}.",
+                request.getBlockId(), mSessionId);
+            throw new InvalidWorkerStateException(
+                MessageFormat.format("session {0,number,#} is not closed.", mSessionId));
+          }
         }
       }
 

@@ -286,7 +286,7 @@ public final class BlockMetadataManager {
    * @return the {@link StorageDir} object
    */
   public StorageDir getDir(BlockStoreLocation location) {
-    checkArgument(location.isAnyTier() || location.isAnyDir(),
+    checkArgument(!(location.isAnyTier() || location.isAnyDir()),
         MessageFormat.format("Cannot get path from non-specific dir {0}", location));
     return getTier(location.tierAlias()).getDir(location.dir());
   }
