@@ -2212,7 +2212,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         } else if (inodeToDelete.isPersisted()) {
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
-          // Here, the lockedInodePathToDelete can be sure to be fullPathExists
+          // Here we are sure lockedInodePathToDelete full path exists
           if (mMountTable.isMountPoint(alluxioUriToDelete)) {
             mMountTable.delete(rpcContext, lockedInodePathToDelete, true);
           } else {
