@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# This Port is the Linux ssh port which installed Alluxio cluster (Default: 22)
+# E.g. When the Linux ssh port is 22022, changed the "PORT=22022"
 PORT=22
 
 LAUNCHER=
