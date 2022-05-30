@@ -89,7 +89,7 @@ spec:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
               fieldRef:
-                fieldPath: status.hostIP
+                fieldPath: status.podIP
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
