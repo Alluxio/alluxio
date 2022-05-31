@@ -50,7 +50,7 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
     mUserInfo = userInfo;
     if (mResponseObserver instanceof DataMessageMarshallerProvider) {
       mMarshaller = ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) mResponseObserver)
-          .getRequestMarshaller();
+          .getRequestMarshaller().orElse(null);
     } else {
       mMarshaller = null;
     }

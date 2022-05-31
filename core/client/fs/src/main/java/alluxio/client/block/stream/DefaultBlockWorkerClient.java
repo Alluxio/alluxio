@@ -166,8 +166,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<WriteRequest> marshaller =
           ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
-              .getRequestMarshaller();
-      Preconditions.checkNotNull(marshaller, "marshaller");
+              .getRequestMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
@@ -184,8 +183,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
-              .getResponseMarshaller();
-      Preconditions.checkNotNull(marshaller);
+              .getResponseMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()
