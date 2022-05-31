@@ -1,6 +1,538 @@
 {
   "definitions": [
     {
+      "protopath": "google:/:protobuf:/:any.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "Any",
+            "fields": [
+              {
+                "id": 1,
+                "name": "type_url",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "bytes"
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "google.protobuf"
+        },
+        "options": [
+          {
+            "name": "csharp_namespace",
+            "value": "Google.Protobuf.WellKnownTypes"
+          },
+          {
+            "name": "go_package",
+            "value": "google.golang.org/protobuf/types/known/anypb"
+          },
+          {
+            "name": "java_package",
+            "value": "com.google.protobuf"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "AnyProto"
+          },
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "objc_class_prefix",
+            "value": "GPB"
+          }
+        ]
+      }
+    },
+    {
+      "protopath": "google:/:protobuf:/:duration.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "Duration",
+            "fields": [
+              {
+                "id": 1,
+                "name": "seconds",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "nanos",
+                "type": "int32"
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "google.protobuf"
+        },
+        "options": [
+          {
+            "name": "csharp_namespace",
+            "value": "Google.Protobuf.WellKnownTypes"
+          },
+          {
+            "name": "cc_enable_arenas",
+            "value": "true"
+          },
+          {
+            "name": "go_package",
+            "value": "google.golang.org/protobuf/types/known/durationpb"
+          },
+          {
+            "name": "java_package",
+            "value": "com.google.protobuf"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "DurationProto"
+          },
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "objc_class_prefix",
+            "value": "GPB"
+          }
+        ]
+      }
+    },
+    {
+      "protopath": "google:/:rpc:/:code.proto",
+      "def": {
+        "enums": [
+          {
+            "name": "Code",
+            "enum_fields": [
+              {
+                "name": "OK"
+              },
+              {
+                "name": "CANCELLED",
+                "integer": 1
+              },
+              {
+                "name": "UNKNOWN",
+                "integer": 2
+              },
+              {
+                "name": "INVALID_ARGUMENT",
+                "integer": 3
+              },
+              {
+                "name": "DEADLINE_EXCEEDED",
+                "integer": 4
+              },
+              {
+                "name": "NOT_FOUND",
+                "integer": 5
+              },
+              {
+                "name": "ALREADY_EXISTS",
+                "integer": 6
+              },
+              {
+                "name": "PERMISSION_DENIED",
+                "integer": 7
+              },
+              {
+                "name": "UNAUTHENTICATED",
+                "integer": 16
+              },
+              {
+                "name": "RESOURCE_EXHAUSTED",
+                "integer": 8
+              },
+              {
+                "name": "FAILED_PRECONDITION",
+                "integer": 9
+              },
+              {
+                "name": "ABORTED",
+                "integer": 10
+              },
+              {
+                "name": "OUT_OF_RANGE",
+                "integer": 11
+              },
+              {
+                "name": "UNIMPLEMENTED",
+                "integer": 12
+              },
+              {
+                "name": "INTERNAL",
+                "integer": 13
+              },
+              {
+                "name": "UNAVAILABLE",
+                "integer": 14
+              },
+              {
+                "name": "DATA_LOSS",
+                "integer": 15
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "google.rpc"
+        },
+        "options": [
+          {
+            "name": "go_package",
+            "value": "google.golang.org/genproto/googleapis/rpc/code;code"
+          },
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "CodeProto"
+          },
+          {
+            "name": "java_package",
+            "value": "com.google.rpc"
+          },
+          {
+            "name": "objc_class_prefix",
+            "value": "RPC"
+          }
+        ]
+      }
+    },
+    {
+      "protopath": "google:/:rpc:/:error_details.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "RetryInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "retry_delay",
+                "type": "google.protobuf.Duration"
+              }
+            ]
+          },
+          {
+            "name": "DebugInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "stack_entries",
+                "type": "string",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "detail",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "QuotaFailure",
+            "fields": [
+              {
+                "id": 1,
+                "name": "violations",
+                "type": "Violation",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "Violation",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "subject",
+                    "type": "string"
+                  },
+                  {
+                    "id": 2,
+                    "name": "description",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "ErrorInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "reason",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "domain",
+                "type": "string"
+              }
+            ],
+            "maps": [
+              {
+                "key_type": "string",
+                "field": {
+                  "id": 3,
+                  "name": "metadata",
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          {
+            "name": "PreconditionFailure",
+            "fields": [
+              {
+                "id": 1,
+                "name": "violations",
+                "type": "Violation",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "Violation",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "type",
+                    "type": "string"
+                  },
+                  {
+                    "id": 2,
+                    "name": "subject",
+                    "type": "string"
+                  },
+                  {
+                    "id": 3,
+                    "name": "description",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "BadRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "field_violations",
+                "type": "FieldViolation",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "FieldViolation",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "field",
+                    "type": "string"
+                  },
+                  {
+                    "id": 2,
+                    "name": "description",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "RequestInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "request_id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "serving_data",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "ResourceInfo",
+            "fields": [
+              {
+                "id": 1,
+                "name": "resource_type",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "resource_name",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "owner",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "description",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "Help",
+            "fields": [
+              {
+                "id": 1,
+                "name": "links",
+                "type": "Link",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "Link",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "description",
+                    "type": "string"
+                  },
+                  {
+                    "id": 2,
+                    "name": "url",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "LocalizedMessage",
+            "fields": [
+              {
+                "id": 1,
+                "name": "locale",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "message",
+                "type": "string"
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "google/protobuf/duration.proto"
+          }
+        ],
+        "package": {
+          "name": "google.rpc"
+        },
+        "options": [
+          {
+            "name": "go_package",
+            "value": "google.golang.org/genproto/googleapis/rpc/errdetails;errdetails"
+          },
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "ErrorDetailsProto"
+          },
+          {
+            "name": "java_package",
+            "value": "com.google.rpc"
+          },
+          {
+            "name": "objc_class_prefix",
+            "value": "RPC"
+          }
+        ]
+      }
+    },
+    {
+      "protopath": "google:/:rpc:/:status.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "Status",
+            "fields": [
+              {
+                "id": 1,
+                "name": "code",
+                "type": "int32"
+              },
+              {
+                "id": 2,
+                "name": "message",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "details",
+                "type": "google.protobuf.Any",
+                "is_repeated": true
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "google/protobuf/any.proto"
+          }
+        ],
+        "package": {
+          "name": "google.rpc"
+        },
+        "options": [
+          {
+            "name": "cc_enable_arenas",
+            "value": "true"
+          },
+          {
+            "name": "go_package",
+            "value": "google.golang.org/genproto/googleapis/rpc/status;status"
+          },
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          },
+          {
+            "name": "java_outer_classname",
+            "value": "StatusProto"
+          },
+          {
+            "name": "java_package",
+            "value": "com.google.rpc"
+          },
+          {
+            "name": "objc_class_prefix",
+            "value": "RPC"
+          }
+        ]
+      }
+    },
+    {
       "protopath": "grpc:/:block_master.proto",
       "def": {
         "enums": [
