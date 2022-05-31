@@ -250,7 +250,9 @@ public final class BlockMetadataManager {
   public Optional<BlockMeta> getBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        return dir.getBlockMeta(blockId);
+        if (dir.hasBlockMeta(blockId)) {
+          return dir.getBlockMeta(blockId);
+        }
       }
     }
     return Optional.empty();
@@ -299,7 +301,9 @@ public final class BlockMetadataManager {
   public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        return dir.getTempBlockMeta(blockId);
+        if (dir.hasTempBlockMeta(blockId)) {
+          return dir.getTempBlockMeta(blockId);
+        }
       }
     }
     return Optional.empty();
