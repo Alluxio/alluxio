@@ -56,11 +56,11 @@ public final class DefaultStorageDir implements StorageDir {
   private final long mCapacityBytes;
   private final String mDirMedium;
   /** A map from block id to block metadata. */
-  private final Map<Long, BlockMeta> mBlockIdToBlockMap;
+  private final Map<Long, BlockMeta> mBlockIdToBlockMap = new HashMap<>(200);
   /** A map from block id to temp block metadata. */
-  private final Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
+  private final Map<Long, TempBlockMeta> mBlockIdToTempBlockMap = new HashMap<>(200);
   /** A map from session id to the set of temp blocks created by this session. */
-  private final Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
+  private final Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap = new HashMap<>(200);
   private final AtomicLong mAvailableBytes;
   private final AtomicLong mCommittedBytes;
   private final AtomicLong mReservedBytes;
@@ -78,9 +78,6 @@ public final class DefaultStorageDir implements StorageDir {
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
     mDirMedium = dirMedium;
-    mBlockIdToBlockMap = new HashMap<>(200);
-    mBlockIdToTempBlockMap = new HashMap<>(200);
-    mSessionIdToTempBlockIdsMap = new HashMap<>(200);
   }
 
   /**
@@ -225,8 +222,8 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) {
-    return mBlockIdToTempBlockMap.get(blockId);
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
+    return Optional.ofNullable(mBlockIdToTempBlockMap.get(blockId));
   }
 
   @Override
