@@ -76,6 +76,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.security.auth.Subject;
 
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and
@@ -371,7 +372,7 @@ public final class MultiProcessCluster {
    */
   public synchronized FileSystemContext getFilesystemContext() {
     if (mFilesystemContext == null) {
-      mFilesystemContext = FileSystemContext.create(null, getMasterInquireClient(),
+      mFilesystemContext = FileSystemContext.create(new Subject(), getMasterInquireClient(),
           ServerConfiguration.global());
       mCloser.register(mFilesystemContext);
     }

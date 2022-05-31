@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -58,7 +58,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockStore.class);
 
   /**
-   * This lock protects mBlocks, mSessionIdToBlockIds and mBlockIdToSessionIds. For any read/write
+   * This lock protects mBlocks, mSessionIdToBlockIds. For any read/write
    * operations to these maps, the lock needs to be acquired. But once you get the block
    * information from the map (e.g. mBlocks), the lock does not need to be acquired. For example,
    * the block reader/writer within the BlockInfo can be updated without acquiring this lock.
@@ -216,12 +216,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param options the open ufs options
    * @return the block reader instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws BlockDoesNotExistException, IOException, BlockAlreadyExistsException {
+      throws IOException, BlockAlreadyExistsException {
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
       // flag.mUnderFileSystemBlockStore
@@ -271,27 +270,30 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @return true if mNoCache is set
    */
   public boolean isNoCache(long sessionId, long blockId) {
-    Key key = new Key(sessionId, blockId);
-    BlockInfo blockInfo = mBlocks.get(key);
-    UnderFileSystemBlockMeta mMeta = blockInfo.getMeta();
-    return mMeta.isNoCache();
+    final BlockInfo blockInfo;
+    try (LockResource lr = new LockResource(mLock)) {
+      blockInfo = getBlockInfo(sessionId, blockId);
+    }
+    return blockInfo.getMeta().isNoCache();
   }
 
   /**
    * Gets the {@link UnderFileSystemBlockMeta} for a session ID and block ID pair.
+   * The caller must have acquired the lock before calling this method.
    *
    * @param sessionId the session ID
    * @param blockId the block ID
    * @return the {@link UnderFileSystemBlockMeta} instance
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the
+   * @throws BlockDoesNotExistRuntimeException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  private BlockInfo getBlockInfo(long sessionId, long blockId) throws BlockDoesNotExistException {
+  @GuardedBy("mLock")
+  private BlockInfo getBlockInfo(long sessionId, long blockId) {
     Key key = new Key(sessionId, blockId);
     BlockInfo blockInfo = mBlocks.get(key);
     if (blockInfo == null) {
-      throw new BlockDoesNotExistException(ExceptionMessage.UFS_BLOCK_DOES_NOT_EXIST_FOR_SESSION,
-          blockId, sessionId);
+      throw new BlockDoesNotExistRuntimeException(String.format(
+          "UFS block %s does not exist for session %s",  blockId, sessionId));
     }
     return blockInfo;
   }

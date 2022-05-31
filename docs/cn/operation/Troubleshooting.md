@@ -366,7 +366,7 @@ A: 默认情况下，Alluxio会在第一次访问一个目录时加载文件的�
 要同步这些变化，可以使用`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path`命令，
 或者在Master的`alluxio-site.properties`中设置`alluxio.user.file.metadata.sync.interval=${SOME_INTERVAL}`。
 该配置用于配置两次元数据同步的最小间隔。
-您可以从 [这里]({{ '/cn/core-services/Unified-Namespace.html') | relativize_url }}#ufs-metadata-sync）获取更多关于元数据同步的信息。
+您可以从 [这里]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }}#ufs-metadata-sync）获取更多关于元数据同步的信息。
 
 ### 问题：我在读取一些文件时看到一个错误 "Block ?????? is unavailable in both Alluxio and UFS"。我的文件究竟在哪里？
 

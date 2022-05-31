@@ -53,7 +53,7 @@ public class FuseShellTest {
   private FuseShell mFuseShell;
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private FileSystem mFileSystem;
-  private final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private static final AlluxioURI DIR = new AlluxioURI("/dir");

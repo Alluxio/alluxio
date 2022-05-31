@@ -14,9 +14,6 @@ package alluxio.worker.block;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricKey;
@@ -333,14 +330,10 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       mBlockWriter.close();
       mBlockWriter = null;
       mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
-    } catch (BlockDoesNotExistException e) {
-      // This can only happen when the session is expired.
-      LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
-          mBlockMeta.getBlockId());
-    } catch (BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
+    } catch (Exception e) {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
-      throw AlluxioStatusException.fromCheckedException(e);
+      throw AlluxioStatusException.fromThrowable(e);
     }
   }
 
@@ -363,17 +356,17 @@ public final class UnderFileSystemBlockReader extends BlockReader {
         mBlockWriter = mLocalBlockStore.createBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
-    } catch (BlockAlreadyExistsException e) {
+    } catch (IOException | AlluxioException e) {
+      LOG.warn(
+          "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
+          mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.toString());
+      mBlockWriter = null;
+    } catch (IllegalStateException e) {
       // This can happen when there are concurrent UFS readers who are all trying to cache to block.
       LOG.debug(
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]."
               + "Concurrent UFS readers may be caching the same block.",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
-      mBlockWriter = null;
-    } catch (IOException | AlluxioException e) {
-      LOG.warn(
-          "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
-          mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.toString());
       mBlockWriter = null;
     }
   }

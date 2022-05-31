@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -573,8 +572,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               .moveBlock(request.getSessionId(), request.getId(),
                   AllocateOptions.forMove(BlockStoreLocation.anyDirInTier(
                       WORKER_STORAGE_TIER_ASSOC.getAlias(0))));
-        } catch (BlockDoesNotExistException e) {
-          LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
         } catch (Exception e) {
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
         }

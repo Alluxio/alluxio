@@ -48,7 +48,7 @@ public final class RoundRobinPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
 
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
@@ -66,7 +66,7 @@ public final class RoundRobinPolicyTest {
    */
   @Test
   public void getWorkerNoneEligible() {
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(new ArrayList<>())
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     assertNull(policy.getWorker(options));
@@ -82,7 +82,7 @@ public final class RoundRobinPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
 
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength((long) Constants.MB));
     assertNotNull(policy.getWorker(options));
@@ -92,7 +92,7 @@ public final class RoundRobinPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
         new Object[]{conf});
   }

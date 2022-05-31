@@ -16,9 +16,6 @@ import static alluxio.worker.page.PagedBlockMetaStore.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -93,7 +90,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -103,19 +100,18 @@ public class PagedLocalBlockStore implements LocalBlockStore {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
+      throws IOException {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+        listener.onCommitBlock(blockId, dummyLoc);
       }
     }
     throw new UnsupportedOperationException();
@@ -123,13 +119,12 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException, WorkerOutOfSpaceException {
+      throws IOException {
     // TODO(bowen): implement actual committing and replace placeholder values
     BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onCommitBlock(sessionId, blockId, dummyLoc);
+        listener.onCommitBlock(blockId, dummyLoc);
       }
     }
     throw new UnsupportedOperationException();
@@ -137,14 +132,13 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void abortBlock(long sessionId, long blockId)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
-      IOException {
+      throws IOException {
     // TODO(bowen): implement actual abortion and replace placeholder values
     boolean blockAborted = true;
     if (blockAborted) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAbortBlock(sessionId, blockId);
+          listener.onAbortBlock(blockId);
         }
       }
     }
@@ -153,7 +147,7 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual space allocation and replace placeholder values
     boolean blockEvicted = true;
     if (blockEvicted) {
@@ -161,8 +155,8 @@ public class PagedLocalBlockStore implements LocalBlockStore {
       BlockStoreLocation evictedBlockLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onRemoveBlockByWorker(sessionId, evictedBlockId);
-          listener.onRemoveBlock(sessionId, evictedBlockId, evictedBlockLocation);
+          listener.onRemoveBlockByWorker(evictedBlockId);
+          listener.onRemoveBlock(evictedBlockId, evictedBlockLocation);
         }
       }
     }
@@ -171,14 +165,13 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public BlockWriter createBlockWriter(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException {
+      throws IOException {
     return null;
   }
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -191,46 +184,44 @@ public class PagedLocalBlockStore implements LocalBlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
-      throws BlockDoesNotExistException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException {
+      throws WorkerOutOfSpaceException, IOException {
     // TODO(bowen): implement actual move and replace placeholder values
     BlockStoreLocation srcLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     BlockStoreLocation destLocation = new BlockStoreLocation(DEFAULT_TIER, 1);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onMoveBlockByClient(sessionId, blockId, srcLocation, destLocation);
+        listener.onMoveBlockByClient(blockId, srcLocation, destLocation);
       }
     }
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void removeBlock(long sessionId, long blockId)
-      throws InvalidWorkerStateException, IOException {
+  public void removeBlock(long sessionId, long blockId) throws IOException {
     LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
     // TODO(bowen): implement actual removal and replace placeholder values
     boolean removeSuccess = true;
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onRemoveBlockByClient(sessionId, blockId);
+        listener.onRemoveBlockByClient(blockId);
         if (removeSuccess) {
           BlockStoreLocation removedFrom = new BlockStoreLocation(DEFAULT_TIER, 1);
-          listener.onRemoveBlock(sessionId, blockId, removedFrom);
+          listener.onRemoveBlock(blockId, removedFrom);
         }
       }
     }
   }
 
   @Override
-  public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+  public void accessBlock(long sessionId, long blockId) {
     // TODO(bowen): implement actual access and replace placeholder values
     boolean blockExists = true;
     if (blockExists) {
       BlockStoreLocation dummyLoc = new BlockStoreLocation(DEFAULT_TIER, 1);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAccessBlock(sessionId, blockId);
-          listener.onAccessBlock(sessionId, blockId, dummyLoc);
+          listener.onAccessBlock(blockId);
+          listener.onAccessBlock(blockId, dummyLoc);
         }
       }
     }

@@ -67,7 +67,7 @@ public final class HeartbeatThreadTest {
 
   private ExecutorService mExecutorService;
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {

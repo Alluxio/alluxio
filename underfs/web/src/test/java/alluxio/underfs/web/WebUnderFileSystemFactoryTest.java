@@ -30,7 +30,7 @@ public class WebUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("https://downloads.alluxio.io/downloads/files/2.0.0-preview/", conf);
     UnderFileSystemFactory factory2 =

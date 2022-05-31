@@ -46,7 +46,7 @@ After running the above command, you'll see output like:
 Started transformation job with job ID 1572296710137, you can monitor the status of the job with './bin/alluxio table transformStatus 1572296710137'.
 ```
 
-Now follow the instruction in the output to monitor status of the transformation:
+Now follow the instruction in the output to monitor the status of the transformation:
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table transformStatus 1572296710137
@@ -62,7 +62,7 @@ job ID: 1572296710137
 job status: COMPLETED
 ```
 
-Since the transformation has completed, you can run your Presto queries on the transformed table transparently.
+Since the transformation has been completed, you can run your Presto queries on the transformed table transparently.
 
 You can find out the location of the transformed data with the following Presto query:
 

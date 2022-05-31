@@ -77,7 +77,7 @@ public class MasterMaxThroughput extends
     }
     try (JobMasterClient client = JobMasterClient.Factory.create(
         JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-            ConfigurationUtils.defaults()))).build())) {
+            ConfigurationUtils.copyDefaults()))).build())) {
       mNumWorkers = client.getAllWorkerHealth().size();
     }
   }

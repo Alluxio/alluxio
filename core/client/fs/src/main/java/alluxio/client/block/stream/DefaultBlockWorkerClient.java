@@ -69,12 +69,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
-  private GrpcServerAddress mAddress;
+  private final GrpcServerAddress mAddress;
   private final long mRpcTimeoutMs;
 
-  private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
-  private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;

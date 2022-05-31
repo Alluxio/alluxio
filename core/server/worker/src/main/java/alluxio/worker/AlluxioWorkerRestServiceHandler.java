@@ -22,7 +22,7 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -289,10 +289,11 @@ public final class AlluxioWorkerRestServiceHandler {
         } catch (IOException e) {
           response.setInvalidPathError(
               "Error: File " + requestPath + " is not available " + e.getMessage());
-        } catch (BlockDoesNotExistException e) {
-          response.setFatalError("Error: block not found. " + e.getMessage());
         } catch (AlluxioException e) {
           response.setFatalError("Error: alluxio exception. " + e.getMessage());
+        }
+        catch (AlluxioRuntimeException e) {
+          response.setFatalError("Error: alluxio run time exception. " + e.getMessage());
         }
       }
 

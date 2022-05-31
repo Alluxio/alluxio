@@ -28,7 +28,7 @@ public final class ConfigurationRuleTest {
 
   @Test
   public void changeConfiguration() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
     Statement statement = new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -41,7 +41,7 @@ public final class ConfigurationRuleTest {
 
   @Test
   public void changeConfigurationForDefaultNullValue() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
 
     Statement statement = new Statement() {
       @Override

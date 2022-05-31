@@ -134,7 +134,7 @@ public abstract class AbstractMaster implements Master {
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
     // Use the state change lock for the journal context, since all modifications to journaled
-    // state must happen inside of a journal context.
+    // state must happen inside a journal context.
     LockResource sharedLockResource;
     try {
       sharedLockResource = mMasterContext.getStateLockManager().lockShared();
