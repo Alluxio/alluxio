@@ -109,7 +109,7 @@ public class FileSystemContext implements Closeable {
    * Marks whether the context has been closed, closing the context means releasing all resources
    * in the context like clients and thread pools.
    */
-  private AtomicBoolean mClosed = new AtomicBoolean(false);
+  private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
@@ -165,7 +165,17 @@ public class FileSystemContext implements Closeable {
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   /**
-   * Creates a {@link FileSystemContext} with a null subject
+   * Creates a {@link FileSystemContext} with an empty subject, default config
+   * and a null local block worker.
+   *
+   * @return an instance of file system context with no subject associated
+   */
+  public static FileSystemContext create() {
+    return create(ClientContext.create());
+  }
+
+  /**
+   * Creates a {@link FileSystemContext} with an empty subject
    * and a null local block worker.
    *
    * @param conf Alluxio configuration
@@ -173,29 +183,34 @@ public class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(AlluxioConfiguration conf) {
     Preconditions.checkNotNull(conf);
-    return create(null, conf, null);
+    return create(ClientContext.create(conf));
   }
 
   /**
-   * @param subject the parent subject, set to null if not present
+   * @param subject the parent subject
    * @param conf Alluxio configuration
    * @return a context
    */
-  public static FileSystemContext create(@Nullable Subject subject,
-      @Nullable AlluxioConfiguration conf) {
-    return create(subject, conf, null);
+  public static FileSystemContext create(Subject subject,
+      AlluxioConfiguration conf) {
+    return create(ClientContext.create(subject, conf));
   }
 
   /**
-   * @param subject the parent subject, set to null if not present
-   * @param conf Alluxio configuration
+   * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
+   * @return the {@link alluxio.client.file.FileSystemContext}
+   */
+  public static FileSystemContext create(ClientContext clientContext) {
+    return create(clientContext, null);
+  }
+
+  /**
+   * @param ctx client context
    * @param blockWorker block worker
    * @return a context
    */
-  public static FileSystemContext create(@Nullable Subject subject,
-      @Nullable AlluxioConfiguration conf,
+  public static FileSystemContext create(ClientContext ctx,
       @Nullable BlockWorker blockWorker) {
-    ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
@@ -204,21 +219,10 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
-   * @return the {@link alluxio.client.file.FileSystemContext}
-   */
-  public static FileSystemContext create(ClientContext clientContext) {
-    FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf(), null);
-    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
-        clientContext.getUserState()));
-    return ctx;
-  }
-
-  /**
    * This method is provided for testing, use the {@link FileSystemContext#create} methods. The
    * returned context object will not be cached automatically.
    *
-   * @param subject the parent subject, set to null if not present
+   * @param subject the parent subject
    * @param masterInquireClient the client to use for determining the master; note that if the
    *        context is reset, this client will be replaced with a new masterInquireClient based on
    *        the original configuration.

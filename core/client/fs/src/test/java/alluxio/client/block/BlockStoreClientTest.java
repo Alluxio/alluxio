@@ -90,7 +90,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PrepareForTest({FileSystemContext.class})
 public final class BlockStoreClientTest {
 
-  private static final InstancedConfiguration S_CONF = ConfigurationTestUtils.defaults();
+  private static final InstancedConfiguration S_CONF = ConfigurationTestUtils.copyDefaults();
 
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;

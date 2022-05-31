@@ -34,7 +34,7 @@ public final class ConfigurationTestUtils {
    * Return an instanced configuration with default value from the site properties file.
    * @return the default configuration
    */
-  public static InstancedConfiguration defaults() {
+  public static InstancedConfiguration copyDefaults() {
     return new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 

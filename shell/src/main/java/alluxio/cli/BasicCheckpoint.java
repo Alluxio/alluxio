@@ -19,7 +19,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,8 +104,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
           + " alluxio.cli.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }
-    FileSystemContext fsContext =
-        FileSystemContext.create(ConfigurationUtils.defaults());
+    FileSystemContext fsContext = FileSystemContext.create();
     boolean result = RunTestUtils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1]),
         fsContext));
     System.exit(result ? 0 : 1);

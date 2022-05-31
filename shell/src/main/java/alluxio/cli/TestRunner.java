@@ -16,9 +16,7 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.DeletePOptions;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
@@ -109,10 +107,8 @@ public final class TestRunner {
     mDirectory = PathUtils.concatPath(mDirectory, TEST_DIRECTORY_NAME);
 
     AlluxioURI testDir = new AlluxioURI(mDirectory);
-    FileSystemContext fsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.copyDefaults()));
-    FileSystem fs =
-        FileSystem.Factory.create(fsContext);
+    FileSystemContext fsContext = FileSystemContext.create();
+    FileSystem fs = FileSystem.Factory.create(fsContext);
     if (fs.exists(testDir)) {
       fs.delete(testDir, DeletePOptions.newBuilder().setRecursive(true).setUnchecked(true).build());
     }

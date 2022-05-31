@@ -50,7 +50,7 @@ import javax.security.auth.Subject;
  */
 public class OutStreamOptionsTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   /**
    * A mapping from a user to its corresponding group.
@@ -73,7 +73,7 @@ public class OutStreamOptionsTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
   }
 
   /**

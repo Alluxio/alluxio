@@ -56,6 +56,6 @@ public final class MostAvailableFirstPolicyTest {
   public void equalsTest() {
     CommonUtils.testEquals(MostAvailableFirstPolicy.class,
         new Class[]{AlluxioConfiguration.class},
-        new Object[]{ConfigurationTestUtils.defaults()});
+        new Object[]{ConfigurationTestUtils.copyDefaults()});
   }
 }
