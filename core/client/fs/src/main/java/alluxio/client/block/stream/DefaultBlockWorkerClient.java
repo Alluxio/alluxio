@@ -43,7 +43,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
