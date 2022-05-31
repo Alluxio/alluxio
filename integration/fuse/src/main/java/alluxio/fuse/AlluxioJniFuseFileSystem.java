@@ -62,6 +62,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -199,14 +200,21 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
+    return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, mode, fi),
         "Fuse.Create", "path=%s,mode=%o", path, mode);
   }
 
-  private int createInternal(String path, long mode, FuseFileInfo fi) {
+  @Override
+  public int open(String path, FuseFileInfo fi) {
+    final int flags = fi.flags.get();
+    return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, fi, flags),
+        "Fuse.Open", "path=%s,flags=0x%x", path, flags);
+  }
+
+  private int createOrOpenInternal(String path, long mode, FuseFileInfo fi) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     if (uri.getName().length() > MAX_NAME_LENGTH) {
-      LOG.error("Failed to create {}: file name longer than {} characters",
+      LOG.error("Failed to create/open {}: file name longer than {} characters",
           path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
@@ -217,7 +225,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
     } catch (Throwable t) {
-      LOG.error("Failed to create {}", path, t);
+      LOG.error("Failed to create/open {}", path, t);
       return -ErrorCodes.EIO();
     }
     return 0;
@@ -246,7 +254,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         FuseFileEntry<FuseFileStream> stream = mFileEntries.getFirstByField(PATH_INDEX, path);
         if (stream != null) {
           size = stream.getFileStream().getFileLength();
-        } else if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
+        } else if (!AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           // Always block waiting for file to be completed except when the file is writing
           // We do not want to block the writing process
           LOG.error("File {} is not completed", path);
@@ -335,27 +343,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
 
     return 0;
-  }
-
-  @Override
-  public int open(String path, FuseFileInfo fi) {
-    final int flags = fi.flags.get();
-    return AlluxioFuseUtils.call(LOG, () -> openInternal(path, fi, flags),
-        "Fuse.Open", "path=%s,flags=0x%x", path, flags);
-  }
-
-  private int openInternal(String path, FuseFileInfo fi, int flags) {
-    try {
-      FuseFileStream stream = FuseFileStream.Factory.create(
-          mFileSystem, mAuthPolicy, mPathResolverCache.getUnchecked(path), flags);
-      long fd = mNextOpenFileId.getAndIncrement();
-      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
-      fi.fh.set(fd);
-    } catch (Exception e) {
-      LOG.error(String.format("Failed to open %s: openAction=0x%x", path, flags), e);
-      return -ErrorCodes.EIO();
-    }
-    return  0;
   }
 
   @Override
@@ -518,18 +505,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           sourcePath, destPath, name, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    URIStatus status;
+    Optional<URIStatus> status;
     try {
       status = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
     } catch (Throwable t) {
       LOG.error("Failed to rename {} to {}: cannot get status of source", sourcePath, destPath);
       return -ErrorCodes.EIO();
     }
-    if (status == null) {
+    if (!status.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
       return -ErrorCodes.EEXIST();
     }
-    if (!status.isCompleted()) {
+    if (!status.get().isCompleted()) {
       // TODO(lu) https://github.com/Alluxio/alluxio/issues/14854
       // how to support rename while writing
       LOG.error("Failed to rename {} to {}: source is incomplete", sourcePath, destPath);
@@ -645,7 +632,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
 
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    URIStatus status;
+    Optional<URIStatus> status;
     try {
       status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
     } catch (Throwable t) {
@@ -653,7 +640,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EIO();
     }
 
-    if (status == null) {
+    if (!status.isPresent()) {
       if (size == 0) {
         return 0;
       }
@@ -661,8 +648,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EEXIST();
     }
 
-    if (status.isCompleted()) {
-      if (status.getLength() == size) {
+    if (status.get().isCompleted()) {
+      long fileLen = status.get().getLength();
+      if (fileLen == size) {
         return 0;
       }
       if (size == 0) {
@@ -675,7 +663,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         }
       }
       LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
-          path, status.getLength(), size);
+          path, fileLen, size);
       return -ErrorCodes.EOPNOTSUPP();
     }
 

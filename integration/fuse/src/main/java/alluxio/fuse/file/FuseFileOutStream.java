@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -25,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -51,19 +54,21 @@ public class FuseFileOutStream implements FuseFileStream {
    * @param uri the alluxio uri
    * @param flags the fuse create/open flags
    * @param mode the filesystem mode, -1 if not set
-   * @param status the uri status, null if not uri does not exist
+   * @param status the uri status
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, int flags, long mode, @Nullable URIStatus status) throws Exception {
+      AlluxioURI uri, int flags, long mode, Optional<URIStatus> status)
+      throws IOException, AlluxioException, ExecutionException {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
-    if (mode == MODE_NOT_SET && status != null) {
-      mode = status.getMode();
+    Preconditions.checkNotNull(status);
+    if (mode == MODE_NOT_SET && status.isPresent()) {
+      mode = status.get().getMode();
     }
-    long fileLen = status == null ? 0 : status.getLength();
-    if (status != null) {
+    long fileLen = status.isPresent() ? status.get().getLength() : 0;
+    if (!status.isPresent()) {
       if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
         fileSystem.delete(uri);
         fileLen = 0;
@@ -136,7 +141,8 @@ public class FuseFileOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void truncate(long size) throws Exception {
+  public synchronized void truncate(long size)
+      throws IOException, ExecutionException, AlluxioException {
     if (mOutStream != null && mOutStream.getBytesWritten() == size) {
       return;
     }

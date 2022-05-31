@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -42,7 +44,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   private final AuthPolicy mAuthPolicy;
   private final AlluxioURI mUri;
   private final long mMode;
-  private final URIStatus mStatus;
+  private final Optional<URIStatus> mStatus;
 
   // underlying reed-only or write-only stream
   private FuseFileStream mStream;
@@ -59,20 +61,22 @@ public class FuseFileInOrOutStream implements FuseFileStream {
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileInOrOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, int flags, long mode, @Nullable URIStatus status) throws Exception {
+      AlluxioURI uri, int flags, long mode, Optional<URIStatus> status)
+      throws IOException, ExecutionException, AlluxioException {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
+    Preconditions.checkNotNull(status);
     boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
-    if (status != null && truncate) {
+    if (status.isPresent() && truncate) {
       fileSystem.delete(uri);
-      status = null;
+      status = Optional.empty();
       LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
           + "Alluxio deleted the old file and created a new file for writing", uri, flags));
     }
-    if (status == null) {
+    if (!status.isPresent()) {
       FuseFileOutStream stream = FuseFileOutStream.create(fileSystem, authPolicy,
-          uri, OpenFlags.O_WRONLY.intValue(), mode, null);
-      return new FuseFileInOrOutStream(fileSystem, authPolicy, stream, null, uri, mode);
+          uri, OpenFlags.O_WRONLY.intValue(), mode, status);
+      return new FuseFileInOrOutStream(fileSystem, authPolicy, stream, status, uri, mode);
     }
     // Left for next operation to decide read-only or write-only mode
     // read-only: open(READ_WRITE) existing file - read()
@@ -81,7 +85,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   }
 
   private FuseFileInOrOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      @Nullable FuseFileStream stream, @Nullable URIStatus status, AlluxioURI uri, long mode) {
+      @Nullable FuseFileStream stream, Optional<URIStatus> status, AlluxioURI uri, long mode) {
     mFileSystem = fileSystem;
     mAuthPolicy = authPolicy;
     mStream = stream;
@@ -104,7 +108,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void write(ByteBuffer buf, long size, long offset) throws Exception {
+  public synchronized void write(ByteBuffer buf, long size, long offset)
+      throws IOException, ExecutionException, AlluxioException {
     if (mStream == null) {
       mStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
           OpenFlags.O_WRONLY.intValue(), mMode, mStatus);
@@ -120,8 +125,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (mStream != null) {
       return mStream.getFileLength();
     }
-    if (mStatus != null) {
-      return mStatus.getLength();
+    if (mStatus.isPresent()) {
+      return mStatus.get().getLength();
     }
     return 0;
   }
@@ -134,7 +139,8 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void truncate(long size) throws Exception {
+  public synchronized void truncate(long size)
+      throws IOException, ExecutionException, AlluxioException {
     if (mStream != null) {
       mStream.truncate(size);
       return;

@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -45,7 +45,7 @@ public class FuseFileInStream implements FuseFileStream {
    * @return a {@link FuseFileInStream}
    */
   public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
-      int flags, @Nullable URIStatus status) throws IOException, AlluxioException {
+      int flags, Optional<URIStatus> status) throws IOException, AlluxioException {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
@@ -53,12 +53,13 @@ public class FuseFileInStream implements FuseFileStream {
           "Failed to create read-only stream for path %s: flags 0x%x contains truncate",
           uri, flags));
     }
-    if (status == null) {
+    if (!status.isPresent()) {
       throw new IOException(String.format(
           "Failed to create read-only stream for %s: file does not exist", uri));
     }
 
-    if (!status.isCompleted()) {
+    URIStatus uriStatus = status.get();
+    if (!uriStatus.isCompleted()) {
       // Cannot open incomplete file for read
       // wait for file to complete in read or read_write mode
       if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
@@ -68,7 +69,7 @@ public class FuseFileInStream implements FuseFileStream {
     }
 
     FileInStream is = fileSystem.openFile(uri);
-    return new FuseFileInStream(is, status.getLength(), uri);
+    return new FuseFileInStream(is, uriStatus.getLength(), uri);
   }
 
   private FuseFileInStream(FileInStream inStream, long fileLength, AlluxioURI uri) {

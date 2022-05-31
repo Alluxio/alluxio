@@ -24,7 +24,8 @@ import jnr.constants.platform.OpenFlags;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,7 +51,8 @@ public interface FuseFileStream extends AutoCloseable {
    * @param size the size to write
    * @param offset the offset to write
    */
-  void write(ByteBuffer buf, long size, long offset) throws Exception;
+  void write(ByteBuffer buf, long size, long offset)
+      throws IOException, ExecutionException, AlluxioException;
 
   /**
    * Gets the file length.
@@ -69,7 +71,7 @@ public interface FuseFileStream extends AutoCloseable {
    *
    * @param size the truncate size
    */
-  void truncate(long size) throws Exception;
+  void truncate(long size) throws IOException, ExecutionException, AlluxioException;
 
   /**
    * Closes the stream.
@@ -91,11 +93,12 @@ public interface FuseFileStream extends AutoCloseable {
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @param mode the create file mode, -1 if not set
-     * @param status the uri status, null if not uri does not exist
+     * @param status the uri status
      * @return the created fuse file stream
      */
     public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags, long mode, @Nullable URIStatus status) throws Exception {
+        AlluxioURI uri, int flags, long mode, Optional<URIStatus> status)
+        throws IOException, ExecutionException, AlluxioException {
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
           return FuseFileInStream.create(fileSystem, uri, flags, status);
@@ -121,9 +124,9 @@ public interface FuseFileStream extends AutoCloseable {
      * @return the created fuse file stream
      */
     public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags, long mode) throws Exception {
-      URIStatus status = AlluxioFuseUtils.getPathStatus(fileSystem, uri);
-      return create(fileSystem, authPolicy, uri, flags, mode, status);
+        AlluxioURI uri, int flags, long mode) throws IOException, AlluxioException {
+      return create(fileSystem, authPolicy, uri, flags, mode,
+          AlluxioFuseUtils.getPathStatus(fileSystem, uri));
     }
 
     /**
@@ -136,7 +139,7 @@ public interface FuseFileStream extends AutoCloseable {
      * @return the created fuse file stream
      */
     public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags) throws Exception {
+        AlluxioURI uri, int flags) throws IOException, AlluxioException {
       return create(fileSystem, authPolicy, uri, flags, FuseFileStream.MODE_NOT_SET);
     }
   }

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
@@ -25,6 +26,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Default Fuse Auth Policy.
@@ -69,7 +73,8 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
+  public void setUserGroupIfNeeded(AlluxioURI uri)
+      throws IOException, AlluxioException, ExecutionException {
     FuseContext fc = mFuseFileSystem.getContext();
     if (!mIsUserGroupTranslation) {
       return;

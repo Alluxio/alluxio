@@ -48,9 +48,10 @@ import ru.serce.jnrfuse.ErrorCodes;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -84,7 +85,7 @@ public final class AlluxioFuseUtils {
    * @return a file out stream
    */
   public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, long mode) throws Exception {
+      AlluxioURI uri, long mode) throws IOException, ExecutionException, AlluxioException {
     Preconditions.checkNotNull(uri);
     FileOutStream out = fileSystem.createFile(uri,
         CreateFilePOptions.newBuilder()
@@ -307,15 +308,14 @@ public final class AlluxioFuseUtils {
    *
    * @param fileSystem the file system
    * @param uri the Alluxio uri to get status of
-   * @return the file status, null if the path does not exist in Alluxio
-   * @throws Exception when failed to get path status
+   * @return the file status
    */
-  @Nullable
-  public static URIStatus getPathStatus(FileSystem fileSystem, AlluxioURI uri) throws Exception {
+  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri)
+      throws IOException, AlluxioException {
     try {
-      return fileSystem.getStatus(uri);
+      return Optional.of(fileSystem.getStatus(uri));
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
-      return null;
+      return Optional.empty();
     }
   }
 

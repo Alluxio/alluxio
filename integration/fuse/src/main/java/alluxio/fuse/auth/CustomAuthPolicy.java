@@ -15,12 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * A Fuse authentication policy supports user-defined user and group.
@@ -45,7 +48,7 @@ public class CustomAuthPolicy implements AuthPolicy {
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
+  public void setUserGroupIfNeeded(AlluxioURI uri) throws IOException, AlluxioException {
     if (StringUtils.isEmpty(mUname) || StringUtils.isEmpty(mGname)) {
       return;
     }
