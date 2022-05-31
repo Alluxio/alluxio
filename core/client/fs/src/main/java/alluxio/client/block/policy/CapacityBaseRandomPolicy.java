@@ -13,6 +13,7 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import java.util.Optional;
@@ -32,9 +33,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
 
   /**
-   * Constructs a new {@link CapacityBaseRandomPolicy}.
+   * Constructs a new {@link CapacityBaseRandomPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
+   *
+   * @param ignoredConf is unused
    */
-  public CapacityBaseRandomPolicy() {
+  public CapacityBaseRandomPolicy(AlluxioConfiguration ignoredConf) {
   }
 
   @Nullable

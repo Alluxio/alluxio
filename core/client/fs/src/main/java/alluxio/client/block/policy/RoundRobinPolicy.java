@@ -13,6 +13,7 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -41,8 +42,10 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link RoundRobinPolicy}.
+   *
+   * @param ignoredConf unused, but needed for instantiation in {@link BlockLocationPolicy.Factory}
    */
-  public RoundRobinPolicy() {}
+  public RoundRobinPolicy(AlluxioConfiguration ignoredConf) {}
 
   /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a

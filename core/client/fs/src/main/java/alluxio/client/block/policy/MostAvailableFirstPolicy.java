@@ -13,6 +13,7 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -27,9 +28,12 @@ import java.util.Optional;
 public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
 
   /**
-   * Constructs a new {@link MostAvailableFirstPolicy}.
+   * Constructs a new {@link MostAvailableFirstPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
+   *
+   * @param ignoredConf is unused
    */
-  public MostAvailableFirstPolicy() {}
+  public MostAvailableFirstPolicy(AlluxioConfiguration ignoredConf) {}
 
   /**
    * The policy returns null if no worker is qualified.

@@ -89,7 +89,7 @@ public class CapacityBaseRandomPolicyTest {
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy() {
+    return new CapacityBaseRandomPolicy(null) {
       @Override
       protected long randomInCapacity(long totalCapacity) {
         return targetValue;

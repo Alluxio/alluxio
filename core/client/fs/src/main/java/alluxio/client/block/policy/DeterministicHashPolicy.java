@@ -54,7 +54,8 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   private final HashFunction mHashFunc = Hashing.md5();
 
   /**
-   * Constructs a new {@link DeterministicHashPolicy}.
+   * Constructs a new {@link DeterministicHashPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
    * @param conf Alluxio configuration
    */

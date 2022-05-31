@@ -14,6 +14,7 @@ package alluxio.stress.cli.client;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -52,9 +53,11 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link ClientIOWritePolicy}.
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
+   * @param ignoredConf is unused
    */
-  public ClientIOWritePolicy() {}
+  public ClientIOWritePolicy(AlluxioConfiguration ignoredConf) {}
 
   /**
    *

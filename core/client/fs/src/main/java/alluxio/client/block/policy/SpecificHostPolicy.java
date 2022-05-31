@@ -13,6 +13,7 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
@@ -30,6 +31,16 @@ import java.util.Optional;
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {
   private final String mHostname;
+
+  /**
+   * Constructs a new {@link SpecificHostPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
+   *
+   * @param conf Alluxio configuration
+   */
+  public SpecificHostPolicy(AlluxioConfiguration conf) {
+    this(conf.getString(PropertyKey.WORKER_HOSTNAME));
+  }
 
   /**
    * Constructs the policy with the hostname.

@@ -114,7 +114,8 @@ public class OutStreamOptionsTest {
   public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
-    BlockLocationPolicy locationPolicy = new RoundRobinPolicy();
+    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(
+        ConfigurationTestUtils.copyDefaults());
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());

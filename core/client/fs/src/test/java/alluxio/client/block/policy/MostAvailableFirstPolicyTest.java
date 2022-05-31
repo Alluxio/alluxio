@@ -44,7 +44,7 @@ public final class MostAvailableFirstPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
+    MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy(null);
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker3",
