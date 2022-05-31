@@ -89,8 +89,8 @@ public class InodeBenchRead {
     @Param({HEAP, ROCKS, ROCKSCACHE})
     public String mType;
 
-    @Param({RocksBenchConfig.NO_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
     public String mRocksConfig;
 
     @Param({"0", "1", "10"})

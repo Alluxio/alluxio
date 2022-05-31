@@ -84,8 +84,8 @@ public class RocksBenchRead {
     @Param({"true", "false"})
     public boolean mIsDirectory;
 
-    @Param({RocksBenchConfig.NO_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
     public String mRocksConfig;
 
     RocksBenchBase mBase;

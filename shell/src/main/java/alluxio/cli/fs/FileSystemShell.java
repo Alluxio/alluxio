@@ -52,7 +52,7 @@ public final class FileSystemShell extends AbstractShell {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
     if (!ConfigurationUtils.masterHostConfigured(conf)
         && argv.length > 0 && !argv[0].equals("help")) {
       System.out.println(ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio fs shell"));

@@ -39,11 +39,11 @@ import java.util.Random;
  */
 public class TieredIdentityTest {
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test

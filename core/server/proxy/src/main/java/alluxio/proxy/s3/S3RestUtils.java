@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -37,6 +38,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
@@ -289,6 +294,38 @@ public final class S3RestUtils {
    */
   public static WritePType getS3WriteType() {
     return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+  }
+
+  /**
+   * Checks if authentication is enabled.
+   *
+   * @param conf Alluxio configuration
+   * @return true if authentication is enabled, false otherwise
+   */
+  public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
+  }
+
+  /**
+   * Convert MultivaluedMap to a single value map.
+   *
+   * @param queryParameters MultivaluedMap
+   * @param lowerCase whether to use lower case
+   * @return a single value map
+   */
+  public static Map<String, String> fromMultiValueToSingleValueMap(
+      MultivaluedMap<String, String> queryParameters, boolean lowerCase) {
+    Map<String, String> result = lowerCase
+        ? new TreeMap<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+              return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
+    for (String key : queryParameters.keySet()) {
+      result.put(key, queryParameters.getFirst(key));
+    }
+    return result;
   }
 
   /**

@@ -74,7 +74,7 @@ public class AsyncUfsAbsentPathCacheTest {
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults())
             .setReadOnly(options.getReadOnly()).setShared(options.getShared())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),
@@ -203,7 +203,7 @@ public class AsyncUfsAbsentPathCacheTest {
     long newMountId = IdUtils.getRandomNonNegativeLong();
     MountPOptions options = MountContext.defaults().getOptions().build();
     mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults())
             .setReadOnly(options.getReadOnly()).setShared(options.getShared())
             .createMountSpecificConf(Collections.<String, String>emptyMap()));
     mMountTable.add(NoopJournalContext.INSTANCE, new AlluxioURI("/mnt"),

@@ -36,7 +36,7 @@ public final class ValidateConf {
   public static void main(String[] args) {
     LOG.info("Validating configuration.");
     try {
-      new InstancedConfiguration(ConfigurationUtils.defaults()).validate();
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults()).validate();
       LOG.info("Configuration is valid.");
     } catch (IllegalStateException e) {
       LOG.error("Configuration is invalid", e);

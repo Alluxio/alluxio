@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.meta.BlockMeta;
@@ -188,7 +187,7 @@ public final class BlockMetadataManagerTest {
     assertTrue(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get temp block
-    assertEquals(tempBlockMeta, mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertEquals(tempBlockMeta, mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID).get());
     // Abort temp block
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
     assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
@@ -225,10 +224,7 @@ public final class BlockMetadataManagerTest {
    */
   @Test
   public void getTempBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown
-        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
-    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
+    assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID).isPresent());
   }
 
   /**
@@ -252,10 +248,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // test to make sure that the dst tempBlockMeta has been removed from the dir
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown
-        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID2));
-    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
+    assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2).isPresent());
   }
 
   /**
@@ -282,10 +275,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // make sure that the dst tempBlockMeta has been removed from the dir2
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown
-        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID2));
-    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
+    assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2).isPresent());
   }
 
   /**

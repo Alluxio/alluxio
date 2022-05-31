@@ -98,9 +98,9 @@ public class RocksBlockStore implements BlockStore {
     DBOptions opts = new DBOptions();
     if (ServerConfiguration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
       try {
-        OptionsUtil.loadOptionsFromFile(ServerConfiguration.getString(
-            PropertyKey.ROCKS_BLOCK_CONF_FILE), Env.getDefault(), opts, columns,
-            false);
+        String confPath = ServerConfiguration.getString(PropertyKey.ROCKS_BLOCK_CONF_FILE);
+        LOG.info("Opening RocksDB Block table configuration file {}", confPath);
+        OptionsUtil.loadOptionsFromFile(confPath, Env.getDefault(), opts, columns, false);
       } catch (RocksDBException e) {
         throw new IllegalArgumentException(e);
       }
@@ -135,12 +135,12 @@ public class RocksBlockStore implements BlockStore {
 
     // The following options are set by property keys as they are not able to be
     // set using configuration files.
-    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE,
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOOM_FILTER,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_META_BLOCK_INDEX, mToClose)
         .ifPresent(cfg -> columns.get(0).getOptions().setTableFormatConfig(cfg));
-    checkSetTableConfig(PropertyKey.MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE,
+    checkSetTableConfig(PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOOM_FILTER,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX, mToClose)

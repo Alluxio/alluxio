@@ -143,7 +143,7 @@ public class UfsFallbackLocalFileDataWriterTest {
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   public ConfigurationRule mConfigurationRule =

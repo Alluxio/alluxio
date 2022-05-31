@@ -32,7 +32,7 @@ public final class LRUCacheEvictorTest {
    */
   @Before
   public void before() {
-    mEvictor = new LRUCacheEvictor(ConfigurationTestUtils.defaults());
+    mEvictor = new LRUCacheEvictor(ConfigurationTestUtils.copyDefaults());
   }
 
   @Test

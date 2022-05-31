@@ -58,7 +58,7 @@ public class S3ALowLevelOutputStreamTest {
   private static final String KEY = "testKey";
   private static final String UPLOAD_ID = "testUploadId";
   private static InstancedConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
+      ConfigurationUtils.copyDefaults());
 
   private AmazonS3 mMockS3Client;
   private ListeningExecutorService mMockExecutor;

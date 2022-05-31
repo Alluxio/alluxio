@@ -59,8 +59,8 @@ public class RocksBenchWrite {
     @Param({"true", "false"})
     public boolean mUserSerialization;
 
-    @Param({RocksBenchConfig.NO_CONFIG, RocksBenchConfig.BASE_CONFIG,
-        RocksBenchConfig.BLOOM_CONFIG})
+    @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
+        RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
     public String mRocksConfig;
 
     RocksBenchBase mBase;
@@ -71,7 +71,7 @@ public class RocksBenchWrite {
     }
 
     @TearDown(Level.Iteration)
-    public void after() throws Exception {
+    public void after() {
       mBase.after();
       mBase = null;
     }

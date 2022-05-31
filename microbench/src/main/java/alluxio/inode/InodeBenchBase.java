@@ -92,9 +92,9 @@ class InodeBenchBase {
       InodeLockManager lockManager) throws IOException {
     switch (inodeStoreType) {
       case HEAP:
-        Preconditions.checkArgument(rocksConfig.equals(RocksBenchConfig.NO_CONFIG),
+        Preconditions.checkArgument(rocksConfig.equals(RocksBenchConfig.JAVA_CONFIG),
             String.format("Heap inode store does not expect a configuration for rocksDB,"
-                + " instead should be %s", RocksBenchConfig.NO_CONFIG));
+                + " instead should be %s", RocksBenchConfig.JAVA_CONFIG));
         return new HeapInodeStore();
       case ROCKS:
         String dir =

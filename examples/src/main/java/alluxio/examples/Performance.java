@@ -582,7 +582,7 @@ public final class Performance {
       System.exit(-1);
     }
 
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
     HostAndPort masterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];

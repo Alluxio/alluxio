@@ -2328,7 +2328,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
+  public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
               + " cache. If unset, the RocksDB default will be used."
@@ -2361,7 +2361,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
+  public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
       intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block location table LRU "
               + "cache. If unset, the RocksDB default will be used."
@@ -2394,8 +2394,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
-      intBuilder(Name.MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE)
+  public static final PropertyKey MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB Inode edge table LRU "
               + "cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -2427,8 +2427,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MATER_METASTORE_ROCKS_INODE_CACHE_SIZE =
-      intBuilder(Name.MATER_METASTORE_ROCKS_INODE_CACHE_SIZE)
+  public static final PropertyKey MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB Inode table LRU "
               + "cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -6093,6 +6093,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey S3_REST_AUTHENTICATION_ENABLED =
+      booleanBuilder(Name.S3_REST_AUTHENTICATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable check s3 rest request header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey S3_REST_AUTHENTICATOR_CLASSNAME =
+       classBuilder(Name.S3_REST_AUTHENTICATOR_CLASSNAME)
+           .setDescription("The class's name is instantiated as an S3 authenticator.")
+           .setDefaultValue("alluxio.proxy.s3.auth.PassAllAuthenticator")
+           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+           .setScope(Scope.ALL)
+           .build();
   //
   // Network TLS support
   //
@@ -6965,7 +6979,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.block.location.index";
     public static final String MASTER_METASTORE_ROCKS_EDGE_BLOOM_FILTER =
         "alluxio.master.metastore.rocks.edge.bloom.filter";
-    public static final String MATER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
+    public static final String MASTER_METASTORE_ROCKS_EDGE_CACHE_SIZE =
         "alluxio.master.metastore.rocks.edge.cache.size";
     public static final String MASTER_METASTORE_ROCKS_EDGE_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.edge.block.index";
@@ -6973,7 +6987,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.edge.index";
     public static final String MASTER_METASTORE_ROCKS_INODE_BLOOM_FILTER =
         "alluxio.master.metastore.rocks.inode.bloom.filter";
-    public static final String MATER_METASTORE_ROCKS_INODE_CACHE_SIZE =
+    public static final String MASTER_METASTORE_ROCKS_INODE_CACHE_SIZE =
         "alluxio.master.metastore.rocks.inode.cache.size";
     public static final String MASTER_METASTORE_ROCKS_INODE_BLOCK_INDEX =
         "alluxio.master.metastore.rocks.inode.block.index";
@@ -7419,7 +7433,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
         "alluxio.user.client.cache.shadow.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_TYPE =
-            "alluxio.user.client.cache.shadow.type";
+        "alluxio.user.client.cache.shadow.type";
     public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
         "alluxio.user.client.cache.shadow.window";
     public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
@@ -7427,11 +7441,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
         "alluxio.user.client.cache.shadow.bloomfilter.num";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.size.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
@@ -7690,6 +7704,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
     public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
+    public static final String S3_REST_AUTHENTICATION_ENABLED =
+        "alluxio.s3.rest.authentication.enabled";
+    public static final String S3_REST_AUTHENTICATOR_CLASSNAME =
+        "alluxio.s3.rest.authenticator.classname";
 
     //
     // Network TLS support

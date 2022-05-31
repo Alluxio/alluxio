@@ -129,7 +129,7 @@ public class ValidateHdfsMount {
     }
 
     ValidationToolRegistry registry
-            = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
+            = new ValidationToolRegistry(ConfigurationUtils.defaults());
     // Load hdfs validation tool from alluxio lib directory
     registry.refresh();
 

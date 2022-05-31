@@ -12,7 +12,6 @@
 package alluxio.cli.docgen;
 
 import alluxio.annotation.PublicApi;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
@@ -209,8 +208,7 @@ public final class ConfigurationDocGenerator {
   public static void generate() throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
-    String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())
-        .getString(PropertyKey.HOME);
+    String homeDir = ConfigurationUtils.defaults().getString(PropertyKey.HOME);
     // generate CSV files
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);
