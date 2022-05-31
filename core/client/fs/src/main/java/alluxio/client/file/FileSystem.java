@@ -122,6 +122,13 @@ public interface FileSystem extends Closeable {
     }
 
     /**
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create() {
+      return create(FileSystemContext.create());
+    }
+
+    /**
      * @param alluxioConf the configuration to utilize with the FileSystem
      * @return a new FileSystem instance
      */
