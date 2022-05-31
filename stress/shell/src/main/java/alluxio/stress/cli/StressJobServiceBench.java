@@ -16,6 +16,7 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.fs.command.DistributedLoadCommand;
+import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -310,7 +311,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
       long stopTime;
       try {
-        long jobControlId = cmd.runDistLoad(new AlluxioURI(dirPath),
+        long jobControlId = DistributedLoadUtils.runDistLoad(cmd, new AlluxioURI(dirPath),
                 numReplication, mParameters.mBatchSize,
                 new HashSet<>(), new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), false);

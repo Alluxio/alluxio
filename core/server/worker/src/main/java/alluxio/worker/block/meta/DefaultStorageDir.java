@@ -61,9 +61,9 @@ public final class DefaultStorageDir implements StorageDir {
   private final Map<Long, TempBlockMeta> mBlockIdToTempBlockMap = new HashMap<>(200);
   /** A map from session id to the set of temp blocks created by this session. */
   private final Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap = new HashMap<>(200);
-  private AtomicLong mAvailableBytes;
-  private AtomicLong mCommittedBytes;
-  private AtomicLong mReservedBytes;
+  private final AtomicLong mAvailableBytes;
+  private final AtomicLong mCommittedBytes;
+  private final AtomicLong mReservedBytes;
   private final String mDirPath;
   private final int mDirIndex;
   private final StorageTier mTier;
