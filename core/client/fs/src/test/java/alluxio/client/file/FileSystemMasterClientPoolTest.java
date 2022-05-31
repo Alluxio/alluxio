@@ -31,7 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class FileSystemMasterClientPoolTest {
   @Test
   public void create() throws Exception {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory

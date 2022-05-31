@@ -38,7 +38,7 @@ public final class AbstractFileSystemApiTest {
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {
@@ -48,7 +48,7 @@ public final class AbstractFileSystemApiTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
     HadoopClientTestUtils.disableMetrics(mConf);
   }
 

@@ -92,7 +92,7 @@ import java.util.Map;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   /**
    * Sets up the configuration before a test runs.
@@ -113,7 +113,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
     HadoopClientTestUtils.disableMetrics(mConfiguration);
   }
 
