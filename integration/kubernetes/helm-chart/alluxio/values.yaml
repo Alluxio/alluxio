@@ -432,7 +432,7 @@ proxy:
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
   # dnsPolicy: ClusterFirst
-  # JVM options specific to the worker container
+  # JVM options specific to proxy containers
   jvmOptions:
   nodeSelector: {}
   tolerations: []
