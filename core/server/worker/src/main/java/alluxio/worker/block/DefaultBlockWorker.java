@@ -463,16 +463,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws IOException {
     try {
       mUnderFileSystemBlockStore.close(sessionId, blockId);
-      if (mLocalBlockStore.hasTempBlockMeta(blockId)) {
-        try {
-          commitBlock(sessionId, blockId, false);
-        } catch (IllegalStateException e) {
-          // If there are multiple sessions writing to the same block, we can get sessionId
-          // does not match because LocalBlockStore#hasTempBlockMeta does not check
-          // whether the temp block belongs to the sessionId.
-          // If the session expired, we can get block does not exist.
-          LOG.debug("Invalid worker state while committing block.", e);
-        }
+      Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
+      if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+        commitBlock(sessionId, blockId, false);
       } else {
         // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
         // Counter will not be decrement in the commitblock().

@@ -41,11 +41,6 @@ public final class ParquetReader implements TableReader {
   private final ParquetSchema mSchema;
   private final ParquetMetadata mMetadata;
 
-  /**
-   * @param reader the Parquet reader
-   * @param schema the schema
-   * @param metadata the Parquet metadata
-   */
   private ParquetReader(org.apache.parquet.hadoop.ParquetReader<Record> reader, Schema schema,
                         ParquetMetadata metadata) {
     mReader = reader;
