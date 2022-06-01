@@ -12,9 +12,11 @@
 package alluxio.client.block.policy;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -73,7 +75,7 @@ public final class RoundRobinPolicyTest {
     RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(new ArrayList<>())
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
-    assertNull(policy.getWorker(options));
+    assertFalse(policy.getWorker(options).isPresent());
   }
 
   /**
@@ -89,9 +91,9 @@ public final class RoundRobinPolicyTest {
     RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(Constants.MB));
-    assertNotNull(policy.getWorker(options));
+    assertTrue(policy.getWorker(options).isPresent());
     options.setBlockWorkerInfos(new ArrayList<>());
-    assertNull(policy.getWorker(options));
+    assertFalse(policy.getWorker(options).isPresent());
   }
 
   @Test

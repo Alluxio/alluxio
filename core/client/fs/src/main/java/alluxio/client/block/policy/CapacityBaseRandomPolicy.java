@@ -41,7 +41,6 @@ public class CapacityBaseRandomPolicy implements BlockLocationPolicy {
   public CapacityBaseRandomPolicy(AlluxioConfiguration ignoredConf) {
   }
 
-  @Nullable
   @Override
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     Iterable<BlockWorkerInfo> blockWorkerInfos = options.getBlockWorkerInfos();

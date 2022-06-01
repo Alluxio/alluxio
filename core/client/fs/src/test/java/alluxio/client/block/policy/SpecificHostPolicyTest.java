@@ -61,6 +61,6 @@ public final class SpecificHostPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
-    Assert.assertNull(policy.getWorker(options));
+    Assert.assertFalse(policy.getWorker(options).isPresent());
   }
 }

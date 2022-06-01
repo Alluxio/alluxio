@@ -35,6 +35,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -112,6 +113,17 @@ public final class BlockStoreClientTest {
   public static class MockBlockLocationPolicyTest implements BlockLocationPolicy {
     private List<WorkerNetAddress> mWorkerNetAddresses;
     private int mIndex;
+
+    /**
+     * Cosntructs this mock location policy with empty host list,
+     * needed for instantiation in {@link BlockLocationPolicy.Factory}.
+     *
+     * @param ignoredConf is unused
+     */
+    public MockBlockLocationPolicyTest(AlluxioConfiguration ignoredConf) {
+      mIndex = 0;
+      mWorkerNetAddresses =  Collections.emptyList();
+    }
 
     /**
      * Constructs this mock policy that returns the given result, once a time, in the input order.
@@ -553,9 +565,9 @@ public final class BlockStoreClientTest {
             .setBlockIds(Collections.singletonList(BLOCK_ID))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     BlockLocationPolicy mockPolicy = mock(BlockLocationPolicy.class);
-    when(mockPolicy.getWorker(any())).thenAnswer(arg -> arg
+    when(mockPolicy.getWorker(any())).thenAnswer(arg -> Optional.ofNullable(arg
         .getArgument(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
-        .getNetAddress());
+        .getNetAddress()));
     InStreamOptions options =
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(S_CONF), S_CONF);
     options.setUfsReadLocationPolicy(mockPolicy);
