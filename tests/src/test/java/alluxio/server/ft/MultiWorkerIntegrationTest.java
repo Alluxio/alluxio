@@ -27,6 +27,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
@@ -64,7 +65,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     // Set this prior to sending the create request to FSM.
     private static WorkerNetAddress sWorkerAddress;
 
-    public FindFirstBlockLocationPolicy() {}
+    public FindFirstBlockLocationPolicy(AlluxioConfiguration ignored) {}
 
     @Override
     public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
