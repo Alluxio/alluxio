@@ -11,9 +11,9 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
@@ -46,27 +46,33 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
           ThreadFactoryUtils.build("BlockWorkerClientPoolGcThreads-%d", true));
   private static final Counter COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_BLOCK_WORKER_CLIENT_COUNT.getName());
-  private final AlluxioConfiguration mConf;
+  private final MasterClientContext mMasterContext;
+  private final long mGcThresholdMs;
 
   /**
    * Creates a new block master client pool.
    *
    * @param userState the parent userState
    * @param address address of the worker
-   * @param minCapacity the minimum capacity of the pool
-   * @param maxCapacity the maximum capacity of the pool
-   * @param alluxioConf Alluxio configuration
+   * @param ctx the information required for connecting to Alluxio
    */
-  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int minCapacity,
-      int maxCapacity, AlluxioConfiguration alluxioConf) {
-    super(Options.defaultOptions().setMinCapacity(minCapacity).setMaxCapacity(maxCapacity)
+  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address,
+      MasterClientContext ctx) {
+    super(Options.defaultOptions()
+        .setMinCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MIN))
+        .setMaxCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_MAX))
+        .setGcIntervalMs(
+            ctx.getClusterConf().getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_INTERVAL_MS))
         .setGcExecutor(GC_EXECUTOR));
     Objects.requireNonNull(userState);
     mUserState = userState;
     Objects.requireNonNull(address);
     mAddress = address;
-    Objects.requireNonNull(alluxioConf);
-    mConf = alluxioConf;
+    mMasterContext = ctx;
+    mGcThresholdMs =
+        ctx.getClusterConf().getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS);
   }
 
   @Override
@@ -77,7 +83,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mUserState, mAddress, mConf);
+    return BlockWorkerClient.Factory.create(mUserState, mAddress, mMasterContext.getClusterConf());
   }
 
   /**
@@ -98,7 +104,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected boolean shouldGc(ResourceInternal<BlockWorkerClient> clientResourceInternal) {
-    return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
-        > mConf.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS);
+    return System.currentTimeMillis() - clientResourceInternal
+        .getLastAccessTimeMs() > mGcThresholdMs;
   }
 }
