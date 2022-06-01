@@ -625,7 +625,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       if (entry != null) {
         entry.getFileStream().truncate(size);
-        return (int) size;
+        return 0;
       }
     } catch (Exception e) {
       LOG.info("Failed to truncate {} to {}:", path, size, e);
