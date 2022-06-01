@@ -93,7 +93,7 @@ public final class JobGrpcClientUtils {
     throw new RuntimeException("Failed to successfully complete the job: " + errorMessage);
   }
 
-  /**
+  /*
    * @param jobId the ID of the job to wait for
    * @return the job info once it finishes or null if the status cannot be fetched
    */
