@@ -125,10 +125,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (mStream != null) {
       return mStream.getFileLength();
     }
-    if (mStatus.isPresent()) {
-      return mStatus.get().getLength();
-    }
-    return 0;
+    return mStatus.map(URIStatus::getLength).orElse(0L);
   }
 
   @Override
@@ -151,7 +148,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (size == 0) {
       mFileSystem.delete(mUri);
       mStream = FuseFileOutStream.create(mFileSystem, mAuthPolicy, mUri,
-          OpenFlags.O_WRONLY.intValue(), mMode, null);
+          OpenFlags.O_WRONLY.intValue(), mMode, Optional.empty());
     }
   }
 

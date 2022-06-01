@@ -67,8 +67,8 @@ public class FuseFileOutStream implements FuseFileStream {
     if (mode == AlluxioFuseUtils.MODE_NOT_SET_VALUE && status.isPresent()) {
       mode = status.get().getMode();
     }
-    long fileLen = status.isPresent() ? status.get().getLength() : 0;
-    if (!status.isPresent()) {
+    long fileLen = status.map(URIStatus::getLength).orElse(0L);
+    if (status.isPresent()) {
       if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
         fileSystem.delete(uri);
         fileLen = 0;

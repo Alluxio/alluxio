@@ -582,7 +582,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         optionsBuilder.setOwner(userName);
       }
 
-      String groupName = "";
+      String groupName;
       if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
           && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
         groupName = AlluxioFuseUtils.getGroupName(gid);
