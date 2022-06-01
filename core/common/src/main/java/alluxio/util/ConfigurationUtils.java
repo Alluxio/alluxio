@@ -381,47 +381,45 @@ public final class ConfigurationUtils {
     InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
     // Load site specific properties file if not in test mode. Note that we decide
     // whether in test mode by default properties and system properties (via getBoolean).
-    if (conf.getBoolean(PropertyKey.TEST_MODE)) {
-      conf.validate();
-      DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
-      return;
-    }
-    // We are not in test mode, load site properties
-    // First try loading from config file
-    for (String path : conf.getList(PropertyKey.SITE_CONF_DIR)) {
-      String file = PathUtils.concatPath(path, Constants.SITE_PROPERTIES);
-      try (FileInputStream fileInputStream = new FileInputStream(file)) {
-        Optional<Properties> properties = loadProperties(fileInputStream);
-        if (properties.isPresent()) {
-          alluxioProperties.merge(properties.get(), Source.siteProperty(file));
-          new InstancedConfiguration(alluxioProperties).validate();
-          DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
-          // If a site conf is successfully loaded, stop trying different paths.
-          return;
+    if (!conf.getBoolean(PropertyKey.TEST_MODE)) {
+      // We are not in test mode, load site properties
+      // First try loading from config file
+      for (String path : conf.getList(PropertyKey.SITE_CONF_DIR)) {
+        String file = PathUtils.concatPath(path, Constants.SITE_PROPERTIES);
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+          Optional<Properties> properties = loadProperties(fileInputStream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(file));
+            new InstancedConfiguration(alluxioProperties).validate();
+            DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
+            // If a site conf is successfully loaded, stop trying different paths.
+            return;
+          }
+        } catch (FileNotFoundException e) {
+          // skip
+        } catch (IOException e) {
+          LOG.warn("Failed to close property input stream from {}: {}", file, e.toString());
         }
-      } catch (FileNotFoundException e) {
-        // skip
-      } catch (IOException e) {
-        LOG.warn("Failed to close property input stream from {}: {}", file, e.toString());
       }
-    }
 
-    // Try to load from resource
-    URL resource =
-        ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
-    if (resource != null) {
-      try (InputStream stream = resource.openStream()) {
-        Optional<Properties> properties = loadProperties(stream);
-        if (properties.isPresent()) {
-          alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
-          new InstancedConfiguration(alluxioProperties).validate();
-          DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
+      // Try to load from resource
+      URL resource =
+          ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+      if (resource != null) {
+        try (InputStream stream = resource.openStream()) {
+          Optional<Properties> properties = loadProperties(stream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
+            new InstancedConfiguration(alluxioProperties).validate();
+            DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
+          }
+        } catch (IOException e) {
+          LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
         }
       }
-      catch (IOException e) {
-        LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
-      }
     }
+    conf.validate();
+    DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
   }
 
   /**
