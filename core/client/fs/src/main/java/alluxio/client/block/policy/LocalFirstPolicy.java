@@ -32,11 +32,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A policy that returns the local worker first, and if the local worker doesn't
- * exist or have enough availability, will select the nearest worker from the active
+ * exist or doesn't have enough availability, will select the nearest worker from the active
  * workers list with sufficient availability.
  *
  * The definition of 'nearest worker' is based on {@link alluxio.wire.TieredIdentity}.
- * @see alluxio.wire.TieredIdentityUtils#nearest()
+ * @see alluxio.util.TieredIdentityUtils#nearest
  *
  * The calculation of which worker gets selected is done for each block write.
  */

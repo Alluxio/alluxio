@@ -113,7 +113,7 @@ public final class IdUtils {
    */
   public static String createOrGetAppIdFromConfig(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_APP_ID)) {
-      return conf.get(PropertyKey.USER_APP_ID);
+      return conf.getString(PropertyKey.USER_APP_ID);
     } else {
       return IdUtils.createFileSystemContextId();
     }

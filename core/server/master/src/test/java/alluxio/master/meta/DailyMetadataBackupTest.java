@@ -92,9 +92,9 @@ public class DailyMetadataBackupTest {
     try (Closeable c =
         new ConfigurationRule(ImmutableMap.of(
             PropertyKey.MASTER_BACKUP_DIRECTORY, mBackupDir,
-            PropertyKey.MASTER_DAILY_BACKUP_ENABLED, "true",
+            PropertyKey.MASTER_DAILY_BACKUP_ENABLED, true,
             PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
-            String.valueOf(fileToRetain)), ServerConfiguration.global()).toResource()) {
+            fileToRetain), ServerConfiguration.global()).toResource()) {
       DailyMetadataBackup dailyBackup =
           new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsManager);
       dailyBackup.start();

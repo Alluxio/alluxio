@@ -34,12 +34,6 @@ alluxio.worker.free.space.timeout:
   'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.fuse.enabled:
   'If true, launch worker embedded Fuse application.'
-alluxio.worker.fuse.mount.alluxio.path:
-  'The Alluxio path to mount to the given Fuse mount point configured by alluxio.worker.fuse.mount.point in this worker.'
-alluxio.worker.fuse.mount.options:
-  'The platform specific Fuse mount options to mount the given Fuse mount point. If multiple mount options are provided, separate them with comma.'
-alluxio.worker.fuse.mount.point:
-  'The absolute local filesystem path that this worker will mount Alluxio path to.'
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
 alluxio.worker.jvm.monitor.enabled:
@@ -99,7 +93,7 @@ alluxio.worker.network.netty.watermark.high:
 alluxio.worker.network.netty.watermark.low:
   'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
 alluxio.worker.network.netty.worker.threads:
-  'How many threads to use for processing requests. Zero defaults to #cpuCores * 2.'
+  'Number of threads to use for processing requests in worker'
 alluxio.worker.network.permit.keepalive.time:
   'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
 alluxio.worker.network.reader.buffer.size:

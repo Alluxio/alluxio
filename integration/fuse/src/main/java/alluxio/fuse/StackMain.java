@@ -38,14 +38,14 @@ public class StackMain {
     Path root = Paths.get(args[1]);
     Path mountPoint = Paths.get(args[0]);
     AlluxioConfiguration conf = new InstancedConfiguration(
-        ConfigurationUtils.defaults());
+        ConfigurationUtils.copyDefaults());
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
     StackFS fs = new StackFS(root, mountPoint);
     String[] fuseOpts = new String[args.length - 2];
     System.arraycopy(args, 2, fuseOpts, 0, args.length - 2);
     try {
       CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-      MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+      MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
       fs.mount(true, false, fuseOpts);
     } catch (Exception e) {
       e.printStackTrace();

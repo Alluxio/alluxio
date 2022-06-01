@@ -12,6 +12,7 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
@@ -61,9 +62,9 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
-          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE)
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true)
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .build();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
@@ -97,7 +98,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
         .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
-    sUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    sUfsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     sUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 

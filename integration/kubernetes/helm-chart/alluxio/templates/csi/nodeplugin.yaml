@@ -41,6 +41,7 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-csi-nodeplugin
     spec:
+      serviceAccount: csi-controller-sa
       hostNetwork: {{ .Values.csi.nodePlugin.hostNetwork }}
       dnsPolicy: {{ .Values.csi.nodePlugin.dnsPolicy }}
       {{- if .Values.imagePullSecrets }}
@@ -120,6 +121,10 @@ spec:
                   fieldPath: spec.nodeName
             - name: CSI_ENDPOINT
               value: unix://plugin/csi.sock
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           envFrom:
             - configMapRef:
                 name: {{ template "alluxio.fullname" . }}-config
@@ -127,8 +132,10 @@ spec:
             - name: plugin-dir
               mountPath: /plugin
             - name: pods-mount-dir
-              mountPath: /var/lib/kubelet/pods
+              mountPath: /var/lib/kubelet
               mountPropagation: "Bidirectional"
+            - name: csi-fuse-config
+              mountPath: /opt/alluxio/integration/kubernetes/csi
       volumes:
         - name: plugin-dir
           hostPath:
@@ -136,10 +143,16 @@ spec:
             type: DirectoryOrCreate
         - name: pods-mount-dir
           hostPath:
-            path: /var/lib/kubelet/pods
+            path: /var/lib/kubelet
             type: Directory
         - hostPath:
             path: /var/lib/kubelet/plugins_registry
             type: Directory
           name: registration-dir
+        - name: csi-fuse-config
+          configMap:
+            name: {{ $fullName }}-csi-fuse-config
+            items:
+              - key: alluxio-csi-fuse-config
+                path: alluxio-csi-fuse.yaml
 {{- end }}

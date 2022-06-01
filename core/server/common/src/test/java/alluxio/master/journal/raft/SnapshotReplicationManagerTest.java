@@ -110,7 +110,7 @@ public class SnapshotReplicationManagerTest {
       StreamObserver responseObserver = args.getArgument(0, StreamObserver.class);
       return stub.uploadSnapshot(responseObserver);
     });
-    Mockito.doReturn(mClient).when(mLeaderSnapshotManager).getJournalServiceClient();
+    Mockito.doReturn(mClient).when(mLeaderSnapshotManager).createJournalServiceClient();
 
     for (int i = 0; i < numFollowers; i++) {
       Follower follower = new Follower(mClient);
@@ -342,7 +342,7 @@ public class SnapshotReplicationManagerTest {
       mStore = getSimpleStateMachineStorage();
       mJournalSystem = Mockito.mock(RaftJournalSystem.class);
       mSnapshotManager = Mockito.spy(new SnapshotReplicationManager(mJournalSystem, mStore));
-      Mockito.doReturn(client).when(mSnapshotManager).getJournalServiceClient();
+      Mockito.doReturn(client).when(mSnapshotManager).createJournalServiceClient();
     }
 
     RaftPeerId getRaftPeerId() {

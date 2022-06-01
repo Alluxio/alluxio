@@ -52,7 +52,7 @@ public final class AbstractShellTest {
       super(ImmutableMap.<String, String[]>builder().put("cmdAlias", new String[] {"cmd", "-O"})
           .put("stableAlias", new String[]{"cmd", "-O"})
           .build(), ImmutableSet.<String>builder().add("cmdAlias").build(),
-          ConfigurationTestUtils.defaults());
+          ConfigurationTestUtils.copyDefaults());
     }
 
     @Override

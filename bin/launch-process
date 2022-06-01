@@ -27,7 +27,7 @@ desired process in the foreground. It is recommended to use alluxio-start.sh
 unless you know what you are doing.
 
     <process name>    One of: master, secondary_master, job_master, worker,
-                      job_worker, hub_agent, hub_manager, proxy, logserver
+                      job_worker, proxy, logserver
 
     -c                Provide this flag to also log directly to stdout
 
@@ -182,20 +182,6 @@ launch_job_worker() {
                  "alluxio.worker.AlluxioJobWorker"
 }
 
-# Launch the hub agent process
-launch_hub_agent() {
-  launch_process "${ALLUXIO_HUB_AGENT_ATTACH_OPTS}" \
-                 "${ALLUXIO_HUB_AGENT_JAVA_OPTS}" \
-                 "alluxio.hub.agent.process.AgentProcess"
-}
-
-# Launch the hub manager process
-launch_hub_manager() {
-  launch_process "${ALLUXIO_HUB_MANAGER_ATTACH_OPTS}" \
-                 "${ALLUXIO_HUB_MANAGER_JAVA_OPTS}" \
-                 "alluxio.hub.manager.process.ManagerProcess"
-}
-
 # Launch a proxy process
 launch_proxy() {
   launch_process "${ALLUXIO_PROXY_ATTACH_OPTS}" \
@@ -269,14 +255,6 @@ main() {
       logger_var_name="ALLUXIO_LOGSERVER_LOGGER"
       logger_var_value="LOGSERVER_LOGGER"
       ;;
-    hub_agent)
-      logger_var_name="ALLUXIO_HUB_AGENT_LOGGER"
-      logger_var_value="HUB_AGENT_LOGGER"
-      ;;
-    hub_manager)
-      logger_var_name="ALLUXIO_HUB_MANAGER_LOGGER"
-      logger_var_value="HUB_MANAGER_LOGGER"
-      ;;
     proxy)
       logger_var_name="ALLUXIO_PROXY_LOGGER"
       logger_var_value="PROXY_LOGGER"
@@ -316,12 +294,6 @@ main() {
       ;;
     logserver)
       launch_logserver
-      ;;
-    hub_agent)
-      launch_hub_agent
-      ;;
-    hub_manager)
-      launch_hub_manager
       ;;
     proxy)
       launch_proxy

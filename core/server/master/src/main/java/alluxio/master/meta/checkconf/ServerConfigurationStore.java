@@ -11,6 +11,8 @@
 
 package alluxio.master.meta.checkconf;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
+
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.wire.Address;
@@ -80,7 +82,7 @@ public class ServerConfigurationStore {
     } else {
       // Worker might have properties that the master doesn't yet know about, e.g. UFS specific
       // properties, or properties from a different version of Alluxio.
-      return new PropertyKey.Builder(name).setIsBuiltIn(false).buildUnregistered();
+      return stringBuilder(name).setIsBuiltIn(false).buildUnregistered();
     }
   }
 

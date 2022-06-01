@@ -255,7 +255,7 @@ public final class ValidateEnv {
 
     // args is not null.
     String argStr = String.join(" ", cmd.getArgs());
-    String homeDir = mConf.get(PropertyKey.HOME);
+    String homeDir = mConf.getString(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
@@ -365,7 +365,7 @@ public final class ValidateEnv {
       throws InterruptedException {
     // Validate against root path
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
-    String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String rootPath = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     ValidateEnv validate = new ValidateEnv(rootPath, conf);
 
     boolean success;
@@ -440,7 +440,7 @@ public final class ValidateEnv {
     if (command.equals("list")) {
       // Validate against root path
       AlluxioConfiguration conf = InstancedConfiguration.defaults();
-      String rootPath = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootPath = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       ValidateEnv task = new ValidateEnv(rootPath, conf);
       task.printTasks();
       return 0;

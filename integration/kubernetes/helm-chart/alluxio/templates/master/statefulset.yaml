@@ -52,15 +52,12 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
         role: alluxio-master
-    {{- if or .Values.master.podAnnotations .Values.metrics.enabled .Values.hub.enabled }}
+    {{- if or .Values.master.podAnnotations .Values.metrics.enabled }}
       annotations:
       {{- with .Values.master.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.metrics.podAnnotations }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.hub.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
@@ -101,76 +98,17 @@ spec:
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["alluxio","formatJournal"]
-        volumeMounts:
-          - name: alluxio-journal
-            mountPath: /journal
-      {{- end}}
-      {{ if .Values.hub.enabled -}}
-      shareProcessNamespace: true
-      {{- end }}
-      containers:
-        {{ if .Values.hub.enabled -}}
-        - name: alluxio-hub-agent
-          image: {{ .Values.image }}:{{ .Values.imageTag }}
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
-          {{- if .Values.hub.resources }}
-{{ include "alluxio.hub.resources" . | indent 10 }}
-          {{- end }}
-          command: [ "tini", "--", "/entrypoint.sh" ]
-          {{- if .Values.hub.agent.args }}
-          args:
-{{ toYaml .Values.hub.agent.args | trim | indent 12 }}
-          {{- end }}
-          env:
-          {{- range $key, $value := .Values.hub.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-          {{- end }}
-          - name: ALLUXIO_HUB_AGENT_RPC_HOSTNAME
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: ALLUXIO_HUB_USER_ID
-            value: "{{ .Values.user }}"
-          - name: ALLUXIO_HUB_NO_START
-            value: "true"
-          envFrom:
+        envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-          ports:
-          - containerPort: {{ .Values.hub.agent.ports.rpc }}
-            name: agent-rpc
-          volumeMounts:
-          - name: conf-volume
-            mountPath: {{ .Values.hub.volumes.conf.path }}
-            readOnly: false
-          - name: logs-volume
-            mountPath: {{ .Values.hub.volumes.logs.path }}
-            readOnly: false
-        - name: filebeat
-          image: docker.elastic.co/beats/filebeat-oss:7.12.1
-          args: [
-            "-c", "/usr/share/filebeat/filebeat.yml",
-            "-e",
-          ]
-          env:
-            - name: ALLUXIO_LOGS_PATH
-              value: {{ .Values.hub.volumes.logs.path }}
-            - name: LOGSTASH_PORT
-              value: {{ .Values.hub.ports.logstash | quote }}
-          securityContext:
-            runAsUser: 0
-          volumeMounts:
-            - name: filebeat-config
-              mountPath: /usr/share/filebeat/filebeat.yml
-              readOnly: false
-              subPath: filebeat.yml
-            - name: logs-volume
-              mountPath: {{ .Values.hub.volumes.logs.path }}
-              readOnly: false
+        volumeMounts:
+          - name: alluxio-journal
+            mountPath: {{ .Values.journal.folder }}
+      {{- end}}
+      shareProcessNamespace: {{ .Values.master.shareProcessNamespace | default false }}
+      containers:
+        {{- if .Values.master.extraContainers }}
+{{- include "alluxio.extraContainers" (dict "extraContainers" .Values.master.extraContainers) | indent 8 }}
         {{- end }}
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -238,13 +176,8 @@ spec:
             name: embedded
           {{- end }}
           volumeMounts:
-            {{- if .Values.hub.enabled }}
-            - name: conf-volume
-              mountPath: {{ .Values.hub.volumes.conf.path }}
-              readOnly: false
-            - name: logs-volume
-              mountPath: {{ .Values.hub.volumes.logs.path }}
-              readOnly: false
+            {{- if .Values.master.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.master.extraVolumeMounts) | indent 12 }}
             {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
@@ -252,7 +185,7 @@ spec:
             {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
-              mountPath: /journal
+              mountPath: {{ .Values.journal.folder }}
             {{- end }}
             {{- if .Values.metastore }}
             - name: alluxio-metastore
@@ -335,13 +268,8 @@ spec:
             name: job-embedded
           {{- end }}
           volumeMounts:
-          {{- if .Values.hub.enabled }}
-            - name: conf-volume
-              mountPath: {{ .Values.hub.volumes.conf.path }}
-              readOnly: false
-            - name: logs-volume
-              mountPath: {{ .Values.hub.volumes.logs.path }}
-              readOnly: false
+          {{- if .Values.master.extraVolumeMounts }}
+{{- include "alluxio.extraVolumeMounts" (dict "extraVolumeMounts" .Values.master.extraVolumeMounts) | indent 12 }}
           {{- end }}
           {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
@@ -360,15 +288,8 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
-        {{- if .Values.hub.enabled }}
-        - name: conf-volume
-          emptyDir: {}
-        - name: logs-volume
-          emptyDir: {}
-        - name: filebeat-config
-          configMap:
-            defaultMode: 0600
-            name: hub-filebeat-config
+        {{- if .Values.master.extraVolumes }}
+{{- include "alluxio.extraVolumes" (dict "extraVolumes" .Values.master.extraVolumes) | indent 8 }}
         {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume

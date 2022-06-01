@@ -25,31 +25,41 @@ import java.util.Map;
  * getters and setters.
  */
 public final class MasterBenchParameters extends MasterBenchBaseParameters {
+  public static final String OPERATION_OPTION_NAME = "--operation";
+  public static final String TARGET_THROUGHPUT_OPTION_NAME = "--target-throughput";
+  public static final String BASE_ALIAS_OPTION_NAME = "--base-alias";
+  public static final String TAG_OPTION_NAME = "--tag";
+  public static final String DURATION_OPTION_NAME = "--duration";
+  public static final String FIXED_COUNT_OPTION_NAME = "--fixed-count";
+  public static final String CONF_OPTION_NAME = "--conf";
+  public static final String SKIP_PREPARE_OPTION_NAME = "--skip-prepare";
 
-  @Parameter(names = {"--operation"},
+  @Parameter(names = {OPERATION_OPTION_NAME},
       description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
       converter = OperationConverter.class,
       required = true)
   public Operation mOperation;
 
-  @Parameter(names = {"--target-throughput"},
+  @Parameter(names = {TARGET_THROUGHPUT_OPTION_NAME},
       description = "the target throughput to issue operations. (ops / s)")
   public int mTargetThroughput = 1000;
 
-  @Parameter(names = {"--base-alias"}, description = "The alias for the base path, unused if empty")
+  @Parameter(names = {BASE_ALIAS_OPTION_NAME},
+      description = "The alias for the base path, unused if empty")
   @Parameters.KeylessDescription
   public String mBaseAlias = "";
 
-  @Parameter(names = {"--tag"}, description = "optional human-readable string to identify this run")
+  @Parameter(names = {TAG_OPTION_NAME},
+      description = "optional human-readable string to identify this run")
   @Parameters.KeylessDescription
   public String mTag = "";
 
-  @Parameter(names = {"--duration"},
+  @Parameter(names = {DURATION_OPTION_NAME},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";
 
-  @Parameter(names = {"--fixed-count"},
+  @Parameter(names = {FIXED_COUNT_OPTION_NAME},
       description = "The number of paths in the fixed portion. Must be greater than 0. The first "
           + "'fixed-count' paths are in the fixed portion of the namespace. This means all tasks "
           + "are guaranteed to have the same number of paths in the fixed portion. This is "
@@ -61,13 +71,13 @@ public final class MasterBenchParameters extends MasterBenchBaseParameters {
           + "1000 files so that the task will not end before the desired duration time.")
   public int mFixedCount = 100;
 
-  @DynamicParameter(names = "--conf",
+  @DynamicParameter(names = CONF_OPTION_NAME,
       description = "Any HDFS client configuration key=value. Can repeat to provide multiple "
           + "configuration values.")
 
   public Map<String, String> mConf = new HashMap<>();
 
-  @Parameter(names = {"--skip-prepare"},
+  @Parameter(names = {SKIP_PREPARE_OPTION_NAME},
       description = "If true, skip the prepare.")
   public boolean mSkipPrepare = false;
 

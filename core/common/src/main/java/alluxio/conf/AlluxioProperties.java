@@ -53,12 +53,12 @@ public class AlluxioProperties {
    * Map of user-specified properties. When key is mapped to Optional.empty(), it indicates no
    * value is set for this key. Note that, ConcurrentHashMap requires not null for key and value.
    */
-  private final ConcurrentHashMap<PropertyKey, Optional<String>> mUserProps =
+  private final ConcurrentHashMap<PropertyKey, Optional<Object>> mUserProps =
       new ConcurrentHashMap<>();
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
-  private Hash mHash = new Hash(() -> keySet().stream()
+  private final Hash mHash = new Hash(() -> keySet().stream()
       .filter(key -> get(key) != null)
       .sorted(Comparator.comparing(PropertyKey::getName))
       .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
@@ -81,7 +81,7 @@ public class AlluxioProperties {
    * @return the value, or null if the key has no value set
    */
   @Nullable
-  public String get(PropertyKey key) {
+  public Object get(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       return mUserProps.get(key).orElse(null);
     }
@@ -104,7 +104,7 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
-  public void put(PropertyKey key, String value, Source source) {
+  public void put(PropertyKey key, Object value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
@@ -118,7 +118,7 @@ public class AlluxioProperties {
    * @param key key to put
    * @param value value to put
    */
-  public void set(PropertyKey key, String value) {
+  public void set(PropertyKey key, Object value) {
     put(key, value, Source.RUNTIME);
   }
 
@@ -150,7 +150,7 @@ public class AlluxioProperties {
         // is made dynamic
         propertyKey = PropertyKey.getOrBuildCustom(key);
       }
-      put(propertyKey, value, source);
+      put(propertyKey, propertyKey.parseValue(value), source);
     }
     mHash.markOutdated();
   }
@@ -177,7 +177,7 @@ public class AlluxioProperties {
    */
   public boolean isSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
-      Optional<String> val = mUserProps.get(key);
+      Optional<Object> val = mUserProps.get(key);
       if (val.isPresent()) {
         return true;
       }
@@ -193,7 +193,7 @@ public class AlluxioProperties {
    */
   public boolean isSetByUser(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
-      Optional<String> val = mUserProps.get(key);
+      Optional<Object> val = mUserProps.get(key);
       // Sources larger than Source.CLUSTER_DEFAULT are considered to be set by the user
       return val.isPresent() && (getSource(key).compareTo(Source.CLUSTER_DEFAULT) > 0);
     }
@@ -203,7 +203,7 @@ public class AlluxioProperties {
   /**
    * @return the entry set of all Alluxio property key and value pairs (value can be null)
    */
-  public Set<Map.Entry<PropertyKey, String>> entrySet() {
+  public Set<Map.Entry<PropertyKey, Object>> entrySet() {
     return keySet().stream().map(key -> Maps.immutableEntry(key, get(key))).collect(toSet());
   }
 
@@ -228,8 +228,8 @@ public class AlluxioProperties {
    *
    * @param action the operation to perform on each key value pair
    */
-  public void forEach(BiConsumer<? super PropertyKey, ? super String> action) {
-    for (Map.Entry<PropertyKey, String> entry : entrySet()) {
+  public void forEach(BiConsumer<? super PropertyKey, ? super Object> action) {
+    for (Map.Entry<PropertyKey, Object> entry : entrySet()) {
       action.accept(entry.getKey(), entry.getValue());
     }
   }

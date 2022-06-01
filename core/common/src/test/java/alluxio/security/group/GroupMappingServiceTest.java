@@ -35,7 +35,7 @@ public final class GroupMappingServiceTest {
   @Test
   public void group() throws Throwable {
     String userName = "alluxio-user1";
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
     try (Closeable mConfigurationRule =
         new ConfigurationRule(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,

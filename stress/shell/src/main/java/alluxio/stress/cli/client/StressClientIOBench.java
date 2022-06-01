@@ -169,7 +169,7 @@ public class StressClientIOBench extends AbstractStressBench
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
-      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.copyDefaults();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 
@@ -335,7 +335,7 @@ public class StressClientIOBench extends AbstractStressBench
         try {
           mThreadCountResult.merge(threadResult);
         } catch (Exception e) {
-          mThreadCountResult.addErrorMessage(e.getMessage());
+          mThreadCountResult.addErrorMessage(e.toString());
         }
       }
     }
@@ -392,7 +392,7 @@ public class StressClientIOBench extends AbstractStressBench
         runInternal();
       } catch (Exception e) {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         closeInStream();
       }
@@ -495,7 +495,7 @@ public class StressClientIOBench extends AbstractStressBench
           return bytesRead;
         }
         case READ_FULLY: {
-          int toRead = Math.min(mBuffer.length, (int) (mFileSize - mInStream.getPos()));
+          int toRead = (int) Math.min(mBuffer.length, mFileSize - mInStream.getPos());
           mInStream.readFully(mBuffer, 0, toRead);
           if (mInStream.getPos() == mFileSize) {
             closeInStream();
@@ -534,7 +534,7 @@ public class StressClientIOBench extends AbstractStressBench
           mInStream.close();
         }
       } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
       }
@@ -627,7 +627,7 @@ public class StressClientIOBench extends AbstractStressBench
           mInStream.close();
         }
       } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
       }

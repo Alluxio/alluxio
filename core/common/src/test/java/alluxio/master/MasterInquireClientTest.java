@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
+import alluxio.master.journal.JournalType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -39,7 +40,7 @@ public final class MasterInquireClientTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   @Test
@@ -55,10 +56,10 @@ public final class MasterInquireClientTest {
   public void singleMasterConnectString() throws Exception {
     String host = "testhost";
     int port = 123;
-    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
         put(PropertyKey.MASTER_HOSTNAME, host);
-        put(PropertyKey.MASTER_RPC_PORT, Integer.toString(port));
+        put(PropertyKey.MASTER_RPC_PORT, port);
       }
     }, mConfiguration).toResource()) {
       ConnectDetails cs =
@@ -72,9 +73,9 @@ public final class MasterInquireClientTest {
   public void zkConnectString() throws Exception {
     String zkAddr = "zkAddr:1234";
     String leaderPath = "/my/leader/path";
-    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
         put(PropertyKey.ZOOKEEPER_ADDRESS, zkAddr);
         put(PropertyKey.ZOOKEEPER_LEADER_PATH, leaderPath);
       }
@@ -83,7 +84,7 @@ public final class MasterInquireClientTest {
           NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConfiguration));
       assertCurrentConnectString(singleConnect);
       try (Closeable c2 =
-          new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true", mConfiguration)
+          new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, true, mConfiguration)
               .toResource()) {
         ConnectDetails zkConnect = new ZkMasterConnectDetails(zkAddr, leaderPath);
         assertCurrentConnectString(zkConnect);

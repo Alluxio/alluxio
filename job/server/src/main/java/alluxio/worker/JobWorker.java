@@ -93,7 +93,7 @@ public final class JobWorker extends AbstractWorker {
     super.start(address);
 
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
 
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);

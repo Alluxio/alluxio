@@ -110,7 +110,7 @@ public final class AlluxioJobMasterRestServiceHandler {
             ServerConfiguration.global());
   }
 
-  private Map<String, String> getConfigurationInternal(boolean raw) {
+  private Map<String, Object> getConfigurationInternal(boolean raw) {
     if (raw) {
       return ServerConfiguration.toMap(ConfigurationValueOptions.defaults().useRawValue(raw));
     } else {

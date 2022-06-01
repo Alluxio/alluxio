@@ -582,7 +582,7 @@ public final class Performance {
       System.exit(-1);
     }
 
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
     HostAndPort masterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];
@@ -611,7 +611,7 @@ public final class Performance {
     CommonUtils.warmUpLoop();
 
     conf.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
-    conf.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
+    conf.set(PropertyKey.MASTER_RPC_PORT, masterAddress.getPort());
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
 

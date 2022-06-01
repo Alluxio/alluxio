@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.allocator.Allocator;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -77,7 +78,7 @@ public interface Evictor {
    * space after eviction. The location can be a specific
    * {@link alluxio.worker.block.meta.StorageDir}, or {@link BlockStoreLocation#anyTier()} or
    * {@link BlockStoreLocation#anyDirInTier(String)}. The view is generated and passed by the
-   * calling {@link alluxio.worker.block.BlockStore}. This method returns null if {@link Evictor}
+   * calling {@link LocalBlockStore}. This method returns null if {@link Evictor}
    * fails to propose a feasible plan to meet the requirement.
    * <p>
    * With the BEST_EFFORT mode, the evictor always returns an eviction plan with toMove and toEvict

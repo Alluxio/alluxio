@@ -16,7 +16,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: csi-controller-sa
-  namespace: default
+  namespace: {{ .Release.Namespace }}
 ---
 
 kind: ClusterRole
@@ -42,6 +42,9 @@ rules:
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "delete"]
 ---
 
 kind: ClusterRoleBinding
@@ -51,7 +54,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: csi-controller-sa
-    namespace: default
+    namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: alluxio-external-provisioner-role

@@ -17,6 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -72,7 +73,11 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
   private FileSystem[] mCachedFs;
 
   /** In case the Alluxio Native API is used,  use the following instead. */
-  private alluxio.client.file.FileSystem[] mCachedNativeFs;
+  protected alluxio.client.file.FileSystem[] mCachedNativeFs;
+  /* Directories where the stress bench creates files depending on the --operation chosen. */
+  protected final String mDirsDir = "dirs";
+  protected final String mFilesDir = "files";
+  protected final String mFixedDir = "fixed";
 
   /**
    * Creates instance.
@@ -175,7 +180,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
-      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.copyDefaults();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 
@@ -187,6 +192,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     }
   }
 
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   private void deletePaths(FileSystem fs, Path basePath) throws Exception {
     // the base dir has sub directories per task id
     if (!fs.exists(basePath)) {
@@ -194,6 +200,16 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
     }
     FileStatus[] subDirs = fs.listStatus(basePath);
     if (subDirs.length == 0) {
+      return;
+    }
+
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      fs.delete(basePath, true);
+      if (fs.exists(basePath)) {
+        throw new UnexpectedAlluxioException(String.format("Unable to delete the files"
+            + " in path %s.Please confirm whether it is HDFS file system."
+            + " You may need to modify `--client-type` parameter", basePath));
+      }
       return;
     }
 
@@ -327,12 +343,12 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mCounter = new AtomicLong();
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
+            new Path(PathUtils.concatPath(mParameters.mBasePath, mDirsDir, mBaseParameters.mId));
       } else {
         mBasePath =
-            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
+            new Path(PathUtils.concatPath(mParameters.mBasePath, mFilesDir, mBaseParameters.mId));
       }
-      mFixedBasePath = new Path(mBasePath, "fixed");
+      mFixedBasePath = new Path(mBasePath, mFixedDir);
       LOG.info("BenchContext: basePath: {}, fixedBasePath: {}", mBasePath, mFixedBasePath);
     }
 
@@ -508,6 +524,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
       Path path;
@@ -576,7 +593,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          Path dst = new Path(path.toString() + "-renamed");
+          Path dst = new Path(path + "-renamed");
           if (!mFs.rename(path, dst)) {
             throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
           }
@@ -605,6 +622,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException, AlluxioException {
       Path path;
@@ -661,7 +679,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          Path dst = new Path(path.toString() + "-renamed");
+          Path dst = new Path(path + "-renamed");
           mFs.rename(new AlluxioURI(path.toString()), new AlluxioURI(dst.toString()));
           break;
         case DELETE_FILE:

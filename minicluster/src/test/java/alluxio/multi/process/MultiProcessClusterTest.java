@@ -49,7 +49,7 @@ public final class MultiProcessClusterTest {
         .setClusterName("zookeeper")
         .setNumMasters(3)
         .setNumWorkers(2)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .build();
     clusterVerification();
   }

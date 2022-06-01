@@ -119,8 +119,14 @@ public class DistributedCmdMetrics {
     }
   }
 
-  // get file size for a given filePath, return 0 if exceeding retries.
-  private static long getFileSize(String filePath, FileSystem fileSystem, RetryPolicy retryPolicy) {
+  /**
+   * get file size for a given filePath, return 0 if exceeding retries.
+   * @param filePath
+   * @param fileSystem
+   * @param retryPolicy
+   * @return file size
+   */
+  public static long getFileSize(String filePath, FileSystem fileSystem, RetryPolicy retryPolicy) {
     while (retryPolicy.attempt()) {
       try {
         long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();

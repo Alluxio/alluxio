@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
@@ -68,7 +68,7 @@ public class AlluxioFileOutStream extends FileOutStream {
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
-  private final AlluxioBlockStore mBlockStore;
+  private final BlockStoreClient mBlockStore;
   /** Stream to the file in the under storage, null if not writing to the under storage. */
   private final UnderFileSystemFileOutStream mUnderStorageOutputStream;
   private final OutStreamOptions mOptions;
@@ -102,7 +102,7 @@ public class AlluxioFileOutStream extends FileOutStream {
       mAlluxioStorageType = options.getAlluxioStorageType();
       mUnderStorageType = options.getUnderStorageType();
       mOptions = options;
-      mBlockStore = AlluxioBlockStore.create(mContext);
+      mBlockStore = BlockStoreClient.create(mContext);
       mPreviousBlockOutStreams = new ArrayList<>();
       mClosed = false;
       mCanceled = false;

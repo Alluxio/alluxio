@@ -66,10 +66,10 @@ public final class LoginModuleConfiguration extends Configuration {
   @Override
   @Nullable
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-    if (appName.equalsIgnoreCase(AuthType.SIMPLE.getAuthName())
-        || appName.equalsIgnoreCase(AuthType.CUSTOM.getAuthName())) {
+    if (appName.equalsIgnoreCase(AuthType.SIMPLE.name())
+        || appName.equalsIgnoreCase(AuthType.CUSTOM.name())) {
       return SIMPLE;
-    } else if (appName.equalsIgnoreCase(AuthType.KERBEROS.getAuthName())) {
+    } else if (appName.equalsIgnoreCase(AuthType.KERBEROS.name())) {
       throw new UnsupportedOperationException("Kerberos is not supported currently.");
     }
     return null;

@@ -61,7 +61,7 @@ public final class LocalAlluxioMaster {
   private LocalAlluxioMaster(boolean includeSecondary) {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
         ServerConfiguration.global());
-    mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    mJournalFolder = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     mIncludeSecondary = includeSecondary;
   }
 

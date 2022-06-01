@@ -91,7 +91,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
   public ValidationTaskResult validateImpl(Map<String, String> optionMap) {
     // Skip this test if NOSASL
     if (mConf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE)
-            .equals(AuthType.NOSASL.getAuthName())) {
+            .equals(AuthType.NOSASL)) {
       return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               String.format("Impersonation validation is skipped for NOSASL"), "");
     }

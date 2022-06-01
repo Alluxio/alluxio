@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ExternalProcess {
-  private final Map<PropertyKey, String> mConf;
+  private final Map<PropertyKey, Object> mConf;
   private final Class<?> mClazz;
   private final File mOutFile;
 
@@ -41,7 +41,7 @@ public final class ExternalProcess {
    * @param clazz the class to run
    * @param outfile the file to write process output to
    */
-  public ExternalProcess(Map<PropertyKey, String> conf, Class<?> clazz, File outfile) {
+  public ExternalProcess(Map<PropertyKey, Object> conf, Class<?> clazz, File outfile) {
     mConf = conf;
     mClazz = clazz;
     mOutFile = outfile;
@@ -55,7 +55,7 @@ public final class ExternalProcess {
     String java = PathUtils.concatPath(System.getProperty("java.home"), "bin", "java");
     String classpath = System.getProperty("java.class.path");
     List<String> args = new ArrayList<>(Arrays.asList(java, "-cp", classpath));
-    for (Entry<PropertyKey, String> entry : mConf.entrySet()) {
+    for (Entry<PropertyKey, Object> entry : mConf.entrySet()) {
       args.add(String.format("-D%s=%s", entry.getKey().toString(), entry.getValue()));
     }
     args.add(mClazz.getCanonicalName());

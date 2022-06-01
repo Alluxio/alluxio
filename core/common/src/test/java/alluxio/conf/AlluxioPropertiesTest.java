@@ -11,6 +11,7 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.Builder.stringBuilder;
 import static java.util.stream.Collectors.toSet;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -41,8 +42,8 @@ public class AlluxioPropertiesTest {
 
   @Before
   public void before() {
-    mKeyWithValue = new PropertyKey.Builder("key.with.value").setDefaultValue("value").build();
-    mKeyWithoutValue = new PropertyKey.Builder("key.without.value").build();
+    mKeyWithValue = stringBuilder("key.with.value").setDefaultValue("value").build();
+    mKeyWithoutValue = stringBuilder("key.without.value").build();
   }
 
   @After
@@ -119,7 +120,7 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void entrySet() {
-    Set<Map.Entry<? extends PropertyKey, String>> expected =
+    Set<Map.Entry<? extends PropertyKey, Object>> expected =
         PropertyKey.defaultKeys().stream()
             .map(key -> Maps.immutableEntry(key, key.getDefaultValue())).collect(toSet());
     assertThat(mProperties.entrySet(), is(expected));
@@ -132,7 +133,7 @@ public class AlluxioPropertiesTest {
   public void keySet() {
     Set<PropertyKey> expected = new HashSet<>(PropertyKey.defaultKeys());
     assertThat(mProperties.keySet(), is(expected));
-    PropertyKey newKey = new PropertyKey.Builder("keySetNew").build();
+    PropertyKey newKey = stringBuilder("keySetNew").build();
     mProperties.put(newKey, "value", Source.RUNTIME);
     expected.add(newKey);
     assertThat(mProperties.keySet(), is(expected));
@@ -145,7 +146,7 @@ public class AlluxioPropertiesTest {
     mProperties.forEach((key, value) -> actual.add(key));
     assertThat(actual, is(expected));
 
-    PropertyKey newKey = new PropertyKey.Builder("forEachNew").build();
+    PropertyKey newKey = stringBuilder("forEachNew").build();
     mProperties.put(newKey, "value", Source.RUNTIME);
     Set<PropertyKey> actual2 = Sets.newHashSet();
     mProperties.forEach((key, value) -> actual2.add(key));
@@ -162,7 +163,7 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void merge() {
-    PropertyKey newKey = new PropertyKey.Builder("mergeNew").setDefaultValue("value3").build();
+    PropertyKey newKey = stringBuilder("mergeNew").setDefaultValue("value3").build();
     Properties sysProp = new Properties();
     sysProp.put(mKeyWithValue, "value1");
     sysProp.put(mKeyWithoutValue, "value2");

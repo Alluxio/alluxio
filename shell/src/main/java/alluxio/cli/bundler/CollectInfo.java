@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 public class CollectInfo extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfo.class);
   private static final String USAGE =
-      "collectInfo [--max-threads <threadNum>] [--local] [--help] "
+      "collectInfo [--max-threads <threadNum>] [--local] [--help] [--exclude-worker-metrics]"
           + "[--exclude-logs <filename-prefixes>] [--include-logs <filename-prefixes>] "
           + "[--additional-logs <filename-prefixes>] [--start-time <datetime>] "
           + "[--end-time <datetime>] COMMAND <outputPath>\n\n"
@@ -165,7 +165,7 @@ public class CollectInfo extends AbstractShell {
    * @return a set of hostnames in the cluster
    * */
   public Set<String> getHosts() {
-    String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
+    String confDirPath = mConfiguration.getString(PropertyKey.CONF_DIR);
     System.out.format("Looking for masters and workers in %s%n", confDirPath);
     Set<String> hosts = ConfigurationUtils.getServerHostnames(mConfiguration);
     System.out.format("Found %s hosts%n", hosts.size());
@@ -210,7 +210,7 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Create the shell instance
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
     // Reduce the RPC retry max duration to fail earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
@@ -287,7 +287,7 @@ public class CollectInfo extends AbstractShell {
 
       CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
         // We make the assumption that the Alluxio WORK_DIR is the same
-        String workDir = mConfiguration.get(PropertyKey.WORK_DIR);
+        String workDir = mConfiguration.getString(PropertyKey.WORK_DIR);
         String alluxioBinPath = Paths.get(workDir, "bin/alluxio")
                 .toAbsolutePath().toString();
         System.out.format("host: %s, alluxio path %s%n", host, alluxioBinPath);

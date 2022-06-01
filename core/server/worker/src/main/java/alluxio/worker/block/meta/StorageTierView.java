@@ -13,9 +13,8 @@ package alluxio.worker.block.meta;
 
 import com.google.common.base.Preconditions;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,8 +53,8 @@ public abstract class StorageTierView {
   /**
    * @return a list of directory views in this storage tier view
    */
-  public List<StorageDirView> getDirViews() {
-    return new ArrayList<>(mDirViews.values());
+  public Collection<StorageDirView> getDirViews() {
+    return mDirViews.values();
   }
 
   /**

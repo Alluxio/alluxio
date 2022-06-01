@@ -137,8 +137,8 @@ public final class FileSystemMasterSyncMetadataTest {
     UfsFileStatus fileStatus = new UfsFileStatus(
         "file", "", 0L, System.currentTimeMillis(),
         "owner1", "owner1", (short) 777, null, 100L);
-    Mockito.when(mUfs.getFingerprint(filePath.toString()))
-        .thenReturn(Fingerprint.create("s3", fileStatus).serialize());
+    Mockito.when(mUfs.getParsedFingerprint(filePath.toString()))
+        .thenReturn(Fingerprint.create("s3", fileStatus));
     Mockito.when(mUfs.exists(filePath.toString())).thenReturn(true);
     Mockito.when(mUfs.isDirectory(filePath.toString())).thenReturn(false);
     Mockito.when(mUfs.isFile(filePath.toString())).thenReturn(true);
@@ -151,8 +151,8 @@ public final class FileSystemMasterSyncMetadataTest {
         "file", "", 0, System.currentTimeMillis(),
         "owner2", "owner2", (short) 777, null, 100);
     Mockito.when(mUfs.getStatus(filePath.toString())).thenReturn(updatedStatus);
-    Mockito.when(mUfs.getFingerprint(filePath.toString())).thenReturn(Fingerprint.create("s3",
-        updatedStatus).serialize());
+    Mockito.when(mUfs.getParsedFingerprint(filePath.toString()))
+        .thenReturn(Fingerprint.create("s3", updatedStatus));
 
     FileInfo res = mFileSystemMaster.getFileInfo(uri,
         GetStatusContext.mergeFrom(GetStatusPOptions.newBuilder().setCommonOptions(
@@ -170,8 +170,8 @@ public final class FileSystemMasterSyncMetadataTest {
     // Mock dir1 ufs path
     AlluxioURI dir1Path = ufsMount.join("dir1");
     UfsDirectoryStatus dir1Status = new UfsDirectoryStatus(dir1Path.getPath(), "", "", mode);
-    Mockito.when(mUfs.getFingerprint(dir1Path.toString()))
-        .thenReturn(Fingerprint.create("s3", dir1Status).serialize());
+    Mockito.when(mUfs.getParsedFingerprint(dir1Path.toString()))
+        .thenReturn(Fingerprint.create("s3", dir1Status));
     Mockito.when(mUfs.exists(dir1Path.toString())).thenReturn(true);
     Mockito.when(mUfs.isDirectory(dir1Path.toString())).thenReturn(true);
     Mockito.when(mUfs.isFile(dir1Path.toString())).thenReturn(false);
@@ -182,8 +182,8 @@ public final class FileSystemMasterSyncMetadataTest {
     AlluxioURI nestedFilePath = ufsMount.join("dir1").join("file1");
     UfsFileStatus nestedFileStatus = new UfsFileStatus(nestedFilePath.getPath(), "dummy", 0,
         null, "", "", mode, 1024);
-    Mockito.when(mUfs.getFingerprint(nestedFilePath.toString()))
-        .thenReturn(Fingerprint.create("s3", nestedFileStatus).serialize());
+    Mockito.when(mUfs.getParsedFingerprint(nestedFilePath.toString()))
+        .thenReturn(Fingerprint.create("s3", nestedFileStatus));
     Mockito.when(mUfs.getStatus(nestedFilePath.toString())).thenReturn(nestedFileStatus);
     Mockito.when(mUfs.isDirectory(nestedFilePath.toString())).thenReturn(false);
     Mockito.when(mUfs.isFile(nestedFilePath.toString())).thenReturn(true);

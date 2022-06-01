@@ -14,7 +14,6 @@ package alluxio.worker.job;
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorkerMonitor;
@@ -39,7 +38,7 @@ public final class AlluxioJobWorkerMonitor {
               AlluxioJobWorkerMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = ConfigurationUtils.defaults();
 
     HealthCheckClient client = new JobWorkerHealthCheckClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC, conf),

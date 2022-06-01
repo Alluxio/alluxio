@@ -55,14 +55,12 @@ Other metrics related to the number of files and the number of blocks
 * Master.TotalPath
 * Master.InodeHeapSize (Estimate only)
 * Master.UniqueBlocks and Master.BlockReplicaCount
-* Master.BlockHeapSize 
-In addition to the total path, the total number of blocks also affects the heap usage, also to a lesser degree. 
+* Master.BlockHeapSize - In addition to the total path, 
+the total number of blocks also affects the heap usage, also to a lesser degree. 
 Be sure to monitor this metric if you expect your total data size to be very large or grow quickly.
-
 * Cluster.CapacityTotal
 * Cluster.CapacityUsed
-* Cluster.CapacityFree
-Monitor if worker capacity is always full, consider more workers if that is the case.
+* Cluster.CapacityFree - Monitor if worker capacity is always full, consider more workers if that is the case.
 
 ### Number of Concurrent Clients
 
@@ -129,7 +127,7 @@ Concurrent clients can be estimated as below. In a deployment with 2 users, 50 P
 * 50 (Presto workers) x 200 (task concurrency) / (50 (workers) x 0.5 (distribution)) = 400
 
 The distribution factor is an estimate of how well the data is distributed among the workers. It can
-be thought of the probability of a random worker being able to serve the data. If all the data is on
+be thought of as the probability of a random worker being able to serve the data. If all the data is on
 one node, the distribution factor is 1 / # workers, if the data is likely to be on half of the
 workers, the distribution factor is 1 / 2, and if the given dataset is likely to be on all workers,
 the distribution factor is 1.
@@ -160,7 +158,28 @@ size must be large enough to fit ALL inodes.
 If using the `ROCKS` off-heap metastore, the master heap size must be large enough to fit the inode
 cache. See the [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }})
 for more information.
- 
+
+Note that the master heap memory is not only allocated to metadata storage but also RPC logic and
+internal management tasks. You should leave sufficient memory to those too.
+The master heap allocation can be abstracted as:
+```
+METADATA_STORAGE_SIZE + RPC_CONSUMPTION + INTERNAL_MGMT_TASKS
+```
+
+The RPC memory consumption varies highly to your workload pattern. In general, below are the known top memory consumers:
+1. Recursive 'rm' operations
+2. Large metadata sync operation, typically triggered by recursive `ls` or `loadMetadata` operations
+3. Worker registration
+4. Small but frequent RPC surges like scanning thousands of files
+
+The internal management tasks typically execute at intervals. On execution, 
+they will scan a number of files and perform certain management operations.
+For example, the ReplicationChecker will regularly scan files in the namespace and check their replica numbers.
+
+It is hard to estimate the memory consumption of `RPC_CONSUMPTION` and `INTERNAL_MGMT_TASKS`.
+A general good start is to leave at least 30% of heap to these two factors, monitor the heap usage
+for a long period of time like a week, adjust accordingly and leave enough buffer for a workload surge.
+
 The following JVM options, set in `alluxio-env.sh`, determine the respective maximum heap sizes for
 the Alluxio master and standby master processes to `256 GB`:
 
@@ -188,7 +207,7 @@ ALLUXIO_JAVA_OPTS+=" -XX:MaxDirectMemorySize=10g "
 ### Number of Cores
 
 The Alluxio Master’s ability to handle concurrent requests and parallelize recursive operations
-(ie. full sync, check consistency) scales with the number of cores available. In addition,
+(i.e. full sync, check consistency) scales with the number of cores available. In addition,
 background processes of the Alluxio Master also require cores.
 
 Alluxio microbenchmarks, show the following operation throughput on 4vCores (r5.xlarge) on the
@@ -239,7 +258,7 @@ example, if Alluxio is run under user `alluxio`: `alluxio soft nproc 4096`.
 example, if Alluxio is run under user `alluxio`: `alluxio soft nofile 4096`.
 - User specific pid_max limit: Run command `sudo echo <new value> > /sys/fs/cgroup/pids/user.slice/user-<userid>.slice/pids.max` as root
 
-These limits are often set for the particular user that launch the Alluxio process.
+These limits are often set for the particular user that launches the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
 as set by `alluxio.master.rpc.executor.max.pool.size`.
 
@@ -311,6 +330,9 @@ nodes (across workers), we recommend having 1 Gbit/s bandwidth (across workers) 
 gives a ratio of at least 10:1. The UFS link throughput can be greatly decreased based on the
 expected cache hit ratio.
 
+You may use the [UfsIOBench]({{ '/en/operation/StressBench.html#ufs-io-bench' | relativize_url }})
+tool to measure the worker-UFS network bandwidth.
+
 ### Disk
 
 The Alluxio worker needs local disk space for writing logs and temporary files to object stores.
@@ -318,8 +340,8 @@ The Alluxio worker needs local disk space for writing logs and temporary files t
 We recommend at least 8 GB of disk space for writing logs. The write speed of the disk should be at
 least 128 MB/s.
 
-We recommend 8 GB + expected number of concurrent writers * max size of file written to object
-stores disk space for writes to an object store. This disk should be a dedicated SSD supporting
+We recommend `8 GB + expected number of concurrent writers * max size of file written to object
+stores disk space` for writes to an object store. This disk should be a dedicated SSD supporting
 512 MB/s read and write.
 
 ### Worker Cache Storage
@@ -359,7 +381,7 @@ The following properties tune RPC retry intervals:
 
 ```properties
 alluxio.user.rpc.retry.max.duration=2min
-alluxio.user.rpc.retry.base.sleep=1s
+alluxio.user.rpc.retry.base.sleep=50ms
 ```
 
 The retry duration and sleep duration should be increased if frequent timeouts are observed
@@ -371,7 +393,7 @@ The Alluxio client can also be configured to check the health of connected worke
 pings.
 This is controlled by the following properties
 ```properties
-alluxio.user.network.streaming.keepalive.time=2h
+alluxio.user.network.streaming.keepalive.time=Long.MAX_VALUE
 alluxio.user.network.streaming.keepalive.timeout=30s
 ```
 `alluxio.user.network.streaming.keepalive.time` controls the maximum wait time since a worker sent the last
@@ -434,8 +456,13 @@ So it is recommended to leave at least 10-15GB for that purpose.
 The Presto coordinator / Spark driver needs sufficient memory to launch and complete queries. 
 So sufficient `COMPUTE_JVM_SIZE` would demand the next highest priority.
 
-The Alluxio master's memory requirement depends on the amount of file metadata.
-See the [Master Heap Size Estimation](#heap-size) section for more details. 
+The Alluxio master's memory requirement depends on the amount of file metadata and workload.
+See the [Master Heap Size Estimation](#heap-size) section for more details.
+If the heap size is sufficient for all the metadata in your namespace, you may put all metadata in
+the heap to achieve the best performance. Otherwise, we recommend using RocksDB as metadata storage
+to reduce the Alluxio master heap consumption. It is wise to always leave enough space to
+prepare for unexpected workload surges. If you are using RocksDB as metadata store but have
+extra space on the heap, you may increase `alluxio.metadata.cache.max.size` to allocate more cache space for the RocksDB.
 
 #### Co-located Workers
 
@@ -454,7 +481,7 @@ because workers tend to have fewer concurrent accesses compared to master.
 But we recommend leaving 10-15 GB at least for this purpose as well. 
 
 The next priority should be `COMPUTE_WORKER_JVM_SIZE`.
-If the compute worker's JVM is too small, some queries will simply fail.
+If the compute worker's JVM heap is too small, some queries will simply fail.
 Unfortunately, it is difficult to know much memory a query will need unless you run it.
 So you should monitor the system while your normal workload runs, in order to get better
 estimations on how much resources the compute worker typically needs.
@@ -610,6 +637,16 @@ That means your Alluxio master process requires tuning.
 You should either increase the resources/concurrency allowed on the master,
 or reduce the pressure.
 
+The master distinguishes the worker by (hostname, ports, domain socket path, tiered identity).
+If any of these attributes change, the master will think the worker is a new one
+and allocate one new worker ID to it.
+Consequently, the "old" worker will be removed and the "new" worker will be added,
+which are expensive metadata updates.
+Therefore, in order to avoid worker starting with different ports, it is recommended to
+configure workers to use static ports. In other words, we do not recommend setting workers to use port 0 like
+`alluxio.worker.rpc.port=0` because the port will be decided dynamically at runtime.
+All port configurations in Alluxio are by default static.
+
 #### Worker-side
 The frequency with which a worker checks in with the master is set by the following property:
 ```properties
@@ -643,10 +680,13 @@ The blocks that belong to pinned files cannot be evicted from the worker.
 In other words, if the worker storage is full, the worker will evict blocks that do not
 belong to pinned files.
 
-Currently the worker will sync with the master on the pinned file list once every 1 second.
+Currently, the worker will sync with the master on the pinned file list once every 1 second.
 ```properties
 alluxio.worker.block.heartbeat.interval.ms=1sec
 ```
 
 If the cluster scale is large or there are many pinned files, this will create significant
-pressure on the master. In that case we recommend to increase this interval.
+pressure on the master. In that case we recommend increasing this interval. 
+The pinned files come from:
+1. Files that are manually pinned using the `alluxio fs pin` command.
+2. Files written with ASYNC_THROUGH are pinned until they are persisted into UFS.

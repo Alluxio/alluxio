@@ -147,10 +147,10 @@ public class BlockTransferPartitioner {
     Set<BlockStoreLocation> dstLocations = new HashSet<>();
     // Iterate and process all transfers.
     for (BlockTransferInfo transferInfo : transferInfos) {
-      if (transferInfo.getSrcLocation().dir() != BlockStoreLocation.ANY_DIR) {
+      if (!transferInfo.getSrcLocation().isAnyDir()) {
         srcAllocatedCount++;
       }
-      if (transferInfo.getDstLocation().dir() != BlockStoreLocation.ANY_DIR) {
+      if (!transferInfo.getDstLocation().isAnyDir()) {
         dstAllocatedCount++;
       }
       srcLocations.add(transferInfo.getSrcLocation());

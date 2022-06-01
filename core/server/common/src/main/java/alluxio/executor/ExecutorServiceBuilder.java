@@ -154,22 +154,4 @@ public class ExecutorServiceBuilder {
       }
     }
   }
-
-  /**
-   * RPC ExecutorService types.
-   */
-  public enum RpcExecutorType {
-    TPE, // ThreadPoolExecutor.
-    FJP  // ForkJoinPool.
-  }
-
-  /**
-   * Internal task queue type for ThreadPoolExecutor.
-   */
-  public enum ThreadPoolExecutorQueueType {
-    LINKED_BLOCKING_QUEUE,          /** {@link LinkedBlockingQueue}. **/
-    LINKED_BLOCKING_QUEUE_WITH_CAP, /** {@link LinkedBlockingQueue}. **/
-    ARRAY_BLOCKING_QUEUE,           /** {@link ArrayBlockingQueue}. **/
-    SYNCHRONOUS_BLOCKING_QUEUE      /** {@link SynchronousQueue}. **/
-  }
 }

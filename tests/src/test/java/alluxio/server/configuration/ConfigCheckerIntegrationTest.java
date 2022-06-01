@@ -86,7 +86,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiMastersEmbeddedHATest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
@@ -121,7 +121,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiNodes() throws Exception {
-    PropertyKey key = PropertyKey.UNDERFS_LISTING_LENGTH;
+    PropertyKey key = PropertyKey.UNDERFS_WEB_CONNECTION_TIMEOUT;
     // Prepare properties
     Map<Integer, Map<PropertyKey, String>> properties = generatePropertyWithDifferentValues(
         TEST_NUM_MASTERS + TEST_NUM_WORKERS, key);

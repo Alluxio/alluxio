@@ -54,7 +54,7 @@ public class S3AUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
-  private static  InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static  InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   private static final String BUCKET_NAME = "bucket";
   private static final String DEFAULT_OWNER = "";
@@ -131,7 +131,7 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void createCredentialsFromConf() throws Exception {
-    Map<PropertyKey, String> conf = new HashMap<>();
+    Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, "key1");
     conf.put(PropertyKey.S3A_SECRET_KEY, "key2");
     try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
@@ -147,7 +147,7 @@ public class S3AUnderFileSystemTest {
   @Test
   public void createCredentialsFromDefault() throws Exception {
     // Unset AWS properties if present
-    Map<PropertyKey, String> conf = new HashMap<>();
+    Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, null);
     conf.put(PropertyKey.S3A_SECRET_KEY, null);
     try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
@@ -179,7 +179,7 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void getPermissionsWithMapping() throws Exception {
-    Map<PropertyKey, String> conf = new HashMap<>();
+    Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=altname");
     try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
       UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
@@ -199,7 +199,7 @@ public class S3AUnderFileSystemTest {
 
   @Test
   public void getPermissionsNoMapping() throws Exception {
-    Map<PropertyKey, String> conf = new HashMap<>();
+    Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=userid");
     try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
       UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);

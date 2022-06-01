@@ -47,7 +47,7 @@ public abstract class AbstractMaster implements Master {
   /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService;
   /** A handler to the journal for this master. */
-  private Journal mJournal;
+  private final Journal mJournal;
   /** true if this master is in primary mode, and not standby mode. */
   private boolean mIsPrimary = false;
 
@@ -134,7 +134,7 @@ public abstract class AbstractMaster implements Master {
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
     // Use the state change lock for the journal context, since all modifications to journaled
-    // state must happen inside of a journal context.
+    // state must happen inside a journal context.
     LockResource sharedLockResource;
     try {
       sharedLockResource = mMasterContext.getStateLockManager().lockShared();

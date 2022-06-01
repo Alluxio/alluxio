@@ -55,7 +55,7 @@ public class DelegatingFileSystem implements FileSystem {
   /**
    * Wraps a file system instance to forward messages.
    *
-   * @param fs the underline file system
+   * @param fs the underlying file system
    */
   public DelegatingFileSystem(FileSystem fs) {
     mDelegatedFileSystem = fs;

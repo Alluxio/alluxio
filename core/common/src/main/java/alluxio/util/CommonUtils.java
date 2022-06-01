@@ -669,12 +669,11 @@ public final class CommonUtils {
 
   /** Alluxio process types. */
   public enum ProcessType {
-    HUB_AGENT,
-    HUB_MANAGER,
     JOB_MASTER,
     JOB_WORKER,
     CLIENT,
     MASTER,
+    PLUGIN,
     PROXY,
     WORKER;
   }
@@ -792,6 +791,7 @@ public final class CommonUtils {
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
       boolean mInitialized;
+      @Override
       public T get() {
         return mDelegate.get();
       }

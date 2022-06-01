@@ -43,6 +43,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
 import alluxio.master.journal.JournalType;
+import alluxio.master.metastore.MetastoreType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
@@ -74,9 +75,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   private static final int WAIT_NODES_REGISTERED_MS = 30000;
 
   @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
+  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
     {
-      put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
+      put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
     }
   }, ServerConfiguration.global());
 
@@ -93,7 +94,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_ZK)
         .setClusterName("backupRestoreZk")
         .setNumMasters(3)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "3sec")
         .build();
@@ -106,10 +107,10 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setClusterName("backupRestoreMetastore_Heap")
         .setNumMasters(1)
         .setNumWorkers(1)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
-        .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -120,10 +121,10 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setClusterName("backupRestoreMetastore_Rocks")
         .setNumMasters(1)
         .setNumWorkers(1)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
-        .addProperty(PropertyKey.MASTER_METASTORE, "ROCKS")
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -134,7 +135,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_EMBEDDED)
         .setClusterName("backupRestoreEmbedded")
         .setNumMasters(3)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .build();
     backupRestoreTest(true);
   }
@@ -144,7 +145,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
         .setNumMasters(1)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .build();
     backupRestoreTest(false);
   }
@@ -155,14 +156,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_DELEGATION_PROTOCOL)
         .setClusterName("backupDelegationProtocol")
         .setNumMasters(3)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         // For faster backup role handshake.
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms")
         // Enable backup delegation
-        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true)
         .build();
 
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
@@ -231,7 +232,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
             .equals(BackupState.Completed);
       } catch (Exception e) {
         throw new RuntimeException(
-            String.format("Unexpected error while getting backup status: %s", e.toString()));
+            String.format("Unexpected error while getting backup status: %s", e));
       }
     });
 
@@ -253,14 +254,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_DELEGATION_FAILOVER_PROTOCOL)
         .setClusterName("backupDelegationFailoverProtocol")
         .setNumMasters(2)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         // For faster backup role handshake.
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms")
         // Enable backup delegation
-        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true)
         // Set backup timeout to be shorter
         .addProperty(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT, "3sec")
         .build();
@@ -290,7 +291,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         return mCluster.getMetaMasterClient().getBackupStatus(backupId);
       } catch (Exception e) {
         throw new RuntimeException(
-            String.format("Unexpected error while getting backup status: %s", e.toString()));
+            String.format("Unexpected error while getting backup status: %s", e));
       }
     }, (backupStatus) -> backupStatus.getError() instanceof BackupAbortedException);
 
@@ -328,11 +329,11 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .newBuilder(PortCoordination.BACKUP_DELEGATION_ZK)
         .setClusterName("backupDelegationZk")
         .setNumMasters(2)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         // Enable backup delegation
-        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true)
         // For faster backup role handshake.
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms");
@@ -345,9 +346,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         MultiProcessCluster.newBuilder(PortCoordination.BACKUP_DELEGATION_EMBEDDED)
             .setClusterName("backupDelegationEmbedded")
             .setNumMasters(2)
-            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
             // Enable backup delegation
-            .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+            .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true)
             // For faster backup role handshake.
             .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
             .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms");
@@ -374,7 +375,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         return false;
       } catch (Exception e2) {
         throw new RuntimeException(
-            String.format("Backup failed with unexpected error: %s", e2.toString()));
+            String.format("Backup failed with unexpected error: %s", e2));
       }
     }, WaitForOptions.defaults());
     return backupUriRef.get();

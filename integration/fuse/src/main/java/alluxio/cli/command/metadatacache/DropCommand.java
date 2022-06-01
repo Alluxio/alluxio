@@ -47,13 +47,15 @@ public final class DropCommand extends AbstractMetadataCacheSubCommand {
 
   @Override
   protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
-      MetadataCachingBaseFileSystem mFileSystem) {
-    mFileSystem.dropMetadataCache(path);
+      MetadataCachingBaseFileSystem fileSystem) {
+    fileSystem.dropMetadataCache(path);
     return new URIStatus(new FileInfo().setCompleted(true));
   }
 
   @Override
   public String getDescription() {
-    return "Clear the specific fuse path metadata cache.";
+    return "Clear the metadata cache of a path and its parents."
+        + "If the given path is a directory, "
+        + "clear the metadata cache of all it's children recursively";
   }
 }

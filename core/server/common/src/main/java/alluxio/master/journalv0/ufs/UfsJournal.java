@@ -139,7 +139,7 @@ public class UfsJournal implements Journal {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = ServerConfiguration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (UfsStatus file : files) {
       if (file.getName().startsWith(formatFilePrefix)) {
         return true;

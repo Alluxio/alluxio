@@ -37,7 +37,7 @@ public final class ConfigurationUtilsTest {
   public void getSingleMasterRpcAddress() {
     AlluxioConfiguration conf = createConf(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "testhost",
-        PropertyKey.MASTER_RPC_PORT, "1000"));
+        PropertyKey.MASTER_RPC_PORT, 1000));
     assertEquals(Arrays.asList(InetSocketAddress.createUnresolved("testhost", 1000)),
         ConfigurationUtils.getMasterRpcAddresses(conf));
   }
@@ -57,7 +57,7 @@ public final class ConfigurationUtilsTest {
     AlluxioConfiguration conf =
         createConf(ImmutableMap.of(
             PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, "host1:99,host2:100",
-            PropertyKey.MASTER_RPC_PORT, "50"));
+            PropertyKey.MASTER_RPC_PORT, 50));
     assertEquals(
         Arrays.asList(InetSocketAddress.createUnresolved("host1", 50),
             InetSocketAddress.createUnresolved("host2", 50)),
@@ -76,7 +76,7 @@ public final class ConfigurationUtilsTest {
   public void getSingleJobMasterRpcAddress() {
     AlluxioConfiguration conf = createConf(ImmutableMap.of(
         PropertyKey.JOB_MASTER_HOSTNAME, "testhost",
-        PropertyKey.JOB_MASTER_RPC_PORT, "1000"));
+        PropertyKey.JOB_MASTER_RPC_PORT, 1000));
     assertEquals(Arrays.asList(InetSocketAddress.createUnresolved("testhost", 1000)),
         ConfigurationUtils.getJobMasterRpcAddresses(conf));
   }
@@ -96,7 +96,7 @@ public final class ConfigurationUtilsTest {
     AlluxioConfiguration conf =
         createConf(ImmutableMap.of(
             PropertyKey.MASTER_RPC_ADDRESSES, "host1:99,host2:100",
-            PropertyKey.JOB_MASTER_RPC_PORT, "50"));
+            PropertyKey.JOB_MASTER_RPC_PORT, 50));
     assertEquals(
         Arrays.asList(InetSocketAddress.createUnresolved("host1", 50),
             InetSocketAddress.createUnresolved("host2", 50)),
@@ -108,7 +108,7 @@ public final class ConfigurationUtilsTest {
     AlluxioConfiguration conf =
         createConf(ImmutableMap.of(
             PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, "host1:99,host2:100",
-            PropertyKey.JOB_MASTER_RPC_PORT, "50"));
+            PropertyKey.JOB_MASTER_RPC_PORT, 50));
     assertEquals(
         Arrays.asList(InetSocketAddress.createUnresolved("host1", 50),
             InetSocketAddress.createUnresolved("host2", 50)),
@@ -153,8 +153,8 @@ public final class ConfigurationUtilsTest {
     assertEquals(Lists.newArrayList("a", "c"), ConfigurationUtils.parseAsList(",,a,,c,,", ","));
   }
 
-  private AlluxioConfiguration createConf(Map<PropertyKey, String> properties) {
-    AlluxioProperties props = ConfigurationUtils.defaults();
+  private AlluxioConfiguration createConf(Map<PropertyKey, Object> properties) {
+    AlluxioProperties props = ConfigurationUtils.copyDefaults();
     for (PropertyKey key : properties.keySet()) {
       props.set(key, properties.get(key));
     }

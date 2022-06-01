@@ -33,31 +33,18 @@ public final class CustomAuthenticationProviderTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * Tests the {@link CustomAuthenticationProvider#CustomAuthenticationProvider(String)}
-   * constructor to throw an exception when the class cannot be found.
-   */
-  @Test
-  public void classNotFound() {
-    String notExistClass = "alluxio.test.custom.provider";
-    mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(notExistClass + " not found");
-    new CustomAuthenticationProvider(notExistClass);
-  }
-
-  /**
-   * Tests the {@link CustomAuthenticationProvider#CustomAuthenticationProvider(String)}
+   * Tests the {@link CustomAuthenticationProvider#CustomAuthenticationProvider(Class)}
    * constructor to throw an exception when the class is not a provider.
    */
   @Test
   public void classNotProvider() {
-    String notProviderClass = CustomAuthenticationProviderTest.class.getName();
     mThrown.expect(RuntimeException.class);
     // Java 11 will add "class" prefix before the class names
     // the following messages support both java 8 and java 11
     mThrown.expectMessage("alluxio.security.authentication.CustomAuthenticationProviderTest "
         + "cannot be cast to ");
     mThrown.expectMessage("alluxio.security.authentication.AuthenticationProvider");
-    new CustomAuthenticationProvider(notProviderClass);
+    new CustomAuthenticationProvider(CustomAuthenticationProviderTest.class);
   }
 
   /**
@@ -66,7 +53,7 @@ public final class CustomAuthenticationProviderTest {
   @Test
   public void mockCustomProvider() {
     CustomAuthenticationProvider provider =
-        new CustomAuthenticationProvider(MockAuthenticationProvider.class.getName());
+        new CustomAuthenticationProvider(MockAuthenticationProvider.class);
     assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 

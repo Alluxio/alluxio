@@ -280,12 +280,4 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     STARTED,
     STOPPED
   }
-
-  /**
-   * Defines supported connection error policies for leader election.
-   */
-  protected enum ZookeeperConnectionErrorPolicy {
-    STANDARD, // Treat each state change as error.
-    SESSION   // Treat state change as error when session is lost.
-  }
 }

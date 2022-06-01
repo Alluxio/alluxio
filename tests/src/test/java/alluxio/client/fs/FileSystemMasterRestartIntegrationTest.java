@@ -91,8 +91,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
-              String.valueOf(TTL_CHECKER_INTERVAL_MS))
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, 1000)
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
@@ -141,7 +140,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
 
     // Add ufs only paths
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "ufs_dir"));
     Files.createFile(Paths.get(ufs, "ufs_file"));
 
@@ -178,7 +177,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     AlluxioURI dir = new AlluxioURI("/dir/");
 
     // Add ufs nested file.
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "dir"));
     Files.createFile(Paths.get(ufs, "dir", "file"));
 

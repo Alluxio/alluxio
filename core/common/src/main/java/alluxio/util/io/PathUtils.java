@@ -143,6 +143,7 @@ public final class PathUtils {
       if (matchedComponents == null) {
         matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
         matchedLen = pathComp.length;
+        continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
@@ -150,6 +151,13 @@ public final class PathUtils {
           matchedLen = i;
           break;
         }
+      }
+      // here, either matchedComponents or pathComp is the prefix of one another,
+      // if pathComp is the prefix of matchedComponents (e.g. pathComp: ["", "a"]
+      // matchedComponents: ["", "a", "b"]), then the lowest common ancestor of
+      // pathComp and current matchedComponents is pathComp (the shorter one).
+      if (matchedLen > pathComp.length) {
+        matchedLen = pathComp.length;
       }
     }
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
@@ -283,17 +291,21 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    String[] pathComponents = getPathComponents(path);
-    String[] prefixComponents = getPathComponents(prefix);
-    if (pathComponents.length < prefixComponents.length) {
+    // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+    path = cleanPath(path);
+    prefix = cleanPath(prefix);
+
+    if (prefix.equals("/")) {
+      return true;
+    }
+    if (!path.startsWith(prefix)) {
       return false;
     }
-    for (int i = 0; i < prefixComponents.length; i++) {
-      if (!pathComponents[i].equals(prefixComponents[i])) {
-        return false;
-      }
-    }
-    return true;
+    return path.length() == prefix.length()  // path == prefix
+        // Include cases like `prefix=/a/b/, path=/a/b/c/`
+        || prefix.endsWith("/")
+        // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
+        || path.charAt(prefix.length()) == '/';
   }
 
   /**

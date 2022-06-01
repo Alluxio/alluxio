@@ -145,7 +145,7 @@ public final class JournalTool {
     if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
       sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
     } else {
-      sInputDir = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+      sInputDir = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();

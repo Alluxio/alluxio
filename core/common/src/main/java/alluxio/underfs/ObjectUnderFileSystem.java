@@ -257,7 +257,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
 
     /**
-     * Get the batch size.
+     * Gets the batch size.
      *
      * @return a positive integer denoting the batch size
      */
@@ -272,7 +272,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     protected abstract List<T> operate(List<T> paths) throws IOException;
 
     /**
-     * Add a new input to be operated on.
+     * Adds a new input to be operated on.
      *
      * @param input the input to operate on
      * @throws IOException if a non-Alluxio error occurs
@@ -944,12 +944,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive);
     // If there are, this is a folder and we can create the necessary metadata
-    if (objs != null && !isRoot(dir)
+    if (objs != null
         && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
       // Do not recreate the breadcrumb if it already exists
       String folderName = convertToFolderName(dir);
-      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled && !isRoot(dir)
           && Arrays.stream(objs.getObjectStatuses()).noneMatch(
               x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
         mkdirsInternal(dir);

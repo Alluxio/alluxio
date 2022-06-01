@@ -96,12 +96,12 @@ public final class FuseShell {
       }
       command.validateArgs(Arrays.copyOfRange(currArgs, 1, currArgs.length));
       return command.run(path, Arrays.copyOfRange(currArgs, 1, currArgs.length));
-    } catch (Exception e) {
+    } catch (InvalidArgumentException e) {
       LOG.info(command.getDescription());
       LOG.info("Usage: " + command.getUsage());
       throw new InvalidArgumentException(String.format("Invalid arguments for command %s, "
               + "For detailed usage please see the log formation above.",
-          command.getCommandName()));
+          command.getCommandName()), e);
     }
   }
 

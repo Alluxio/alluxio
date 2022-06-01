@@ -61,9 +61,9 @@ public final class HadoopConfigurationUtils {
       org.apache.hadoop.conf.Configuration source, AlluxioConfiguration alluxioConf) {
     org.apache.hadoop.conf.Configuration mergedConf = new org.apache.hadoop.conf.Configuration();
     source.forEach((Map.Entry<String, String> e) -> mergedConf.set(e.getKey(), e.getValue()));
-    alluxioConf.copyProperties().forEach((PropertyKey pk, String val) -> {
+    alluxioConf.copyProperties().forEach((PropertyKey pk, Object val) -> {
       if (val != null) {
-        mergedConf.set(pk.getName(), val);
+        mergedConf.set(pk.getName(), String.valueOf(val));
       }
     });
     return mergedConf;

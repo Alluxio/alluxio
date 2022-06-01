@@ -75,9 +75,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to OSS", PropertyKey.OSS_SECRET_KEY);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OSS_ENDPOINT_KEY),
         "Property %s is required to connect to OSS", PropertyKey.OSS_ENDPOINT_KEY);
-    String accessId = conf.get(PropertyKey.OSS_ACCESS_KEY);
-    String accessKey = conf.get(PropertyKey.OSS_SECRET_KEY);
-    String endPoint = conf.get(PropertyKey.OSS_ENDPOINT_KEY);
+    String accessId = conf.getString(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = conf.getString(PropertyKey.OSS_SECRET_KEY);
+    String endPoint = conf.getString(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientBuilderConfiguration ossClientConf = initializeOSSClientConfig(conf);
     OSS ossClient = new OSSClientBuilder().build(endPoint, accessId, accessKey, ossClientConf);
@@ -141,7 +141,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     return new OSSOutputStream(mBucketName, key, mClient,
-        mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+        mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override
@@ -277,7 +277,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf
         .setConnectionTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf.setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setConnectionTTL(alluxioConf.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
+    ossClientConf.setConnectionTTL(alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
   }

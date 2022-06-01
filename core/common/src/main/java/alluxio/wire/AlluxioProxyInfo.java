@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class AlluxioProxyInfo {
-  private Map<String, String> mConfiguration;
+  private Map<String, Object> mConfiguration;
   private long mStartTimeMs;
   private long mUptimeMs;
   private String mVersion;
@@ -35,7 +35,7 @@ public class AlluxioProxyInfo {
   /**
    * @return the configuration
    */
-  public Map<String, String> getConfiguration() {
+  public Map<String, Object> getConfiguration() {
     return mConfiguration;
   }
 
@@ -64,7 +64,7 @@ public class AlluxioProxyInfo {
    * @param configuration the configuration to use
    * @return the Alluxio proxy information
    */
-  public AlluxioProxyInfo setConfiguration(Map<String, String> configuration) {
+  public AlluxioProxyInfo setConfiguration(Map<String, Object> configuration) {
     mConfiguration = configuration;
     return this;
   }

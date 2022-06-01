@@ -77,7 +77,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
       int configWebPort = -1;
       for (Property info : configList) {
         if (info.getName().equals("alluxio.master.web.port")) {
-          configWebPort = Integer.valueOf(info.getValue());
+          configWebPort = Integer.valueOf((String) info.getValue());
         }
       }
       assertEquals(mWebPort, configWebPort);

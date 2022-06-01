@@ -162,11 +162,11 @@ public class GrpcConnectionPool {
     // Assign index within the network group.
     long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
     // Find the next slot index within the group.
-    long maxConnectionsForGroup = conf.getLong(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
+    int maxConnectionsForGroup = conf.getInt(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
         .format(channelKey.getNetworkGroup().getPropertyCode()));
     groupIndex %= maxConnectionsForGroup;
     // Create the connection key for the chosen slot.
-    return new GrpcConnectionKey(channelKey, (int) groupIndex);
+    return new GrpcConnectionKey(channelKey, (int) groupIndex % maxConnectionsForGroup);
   }
 
   /**

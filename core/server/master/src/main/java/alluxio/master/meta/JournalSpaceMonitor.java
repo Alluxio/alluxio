@@ -55,7 +55,7 @@ public class JournalSpaceMonitor implements HeartbeatExecutor {
    * @param configuration the current alluxio configuration
    */
   public JournalSpaceMonitor(AlluxioConfiguration configuration) {
-    this(configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER), configuration.getLong(
+    this(configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER), configuration.getInt(
         PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_PERCENT_FREE_THRESHOLD));
   }
 

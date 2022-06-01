@@ -61,7 +61,7 @@ public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
   private InStreamOptions mOptions;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   @Before
@@ -153,7 +153,7 @@ public class BlockInStreamTest {
   @Test
   public void createShortCircuitDisabled() throws Exception {
     try (Closeable c =
-        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf)
+        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false, mConf)
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));

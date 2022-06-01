@@ -20,6 +20,7 @@ import alluxio.util.ShellUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,8 +49,8 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
     StringBuilder msg = new StringBuilder();
     StringBuilder advice = new StringBuilder();
 
-    String path = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
-    String alias = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
+    List<String> paths = mConf.getList(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
+    String alias = mConf.getString(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals(Constants.MEDIUM_MEM)) {
       msg.append("Top tier storage is not memory, skip validation.");
       return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
@@ -62,22 +63,22 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
               msg.toString(), advice.toString());
     }
 
-    if (path.isEmpty()) {
-      msg.append(String.format("Mount path %s is empty.%n", path));
+    if (paths.isEmpty()) {
+      msg.append("Mount path is empty.%n");
       advice.append(String.format("Please check your configuration %s=%s.%n",
-              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(), path));
+              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, paths));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }
 
-    if (path.split(",").length > 1) {
+    if (paths.size() > 1) {
       msg.append("Multiple storage paths for memory tier found. Skip validation.");
       return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               msg.toString(), advice.toString());
     }
 
+    String path = new AlluxioURI(paths.get(0)).getPath();
     try {
-      path = new AlluxioURI(path).getPath();
       File file = new File(path);
       if (file.exists()) {
         if (!file.isDirectory()) {

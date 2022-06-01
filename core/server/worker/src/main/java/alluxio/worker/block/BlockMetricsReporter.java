@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
+
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -26,8 +26,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
-  private final StorageTierAssoc mStorageTierAssoc;
-
   private static final Counter BLOCKS_ACCESSED
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_ACCESSED.getName());
   private static final Counter BLOCKS_PROMOTED
@@ -45,51 +43,44 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
       MetricsSystem.meterWithTags(MetricKey.WORKER_BLOCKS_EVICTION_RATE.getName(),
         MetricKey.WORKER_BLOCKS_EVICTION_RATE.isClusterAggregated());
 
-  /**
-   * Creates a new instance of {@link BlockMetricsReporter}.
-   */
-  public BlockMetricsReporter() {
-    mStorageTierAssoc = new WorkerStorageTierAssoc();
-  }
-
   @Override
-  public void onAccessBlock(long sessionId, long blockId) {
+  public void onAccessBlock(long blockId) {
     BLOCKS_ACCESSED.inc();
   }
 
   @Override
-  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
-    int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
+    int oldTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(oldLocation.tierAlias());
+    int newTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
       BLOCKS_PROMOTED.inc();
     }
   }
 
   @Override
-  public void onRemoveBlockByClient(long sessionId, long blockId) {
+  public void onRemoveBlockByClient(long blockId) {
     BLOCKS_DELETED.inc();
   }
 
   @Override
-  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
-    int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
+    int oldTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(oldLocation.tierAlias());
+    int newTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
       BLOCKS_PROMOTED.inc();
     }
   }
 
   @Override
-  public void onRemoveBlockByWorker(long sessionId, long blockId) {
+  public void onRemoveBlockByWorker(long blockId) {
     BLOCKS_EVICTED.inc();
     BLOCKS_EVICTION_RATE.mark();
   }
 
   @Override
-  public void onAbortBlock(long sessionId, long blockId) {
+  public void onAbortBlock(long blockId) {
     BLOCKS_CANCELLED.inc();
   }
 

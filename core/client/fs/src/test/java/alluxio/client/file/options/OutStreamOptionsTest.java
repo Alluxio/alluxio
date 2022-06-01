@@ -50,7 +50,7 @@ import javax.security.auth.Subject;
  */
 public class OutStreamOptionsTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   /**
    * A mapping from a user to its corresponding group.
@@ -73,7 +73,7 @@ public class OutStreamOptionsTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
   }
 
   /**
@@ -99,7 +99,7 @@ public class OutStreamOptionsTest {
     assertEquals("test_user", options.getOwner());
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
-        mConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
+        mConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
     assertEquals(Constants.NO_TTL, options.getCommonOptions().getTtl());
     assertEquals(TtlAction.DELETE, options.getCommonOptions().getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());

@@ -49,11 +49,11 @@ public abstract class PageStoreOptions {
             storeType.name()));
     }
     List<Path> rootDir = PageStore.getStorePath(
-        storeType, conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+        storeType, conf.getString(PropertyKey.USER_CLIENT_CACHE_DIR));
     options.setRootDirs(rootDir)
         .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE))
-        .setAlluxioVersion(conf.get(PropertyKey.VERSION))
+        .setAlluxioVersion(conf.getString(PropertyKey.VERSION))
         .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
         .setTimeoutThreads(conf.getInt(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_THREADS));
     if (conf.isSet(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD)) {

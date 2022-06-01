@@ -174,6 +174,15 @@ public abstract class Parameters {
   }
 
   /**
+   * Notice the function name can't be getOperation since Jackson would transfer this function in to
+   * json value, break Parameter serialization and cause serialization error.
+   * @return the Operation Enum
+   */
+  public Enum<?> operation() {
+    throw new UnsupportedOperationException("operation method is not implemented");
+  }
+
+  /**
    * This annotation defines readable descriptions boolean parameters.
    */
   @Retention(RetentionPolicy.RUNTIME)

@@ -13,7 +13,7 @@ package alluxio.job.util;
 
 import alluxio.Constants;
 import alluxio.client.Cancelable;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
@@ -165,18 +165,18 @@ public final class JobUtils {
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
     // Set read location policy always to local first for loading blocks for job tasks
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
-        LocalFirstPolicy.class.getCanonicalName(), conf));
+        LocalFirstPolicy.class, conf));
 
     OutStreamOptions outOptions = OutStreamOptions.defaults(context.getClientContext());
     outOptions.setMediumType(medium);
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
-        LocalFirstPolicy.class.getCanonicalName(), conf));
+        LocalFirstPolicy.class, conf));
 
     BlockInfo blockInfo = status.getBlockInfo(blockId);
     Preconditions.checkNotNull(blockInfo, "Can not find block %s in status %s", blockId, status);
     long blockSize = blockInfo.getLength();
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    BlockStoreClient blockStore = BlockStoreClient.create(context);
     try (OutputStream outputStream =
         blockStore.getOutStream(blockId, blockSize, localNetAddress, outOptions)) {
       try (InputStream inputStream = blockStore.getInStream(blockId, inOptions)) {
@@ -195,12 +195,12 @@ public final class JobUtils {
   private static void loadThroughCacheRequest(URIStatus status, FileSystemContext context,
       long blockId, AlluxioConfiguration conf, WorkerNetAddress localNetAddress)
       throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
     BlockLocationPolicy policy =
-        BlockLocationPolicy.Factory.create(LocalFirstPolicy.class.getCanonicalName(), conf);
+        BlockLocationPolicy.Factory.create(LocalFirstPolicy.class, conf);
     inOptions.setUfsReadLocationPolicy(policy);
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = inOptions.getOpenUfsBlockOptions(blockId);
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
@@ -227,12 +227,12 @@ public final class JobUtils {
 
   private static void loadThroughRead(URIStatus status, FileSystemContext context, long blockId,
       AlluxioConfiguration conf) throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    BlockStoreClient blockStore = BlockStoreClient.create(context);
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
-        LocalFirstPolicy.class.getCanonicalName(), conf));
+        LocalFirstPolicy.class, conf));
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
     try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
       while (inputStream.read(sIgnoredReadBuf) != -1) {}

@@ -14,12 +14,12 @@ priority: 2
 Alluxio 2.1.0 introduced a new service within Alluxio called the Alluxio Catalog Service.
 The Alluxio Catalog Service is a service for managing access to structured data, which serves a
 purpose similar to the
-[Apache Hive Metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore)
+[Apache Hive Metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore).
 
 SQL engines like Presto, SparkSQL, and Hive, leverage these metastore-like
 services to determine which, and how much data to read when executing queries.
 They store information about different database catalogs, tables, storage formats, data
-location, and more.
+locations, and more.
 The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and
 serve structured table metadata to Presto query engines, e.g.[PrestoDB](https://prestodb.io/), 
 [Trino](https://trino.io/) and [Starburst Presto](https://starburstdata.com).
@@ -32,7 +32,7 @@ The service itself is not responsible for retaining all data, but is rather a ca
 metadata that originates in another location (i.e. MySQL, Hive).
 The locations where the metadata originates from are called **UDBs** (**U**nder **D**ata**B**ase).
 UDBs are responsible for the management and storage of the metadata.
-Currently, Hive is the only supported UDB.
+Currently, Hive and Glue are supported UDBs.
 The Alluxio Catalog Service caches and makes the metadata available universally through the Alluxio
 filesystem namespace.
 
@@ -225,7 +225,7 @@ For the previous examples, to detach we would run:
 $ ${ALLUXIO_HOME}/bin/alluxio table detachdb alluxio_db
 ```
 
-Running `alluxio table ls` afterwards will not display the database any more.
+Running `alluxio table ls` afterward will not display the database anymore.
 
 ### Syncing databases
 
@@ -310,7 +310,7 @@ $ JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64" ${PRESTO_HOME}/bin/launcher sta
 ```
 
 ### Update Alluxio client library to the lastest version
-Both PrestoDb and Trino now includes Alluxio's client library in their release. 
+Both PrestoDb and Trino now include Alluxio's client library in their release. 
 However, the version included in those releases may not be the latest version.
 To update the client library to the latest version, first remove the old alluxio client library from `${PRESTO_HOME}/plugin/hive-hadoop2/` directory.
 Then you can follow 

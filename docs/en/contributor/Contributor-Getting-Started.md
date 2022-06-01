@@ -91,7 +91,7 @@ $ mvn clean install
 
 This will build Alluxio, resulting in a series of compiled jars,
 as well as run all checks and tests.
-Depending on your hardware, this may take anywhere form several minutes to half an hour to finish.
+Depending on your hardware, this may take anywhere from several minutes to half an hour to finish.
 
 To only recompile and skip running all the checks and tests, run:
 

@@ -28,7 +28,7 @@ import java.io.IOException;
 
 public class PathTranslatorTest {
   private static final String MASTER_HOSTNAME = "master";
-  private static final String MASTER_RPC_PORT = "11111";
+  private static final int MASTER_RPC_PORT = 11111;
   private static final String ALLUXIO_URI_AUTHORITY = "alluxio://" + MASTER_HOSTNAME;
   private static final String ALLUXIO_URI_AUTHORITY_WITH_PORT =
       ALLUXIO_URI_AUTHORITY + ":" + MASTER_RPC_PORT;

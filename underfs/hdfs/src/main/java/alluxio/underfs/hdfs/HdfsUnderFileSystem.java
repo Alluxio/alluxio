@@ -144,7 +144,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs is not supported, "
+          + "Please upgrade to an HDFS version > 2.4 to enable support for ACL");
+      LOG.debug("Exception:", e);
     }
     mHdfsAclProvider = hdfsAclProvider;
 
@@ -219,8 +221,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     } catch (Exception e) {
       // ignore
-      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider."
-          + "HDFS ActiveSync will not be supported.");
+      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
+          + "HDFS ActiveSync will not be supported. "
+          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
+      LOG.debug("Exception:", e);
     }
 
     mHdfsActiveSyncer = hdfsActiveSyncProvider;
@@ -249,7 +253,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    for (String path : conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
+    for (String path : conf.getString(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
       if (!path.isEmpty()) {
         hdfsConf.addResource(new Path(path));
       }
@@ -259,7 +263,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = conf.get(PropertyKey.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = conf.getString(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hdfsConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
@@ -270,8 +274,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
     // Set all parameters passed through --option
-    for (Map.Entry<String, String> entry : conf.getMountSpecificConf().entrySet()) {
-      hdfsConf.set(entry.getKey(), entry.getValue());
+    for (Map.Entry<String, Object> entry : conf.getMountSpecificConf().entrySet()) {
+      hdfsConf.set(entry.getKey(),
+          entry.getValue() == null ? null : entry.getValue().toString());
     }
     return hdfsConf;
   }
@@ -374,7 +379,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       throws IOException {
     // If the user has hinted the underlying storage nodes are not co-located with Alluxio
     // workers, short circuit without querying the locations.
-    if (Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_HDFS_REMOTE))) {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
       return null;
     }
     FileSystem hdfs = getFs();
@@ -510,8 +515,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         || !mUfsConf.isSet(PropertyKey.MASTER_PRINCIPAL)) {
       return;
     }
-    String masterKeytab = mUfsConf.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
-    String masterPrincipal = mUfsConf.get(PropertyKey.MASTER_PRINCIPAL);
+    String masterKeytab = mUfsConf.getString(PropertyKey.MASTER_KEYTAB_KEY_FILE);
+    String masterPrincipal = mUfsConf.getString(PropertyKey.MASTER_PRINCIPAL);
 
     login(PropertyKey.MASTER_KEYTAB_KEY_FILE, masterKeytab, PropertyKey.MASTER_PRINCIPAL,
         masterPrincipal, host);
@@ -523,8 +528,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         || !mUfsConf.isSet(PropertyKey.WORKER_PRINCIPAL)) {
       return;
     }
-    String workerKeytab = mUfsConf.get(PropertyKey.WORKER_KEYTAB_FILE);
-    String workerPrincipal = mUfsConf.get(PropertyKey.WORKER_PRINCIPAL);
+    String workerKeytab = mUfsConf.getString(PropertyKey.WORKER_KEYTAB_FILE);
+    String workerPrincipal = mUfsConf.getString(PropertyKey.WORKER_PRINCIPAL);
 
     login(PropertyKey.WORKER_KEYTAB_FILE, workerKeytab, PropertyKey.WORKER_PRINCIPAL,
         workerPrincipal, host);

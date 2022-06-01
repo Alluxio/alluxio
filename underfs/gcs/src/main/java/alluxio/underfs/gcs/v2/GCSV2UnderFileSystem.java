@@ -77,7 +77,7 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     GoogleCredentials credentials;
     if (conf.isSet(PropertyKey.GCS_CREDENTIAL_PATH)) {
-      String credsPath = conf.get(PropertyKey.GCS_CREDENTIAL_PATH);
+      String credsPath = conf.getString(PropertyKey.GCS_CREDENTIAL_PATH);
       credentials = GoogleCredentials
           .fromStream(new FileInputStream(credsPath))
           .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
@@ -91,14 +91,14 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
     Storage storage = StorageOptions.newBuilder().setRetrySettings(
         RetrySettings.newBuilder()
             .setInitialRetryDelay(
-                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)))
+                Duration.ofMillis(conf.getMs(PropertyKey.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)))
             .setMaxRetryDelay(
-                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_MAX_DELAY_MS)))
+                Duration.ofMillis(conf.getMs(PropertyKey.UNDERFS_GCS_RETRY_MAX_DELAY_MS)))
             .setRetryDelayMultiplier(
                 conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER))
             .setMaxAttempts(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_MAX))
             .setTotalTimeout(
-                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)))
+                Duration.ofMillis(conf.getMs(PropertyKey.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)))
             .setJittered(conf.getBoolean(PropertyKey.UNDERFS_GCS_RETRY_JITTER))
             .build())
         .setCredentials(credentials).build().getService();
@@ -191,7 +191,7 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return mUfsConf.get(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
+    return mUfsConf.getString(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
   }
 
   @Override
@@ -285,7 +285,7 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectPermissions getPermissions() {
     // TODO(lu) inherit acl
     return new ObjectPermissions("", "",
-        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_GCS_DEFAULT_MODE)).toShort());
+        ModeUtils.getUMask(mUfsConf.getString(PropertyKey.UNDERFS_GCS_DEFAULT_MODE)).toShort());
   }
 
   @Override

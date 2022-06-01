@@ -35,7 +35,7 @@ with Alluxio Master RPC processes.
 with Alluxio Worker RPC processes.
 + 30000 for the IP address of your browser:  Allow you to access the Alluxio worker web UI.
 
-To set up Docker after provisioning the instance, which will be referred as the Docker Host, run
+To set up Docker after provisioning the instance, which will be referred to as the Docker Host, run
 
 ```console
 $ sudo yum install -y docker
@@ -51,12 +51,12 @@ $ exit
 
 ## Prepare Docker Volume to Persist Data
 
-By default all files created inside a container are stored on a writable container layer.
+By default, all files created inside a container are stored on a writable container layer.
 The data doesn’t persist when that container no longer exists. [Docker volumes](https://docs.docker.com/storage/volumes/)
 are the preferred way to save data outside the containers. The following two types of Docker volumes are used the most:
 
 + **Host Volume**: You manage where in the Docker host's file system to store and share the
-containers data. To create a host volume, include the following when launching your containers:
+containers' data. To create a host volume, include the following when launching your containers:
 
   ```console
   $ docker run -v /path/on/host:/path/in/container ...
@@ -77,7 +77,7 @@ To create a named volume, first run:
 Either host volume or named volume can be used for Alluxio containers. For purpose of test,
 the host volume is recommended, since it is the easiest type of volume
 to use and very performant. More importantly, you know where to refer to the data in the host
-file system and you can manipulate the files directly and easily outside the containers.
+file system, and you can manipulate the files directly and easily outside the containers.
 
 For example, we will use the host volume and mount the host directory `/tmp/alluxio_ufs` to the
 container location `/opt/alluxio/underFSStorage`, which is the default setting for the
@@ -96,7 +96,7 @@ Please make sure the host volume is writable by the user the Docker image is run
 ## Launch Alluxio Containers for Master and Worker
 
 The Alluxio clients (local or remote) need to communicate with
-both Alluxio master and workers. Therefore it is important to make sure clients can reach
+both Alluxio master and workers. Therefore, it is important to make sure clients can reach
 both of the following services:
 
 + Master RPC on port 19998
@@ -116,7 +116,7 @@ There are two ways to launch Alluxio Docker containers on the Docker host:
 Host network shares ip-address and networking namespace between the container and the Docker host.
 User-defined bridge network allows containers connected to communicate,
 while providing isolation from containers not connected to that bridge network.
-It is recommended to use host network, option A, for testing.
+It is recommended to use host network, option 1, for testing.
 
 {% navtabs network %}
 {% navtab Using Host Network %}
@@ -218,7 +218,7 @@ $ docker run -d --rm \
 
 Notes:
 
-  1. The argument `--net=alluxio_network` tells Docker to use the user-defined bridge network ```alluxio_network```.
+  1. The argument `--net=alluxio_network` tells Docker to use the user-defined bridge network `alluxio_network`.
      All containers will use their own container IDs as their hostname, and each of them has a different IP
      address within the network's subnet.
      Containers connected to the same user-defined bridge network effectively expose all ports to each other,
@@ -345,17 +345,17 @@ $ docker run -d \
   -e ALLUXIO_JAVA_OPTS=" \
     -Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 \
     -Dalluxio.master.hostname=master-hostname-1" \
-  alluxio master
+  alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
 ```
 
-Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
+Set the master rpc addresses for all the workers so that they can query the master nodes to find out the leader master.
 
 ```console
 $ docker run -d \
   ...
   -e ALLUXIO_JAVA_OPTS=" \
     -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998" \
-  alluxio worker
+  alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
 You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#raft-based-embedded-journal' | relativize_url }}).
@@ -376,7 +376,7 @@ $ docker run -d \
     -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal \
     -Dalluxio.zookeeper.enabled=true \
     -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
-  alluxio master
+  alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
 ```
 
 Set the same Zookeeper configuration for workers so that they can query Zookeeper
@@ -388,7 +388,7 @@ $ docker run -d \
   -e ALLUXIO_JAVA_OPTS="
     -Dalluxio.zookeeper.enabled=true \
     -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
-  alluxio worker
+  alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} worker
 ```
 
 You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#zookeeper-and-shared-journal-storage' | relativize_url }}).
@@ -411,19 +411,11 @@ You can find more details about the worker storage [here]({{ '/en/core-services/
 ### Enable POSIX API access
 
 Alluxio POSIX access is implemented via FUSE.
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
-There are two options to enable POSIX access to Alluxio in a docker environment.
+There are two options to enable POSIX accesses to Alluxio in a docker environment.
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}#fuse-on-worker-process) provides more details about how to configure Alluxio POSIX API.
 
-+ Option1: Enable FUSE support when running a worker container, or
-+ Option2: Run a standalone Alluxio FUSE container.
-
-Enabling FUSE on a worker container may yield easier deployment and higher performance
-as it only requires setting a property `alluxio.worker.fuse.enabled=true`,
-and introduces no network communication between FUSE service and Alluxio worker on local cache hit.
-However, current worker only supports one mount point for Alluxio service, and users must start or
-stop this worker container in order to start or stop FUSE service.
-Using standalone FUSE can be a complementary approach to provide the translation between POSIX and
-Alluxio on hosts without adding resources required to run workers.
++ Option1: Run a standalone Alluxio FUSE container, or
++ Option2: Enable FUSE support when running a worker container.
 
 First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/) in the Alluxio FUSE container:
 ```console
@@ -431,6 +423,37 @@ $ mkdir -p /tmp/mnt && sudo chmod -R a+rwx /tmp/mnt
 ```
 
 {% navtabs Fuse-docker %}
+{% navtab Standalone FUSE %}
+
+The original [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) has been deprecated. Now you can enable access to Alluxio on Docker host using the POSIX API by [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker image, the same one used for launching Alluxio master and worker.
+
+For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
+
+Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
+```console
+$ docker run -d --rm \
+    --net=host \
+    --name=alluxio-fuse \
+    -v /tmp/mnt:/mnt:rshared \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=localhost" \
+    -e ALLUXIO_FUSE_JAVA_OPTS=" \
+        -Dalluxio.fuse.mount.point=/mnt/alluxio-fuse \
+        -Dalluxio.fuse.mount.alluxio.path=/ \
+        -Dalluxio.fuse.mount.options=kernel_cache" \
+    --cap-add SYS_ADMIN \
+    --device /dev/fuse \
+    --security-opt apparmor:unconfined \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
+```
+
+Notes
+- `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
+To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
+- `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+capability.
+- `--device /dev/fuse` shares host device `/dev/fuse` with the container.
+
+{% endnavtab %}
 {% navtab FUSE on worker %}
 
 When running a worker container, specifying FUSE enabled:
@@ -454,13 +477,14 @@ $ docker run -d \
 
 Notes
 - `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
-To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
+  To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
 - `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
-capability.
+  capability.
 - `--device /dev/fuse` shares host device `/dev/fuse` with the container.
 - Property `alluxio.worker.fuse.enabled=true` enables FUSE support on this worker.
-The default fuse mount point is `/mnt/alluxio-fuse` in the worker container which will be created at runtime if not exist.
-To change the fuse mount point, specify `alluxio.worker.fuse.mount.point=<mount_point>`.
+  The default fuse mount point is `/mnt/alluxio-fuse` in the worker container which will be created at runtime if not exist.
+  See [Fuse on worker process]({{ '/en/api/POSIX-API.html' | relativize_url }}#fuse-on-worker-process)
+  for more details about how to modify the mount configuration.
 
 Once this container is launched successfully, one can access Alluxio via host path `/tmp/mnt/alluxio-fuse`.
 This is because local path `/mnt` in worker container is mapped to host path `/tmp/mnt`,
@@ -468,41 +492,11 @@ and mount point of Alluxio service is `/mnt/alluxio-fuse`, mapped to host path
 `/tmp/mnt/alluxio-fuse`.
 
 {% endnavtab %}
-{% navtab Standalone FUSE %}
-
-The original [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) has been deprecated. Now you can enable access to Alluxio on Docker host using the POSIX API by [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker image, the same one used for launching Alluxio master and worker.
-
-For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
-
-Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
-```console
-$ docker run -d --rm \
-    --net=host \
-    --name=alluxio-fuse \
-    -v /tmp/mnt:/mnt:rshared \
-    -e "ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=localhost" \
-    --cap-add SYS_ADMIN \
-    --device /dev/fuse \
-    --security-opt apparmor:unconfined \
-    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
-```
-
-Notes
-- `-v /tmp/mnt:/mnt:rshared` binds path `/mnt/alluxio-fuse` the default directory to Alluxio through fuse inside the container, to a mount accessible at `/tmp/mnt/alluxio-fuse` on host.
-To change this path to `/foo/bar/alluxio-fuse` on host file system, replace `/tmp/mnt` with `/foo/bar`.
-- `--cap-add SYS_ADMIN` launches the container with [SYS_ADMIN](http://man7.org/linux/man-pages/man7/capabilities.7.html)
-capability.
-- `--device /dev/fuse` shares host device `/dev/fuse` with the container.
-
-{% endnavtab %}
 {% endnavtabs %}
 
-Additional POSIX API configuration can also be added based on actual use cases.
-For example,
-- `-e "ALLUXIO_JAVA_OPTS="-Dalluxio.fuse.user.group.translation.enabled=true"` add alluxio client/fuse side configuration
-to Alluxio POSIX API container. The example java opts enables translating Alluxio users and groups
-into Unix users and groups when exposing Alluxio files through the FUSE API.
-- `--fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200` add fuse mount options.
+See [Fuse configuration]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-alluxio-fuse-options)
+and [Fuse mount options]({{ '/en/api/POSIX-API.html' | relativize_url }}#configure-mount-point-options)
+for more details about how to modify the Fuse mount configuration.
 
 ## Performance Optimization
 
@@ -512,7 +506,7 @@ If your application pods will run on the same host as your Alluxio worker pods,
 performance can be greatly improved by enabling short-circuit reads and writes.
 This allows applications to read from and write to their
 local Alluxio worker without going over the loopback network.
-In dockerized enviroments, there are two ways to enable short-circuit reads and writes in Alluxio.
+In dockerized environments, there are two ways to enable short-circuit reads and writes in Alluxio.
 
 + Option1: use [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) or
 + Option2: use [shared volumes](https://docs.docker.com/storage/volumes/).
@@ -551,8 +545,8 @@ $ docker run -d \
 {% navtab Shared volume %}
 
 When starting both workers and clients, run their docker containers with the worker storage as shared volumes across host, worker and client pods.
-With default Alluxio setting on docker,  `MEM` is the main storage on host path `/dev/shm`.
-In this case, pass  `-v /dev/shm:/dev/shm` when running both containers so both worker and clients and access this path directly.
+With default Alluxio setting on docker, `MEM` is the main storage on host path `/dev/shm`.
+In this case, pass `-v /dev/shm:/dev/shm` when running both containers so both worker and clients can access this path directly.
 
 For example, run worker container using:
 
@@ -571,10 +565,18 @@ To run application containers, also pass `alluxio.user.hostname=<host ip>`.
 
 ## Troubleshooting
 
-Alluxio server logs can be accessed by running `docker logs $container_id`.
+If the Alluxio servers are not able to be launched, remove the `-d` when running the `docker run` command
+so that the processes can be launched in the foreground and the console output can provide some helpful information.
+
+If the Alluxio servers are launched, their logs can be accessed by running `docker logs $container_id`.
 Usually the logs will give a good indication of what is wrong. If they are not enough to diagnose
 your issue, you can get help on the
-[user mailing list](https://groups.google.com/forum/#!forum/alluxio-users).
+[user mailing list](https://groups.google.com/forum/#!forum/alluxio-users)
+or [github issues](https://github.com/Alluxio/alluxio/issues).
+
+Logging can also have a performance impact if sufficiently verbose.
+You can [disable or redirect logging]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
+to mitigate this problem.
 
 ## FAQ
 

@@ -959,7 +959,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       // Check fingerprint.
       UnderFileSystem ufs = UnderFileSystem.Factory.create(uriStatus.getUfsPath(),
           ServerConfiguration.global());
-      String ufsFingerprint = ufs.getFingerprint(uriStatus.getUfsPath());
+      String ufsFingerprint = ufs.getParsedFingerprint(uriStatus.getUfsPath()).serialize();
       String alluxioFingerprint = uriStatus.getUfsFingerprint();
       if (!ufsFingerprint.equals(alluxioFingerprint)) {
         Assert.fail(

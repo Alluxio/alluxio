@@ -27,7 +27,7 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=2.8.0-SNAPSHOT
+VERSION=2.9.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -153,14 +153,6 @@ if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; t
 fi
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS="${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}"
 
-# Alluxio Hub specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_HUB_AGENT_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_HUB_AGENT_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_AGENT_LOGGER:-HUB_AGENT_LOGGER}"
-ALLUXIO_HUB_MANAGER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_HUB_MANAGER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_MANAGER_LOGGER:-HUB_MANAGER_LOGGER}"
-ALLUXIO_HUB_HOSTED_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_HUB_HOSTED_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_HUB_HOSTED_LOGGER:-HUB_HOSTED_LOGGER}"
-
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
@@ -176,7 +168,7 @@ fi
 ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}"
 
 # FUSE specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=FUSE_LOGGER -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
+ALLUXIO_FUSE_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=FUSE_LOGGER -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
 ALLUXIO_FUSE_JAVA_OPTS="${ALLUXIO_FUSE_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS}"
 
 # Log server specific parameters that will be passed to alluxio log server

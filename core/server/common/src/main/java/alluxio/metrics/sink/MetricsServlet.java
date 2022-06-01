@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @NotThreadSafe
 public class MetricsServlet implements Sink {
-  private static final String SERVLET_PATH = "/metrics/json";
+  public static final String SERVLET_PATH = "/metrics/json";
 
   private MetricRegistry mMetricsRegistry;
   private ObjectMapper mObjectMapper;

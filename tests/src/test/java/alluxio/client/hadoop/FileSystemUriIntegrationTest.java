@@ -48,7 +48,7 @@ public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ZookeeperUriFileSystemIntegrationTest")
         .setNumMasters(3)
         .setNumWorkers(2)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .build();
     mCluster.start();
     // Get the zookeeper address
@@ -65,7 +65,7 @@ public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
         .setClusterName("MultiMastersUriFileSystemIntegrationTest")
         .setNumMasters(3)
         .setNumWorkers(1)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
         .build();
     mCluster.start();
     // Get master rpc addresses

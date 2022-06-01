@@ -17,7 +17,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -105,7 +104,7 @@ public interface FileSystem extends Closeable {
      * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get(Subject subject) {
-      return get(subject, new InstancedConfiguration(ConfigurationUtils.defaults()));
+      return get(subject, ConfigurationUtils.defaults());
     }
 
     /**
@@ -120,6 +119,13 @@ public interface FileSystem extends Closeable {
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key);
+    }
+
+    /**
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create() {
+      return create(FileSystemContext.create());
     }
 
     /**
@@ -149,7 +155,7 @@ public interface FileSystem extends Closeable {
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
-          String value = conf.getOrDefault(key, null);
+          Object value = conf.getOrDefault(key, null);
           Source source = conf.getSource(key);
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }

@@ -31,11 +31,13 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
@@ -50,6 +52,7 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
+import alluxio.master.job.tracker.CmdJobTracker;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -75,8 +78,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -157,6 +162,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   /** Log writer for user access audit log. */
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
+  /** Distributed command job tracker. */
+  private CmdJobTracker mCmdJobTracker;
+
   /**
    * Creates a new instance of {@link JobMaster}.
    *
@@ -175,12 +183,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkflowTracker = new WorkflowTracker(this);
 
     mPlanTracker = new PlanTracker(
-        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY),
         ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();
+
+    mCmdJobTracker = new CmdJobTracker(
+            fsContext, this);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOB_COUNT.getName(),
@@ -300,6 +311,33 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * Submit a job with the given configuration.
+   *
+   * @param cmdConfig the CMD configuration
+   * @return the job control id tracking the progress
+   * @throws JobDoesNotExistException   when the job doesn't exist
+   * @throws ResourceExhaustedException if the job master is too busy to run the job
+   */
+  public synchronized long submit(CmdConfig cmdConfig)
+      throws JobDoesNotExistException, IOException {
+    long jobControlId = getNewJobId();
+    // This RPC service implementation triggers another RPC.
+    // Run the implementation under forked context to avoid interference.
+    // Then restore the current context at the end.
+    Context forkedCtx = Context.current().fork();
+    Context prevCtx = forkedCtx.attach();
+    try (JobMasterAuditContext auditContext =
+         createAuditContext("run")) {
+      auditContext.setJobId(jobControlId);
+      mCmdJobTracker.run(cmdConfig, jobControlId);
+    } finally {
+      forkedCtx.detach(prevCtx);
+    }
+
+    return jobControlId;
+  }
+
+  /**
    * Cancels a job.
    *
    * @param jobId the id of the job
@@ -323,6 +361,19 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * Get command status.
+   * @param jobControlId
+   * @return status of a distributed commmand
+   */
+  public Status getCmdStatus(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getCmdStatus")) {
+      auditContext.setJobId(jobControlId);
+      return mCmdJobTracker.getCmdStatus(jobControlId);
+    }
+  }
+
+  /**
    * @return list of all job ids
    * @param options listing options
    */
@@ -339,6 +390,62 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               .map(status -> Status.valueOf(status.name()))
               .collect(Collectors.toList())));
       Collections.sort(ids);
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return list of all command ids
+   * @param options listing options (using existing options)
+   */
+  public List<Long> listCmds(ListAllPOptions options) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("listCmds")) {
+      List<Long> ids = new ArrayList<>();
+      ids.addAll(mCmdJobTracker.findCmdIds(
+              options.getStatusList().stream()
+                      .map(status -> Status.valueOf(status.name()))
+                      .collect(Collectors.toList())));
+      Collections.sort(ids);
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return get a detailed status information for a command
+   * @param jobControlId job control ID of a command
+   */
+  public CmdStatusBlock getCmdStatusDetailed(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getCmdStatusDetailed")) {
+      return mCmdJobTracker.getCmdStatusBlock(jobControlId);
+    }
+  }
+
+  /**
+   * @return all failed paths
+   */
+  public Set<String> getAllFailedPaths() {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getAllFailedPaths")) {
+      Set<String> ids = new HashSet<>();
+      ids.addAll(mCmdJobTracker.findAllFailedPaths());
+      auditContext.setSucceeded(true);
+      return ids;
+    }
+  }
+
+  /**
+   * @return get failed paths for a command
+   * @param jobControlId job control id
+   */
+  public Set<String> getFailedPaths(long jobControlId) throws JobDoesNotExistException {
+    try (JobMasterAuditContext auditContext =
+                 createAuditContext("getFailedPaths")) {
+      Set<String> ids = new HashSet<>();
+      ids.addAll(mCmdJobTracker.findFailedPaths(jobControlId));
       auditContext.setSucceeded(true);
       return ids;
     }

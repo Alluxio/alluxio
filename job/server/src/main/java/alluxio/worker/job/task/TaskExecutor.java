@@ -12,6 +12,7 @@
 package alluxio.worker.job.task;
 
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.CancelledException;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
@@ -85,7 +86,7 @@ public final class TaskExecutor implements Runnable {
     Serializable result;
     try {
       result = definition.runTask(jobConfig, taskArgs, mContext);
-    } catch (InterruptedException e) {
+    } catch (InterruptedException | CancelledException e) {
       // Cleanup around the interruption should already have been handled by a different thread
       Thread.currentThread().interrupt();
       return;

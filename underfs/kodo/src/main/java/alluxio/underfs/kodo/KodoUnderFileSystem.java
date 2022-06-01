@@ -71,10 +71,10 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
         "Property %s is required to connect to Kodo", PropertyKey.KODO_DOWNLOAD_HOST);
     Preconditions.checkArgument(conf.isSet(PropertyKey.KODO_ENDPOINT),
         "Property %s is required to connect to Kodo", PropertyKey.KODO_ENDPOINT);
-    String accessKey = conf.get(PropertyKey.KODO_ACCESS_KEY);
-    String secretKey = conf.get(PropertyKey.KODO_SECRET_KEY);
-    String endPoint = conf.get(PropertyKey.KODO_ENDPOINT);
-    String souceHost = conf.get(PropertyKey.KODO_DOWNLOAD_HOST);
+    String accessKey = conf.getString(PropertyKey.KODO_ACCESS_KEY);
+    String secretKey = conf.getString(PropertyKey.KODO_SECRET_KEY);
+    String endPoint = conf.getString(PropertyKey.KODO_ENDPOINT);
+    String souceHost = conf.getString(PropertyKey.KODO_DOWNLOAD_HOST);
     Auth auth = Auth.create(accessKey, secretKey);
     Configuration configuration = new Configuration();
     OkHttpClient.Builder okHttpBuilder = initializeKodoClientConfig(conf);
@@ -129,7 +129,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
 
   @Override

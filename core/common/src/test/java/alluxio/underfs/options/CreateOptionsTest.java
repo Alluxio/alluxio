@@ -40,7 +40,7 @@ public final class CreateOptionsTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**
@@ -54,7 +54,7 @@ public final class CreateOptionsTest {
     assertFalse(options.isEnsureAtomic());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    String umask = mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String umask = mConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(), umask), options.getMode());
   }
 
@@ -64,7 +64,7 @@ public final class CreateOptionsTest {
    */
   @Test
   public void securityEnabled() throws IOException {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
     mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
@@ -76,7 +76,7 @@ public final class CreateOptionsTest {
     assertFalse(options.isEnsureAtomic());
     assertNull(options.getOwner());
     assertNull(options.getGroup());
-    String umask = mConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String umask = mConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(), umask), options.getMode());
   }
 

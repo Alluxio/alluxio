@@ -42,9 +42,9 @@ public interface PrimarySelector {
      * @return a primary selector based on zookeeper configuration
      */
     public static PrimarySelector createZkPrimarySelector() {
-      String zkAddress = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = ServerConfiguration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH);
       return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
     }
 
@@ -52,9 +52,10 @@ public interface PrimarySelector {
      * @return a job master primary selector based on zookeeper configuration
      */
     public static PrimarySelector createZkJobPrimarySelector() {
-      String zkAddress = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
-      String zkLeaderPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
+      String zkAddress = ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = ServerConfiguration.getString(
+          PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
+      String zkLeaderPath = ServerConfiguration.getString(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
       return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
     }
 

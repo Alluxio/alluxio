@@ -28,15 +28,15 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A policy that returns the local worker first, and if the local worker doesn't
- * exist or have enough availability, will select the nearest worker from the active
+ * exist or doesn't have enough availability, will select the nearest worker from the active
  * workers list with sufficient availability.
  *
  * The definition of 'nearest worker' is based on {@link alluxio.wire.TieredIdentity}.
- * @see alluxio.wire.TieredIdentityUtils#nearest()
+ * @see alluxio.util.TieredIdentityUtils#nearest
  *
  * The calculation of which worker gets selected is done for each block write.
  *
- * The {@link alluxio.conf.PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES}
+ * The {@link alluxio.conf.PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES}
  * (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
  * is used as buffer space on each worker when calculating available space
  * to store each block.
@@ -87,7 +87,7 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
 
   /**
    * Calculate the available bytes for a worker with the added buffer of
-   * {@link alluxio.conf.PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES}
+   * {@link alluxio.conf.PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES}
    * (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
    *
    * Since the information of BlockWorkerInfo is updated <em>after</em> a file
@@ -97,9 +97,9 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
    * @return the available bytes of the worker
    */
   private long getAvailableBytes(BlockWorkerInfo workerInfo) {
-    long mCapacityBytes = workerInfo.getCapacityBytes();
-    long mUsedBytes = workerInfo.getUsedBytes();
-    return mCapacityBytes - mUsedBytes - mBlockCapacityReserved;
+    long capacityBytes = workerInfo.getCapacityBytes();
+    long usedBytes = workerInfo.getUsedBytes();
+    return capacityBytes - usedBytes - mBlockCapacityReserved;
   }
 
   @Override

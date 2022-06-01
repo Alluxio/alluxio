@@ -13,12 +13,13 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -96,7 +98,9 @@ public final class BlockLockManager {
    * @return lock id
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
-    return lockBlockInternal(sessionId, blockId, blockLockType, true, null, null);
+    OptionalLong lockId = lockBlockInternal(sessionId, blockId, blockLockType, true, null, null);
+    Preconditions.checkState(lockId.isPresent(), "lockBlock should always return a lockId");
+    return lockId.getAsLong();
   }
 
   /**
@@ -114,12 +118,12 @@ public final class BlockLockManager {
    * @param unit the time unit of the {@code time} argument
    * @return lock id or INVALID_LOCK_ID if not able to lock within the given time
    */
-  public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
+  public OptionalLong tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
       long time, TimeUnit unit) {
     return lockBlockInternal(sessionId, blockId, blockLockType, false, time, unit);
   }
 
-  private long lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,
+  private OptionalLong lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,
       boolean blocking, @Nullable Long time, @Nullable TimeUnit unit) {
     ClientRWLock blockLock = getBlockLock(blockId);
     Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
@@ -140,11 +144,11 @@ public final class BlockLockManager {
                   + "session: {}, blockLockType: {}, lock reference count = {}",
               blockId, time, unit, sessionId, blockLockType,
               blockLock.getReferenceCount());
-          return BlockWorker.INVALID_LOCK_ID;
+          return OptionalLong.empty();
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        return BlockWorker.INVALID_LOCK_ID;
+        return OptionalLong.empty();
       }
     }
     try {
@@ -158,7 +162,7 @@ public final class BlockLockManager {
           sessionLockIds.add(lockId);
         }
       }
-      return lockId;
+      return OptionalLong.of(lockId);
     } catch (Throwable e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
@@ -233,15 +237,14 @@ public final class BlockLockManager {
    * Releases the lock with the specified lock id.
    *
    * @param lockId the id of the lock to release
-   * @return whether the lock corresponding the lock ID has been successfully unlocked
    */
-  public boolean unlockBlockNoException(long lockId) {
+  public void unlockBlock(long lockId) {
     Lock lock;
     LockRecord record;
     try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
       record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        return false;
+        return;
       }
       long sessionId = record.getSessionId();
       lock = record.getLock();
@@ -253,55 +256,6 @@ public final class BlockLockManager {
       }
     }
     unlock(lock, record.getBlockId());
-    return true;
-  }
-
-  /**
-   * Releases the lock with the specified lock id.
-   *
-   * @param lockId the id of the lock to release
-   * @throws BlockDoesNotExistException if lock id cannot be found
-   */
-  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
-    if (!unlockBlockNoException(lockId)) {
-      throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-          lockId);
-    }
-  }
-
-  /**
-   * Releases the lock with the specified session and block id.
-   *
-   * @param sessionId the session id
-   * @param blockId the block id
-   * @return whether the block has been successfully unlocked
-   */
-  // TODO(bin): Temporary, remove me later.
-  public boolean unlockBlock(long sessionId, long blockId) {
-    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
-      Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
-      if (sessionLockIds == null) {
-        return false;
-      }
-      for (long lockId : sessionLockIds) {
-        LockRecord record = mLockIdToRecordMap.get(lockId);
-        if (record == null) {
-          // TODO(peis): Should this be a check failure?
-          return false;
-        }
-        if (blockId == record.getBlockId()) {
-          mLockIdToRecordMap.remove(lockId);
-          sessionLockIds.remove(lockId);
-          if (sessionLockIds.isEmpty()) {
-            mSessionIdToLockIdsMap.remove(sessionId);
-          }
-          Lock lock = record.getLock();
-          unlock(lock, blockId);
-          return true;
-        }
-      }
-      return false;
-    }
   }
 
   /**
@@ -310,17 +264,17 @@ public final class BlockLockManager {
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
-   * @throws BlockDoesNotExistException when no lock record can be found for lock id
    * @throws InvalidWorkerStateException when session id or block id is not consistent with that
    *         in the lock record for lock id
    */
+  @VisibleForTesting
   public void validateLock(long sessionId, long blockId, long lockId)
-      throws BlockDoesNotExistException, InvalidWorkerStateException {
+      throws InvalidWorkerStateException {
     try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
-            lockId);
+        throw new BlockDoesNotExistRuntimeException(
+            ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
       }
       if (sessionId != record.getSessionId()) {
         throw new InvalidWorkerStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION,

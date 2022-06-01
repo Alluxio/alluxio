@@ -88,9 +88,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     mStatistics.mNumSuccess += numSuccess;
   }
 
-  /**
-   * @return the base parameters
-   */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -158,9 +156,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     mEndMs = endMs;
   }
 
-  /**
-   * @return the list of errors
-   */
+  @Override
   public List<String> getErrors() {
     return mErrors;
   }

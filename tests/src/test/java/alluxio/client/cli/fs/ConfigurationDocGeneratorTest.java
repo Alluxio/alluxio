@@ -128,7 +128,7 @@ public class ConfigurationDocGeneratorTest {
 
     //assert file contents
     List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
-    String defaultValue = ServerConfiguration.get(pKey);
+    Object defaultValue = ServerConfiguration.get(pKey);
     checkFileContents(String.format("%s,\"%s\"", pKey, defaultValue), userFile, mFileType);
   }
 

@@ -63,6 +63,7 @@ import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.RegisterStreamer;
 import alluxio.worker.block.TieredBlockStore;
@@ -126,8 +127,8 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
-          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, Object>()
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 2)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
@@ -136,9 +137,9 @@ public class BlockWorkerRegisterStreamIntegrationTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE, Constants.MEDIUM_HDD)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
-          .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
-          .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, "false")
+          .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .build(), ServerConfiguration.global());
 
   private ExecutorService mExecutorService;
@@ -174,13 +175,13 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
-    TieredBlockStore mBlockStore = spy(new TieredBlockStore());
-    FileSystemMasterClient mFileSystemMasterClient = mock(FileSystemMasterClient.class);
-    Sessions mSessions = mock(Sessions.class);
-    UfsManager mUfsManager = mock(UfsManager.class);
+    TieredBlockStore blockStore = spy(new TieredBlockStore());
+    FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
+    Sessions sessions = mock(Sessions.class);
+    UfsManager ufsManager = mock(UfsManager.class);
 
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
-            mSessions, mBlockStore, mUfsManager);
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, fileSystemMasterClient,
+            sessions, blockStore, ufsManager);
   }
 
   /**
@@ -529,7 +530,8 @@ public class BlockWorkerRegisterStreamIntegrationTest {
       BlockStoreLocation loc = entry.getKey();
       int tierIndex = mTierToIndex.get(loc.tierAlias());
       for (long blockId : entry.getValue()) {
-        mBlockWorker.createBlock(1L, blockId, tierIndex, loc.tierAlias(), 1);
+        mBlockWorker.createBlock(1L, blockId, tierIndex,
+            new CreateBlockOptions(null, loc.tierAlias(), 1));
         mBlockWorker.commitBlock(1L, blockId, false);
       }
     }

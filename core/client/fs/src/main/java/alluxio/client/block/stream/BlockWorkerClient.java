@@ -50,6 +50,7 @@ public interface BlockWorkerClient extends Closeable {
      *
      * @param userState the user subject
      * @param address the address of the worker
+     * @param alluxioConf Alluxio configuration
      * @return a new {@link BlockWorkerClient}
      */
     public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,

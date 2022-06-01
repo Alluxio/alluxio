@@ -44,7 +44,7 @@ public class UfsVersionValidationTask extends AbstractValidationTask {
   protected ValidationTaskResult validateImpl(Map<String, String> optionMap) {
     UnderFileSystemConfiguration ufsConf =
           UnderFileSystemConfiguration.defaults(mConf).createMountSpecificConf(optionMap);
-    String configuredVersion = mConf.get(PropertyKey.UNDERFS_VERSION);
+    String configuredVersion = mConf.getString(PropertyKey.UNDERFS_VERSION);
     List<String> availableVersions =
         UnderFileSystemFactoryRegistry.getSupportedVersions(mUfsPath, ufsConf);
     ValidationTaskResult result = new ValidationTaskResult();

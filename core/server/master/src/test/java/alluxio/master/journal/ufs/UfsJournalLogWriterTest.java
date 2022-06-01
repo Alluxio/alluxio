@@ -457,9 +457,9 @@ public final class UfsJournalLogWriterTest {
    */
   private void flushOutputStream(UfsJournalLogWriter writer) throws IOException {
     Object journalOutputStream = writer.getJournalOutputStream();
-    DataOutputStream mOutputStream =
+    DataOutputStream outputStream =
         Whitebox.getInternalState(journalOutputStream, "mOutputStream");
-    mOutputStream.flush();
+    outputStream.flush();
   }
 
   /**

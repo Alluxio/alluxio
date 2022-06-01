@@ -39,6 +39,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
@@ -57,6 +58,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WritePType;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -83,6 +85,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -107,6 +110,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.protobuf.ByteString;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -121,6 +125,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -129,6 +134,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -144,6 +150,7 @@ public final class FileSystemMasterTest {
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI NESTED_FILE2_URI = new AlluxioURI("/nested/test/file2");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
+  private static final AlluxioURI NESTED_DIR_FILE_URI = new AlluxioURI("/nested/test/dir/file");
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
@@ -185,19 +192,20 @@ public final class FileSystemMasterTest {
       ServerConfiguration.global());
 
   @Rule
-  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
-    {
-      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
-      put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
-      put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
-      put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
-      put(PropertyKey.WORK_DIR,
-          AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
-      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-          .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
-      put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, "false");
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+        {
+          put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+          put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+          put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 20);
+          put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0);
+          put(PropertyKey.WORK_DIR,
+              AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
+          put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+              .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
+          put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
+        }
+      }, ServerConfiguration.global());
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -216,7 +224,7 @@ public final class FileSystemMasterTest {
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
-    mUnderFS = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mUnderFS = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mNestedFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
             .setWriteType(WritePType.MUST_CACHE)
@@ -451,15 +459,267 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
-    } catch (AccessControlException e) {
-      String expectedChildMessage = ExceptionMessage.PERMISSION_DENIED
-          .getMessage("user=userA, access=-w-, path=" + NESTED_FILE_URI + ": failed at file");
-      assertTrue(e.getMessage().startsWith(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
-          .getMessage(NESTED_URI, expectedChildMessage)));
+    } catch (FailedPreconditionException e) {
+      assertTrue(e.getMessage().contains("/nested/test/file (Permission denied"));
+      assertTrue(e.getMessage().contains("/nested/test (Directory not empty)"));
     }
+    // Then the nested file and the dir will be left
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    // File with permission will be deleted
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
+  }
+
+  @Test
+  public void deleteDirRecursiveNoPermOnFile() throws Exception {
+    // The structure looks like below
+    // /nested
+    // /nested/test/file
+    // /nested/test/file2
+    // /nested/test2/file
+    // /nested/test2/file2
+    // /nested/test2/dir
+    // /nested/test2/dir/file
+    // userA has no permission on /nested/test/file
+    // So deleting the root will fail on:
+    // /nested/, /nested/test/, /nested/test/file
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file2"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
+
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file2"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
+      mFileSystemMaster.delete(new AlluxioURI("/nested"),
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory w/ insufficient permission on child should fail");
+    } catch (FailedPreconditionException e) {
+      assertTrue(e.getMessage().contains("/nested/test/file (Permission denied"));
+      assertTrue(e.getMessage().contains("/nested/test (Directory not empty)"));
+    }
+    // The existing files/dirs will be: /, /nested/, /nested/test/, /nested/test/file
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    // The other files should be deleted successfully
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+  }
+
+  @Test
+  public void deleteDirRecursiveNoPermOnFileDiffOrder() throws Exception {
+    // The structure looks like below
+    // /nested
+    // /nested/test/file
+    // /nested/test/file2
+    // /nested/test2/file
+    // /nested/test2/file2
+    // /nested/test2/dir
+    // /nested/test2/dir/file
+    // userA has no permission on /nested/test/file2
+    // So deleting the root will fail on:
+    // /nested/, /nested/test/, /nested/test/file2
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file2"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
+
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file2"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
+      mFileSystemMaster.delete(new AlluxioURI("/nested"),
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory w/ insufficient permission on child should fail");
+    } catch (FailedPreconditionException e) {
+      assertTrue(e.getMessage().contains("/nested/test/file2 (Permission denied"));
+      assertTrue(e.getMessage().contains("/nested/test (Directory not empty)"));
+    }
+    // The existing files/dirs will be: /, /nested/, /nested/test/, /nested/test/file
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE2_URI));
+    // The other files should be deleted successfully
+    assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
+  }
+
+  @Test
+  public void deleteNestedDirRecursiveNoPermOnFile() throws Exception {
+    // The structure looks like below
+    // /nested
+    // /nested/nested
+    // /nested/nested/test/file
+    // /nested/nested/test/file2
+    // userA has no permission on /nested/nested/test/file
+    // So deleting the root will fail on:
+    // /nested/, /nested/nested, /nested/nested/test/, /nested/nested/test/file
+    createFileWithSingleBlock(new AlluxioURI("/nested/nested/test/file"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/nested/test/file2"));
+
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested/test"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested/test/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/nested/test/file2"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
+      mFileSystemMaster.delete(new AlluxioURI("/nested"),
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory w/ insufficient permission on child should fail");
+    } catch (FailedPreconditionException e) {
+      assertTrue(e.getMessage().contains("/nested/nested/test/file (Permission denied"));
+      assertTrue(e.getMessage().contains("/nested/nested/test (Directory not empty)"));
+      assertTrue(e.getMessage().contains("/nested/nested (Directory not empty)"));
+      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
+    }
+    // The existing files/dirs will be: /, /nested/, /nested/nested/,
+    // /nested/nested/test/, /nested/test/file
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested/test")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested/test/file")));
+    // The other files should be deleted successfully
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/nested/test/file2")));
+  }
+
+  @Test
+  public void deleteDirRecursiveNoPermOnDir() throws Exception {
+    // The structure looks like below
+    // /nested/
+    //
+    // /nested/test/
+    // /nested/test/file
+    // /nested/test/file2
+    // /nested/test/dir
+    // /nested/test/dir/file
+    //
+    // /nested/test2/
+    // /nested/test2/file
+    // /nested/test2/file2
+    // /nested/test2/dir
+    // /nested/test2/dir/file
+    // userA has no permission on /nested/test/file
+    // So deleting the root will fail on:
+    // /nested/, /nested/test/, /nested/test/file
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE2_URI);
+    createFileWithSingleBlock(NESTED_DIR_FILE_URI);
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/file2"));
+    createFileWithSingleBlock(new AlluxioURI("/nested/test2/dir/file"));
+
+    // No permission on the dir, therefore all the files will be kept
+    // although the user has permission over those nested files
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(NESTED_DIR_FILE_URI, SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test/dir/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    // The user has permission over everything under this dir, so everything will be removed
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/file2"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+    mFileSystemMaster.setAttribute(new AlluxioURI("/nested/test2/dir/file"), SetAttributeContext
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
+      mFileSystemMaster.delete(new AlluxioURI("/nested"),
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
+      fail("Deleting a directory w/ insufficient permission on child should fail");
+    } catch (FailedPreconditionException e) {
+      assertTrue(e.getMessage().contains("/nested/test (Permission denied"));
+      assertTrue(e.getMessage().contains("/nested (Directory not empty)"));
+    }
+    // The existing files/dirs will be: /, /nested/, /nested/test/
+    // and everything under /nested/test/
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test/file2")));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_URI));
+    assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_DIR_FILE_URI));
+    // The other files should be deleted successfully
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/file2")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir")));
+    assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(new AlluxioURI("/nested/test2/dir/file")));
   }
 
   /**
@@ -505,8 +765,8 @@ public final class FileSystemMasterTest {
     loadPersistedDirectories(levels);
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)
-            .setUnchecked(unchecked)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
+            .setAlluxioOnly(false).setUnchecked(unchecked)));
     checkPersistedDirectoriesDeleted(levels, ufsMount, Collections.EMPTY_LIST);
   }
 
@@ -2678,6 +2938,212 @@ public final class FileSystemMasterTest {
     assertEquals(PersistenceState.PERSISTED.toString(),
         mFileSystemMaster.getFileInfo(parent2,
             GetStatusContext.defaults()).getPersistenceState());
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the TRUNCATE update strategy.
+   */
+  @Test
+  public void setAttributeXAttrTruncate() throws Exception {
+    // Create file with xAttr to overwrite
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("foo", StandardCharsets.UTF_8))
+        .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+        .setRecursive(true));
+    FileInfo fileInfo = mFileSystemMaster.createFile(ROOT_FILE_URI, context);
+    assertEquals(new String(fileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "foo");
+
+    // Replace the xAttr map
+    mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+            .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.TRUNCATE)));
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    assertEquals(updatedFileInfo.getXAttr().size(), 1);
+    assertEquals(new String(updatedFileInfo.getXAttr().get("bar"), StandardCharsets.UTF_8),
+        "bar");
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the UNION_REPLACE update strategy.
+   */
+  @Test
+  public void setAttributeXAttrUnionReplace() throws Exception {
+    // Create file with xAttr to overwrite
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("foo", StandardCharsets.UTF_8))
+        .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+        .setRecursive(true));
+    FileInfo fileInfo = mFileSystemMaster.createFile(ROOT_FILE_URI, context);
+    assertEquals(new String(fileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "foo");
+
+    // Combine the xAttr maps, replacing existing keys
+    mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))
+            .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+            .setXattrUpdateStrategy(
+                alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_REPLACE)));
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    assertEquals(updatedFileInfo.getXAttr().size(), 2);
+    assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
+        "baz");
+    assertEquals(new String(updatedFileInfo.getXAttr().get("bar"), StandardCharsets.UTF_8),
+        "bar");
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the UNION_PRESERVE update strategy.
+   */
+  @Test
+  public void setAttributeXAttrUnionPreserve() throws Exception {
+    // Create file with xAttr to overwrite
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("foo", StandardCharsets.UTF_8))
+        .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+        .setRecursive(true));
+    FileInfo fileInfo = mFileSystemMaster.createFile(ROOT_FILE_URI, context);
+    assertEquals(new String(fileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "foo");
+
+    // Combine the xAttr maps, preserving existing keys
+    mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .putXattr("foo", ByteString.copyFrom("baz", StandardCharsets.UTF_8))
+            .putXattr("bar", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+            .setXattrUpdateStrategy(
+                alluxio.proto.journal.File.XAttrUpdateStrategy.UNION_PRESERVE)));
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    assertEquals(updatedFileInfo.getXAttr().size(), 2);
+    assertEquals(new String(updatedFileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8),
+        "foo");
+    assertEquals(new String(updatedFileInfo.getXAttr().get("bar"), StandardCharsets.UTF_8),
+        "bar");
+  }
+
+  /**
+   * Tests using SetAttribute to apply xAttr to a file, using the DELETE_KEYS update strategy.
+   */
+  @Test
+  public void setAttributeXAttrDeleteKeys() throws Exception {
+    // Create file with xAttr to delete
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("foo", StandardCharsets.UTF_8))
+        .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+        .setRecursive(true));
+    FileInfo fileInfo = mFileSystemMaster.createFile(ROOT_FILE_URI, context);
+    assertEquals(new String(fileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "foo");
+
+    // Delete a non-existing key
+    mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .putXattr("bar", ByteString.copyFrom("", StandardCharsets.UTF_8))
+            .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
+    FileInfo updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    assertEquals(updatedFileInfo.getXAttr().size(), 1);
+
+    // Delete an existing key
+    mFileSystemMaster.setAttribute(ROOT_FILE_URI,
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .putXattr("foo", ByteString.copyFrom("", StandardCharsets.UTF_8))
+            .setXattrUpdateStrategy(alluxio.proto.journal.File.XAttrUpdateStrategy.DELETE_KEYS)));
+    updatedFileInfo = mFileSystemMaster.getFileInfo(ROOT_FILE_URI, GET_STATUS_CONTEXT);
+    assertEquals(updatedFileInfo.getXAttr().size(), 0);
+  }
+
+  /**
+   * Tests setting xAttr when creating a file in a nested directory, and
+   * propagates the xAttr back to the parent directories.
+   */
+  @Test
+  public void createFileXAttrPropagateNewPaths() throws Exception {
+    createFileXAttr(XAttrPropagationStrategy.NEW_PATHS);
+  }
+
+  /**
+   * Tests setting xAttr when creating a file in a nested directory, and
+   * only assigns xAttr to the leaf node.
+   */
+  @Test
+  public void createFileXAttrPropagateLeaf() throws Exception {
+    createFileXAttr(XAttrPropagationStrategy.LEAF_NODE);
+  }
+
+  private void createFileXAttr(XAttrPropagationStrategy propStrat) throws Exception {
+    // Set xAttr upon creating the file
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB)
+        .putXattr("foo", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+        .setRecursive(true)
+        .setXattrPropStrat(propStrat));
+    FileInfo fileInfo = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    assertEquals(new String(fileInfo.getXAttr().get("foo"), StandardCharsets.UTF_8), "bar");
+
+    checkParentXAttrTags(NESTED_FILE_URI, propStrat);
+  }
+
+  /**
+   * Tests setting xAttr when creating a nested subdirectory, and
+   * propagates the xAttr back to the parent directories.
+   */
+  @Test
+  public void createDirXAttrPropagateNewPaths() throws Exception {
+    createDirXAttr(XAttrPropagationStrategy.NEW_PATHS);
+  }
+
+  /**
+   * Tests setting xAttr when creating a nested subdirectory, and
+   * only assigns xAttr to the leaf node.
+   */
+  @Test
+  public void createDirXAttrPropagateLeaf() throws Exception {
+    createDirXAttr(XAttrPropagationStrategy.LEAF_NODE);
+  }
+
+  private void createDirXAttr(XAttrPropagationStrategy propStrat) throws Exception {
+    // Set xAttr upon creating the directory
+    CreateDirectoryContext directoryContext = CreateDirectoryContext.mergeFrom(
+        CreateDirectoryPOptions.newBuilder()
+            .putXattr("foo", ByteString.copyFrom("bar", StandardCharsets.UTF_8))
+            .setXattrPropStrat(propStrat)
+            .setRecursive(true));
+    long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryContext);
+    assertEquals(new String(mFileSystemMaster.getFileInfo(dirId).getXAttr().get("foo"),
+        StandardCharsets.UTF_8), "bar");
+
+    checkParentXAttrTags(NESTED_DIR_URI, propStrat);
+  }
+
+  private void checkParentXAttrTags(AlluxioURI uri, XAttrPropagationStrategy propStrat)
+      throws Exception {
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT);
+    Map<String, byte[]> xAttrs = fileInfo.getXAttr();
+    assertNotEquals(xAttrs, null);
+
+    switch (propStrat) {
+      case NEW_PATHS:
+        // Verify that the parent directories have matching xAttr
+        for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
+          for (Map.Entry<String, byte[]> entry : xAttrs.entrySet()) {
+            assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+                GET_STATUS_CONTEXT).getXAttr().get(entry.getKey()), xAttrs.get(entry.getKey()));
+          }
+        }
+        break;
+      case LEAF_NODE:
+        // Verify that the parent directories have no xAttr
+        for (int i = 1; uri.getLeadingPath(i + 1) != null; i++) {
+          assertEquals(mFileSystemMaster.getFileInfo(new AlluxioURI(uri.getLeadingPath(i)),
+              GET_STATUS_CONTEXT).getXAttr().size(), 0);
+        }
+        break;
+      default:
+        throw new IllegalArgumentException(
+            String.format("Invalid XAttrPropagationStrategy: %s", propStrat));
+    }
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

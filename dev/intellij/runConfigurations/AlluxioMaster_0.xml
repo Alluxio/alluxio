@@ -15,7 +15,7 @@
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
     <option name="MAIN_CLASS_NAME" value="alluxio.master.AlluxioMaster" />
     <module name="alluxio-core-server-master" />
-    <option name="VM_PARAMETERS" value="-Dalluxio.master.embedded.journal.port=19200 -Dalluxio.master.web.port=19999 -Dalluxio.master.rpc.port=19998 -Dalluxio.work.dir=/tmp/alluxio-tmp/alluxio-0 -Xbootclasspath/a:$PROJECT_DIR$/conf  -Dalluxio.logger.type=Console-D alluxio.home=$PROJECT_DIR$" />
+    <option name="VM_PARAMETERS" value="-Dalluxio.master.embedded.journal.port=19200 -Dalluxio.master.web.port=19999 -Dalluxio.master.rpc.port=19998 -Dalluxio.work.dir=/tmp/alluxio-tmp/alluxio-0 -Xbootclasspath/a:$PROJECT_DIR$/conf  -Dalluxio.logger.type=Console -Dalluxio.home=$PROJECT_DIR$" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="alluxio.master.*" />

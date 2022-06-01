@@ -26,7 +26,7 @@ import javax.security.auth.Subject;
  * Tests {@link SaslClientHandler} and {@link SaslServerHandler} implementations.
  */
 public class SaslHandlersTest {
-  private AlluxioConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private AlluxioConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   /**
    * The exception expected to be thrown.

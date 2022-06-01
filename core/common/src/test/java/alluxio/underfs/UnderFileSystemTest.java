@@ -29,7 +29,7 @@ public final class UnderFileSystemTest {
 
   @Before
   public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   /**

@@ -16,7 +16,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.master.journal.ufs.UfsJournalSystem;
@@ -24,7 +23,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
@@ -293,8 +291,7 @@ public interface JournalSystem {
             // never started, so any value of serviceType is fine.
             serviceType = ServiceType.JOB_MASTER_RAFT;
           }
-          return RaftJournalSystem.create(RaftJournalConfiguration.defaults(serviceType)
-                  .setPath(new File(mLocation.getPath())));
+          return new RaftJournalSystem(mLocation, serviceType);
         default:
           throw new IllegalStateException("Unrecognized journal type: " + journalType);
       }

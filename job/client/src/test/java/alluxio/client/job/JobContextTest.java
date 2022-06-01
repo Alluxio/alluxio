@@ -27,7 +27,7 @@ import org.junit.Test;
  * Unit tests for {@link JobContext}.
  */
 public final class JobContextTest {
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(

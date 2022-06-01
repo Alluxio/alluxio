@@ -57,7 +57,7 @@ public class HdfsProxyUserValidationTaskTest {
 
   @Test
   public void skipped() {
-    mConf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mConf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL);
     HdfsProxyUserValidationTask task =
             new HdfsProxyUserValidationTask("hdfs://namenode:9000/alluxio", mConf);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());

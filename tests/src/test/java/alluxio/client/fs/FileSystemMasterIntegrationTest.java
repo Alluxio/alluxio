@@ -127,8 +127,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
-              String.valueOf(TTL_CHECKER_INTERVAL_MS))
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, "10mb")
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1kb")
@@ -346,7 +345,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"),
         CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
     try {
       mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteContext
@@ -907,7 +906,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void createDirectoryInNestedDirectories() throws Exception {
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
     FileUtils.createDir(targetPath);
     FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
@@ -932,7 +931,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void loadMetadataInNestedDirectories() throws Exception {
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
     FileUtils.createDir(targetPath);
     FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
@@ -956,7 +955,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void createNestedDirectories() throws Exception {
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.createDir(parentPath);
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0755).toString());
@@ -983,7 +982,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Assume the user is not root. This test doesn't work as root because root *is* allowed to
     // create subdirectories even without execute permission on the parent directory.
     assumeFalse(ShellUtils.execCommand("id", "-u").trim().equals("0"));
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.createDir(parentPath);
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0600).toString());
@@ -1001,7 +1000,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadDirectoryTimestamps() throws Exception {
     String name = "d1";
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsPath = Paths.get(ufs, name).toString();
     FileUtils.createDir(ufsPath);
     File file = new File(ufsPath);
@@ -1025,7 +1024,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadFileTimestamps() throws Exception {
     String name = "f1";
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsPath = Paths.get(ufs, name).toString();
     FileUtils.createFile(ufsPath);
     File file = new File(ufsPath);
@@ -1050,7 +1049,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void loadParentDirectoryTimestamps() throws Exception {
     String parentName = "d1";
     String childName = "d2";
-    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentUfsPath = Paths.get(ufs, parentName).toString();
     FileUtils.createDir(parentUfsPath);
     File file = new File(parentUfsPath);

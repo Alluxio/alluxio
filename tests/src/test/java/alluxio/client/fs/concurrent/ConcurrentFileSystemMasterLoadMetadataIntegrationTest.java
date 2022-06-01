@@ -56,7 +56,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
   @Test
   public void loadMetadataManyDirectories() throws Exception {
-    String ufsPath = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     for (int i = 0; i < 5000; i++) {
       Files.createDirectory(Paths.get(ufsPath, "a" + i));
     }
@@ -72,7 +72,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
   @Test
   public void loadMetadataManyFiles() throws Exception {
-    String ufsPath = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     for (int i = 0; i < 5000; i++) {
       Files.createFile(Paths.get(ufsPath, "a" + i));
     }

@@ -130,8 +130,8 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> factories = new ArrayList<>(mFactories);
-    String libDir = PathUtils.concatPath(conf.get(PropertyKey.HOME), "lib");
-    String extensionDir = conf.get(PropertyKey.EXTENSIONS_DIR);
+    String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
+    String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
     scanExtensions(factories, extensionDir);
 

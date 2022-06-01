@@ -415,7 +415,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       for (PropertyKey key : ServerConfiguration.keySet()) {
         if (key.isBuiltIn()) {
           Source source = ServerConfiguration.getSource(key);
-          String value = ServerConfiguration.getOrDefault(key, null,
+          Object value = ServerConfiguration.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true)
                   .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);
@@ -614,7 +614,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
         if (ServerConfiguration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
-          String oldValue = ServerConfiguration.get(key);
+          Object oldValue = ServerConfiguration.get(key);
           ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
           result.put(entry.getKey(), true);
           successCount++;

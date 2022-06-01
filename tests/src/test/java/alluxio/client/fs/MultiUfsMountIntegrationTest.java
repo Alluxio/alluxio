@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
@@ -80,7 +81,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setStartCluster(true).build();
 
   @Before

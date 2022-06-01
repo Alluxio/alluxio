@@ -157,7 +157,7 @@ func buildModules(srcPath, name, moduleFlag, version string, modules map[string]
 		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
 		var srcJar string
 		if moduleEntry.ufsType == "hdfs" {
-			var versionMvnArg = "3.3.0"
+			var versionMvnArg = "3.3.1"
 			for _, arg := range moduleMvnArgs {
 				if strings.Contains(arg, "ufs.hadoop.version") {
 					versionMvnArg = strings.Split(arg, "=")[1]
@@ -312,7 +312,6 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-	run("adding integration/hub-elastic files", "cp", "-r", filepath.Join(srcPath, "integration/hub-elastic"), filepath.Join(dstPath, "integration/hub-elastic"))
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
 	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))

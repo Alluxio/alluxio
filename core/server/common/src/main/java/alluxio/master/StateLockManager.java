@@ -196,7 +196,7 @@ public class StateLockManager {
       throws TimeoutException, InterruptedException, IOException {
     LOG.debug("Thread-{} entered lockExclusive().", ThreadUtils.getCurrentThreadIdentifier());
     // Run the grace cycle.
-    StateLockOptions.GraceMode graceMode = lockOptions.getGraceMode();
+    GraceMode graceMode = lockOptions.getGraceMode();
     boolean graceCycleEntered = false;
     boolean lockAcquired = false;
     long deadlineMs = System.currentTimeMillis() + lockOptions.getGraceCycleTimeoutMs();
@@ -225,7 +225,7 @@ public class StateLockManager {
           ThreadUtils.getCurrentThreadIdentifier());
       activateInterruptCycle();
     } else { // Lock couldn't be acquired by grace-cycle.
-      if (graceMode == StateLockOptions.GraceMode.TIMEOUT) {
+      if (graceMode == GraceMode.TIMEOUT) {
         throw new TimeoutException(
             ExceptionMessage.STATE_LOCK_TIMED_OUT.getMessage(lockOptions.getGraceCycleTimeoutMs()));
       }

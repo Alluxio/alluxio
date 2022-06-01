@@ -12,8 +12,10 @@
 package alluxio.stress.common;
 
 import alluxio.collections.Pair;
+import alluxio.stress.BaseParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.TaskResult;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 
@@ -31,8 +33,8 @@ import java.util.stream.Collectors;
  * @param <T> the stress bench parameter
  * @param <S> the Bench Summary
  */
-public abstract class AbstractMaxThroughputSummary<T extends GeneralParameters, S extends Summary>
-    implements Summary {
+public abstract class AbstractMaxThroughputSummary<T extends Parameters,
+    S extends GeneralBenchSummary> implements Summary, TaskResult {
   private float mMaxThroughput;
   private long mEndTimeMs;
   private T mParameters;
@@ -206,5 +208,20 @@ public abstract class AbstractMaxThroughputSummary<T extends GeneralParameters, 
 
       return graphs;
     }
+  }
+
+  @Override
+  public Aggregator aggregator() {
+    throw new UnsupportedOperationException("This method is not implemented yet.");
+  }
+
+  @Override
+  public List<String> getErrors() {
+    return null;
+  }
+
+  @Override
+  public BaseParameters getBaseParameters() {
+    return null;
   }
 }

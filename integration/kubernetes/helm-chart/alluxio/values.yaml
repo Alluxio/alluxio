@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.8.0-SNAPSHOT
+imageTag: 2.9.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -44,7 +44,6 @@ imagePullSecrets:
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
-  alluxio.hub.manager.rpc.hostname: alluxio-hub
 
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
@@ -100,6 +99,11 @@ master:
     web: 19999
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
+  extraServicePorts: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -194,27 +198,47 @@ jobMaster:
 # UFS journal with HDFS example
 # journal:
 #   type: "UFS"
+#   ufsType: "HDFS"
 #   folder: "hdfs://{$hostname}:{$hostport}/journal"
 # EMBEDDED journal to /journal example
 # journal:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  type: "UFS" # "UFS" or "EMBEDDED"
-  ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
-  folder: "/journal" # Master journal folder
-  # volumeType controls the type of journal volume.
-  # It can be "persistentVolumeClaim" or "emptyDir"
-  volumeType: persistentVolumeClaim
+  # [ Required values ]
+  type: "UFS" # One of "UFS" or "EMBEDDED"
+  folder: "/journal" # Master journal directory or equivalent storage path
+  #
+  # [ Conditionally required values ]
+  #
+  ## [ UFS-backed journal options ]
+  ## - required when using a UFS-type journal (journal.type="UFS")
+  ##
+  ## ufsType is one of "local" or "HDFS"
+  ## - "local" results in a PV being allocated to each Master Pod as the journal
+  ## - "HDFS" results in no PV allocation, it is up to you to ensure you have
+  ##   properly configured the required Alluxio properties for Alluxio to access
+  ##   the HDFS URI designated as the journal folder
+  ufsType: "local"
+  #
+  ## [ K8s volume options ]
+  ## - required when using an EMBEDDED journal (journal.type="EMBEDDED")
+  ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
+  ##
+  ## volumeType controls the type of journal volume.
+  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  ## size sets the requested storage capacity for a persistentVolumeClaim,
+  ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
-  # Attributes to use when the journal is persistentVolumeClaim
+  ### Unique attributes to use when the journal is persistentVolumeClaim
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
-  # Attributes to use when the journal is emptyDir
+  ### Unique attributes to use when the journal is emptyDir
   medium: ""
-  # Configuration for journal formatting job
-  format:
+  #
+  # [ Optional values ]
+  format: # Configuration for journal formatting job
     runFormat: false # Change to true to format journal
 
 
@@ -257,6 +281,10 @@ worker:
   # hostPID requires escalated privileges
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -420,15 +448,12 @@ fuse:
   user: 0
   group: 0
   fsGroup: 0
-  # fuse args specific to standalone fuse
-  args:
-    - fuse
-    - --fuse-opts=allow_other
-  # fuse options specific to fuse embedded in the worker process, separated by comma without whitespace
+  # Default fuse mount options separated by commas, shared by all fuse containers
   mountOptions: allow_other
-  # Mount path in the host
-  mountPath: /mnt/alluxio-fuse
-  # The path in Alluxio being mounted
+  # Default fuse mount point inside fuse container, shared by all fuse containers.
+  # Non-empty value is required.
+  mountPoint: /mnt/alluxio-fuse
+  # Default alluxio path to be mounted, shared by all fuse containers.
   alluxioPath: /
   resources:
     requests:
@@ -630,13 +655,15 @@ csi:
         requests:
           cpu: 10m
           memory: 20Mi
-  # Will run fuse daemon inside csi nodeserver
+  # Run alluxio fuse process inside csi nodeserver container if mountInPod = false
+  # Run alluxio fuse process inside a separate pod if mountInPod = true
+  mountInPod: false
   nodePlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     nodeserver:
       resources:
-        # The default xmx is 8G
+        # fuse in nodeserver container needs more resources
         limits:
           cpu: "4"
           memory: "8G"
@@ -652,11 +679,10 @@ csi:
         requests:
           cpu: 10m
           memory: 20Mi
-
   # for csi client
   clientEnabled: false
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   quota: 100Gi
   mountPath: /data
   alluxioPath: /
@@ -667,46 +693,3 @@ csi:
     - attr_timeout=36000
     - max_readahead=0
   javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
-
-hub:
-  enabled: false
-  clusterId:
-  # For elasticsearch.endpoint, omit http(s) prefix. e.g. use 'example.io' instead of 'https://example.io' 
-  elasticsearch:
-    endpoint: "" 
-    port: ""
-    username: ""
-    password: ""
-  env:
-  # Example:
-  # JAVA_HOME: /opt/java
-  args: # Arguments to Docker entrypoint
-    - hub-manager
-  resources:
-    limits:
-      cpu: "1"
-      memory: "1G"
-    requests:
-      cpu: "1"
-      memory: "1G"
-  ports:
-    rpc: 30076
-    logstash: 5044
-  agent:
-    args: # Arguments to Docker entrypoint
-      - hub-agent
-    ports:
-      rpc: 30075
-  serviceAccount: default
-  # Pod annotations for Metricbeat Autodiscovery
-  podAnnotations:
-    co.elastic.metrics/module: prometheus
-    co.elastic.metrics/metricsets: collector
-    co.elastic.metrics/hosts: '${data.host}:${data.ports.web}' # assumes web port exists
-    co.elastic.metrics/period: 1m
-    co.elastic.metrics/metrics_path: /metrics/prometheus
-  volumes:
-    conf:
-      path: /opt/alluxio/conf
-    logs:
-      path: /opt/alluxio/logs

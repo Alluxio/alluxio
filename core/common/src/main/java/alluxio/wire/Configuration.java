@@ -65,7 +65,7 @@ public final class Configuration {
      * @param value property value
      * @param source property source
      */
-    public void addClusterProperty(String name, @Nullable String value, Source source) {
+    public void addClusterProperty(String name, @Nullable Object value, Source source) {
       mClusterConf.add(new Property(name, value, source));
     }
 

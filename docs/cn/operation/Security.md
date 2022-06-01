@@ -112,8 +112,8 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
 在这种情况下，可以将Alluxio客户端配置为用特定用户（连接用户）连接到Alluxio服务器，但代表其他用户（模拟用户）行事。
 为了让Alluxio支持用户模拟功能，需要在客户端和服务端进行配置。
 
-### Master端配置
-为了能够让特定的用户模拟其他用户，需要配置Alluxio master。master的配置属性包括：`alluxio.master.security.impersonation.<USERNAME>.users` 和 `alluxio.master.security.impersonation.<USERNAME>.groups`。
+### 服务端配置
+为了能够让特定的用户模拟其他用户，需要配置Alluxio服务端(master和worker)。服务端的配置属性包括：`alluxio.master.security.impersonation.<USERNAME>.users` 和 `alluxio.master.security.impersonation.<USERNAME>.groups`。
 对于`alluxio.master.security.impersonation.<USERNAME>.users`，你可以指定由逗号分隔的用户列表，这些用户可以被`<USERNAME>` 模拟。
 通配符`*`表示任意的用户可以被`<USERNAME>` 模拟。以下是例子。
 - `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
@@ -132,7 +132,7 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
 `alluxio.master.security.impersonation.<USERNAME>.groups`的其中一个（将`<USERNAME>`替换为`alluxio_user`）。你可以将两个参数设置为同一个用户。
 
 ### 客户端配置
-如果master配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
+如果服务端配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
 这样Alluxio的客户端连接到服务的方式不变，但是该客户端模拟的是其他的用户。参数可以设置为以下值：
 
 - 不设置

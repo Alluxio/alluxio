@@ -31,6 +31,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.PortRegistry;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.table.DefaultTableMaster;
 import alluxio.master.table.Partition;
 import alluxio.master.table.TableMaster;
@@ -102,7 +103,7 @@ public class TransformManagerTest {
   public void before() throws Exception {
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, PortRegistry.getFreePort());
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME, "1h");
 
     mJournalSystem = JournalTestUtils.createJournalSystem(mTemporaryFolder);

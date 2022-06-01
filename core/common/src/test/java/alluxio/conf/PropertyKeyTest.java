@@ -11,6 +11,8 @@
 
 package alluxio.conf;
 
+import static alluxio.conf.PropertyKey.Builder.booleanBuilder;
+import static alluxio.conf.PropertyKey.Builder.intBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -35,7 +37,7 @@ import java.util.regex.Matcher;
  */
 public final class PropertyKeyTest {
 
-  private PropertyKey mTestProperty = new Builder("alluxio.test.property")
+  private PropertyKey mTestProperty = booleanBuilder("alluxio.test.property")
       .setAlias(new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"})
       .setDescription("test")
       .setDefaultValue(false)
@@ -221,12 +223,12 @@ public final class PropertyKeyTest {
   @Test
   public void defaultSupplier() throws Exception {
     AtomicInteger x = new AtomicInteger(100);
-    PropertyKey key = new Builder("test")
+    PropertyKey key = intBuilder("test")
         .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "test description"))
         .build();
-    assertEquals("100", key.getDefaultValue());
+    assertEquals(100, key.getDefaultValue());
     x.set(20);
-    assertEquals("20", key.getDefaultValue());
+    assertEquals(20, key.getDefaultValue());
     assertEquals("test description", key.getDefaultSupplier().getDescription());
   }
 
@@ -287,9 +289,11 @@ public final class PropertyKeyTest {
   @Test
   public void testEmptyKeyDefaults() {
     for (PropertyKey key : PropertyKey.defaultKeys()) {
-      assertNotEquals(String.format(
-          "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
-          key.getDefaultValue(), "");
+      if (key.getType().getJavaType() == String.class) {
+        assertNotEquals(String.format(
+            "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
+            "", key.getDefaultValue());
+      }
     }
   }
 
@@ -321,20 +325,13 @@ public final class PropertyKeyTest {
 
   @Test
   public void testValueValidation() {
-    Function<Object, Boolean> booleanValidationFunction = (value) -> {
-      try {
-        Boolean.parseBoolean((String) value);
-        return true;
-      } catch (Exception e) {
-        return false;
-      }
-    };
+    Function<Object, Boolean> booleanValidationFunction = (value) -> value instanceof Boolean;
 
-    new Builder("test_boolean_property")
+    Builder.booleanBuilder("test_boolean_property")
         .setDefaultValue(true)
         .setValueValidationFunction(booleanValidationFunction)
         .build();
-    assertThrows(IllegalStateException.class, () -> new Builder("test_boolean_property")
+    assertThrows(IllegalStateException.class, () -> intBuilder("test_boolean_property")
         .setDefaultValue(100)
         .setValueValidationFunction(booleanValidationFunction)
         .build());

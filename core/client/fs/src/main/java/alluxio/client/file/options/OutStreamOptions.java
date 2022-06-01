@@ -114,7 +114,7 @@ public final class OutStreamOptions {
     }
     try {
       mLocationPolicy = BlockLocationPolicy.Factory.create(
-          alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
+          alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -124,7 +124,7 @@ public final class OutStreamOptions {
     mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
         alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
@@ -136,7 +136,7 @@ public final class OutStreamOptions {
       mGroup = "";
     }
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
-        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+        .getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
     mPersistenceWaitTime = alluxioConf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME);
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
@@ -144,7 +144,7 @@ public final class OutStreamOptions {
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mMediumType = "";
     if (alluxioConf.isSet(PropertyKey.USER_FILE_TARGET_MEDIA)) {
-      mMediumType = alluxioConf.get(PropertyKey.USER_FILE_TARGET_MEDIA);
+      mMediumType = alluxioConf.getString(PropertyKey.USER_FILE_TARGET_MEDIA);
     }
   }
 

@@ -92,6 +92,7 @@ public final class SessionCleaner implements Runnable, Closeable {
   /**
    * Stops the checking, once this method is called, the object should be discarded.
    */
+  @Override
   public void close() {
     mRunning = false;
   }

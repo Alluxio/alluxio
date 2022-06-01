@@ -31,7 +31,7 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -78,7 +78,7 @@ import java.util.Map;
  * Unit tests for {@link AbstractFileSystem}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, FileSystemMasterClient.class,
+@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, FileSystemMasterClient.class,
     UserGroupInformation.class})
 /*
  * [ALLUXIO-1384] Tell PowerMock to defer the loading of javax.security classes to the system
@@ -92,7 +92,7 @@ import java.util.Map;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   /**
    * Sets up the configuration before a test runs.
@@ -113,7 +113,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
     HadoopClientTestUtils.disableMetrics(mConfiguration);
   }
 
@@ -240,10 +240,10 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    Map<PropertyKey, String> properties = new HashMap<>();
+    Map<PropertyKey, Object> properties = new HashMap<>();
     properties.put(PropertyKey.MASTER_HOSTNAME, uri.getHost());
-    properties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    properties.put(PropertyKey.ZOOKEEPER_ENABLED, "false");
+    properties.put(PropertyKey.MASTER_RPC_PORT, uri.getPort());
+    properties.put(PropertyKey.ZOOKEEPER_ENABLED, false);
     properties.put(PropertyKey.ZOOKEEPER_ADDRESS, null);
     try (Closeable c = new ConfigurationRule(properties, mConfiguration).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
@@ -285,7 +285,7 @@ public class AbstractFileSystemTest {
     URI otherUri = URI.create(Constants.HEADER + "alluxioHost:19998/tmp/path.txt");
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(otherUri, conf));
     assertEquals("alluxioHost", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("19998", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(19998, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
     assertFalse(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertFalse(fs.mFileSystem.getConf().isSet(PropertyKey.ZOOKEEPER_ADDRESS));
   }
@@ -374,12 +374,12 @@ public class AbstractFileSystemTest {
     URI uri = URI.create("alluxio://host1:1");
     FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, conf));
     assertEquals("host1", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("1", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(1, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
 
     uri = URI.create("alluxio://host2:2");
     fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, conf));
     assertEquals("host2", fs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals("2", fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
+    assertEquals(2, fs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_PORT));
   }
 
   /**
@@ -604,7 +604,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, true,
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
@@ -634,7 +634,7 @@ public class AbstractFileSystemTest {
     List<WorkerNetAddress> expectedWorkers = Arrays.asList(worker1, worker2);
 
     try (Closeable conf =
-        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, "true",
+        new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED, true,
             mConfiguration)
             .toResource()) {
       verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
@@ -693,9 +693,9 @@ public class AbstractFileSystemTest {
         .setFileBlockInfos(Arrays.asList(blockInfo));
     Path path = new Path("/dir/file");
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
-    AlluxioBlockStore blockStore = mock(AlluxioBlockStore.class);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
+    BlockStoreClient blockStore = mock(BlockStoreClient.class);
+    PowerMockito.mockStatic(BlockStoreClient.class);
+    PowerMockito.when(BlockStoreClient.create(any(FileSystemContext.class)))
         .thenReturn(blockStore);
     FileSystemContext fsContext = mock(FileSystemContext.class);
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));

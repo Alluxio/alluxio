@@ -48,6 +48,45 @@ message JobInfo {
   optional string unused1 = 5; // formerly result
 }
 
+enum JobSource {
+  UNSUPPORTED = 0;
+  CLI = 1;
+  POLICY = 2;
+  SYSTEM = 3;
+}
+
+enum OperationType {
+  DIST_LOAD = 1;
+  DIST_CP = 2;
+  PERSIST = 3;
+}
+
+message JobProgress {
+  optional int64 jobId = 1;
+  optional int64 fileCount = 2;
+  optional int64 fileSize = 3;
+  optional int64 lastUpdateMs = 4;
+  optional string errorMsg = 5;
+  optional string errorType = 6;
+  optional Status status = 7;
+}
+
+message CmdProgress {
+  repeated JobProgress jobProgress = 1;
+}
+
+message CmdSummary {
+  optional int64 jobControlId = 1;
+  optional OperationType operationType = 2;
+  optional JobSource jobSource = 3;
+  optional Status status = 4;
+  optional int64 submissionTime = 5;
+  optional int64 duration = 6;
+  optional string errorMessage = 7;
+  optional CmdProgress cmdProgress = 8;
+  optional float progressPercentage = 9;
+}
+
 message StatusSummary {
   optional Status status = 1;
   optional int64 count = 2;
@@ -158,6 +197,44 @@ message GetAllWorkerHealthPResponse {
   repeated JobWorkerHealth workerHealths = 1;
 }
 
+message SubmitOptions {}
+message SubmitRequest {
+  optional bytes cmdConfig = 1;
+  optional SubmitOptions options = 2;
+}
+message SubmitResponse {
+  optional int64 jobControlId = 1;
+}
+
+message GetCmdStatusOptions {}
+message GetCmdStatusRequest {
+  optional int64 jobControlId = 1;
+  optional GetCmdStatusOptions options = 2;
+}
+message GetCmdStatusResponse {
+  optional Status cmdStatus = 1;
+}
+
+message GetCmdStatusDetailedOptions {}
+message GetCmdStatusDetailedRequest {
+  optional int64 jobControlId = 1;
+  optional GetCmdStatusOptions options = 2;
+}
+message JobStatusBlock {
+  optional int64 jobId = 1;
+  optional Status jobStatus = 2;
+  optional string filePath = 3;
+  optional string filePathFailed = 4;
+}
+message CmdStatusBlock {
+  optional int64 jobControlId = 1;
+  repeated JobStatusBlock jobStatusBlock = 2;
+  optional OperationType operationType = 3;
+}
+message GetCmdStatusDetailedResponse {
+  optional CmdStatusBlock cmdStatusBlock = 1;
+}
+
 /**
  * This interface contains job master service endpoints for job service clients.
  */
@@ -197,6 +274,21 @@ service JobMasterClientService {
    * Lists all worker health.
    */
   rpc GetAllWorkerHealth(GetAllWorkerHealthPRequest) returns (GetAllWorkerHealthPResponse);
+
+  /**
+   * Submit a CMD job, return a jobControlId.
+   */
+  rpc Submit(SubmitRequest) returns (SubmitResponse);
+
+  /**
+ * Get status for a CMD job, return a status.
+ */
+  rpc GetCmdStatus(GetCmdStatusRequest) returns (GetCmdStatusResponse);
+
+  /**
+* Get detailed status for a CMD job, return detailed status information.
+*/
+  rpc GetCmdStatusDetailed(GetCmdStatusDetailedRequest) returns (GetCmdStatusDetailedResponse);
 }
 
 message JobHeartbeatPOptions {}

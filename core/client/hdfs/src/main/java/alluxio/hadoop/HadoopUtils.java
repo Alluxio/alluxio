@@ -184,7 +184,7 @@ public final class HadoopUtils {
     // Take hadoop configuration to merge to Alluxio configuration
     Map<String, Object> hadoopConfProperties =
         HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
-    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
+    AlluxioProperties alluxioProps = ConfigurationUtils.copyDefaults();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.

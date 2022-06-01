@@ -31,8 +31,8 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
           + "Troubleshooting.html#resource-leak-detection";
 
   static {
-    ResourceLeakDetector.Level lev = ResourceLeakDetector.Level.valueOf(
-        ConfigurationUtils.getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL));
+    ResourceLeakDetector.Level lev = (ResourceLeakDetector.Level) ConfigurationUtils
+        .getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL);
     ResourceLeakDetector.setLevel(lev);
   }
 

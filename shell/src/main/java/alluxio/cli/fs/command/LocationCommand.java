@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -53,7 +53,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     System.out.println(plainPath + " with file id " + status.getFileId() + " is on nodes: ");
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
+    BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
     for (long blockId : status.getBlockIds()) {
       for (BlockLocation location : blockStore.getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());

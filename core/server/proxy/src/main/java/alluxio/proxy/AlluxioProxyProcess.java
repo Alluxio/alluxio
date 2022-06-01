@@ -80,7 +80,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
         this);
     // reset proxy web port
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT,
-        Integer.toString(mWebServer.getLocalPort()));
+        mWebServer.getLocalPort());
     mWebServer.start();
     mLatch.await();
   }

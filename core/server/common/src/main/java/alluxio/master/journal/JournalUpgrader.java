@@ -14,7 +14,6 @@ package alluxio.master.journal;
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterFactory;
@@ -97,7 +96,7 @@ public final class JournalUpgrader {
           getJournalLocation(sJournalDirectoryV0))).create(master);
       mJournalV1 =
           new UfsJournal(getJournalLocation(ServerConfiguration
-              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
+              .getString(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
               Collections::emptySet);
 
       mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0,
@@ -147,7 +146,7 @@ public final class JournalUpgrader {
         if (!mUfs.renameFile(completedLog.toString(), dst.toString()) && !mUfs
             .exists(dst.toString())) {
           throw new IOException(
-              String.format("Failed to rename %s to %s.", completedLog.toString(), dst.toString()));
+              String.format("Failed to rename %s to %s.", completedLog, dst));
         }
       }
 
@@ -192,7 +191,7 @@ public final class JournalUpgrader {
       if (!mUfs.renameFile(mCheckpointV0.toString(), dst.toString()) && !mUfs
           .exists(dst.toString())) {
         throw new IOException(
-            String.format("Failed to rename %s to %s.", mCheckpointV0.toString(), dst.toString()));
+            String.format("Failed to rename %s to %s.", mCheckpointV0, dst));
       }
     }
 
@@ -246,8 +245,7 @@ public final class JournalUpgrader {
     }
 
     for (String master : masters) {
-      Upgrader upgrader = new Upgrader(master,
-          new InstancedConfiguration(ConfigurationUtils.defaults()));
+      Upgrader upgrader = new Upgrader(master, ConfigurationUtils.defaults());
       try {
         upgrader.upgrade();
       } catch (IOException e) {
@@ -275,7 +273,7 @@ public final class JournalUpgrader {
     }
     sHelp = cmd.hasOption("help");
     sJournalDirectoryV0 = cmd.getOptionValue("journalDirectoryV0",
-        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
+        ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER));
     return true;
   }
 

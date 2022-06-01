@@ -48,11 +48,11 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   public static Configuration createConfiguration(UnderFileSystemConfiguration conf,
           Boolean isSecure) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
-    for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
+    for (Map.Entry<String, Object> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
-      String value = entry.getValue();
+      Object value = entry.getValue();
       if (PropertyKey.Template.UNDERFS_AZURE_ACCOUNT_KEY.matches(key)) {
-        wasbConf.set(key, value);
+        wasbConf.set(key, (String) value);
       }
     }
     if (isSecure) {

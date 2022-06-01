@@ -109,8 +109,8 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockClientLis
    * @return {@code true} if location is valid
    */
   private static boolean locationValid(BlockStoreLocation location) {
-    return !location.tierAlias().equals(BlockStoreLocation.ANY_TIER)
-        && !location.mediumType().equals(BlockStoreLocation.ANY_MEDIUM)
-        && location.dir() != BlockStoreLocation.ANY_DIR;
+    return !location.isAnyTier()
+        && !location.isAnyMedium()
+        && !location.isAnyDir();
   }
 }

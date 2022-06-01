@@ -12,9 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -123,7 +123,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
 
@@ -153,6 +152,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           return o.getWorkerAddress();
         }
       };
+
+  /**
+   * Mapping between all possible storage level aliases and their ordinal position. This mapping
+   * forms a total ordering on all storage level aliases in the system, and must be consistent
+   * across masters.
+   */
+  private static final StorageTierAssoc MASTER_STORAGE_TIER_ASSOC =
+      new DefaultStorageTierAssoc(
+          PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
+          PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS);
+
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -212,13 +223,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @GuardedBy("itself")
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
-
-  /**
-   * Mapping between all possible storage level aliases and their ordinal position. This mapping
-   * forms a total ordering on all storage level aliases in the system, and must be consistent
-   * across masters.
-   */
-  private final StorageTierAssoc mGlobalStorageTierAssoc;
 
   /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
@@ -288,7 +292,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
 
     mBlockStore = blockStore;
-    mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
 
@@ -439,7 +442,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         String msg = String.format(
             "ClockTime: %d, LastActivityTime: %d. Worker %d register stream hanging for %sms!"
                 + " Tune up %s if this is undesired.",
-            clockTime, lastActivityTime, context.mWorker.getId(), staleTime,
+            clockTime, lastActivityTime, context.getWorkerInfo().getId(), staleTime,
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
         Exception e = new TimeoutException(msg);
         try {
@@ -533,7 +536,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public StorageTierAssoc getGlobalStorageTierAssoc() {
-    return mGlobalStorageTierAssoc;
+    return MASTER_STORAGE_TIER_ASSOC;
   }
 
   @Override
@@ -1050,7 +1053,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         WorkerMetaLockSection.USAGE,
         WorkerMetaLockSection.BLOCKS), false)) {
       // Detect any lost blocks on this worker.
-      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+      Set<Long> removedBlocks = worker.register(MASTER_STORAGE_TIER_ASSOC, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks, false);
       processWorkerAddedBlocks(worker, currentBlocksOnLocation);
@@ -1113,26 +1116,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
 
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
-    mActiveRegisterContexts.put(worker.getId(), context);
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+    mActiveRegisterContexts.put(workerInfo.getId(), context);
 
-    // The worker is locked so we can operate on its blocks without race conditions
+    // The workerInfo is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
     // With each batch we receive, we mark them not-to-be-removed.
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
-    worker.markAllBlocksToRemove();
-    worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
+    workerInfo.markAllBlocksToRemove();
+    workerInfo.updateUsage(MASTER_STORAGE_TIER_ASSOC, storageTiers,
         totalBytesOnTiers, usedBytesOnTiers);
-    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-    processWorkerOrphanedBlocks(worker);
-    worker.addLostStorage(lostStorage);
+    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
+    processWorkerOrphanedBlocks(workerInfo);
+    workerInfo.addLostStorage(lostStorage);
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        WorkerNetAddress workerAddress = workerInfo.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
                 options.getConfigsList());
       }
@@ -1143,55 +1146,55 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
                 chunk.getCurrentBlocksList(), context.getWorkerId());
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
 
-    // Even if we add the BlockLocation before the worker is fully registered,
-    // it should be fine because the block can be read on this worker.
+    // Even if we add the BlockLocation before the workerInfo is fully registered,
+    // it should be fine because the block can be read on this workerInfo.
     // If the stream fails in the middle, the blocks recorded on the MasterWorkerInfo
     // will be removed by processLostWorker()
-    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
 
-    processWorkerOrphanedBlocks(worker);
+    processWorkerOrphanedBlocks(workerInfo);
 
     // Update the TS at the end of the process
-    worker.updateLastUpdatedTimeMs();
+    workerInfo.updateLastUpdatedTimeMs();
   }
 
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) {
-    MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
 
-    // Detect any lost blocks on this worker.
+    // Detect any lost blocks on this workerInfo.
     Set<Long> removedBlocks;
-    if (worker.mIsRegistered) {
-      // This is a re-register of an existing worker. Assume the new block ownership data is more
-      // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: {}", worker.getId());
+    if (workerInfo.mIsRegistered) {
+      // This is a re-register of an existing workerInfo. Assume the new block ownership data is
+      // more up-to-date and update the existing block information.
+      LOG.info("re-registering an existing workerId: {}", workerInfo.getId());
 
       // The toRemoveBlocks field now contains all the updates
       // after all the blocks have been processed.
-      removedBlocks = worker.getToRemoveBlocks();
+      removedBlocks = workerInfo.getToRemoveBlocks();
     } else {
       removedBlocks = Collections.emptySet();
     }
-    LOG.info("Found {} blocks to remove from the worker", removedBlocks.size());
-    processWorkerRemovedBlocks(worker, removedBlocks, true);
+    LOG.info("Found {} blocks to remove from the workerInfo", removedBlocks.size());
+    processWorkerRemovedBlocks(workerInfo, removedBlocks, true);
 
     // Mark registered successfully
-    worker.mIsRegistered = true;
-    recordWorkerRegistration(worker.getId());
+    workerInfo.mIsRegistered = true;
+    recordWorkerRegistration(workerInfo.getId());
 
     // Update the TS at the end of the process
-    worker.updateLastUpdatedTimeMs();
+    workerInfo.updateLastUpdatedTimeMs();
 
-    // Invalidate cache to trigger new build of worker info list
+    // Invalidate cache to trigger new build of workerInfo info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
-    LOG.info("Worker successfully registered: {}", worker);
-    mActiveRegisterContexts.remove(worker.getId());
+    LOG.info("Worker successfully registered: {}", workerInfo);
+    mActiveRegisterContexts.remove(workerInfo.getId());
   }
 
   @Override
@@ -1412,9 +1415,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Sort the block locations by their alias ordinal in the master storage tier mapping
     Collections.sort(blockLocations,
-        Comparator.comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTier())));
+        Comparator.comparingInt(o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
 
-    List<alluxio.wire.BlockLocation> locations = new ArrayList<>();
+    List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());

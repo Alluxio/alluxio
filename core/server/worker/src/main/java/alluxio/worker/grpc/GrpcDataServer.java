@@ -54,7 +54,6 @@ public final class GrpcDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataServer.class);
 
   private final SocketAddress mSocketAddress;
-  private final WorkerProcess mWorkerProcess;
   private final long mTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
   private final long mKeepAliveTimeMs =
@@ -91,7 +90,6 @@ public final class GrpcDataServer implements DataServer {
   public GrpcDataServer(final String hostName, final SocketAddress bindAddress,
       final WorkerProcess workerProcess) {
     mSocketAddress = bindAddress;
-    mWorkerProcess = workerProcess;
     try {
       // There is no way to query domain socket address afterwards.
       // So store the bind address if it's domain socket address.
@@ -100,7 +98,7 @@ public final class GrpcDataServer implements DataServer {
       }
       BlockWorkerClientServiceHandler blockWorkerService =
           new BlockWorkerClientServiceHandler(
-              workerProcess, mFsContext, mDomainSocketAddress != null);
+              workerProcess, mDomainSocketAddress != null);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
           .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
@@ -137,7 +135,6 @@ public final class GrpcDataServer implements DataServer {
         .executor(mRPCExecutor);
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
-    // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     int workerThreadCount =
         ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
     String dataServerEventLoopNamePrefix =

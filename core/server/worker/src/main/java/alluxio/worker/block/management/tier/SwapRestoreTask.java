@@ -14,10 +14,9 @@ package alluxio.worker.block.management.tier;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.collections.Pair;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -58,7 +58,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
    * @param loadTracker the load tracker
    * @param executor the executor
    */
-  public SwapRestoreTask(BlockStore blockStore, BlockMetadataManager metadataManager,
+  public SwapRestoreTask(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
       BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
       ExecutorService executor) {
     super(blockStore, metadataManager, evictorView, loadTracker, executor);
@@ -139,21 +139,18 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
           .getIterator(BlockStoreLocation.anyDirInTier(tierAlias), BlockOrder.NATURAL);
       while (tierIterator.hasNext() && moveOutBytes > 0) {
         long blockId = tierIterator.next();
-        try {
-          BlockMeta nextBlockFromTier = mEvictorView.getBlockMeta(blockId);
-          if (nextBlockFromTier == null) {
-            LOG.debug("Block:{} exist but not available for moving.", blockId);
-            continue;
-          }
-          moveOutBytes -= nextBlockFromTier.getBlockSize();
-          if (lastTier) {
-            blocksToRemove.add(nextBlockFromTier.getBlockId());
-          } else {
-            blocksToTransfer.add(BlockTransferInfo.createMove(nextBlockFromTier.getBlockLocation(),
-                nextBlockFromTier.getBlockId(), destLocation));
-          }
-        } catch (BlockDoesNotExistException e) {
-          LOG.warn("Failed to find block:{} during cascading calculation.", blockId);
+        Optional<BlockMeta> nextBlockFromTier = mEvictorView.getBlockMeta(blockId);
+        if (!nextBlockFromTier.isPresent()) {
+          LOG.debug("Block:{} exist but not available for moving.", blockId);
+          continue;
+        }
+        moveOutBytes -= nextBlockFromTier.get().getBlockSize();
+        if (lastTier) {
+          blocksToRemove.add(nextBlockFromTier.get().getBlockId());
+        } else {
+          blocksToTransfer.add(BlockTransferInfo.createMove(
+              nextBlockFromTier.get().getBlockLocation(),
+              nextBlockFromTier.get().getBlockId(), destLocation));
         }
       }
     }
@@ -181,45 +178,39 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
             BlockOrder.NATURAL);
         while (dirBlockIter.hasNext() && dirView.getAvailableBytes() < dirView.getReservedBytes()) {
           long blockId = dirBlockIter.next();
-          try {
-            BlockMeta movingOutBlock = mEvictorView.getBlockMeta(blockId);
-            if (movingOutBlock == null) {
-              LOG.debug("Block:{} exist but not available for balancing.", blockId);
+          Optional<BlockMeta> movingOutBlock = mEvictorView.getBlockMeta(blockId);
+          if (!movingOutBlock.isPresent()) {
+            LOG.debug("Block:{} exist but not available for balancing.", blockId);
+            continue;
+          }
+          // Find where to move the block.
+          StorageDirView dstDirView = null;
+          for (StorageDirView candidateDirView : tierView.getDirViews()) {
+            if (candidateDirView.getDirViewIndex() == dirView.getDirViewIndex()) {
               continue;
             }
-            // Find where to move the block.
-            StorageDirView dstDirView = null;
-            for (StorageDirView candidateDirView : tierView.getDirViews()) {
-              if (candidateDirView.getDirViewIndex() == dirView.getDirViewIndex()) {
-                continue;
-              }
-              if (candidateDirView.getAvailableBytes()
-                  - candidateDirView.getReservedBytes() >= movingOutBlock.getBlockSize()) {
-                dstDirView = candidateDirView;
-                break;
-              }
-            }
-
-            if (dstDirView == null) {
-              LOG.warn("Could not balance swap-restore space for location: {}",
-                  dirView.toBlockStoreLocation());
+            if (candidateDirView.getAvailableBytes()
+                - candidateDirView.getReservedBytes() >= movingOutBlock.get().getBlockSize()) {
+              dstDirView = candidateDirView;
               break;
             }
-
-            // TODO(ggezer): Consider allowing evictions for this move.
-            transferInfos.add(BlockTransferInfo.createMove(movingOutBlock.getBlockLocation(),
-                blockId, dstDirView.toBlockStoreLocation()));
-
-            // Account for moving-out blocks.
-            ((StorageDirEvictorView) dirView).markBlockMoveOut(blockId,
-                movingOutBlock.getBlockSize());
-            // Account for moving-in blocks.
-            ((StorageDirEvictorView) dstDirView).markBlockMoveIn(blockId,
-                movingOutBlock.getBlockSize());
-          } catch (BlockDoesNotExistException e) {
-            LOG.warn("Failed to find metadata for block:{} during swap-restore balancing.",
-                blockId);
           }
+          if (dstDirView == null) {
+            LOG.warn("Could not balance swap-restore space for location: {}",
+                dirView.toBlockStoreLocation());
+            break;
+          }
+
+          // TODO(ggezer): Consider allowing evictions for this move.
+          transferInfos.add(BlockTransferInfo.createMove(movingOutBlock.get().getBlockLocation(),
+              blockId, dstDirView.toBlockStoreLocation()));
+
+          // Account for moving-out blocks.
+          ((StorageDirEvictorView) dirView).markBlockMoveOut(blockId,
+              movingOutBlock.get().getBlockSize());
+          // Account for moving-in blocks.
+          ((StorageDirEvictorView) dstDirView).markBlockMoveIn(blockId,
+              movingOutBlock.get().getBlockSize());
         }
       }
     }

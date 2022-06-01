@@ -31,7 +31,7 @@ This makes it easy to change existing S3 workloads to use Alluxio.
 Alluxio provides access to data through a file system interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
 before being completed.
-Alluxio provides users two different File System APIs to access the same file system:
+Alluxio provides users with two different File System APIs to access the same file system:
 
 1. [Alluxio file system API](#alluxio-java-api) and
 1. [Hadoop compatible file system API](#hadoop-compatible-java-client)
@@ -61,8 +61,8 @@ Alternatively, an application can also depend on the `alluxio-core-client-fs` ar
 the [Alluxio file system interface](#alluxio-java-api)
 or the `alluxio-core-client-hdfs` artifact for the
 [Hadoop compatible file system interface](#hadoop-compatible-java-client) of Alluxio.
-These two artifacts do not include transitive dependencies and therefore much smaller in size,
-also both included in `alluxio-shaded-client` artifact.
+These two artifacts do not include transitive dependencies and therefore much smaller in size.
+They also both include in `alluxio-shaded-client` artifact.
 
 ### Alluxio Java API
 
@@ -159,7 +159,7 @@ normalOut.close();
 InstancedConfiguration conf = InstancedConfiguration.defaults();
 conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alice");
 FileSystem customizedFs = FileSystem.Factory.create(conf);
-AlluxioURI normalPath = new AlluxioURI("/customizedFile");
+AlluxioURI customizedPath = new AlluxioURI("/customizedFile");
 // The newly created file will be created under the username "alice"
 FileOutStream customizedOut = customizedFs.createFile(customizedPath);
 ...
@@ -221,7 +221,7 @@ Users can override the default policy class in the
   **This is the default policy.**
 
   > A policy that returns the local worker first, and if the local worker doesn't
-  > exist or have enough availability, will select the nearest worker from the active
+  > exist or doesn't have enough availability, will select the nearest worker from the active
   > workers list with sufficient availability.
   >
   > The definition of 'nearest worker' is based on
@@ -235,14 +235,7 @@ Users can override the default policy class in the
 
   This is the same as `LocalFirstPolicy` with the following addition:
 
-  > A policy that returns the local worker first, and if the local worker doesn't
-  > exist or have enough availability, will select the nearest worker from the active
-  > workers list with sufficient availability.
-  >
-  > The calculation of which worker gets selected is done for each block write.
-  >
-  > The PropertyKey `USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES`
-  > (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
+  > The property `alluxio.user.block.avoid.eviction.policy.reserved.size.bytes`
   > is used as buffer space on each worker when calculating available space
   > to store each block.
 
@@ -263,8 +256,7 @@ Users can override the default policy class in the
 
 * [SpecificHostPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/SpecificHostPolicy.html)
 
-  > Always returns a worker with the hostname specified by
-  > PropertyKey.WORKER_HOSTNAME (alluxio.worker.hostname).
+  > Always returns a worker with the hostname specified by property `alluxio.worker.hostname`.
 
   * If no value is set, will randomly select a worker from the list of all workers.
 
@@ -296,8 +288,8 @@ this policy preference exists only for local workers, not remote workers; remote
 blocks to the highest tier.
 
 By default, data is written to the top tier. Users can modify the default setting through the
-`alluxio.user.file.write.tier.default` [configuration]({{ '/en/operation/Configuration.html' | relativize_url }})
-property or override it through an option to the 
+`alluxio.user.file.write.tier.default` [property]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.write.tier.default)
+or override it through an option to the 
 [`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
 API call.
 
@@ -309,7 +301,7 @@ For additional API information, please refer to the
 ### Hadoop-Compatible Java Client
 
 On top of the [Alluxio file system](#java-client), Alluxio also has a convenience class
-`alluxio.hadoop.FileSystem` that provides applications a
+`alluxio.hadoop.FileSystem` that provides applications with a
 [Hadoop compatible `FileSystem` interface](https://cwiki.apache.org/confluence/display/HADOOP2/HCFS).
 This client translates Hadoop file operations to Alluxio file system operations,
 allowing users to reuse existing code written for Hadoop without modification.
@@ -397,74 +389,70 @@ def colorize(code):
         return '\033[%sm%s\033[0m' % (c, text)
     return _
 
+
 green = colorize('32')
 
 
 def info(s):
-    print green(s)
+    print(green(s))
 
 
 def pretty_json(obj):
     return json.dumps(obj, indent=2)
 
 
-def main():
-    py_test_root_dir = '/py-test-dir'
-    py_test_nested_dir = '/py-test-dir/nested'
-    py_test = py_test_nested_dir + '/py-test'
-    py_test_renamed = py_test_root_dir + '/py-test-renamed'
+py_test_root_dir = '/py-test-dir'
+py_test_nested_dir = '/py-test-dir/nested'
+py_test = py_test_nested_dir + '/py-test'
+py_test_renamed = py_test_root_dir + '/py-test-renamed'
 
-    client = alluxio.Client('localhost', 39999)
+client = alluxio.Client('localhost', 39999)
 
-    info("creating directory %s" % py_test_nested_dir)
-    opt = option.CreateDirectory(recursive=True)
-    client.create_directory(py_test_nested_dir, opt)
-    info("done")
+info("creating directory %s" % py_test_nested_dir)
+opt = option.CreateDirectory(recursive=True)
+client.create_directory(py_test_nested_dir, opt)
+info("done")
 
-    info("writing to %s" % py_test)
-    with client.open(py_test, 'w') as f:
-        f.write('Alluxio works with Python!\n')
-        with open(sys.argv[0]) as this_file:
-            f.write(this_file)
-    info("done")
+info("writing to %s" % py_test)
+with client.open(py_test, 'w') as f:
+    f.write('Alluxio works with Python!\n')
+    with open(sys.argv[0]) as this_file:
+        f.write(this_file)
+info("done")
 
-    info("getting status of %s" % py_test)
-    stat = client.get_status(py_test)
-    print pretty_json(stat.json())
-    info("done")
+info("getting status of %s" % py_test)
+stat = client.get_status(py_test)
+print(pretty_json(stat.json()))
+info("done")
 
-    info("renaming %s to %s" % (py_test, py_test_renamed))
-    client.rename(py_test, py_test_renamed)
-    info("done")
+info("renaming %s to %s" % (py_test, py_test_renamed))
+client.rename(py_test, py_test_renamed)
+info("done")
 
-    info("getting status of %s" % py_test_renamed)
-    stat = client.get_status(py_test_renamed)
-    print pretty_json(stat.json())
-    info("done")
+info("getting status of %s" % py_test_renamed)
+stat = client.get_status(py_test_renamed)
+print(pretty_json(stat.json()))
+info("done")
 
-    info("reading %s" % py_test_renamed)
-    with client.open(py_test_renamed, 'r') as f:
-        print f.read()
-    info("done")
+info("reading %s" % py_test_renamed)
+with client.open(py_test_renamed, 'r') as f:
+    print(f.read())
+info("done")
 
-    info("listing status of paths under /")
-    root_stats = client.list_status('/')
-    for stat in root_stats:
-        print pretty_json(stat.json())
-    info("done")
+info("listing status of paths under /")
+root_stats = client.list_status('/')
+for stat in root_stats:
+    print(pretty_json(stat.json()))
+info("done")
 
-    info("deleting %s" % py_test_root_dir)
-    opt = option.Delete(recursive=True)
-    client.delete(py_test_root_dir, opt)
-    info("done")
+info("deleting %s" % py_test_root_dir)
+opt = option.Delete(recursive=True)
+client.delete(py_test_root_dir, opt)
+info("done")
 
-    info("asserting that %s is deleted" % py_test_root_dir)
-    assert not client.exists(py_test_root_dir)
-    info("done")
-
-
-if __name__ == '__main__':
-    main()
+info("asserting that %s is deleted" % py_test_root_dir)
+assert not client.exists(py_test_root_dir)
+info("done")
 ```
 
 ## Go

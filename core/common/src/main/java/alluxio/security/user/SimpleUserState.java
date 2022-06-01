@@ -44,7 +44,7 @@ public class SimpleUserState extends BaseUserState {
       if (authType == AuthType.SIMPLE || authType == AuthType.CUSTOM) {
         return new SimpleUserState(subject, conf);
       }
-      LOG.debug("N/A: auth type is not SIMPLE or CUSTOM. authType: {}", authType.getAuthName());
+      LOG.debug("N/A: auth type is not SIMPLE or CUSTOM. authType: {}", authType);
       return null;
     }
   }
@@ -57,7 +57,7 @@ public class SimpleUserState extends BaseUserState {
   public User login() throws UnauthenticatedException {
     String username = "";
     if (mConf.isSet(PropertyKey.SECURITY_LOGIN_USERNAME)) {
-      username = mConf.get(PropertyKey.SECURITY_LOGIN_USERNAME);
+      username = mConf.getString(PropertyKey.SECURITY_LOGIN_USERNAME);
     }
     try {
       // Use the class loader of User.class to construct the LoginContext. LoginContext uses this

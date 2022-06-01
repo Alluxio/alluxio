@@ -40,7 +40,7 @@ public final class MkdirsOptions {
    * @return the default {@link MkdirsOptions}
    */
   public static MkdirsOptions defaults(AlluxioConfiguration conf) {
-    return new MkdirsOptions(conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+    return new MkdirsOptions(conf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**

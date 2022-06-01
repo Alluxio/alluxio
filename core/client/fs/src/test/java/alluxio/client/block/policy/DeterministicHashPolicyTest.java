@@ -38,7 +38,7 @@ public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {
@@ -55,18 +55,18 @@ public final class DeterministicHashPolicyTest {
     mWorkerInfos.add(new BlockWorkerInfo(
         new WorkerNetAddress().setHost("worker4").setRpcPort(PORT).setDataPort(PORT)
             .setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    sConf = ConfigurationTestUtils.defaults();
+    sConf = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test
   public void getWorkerDeterministically() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-        DeterministicHashPolicy.class.getCanonicalName(), sConf);
+        DeterministicHashPolicy.class, sConf);
     String host = policy.getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
         .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB))).getHost();
     for (int i = 0; i < 10; i++) {
       DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-          DeterministicHashPolicy.class.getCanonicalName(),
+          DeterministicHashPolicy.class,
           sConf);
       // For the same block, always return the same worker.
       assertEquals(host, p.getWorker(
@@ -83,7 +83,7 @@ public final class DeterministicHashPolicyTest {
   @Test
   public void getWorkerEnoughCapacity() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-        DeterministicHashPolicy.class.getCanonicalName(), sConf);
+        DeterministicHashPolicy.class, sConf);
     for (long blockId = 0; blockId < 100; blockId++) {
       // worker1 does not have enough capacity. It should never be picked.
       assertNotEquals("worker1", policy.getWorker(
@@ -97,7 +97,7 @@ public final class DeterministicHashPolicyTest {
   public void getWorkerMultipleShards() {
     sConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS, 2);
     DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-        DeterministicHashPolicy.class.getCanonicalName(), sConf);
+        DeterministicHashPolicy.class, sConf);
     Set<String> addresses1 = new HashSet<>();
     Set<String> addresses2 = new HashSet<>();
     for (int i = 0; i < 100; i++) {

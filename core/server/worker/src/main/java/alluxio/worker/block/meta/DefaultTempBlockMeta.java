@@ -24,7 +24,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Represents the metadata of an uncommitted block in Alluxio managed storage.
  */
 @NotThreadSafe
-public final class DefaultTempBlockMeta implements TempBlockMeta {
+public class DefaultTempBlockMeta implements TempBlockMeta {
+  private static final String TMP_DIR = ServerConfiguration.getString(
+      PropertyKey.WORKER_DATA_TMP_FOLDER);
+  private static final int SUB_DIR_MAX = ServerConfiguration.getInt(
+      PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
   private final long mBlockId;
   private final StorageDir mDir;
   private final long mSessionId;
@@ -46,11 +50,8 @@ public final class DefaultTempBlockMeta implements TempBlockMeta {
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
-    final String tmpDir = ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
-    final int subDirMax = ServerConfiguration.getInt(PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
-
-    return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
-        String.format("%d-%d", sessionId, blockId));
+    return PathUtils.concatPath(dir.getDirPath(), TMP_DIR, sessionId % SUB_DIR_MAX,
+        String.format("%x-%d", sessionId, blockId));
   }
 
   /**

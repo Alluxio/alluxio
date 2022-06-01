@@ -329,31 +329,169 @@ hostAliases:
 {{- end }}
 {{- end -}}
 
-{{- define "alluxio.hub.resources" -}}
-resources:
-  limits:
-    {{- if .Values.hub.resources.limits }}
-      {{- if .Values.hub.resources.limits.cpu  }}
-    cpu: {{ .Values.hub.resources.limits.cpu }}
-      {{- end }}
-      {{- if .Values.hub.resources.limits.memory  }}
-    memory: {{ .Values.hub.resources.limits.memory }}
-      {{- end }}
-    {{- end }}
-  requests:
-    {{- if .Values.hub.resources.requests }}
-      {{- if .Values.hub.resources.requests.cpu  }}
-    cpu: {{ .Values.hub.resources.requests.cpu }}
-      {{- end }}
-      {{- if .Values.hub.resources.requests.memory  }}
-    memory: {{ .Values.hub.resources.requests.memory }}
-      {{- end }}
-    {{- end }}
-{{- end -}}
-
 {{- define "alluxio.imagePullSecrets" -}}
 imagePullSecrets:
 {{- range $name := .Values.imagePullSecrets }}
   - name: {{ $name }}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Extra volume mounts that can be added to a container
+@param .extraVolumeMounts   An object representing a list of volume mounts.
+                            Each volumeMount can contain the following fields:
+                                volumeMount.name
+                                volumeMount.mountPath
+                                volumeMount.readOnly
+*/}}
+{{- define "alluxio.extraVolumeMounts" -}}
+  {{- range $volMount := .extraVolumeMounts }}
+- name: {{ $volMount.name }}
+  mountPath: {{ $volMount.mountPath }}
+  readOnly: {{ $volMount.readOnly }}
+  {{- end }}
+{{- end -}}
+
+{{/*
+Extra volumes that can be added to a pod
+@param .extraVolumes    An object representing a list of volume mounts.
+                        Can use either configMap or emptyDir.
+                        Each volume can contain the following fields:
+                            volume.name
+                            volume.configMap.defaultMode
+                            volume.configMap.name
+                            volume.emptyDir
+*/}}
+{{- define "alluxio.extraVolumes" -}}
+  {{- range $vol := .extraVolumes }}
+- name: {{ $vol.name }}
+  {{- if $vol.configMap }}
+  configMap:
+    {{- if $vol.configMap.defaultMode }}
+    defaultMode: {{ $vol.configMap.defaultMode }}
+    {{- end}}
+    {{- if $vol.configMap.name }}
+    name: {{ $vol.configMap.name }}
+    {{- end}}
+  {{- else }}
+  emptyDir: {{ $vol.emptyDir | default "{}" }}
+  {{- end }}
+  {{- end }}
+{{- end -}}
+
+{{/*
+Extra ports that can be added to a service
+@param .extraServicePorts   An object representing a list of ports.
+                            Each item can contain the following fields:
+                              item.port
+                              item.name
+*/}}
+{{- define "alluxio.extraServicePorts" -}}
+  {{- range $item := .extraServicePorts }}
+- port: {{ $item.port }}
+  name: {{ $item.name }}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Extra container specs that can be added to a pod
+@param .extraContainers   An object representing a list of containers.
+                          Each container can contain the following fields:
+                            container.name
+                            container.image
+                            container.imagePullPolicy
+                            container.securityContext.runAsUser
+                            container.securityContext.runAsGroup
+                            container.resources.limit.cpu
+                            container.resources.limit.memory
+                            container.resources.requests.cpu
+                            container.resources.requests.memory
+                            container.command
+                            container.args
+                            container.env
+                            container.envValueFrom
+                            container.envFrom
+                            container.ports
+                            container.volumeMounts
+*/}}
+{{- define "alluxio.extraContainers" -}}
+  {{- range $container := .extraContainers }}
+- name: {{ $container.name }}
+  image: {{ $container.image }}
+  imagePullPolicy: {{ $container.imagePullPolicy }}
+  {{- if $container.securityContext }}
+  securityContext:
+    runAsUser: {{ $container.securityContext.runAsUser }}
+    {{- if $container.securityContext.runAsGroup }}
+    runAsGroup: {{ $container.securityContext.runAsGroup }}
+    {{- end }}
+  {{- end }}
+  {{- if $container.resources }}
+  resources:
+    limits:
+      {{- if $container.resources.limits }}
+        {{- if $container.resources.limits.cpu  }}
+      cpu: {{ $container.resources.limits.cpu }}
+        {{- end }}
+        {{- if $container.resources.limits.memory  }}
+      memory: {{ $container.resources.limits.memory }}
+        {{- end }}
+      {{- end }}
+    requests:
+      {{- if $container.resources.requests }}
+        {{- if $container.resources.requests.cpu  }}
+      cpu: {{ $container.resources.requests.cpu }}
+        {{- end }}
+        {{- if $container.resources.requests.memory  }}
+      memory: {{ $container.resources.requests.memory }}
+        {{- end }}
+      {{- end }}
+  {{- end }}
+  {{- if $container.command }}
+  command:
+{{ toYaml $container.command | trim | indent 4 }}
+  {{- end }}
+  {{- if $container.args }}
+  args:
+{{ toYaml $container.args | trim | indent 4 }}
+  {{- end }}
+  {{- if $container.env }}
+  env:
+    {{- range $key, $value := $container.env }}
+    - name: "{{ $key }}"
+      value: "{{ $value }}"
+    {{- end }}
+    {{- if $container.envValueFrom }}
+      {{- range $key, $value := $container.envValueFrom }}
+    - name: "{{ $key }}"
+      valueFrom:
+        fieldRef:
+          fieldPath: {{ $value }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $container.envFrom }}
+  envFrom:
+    {{- range $item := $container.envFrom }}
+    - configMapRef:
+        name: {{ $item.configMapRef.name }}
+    {{- end }}
+  {{- end }}
+  {{- if $container.ports }}
+  ports:
+    {{- range $port := $container.ports }}
+    - containerPort: {{ $port.containerPort }}
+      name: {{ $port.name }}
+    {{- end }}
+  {{- end }}
+  {{- if $container.volumeMounts }}
+  volumeMounts:
+    {{- range $volMount := $container.volumeMounts }}
+    - name: {{ $volMount.name }}
+      mountPath: {{ $volMount.mountPath }}
+      readOnly: {{ $volMount.readOnly }}
+      subPath: {{ $volMount.subPath | default "" }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
 {{- end -}}

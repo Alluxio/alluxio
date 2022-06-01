@@ -16,14 +16,12 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.SessionIdUtils;
+import alluxio.util.IdUtils;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.base.Preconditions;
@@ -67,15 +65,14 @@ public final class BlockWorkerDataWriter implements DataWriter {
     long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
     BlockWorker blockWorker = context.getProcessLocalWorker();
     Preconditions.checkNotNull(blockWorker, "blockWorker");
-    long sessionId = SessionIdUtils.createSessionId();
+    long sessionId = IdUtils.createSessionId();
     try {
-      blockWorker.createBlock(sessionId, blockId, options.getWriteTier(), options.getMediumType(),
-          reservedBytes);
+      blockWorker.createBlock(sessionId, blockId, options.getWriteTier(),
+          new CreateBlockOptions(null, options.getMediumType(), reservedBytes));
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException | BlockDoesNotExistException
-        | InvalidWorkerStateException e) {
+    } catch (WorkerOutOfSpaceException | IllegalStateException e) {
       throw new IOException(e);
     }
   }
