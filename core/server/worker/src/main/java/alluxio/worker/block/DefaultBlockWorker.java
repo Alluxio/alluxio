@@ -30,9 +30,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.LoadRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -439,6 +441,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public void cache(CacheRequest request) throws AlluxioException, IOException {
     mCacheManager.submitRequest(request);
+  }
+
+  @Override
+  public List<BlockStatus> load(LoadRequest request) {
+    return null;
   }
 
   @Override
