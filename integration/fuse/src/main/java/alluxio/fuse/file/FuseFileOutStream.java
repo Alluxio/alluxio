@@ -64,7 +64,7 @@ public class FuseFileOutStream implements FuseFileStream {
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
     Preconditions.checkNotNull(status);
-    if (mode == MODE_NOT_SET && status.isPresent()) {
+    if (mode == AlluxioFuseUtils.MODE_NOT_SET_VALUE && status.isPresent()) {
       mode = status.get().getMode();
     }
     long fileLen = status.isPresent() ? status.get().getLength() : 0;

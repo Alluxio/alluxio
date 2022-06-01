@@ -73,6 +73,8 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
+  public static final long MODE_NOT_SET_VALUE = -1;
+
   private AlluxioFuseUtils() {}
 
   /**

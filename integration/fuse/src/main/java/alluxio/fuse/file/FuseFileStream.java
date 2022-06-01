@@ -32,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * This interface should be implemented by all fuse file streams.
  */
 public interface FuseFileStream extends AutoCloseable {
-  long MODE_NOT_SET = -1;
 
   /**
    * Reads data from the stream.
@@ -124,23 +123,10 @@ public interface FuseFileStream extends AutoCloseable {
      * @return the created fuse file stream
      */
     public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags, long mode) throws IOException, AlluxioException {
+        AlluxioURI uri, int flags, long mode)
+        throws IOException, AlluxioException, ExecutionException {
       return create(fileSystem, authPolicy, uri, flags, mode,
           AlluxioFuseUtils.getPathStatus(fileSystem, uri));
-    }
-
-    /**
-     * Factory method for creating an implementation of {@link FuseFileStream}.
-     *
-     * @param fileSystem the Alluxio file system
-     * @param authPolicy the Authentication policy
-     * @param uri the Alluxio URI
-     * @param flags the create/open flags
-     * @return the created fuse file stream
-     */
-    public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags) throws IOException, AlluxioException {
-      return create(fileSystem, authPolicy, uri, flags, FuseFileStream.MODE_NOT_SET);
     }
   }
 }

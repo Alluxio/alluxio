@@ -80,6 +80,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
+
   private final FileSystem mFileSystem;
   private final FileSystemContext mFileSystemContext;
   private final AlluxioConfiguration mConf;
@@ -200,18 +201,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int create(String path, long mode, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, mode, fi),
+    return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, fi, mode),
         "Fuse.Create", "path=%s,mode=%o", path, mode);
   }
 
   @Override
   public int open(String path, FuseFileInfo fi) {
-    final int flags = fi.flags.get();
-    return AlluxioFuseUtils.call(LOG, () -> createOrOpenInternal(path, fi, flags),
-        "Fuse.Open", "path=%s,flags=0x%x", path, flags);
+    return AlluxioFuseUtils.call(LOG,
+        () -> createOrOpenInternal(path, fi, AlluxioFuseUtils.MODE_NOT_SET_VALUE),
+        "Fuse.Open", "path=%s,flags=0x%x", path, fi.flags.get());
   }
 
-  private int createOrOpenInternal(String path, long mode, FuseFileInfo fi) {
+  private int createOrOpenInternal(String path, FuseFileInfo fi, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     if (uri.getName().length() > MAX_NAME_LENGTH) {
       LOG.error("Failed to create/open {}: file name longer than {} characters",
@@ -225,7 +226,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
     } catch (Throwable t) {
-      LOG.error("Failed to create/open {}", path, t);
+      LOG.error(String.format("Failed to create/open %s with flags=0x%x", path, fi.flags.get()), t);
       return -ErrorCodes.EIO();
     }
     return 0;
