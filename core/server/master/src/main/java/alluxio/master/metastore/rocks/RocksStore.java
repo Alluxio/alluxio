@@ -56,7 +56,7 @@ public final class RocksStore implements Closeable {
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
   private final DBOptions mDbOpts;
 
-  private RocksDB mDb;
+  private final AtomicReference<RocksDB> mDb = new AtomicReference<>();
   private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
@@ -92,10 +92,11 @@ public final class RocksStore implements Closeable {
 
   /**
    * @return the underlying rocksdb instance. The instance changes when clear() is called, so if the
-   *         caller caches the returned db, they must reset it after calling clear()
+   *         caller caches the returned db, they must reset it after calling clear().
+   *         The rocksdb instance may be closed while the reference is held.
    */
-  public synchronized RocksDB getDb() {
-    return mDb;
+  public RocksDB getDb() {
+    return mDb.get();
   }
 
   /**
@@ -118,7 +119,8 @@ public final class RocksStore implements Closeable {
 
   private void stopDb() {
     LOG.info("Closing {} rocks database", mName);
-    if (mDb != null) {
+    RocksDB db = mDb.get();
+    if (db != null) {
       try {
         // Column handles must be closed before closing the db, or an exception gets thrown.
         mColumnHandles.forEach(handle -> {
@@ -127,12 +129,11 @@ public final class RocksStore implements Closeable {
             handle.set(null);
           }
         });
-        mDb.close();
+        db.close();
         mCheckpoint.close();
       } catch (Throwable t) {
         LOG.error("Failed to close rocks database", t);
       }
-      mDb = null;
       mCheckpoint = null;
     }
   }
@@ -155,9 +156,10 @@ public final class RocksStore implements Closeable {
     List<ColumnFamilyHandle> columns = new ArrayList<>();
     final TimeoutRetry retryPolicy = new TimeoutRetry(ROCKS_OPEN_RETRY_TIMEOUT, 100);
     RocksDBException lastException = null;
+    RocksDB dbRef = null;
     while (retryPolicy.attempt()) {
       try {
-        mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
+        dbRef = (RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns));
         break;
       } catch (RocksDBException e) {
         // sometimes the previous terminated process's lock may not have been fully cleared yet
@@ -165,10 +167,11 @@ public final class RocksStore implements Closeable {
         lastException = e;
       }
     }
-    if (mDb == null && lastException != null) {
+    if (dbRef == null && lastException != null) {
       throw lastException;
     }
-    mCheckpoint = Checkpoint.create(mDb);
+    mDb.set(dbRef);
+    mCheckpoint = Checkpoint.create(mDb.get());
     for (int i = 0; i < columns.size() - 1; i++) {
       // Skip the default column.
       mColumnHandles.get(i).set(columns.get(i + 1));
