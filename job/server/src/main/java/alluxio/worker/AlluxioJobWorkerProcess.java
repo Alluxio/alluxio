@@ -48,17 +48,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobWorkerProcess.class);
 
-  /** FileSystem client for jobs. */
-  private final FileSystem mFileSystem;
-
-  /** FileSystemContext for jobs. */
-  private final FileSystemContext mFsContext;
-
   /** The job worker. */
-  private JobWorker mJobWorker;
-
-  /** RPC local port for gRPC. */
-  private int mRPCPort;
+  private final JobWorker mJobWorker;
 
   /** gRPC server. */
   private GrpcServer mGrpcServer;
@@ -67,31 +58,28 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   private ServerSocket mBindSocket;
 
   /** The connect address for the rpc server. */
-  private InetSocketAddress mRpcConnectAddress;
+  private final InetSocketAddress mRpcConnectAddress;
 
   /** The bind address for the rpc server. */
-  private InetSocketAddress mRpcBindAddress;
+  private final InetSocketAddress mRpcBindAddress;
 
   /** Worker start time in milliseconds. */
-  private long mStartTimeMs;
+  private final long mStartTimeMs;
 
   /** The web ui server. */
-  private JobWorkerWebServer mWebServer = null;
-
-  /** The manager for all ufs. */
-  private UfsManager mUfsManager;
+  private final JobWorkerWebServer mWebServer;
 
   /**
    * Constructor of {@link AlluxioJobWorker}.
    */
   AlluxioJobWorkerProcess() {
     try {
-      mFsContext = FileSystemContext.create(ServerConfiguration.global());
-      mFileSystem = FileSystem.Factory.create(mFsContext);
+      FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+      FileSystem fileSystem = FileSystem.Factory.create(fsContext);
 
       mStartTimeMs = System.currentTimeMillis();
-      mUfsManager = new JobUfsManager();
-      mJobWorker = new JobWorker(mFileSystem, mFsContext, mUfsManager);
+      UfsManager ufsManager = new JobUfsManager();
+      mJobWorker = new JobWorker(fileSystem, fsContext, ufsManager);
 
       // Setup web server
       mWebServer = new JobWorkerWebServer(ServiceType.JOB_WORKER_WEB.getServiceName(),
@@ -103,14 +91,15 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       InetSocketAddress configuredBindAddress =
               NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
                   ServerConfiguration.global());
+      int rpcPort;
       if (configuredBindAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
-        mRPCPort = mBindSocket.getLocalPort();
+        rpcPort = mBindSocket.getLocalPort();
       } else {
-        mRPCPort = configuredBindAddress.getPort();
+        rpcPort = configuredBindAddress.getPort();
       }
       // Reset worker RPC port based on assigned port number
-      ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, mRPCPort);
+      ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, rpcPort);
 
       mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
           ServerConfiguration.global());

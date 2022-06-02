@@ -143,7 +143,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
-  private CmdJobTracker mCmdJobTracker;
+  /** Distributed command job tracker. */
+  private final CmdJobTracker mCmdJobTracker;
 
   /**
    * Creates a new instance of {@link JobMaster}.
@@ -532,8 +533,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
              createAuditContext("getAllWorkerHealth")) {
       ArrayList<JobWorkerHealth> result =
           Lists.newArrayList(mWorkerHealth.values());
-      Collections.sort(result,
-          Comparator.comparingLong((a) -> a.getWorkerId()));
+      result.sort(Comparator.comparingLong(JobWorkerHealth::getWorkerId));
       auditContext.setSucceeded(true);
       return result;
     }
@@ -605,7 +605,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return the list of {@link JobCommand} to the worker
    */
   public List<JobCommand> workerHeartbeat(JobWorkerHealth jobWorkerHealth,
-      List<TaskInfo> taskInfoList) throws ResourceExhaustedException {
+      List<TaskInfo> taskInfoList) {
 
     long workerId = jobWorkerHealth.getWorkerId();
 
@@ -699,7 +699,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     public void heartbeat() {
       int masterWorkerTimeoutMs = (int) ServerConfiguration
           .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
-      List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
+      List<MasterWorkerInfo> lostWorkers = new ArrayList<>();
       // Run under shared lock for mWorkers
       try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
         for (MasterWorkerInfo worker : mWorkers) {

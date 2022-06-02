@@ -56,8 +56,6 @@ public final class JobWorker extends AbstractWorker {
   private final JobServerContext mJobServerContext;
   /** Client for job master communication. */
   private final JobMasterClient mJobMasterClient;
-  /** The manager for the all the local task execution. */
-  private TaskExecutorManager mTaskExecutorManager;
   /** The service that handles commands sent from master. */
   private Future<?> mCommandHandlingService;
 
@@ -101,13 +99,13 @@ public final class JobWorker extends AbstractWorker {
       LOG.error("Failed to connect to job master", e);
       throw Throwables.propagate(e);
     }
-
-    mTaskExecutorManager = new TaskExecutorManager(
-        ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE), address);
+    TaskExecutorManager taskExecutorManager =
+        new TaskExecutorManager(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE),
+            address);
 
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
-            new CommandHandlingExecutor(mJobServerContext, mTaskExecutorManager, mJobMasterClient,
+            new CommandHandlingExecutor(mJobServerContext, taskExecutorManager, mJobMasterClient,
                 address),
             (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
             ServerConfiguration.global(), ServerUserState.global()));

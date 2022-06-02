@@ -166,7 +166,7 @@ public final class PersistDefinition
             ufs.setAclEntries(ancestorUfsPath, allAcls);
           } else if (!ufs.isDirectory(ancestorUfsPath)) {
             throw new IOException(
-                "Failed to create " + ufsPath + " with permission " + options.toString()
+                "Failed to create " + ufsPath + " with permission " + options
                 + " because its ancestor " + ancestorUfsPath + " is not a directory");
           }
         }

@@ -48,7 +48,7 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "/master")
 public final class JobMasterClientRestServiceHandler {
-  private JobMaster mJobMaster;
+  private final JobMaster mJobMaster;
 
   /**
    * Creates a new instance of {@link JobMasterClientRestServiceHandler}.
@@ -68,12 +68,8 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.SERVICE_NAME)
   public Response getServiceName() {
     // Need to encode the string as JSON because Jackson will not do it automatically.
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return Constants.JOB_MASTER_CLIENT_SERVICE_NAME;
-      }
-    }, ServerConfiguration.global());
+    return RestUtils.call(() -> Constants.JOB_MASTER_CLIENT_SERVICE_NAME,
+        ServerConfiguration.global());
   }
 
   /**
@@ -82,12 +78,8 @@ public final class JobMasterClientRestServiceHandler {
   @GET
   @Path(ServiceConstants.SERVICE_VERSION)
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Integer>() {
-      @Override
-      public Integer call() throws Exception {
-        return Constants.JOB_MASTER_CLIENT_SERVICE_VERSION;
-      }
-    }, ServerConfiguration.global());
+    return RestUtils.call(() -> Constants.JOB_MASTER_CLIENT_SERVICE_VERSION,
+        ServerConfiguration.global());
   }
 
   /**
@@ -99,12 +91,9 @@ public final class JobMasterClientRestServiceHandler {
   @POST
   @Path(ServiceConstants.CANCEL)
   public Response cancel(@QueryParam("jobId") final long jobId) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        mJobMaster.cancel(jobId);
-        return null;
-      }
+    return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
+      mJobMaster.cancel(jobId);
+      return null;
     }, ServerConfiguration.global());
   }
 
@@ -119,12 +108,7 @@ public final class JobMasterClientRestServiceHandler {
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
   @ApiOperation(value = "Gets the status of a job", response = JobInfo.class)
   public Response getStatus(@QueryParam("jobId") final long jobId) {
-    return RestUtils.call(new RestUtils.RestCallable<JobInfo>() {
-      @Override
-      public JobInfo call() throws Exception {
-        return mJobMaster.getStatus(jobId);
-      }
-    }, ServerConfiguration.global());
+    return RestUtils.call(() -> mJobMaster.getStatus(jobId), ServerConfiguration.global());
   }
 
   /**
@@ -138,20 +122,17 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.LIST)
   public Response list(@QueryParam("status") final List<String> statusList,
       @QueryParam("name") final String name) {
-    return RestUtils.call(new RestUtils.RestCallable<List<Long>>() {
-      @Override
-      public List<Long> call() throws Exception {
-        if (statusList != null) {
-          return mJobMaster.list(ListAllPOptions.newBuilder()
-              .addAllStatus(statusList.stream()
-                  .map(Status::valueOf)
-                  .map(Status::toProto)
-                  .collect(Collectors.toList()))
-              .setName(Objects.toString(name, ""))
-              .build());
-        } else {
-          return mJobMaster.list(ListAllPOptions.getDefaultInstance());
-        }
+    return RestUtils.call(() -> {
+      if (statusList != null) {
+        return mJobMaster.list(ListAllPOptions.newBuilder()
+            .addAllStatus(statusList.stream()
+                .map(Status::valueOf)
+                .map(Status::toProto)
+                .collect(Collectors.toList()))
+            .setName(Objects.toString(name, ""))
+            .build());
+      } else {
+        return mJobMaster.list(ListAllPOptions.getDefaultInstance());
       }
     }, ServerConfiguration.global());
   }
@@ -166,11 +147,6 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.RUN)
   @Consumes(MediaType.APPLICATION_JSON)
   public Response run(final JobConfig jobConfig) {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mJobMaster.run(jobConfig);
-      }
-    }, ServerConfiguration.global());
+    return RestUtils.call(() -> mJobMaster.run(jobConfig), ServerConfiguration.global());
   }
 }

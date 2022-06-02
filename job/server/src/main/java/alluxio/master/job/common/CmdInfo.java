@@ -24,20 +24,20 @@ import java.util.List;
  * A class representation for Command Information.
  */
 public class CmdInfo {
-  private long mJobControlId;
-  private List<CmdRunAttempt> mCmdRunAttempt;
+  private final long mJobControlId;
+  private final List<CmdRunAttempt> mCmdRunAttempt;
   private final OperationType mOperationType;
   private final JobSource mJobSource;
-  private long mJobSubmissionTime;
-  private List<String> mFilePath;
+  private final long mJobSubmissionTime;
+  private final List<String> mFilePath;
 
   /**
    * Constructor for CmdInfo class.
-   * @param jobControlId
-   * @param operationType
-   * @param jobSource
-   * @param jobSubmissionTime
-   * @param filePath
+   * @param jobControlId control id
+   * @param operationType operation type
+   * @param jobSource where the job comes from
+   * @param jobSubmissionTime job submission time
+   * @param filePath file path
    */
   public CmdInfo(long jobControlId,
       OperationType operationType, JobSource jobSource,
@@ -108,7 +108,7 @@ public class CmdInfo {
 
   /**
    * tostring.
-   * @return
+   * @return cmd info
    */
   @Override
   public String toString() {
