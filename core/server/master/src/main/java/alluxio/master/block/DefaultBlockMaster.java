@@ -75,7 +75,6 @@ import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -105,7 +104,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -124,7 +122,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
+      ImmutableSet.of(MetricsMaster.class);
 
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
@@ -261,9 +259,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * We store it here so that it can be accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mLostWorkerDetectionService;
 
-  /** The value of the 'next container id' last journaled. */
+  /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
 
@@ -271,9 +268,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * A loading cache for worker info list, refresh periodically.
    * This cache only has a single key {@link  #WORKER_INFO_CACHE_KEY}.
    */
-  private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
+  private final LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
-  private RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
+  private final RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
@@ -472,7 +469,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
+      getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
           ServerConfiguration.global(), mMasterContext.getUserState()));
@@ -582,7 +579,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, null, false));
     }
-    Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
+    workerInfoList.sort(new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
   }
 
@@ -630,7 +627,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
                   + "Supported worker names: %s%n",
-              addresses.toString(), workerNames.toString());
+                  addresses, workerNames);
           throw new InvalidArgumentException(info);
         }
         break;
@@ -883,7 +880,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) throws UnavailableException {
     List<BlockInfo> ret = new ArrayList<>(blockIds.size());
     for (long blockId : blockIds) {
-      generateBlockInfo(blockId).ifPresent(info -> ret.add(info));
+      generateBlockInfo(blockId).ifPresent(ret::add);
     }
     return ret;
   }
@@ -1414,8 +1411,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Sort the block locations by their alias ordinal in the master storage tier mapping
-    Collections.sort(blockLocations,
-        Comparator.comparingInt(o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
+    blockLocations.sort(Comparator.comparingInt(
+            o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
 
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
@@ -1589,53 +1586,30 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
-          () -> master.getUniqueBlockCount());
+              master::getUniqueBlockCount);
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCK_REPLICA_COUNT.getName(),
-          () -> master.getBlockReplicaCount());
+              master::getBlockReplicaCount);
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
         // TODO(lu) Add template to dynamically construct metric key
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + alias,
-            new Gauge<Long>() {
-              @Override
-              public Long getValue() {
-                return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
-              }
-            });
+                () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
-              @Override
-              public Long getValue() {
-                return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
-              }
-            });
+            MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias,
+                () -> master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
-              @Override
-              public Long getValue() {
-                return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
-                    - master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
-              }
-            });
+            MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias,
+                () -> master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
+                - master.getUsedBytesOnTiers().getOrDefault(alias, 0L));
       }
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_WORKERS.getName(),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getWorkerCount();
-            }
-          });
+              master::getWorkerCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getLostWorkerCount();
-            }
-          });
+              master::getLostWorkerCount);
     }
 
     private Metrics() {} // prevent instantiation
