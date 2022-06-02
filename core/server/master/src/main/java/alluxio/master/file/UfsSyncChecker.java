@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -37,6 +36,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -50,7 +50,8 @@ public final class UfsSyncChecker {
   private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
 
   /** UFS directories for which list was called. */
-  private Map<String, UfsStatus[]> mListedDirectories;
+  // TODO(jiacheng): use AlluxioURI as key to avoid toString()
+  private final Map<String, UfsStatus[]> mListedDirectories;
 
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
@@ -58,7 +59,12 @@ public final class UfsSyncChecker {
   private final ReadOnlyInodeStore mInodeStore;
 
   /** Directories in sync with the UFS. */
-  private Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
+  private final Map<AlluxioURI, InodeDirectory> mSyncedDirectories = new HashMap<>();
+
+  private static final Predicate<UfsStatus> IS_TEMP_FILE =
+      (status) -> PathUtils.isTemporaryFileName(status.getName());
+  private static final Predicate<UfsStatus> CONTAINS_SEPARATOR =
+      (status) -> status.getName().contains(AlluxioURI.SEPARATOR);
 
   /**
    * Create a new instance of {@link UfsSyncChecker}.
@@ -80,13 +86,11 @@ public final class UfsSyncChecker {
    */
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public void checkDirectory(InodeDirectory inode, AlluxioURI alluxioUri)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
+    // TODO(jiacheng): try to improve this, especially string sort can be O(N*L)
+    //  and many substring() are used
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-    // Filter out temporary files
-    ufsChildren = Arrays.stream(ufsChildren)
-        .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
-        .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
     Inode[] alluxioChildren = Iterables.toArray(mInodeStore.getChildren(inode), Inode.class);
     Arrays.sort(alluxioChildren);
@@ -143,50 +147,80 @@ public final class UfsSyncChecker {
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
+    // Move Outside the for loop
+    String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       AlluxioURI curUri = ufsUri;
       while (curUri != null) {
         if (mListedDirectories.containsKey(curUri.toString())) {
-          List<UfsStatus> childrenList = new ArrayList<>();
-          for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
-            String childPath = PathUtils.concatPath(curUri, childStatus.getName());
-            String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
-            if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-              UfsStatus newStatus = childStatus.copy();
-              newStatus.setName(childPath.substring(prefix.length()));
-              childrenList.add(newStatus);
-            }
-          }
-          return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
+          UfsStatus[] childrenStatuses = mListedDirectories.get(curUri.toString());
+          return trimAndTranslate(childrenStatuses, curUri, prefix);
         }
+
+        // If the URI has not been listed, walk up the tree
+        // TODO(jiacheng): this can loop many times until ufs / is reached
         curUri = curUri.getParent();
       }
-      UfsStatus[] children =
+
+      // List the UFS if the parent dirs have not been listed
+      UfsStatus[] ufsAllChildren =
           ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
+      System.out.println(Arrays.toString(ufsAllChildren));
       // Assumption: multiple mounted UFSs cannot have the same ufsUri
-      if (children == null) {
+      if (ufsAllChildren == null) {
+        // Memoize an empty dir as an empty array to avoid NPE
+        mListedDirectories.put(ufsUri.toString(), EMPTY_CHILDREN);
         return EMPTY_CHILDREN;
       }
-      mListedDirectories.put(ufsUri.toString(), children);
-      return trimIndirect(children);
+
+      // Memoize the listed result
+      // We do not filter the temp files, in order to avoid one copy
+      mListedDirectories.put(ufsUri.toString(), ufsAllChildren);
+
+      return trimTempAndIndirect(ufsAllChildren);
     }
   }
 
   /**
    * Remove indirect children from children list returned from recursive listing.
+   * Also filters out temporary files.
    *
    * @param children list from recursive listing
    * @return trimmed list, null if input is null
    */
-  private UfsStatus[] trimIndirect(UfsStatus[] children) {
+  // TODO(jiacheng): Compare performance of vanilla java for-loop
+  private UfsStatus[] trimTempAndIndirect(UfsStatus[] children) {
+    return Arrays.stream(children)
+        .filter((child) -> !IS_TEMP_FILE.test(child) && !CONTAINS_SEPARATOR.test(child))
+        .toArray(UfsStatus[]::new);
+  }
+
+  private UfsStatus[] trimAndTranslate(UfsStatus[] children, AlluxioURI baseUri, String prefix) {
     List<UfsStatus> childrenList = new ArrayList<>();
-    for (UfsStatus child : children) {
-      int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
-      if (index < 0 || index == child.getName().length()) {
-        childrenList.add(child);
+    for (UfsStatus childStatus : children) {
+      if (IS_TEMP_FILE.test(childStatus)) {
+        continue;
+      }
+      // Find only the children under the target path
+      String childPath = PathUtils.concatPath(baseUri, childStatus.getName());
+      // TODO(jiacheng): check if the part after prefix has separator
+      if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
+        System.out.println("Before copy: " + childStatus);
+        UfsStatus newStatus = childStatus.copy();
+        newStatus.setName(childPath.substring(prefix.length()));
+
+        // If the path is indirect, ignore
+        if (CONTAINS_SEPARATOR.test(newStatus)) {
+          continue;
+        }
+
+        childrenList.add(newStatus);
+        System.out.println("After copy: " + newStatus);
       }
     }
-    return childrenList.toArray(new UfsStatus[childrenList.size()]);
+
+    // TODO(jiacheng): This copy looks unavoidable because of the translation
+    return childrenList.toArray(new UfsStatus[0]);
   }
 }
