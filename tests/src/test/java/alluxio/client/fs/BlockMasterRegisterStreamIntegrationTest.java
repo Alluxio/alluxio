@@ -399,7 +399,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // -1 because the 1st request was accepted
     // +1 because master sends the TimeoutException to worker on timeout
     // +count because all following requests are rejected
-    // +1 because the handleCompletion() is also rejected
+    // +1 because the onComplete() is also rejected
     assertEquals(requestChunks.size() - 1 + 1 + 1, errorQueue.size());
 
     // Verify the session is recycled
