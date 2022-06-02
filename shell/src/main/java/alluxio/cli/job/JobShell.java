@@ -15,12 +15,11 @@ import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,8 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class JobShell extends AbstractShell {
-  private static final Logger LOG = LoggerFactory.getLogger(JobShell.class);
-
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
       .build();
 
@@ -43,7 +40,7 @@ public final class JobShell extends AbstractShell {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+    AlluxioConfiguration conf = Configuration.global();
 
     if (!ConfigurationUtils.masterHostConfigured(conf) && argv.length > 0) {
       System.out.println(ConfigurationUtils
@@ -62,7 +59,7 @@ public final class JobShell extends AbstractShell {
    *
    * @param alluxioConf Alluxio configuration
    */
-  public JobShell(InstancedConfiguration alluxioConf) {
+  public JobShell(AlluxioConfiguration alluxioConf) {
     super(CMD_ALIAS, null, alluxioConf);
   }
 

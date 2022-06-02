@@ -15,6 +15,7 @@ import static java.util.Objects.requireNonNull;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
@@ -77,7 +78,7 @@ public class ClientContext {
    * an empty subject.
    */
   public static ClientContext create() {
-    return new ClientContext(new Subject(), ConfigurationUtils.defaults());
+    return new ClientContext(new Subject(), Configuration.global());
   }
 
   /**

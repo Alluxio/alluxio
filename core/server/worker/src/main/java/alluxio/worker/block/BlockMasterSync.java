@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
@@ -53,17 +53,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
   private static final boolean ACQUIRE_LEASE =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
+      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
   private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
+      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
   private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
+      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
+      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
   private static final boolean USE_STREAMING =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
+      Configuration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
   private static final int HEARTBEAT_TIMEOUT_MS =
-      (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -128,7 +128,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     List<ConfigProperty> configList =
-        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
+        ConfigurationUtils.getConfiguration(Configuration.global(), Scope.WORKER);
 
     if (ACQUIRE_LEASE) {
       LOG.info("Acquiring a RegisterLease from the master before registering");
@@ -139,7 +139,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         LOG.info("Lease acquired");
       } catch (FailedToAcquireRegisterLeaseException e) {
         mMasterClient.disconnect();
-        if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+        if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           throw new RuntimeException(String.format("Master register lease timeout exceeded: %dms",
               ACQUIRE_LEASE_WAIT_MAX_DURATION));
         }
@@ -194,7 +194,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       mMasterClient.disconnect();
       if (HEARTBEAT_TIMEOUT_MS > 0) {
         if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= HEARTBEAT_TIMEOUT_MS) {
-          if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+          if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
             throw new RuntimeException(
                 String.format("Master heartbeat timeout exceeded: %s", HEARTBEAT_TIMEOUT_MS));
           }

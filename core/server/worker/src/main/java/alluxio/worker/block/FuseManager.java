@@ -14,7 +14,7 @@ package alluxio.worker.block;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuse;
 import alluxio.fuse.FuseMountConfig;
 import alluxio.fuse.FuseUmountable;
@@ -51,7 +51,7 @@ public class FuseManager implements Closeable {
    * Starts mounting the internal Fuse applications.
    */
   public void start() {
-    AlluxioConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     try {
       FuseMountConfig config = FuseMountConfig.create(conf);
       // TODO(lu) consider launching fuse in a separate thread as blocking operation

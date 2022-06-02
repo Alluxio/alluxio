@@ -16,7 +16,7 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import alluxio.Constants;
 import alluxio.RpcSensitiveConfigMask;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -85,14 +85,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long MAX_CHUNK_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
   private static final long MAX_BYTES_IN_FLIGHT =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
   private static final Logger SLOW_BUFFER_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
   private static final long SLOW_BUFFER_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
+      Configuration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
   private static final boolean IS_READER_BUFFER_POOLED =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
+      Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
       MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),

@@ -13,7 +13,7 @@ package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.LocalBlockStore;
@@ -97,13 +97,13 @@ public class PromoteTask extends AbstractBlockManagementTask {
     // Acquire promotion range from the configuration.
     // This will limit promotions in single task run.
     final int promoteRange =
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE);
+        Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE);
 
     // Tier for where promotions are going to.
     StorageTier tierUp = mMetadataManager.getTier(tierUpLocation.tierAlias());
     // Get quota for promotions.
     int promotionQuota =
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT);
+        Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT);
     Preconditions.checkArgument(promotionQuota >= 0 && promotionQuota <= 100,
         "Invalid promotion quota percent");
     double quotaRatio = (double) promotionQuota / 100;

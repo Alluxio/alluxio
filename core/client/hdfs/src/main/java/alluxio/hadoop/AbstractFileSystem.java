@@ -36,7 +36,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -505,7 +504,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         hadoopConfProperties, uriConfProperties);
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
-            : ConfigurationUtils.copyDefaults();
+            : alluxio.conf.Configuration.global().copyProperties();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Merge relevant connection details in the URI with the highest priority

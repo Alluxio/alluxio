@@ -14,7 +14,7 @@ package alluxio.worker.grpc;
 import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockStatus;
@@ -71,7 +71,7 @@ import java.util.Map;
 public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientServiceHandler.class);
   private static final boolean ZERO_COPY_ENABLED =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
+      Configuration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
   private final DefaultBlockWorker mBlockWorker;
   private final UfsManager mUfsManager;
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
@@ -223,11 +223,11 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
    */
   private AuthenticatedUserInfo getAuthenticatedUserInfo() {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+      if (SecurityUtils.isAuthenticationEnabled(Configuration.global())) {
         return new AuthenticatedUserInfo(
-            AuthenticatedClientUser.getClientUser(ServerConfiguration.global()),
-            AuthenticatedClientUser.getConnectionUser(ServerConfiguration.global()),
-            AuthenticatedClientUser.getAuthMethod(ServerConfiguration.global()));
+            AuthenticatedClientUser.getClientUser(Configuration.global()),
+            AuthenticatedClientUser.getConnectionUser(Configuration.global()),
+            AuthenticatedClientUser.getAuthMethod(Configuration.global()));
       } else {
         return new AuthenticatedUserInfo();
       }

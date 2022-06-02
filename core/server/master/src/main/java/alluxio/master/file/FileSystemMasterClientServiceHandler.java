@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -243,7 +243,7 @@ public final class FileSystemMasterClientServiceHandler
   public void listStatus(ListStatusPRequest request,
       StreamObserver<ListStatusPResponse> responseObserver) {
     final int listStatusBatchSize =
-        ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
+        Configuration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
     // Result streamer for listStatus.
     ListStatusResultStream resultStream =

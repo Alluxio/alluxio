@@ -13,7 +13,7 @@ package alluxio.master.journalv0.ufs;
 
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.journalv0.JournalFormatter;
 import alluxio.master.journalv0.JournalOutputStream;
@@ -81,7 +81,7 @@ public final class UfsJournalWriter implements JournalWriter {
       throw new RuntimeException(e);
     }
     mUfs = UnderFileSystem.Factory.create(mJournal.getLocation().toString(),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 
@@ -319,9 +319,9 @@ public final class UfsJournalWriter implements JournalWriter {
       mCurrentLog = log;
       mJournalFormatter = journalFormatter;
       mJournalWriter = journalWriter;
-      mMaxLogSize = ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+      mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
       mRawOutputStream = mUfs.create(mCurrentLog.toString(),
-          CreateOptions.defaults(ServerConfiguration.global())
+          CreateOptions.defaults(Configuration.global())
               .setEnsureAtomic(false).setCreateParent(true));
       LOG.info("Opened current log file: {}", mCurrentLog);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);
@@ -400,7 +400,7 @@ public final class UfsJournalWriter implements JournalWriter {
       mDataOutputStream.close();
       mJournalWriter.completeCurrentLog();
       mRawOutputStream = mUfs.create(mCurrentLog.toString(),
-          CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(false)
+          CreateOptions.defaults(Configuration.global()).setEnsureAtomic(false)
               .setCreateParent(true));
       LOG.info("Opened current log file: {}", mCurrentLog);
       mDataOutputStream = new DataOutputStream(mRawOutputStream);

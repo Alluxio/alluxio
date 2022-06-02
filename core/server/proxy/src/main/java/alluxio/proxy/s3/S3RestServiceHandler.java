@@ -19,7 +19,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -536,7 +536,7 @@ public final class S3RestServiceHandler {
       }
 
       // Delete the bucket.
-      DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
+      DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
           .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
           .build();
       try {
@@ -1243,7 +1243,7 @@ public final class S3RestServiceHandler {
     S3RestUtils.checkPathIsAlluxioDirectory(fs, bucketPath);
     // Delete the object.
     String objectPath = String.format("%s%s%s", bucketPath, AlluxioURI.SEPARATOR, object);
-    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
+    DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
         .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
         .build();
     try {

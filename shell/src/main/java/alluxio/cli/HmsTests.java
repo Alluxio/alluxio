@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.util.ConfigurationUtils;
+import alluxio.conf.Configuration;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -101,7 +101,7 @@ public class HmsTests {
         .getOptionValue(ValidationConfig.SOCKET_TIMEOUT_OPTION_NAME, "-1"));
 
     ValidationToolRegistry registry
-        = new ValidationToolRegistry(ConfigurationUtils.defaults());
+        = new ValidationToolRegistry(Configuration.global());
     // Load hms validation tool from alluxio lib directory
     registry.refresh();
 

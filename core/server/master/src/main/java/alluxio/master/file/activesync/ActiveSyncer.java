@@ -14,7 +14,7 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
@@ -120,7 +120,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
           // sync tasks in the last 32 / (heartbeats/minute) minutes have not completed.
           for (CompletableFuture<?> f : mSyncTasks) {
             try {
-              long waitTime = ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
+              long waitTime = Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
                   / mSyncTasks.size();
               f.get(waitTime, TimeUnit.MILLISECONDS);
               mSyncTasks.remove(f);
@@ -168,7 +168,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
         RetryUtils.retry("Full Sync", () -> {
           mFileSystemMaster.activeSyncMetadata(alluxioUri, null, mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(
-            ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
+            Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       } else {
         LOG.debug("incremental sync {}", ufsUri);
         RetryUtils.retry("Incremental Sync", () -> {
@@ -178,7 +178,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
                   .collect(Collectors.toSet()),
               mSyncManager.getExecutor());
         }, RetryUtils.defaultActiveSyncClientRetry(
-            ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
+            Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
       }
     } catch (IOException e) {
       LOG.warn("Failed to submit active sync job to master: ufsUri {}, syncPoint {} ", ufsUri,

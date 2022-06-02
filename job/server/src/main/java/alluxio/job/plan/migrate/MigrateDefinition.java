@@ -21,7 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
@@ -140,7 +140,7 @@ public final class MigrateDefinition
   public SerializableVoid runTask(MigrateConfig config, MigrateCommand command,
       RunTaskContext context) throws Exception {
     WriteType writeType = config.getWriteType() == null
-        ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+        ? Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : config.getWriteType();
     migrate(command, writeType.toProto(), context.getFileSystem(), config.isOverwrite());
     return null;

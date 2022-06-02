@@ -12,9 +12,8 @@
 package alluxio.underfs.obs;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
@@ -44,8 +43,7 @@ import java.security.DigestOutputStream;
  */
 @RunWith(PowerMockRunner.class)
 public class OBSOutputStreamTest {
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   private ObsClient mObsClient;
   private File mFile;

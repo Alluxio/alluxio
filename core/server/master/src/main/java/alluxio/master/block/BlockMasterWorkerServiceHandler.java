@@ -13,7 +13,7 @@ package alluxio.master.block;
 
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
@@ -152,7 +152,7 @@ public final class BlockMasterWorkerServiceHandler extends
     RpcUtils.call(LOG,
         () -> {
           // The exception will be propagated to the worker side and the worker should retry.
-          if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+          if (Configuration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
               && !mBlockMaster.hasRegisterLease(workerId)) {
             String errorMsg = String.format("Worker %s does not have a lease or the lease "
                 + "has expired. The worker should acquire a new lease and retry to register.",

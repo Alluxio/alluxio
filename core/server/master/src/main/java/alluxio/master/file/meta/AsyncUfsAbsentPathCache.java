@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricKey;
@@ -55,7 +55,7 @@ public class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
-      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** The mount table. */
   private final MountTable mMountTable;

@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
@@ -136,11 +136,11 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mFinishLatch = new CountDownLatch(1);
 
     mResponseTimeoutMs =
-        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
+        (int) Configuration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
     mDeadlineMs =
-        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
+        (int) Configuration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
     mCompleteTimeoutMs =
-        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
+        (int) Configuration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
 
     mMasterResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
       @Override

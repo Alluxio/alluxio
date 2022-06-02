@@ -17,7 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.file.FileSystemMaster;
@@ -107,6 +107,6 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
         .getMessage("Unauthorized user on root"));
     // user jack cannot recover master from journal, in which the root is owned by alluxio.
     MasterTestUtils.createLeaderFileSystemMasterFromJournal(
-        new TestUserState(USER, ServerConfiguration.global())).close();
+        new TestUserState(USER, Configuration.global())).close();
   }
 }

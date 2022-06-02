@@ -13,7 +13,7 @@ package alluxio.worker.grpc;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
@@ -40,15 +40,15 @@ public final class GrpcExecutors {
 
   private static final ThreadPoolExecutor CACHE_MANAGER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
+          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new UniqueBlockingQueue<>(
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
+          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
           ThreadFactoryUtils.build("CacheManagerExecutor-%d", true));
   public static final ExecutorService CACHE_MANAGER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR);
 
   private static final ThreadPoolExecutor BLOCK_READER_THREAD_POOL_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN, ServerConfiguration.getInt(
+      new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
@@ -57,13 +57,13 @@ public final class GrpcExecutors {
 
   public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
+          Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
           ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
           new ThreadPoolExecutor.CallerRunsPolicy()));
 
   private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN, ServerConfiguration.getInt(
+      new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true));

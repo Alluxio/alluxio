@@ -15,17 +15,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.ModeUtils;
 
 import com.google.common.testing.EqualsTester;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,12 +36,7 @@ import java.util.Random;
  */
 public final class MkdirsOptionsTest {
 
-  private InstancedConfiguration mConfiguration;
-
-  @Before
-  public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
-  }
+  private final AlluxioConfiguration mConfiguration = Configuration.global();
 
   /**
    * Tests for default {@link MkdirsOptions}.
@@ -64,8 +59,8 @@ public final class MkdirsOptionsTest {
    * configuration.
    */
   @Test
-  public void securityEnabled() throws IOException {
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+  public void securityEnabled() {
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     conf.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".

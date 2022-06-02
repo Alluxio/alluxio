@@ -21,7 +21,7 @@ import alluxio.cli.fsadmin.journal.QuorumElectCommand;
 import alluxio.cli.fsadmin.journal.QuorumInfoCommand;
 import alluxio.cli.fsadmin.journal.QuorumRemoveCommand;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.QuorumServerInfo;
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(
-      PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, ServerConfiguration.global());
+      PropertyKey.USER_METRICS_COLLECTION_ENABLED, false, Configuration.modifiableGlobal());
 
   public MultiProcessCluster mCluster;
 
@@ -87,7 +87,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
     String output;
 
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       // Validate quorum state is dumped as expected.
       mOutput.reset();
       shell.run("journal", "quorum", "info", "-domain", "MASTER");
@@ -97,7 +97,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(
           output.contains(String.format(QuorumInfoCommand.OUTPUT_HEADER_QUORUM_SIZE, 3)));
       List<String> journalAddresses =
-          ServerConfiguration.getList(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+          Configuration.getList(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
       for (String address : journalAddresses) {
         String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
                 QuorumServerState.AVAILABLE.name(), "0", address).trim();
@@ -112,7 +112,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         mOutput.reset();
         shell.run("journal", "quorum", "info", "-domain", "MASTER");
         return mOutput.toString().trim().contains(QuorumServerState.UNAVAILABLE.name());
-      }, WaitForOptions.defaults().setTimeoutMs(2 * (int) ServerConfiguration.getMs(
+      }, WaitForOptions.defaults().setTimeoutMs(2 * (int) Configuration.getMs(
           PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)));
     }
     mCluster.notifySuccess();
@@ -131,7 +131,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
     String output;
 
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       AlluxioURI testDir = new AlluxioURI("/testDir");
       mCluster.getFileSystemClient().createDirectory(testDir);
       // Verify cluster is reachable.
@@ -153,7 +153,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         } catch (Exception e) {
           return false;
         }
-      }, WaitForOptions.defaults().setTimeoutMs(6 * (int) ServerConfiguration.getMs(
+      }, WaitForOptions.defaults().setTimeoutMs(6 * (int) Configuration.getMs(
           PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)));
 
       // Remove unavailable masters using shell.
@@ -197,7 +197,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
             .build();
     mCluster.start();
 
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
       // we can therefore access to the new leader's address this ways
@@ -232,7 +232,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         .build();
     mCluster.start();
 
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
       // we can therefore access to the new leader's address this ways
@@ -264,7 +264,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms").build();
     mCluster.start();
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       String output;
 
       // Validate quorum sub-commands are validated.
