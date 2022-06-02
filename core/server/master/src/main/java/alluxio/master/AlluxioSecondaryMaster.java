@@ -16,7 +16,10 @@ import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.UnsupportedJournalTypeException;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.util.CommonUtils;
@@ -54,6 +57,11 @@ public final class AlluxioSecondaryMaster implements Process {
   AlluxioSecondaryMaster() {
     try {
       URI journalLocation = JournalUtils.getJournalLocation();
+      JournalType journalType =
+              ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+      if (journalType == JournalType.EMBEDDED) {
+        throw new UnsupportedJournalTypeException(ExceptionMessage.JOURNAL_TYPE_UNSUPPORTED);
+      }
       mJournalSystem = new JournalSystem.Builder()
           .setLocation(journalLocation).build(ProcessType.MASTER);
       mRegistry = new MasterRegistry();
@@ -79,7 +87,7 @@ public final class AlluxioSecondaryMaster implements Process {
             String.format("Journal %s has not been formatted!", journalLocation));
       }
       mLatch = new CountDownLatch(1);
-    } catch (IOException e) {
+    } catch (IOException | UnsupportedJournalTypeException e) {
       throw new RuntimeException(e);
     }
   }
