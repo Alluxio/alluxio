@@ -480,7 +480,7 @@ public class ActiveSyncManager implements Journaled {
         // We should not be in this situation
         throw new RuntimeException(
             String.format("mountId for the syncPoint %s not found in the filterMap",
-                syncPoint.toString()));
+                    syncPoint));
       }
     }
   }
@@ -548,7 +548,7 @@ public class ActiveSyncManager implements Journaled {
    * Clean up tasks to stop sync point after we have journaled.
    *
    * @param syncPoint the sync point to stop
-   * @throws InvalidPathException
+   * @throws InvalidPathException throw an invalid path exception
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
