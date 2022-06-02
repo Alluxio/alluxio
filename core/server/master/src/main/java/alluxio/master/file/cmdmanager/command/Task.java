@@ -11,33 +11,41 @@
 
 package alluxio.master.file.cmdmanager.command;
 
+import java.util.List;
+import java.util.concurrent.Future;
+
 /**
- * Class for bandwidth.
+ * Task in terms of block ids.
  */
-public class Bandwidth {
-  private long mBandWidth;
+public class Task {
+  private final List<Long> mBlockIds;
+  private final long mTaskId;
+
+  private ExecutionStatus mExecutionStatus;
 
   /**
    * Constructor.
-   * @param bandWidth bandWidth value
+   * @param blockIds list of block ids
+   * @param taskId task id
    */
-  public Bandwidth(long bandWidth) {
-    mBandWidth = bandWidth;
+  public Task(List<Long> blockIds, long taskId) {
+    mBlockIds = blockIds;
+    mTaskId = taskId;
   }
 
   /**
-   * Get bandwidth.
-   * @return bandwidth value
+   * Set ExecutionStatus.
+   * @param status ExecutionStatus
    */
-  public long getBandWidthValue() {
-    return mBandWidth;
+  public void setExecutionStatus(ExecutionStatus status) {
+    mExecutionStatus = status;
   }
 
   /**
-   * Update bandwidth with new value.
-   * @param bandWidth new bandwidth value
+   * Get task id.
+   * @return task id
    */
-  public void update(long bandWidth) {
-    mBandWidth = bandWidth;
+  public long getTaskId() {
+    return mTaskId;
   }
 }

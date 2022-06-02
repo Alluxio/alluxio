@@ -9,10 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.cmdmanager.task;
+package alluxio.master.file.cmdmanager.command;
 
 /**
- * Interface for assigned worker info.
+ * Class for command execution status.
  */
-public interface ExecutionWorkerInfo {
+public class ExecutionStatus {
+  /**
+   * handle completion based on task execution status.
+   */
+  public void handleCompletion() {
+  }
 }

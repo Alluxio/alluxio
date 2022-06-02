@@ -17,21 +17,16 @@ import alluxio.proto.journal.File;
  * Command Types.
  */
 public enum CmdType {
-  LoadCmd,
-  MigrateCmd;
+  LoadCmd;
 
-  /**
+  /** Convert to proto format.
    * @return proto representation of the status
    */
   public File.CommandType toProto() {
-    switch (this) {
-      case LoadCmd:
-        return File.CommandType.DIST_LOAD;
-      case MigrateCmd:
-        return File.CommandType.DIST_CP;
-      default:
-        return File.CommandType.UNKNOWN;
+    if (this == CmdType.LoadCmd) {
+      return File.CommandType.DIST_LOAD;
     }
+    return File.CommandType.UNKNOWN;
   }
 
   /**
@@ -42,8 +37,6 @@ public enum CmdType {
   public static CmdType fromProto(File.CommandType type) {
     if (type == File.CommandType.DIST_LOAD) {
       return LoadCmd;
-    } else if (type == File.CommandType.DIST_CP) {
-      return MigrateCmd;
     } else {
       throw new IllegalStateException("Cannot recognize the command type from protobuf" + type);
     }

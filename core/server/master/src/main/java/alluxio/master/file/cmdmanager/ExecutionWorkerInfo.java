@@ -9,18 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.cmdmanager.task;
+package alluxio.master.file.cmdmanager;
 
-import java.util.Collection;
+import alluxio.master.file.cmdmanager.command.ExecutionStatus;
+import alluxio.master.file.cmdmanager.command.Task;
 
 /**
- * Interface for command running status.
- * @param <T> task unit type within a command
+ * Interface for assigned worker info.
  */
-public interface RunStatus<T> {
+public class ExecutionWorkerInfo {
   /**
-   * Prepare sub-tasks to run.
-   * @return collection of sub-tasks
+   * Get worker capacity status, whether under pressure.
+   * @return boolean
    */
-  Collection<T> getSubTasks();
+  public boolean getCapacityStatus()  {
+    return true;
+  }
+
+  /**
+   * Execute a task.
+   * @param task task
+   * @return future of status
+   */
+  public ExecutionStatus execute(Task task) {
+    return null;
+  }
 }

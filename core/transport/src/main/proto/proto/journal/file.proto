@@ -286,15 +286,23 @@ message UpdateUfsModeEntry {
 }
 
 enum CommandType {
-  DIST_LOAD = 1;
-  DIST_CP = 2;
-  UNKNOWN = 3;
+  UNKNOWN = 1;
+  DIST_LOAD = 2;
 }
 
-message UpdateCmdEntry {
-  optional string srcFilePath = 1;
-  optional CommandType type = 2;
-  optional int64 id = 3;
-  optional int64 bandWidth = 4;
-  optional int64 destFilePath = 5;
+message CommandOptions {
+  optional int64 bandWidth = 1;
+}
+
+enum CommandState {
+  Created = 1;
+  Finished = 2;
+}
+
+message CommandEntry {
+  optional int64 commandId = 1;
+  optional string srcFilePath = 2;
+  optional CommandType type = 3;
+  optional CommandOptions options = 4;
+  optional CommandState state = 5;
 }
