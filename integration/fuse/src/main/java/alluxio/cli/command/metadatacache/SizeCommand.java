@@ -46,9 +46,9 @@ public final class SizeCommand extends AbstractMetadataCacheSubCommand {
 
   @Override
   protected URIStatus runSubCommand(AlluxioURI path, String [] argv,
-      MetadataCachingBaseFileSystem mFileSystem) {
+      MetadataCachingBaseFileSystem fileSystem) {
     // The 'ls -l' command will show metadata cache size in the <filesize> field.
-    long size = mFileSystem.getMetadataCacheSize();
+    long size = fileSystem.getMetadataCacheSize();
     return new URIStatus(new FileInfo().setLength(size).setCompleted(true));
   }
 

@@ -14,11 +14,10 @@ package alluxio.fuse;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -51,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
-  private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
+  private static final long THRESHOLD = ConfigurationUtils.defaults()
       .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
   private static final int MAX_ASYNC_RELEASE_WAITTIME_MS = 5000;
 
@@ -258,7 +257,8 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EEXIST();
     } catch (InvalidPathException ex) {
       return -ErrorCodes.EFAULT();
-    } catch (BlockDoesNotExistException ex) {
+    } catch (BlockDoesNotExistRuntimeException ex) {
+      // TODO(jianjian) handle runtime exception for fuse in base class?
       return -ErrorCodes.ENODATA();
     } catch (DirectoryNotEmptyException ex) {
       return -ErrorCodes.ENOTEMPTY();

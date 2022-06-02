@@ -28,6 +28,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -69,12 +71,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
-  private GrpcServerAddress mAddress;
+  private final GrpcServerAddress mAddress;
   private final long mRpcTimeoutMs;
 
-  private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
-  private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
-  private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
+  private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
+  private final BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
@@ -240,5 +242,21 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       }
       LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
     }
+  }
+
+  @Override
+  public void load(LoadRequest request) {
+    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).load(request,
+        new StreamObserver<LoadResponse>() {
+          @Override
+          public void onNext(LoadResponse value) {}
+
+          @Override
+          public void onError(Throwable t) {
+          }
+
+          @Override
+          public void onCompleted() {}
+        });
   }
 }

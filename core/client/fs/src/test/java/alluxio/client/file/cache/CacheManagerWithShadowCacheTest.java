@@ -43,7 +43,7 @@ public final class CacheManagerWithShadowCacheTest {
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
   private final byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private CacheManagerWithShadowCache mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   private final ShadowCacheType mShadowCacheType;
   private final int mAgeBits;

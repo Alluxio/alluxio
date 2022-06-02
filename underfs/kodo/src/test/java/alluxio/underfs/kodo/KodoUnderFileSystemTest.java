@@ -31,7 +31,7 @@ import java.io.IOException;
  */
 public class KodoUnderFileSystemTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   private KodoUnderFileSystem mKodoUnderFileSystem;
   private KodoClient mClient;

@@ -71,7 +71,7 @@ public class FileSystemFactoryTest {
     try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
         "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
       ConfigurationUtils.reloadProperties();
-      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
       MasterInquireClient.ConnectDetails connectDetails =
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a MultiMaster authority
@@ -91,7 +91,7 @@ public class FileSystemFactoryTest {
 
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       ConfigurationUtils.reloadProperties();
-      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
       MasterInquireClient.ConnectDetails connectDetails =
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a Zookeeper authority
@@ -110,7 +110,7 @@ public class FileSystemFactoryTest {
   @Test
   public void uncachedFileSystemDoesntAffectCache() throws Exception {
     FileSystem fs1 = FileSystem.Factory.get();
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
     conf.set(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1sec");
     FileSystem fs2 = FileSystem.Factory.create(conf);
     fs2.close();

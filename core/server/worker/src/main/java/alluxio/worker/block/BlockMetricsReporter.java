@@ -44,12 +44,12 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
         MetricKey.WORKER_BLOCKS_EVICTION_RATE.isClusterAggregated());
 
   @Override
-  public void onAccessBlock(long sessionId, long blockId) {
+  public void onAccessBlock(long blockId) {
     BLOCKS_ACCESSED.inc();
   }
 
   @Override
-  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(newLocation.tierAlias());
@@ -59,12 +59,12 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
   }
 
   @Override
-  public void onRemoveBlockByClient(long sessionId, long blockId) {
+  public void onRemoveBlockByClient(long blockId) {
     BLOCKS_DELETED.inc();
   }
 
   @Override
-  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = WORKER_STORAGE_TIER_ASSOC.getOrdinal(newLocation.tierAlias());
@@ -74,13 +74,13 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
   }
 
   @Override
-  public void onRemoveBlockByWorker(long sessionId, long blockId) {
+  public void onRemoveBlockByWorker(long blockId) {
     BLOCKS_EVICTED.inc();
     BLOCKS_EVICTION_RATE.mark();
   }
 
   @Override
-  public void onAbortBlock(long sessionId, long blockId) {
+  public void onAbortBlock(long blockId) {
     BLOCKS_CANCELLED.inc();
   }
 

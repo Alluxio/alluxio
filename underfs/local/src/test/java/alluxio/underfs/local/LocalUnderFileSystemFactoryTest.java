@@ -30,7 +30,7 @@ public class LocalUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("/local/test/path", conf);
     UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("file://local/test/path",
         conf);

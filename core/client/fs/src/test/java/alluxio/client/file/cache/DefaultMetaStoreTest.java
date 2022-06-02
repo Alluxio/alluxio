@@ -30,7 +30,7 @@ import org.junit.Test;
 public class DefaultMetaStoreTest {
   protected final PageId mPage = new PageId("1L", 2L);
   protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
-  protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  protected final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   protected DefaultMetaStore mMetaStore;
   protected Gauge mCachedPageGauge;
 

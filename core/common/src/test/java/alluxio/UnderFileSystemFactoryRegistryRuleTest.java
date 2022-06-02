@@ -32,7 +32,7 @@ public class UnderFileSystemFactoryRegistryRuleTest {
   private static final String UFS_PATH = "test://foo";
 
   private UnderFileSystemFactory mUnderFileSystemFactory;
-  private final InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   private Statement mStatement = new Statement() {
     @Override

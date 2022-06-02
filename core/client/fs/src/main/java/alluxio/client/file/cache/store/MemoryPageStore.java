@@ -22,11 +22,11 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The {@link MemoryPageStore} is an implementation of {@link PageStore} which
@@ -55,9 +55,9 @@ public class MemoryPageStore implements PageStore {
   public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
     PageId pageKey = getKeyFromPageId(pageId);
     try {
-      byte[] mPage = new byte[page.length];
-      System.arraycopy(page, 0, mPage, 0, page.length);
-      mPageStoreMap.put(pageKey, mPage);
+      byte[] pageCopy = new byte[page.length];
+      System.arraycopy(page, 0, pageCopy, 0, page.length);
+      mPageStoreMap.put(pageKey, pageCopy);
     } catch (Exception e) {
       throw new IOException("Failed to put cached data in memory for page " + pageId);
     }
@@ -75,12 +75,12 @@ public class MemoryPageStore implements PageStore {
     if (!mPageStoreMap.containsKey(pageKey)) {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
     }
-    byte[] mPage = mPageStoreMap.get(pageKey);
-    Preconditions.checkArgument(pageOffset <= mPage.length, "page offset %s exceeded page size %s",
-        pageOffset, mPage.length);
-    int bytesLeft = (int) Math.min(mPage.length - pageOffset, buffer.length - bufferOffset);
+    byte[] page = mPageStoreMap.get(pageKey);
+    Preconditions.checkArgument(pageOffset <= page.length, "page offset %s exceeded page size %s",
+        pageOffset, page.length);
+    int bytesLeft = (int) Math.min(page.length - pageOffset, buffer.length - bufferOffset);
     bytesLeft = Math.min(bytesLeft, bytesToRead);
-    System.arraycopy(mPage, pageOffset, buffer, bufferOffset, bytesLeft);
+    System.arraycopy(page, pageOffset, buffer, bufferOffset, bytesLeft);
     return bytesLeft;
   }
 

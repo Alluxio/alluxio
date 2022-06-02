@@ -42,6 +42,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -58,12 +59,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Utilities for working with Alluxio configurations.
@@ -71,11 +73,13 @@ import javax.annotation.concurrent.GuardedBy;
 public final class ConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
-  @GuardedBy("DEFAULT_PROPERTIES_LOCK")
-  private static volatile AlluxioProperties sDefaultProperties = null;
-  private static String sSourcePropertyFile = null;
+  private static final AtomicReference<AlluxioProperties> DEFAULT_PROPERTIES_REFERENCE =
+      new AtomicReference<>();
 
-  private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
+  static {
+    reloadProperties();
+  }
+
   private static final String MASTERS = "masters";
   private static final String WORKERS = "workers";
 
@@ -198,77 +202,18 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads properties from a resource.
-   *
-   * @param resource url of the properties file
-   * @return a set of properties on success, or null if failed
-   */
-  @Nullable
-  public static Properties loadPropertiesFromResource(URL resource) {
-    try (InputStream stream = resource.openStream()) {
-      return loadProperties(stream);
-    } catch (IOException e) {
-      LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
-      return null;
-    }
-  }
-
-  /**
-   * Loads properties from the given file.
-   *
-   * @param filePath the absolute path of the file to load properties
-   * @return a set of properties on success, or null if failed
-   */
-  @Nullable
-  public static Properties loadPropertiesFromFile(String filePath) {
-    try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-      return loadProperties(fileInputStream);
-    } catch (FileNotFoundException e) {
-      return null;
-    } catch (IOException e) {
-      LOG.warn("Failed to close property input stream from {}: {}", filePath, e.toString());
-      return null;
-    }
-  }
-
-  /**
    * @param stream the stream to read properties from
    * @return a properties object populated from the stream
    */
-  @Nullable
-  public static Properties loadProperties(InputStream stream) {
+  private static Optional<Properties> loadProperties(InputStream stream) {
     Properties properties = new Properties();
     try {
       properties.load(stream);
     } catch (IOException e) {
       LOG.warn("Unable to load properties: {}", e.toString());
-      return null;
+      return Optional.empty();
     }
-    return properties;
-  }
-
-  /**
-   * Searches the given properties file from a list of paths.
-   *
-   * @param propertiesFile the file to load properties
-   * @param confPathList a list of paths to search the propertiesFile
-   * @return the site properties file on success search, or null if failed
-   */
-  @Nullable
-  public static String searchPropertiesFile(String propertiesFile,
-      List<String> confPathList) {
-    if (propertiesFile == null || confPathList == null) {
-      return null;
-    }
-    for (String path : confPathList) {
-      String file = PathUtils.concatPath(path, propertiesFile);
-      Properties properties = loadPropertiesFromFile(file);
-      if (properties != null) {
-        // If a site conf is successfully loaded, stop trying different paths.
-        return file;
-      }
-    }
-    return null;
+    return Optional.of(properties);
   }
 
   /**
@@ -389,22 +334,23 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Returns an instance of {@link AlluxioProperties} with the defaults and values from
+   * Returns a new instance of {@link AlluxioProperties} with the defaults and values from
    * alluxio-site properties.
    *
    * @return the set of Alluxio properties loaded from the site-properties file
    */
-  public static AlluxioProperties defaults() {
-    if (sDefaultProperties == null) {
-      synchronized (DEFAULT_PROPERTIES_LOCK) { // We don't want multiple threads to reload
-        // properties at the same time.
-        // Check if properties are still null so we don't reload a second time.
-        if (sDefaultProperties == null) {
-          reloadProperties();
-        }
-      }
-    }
-    return sDefaultProperties.copy();
+  public static AlluxioProperties copyDefaults() {
+    return DEFAULT_PROPERTIES_REFERENCE.get().copy();
+  }
+
+  /**
+   * Returns a reference to {@link AlluxioProperties} with the defaults and values from
+   * alluxio-site properties.
+   *
+   * @return a reference to Alluxio properties loaded from the site-properties file
+   */
+  public static AlluxioConfiguration defaults() {
+    return new InstancedConfiguration(DEFAULT_PROPERTIES_REFERENCE.get());
   }
 
   /**
@@ -416,62 +362,64 @@ public final class ConfigurationUtils {
    * @return the value configured for this property key
    */
   public static Object getPropertyValue(PropertyKey key) {
-    if (sDefaultProperties == null) {
-      return defaults().get(key);
-    } else {
-      synchronized (DEFAULT_PROPERTIES_LOCK) {
-        return sDefaultProperties.get(key);
-      }
-    }
+    return DEFAULT_PROPERTIES_REFERENCE.get().get(key);
   }
 
   /**
    * Reloads site properties from disk.
    */
   public static void reloadProperties() {
-    synchronized (DEFAULT_PROPERTIES_LOCK) {
-      // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio
-      // .home (likely to be in system properties) to locate the conf dir to search for the site
-      // property file.
-      AlluxioProperties properties = new AlluxioProperties();
-      InstancedConfiguration conf = new InstancedConfiguration(properties);
-      // Can't directly pass System.getProperties() because it is not thread-safe
-      // This can cause a ConcurrentModificationException when merging.
-      Properties sysProps = new Properties();
-      System.getProperties().stringPropertyNames()
-          .forEach(key -> sysProps.setProperty(key, System.getProperty(key)));
-      properties.merge(sysProps, Source.SYSTEM_PROPERTY);
-
-      // Step2: Load site specific properties file if not in test mode. Note that we decide
-      // whether in test mode by default properties and system properties (via getBoolean).
-      if (conf.getBoolean(PropertyKey.TEST_MODE)) {
-        conf.validate();
-        sDefaultProperties = properties;
-        return;
-      }
-
-      // we are not in test mode, load site properties
-      List<String> confPathList = conf.getList(PropertyKey.SITE_CONF_DIR);
-      String sitePropertyFile = ConfigurationUtils
-          .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-      Properties siteProps = null;
-      if (sitePropertyFile != null) {
-        siteProps = loadPropertiesFromFile(sitePropertyFile);
-        sSourcePropertyFile = sitePropertyFile;
-      } else {
-        URL resource =
-            ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
-        if (resource != null) {
-          siteProps = loadPropertiesFromResource(resource);
-          if (siteProps != null) {
-            sSourcePropertyFile = resource.getPath();
+    // Bootstrap the configuration. This is necessary because we need to resolve alluxio.home
+    // (likely to be in system properties) to locate the conf dir to search for the site
+    // property file.
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    // Can't directly pass System.getProperties() because it is not thread-safe
+    // This can cause a ConcurrentModificationException when merging.
+    alluxioProperties.merge(System.getProperties().entrySet().stream()
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
+        Source.SYSTEM_PROPERTY);
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    // Load site specific properties file if not in test mode. Note that we decide
+    // whether in test mode by default properties and system properties (via getBoolean).
+    if (!conf.getBoolean(PropertyKey.TEST_MODE)) {
+      // We are not in test mode, load site properties
+      // First try loading from config file
+      for (String path : conf.getList(PropertyKey.SITE_CONF_DIR)) {
+        String file = PathUtils.concatPath(path, Constants.SITE_PROPERTIES);
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+          Optional<Properties> properties = loadProperties(fileInputStream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(file));
+            new InstancedConfiguration(alluxioProperties).validate();
+            DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
+            // If a site conf is successfully loaded, stop trying different paths.
+            return;
           }
+        } catch (FileNotFoundException e) {
+          // skip
+        } catch (IOException e) {
+          LOG.warn("Failed to close property input stream from {}: {}", file, e.toString());
         }
       }
-      properties.merge(siteProps, Source.siteProperty(sSourcePropertyFile));
-      conf.validate();
-      sDefaultProperties = properties;
+
+      // Try to load from resource
+      URL resource =
+          ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+      if (resource != null) {
+        try (InputStream stream = resource.openStream()) {
+          Optional<Properties> properties = loadProperties(stream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
+            new InstancedConfiguration(alluxioProperties).validate();
+            DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
+          }
+        } catch (IOException e) {
+          LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
+        }
+      }
     }
+    conf.validate();
+    DEFAULT_PROPERTIES_REFERENCE.set(alluxioProperties);
   }
 
   /**

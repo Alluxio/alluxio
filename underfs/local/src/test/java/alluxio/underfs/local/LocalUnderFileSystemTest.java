@@ -60,7 +60,7 @@ public class LocalUnderFileSystemTest {
   private String mLocalUfsRoot;
   private UnderFileSystem mLocalUfs;
   private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();

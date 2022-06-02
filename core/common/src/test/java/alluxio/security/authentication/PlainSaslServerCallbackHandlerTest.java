@@ -42,7 +42,7 @@ public final class PlainSaslServerCallbackHandlerTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   public ConfigurationRule mConfigurationRule =

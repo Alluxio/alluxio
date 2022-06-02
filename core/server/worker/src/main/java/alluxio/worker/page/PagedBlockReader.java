@@ -50,6 +50,8 @@ public class PagedBlockReader extends BlockReader {
   private final long mBlockId;
   private final Protocol.OpenUfsBlockOptions mUfsBlockOptions;
   private boolean mClosed = false;
+  private boolean mReadFromLocalCache = false;
+  private boolean mReadFromUfs = false;
   private long mPosition = 0;
 
   /**
@@ -98,6 +100,7 @@ public class PagedBlockReader extends BlockReader {
       if (bytesReadFromCache > 0) {
         bytesRead += bytesReadFromCache;
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+        mReadFromLocalCache = true;
       } else {
         byte[] page = readPageFromUFS(pos);
         if (page.length > 0) {
@@ -105,6 +108,7 @@ public class PagedBlockReader extends BlockReader {
           bytesRead += bytesLeftInPage;
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
               .mark(bytesLeftInPage);
+          mReadFromUfs = true;
           mCacheManager.put(pageId, page);
         }
       }
@@ -180,6 +184,14 @@ public class PagedBlockReader extends BlockReader {
 
   @Override
   public void close() throws IOException {
+    if (!isClosed()) {
+      if (mReadFromLocalCache) {
+        MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_LOCAL.getName()).inc();
+      }
+      if (mReadFromUfs) {
+        MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_UFS.getName()).inc();
+      }
+    }
     mClosed = true;
   }
 }

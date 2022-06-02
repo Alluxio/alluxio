@@ -40,7 +40,7 @@ public final class CreateOptionsTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
   }
 
   /**

@@ -45,7 +45,7 @@ import java.util.Map;
 public class SummaryCommandTest {
 
   private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;

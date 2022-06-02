@@ -34,7 +34,7 @@ public final class AuthenticatedClientUserResourceTest {
 
   @Test
   public void userRestored() throws Exception {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
     AuthenticatedClientUser.set(ORIGINAL_USER);
     User original = AuthenticatedClientUser.get(conf);
     new AuthenticatedClientUserResource(TESTCASE_USER, conf).close();

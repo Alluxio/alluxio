@@ -240,7 +240,7 @@ public final class MountTable implements DelegatingJournaled {
         // we choose a new candidate path if the previous candidatepath is a prefix
         // of the current alluxioPath and the alluxioPath is a prefix of the path
         if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
-            && PathUtils.hasPrefix(mount, lastMount)) {
+            && lastMount.length() < mount.length()) {
           lastMount = mount;
         }
       }
