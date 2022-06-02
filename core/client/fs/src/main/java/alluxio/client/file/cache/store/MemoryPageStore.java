@@ -12,7 +12,6 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -22,11 +21,9 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The {@link MemoryPageStore} is an implementation of {@link PageStore} which
@@ -35,7 +32,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class MemoryPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
-  private final long mPageSize;
   private final long mCapacity;
 
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = null;
@@ -46,7 +42,6 @@ public class MemoryPageStore implements PageStore {
    * @param options options for the buffer store
    */
   public MemoryPageStore(MemoryPageStoreOptions options) {
-    mPageSize = options.getPageSize();
     mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mPageStoreMap = new ConcurrentHashMap<>();
   }
@@ -109,15 +104,5 @@ public class MemoryPageStore implements PageStore {
   public void close() {
     mPageStoreMap.clear();
     mPageStoreMap = null;
-  }
-
-  @Override
-  public Stream<PageInfo> getPages() throws IOException {
-    return (new ArrayList<PageInfo>(0)).stream();
-  }
-
-  @Override
-  public long getCacheSize() {
-    return mCapacity;
   }
 }

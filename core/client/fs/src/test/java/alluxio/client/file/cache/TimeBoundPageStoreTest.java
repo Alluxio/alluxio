@@ -59,13 +59,13 @@ public class TimeBoundPageStoreTest {
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    conf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
+    conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, mTemp.getRoot().getAbsolutePath());
     conf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "-1");
-    mPageStoreOptions = PageStoreOptions.create(conf);
+    mPageStoreOptions = PageStoreOptions.create(conf).get(0);
     mPageStore = new HangingPageStore(mPageStoreOptions);
 
     conf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
-    mTimeBoundPageStoreOptions = PageStoreOptions.create(conf);
+    mTimeBoundPageStoreOptions = PageStoreOptions.create(conf).get(0);
     mTimeBoundPageStore = new TimeBoundPageStore(mPageStore, mTimeBoundPageStoreOptions);
   }
 

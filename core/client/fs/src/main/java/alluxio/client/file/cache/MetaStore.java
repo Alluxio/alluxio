@@ -11,9 +11,12 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+
+import java.util.Optional;
 
 /**
  * The metadata store for pages stored in cache.
@@ -75,7 +78,8 @@ public interface MetaStore {
   void reset();
 
   /**
+   * @param pageStoreDir
    * @return a page to evict
    */
-  PageInfo evict();
+  PageInfo evict(Optional<PageStoreDir> pageStoreDir);
 }

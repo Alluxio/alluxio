@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 
@@ -114,7 +116,10 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   @Nullable
-  public PageInfo evict() {
+  public PageInfo evict(Optional<PageStoreDir> pageStoreDir) {
+    if (pageStoreDir.isPresent()) {
+      return evictInternal(pageStoreDir.get().getEvictor());
+    }
     return evictInternal(mEvictor);
   }
 

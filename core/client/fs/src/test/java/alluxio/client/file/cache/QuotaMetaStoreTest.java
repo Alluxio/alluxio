@@ -15,7 +15,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.client.file.cache.store.LocalPageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -26,11 +30,15 @@ import org.junit.Test;
  * Tests for the {@link QuotaMetaStore} class.
  */
 public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
-  private QuotaMetaStore mQuotaMetaStore;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final PageStoreDir mPageStoreDir =
+      PageStoreDir.createPageStoreDir(mConf, new LocalPageStoreOptions());
   private final CacheScope mPartitionScope = CacheScope.create("schema.table.partition");
   private final CacheScope mTableScope = CacheScope.create("schema.table");
   private final CacheScope mSchemaScope = CacheScope.create("schema");
   private final long mPageSize = 8765;
+
+  private QuotaMetaStore mQuotaMetaStore;
 
   @Before
   public void before() {
@@ -44,7 +52,7 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
   @Test
   public void evictInScope() throws Exception {
     assertNull(mQuotaMetaStore.evict(CacheScope.GLOBAL));
-    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mSchemaScope);
+    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mSchemaScope, mPageStoreDir);
     mQuotaMetaStore.addPage(mPage, pageInfo);
     assertNull(mQuotaMetaStore.evict(mPartitionScope));
     assertNull(mQuotaMetaStore.evict(mTableScope));
@@ -58,8 +66,8 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
     CacheScope partitionScope2 = CacheScope.create("schema.table.partition2");
     PageId pageId1 = new PageId("1L", 2L);
     PageId pageId2 = new PageId("3L", 4L);
-    PageInfo pageInfo1 = new PageInfo(pageId1, 1234, partitionScope1);
-    PageInfo pageInfo2 = new PageInfo(pageId2, 5678, partitionScope2);
+    PageInfo pageInfo1 = new PageInfo(pageId1, 1234, partitionScope1, mPageStoreDir);
+    PageInfo pageInfo2 = new PageInfo(pageId2, 5678, partitionScope2, mPageStoreDir);
     mQuotaMetaStore.addPage(pageId1, pageInfo1);
     mQuotaMetaStore.addPage(pageId2, pageInfo2);
     assertEquals(pageInfo1, mQuotaMetaStore.evict(partitionScope1));
@@ -80,7 +88,7 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
 
   @Test
   public void bytesInScope() throws Exception {
-    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mPartitionScope);
+    PageInfo pageInfo = new PageInfo(mPage, mPageSize, mPartitionScope, mPageStoreDir);
     mQuotaMetaStore.addPage(mPage, pageInfo);
     assertEquals(mPageSize, mQuotaMetaStore.bytes(mPartitionScope));
     assertEquals(mPageSize, mQuotaMetaStore.bytes(mTableScope));
