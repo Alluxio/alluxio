@@ -63,7 +63,7 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
 
     try {
       List<InetSocketAddress> masterAddresses = inquireClient.getMasterRpcAddresses();
-      System.out.println(String.format("All masters: %s", masterAddresses));
+      System.out.printf("All masters: %s%n", masterAddresses);
     } catch (UnavailableException e) {
       System.out.println("Failed to find all master addresses");
     }
