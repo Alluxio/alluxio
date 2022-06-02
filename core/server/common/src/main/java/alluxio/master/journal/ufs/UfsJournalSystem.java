@@ -55,7 +55,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   private final URI mBase;
   private final long mQuietTimeMs;
-  private ConcurrentHashMap<String, UfsJournal> mJournals;
+  private final ConcurrentHashMap<String, UfsJournal> mJournals;
   private long mInitialCatchupTimeMs = -1;
 
   /**
@@ -77,7 +77,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     try {
       super.registerMetrics();
     } catch (RuntimeException e) {
-      return;
+      // do nothing
     }
   }
 
@@ -220,7 +220,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public boolean isFormatted() throws IOException {
+  public boolean isFormatted() {
     for (UfsJournal journal : mJournals.values()) {
       if (!journal.isFormatted()) {
         return false;
