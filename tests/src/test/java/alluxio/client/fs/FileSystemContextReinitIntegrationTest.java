@@ -203,10 +203,10 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     // Use Equals and NotEquals so that when test fails, the hashes are printed out for comparison.
     if (clusterConfHashUpdated) {
       Assert.assertNotEquals(mClusterConfHash,
-          mContext.getClientContext().getClusterConfHash());
+          mContext.getClientContext().getClusterConf().hash());
     } else {
       Assert.assertEquals(mClusterConfHash,
-          mContext.getClientContext().getClusterConfHash());
+          mContext.getClientContext().getClusterConf().hash());
     }
 
     if (pathConfHashUpdated) {
@@ -219,7 +219,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   private void updateHash() {
-    mClusterConfHash = mContext.getClientContext().getClusterConfHash();
+    mClusterConfHash = mContext.getClientContext().getClusterConf().hash();
     mPathConfHash = mContext.getClientContext().getPathConfHash();
   }
 }
