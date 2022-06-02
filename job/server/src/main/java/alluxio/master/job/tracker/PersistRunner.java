@@ -13,7 +13,6 @@ package alluxio.master.job.tracker;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.OperationType;
 import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.JobSource;
@@ -21,11 +20,8 @@ import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
 import alluxio.retry.CountingRetry;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -33,7 +29,6 @@ import javax.annotation.Nullable;
  * A config runner for a Persist job.
  */
 public class PersistRunner {
-  private static final Logger LOG = LoggerFactory.getLogger(PersistRunner.class);
   static final long DEFAULT_FILE_COUNT = 1;
 
   private final FileSystem mFileSystem;
@@ -46,8 +41,7 @@ public class PersistRunner {
    */
   public PersistRunner(@Nullable FileSystemContext fsContext, JobMaster jobMaster) {
     if (fsContext == null) {
-      fsContext =
-              FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+      fsContext = FileSystemContext.create();
     }
     mFileSystem = FileSystem.Factory.create(fsContext);
     mJobMaster = jobMaster;

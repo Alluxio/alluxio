@@ -40,7 +40,7 @@ import java.util.List;
 @RunWith(PowerMockRunner.class)
 public class KodoOutputStreamTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
   private static List<String> sTmpDirs = sConf.getList(PropertyKey.TMP_DIRS);
 
   /**

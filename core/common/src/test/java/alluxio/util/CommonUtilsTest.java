@@ -299,7 +299,7 @@ public class CommonUtilsTest {
    */
   @Test
   public void getGroups() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
 
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";

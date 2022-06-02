@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class LocalFirstAvoidEvictionPolicyTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Test
   public void chooseClosestTierAvoidEviction() throws Exception {

@@ -36,10 +36,10 @@ class SignalBlockMaster extends DefaultBlockMaster {
 
   SignalBlockMaster(MetricsMaster mMetricsMaster,
                     CoreMasterContext masterContext,
-                    ManualClock mClock,
+                    ManualClock clock,
                     ExecutorServiceFactory constantExecutorServiceFactory,
                     CountDownLatch targetLatch) {
-    super(mMetricsMaster, masterContext, mClock, constantExecutorServiceFactory);
+    super(mMetricsMaster, masterContext, clock, constantExecutorServiceFactory);
     mLatch = targetLatch;
   }
 

@@ -73,7 +73,7 @@ public class RunOperation {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.defaults()))
+    System.exit(new RunOperation(new InstancedConfiguration(ConfigurationUtils.copyDefaults()))
         .run(args));
   }
 
@@ -96,7 +96,7 @@ public class RunOperation {
     try {
       jc.parse(args);
     } catch (Exception e) {
-      System.out.println(e.toString());
+      System.out.println(e);
       System.out.println();
       jc.usage();
       return -1;

@@ -15,7 +15,7 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -180,10 +180,10 @@ public interface LocalBlockStore
    * @param blockId the id of an existing block
    * @param offset the offset within the block
    * @return a {@link BlockReader} instance on this block
-   * @throws BlockDoesNotExistException if lockId is not found
+   * @throws BlockDoesNotExistRuntimeException if lockId is not found
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException;
+      throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.

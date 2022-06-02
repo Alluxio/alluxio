@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.CacheResponse;
@@ -24,6 +25,9 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FileBlocks;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -33,6 +37,7 @@ import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.TaskStatus;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -56,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -164,6 +170,21 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       mBlockWorker.cache(request);
       return CacheResponse.getDefaultInstance();
     }, "cache", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void load(LoadRequest request, StreamObserver<LoadResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      LoadResponse.Builder response = LoadResponse.newBuilder();
+      List<BlockStatus> failures = mBlockWorker.load(request);
+      int numBlocks =
+          request.getFileBlocksList().stream().mapToInt(FileBlocks::getBlockIdCount).sum();
+      TaskStatus taskStatus = TaskStatus.SUCCESS;
+      if (failures.size() > 0) {
+        taskStatus = numBlocks > failures.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+      }
+      return response.addAllBlockStatus(failures).setStatus(taskStatus).build();
+    }, "load", "request=%s", responseObserver, request);
   }
 
   @Override

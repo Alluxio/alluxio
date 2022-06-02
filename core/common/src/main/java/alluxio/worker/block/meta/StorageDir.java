@@ -113,9 +113,9 @@ public interface StorageDir {
    * Gets the {@link TempBlockMeta} from this storage dir by its block id.
    *
    * @param blockId the block id
-   * @return {@link TempBlockMeta} of the given block or null
+   * @return {@link TempBlockMeta} of the given block or empty
    */
-  TempBlockMeta getTempBlockMeta(long blockId);
+  Optional<TempBlockMeta> getTempBlockMeta(long blockId);
 
   /**
    * Adds the metadata of a new block into this storage dir.

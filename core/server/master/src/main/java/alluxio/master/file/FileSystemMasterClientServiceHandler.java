@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -441,7 +440,7 @@ public final class FileSystemMasterClientServiceHandler
    * @param uriStr transport uri string
    * @return a {@link AlluxioURI} instance
    */
-  private AlluxioURI getAlluxioURI(String uriStr) throws InvalidPathException {
+  private AlluxioURI getAlluxioURI(String uriStr) {
     return new AlluxioURI(uriStr);
   }
 }

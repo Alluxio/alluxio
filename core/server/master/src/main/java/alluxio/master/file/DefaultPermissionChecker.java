@@ -173,10 +173,9 @@ public class DefaultPermissionChecker implements PermissionChecker {
    *
    * @param inodePath path to be checked on
    * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
    */
   private void checkOwner(LockedInodePath inodePath)
-      throws AccessControlException, InvalidPathException {
+      throws AccessControlException {
     // collects inodes info on the path
     List<InodeView> inodeList = inodePath.getInodeViewList();
 

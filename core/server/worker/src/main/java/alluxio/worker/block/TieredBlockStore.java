@@ -16,7 +16,7 @@ import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -186,7 +186,7 @@ public class TieredBlockStore implements LocalBlockStore
 
   @Override
   public BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     LOG.debug("createBlockReader: sessionId={}, blockId={}, offset={}",
         sessionId, blockId, offset);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
@@ -196,7 +196,7 @@ public class TieredBlockStore implements LocalBlockStore
     }
     if (!blockMeta.isPresent()) {
       unpinBlock(lockId);
-      throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+      throw new BlockDoesNotExistRuntimeException(blockId);
     }
     try {
       BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
@@ -246,7 +246,7 @@ public class TieredBlockStore implements LocalBlockStore
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onCommitBlock(sessionId, blockId, loc);
+          listener.onCommitBlock(blockId, loc);
         }
       }
     } finally {
@@ -264,7 +264,7 @@ public class TieredBlockStore implements LocalBlockStore
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onCommitBlock(sessionId, blockId, loc);
+          listener.onCommitBlock(blockId, loc);
         }
       }
     } catch (Exception e) {
@@ -281,7 +281,7 @@ public class TieredBlockStore implements LocalBlockStore
     abortBlockInternal(sessionId, blockId);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onAbortBlock(sessionId, blockId);
+        listener.onAbortBlock(blockId);
       }
     }
   }
@@ -333,7 +333,7 @@ public class TieredBlockStore implements LocalBlockStore
     if (result.getSuccess()) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
+          listener.onMoveBlockByClient(blockId, result.getSrcLocation(),
               result.getDstLocation());
         }
       }
@@ -350,9 +350,9 @@ public class TieredBlockStore implements LocalBlockStore
         sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
     for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
       synchronized (listener) {
-        listener.onRemoveBlockByClient(sessionId, blockId);
+        listener.onRemoveBlockByClient(blockId);
         blockMeta.ifPresent(meta -> listener.onRemoveBlock(
-            sessionId, blockId, meta.getBlockLocation()));
+            blockId, meta.getBlockLocation()));
       }
     }
   }
@@ -398,8 +398,8 @@ public class TieredBlockStore implements LocalBlockStore
     if (blockMeta.isPresent()) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         synchronized (listener) {
-          listener.onAccessBlock(sessionId, blockId);
-          listener.onAccessBlock(sessionId, blockId, blockMeta.get().getBlockLocation());
+          listener.onAccessBlock(blockId);
+          listener.onAccessBlock(blockId, blockMeta.get().getBlockLocation());
         }
       }
     }
@@ -752,8 +752,8 @@ public class TieredBlockStore implements LocalBlockStore
         blocksRemoved++;
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
           synchronized (listener) {
-            listener.onRemoveBlockByWorker(sessionId, blockMeta.getBlockId());
-            listener.onRemoveBlock(sessionId, blockMeta.getBlockId(),
+            listener.onRemoveBlockByWorker(blockMeta.getBlockId());
+            listener.onRemoveBlock(blockMeta.getBlockId(),
                 blockMeta.getBlockLocation());
           }
         }

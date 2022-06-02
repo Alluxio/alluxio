@@ -37,7 +37,7 @@ import java.util.List;
  */
 public final class LocalFirstPolicyTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
   private static int sResolutionTimeout =
       (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
 

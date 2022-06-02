@@ -48,16 +48,15 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       ServerConfiguration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
   private final PrimarySelector mLeaderSelector;
-  private Thread mServingThread;
+  private Thread mServingThread = null;
 
   /** An indicator for whether the process is running (after start() and before stop()). */
-  private volatile boolean mRunning;
+  private volatile boolean mRunning = false;
 
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
    */
-  FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem,
-      PrimarySelector leaderSelector) {
+  FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super(journalSystem);
     try {
       stopServing();
@@ -65,8 +64,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException(e);
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
-    mServingThread = null;
-    mRunning = false;
     LOG.info("New process created.");
   }
 

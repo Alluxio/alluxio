@@ -26,7 +26,7 @@ import java.util.Collection;
 
 public class CollectInfoTest {
   private static InstancedConfiguration sConf =
-          new InstancedConfiguration(ConfigurationUtils.defaults());
+          new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   private int getNumberOfCommands() {
     Reflections reflections =

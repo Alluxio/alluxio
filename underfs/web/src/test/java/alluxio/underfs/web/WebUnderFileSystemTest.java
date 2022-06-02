@@ -31,7 +31,7 @@ public class WebUnderFileSystemTest {
   private String mWebUfsRoot;
   private UnderFileSystem mWebUfs;
   private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
 
   @Before
   public void before() throws IOException {

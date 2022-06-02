@@ -118,48 +118,29 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    */
   private final JobServerContext mJobServerContext;
 
-  /**
+  /*
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
    */
   @GuardedBy("mWorkerRWLock")
   private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<>(mIdIndex, mAddressIndex);
 
-  /**
-   * All worker health information.
-   */
   private final ConcurrentHashMap<Long, JobWorkerHealth> mWorkerHealth;
 
-  /**
-   * An RW lock that is used to control access to mWorkers.
-   */
   private final ReentrantReadWriteLock mWorkerRWLock = new ReentrantReadWriteLock(true);
 
-  /**
-   * The next worker id to use.
-   */
   private final AtomicLong mNextWorkerId = new AtomicLong(CommonUtils.getCurrentMs());
 
-  /**
-   * Manager for worker tasks.
-   */
+  // Manager for worker tasks.
   private final CommandManager mCommandManager;
 
-  /**
-   * Manager for adding and removing plans.
-   */
+  // Manager for adding and removing plans.
   private final PlanTracker mPlanTracker;
 
-  /**
-   * Manager for adding and removing workflows.
-   */
+  // Manager for adding and removing workflows.s
   private final WorkflowTracker mWorkflowTracker;
 
-  /**
-   * The job id generator.
-   */
   private final JobIdGenerator mJobIdGenerator;
 
-  /** Log writer for user access audit log. */
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Distributed command job tracker. */

@@ -38,7 +38,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
-  /** The connect address for the rpc server. */
+  /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem) {
@@ -81,11 +80,11 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       }
       // Create master.
       mJobMaster = new JobMaster(
-          new MasterContext(mJournalSystem, null, ufsManager), fileSystem, fsContext,
+          new MasterContext<>(mJournalSystem, null, ufsManager), fileSystem, fsContext,
           ufsManager);
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException("Failed to create job master", e);
     }
   }
 
@@ -155,7 +154,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       mJobMaster.start(isLeader);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e.getMessage(), e);
     }
   }
 
@@ -164,7 +163,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       mJobMaster.stop();
     } catch (IOException e) {
       LOG.error("Failed to stop job master", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException("Failed to stop job master", e);
     }
   }
 

@@ -29,7 +29,7 @@ public class KodoUnderFileSystemFactoryTest {
   @Test
   public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("kodo://test-bucket/path",
-        ConfigurationTestUtils.defaults());
+        ConfigurationTestUtils.copyDefaults());
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for oss paths when using this module", factory);

@@ -22,7 +22,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -89,8 +88,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   @VisibleForTesting
   public static final int MAX_NAME_LENGTH = 255;
 
-  private static InstancedConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+  private static AlluxioConfiguration sConf = ConfigurationUtils.defaults();
 
   /**
    * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
