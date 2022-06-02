@@ -15,16 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.master.block.BlockId;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -45,8 +44,7 @@ import java.util.concurrent.RejectedExecutionException;
  * Control UFS IO.
  */
 public class UfsIOManager implements Closeable {
-  private static final int IO_THREADS =
-      ServerConfiguration.getInt(PropertyKey.UNDERFS_IO_THREADS);
+  private static final int IO_THREADS = ServerConfiguration.getInt(PropertyKey.UNDERFS_IO_THREADS);
   private static final int READ_CAPACITY =
       ServerConfiguration.getInt(PropertyKey.UNDERFS_IO_READ_QUEUE_CAPACITY);
   private final UfsManager.UfsClient mUfsClient;
@@ -71,6 +69,7 @@ public class UfsIOManager implements Closeable {
 
   /**
    * start ufs io manager.
+   * 
    * @throws IOException
    */
   public void start() throws IOException {
@@ -81,13 +80,14 @@ public class UfsIOManager implements Closeable {
    * close.
    */
   @Override
-  public void close(){
+  public void close() {
     mScheduleExecutor.shutdownNow();
     mUfsIoExecutor.shutdownNow();
   }
 
   /**
    * set throughput quota for specific user.
+   * 
    * @param user the client name or tag
    * @param throughput throughput limit
    */
@@ -104,7 +104,7 @@ public class UfsIOManager implements Closeable {
         Thread.currentThread().interrupt();
       }
       if (task != null) {
-        int quota = mThroughputQuota.getOrDefault(task.getOptions().getUser(), -1);
+        int quota = mThroughputQuota.getOrDefault(task.getUser(), -1);
         Meter ufsBytesReadThroughput = mUfsBytesReadThroughputMetrics.computeIfAbsent(
             mUfsClient.getUfsMountPointUri(),
             uri -> MetricsSystem.meterWithTags(MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
@@ -126,20 +126,23 @@ public class UfsIOManager implements Closeable {
   }
 
   /**
-   * read
-   * @param blockMeta
-   * @param offset
-   * @param length
-   * @param positionShort
-   * @param options
-   * @return
-   * @throws IOException
+   * read from ufs.
+   * @param blockId block id
+   * @param blockSize block size
+   * @param ufsPath ufs path
+   * @param offset offset to read
+   * @param length length to read
+   * @param positionShort is position short or not
+   * @param user user tag
+   * @return content read
+   * @throws IOException any exception from ufs
    */
-  public CompletableFuture<byte[]> read(UnderFileSystemBlockMeta blockMeta, long offset,
-      long length, boolean positionShort, Protocol.OpenUfsBlockOptions options) throws IOException {
+  public CompletableFuture<byte[]> read(long blockId, long blockSize, String ufsPath, long offset,
+      long length, boolean positionShort, String user) throws IOException {
 
     CompletableFuture<byte[]> future = new CompletableFuture<>();
-    mReadQueue.add(new ReadTask(blockMeta, offset, length, positionShort, options, future));
+    mReadQueue.add(
+        new ReadTask(blockId, blockSize, ufsPath, offset, length, positionShort, user, future));
 
     return future;
   }
@@ -147,26 +150,29 @@ public class UfsIOManager implements Closeable {
 
 
   private class ReadTask implements Runnable {
-    private final Protocol.OpenUfsBlockOptions mOptions;
-    private final UnderFileSystemBlockMeta mBlockMeta;
     private final long mOffset;
     private final long mBytesToRead;
     private final boolean mIsPositionShort;
     private final CompletableFuture<byte[]> mFuture;
+    private final long mBlockId;
+    private final String mUfsPath;
+    private final String mUser;
+    private final long mBlockSize;
 
-    private ReadTask(UnderFileSystemBlockMeta blockMeta, long offset, long length,
-        boolean positionShort, Protocol.OpenUfsBlockOptions options,
-        CompletableFuture<byte[]> future) {
-      mOptions = options;
-      mBlockMeta = blockMeta;
+    private ReadTask(long blockId, long blockSize, String ufsPath, long offset, long length,
+        boolean positionShort, String user, CompletableFuture<byte[]> future) {
+      mUser = user;
+      mBlockId = blockId;
+      mBlockSize = blockSize;
+      mUfsPath = ufsPath;
       mOffset = offset;
       mBytesToRead = length;
       mIsPositionShort = positionShort;
       mFuture = future;
     }
 
-    public Protocol.OpenUfsBlockOptions getOptions() {
-      return mOptions;
+    public String getUser() {
+      return mUser;
     }
 
     public void run() {
@@ -180,7 +186,7 @@ public class UfsIOManager implements Closeable {
 
     public byte[] readInternal() throws IOException {
       Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
-          new BytesReadMetricKey(mUfsClient.getUfsMountPointUri(), mOptions.getUser()),
+          new BytesReadMetricKey(mUfsClient.getUfsMountPointUri(), mUser),
           key -> key.getUser() == null
               ? MetricsSystem.counterWithTags(MetricKey.WORKER_BYTES_READ_UFS.getName(),
                   MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(), MetricInfo.TAG_UFS,
@@ -195,9 +201,10 @@ public class UfsIOManager implements Closeable {
               MetricsSystem.escape(uri)));
 
       UnderFileSystem ufs = mUfsClient.acquireUfsResource().get();
-      InputStream inStream = mUfsInstreamCache.acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
-          IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()), OpenOptions.defaults()
-              .setOffset(mBlockMeta.getOffset() + mOffset).setPositionShort(mIsPositionShort));
+      long blockStart = BlockId.getSequenceNumber(mBlockId) * mBlockSize;
+      InputStream inStream =
+          mUfsInstreamCache.acquire(ufs, mUfsPath, IdUtils.fileIdFromBlockId(mBlockId), OpenOptions
+              .defaults().setOffset(blockStart + mOffset).setPositionShort(mIsPositionShort));
 
       if (mBytesToRead <= 0) {
         return new byte[0];
