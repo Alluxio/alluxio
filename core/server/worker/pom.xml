@@ -109,7 +109,10 @@
       <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-testing</artifactId>
+    </dependency>
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
