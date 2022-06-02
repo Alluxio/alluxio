@@ -161,7 +161,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         LOG.info(String.format("Task Pool Size: %s", command.getTaskPoolSize()));
         mTaskExecutorManager.setDefaultTaskExecutorPoolSize(command.getTaskPoolSize());
       } else {
-        throw new RuntimeException("unsupported command type:" + mCommand.toString());
+        throw new RuntimeException("unsupported command type:" + mCommand);
       }
     }
   }

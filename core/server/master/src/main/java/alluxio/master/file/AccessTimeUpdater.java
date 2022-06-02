@@ -53,9 +53,9 @@ final class AccessTimeUpdater implements JournalSink {
   private final InodeTree mInodeTree;
 
   /** Keep track of all inodes that need access time update. */
-  private ConcurrentHashMap<Long, Long> mAccessTimeUpdates;
+  private final ConcurrentHashMap<Long, Long> mAccessTimeUpdates;
   private ScheduledExecutorService mExecutorService = null;
-  private AtomicBoolean mUpdateScheduled = new AtomicBoolean();
+  private final AtomicBoolean mUpdateScheduled = new AtomicBoolean();
 
   /**
    * Constructs a new {@link AccessTimeUpdater}.

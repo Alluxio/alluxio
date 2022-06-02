@@ -52,7 +52,7 @@ public class TieredIdentityFactoryTest {
 
   @Before
   public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test

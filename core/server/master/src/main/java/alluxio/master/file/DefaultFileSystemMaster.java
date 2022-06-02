@@ -390,18 +390,18 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Thread pool which asynchronously handles the completion of persist jobs. */
   private java.util.concurrent.ThreadPoolExecutor mPersistCheckerPool;
 
-  private ActiveSyncManager mSyncManager;
+  private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
-  private TimeSeriesStore mTimeSeriesStore;
+  private final TimeSeriesStore mTimeSeriesStore;
 
-  private AccessTimeUpdater mAccessTimeUpdater;
+  private final AccessTimeUpdater mAccessTimeUpdater;
 
   /** Used to check pending/running backup from RPCs. */
-  private CallTracker mStateLockCallTracker;
+  private final CallTracker mStateLockCallTracker;
 
   private final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
@@ -696,7 +696,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
               PERSIST_CHECKER_POOL_THREADS, 1, java.util.concurrent.TimeUnit.MINUTES,
-              new LinkedBlockingQueue<Runnable>(),
+              new LinkedBlockingQueue<>(),
               alluxio.util.ThreadFactoryUtils.build("Persist-Checker-%d", true));
       mPersistCheckerPool.allowCoreThreadTimeOut(true);
       getExecutorService().submit(
@@ -1142,7 +1142,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     final List<FileInfo> fileInfos = new ArrayList<>();
-    listStatus(path, context, (item) -> fileInfos.add(item));
+    listStatus(path, context, fileInfos::add);
     return fileInfos;
   }
 
@@ -2265,7 +2265,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           getInAlluxioFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
           // Inode is no longer a child, continue.
-          continue;
         }
       }
     }
@@ -2296,7 +2295,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           getInMemoryFilesInternal(childPath, files);
         } catch (InvalidPathException e) {
           // Inode is no longer a child, continue.
-          continue;
         }
       }
     }
@@ -2806,7 +2804,6 @@ public class DefaultFileSystemMaster extends CoreMaster
    *
    * @param journalContext the journal context
    * @param inodePath the inode to start the propagation at
-   * @return list of inodes which were marked as persisted
    */
   private void propagatePersistedInternal(Supplier<JournalContext> journalContext,
       LockedInodePath inodePath) throws FileDoesNotExistException {
@@ -2818,7 +2815,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     // Skip the first, to not examine the target inode itself.
     inodes = inodes.subList(1, inodes.size());
 
-    List<Inode> persistedInodes = new ArrayList<>();
     for (Inode ancestor : inodes) {
       // the path is already locked.
       AlluxioURI path = mInodeTree.getPath(ancestor);
@@ -3321,8 +3317,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           throw new IOException(MessageFormat.format(
               "Replacing ACL entries must include the base entries for 'user', 'group',"
                   + " and 'other'. missing: {0}",
-              String.join(", ", requiredTypes.stream().map(AclEntryType::toString)
-                  .collect(Collectors.toList()))));
+              requiredTypes.stream().map(AclEntryType::toString)
+                  .collect(Collectors.joining(", "))));
         }
         break;
       case MODIFY: // fall through
@@ -3444,7 +3440,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         checkUserBelongsToGroup(options.getOwner(), options.getGroup());
       } catch (IOException e) {
         throw new IOException(String.format("Could not update owner:group for %s to %s:%s. %s",
-            path.toString(), options.getOwner(), options.getGroup(), e.toString()), e);
+            path.toString(), options.getOwner(), options.getGroup(), e), e);
       }
     }
     String commandName;
@@ -3616,7 +3612,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           LOG.debug("Active full sync on {} didn't sync any paths.", path);
         }
         long end = System.currentTimeMillis();
-        LOG.info("Ended an active full sync of {} in {}ms", path.toString(), end - start);
+        LOG.info("Ended an active full sync of {} in {}ms", path, end - start);
         return;
       } else {
         // incremental sync

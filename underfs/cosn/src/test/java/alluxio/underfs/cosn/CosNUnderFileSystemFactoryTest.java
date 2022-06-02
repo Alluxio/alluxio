@@ -29,7 +29,7 @@ public class CosNUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry
                             .find("cosn://test-bucket/path", conf);
 

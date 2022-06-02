@@ -301,7 +301,7 @@ public final class BlockMetadataManager {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
-          return Optional.of(dir.getTempBlockMeta(blockId));
+          return dir.getTempBlockMeta(blockId);
         }
       }
     }

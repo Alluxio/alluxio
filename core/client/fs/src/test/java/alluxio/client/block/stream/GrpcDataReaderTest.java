@@ -65,8 +65,8 @@ public final class GrpcDataReaderTest {
   public void before() throws Exception {
     mContext = Mockito.mock(FileSystemContext.class);
     when(mContext.getClientContext())
-        .thenReturn(ClientContext.create(ConfigurationTestUtils.defaults()));
-    when(mContext.getClusterConf()).thenReturn(ConfigurationTestUtils.defaults());
+        .thenReturn(ClientContext.create(ConfigurationTestUtils.copyDefaults()));
+    when(mContext.getClusterConf()).thenReturn(ConfigurationTestUtils.copyDefaults());
     mAddress = new WorkerNetAddress().setHost("localhost").setDataPort(1234);
     ReadRequest.Builder readRequestBuilder =
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE);

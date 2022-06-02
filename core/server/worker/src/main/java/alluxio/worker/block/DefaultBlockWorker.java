@@ -30,9 +30,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.LoadRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -110,8 +112,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   /** Block store delta reporter for master heartbeat. */
   private final BlockHeartbeatReporter mHeartbeatReporter;
-  /** Metrics reporter that listens on block events and increases metrics counters. */
-  private final BlockMetricsReporter mMetricsReporter;
   /** Session metadata, used to keep track of session heartbeats. */
   private final Sessions mSessions;
   /** Block Store manager. */
@@ -128,7 +128,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   private final AtomicReference<Long> mWorkerId;
 
-  private final FileSystemContext mFsContext;
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
 
@@ -163,18 +162,19 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mMetricsReporter = new BlockMetricsReporter();
+    /* Metrics reporter that listens on block events and increases metrics counters. */
+    BlockMetricsReporter metricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
     mLocalBlockStore = mResourceCloser.register(blockStore);
     mWorkerId = new AtomicReference<>(-1L);
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
-    mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    mFsContext = mResourceCloser.register(
-        FileSystemContext.create(null, ServerConfiguration.global(), this));
+    mLocalBlockStore.registerBlockStoreEventListener(metricsReporter);
+    FileSystemContext fsContext = mResourceCloser.register(
+        FileSystemContext.create(ClientContext.create(ServerConfiguration.global()), this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
     mCacheManager = new CacheRequestManager(
-        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
-    mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
+        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
+    mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
@@ -395,9 +395,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-      return new DelegatingBlockReader(reader, () -> {
-        closeUfsBlock(sessionId, blockId);
-      });
+      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
     } catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
@@ -442,6 +440,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  public List<BlockStatus> load(LoadRequest request) {
+    return null;
+  }
+
+  @Override
   public void updatePinList(Set<Long> pinnedInodes) {
     mLocalBlockStore.updatePinnedInodes(pinnedInodes);
   }
@@ -463,16 +466,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws IOException {
     try {
       mUnderFileSystemBlockStore.close(sessionId, blockId);
-      if (mLocalBlockStore.hasTempBlockMeta(blockId)) {
-        try {
-          commitBlock(sessionId, blockId, false);
-        } catch (IllegalStateException e) {
-          // If there are multiple sessions writing to the same block, we can get sessionId
-          // does not match because LocalBlockStore#hasTempBlockMeta does not check
-          // whether the temp block belongs to the sessionId.
-          // If the session expired, we can get block does not exist.
-          LOG.debug("Invalid worker state while committing block.", e);
-        }
+      Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
+      if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+        commitBlock(sessionId, blockId, false);
       } else {
         // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
         // Counter will not be decrement in the commitblock().

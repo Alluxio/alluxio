@@ -17,7 +17,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.io.IOUtils;
 
@@ -54,7 +53,7 @@ public final class MultiMount {
     AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
     AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
     AlluxioURI hdfsPath = new AlluxioURI(args[0]);
-    FileSystem fileSystem = FileSystem.Factory.create(ConfigurationUtils.defaults());
+    FileSystem fileSystem = FileSystem.Factory.create();
 
     try {
       // Make sure mount directory exists.

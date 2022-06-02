@@ -37,13 +37,15 @@ public class NativeLibraryLoader {
   private static final Logger LOG = LoggerFactory.getLogger(NativeLibraryLoader.class);
   //singleton
   private static final NativeLibraryLoader INSTANCE = new NativeLibraryLoader();
-  private static final AtomicReference<LoadState> LOAD_STATE = new AtomicReference<>(LoadState.NOT_LOADED);
+  private static final AtomicReference<LoadState> LOAD_STATE =
+      new AtomicReference<>(LoadState.NOT_LOADED);
 
   private static final String TEMP_FILE_PREFIX = "libjnifuse";
-  private static final String TEMP_FILE_SUFFIX =
-      Environment.getJniLibraryExtension();
+  private static final String TEMP_FILE_SUFFIX = Environment.getJniLibraryExtension();
 
-
+  /**
+   * @return the load state
+   */
   public static LoadState getLoadState() {
     return LOAD_STATE.get();
   }
@@ -62,7 +64,7 @@ public class NativeLibraryLoader {
   }
 
   /**
-   * Internal interface to write tryLoad in an elegant way
+   * Internal interface to write tryLoad in an elegant way.
    *
    * @see Runnable interface cannot have checked exception
    */
@@ -74,7 +76,7 @@ public class NativeLibraryLoader {
    * Try running the loading function.
    *
    * @param load the function to load library
-   * @return the error if UnsatisfiedLinkError is encountered, empty if it completes successfully.
+   * @return the error if UnsatisfiedLinkError is encountered, empty if it completes successfully
    * @throws IOException if a filesystem operation fails
    */
   private Optional<UnsatisfiedLinkError> tryLoad(Load load) throws IOException {
@@ -94,7 +96,7 @@ public class NativeLibraryLoader {
    * the library from the classpath.
    * {@link NativeLibraryLoader#loadLibraryFromJar(String, String, String)}
    *
-   * @return the error why load is failed. Empty if load is successful.
+   * @return the error why load is failed. Empty if load is successful
    */
   private Optional<UnsatisfiedLinkError> load(
       final String sharedLibraryName, final String jniLibraryName,
@@ -170,10 +172,10 @@ public class NativeLibraryLoader {
     return err;
   }
 
-
   /**
    * Load the library.
    *
+   * @param preference     the preferred version of libfuse
    * @param tmpDir A temporary directory to use
    *               to copy the native library to when loading from the classpath.
    *               If null, or the empty string, we rely on Java's
@@ -183,7 +185,8 @@ public class NativeLibraryLoader {
    *               on exit.
    * @throws IOException if a filesystem operation fails
    */
-  public synchronized void loadLibrary(final VersionPreference preference, final String tmpDir) throws IOException {
+  public synchronized void loadLibrary(
+      final VersionPreference preference, final String tmpDir) throws IOException {
 
     Optional<UnsatisfiedLinkError> err;
 
@@ -215,7 +218,6 @@ public class NativeLibraryLoader {
     }
 
     // throws if neither is loaded
-    // TODO better messaging
     throw new UnsatisfiedLinkError("Neither libfuse2 nor libfuse3 can be loaded.");
   }
 
@@ -236,17 +238,18 @@ public class NativeLibraryLoader {
    *                              on exit.
    * @throws IOException if a filesystem operation fails
    */
-  void loadLibraryFromJar(final String sharedLibraryFileName, final String jniLibraryFileName, final String tmpDir)
-      throws IOException {
+  void loadLibraryFromJar(final String sharedLibraryFileName,
+      final String jniLibraryFileName, final String tmpDir) throws IOException {
     if (LOAD_STATE.get() == LoadState.NOT_LOADED) {
-      String libPath = loadLibraryFromJarToTemp(sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
+      String libPath = loadLibraryFromJarToTemp(
+          sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
       System.load(libPath);
       LOG.info("Loaded lib by jar from path {}.", libPath);
     }
   }
 
-  File loadLibraryFromJarToTemp(final String sharedLibraryFileName, final String jniLibraryFileName, final String tmpDir)
-      throws IOException {
+  File loadLibraryFromJarToTemp(final String sharedLibraryFileName,
+      final String jniLibraryFileName, final String tmpDir) throws IOException {
     final File temp;
     if (tmpDir == null || tmpDir.isEmpty()) {
       temp = File.createTempFile(TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX);

@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class CopyToLocalCommand extends AbstractFileSystemCommand {
 
-  private CpCommand mCpCommand;
+  private final CpCommand mCpCommand;
 
   /**
    * @param fsContext the filesystem of Alluxio

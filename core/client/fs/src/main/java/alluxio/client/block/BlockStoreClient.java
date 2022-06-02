@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,7 +208,7 @@ public final class BlockStoreClient {
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
       List<WorkerNetAddress> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress())
+          locations.stream().map(BlockLocation::getWorkerAddress)
               .collect(toList());
       Collections.shuffle(tieredLocations);
       Optional<Pair<WorkerNetAddress, Boolean>> nearest =
@@ -265,7 +266,7 @@ public final class BlockStoreClient {
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
     if (nonFailed.isEmpty()) {
       return Collections.singleton(workers.stream()
-          .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
+          .min(Comparator.comparingLong(failedWorkers::get)).get());
     }
     return nonFailed;
   }

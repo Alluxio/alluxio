@@ -118,52 +118,33 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    */
   private final JobServerContext mJobServerContext;
 
-  /**
+  /*
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
    */
   @GuardedBy("mWorkerRWLock")
   private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<>(mIdIndex, mAddressIndex);
 
-  /**
-   * All worker health information.
-   */
   private final ConcurrentHashMap<Long, JobWorkerHealth> mWorkerHealth;
 
-  /**
-   * An RW lock that is used to control access to mWorkers.
-   */
   private final ReentrantReadWriteLock mWorkerRWLock = new ReentrantReadWriteLock(true);
 
-  /**
-   * The next worker id to use.
-   */
   private final AtomicLong mNextWorkerId = new AtomicLong(CommonUtils.getCurrentMs());
 
-  /**
-   * Manager for worker tasks.
-   */
+  // Manager for worker tasks.
   private final CommandManager mCommandManager;
 
-  /**
-   * Manager for adding and removing plans.
-   */
+  // Manager for adding and removing plans.
   private final PlanTracker mPlanTracker;
 
-  /**
-   * Manager for adding and removing workflows.
-   */
+  // Manager for adding and removing workflows.s
   private final WorkflowTracker mWorkflowTracker;
 
-  /**
-   * The job id generator.
-   */
   private final JobIdGenerator mJobIdGenerator;
 
-  /** Log writer for user access audit log. */
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Distributed command job tracker. */
-  private CmdJobTracker mCmdJobTracker;
+  private final CmdJobTracker mCmdJobTracker;
 
   /**
    * Creates a new instance of {@link JobMaster}.
@@ -551,8 +532,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
              createAuditContext("getAllWorkerHealth")) {
       ArrayList<JobWorkerHealth> result =
           Lists.newArrayList(mWorkerHealth.values());
-      Collections.sort(result,
-          Comparator.comparingLong((a) -> a.getWorkerId()));
+      result.sort(Comparator.comparingLong(JobWorkerHealth::getWorkerId));
       auditContext.setSucceeded(true);
       return result;
     }
@@ -624,7 +604,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return the list of {@link JobCommand} to the worker
    */
   public List<JobCommand> workerHeartbeat(JobWorkerHealth jobWorkerHealth,
-      List<TaskInfo> taskInfoList) throws ResourceExhaustedException {
+      List<TaskInfo> taskInfoList) {
 
     long workerId = jobWorkerHealth.getWorkerId();
 
@@ -718,7 +698,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     public void heartbeat() {
       int masterWorkerTimeoutMs = (int) ServerConfiguration
           .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
-      List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
+      List<MasterWorkerInfo> lostWorkers = new ArrayList<>();
       // Run under shared lock for mWorkers
       try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
         for (MasterWorkerInfo worker : mWorkers) {

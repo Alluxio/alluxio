@@ -39,7 +39,7 @@ public final class ClientRWLock implements ReadWriteLock {
    */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, false);
   /** Reference count. */
-  private AtomicInteger mReferences = new AtomicInteger();
+  private final AtomicInteger mReferences = new AtomicInteger();
 
   /**
    * Constructs a new {@link ClientRWLock}.

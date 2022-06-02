@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -40,29 +39,21 @@ public abstract class AbstractCmdRunner {
 
   protected FileSystem mFileSystem;
   protected FileSystemContext mFsContext;
-  protected List<CmdRunAttempt> mSubmitted;
-  protected Map<Long, List<CmdRunAttempt>> mJobMap;
-  protected int mActiveJobs;
+  protected List<CmdRunAttempt> mSubmitted = Lists.newArrayList();
+  protected Map<Long, List<CmdRunAttempt>> mJobMap = Maps.newHashMap();
+  protected int mActiveJobs = DEFAULT_ACTIVE_JOBS;
   protected final JobMaster mJobMaster;
-  private int mFailedCount;
-  private int mCompletedCount;
+  private int mFailedCount = 0;
+  private int mCompletedCount = 0;
 
   // The FilesystemContext contains configuration information and is also used to instantiate a
   // filesystem client, if null - load default properties
   protected AbstractCmdRunner(@Nullable FileSystemContext fsContext, JobMaster jobMaster) {
-    mSubmitted = Lists.newArrayList();
-    mJobMap = Maps.newHashMap();
     if (fsContext == null) {
-      fsContext =
-        FileSystemContext.create(ConfigurationUtils.defaults());
+      fsContext = FileSystemContext.create();
     }
     mFsContext = fsContext;
     mFileSystem = FileSystem.Factory.create(fsContext);
-
-    //final ClientContext clientContext = mFsContext.getClientContext();
-    mActiveJobs = DEFAULT_ACTIVE_JOBS;
-    mFailedCount = 0;
-    mCompletedCount = 0;
     mJobMaster = jobMaster;
   }
 

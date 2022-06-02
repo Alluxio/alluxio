@@ -14,10 +14,10 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
-import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -66,25 +66,26 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /** The master registry. */
-  private final MasterRegistry mRegistry;
+  private final MasterRegistry mRegistry = new MasterRegistry();
 
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  /** The connect address for the rpc server. */
-  final InetSocketAddress mRpcConnectAddress;
+  /** The connection address for the rpc server. */
+  final InetSocketAddress mRpcConnectAddress =
+      NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
 
   /** The manager of safe mode state. */
-  protected final SafeModeManager mSafeModeManager;
+  protected final SafeModeManager mSafeModeManager = new DefaultSafeModeManager();
 
   /** Master context. */
-  protected final MasterContext mContext;
+  protected final CoreMasterContext mContext;
 
   /** The manager for creating and restoring backups. */
-  private final BackupManager mBackupManager;
+  private final BackupManager mBackupManager = new BackupManager(mRegistry);
 
   /** The manager of all ufs. */
-  private final MasterUfsManager mUfsManager;
+  private final MasterUfsManager mUfsManager = new MasterUfsManager();
 
   private AlluxioExecutorService mRPCExecutor = null;
 
@@ -93,34 +94,24 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   AlluxioMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.MASTER_RPC, ServiceType.MASTER_WEB);
-    mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-        ServerConfiguration.global());
-    try {
-      if (!mJournalSystem.isFormatted()) {
-        throw new RuntimeException(
-            String.format("Journal %s has not been formatted!", mJournalSystem));
-      }
-      // Create masters.
-      mRegistry = new MasterRegistry();
-      mSafeModeManager = new DefaultSafeModeManager();
-      mBackupManager = new BackupManager(mRegistry);
-      String baseDir = ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR);
-      mUfsManager = new MasterUfsManager();
-      mContext = CoreMasterContext.newBuilder()
-          .setJournalSystem(mJournalSystem)
-          .setSafeModeManager(mSafeModeManager)
-          .setBackupManager(mBackupManager)
-          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
-          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
-          .setStartTimeMs(mStartTimeMs)
-          .setPort(NetworkAddressUtils
-              .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
-          .setUfsManager(mUfsManager)
-          .build();
-      MasterUtils.createMasters(mRegistry, mContext);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    if (!mJournalSystem.isFormatted()) {
+      throw new RuntimeException(
+          String.format("Journal %s has not been formatted!", mJournalSystem));
     }
+    // Create masters.
+    String baseDir = ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR);
+    mContext = CoreMasterContext.newBuilder()
+        .setJournalSystem(mJournalSystem)
+        .setSafeModeManager(mSafeModeManager)
+        .setBackupManager(mBackupManager)
+        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
+        .setStartTimeMs(mStartTimeMs)
+        .setPort(NetworkAddressUtils
+            .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
+        .setUfsManager(mUfsManager)
+        .build();
+    MasterUtils.createMasters(mRegistry, mContext);
   }
 
   @Override
@@ -164,7 +155,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     stopRejectingServers();
     stopServing();
     mJournalSystem.stop();
-    closeMasters();
+    LOG.info("Closing all masters.");
+    mRegistry.close();
+    LOG.info("Closed all masters.");
     LOG.info("Stopped.");
   }
 
@@ -224,19 +217,6 @@ public class AlluxioMasterProcess extends MasterProcess {
       LOG.info("Stopping all masters.");
       mRegistry.stop();
       LOG.info("All masters stopped.");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Closes all masters, including block master, fileSystem master and additional masters.
-   */
-  protected void closeMasters() {
-    try {
-      LOG.info("Closing all masters.");
-      mRegistry.close();
-      LOG.info("Closed all masters.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -424,19 +404,16 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Waits until the web server is ready to serve requests.
    *
    * @param timeoutMs how long to wait in milliseconds
-   * @return whether the web server became ready before the specified timeout
    */
   @VisibleForTesting
-  public boolean waitForWebServerReady(int timeoutMs) {
+  public void waitForWebServerReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
           this::isWebServing, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      return false;
     } catch (TimeoutException e) {
-      return false;
+      // do nothing
     }
   }
 

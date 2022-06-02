@@ -146,7 +146,7 @@ public final class MigrateDefinition
     return null;
   }
 
-  /**
+  /*
    * @param command the migrate command to execute
    * @param writeType the write type to use for the moved file
    * @param fileSystem the Alluxio file system

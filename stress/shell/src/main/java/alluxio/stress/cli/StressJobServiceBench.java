@@ -34,7 +34,6 @@ import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -86,8 +85,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public void prepare() throws Exception {
-    mFsContext =
-        FileSystemContext.create(ConfigurationUtils.defaults());
+    mFsContext = FileSystemContext.create();
     final ClientContext clientContext = mFsContext.getClientContext();
     mJobMasterClient =
         JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());

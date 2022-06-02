@@ -113,13 +113,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @return the policy to use
    */
   public static RetryPolicy getDefaultAcquireLeaseRetryPolicy() {
-    RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
+    return ExponentialTimeBoundedRetry.builder()
         .withMaxDuration(Duration.of(ACQUIRE_LEASE_WAIT_MAX_DURATION, ChronoUnit.MILLIS))
         .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
         .withMaxSleep(Duration.of(ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS, ChronoUnit.MILLIS))
         .withSkipInitialSleep()
         .build();
-    return retry;
   }
 
   /**
@@ -190,8 +189,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       if (cmdFromMaster == null) {
         LOG.error("Failed to receive master heartbeat command.", e);
       } else {
-        LOG.error("Failed to receive or execute master heartbeat command: {}",
-            cmdFromMaster.toString(), e);
+        LOG.error("Failed to receive or execute master heartbeat command: {}", cmdFromMaster, e);
       }
       mMasterClient.disconnect();
       if (HEARTBEAT_TIMEOUT_MS > 0) {

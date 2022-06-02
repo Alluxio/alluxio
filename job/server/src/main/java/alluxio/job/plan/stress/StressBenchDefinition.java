@@ -170,8 +170,7 @@ public final class StressBenchDefinition
 
     command.addAll(commandArgs);
     command.addAll(args);
-    String output = ShellUtils.execCommand(command.toArray(new String[0]));
-    return output;
+    return ShellUtils.execCommand(command.toArray(new String[0]));
   }
 
   @Override
