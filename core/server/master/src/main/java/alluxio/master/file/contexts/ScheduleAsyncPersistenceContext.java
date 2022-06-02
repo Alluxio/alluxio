@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -55,7 +55,7 @@ public class ScheduleAsyncPersistenceContext
   public static ScheduleAsyncPersistenceContext mergeFrom(
       ScheduleAsyncPersistencePOptions.Builder optionsBuilder) {
     ScheduleAsyncPersistencePOptions masterOptions =
-        FileSystemOptions.scheduleAsyncPersistenceDefaults(ServerConfiguration.global());
+        FileSystemOptions.scheduleAsyncPersistenceDefaults(Configuration.global());
     ScheduleAsyncPersistencePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -66,7 +66,7 @@ public class ScheduleAsyncPersistenceContext
    */
   public static ScheduleAsyncPersistenceContext defaults() {
     return create(FileSystemOptions
-        .scheduleAsyncPersistenceDefaults(ServerConfiguration.global()).toBuilder());
+        .scheduleAsyncPersistenceDefaults(Configuration.global()).toBuilder());
   }
 
   /**

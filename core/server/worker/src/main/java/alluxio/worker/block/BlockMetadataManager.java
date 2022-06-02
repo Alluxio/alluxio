@@ -18,7 +18,7 @@ import static java.util.function.Function.identity;
 import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -96,29 +96,29 @@ public final class BlockMetadataManager {
         .collect(toImmutableList());
     mAliasToTiers = mTiers.stream().collect(toImmutableMap(StorageTier::getTierAlias, identity()));
     // Create the block iterator.
-    if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+    if (Configuration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
       LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
           PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-      String evictorType = ServerConfiguration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
+      String evictorType = Configuration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
       switch (evictorType) {
         case DEPRECATED_LRU_EVICTOR:
         case DEPRECATED_PARTIAL_LRUEVICTOR:
         case DEPRECATED_GREEDY_EVICTOR:
           LOG.warn("Evictor is deprecated, switching to LRUAnnotator");
-          ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+          Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
               "alluxio.worker.block.annotator.LRUAnnotator");
           mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
           break;
         case DEPRECATED_LRFU_EVICTOR:
           LOG.warn("Evictor is deprecated, switching to LRFUAnnotator");
-          ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+          Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
               "alluxio.worker.block.annotator.LRFUAnnotator");
           mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
           break;
         default:
           //For user defined evictor
           BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-              Collections.<Long>emptySet(), Collections.<Long>emptySet());
+              Collections.emptySet(), Collections.emptySet());
           mBlockIterator = new EmulatingBlockIterator(this,
               Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
       }

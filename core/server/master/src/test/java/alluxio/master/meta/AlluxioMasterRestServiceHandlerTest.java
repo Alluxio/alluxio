@@ -26,7 +26,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.master.AlluxioMasterProcess;
@@ -119,7 +119,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
         }
-      }, ServerConfiguration.global());
+      }, Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {

@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -197,12 +197,12 @@ public final class PermissionCheckerTest {
     sRegistry.start(true);
 
     GroupMappingServiceTestUtils.resetCache();
-    ServerConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         FakeUserGroupsMapping.class.getName());
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
         AuthType.SIMPLE);
-    ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
-    ServerConfiguration
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true);
+    Configuration
         .set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     sTree.initializeRoot(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroup(), TEST_NORMAL_MODE,
         NoopJournalContext.INSTANCE);
@@ -217,7 +217,7 @@ public final class PermissionCheckerTest {
   public static void afterClass() throws Exception {
     sRegistry.stop();
     AuthenticatedClientUser.remove();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Before

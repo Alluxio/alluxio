@@ -17,7 +17,7 @@ import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
@@ -124,7 +124,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   public CachingInodeStore(InodeStore backingStore, InodeLockManager lockManager) {
     mBackingStore = backingStore;
     mLockManager = lockManager;
-    AlluxioConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     int maxSize = conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE);
     Preconditions.checkState(maxSize > 0,
         "Maximum cache size %s must be positive, but is set to %s",

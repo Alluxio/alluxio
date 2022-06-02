@@ -25,7 +25,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.proto.dataserver.Protocol;
@@ -79,7 +79,7 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
-          .build(), ServerConfiguration.global());
+          .build(), Configuration.modifiableGlobal());
 
   /**
    * Sets up all dependencies before a test runs.

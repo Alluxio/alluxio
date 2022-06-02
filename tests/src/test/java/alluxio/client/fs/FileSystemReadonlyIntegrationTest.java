@@ -17,7 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -47,7 +47,7 @@ public class FileSystemReadonlyIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext fsCtx = FileSystemContext.create(Configuration.global());
     fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true, true);
     mFileSystem = sLocalAlluxioClusterResource.get().getClient(fsCtx);
   }

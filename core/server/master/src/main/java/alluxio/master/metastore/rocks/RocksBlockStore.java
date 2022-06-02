@@ -14,7 +14,7 @@ package alluxio.master.metastore.rocks;
 import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -90,15 +90,15 @@ public class RocksBlockStore implements BlockStore {
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
     mIteratorOption = new ReadOptions()
-        .setReadaheadSize(ServerConfiguration.getBytes(
+        .setReadaheadSize(Configuration.getBytes(
             PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
         .setTotalOrderSeek(true);
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
-    if (ServerConfiguration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
+    if (Configuration.isSet(PropertyKey.ROCKS_BLOCK_CONF_FILE)) {
       try {
-        String confPath = ServerConfiguration.getString(PropertyKey.ROCKS_BLOCK_CONF_FILE);
+        String confPath = Configuration.getString(PropertyKey.ROCKS_BLOCK_CONF_FILE);
         LOG.info("Opening RocksDB Block table configuration file {}", confPath);
         OptionsUtil.loadOptionsFromFile(confPath, Env.getDefault(), opts, columns, false);
       } catch (RocksDBException e) {
@@ -145,7 +145,6 @@ public class RocksBlockStore implements BlockStore {
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_INDEX,
         PropertyKey.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_BLOCK_INDEX, mToClose)
         .ifPresent(cfg -> columns.get(1).getOptions().setTableFormatConfig(cfg));
-
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
     // Create block store db path if it does not exist.
@@ -161,7 +160,7 @@ public class RocksBlockStore implements BlockStore {
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =
-        ServerConfiguration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS.getName(),
         () -> getProperty("rocksdb.background-errors"),

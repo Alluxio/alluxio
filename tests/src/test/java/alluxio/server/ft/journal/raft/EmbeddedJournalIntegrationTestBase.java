@@ -13,7 +13,7 @@ package alluxio.server.ft.journal.raft;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -34,7 +34,7 @@ public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf =
       new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false,
-          ServerConfiguration.global());
+          Configuration.modifiableGlobal());
 
   public MultiProcessCluster mCluster;
 

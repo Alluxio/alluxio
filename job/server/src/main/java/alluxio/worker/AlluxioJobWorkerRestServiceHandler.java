@@ -14,7 +14,7 @@ package alluxio.worker;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.LogUtils;
 import alluxio.web.JobWorkerWebServer;
 import alluxio.wire.AlluxioJobWorkerInfo;
@@ -95,7 +95,7 @@ public final class  AlluxioJobWorkerRestServiceHandler {
               .setUptimeMs(mJobWorker.getUptimeMs())
               .setVersion(RuntimeConstants.VERSION);
       return result;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -109,11 +109,11 @@ public final class  AlluxioJobWorkerRestServiceHandler {
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
                            @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level),
-            ServerConfiguration.global());
+            Configuration.global());
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {
-    Set<Map.Entry<String, Object>> properties = ServerConfiguration.toMap().entrySet();
+    Set<Map.Entry<String, Object>> properties = Configuration.toMap().entrySet();
     SortedMap<String, Object> configuration = new TreeMap<>();
     for (Map.Entry<String, Object> entry : properties) {
       String key = entry.getKey();
@@ -121,7 +121,7 @@ public final class  AlluxioJobWorkerRestServiceHandler {
         if (raw) {
           configuration.put(key, entry.getValue());
         } else {
-          configuration.put(key, ServerConfiguration.get(PropertyKey.fromString(key)));
+          configuration.put(key, Configuration.get(PropertyKey.fromString(key)));
         }
       }
     }

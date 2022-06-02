@@ -17,7 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
@@ -51,12 +51,12 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create(Configuration.global());
   }
 
   @Test
   public void loadMetadataManyDirectories() throws Exception {
-    String ufsPath = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     for (int i = 0; i < 5000; i++) {
       Files.createDirectory(Paths.get(ufsPath, "a" + i));
     }
@@ -72,7 +72,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
   @Test
   public void loadMetadataManyFiles() throws Exception {
-    String ufsPath = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     for (int i = 0; i < 5000; i++) {
       Files.createFile(Paths.get(ufsPath, "a" + i));
     }

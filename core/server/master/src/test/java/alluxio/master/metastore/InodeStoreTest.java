@@ -22,7 +22,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
@@ -77,11 +77,9 @@ public class InodeStoreTest {
   }
 
   @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
-    {
-      put(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE);
-    }
-  }, ServerConfiguration.global());
+  public ConfigurationRule mConf =
+      new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
+          CACHE_SIZE, Configuration.modifiableGlobal());
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 
@@ -113,7 +111,7 @@ public class InodeStoreTest {
       {
         put(PropertyKey.ROCKS_INODE_CONF_FILE, sDir + CONF_NAME);
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       before();
       writeInode(mRoot);
       assertEquals(Inode.wrap(mRoot), mStore.get(0).get());
@@ -134,7 +132,7 @@ public class InodeStoreTest {
       {
         put(PropertyKey.ROCKS_INODE_CONF_FILE, path);
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       RuntimeException exception = assertThrows(RuntimeException.class, this::before);
       assertEquals(RocksDBException.class, exception.getCause().getClass());
     }

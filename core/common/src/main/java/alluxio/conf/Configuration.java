@@ -11,18 +11,30 @@
 
 package alluxio.conf;
 
+import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <p>
@@ -46,24 +58,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <p>
  * This class defines many convenient static methods which delegate to an internal
  * {@link InstancedConfiguration}. To use this global configuration in a method that takes
- * {@link AlluxioConfiguration} as an argument, pass {@link ServerConfiguration#global()}.
+ * {@link AlluxioConfiguration} as an argument, pass {@link Configuration#global()}.
  */
-@NotThreadSafe
-public final class ServerConfiguration {
+public final class Configuration
+{
+  private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
-  private static InstancedConfiguration sConf;
+  private static final AtomicReference<InstancedConfiguration> SERVER_CONFIG_REFERENCE =
+      new AtomicReference<>();
 
   static {
-    reset();
-  }
-
-  /**
-   * Resets the {@link AlluxioConfiguration} back the defaults and values from
-   * alluxio-site properties.
-   */
-  public static void reset() {
-    ConfigurationUtils.reloadProperties();
-    sConf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+    reloadProperties();
   }
 
   /**
@@ -72,7 +77,7 @@ public final class ServerConfiguration {
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    return new AlluxioProperties(sConf.copyProperties());
+    return new AlluxioProperties(SERVER_CONFIG_REFERENCE.get().copyProperties());
   }
 
   /**
@@ -84,7 +89,7 @@ public final class ServerConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public static void merge(Map<?, ?> properties, Source source) {
-    sConf.merge(properties, source);
+    SERVER_CONFIG_REFERENCE.get().merge(properties, source);
   }
 
   // Public accessor methods
@@ -109,7 +114,7 @@ public final class ServerConfiguration {
     if (key.getType() == PropertyKey.PropertyType.STRING) {
       value = String.valueOf(value);
     }
-    sConf.set(key, value, source);
+    SERVER_CONFIG_REFERENCE.get().set(key, value, source);
   }
 
   /**
@@ -118,7 +123,7 @@ public final class ServerConfiguration {
    * @param key the key to unset
    */
   public static void unset(PropertyKey key) {
-    sConf.unset(key);
+    SERVER_CONFIG_REFERENCE.get().unset(key);
   }
 
   /**
@@ -129,7 +134,7 @@ public final class ServerConfiguration {
    * @return the value for the given key
    */
   public static Object get(PropertyKey key) {
-    return sConf.get(key);
+    return SERVER_CONFIG_REFERENCE.get().get(key);
   }
 
   /**
@@ -141,7 +146,7 @@ public final class ServerConfiguration {
    * @return the value for the given key
    */
   public static Object get(PropertyKey key, ConfigurationValueOptions options) {
-    return sConf.get(key, options);
+    return SERVER_CONFIG_REFERENCE.get().get(key, options);
   }
 
   /**
@@ -151,7 +156,7 @@ public final class ServerConfiguration {
    * @return the value
    */
   public static <T> T getOrDefault(PropertyKey key, T defaultValue) {
-    return sConf.getOrDefault(key, defaultValue);
+    return SERVER_CONFIG_REFERENCE.get().getOrDefault(key, defaultValue);
   }
 
   /**
@@ -162,7 +167,7 @@ public final class ServerConfiguration {
    */
   public static Object getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
-    return sConf.getOrDefault(key, defaultValue, options);
+    return SERVER_CONFIG_REFERENCE.get().getOrDefault(key, defaultValue, options);
   }
 
   /**
@@ -172,7 +177,7 @@ public final class ServerConfiguration {
    * @return true if there is value for the key, false otherwise
    */
   public static boolean isSet(PropertyKey key) {
-    return sConf.isSet(key);
+    return SERVER_CONFIG_REFERENCE.get().isSet(key);
   }
 
   /**
@@ -182,14 +187,14 @@ public final class ServerConfiguration {
    * @return true if there is value for the key by a user, false otherwise
    */
   public static boolean isSetByUser(PropertyKey key) {
-    return sConf.isSetByUser(key);
+    return SERVER_CONFIG_REFERENCE.get().isSetByUser(key);
   }
 
   /**
    * @return the keys configured by the configuration
    */
   public static Set<PropertyKey> keySet() {
-    return sConf.keySet();
+    return SERVER_CONFIG_REFERENCE.get().keySet();
   }
 
   /**
@@ -199,7 +204,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as an {@code String}
    */
   public static String getString(PropertyKey key) {
-    return sConf.getString(key);
+    return SERVER_CONFIG_REFERENCE.get().getString(key);
   }
 
   /**
@@ -209,7 +214,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as an {@code int}
    */
   public static int getInt(PropertyKey key) {
-    return sConf.getInt(key);
+    return SERVER_CONFIG_REFERENCE.get().getInt(key);
   }
 
   /**
@@ -219,7 +224,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a {@code double}
    */
   public static double getDouble(PropertyKey key) {
-    return sConf.getDouble(key);
+    return SERVER_CONFIG_REFERENCE.get().getDouble(key);
   }
 
   /**
@@ -229,7 +234,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a {@code boolean}
    */
   public static boolean getBoolean(PropertyKey key) {
-    return sConf.getBoolean(key);
+    return SERVER_CONFIG_REFERENCE.get().getBoolean(key);
   }
 
   /**
@@ -239,7 +244,7 @@ public final class ServerConfiguration {
    * @return the list of values for the given key
    */
   public static List<String> getList(PropertyKey key) {
-    return sConf.getList(key);
+    return SERVER_CONFIG_REFERENCE.get().getList(key);
   }
 
   /**
@@ -251,7 +256,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as an enum value
    */
   public static <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    return sConf.getEnum(key, enumType);
+    return SERVER_CONFIG_REFERENCE.get().getEnum(key, enumType);
   }
 
   /**
@@ -261,7 +266,7 @@ public final class ServerConfiguration {
    * @return the bytes of the value for the given key
    */
   public static long getBytes(PropertyKey key) {
-    return sConf.getBytes(key);
+    return SERVER_CONFIG_REFERENCE.get().getBytes(key);
   }
 
   /**
@@ -271,7 +276,7 @@ public final class ServerConfiguration {
    * @return the time of key in millisecond unit
    */
   public static long getMs(PropertyKey key) {
-    return sConf.getMs(key);
+    return SERVER_CONFIG_REFERENCE.get().getMs(key);
   }
 
   /**
@@ -281,7 +286,7 @@ public final class ServerConfiguration {
    * @return the value of the key represented as a duration
    */
   public static Duration getDuration(PropertyKey key) {
-    return sConf.getDuration(key);
+    return SERVER_CONFIG_REFERENCE.get().getDuration(key);
   }
 
   /**
@@ -292,7 +297,7 @@ public final class ServerConfiguration {
    * @return the value for the given key as a class
    */
   public static <T> Class<T> getClass(PropertyKey key) {
-    return sConf.getClass(key);
+    return SERVER_CONFIG_REFERENCE.get().getClass(key);
   }
 
   /**
@@ -304,7 +309,7 @@ public final class ServerConfiguration {
    * @return a map from nested properties aggregated by the prefix
    */
   public static Map<String, Object> getNestedProperties(PropertyKey prefixKey) {
-    return sConf.getNestedProperties(prefixKey);
+    return SERVER_CONFIG_REFERENCE.get().getNestedProperties(prefixKey);
   }
 
   /**
@@ -312,7 +317,7 @@ public final class ServerConfiguration {
    * @return the source for the given key
    */
   public static Source getSource(PropertyKey key) {
-    return sConf.getSource(key);
+    return SERVER_CONFIG_REFERENCE.get().getSource(key);
   }
 
   /**
@@ -320,7 +325,7 @@ public final class ServerConfiguration {
    *         null
    */
   public static Map<String, Object> toMap() {
-    return sConf.toMap();
+    return SERVER_CONFIG_REFERENCE.get().toMap();
   }
 
   /**
@@ -329,29 +334,49 @@ public final class ServerConfiguration {
    *         null
    */
   public static Map<String, Object> toMap(ConfigurationValueOptions opts) {
-    return sConf.toMap(opts);
+    return SERVER_CONFIG_REFERENCE.get().toMap(opts);
   }
 
   /**
-   * @return the {@link InstancedConfiguration} object backing the global configuration
+   * @return the global configuration through {@link AlluxioConfiguration} API,
+   * which is a read-only API
    */
-  public static InstancedConfiguration global() {
-    return sConf;
+  public static AlluxioConfiguration global() {
+    return SERVER_CONFIG_REFERENCE.get();
+  }
+
+  /**
+   * @return the global configuration instance that is modifiable
+   */
+  public static InstancedConfiguration modifiableGlobal() {
+    return SERVER_CONFIG_REFERENCE.get();
+  }
+
+  /**
+   * @return a copy of {@link InstancedConfiguration} object based on the global configuration
+   */
+  public static InstancedConfiguration copyGlobal() {
+    return new InstancedConfiguration(SERVER_CONFIG_REFERENCE.get().copyProperties());
   }
 
   /**
    * Loads cluster default values for workers from the meta master if it's not loaded yet.
    *
    * @param address the master address
+   * @param scope the property scope
    */
-  public static synchronized void loadWorkerClusterDefaults(InetSocketAddress address)
+  public static void loadClusterDefaults(InetSocketAddress address, Scope scope)
       throws AlluxioStatusException {
-    if (sConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
-        && !sConf.clusterDefaultsLoaded()) {
-      GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
-          false, true);
-      AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf, Scope.WORKER);
-      sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
+    InstancedConfiguration conf = SERVER_CONFIG_REFERENCE.get();
+    InstancedConfiguration newConf;
+    if (conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+        && !conf.clusterDefaultsLoaded()) {
+      do {
+        conf = SERVER_CONFIG_REFERENCE.get();
+        GetConfigurationPResponse response = ConfigurationUtils
+            .loadConfiguration(address, conf, false, true);
+        newConf = ConfigurationUtils.getClusterConf(response, conf, scope);
+      } while (!SERVER_CONFIG_REFERENCE.compareAndSet(conf, newConf));
     }
   }
 
@@ -359,8 +384,82 @@ public final class ServerConfiguration {
    * @return hash of properties
    */
   public static String hash() {
-    return sConf.hash();
+    return SERVER_CONFIG_REFERENCE.get().hash();
   }
 
-  private ServerConfiguration() {} // prevent instantiation
+  private Configuration() {} // prevent instantiation
+
+  /**
+   * Reloads site properties from disk.
+   */
+  public static void reloadProperties() {
+    // Bootstrap the configuration. This is necessary because we need to resolve alluxio.home
+    // (likely to be in system properties) to locate the conf dir to search for the site
+    // property file.
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    // Can't directly pass System.getProperties() because it is not thread-safe
+    // This can cause a ConcurrentModificationException when merging.
+    alluxioProperties.merge(System.getProperties().entrySet().stream()
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
+        Source.SYSTEM_PROPERTY);
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    // Load site specific properties file if not in test mode. Note that we decide
+    // whether in test mode by default properties and system properties (via getBoolean).
+    if (!conf.getBoolean(PropertyKey.TEST_MODE)) {
+      // We are not in test mode, load site properties
+      // First try loading from config file
+      for (String path : conf.getList(PropertyKey.SITE_CONF_DIR)) {
+        String file = PathUtils.concatPath(path, Constants.SITE_PROPERTIES);
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+          Optional<Properties> properties = loadProperties(fileInputStream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(file));
+            conf = new InstancedConfiguration(alluxioProperties);
+            conf.validate();
+            SERVER_CONFIG_REFERENCE.set(conf);
+            // If a site conf is successfully loaded, stop trying different paths.
+            return;
+          }
+        } catch (FileNotFoundException e) {
+          // skip
+        } catch (IOException e) {
+          LOG.warn("Failed to close property input stream from {}: {}", file, e.toString());
+        }
+      }
+
+      // Try to load from resource
+      URL resource =
+          ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+      if (resource != null) {
+        try (InputStream stream = resource.openStream()) {
+          Optional<Properties> properties = loadProperties(stream);
+          if (properties.isPresent()) {
+            alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
+            conf = new InstancedConfiguration(alluxioProperties);
+            conf.validate();
+            SERVER_CONFIG_REFERENCE.set(conf);
+          }
+        } catch (IOException e) {
+          LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
+        }
+      }
+    }
+    conf.validate();
+    SERVER_CONFIG_REFERENCE.set(conf);
+  }
+
+  /**
+   * @param stream the stream to read properties from
+   * @return a properties object populated from the stream
+   */
+  private static Optional<Properties> loadProperties(InputStream stream) {
+    Properties properties = new Properties();
+    try {
+      properties.load(stream);
+    } catch (IOException e) {
+      LOG.warn("Unable to load properties: {}", e.toString());
+      return Optional.empty();
+    }
+    return Optional.of(properties);
+  }
 }

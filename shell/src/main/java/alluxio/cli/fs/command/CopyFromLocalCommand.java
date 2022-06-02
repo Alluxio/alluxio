@@ -37,7 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CopyFromLocalCommand.class);
 
-  private CpCommand mCpCommand;
+  private final CpCommand mCpCommand;
 
   /**
    * @param fsContext the filesystem of Alluxio

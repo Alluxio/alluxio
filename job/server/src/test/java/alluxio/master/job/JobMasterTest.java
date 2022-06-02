@@ -22,7 +22,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -77,7 +77,7 @@ public final class JobMasterTest {
   @Before
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
+    Configuration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
     mockStatic(FileSystem.Factory.class);
     FileSystem fs = mock(FileSystem.class);
     when(FileSystem.Factory.create(any(FileSystemContext.class)))
@@ -90,7 +90,7 @@ public final class JobMasterTest {
   @After
   public void after() throws Exception {
     mJobMaster.stop();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -175,7 +175,7 @@ public final class JobMasterTest {
       Assert.fail("should not be able to run more jobs than job master capacity");
     } catch (ResourceExhaustedException e) {
       Assert.assertEquals(ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-          .getMessage(ServerConfiguration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)),
+          .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)),
           e.getMessage());
     }
   }

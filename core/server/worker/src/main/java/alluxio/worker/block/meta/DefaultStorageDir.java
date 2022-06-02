@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -121,8 +121,8 @@ public final class DefaultStorageDir implements StorageDir {
   private void initializeMeta() throws IOException, WorkerOutOfSpaceException {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
-        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-    String tmpDir = Paths.get(ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+    String tmpDir = Paths.get(Configuration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
         .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);

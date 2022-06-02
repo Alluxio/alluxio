@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.utils.NativeLibraryLoader;
@@ -142,7 +142,7 @@ public final class AlluxioFuse {
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
           NetworkAddressUtils.getBindAddress(
               NetworkAddressUtils.ServiceType.FUSE_WEB,
-              ServerConfiguration.global()));
+              Configuration.global()));
       webServer.start();
     }
     startJvmMonitorProcess();
@@ -320,11 +320,11 @@ public final class AlluxioFuse {
    * Starts jvm monitor process, to monitor jvm.
    */
   private static void startJvmMonitorProcess() {
-    if (ServerConfiguration.getBoolean(PropertyKey.STANDALONE_FUSE_JVM_MONITOR_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.STANDALONE_FUSE_JVM_MONITOR_ENABLED)) {
       JvmPauseMonitor jvmPauseMonitor = new JvmPauseMonitor(
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
+          Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+          Configuration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
+          Configuration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       jvmPauseMonitor.start();
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),

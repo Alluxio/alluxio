@@ -18,7 +18,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 
@@ -62,9 +62,9 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
    */
   public CompleteMultipartUploadHandler(final FileSystem fs) {
     mFileSystem = fs;
-    mExecutor = Executors.newFixedThreadPool(ServerConfiguration.getInt(
+    mExecutor = Executors.newFixedThreadPool(Configuration.getInt(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE));
-    mKeepAliveTime = ServerConfiguration.getMs(
+    mKeepAliveTime = Configuration.getMs(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL);
   }
 

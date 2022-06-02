@@ -13,11 +13,11 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -53,7 +53,7 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
       // FileSystem.getFileSystemClass() without any need for having users explicitly declare the
       // file system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop
       // are supported this is not an option and we have to continue to use this method.
-      for (final String prefix : ConfigurationUtils.defaults()
+      for (final String prefix : Configuration.global()
           .getList(PropertyKey.UNDERFS_HDFS_PREFIXES)) {
         if (path.startsWith(prefix)) {
           return true;
@@ -69,7 +69,7 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
       // This loads the configuration from the JVM's system properties and the site properties file
       // on disk. Because of this, setting the property UNDERFS_HDFS_PREFIXES programmatically *not*
       // work.
-      AlluxioConfiguration alluxioConf = ConfigurationUtils.defaults();
+      AlluxioConfiguration alluxioConf = Configuration.global();
 
       // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
       // FileSystem.getFileSystemClass() without any need for having users explicitly declare the

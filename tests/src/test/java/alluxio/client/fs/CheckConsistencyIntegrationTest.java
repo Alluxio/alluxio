@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -53,7 +53,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-      ServerConfiguration.global());
+      Configuration.global());
 
   private FileSystemMaster mFileSystemMaster;
   private FileSystem mFileSystem;
@@ -63,7 +63,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     mFileSystemMaster =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class);
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create(Configuration.global());
     CreateDirectoryPOptions dirOptions =
         CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     CreateFilePOptions fileOptions =
@@ -90,7 +90,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   public void inconsistent() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
-        ServerConfiguration.global());
+        Configuration.global());
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
@@ -108,7 +108,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void partiallyInconsistent() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, Configuration.global());
     ufs.deleteFile(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(new AlluxioURI("/"),
@@ -133,7 +133,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     mFileSystem.createFile(thirdLevelFile, fileOptions).close();
     String ufsDirectory = mFileSystem.getStatus(nestedDir).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
-        ServerConfiguration.global());
+        Configuration.global());
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(nestedDir, thirdLevelFile);
@@ -151,7 +151,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void incorrectFileSize() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, Configuration.global());
     ufs.deleteFile(ufsFile);
     OutputStream out = ufs.create(ufsFile);
     out.write(1);
@@ -169,7 +169,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   public void notADirectory() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
-        ServerConfiguration.global());
+        Configuration.global());
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
     ufs.create(ufsDirectory).close();
     List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY, FILE);
@@ -184,7 +184,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   public void existsInUfsButNotAlluxio() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
-        ServerConfiguration.global());
+        Configuration.global());
     String filename = "ufs_exists";
     String newPath = ufsDirectory + AlluxioURI.SEPARATOR + filename;
     ufs.mkdirs(newPath);
@@ -200,7 +200,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void notAFile() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, Configuration.global());
     ufs.deleteFile(ufsFile);
     ufs.mkdirs(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
@@ -215,7 +215,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void inconsistentFile() throws Exception {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile, Configuration.global());
     ufs.deleteFile(ufsFile);
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster.checkConsistency(FILE,

@@ -15,7 +15,7 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -97,17 +97,16 @@ public class RocksInodeStore implements InodeStore {
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
-    mIteratorOption = new ReadOptions().setTotalOrderSeek(true)
-        .setReadaheadSize(ServerConfiguration.getBytes(
-            PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+    mIteratorOption = new ReadOptions().setReadaheadSize(
+        Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
-    if (ServerConfiguration.isSet(PropertyKey.ROCKS_INODE_CONF_FILE)) {
+    if (Configuration.isSet(PropertyKey.ROCKS_INODE_CONF_FILE)) {
       try {
-        String confPath = ServerConfiguration.getString(PropertyKey.ROCKS_INODE_CONF_FILE);
+        String confPath = Configuration.getString(PropertyKey.ROCKS_INODE_CONF_FILE);
         LOG.info("Opening RocksDB Inode table configuration file {}", confPath);
         OptionsUtil.loadOptionsFromFile(confPath, Env.getDefault(), opts, columns, false);
       } catch (RocksDBException e) {
@@ -158,7 +157,7 @@ public class RocksInodeStore implements InodeStore {
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =
-        ServerConfiguration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_INODE_BACKGROUND_ERRORS.getName(),
         () -> getProperty("rocksdb.background-errors"),
