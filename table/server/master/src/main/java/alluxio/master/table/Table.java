@@ -12,7 +12,7 @@
 package alluxio.master.table;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class Table {
   private static final Logger LOG = LoggerFactory.getLogger(Table.class);
   private static final long UNDEFINED_VERSION = -1;
-  private static final int PARTITIONS_CHUNK_SIZE = ServerConfiguration
+  private static final int PARTITIONS_CHUNK_SIZE = Configuration
       .getInt(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE);
 
   public static final long FIRST_VERSION = 1;

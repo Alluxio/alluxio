@@ -21,7 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
@@ -111,10 +111,10 @@ public class LoadDefinitionTest {
         .thenReturn(mMockBlockStore);
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
-        .thenReturn(ClientContext.create(ServerConfiguration.global()));
-    PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(ServerConfiguration.global());
+        .thenReturn(ClientContext.create(Configuration.global()));
+    PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
     PowerMockito.when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
-        .thenReturn(ServerConfiguration.global());
+        .thenReturn(Configuration.global());
     mJobServerContext =
         new JobServerContext(mMockFileSystem, mMockFsContext, Mockito.mock(UfsManager.class));
   }

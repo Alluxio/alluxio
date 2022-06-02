@@ -27,7 +27,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
@@ -70,9 +70,9 @@ public class CacheRequestManagerTest {
   private LocalBlockStore mBlockStore;
   private String mRootUfs;
   private final String mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
-      (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+      (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
-  private final InstancedConfiguration mConf = ServerConfiguration.global();
+  private final InstancedConfiguration mConf = Configuration.modifiableGlobal();
   private final String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
 
@@ -103,10 +103,10 @@ public class CacheRequestManagerTest {
     Sessions sessions = mock(Sessions.class);
     // Connect to the real UFS for testing
     UfsManager ufsManager = mock(UfsManager.class);
-    mRootUfs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mRootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
         () -> UnderFileSystem.Factory.create(mRootUfs,
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
+            UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,

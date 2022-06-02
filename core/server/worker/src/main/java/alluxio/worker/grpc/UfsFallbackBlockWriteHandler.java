@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
@@ -247,7 +247,7 @@ public final class UfsFallbackBlockWriteHandler
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
         ufs.createNonexistingFile(ufsPath,
-            CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
+            CreateOptions.defaults(Configuration.global()).setEnsureAtomic(true)
                 .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);

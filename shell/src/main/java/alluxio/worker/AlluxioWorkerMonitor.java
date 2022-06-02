@@ -14,9 +14,9 @@ package alluxio.worker;
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public final class AlluxioWorkerMonitor {
           AlluxioWorkerMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
-    AlluxioConfiguration conf = ConfigurationUtils.defaults();
+    AlluxioConfiguration conf = Configuration.global();
 
     HealthCheckClient client = new WorkerHealthCheckClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC, conf),

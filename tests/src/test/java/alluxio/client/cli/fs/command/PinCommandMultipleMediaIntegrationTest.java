@@ -23,7 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.job.wire.Status;
@@ -108,7 +108,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   @Test
   public void setPinToSpecificMedia() throws Exception {
     FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
 
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI filePathB = new AlluxioURI("/testFileB");
@@ -147,7 +147,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   @Test
   public void pinToMediumForceEviction() throws Exception {
     FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
 
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI dirPath = new AlluxioURI("/testDirA");

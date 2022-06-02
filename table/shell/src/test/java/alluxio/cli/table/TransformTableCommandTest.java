@@ -18,8 +18,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.table.command.TransformTableCommand;
 import alluxio.client.table.TableMasterClient;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.util.ConfigurationUtils;
+import alluxio.conf.Configuration;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,8 +40,7 @@ public class TransformTableCommandTest {
     when(client.transformTable(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
         ArgumentMatchers.anyString())).thenReturn(0L);
     TransformTableCommand command =
-        new TransformTableCommand(new InstancedConfiguration(ConfigurationUtils.copyDefaults()),
-            client, null);
+        new TransformTableCommand(Configuration.global(), client, null);
 
     ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
 

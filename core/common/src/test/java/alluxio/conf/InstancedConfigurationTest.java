@@ -31,7 +31,6 @@ import alluxio.TestLoggerRule;
 import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.test.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Joiner;
@@ -66,7 +65,7 @@ import java.util.stream.IntStream;
  */
 public class InstancedConfigurationTest {
 
-  private  InstancedConfiguration mConfiguration = ConfigurationTestUtils.copyDefaults();
+  private  InstancedConfiguration mConfiguration = Configuration.copyGlobal();
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -82,13 +81,13 @@ public class InstancedConfigurationTest {
   }
 
   public void resetConf() {
-    ConfigurationUtils.reloadProperties();
+    Configuration.reloadProperties();
     mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   @AfterClass
   public static void after() {
-    ConfigurationUtils.reloadProperties();
+    Configuration.reloadProperties();
   }
 
   @Test

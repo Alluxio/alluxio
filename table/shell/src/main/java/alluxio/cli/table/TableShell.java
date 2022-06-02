@@ -18,8 +18,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.MasterClientContext;
-import alluxio.util.ConfigurationUtils;
 
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class TableShell extends AbstractShell {
    * Construct a new instance of {@link TableShell}.
    */
   public TableShell() {
-    super(null, null, ConfigurationUtils.defaults());
+    super(null, null, Configuration.global());
   }
 
   /**

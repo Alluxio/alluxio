@@ -22,9 +22,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -130,7 +129,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     URIStatus status = mFileSystem.getStatus(filePath);
     alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
         alluxio.worker.file.FileSystemMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
     Assert.assertFalse(fsMasterClient.getPinList().contains(status.getFileId()));
