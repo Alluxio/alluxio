@@ -37,14 +37,14 @@ import java.util.Map;
 public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMapIterator.class);
 
-  private int mBatchSize;
-  private int mBlockCount;
+  private final int mBatchSize;
+  private final int mBlockCount;
   // Keeps the order of iteration
-  private List<BlockStoreLocationProto> mBlockStoreLocationProtoList;
-  private Map<BlockStoreLocationProto, Iterator<Long>> mBlockLocationIteratorMap;
+  private final List<BlockStoreLocationProto> mBlockStoreLocationProtoList;
+  private final Map<BlockStoreLocationProto, Iterator<Long>> mBlockLocationIteratorMap;
   // Iteration states
   private int mCurrentBlockLocationIndex;
-  private Iterator<Long> mCurrentIterator;
+  private final Iterator<Long> mCurrentIterator;
   // A global counter of how many blocks have been traversed
   private int mCounter = 0;
 
@@ -121,9 +121,8 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
       mCounter++;
     }
     BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(blockIdBatch).build();
-    LocationBlockIdListEntry listEntry = LocationBlockIdListEntry.newBuilder()
+    return LocationBlockIdListEntry.newBuilder()
         .setKey(currentLoc).setValue(blockIdList).build();
-    return listEntry;
   }
 
   @Override

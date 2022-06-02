@@ -61,17 +61,16 @@ public final class UfsInputStreamCache {
   private final Map<Long, StreamIdSet> mFileIdToStreamIds;
   /** Cache of the input streams, from the input stream id to the input stream. */
   private final Cache<Long, CachedSeekableInputStream> mStreamCache;
-  /** Thread pool for asynchronously removing the expired input streams. */
-  private final ExecutorService mRemovalThreadPool;
 
   /**
    * Constructs a new UFS input stream cache.
    */
   public UfsInputStreamCache() {
     mFileIdToStreamIds = new ConcurrentHashMap<>();
-    mRemovalThreadPool = ExecutorServiceFactories
-        .fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
-        .create();
+    /* Thread pool for asynchronously removing the expired input streams. */
+    ExecutorService removalThreadPool =
+        ExecutorServiceFactories.fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
+            .create();
 
     // A listener to the input stream removal.
     RemovalListener<Long, CachedSeekableInputStream> listener =
@@ -121,7 +120,7 @@ public final class UfsInputStreamCache {
         .expireAfterAccess(
             ServerConfiguration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
             TimeUnit.MILLISECONDS)
-        .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
+        .removalListener(RemovalListeners.asynchronous(listener, removalThreadPool)).build();
   }
 
   /**

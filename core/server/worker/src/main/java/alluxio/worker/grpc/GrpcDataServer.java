@@ -52,26 +52,25 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class GrpcDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataServer.class);
-
-  private final SocketAddress mSocketAddress;
-  private final long mTimeoutMs =
+  private static final long SHUTDOWN_TIMEOUT =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
-  private final long mKeepAliveTimeMs =
+  private static final long KEEPALIVE_TIME_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
-  private final long mKeepAliveTimeoutMs =
+  private static final long KEEPALIVE_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
-  private final long mPermitKeepAliveTimeMs =
+  private static final long PERMIT_KEEPALIVE_TIME_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS);
-  private final long mFlowControlWindow =
+  private static final long FLOWCONTROL_WINDOW =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
-  private final long mMaxInboundMessageSize =
+  private static final long MAX_INBOUND_MESSAGE_SIZE =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
-  private final long mQuietPeriodMs =
+  private static final long SHUTDOWN_QUIET_PERIOD =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
 
+  private final SocketAddress mSocketAddress;
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
-  private GrpcServer mServer;
+  private final GrpcServer mServer;
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
 
@@ -105,11 +104,11 @@ public final class GrpcDataServer implements DataServer {
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))
-          .flowControlWindow((int) mFlowControlWindow)
-          .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
-          .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
-          .permitKeepAlive(mPermitKeepAliveTimeMs, TimeUnit.MILLISECONDS)
-          .maxInboundMessageSize((int) mMaxInboundMessageSize)
+          .flowControlWindow((int) FLOWCONTROL_WINDOW)
+          .keepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
+          .keepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+          .permitKeepAlive(PERMIT_KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
+          .maxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
           .build()
           .start();
     } catch (IOException e) {
@@ -172,13 +171,15 @@ public final class GrpcDataServer implements DataServer {
       if (!completed) {
         LOG.warn("Alluxio worker gRPC server shutdown timed out.");
       }
-      completed = mBossGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-          .awaitUninterruptibly(mTimeoutMs);
+      completed = mBossGroup
+          .shutdownGracefully(SHUTDOWN_QUIET_PERIOD, SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(SHUTDOWN_TIMEOUT);
       if (!completed) {
         LOG.warn("Forced boss group shutdown because graceful shutdown timed out.");
       }
-      completed = mWorkerGroup.shutdownGracefully(mQuietPeriodMs, mTimeoutMs, TimeUnit.MILLISECONDS)
-          .awaitUninterruptibly(mTimeoutMs);
+      completed = mWorkerGroup
+          .shutdownGracefully(SHUTDOWN_QUIET_PERIOD, SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS)
+          .awaitUninterruptibly(SHUTDOWN_TIMEOUT);
       if (!completed) {
         LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
       }

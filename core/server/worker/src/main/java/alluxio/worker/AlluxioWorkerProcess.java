@@ -57,31 +57,31 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private final TieredIdentity mTieredIdentitiy;
 
   /** Server for data requests and responses. */
-  private DataServer mDataServer;
+  private final DataServer mDataServer;
 
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
 
   /** The worker registry. */
-  private WorkerRegistry mRegistry;
+  private final WorkerRegistry mRegistry;
 
   /** Worker Web UI server. */
-  private WebServer mWebServer;
+  private final WebServer mWebServer;
 
   /** Used for auto binding. **/
   private ServerSocket mBindSocket;
 
   /** The bind address for the rpc server. */
-  private InetSocketAddress mRpcBindAddress;
+  private final InetSocketAddress mRpcBindAddress;
 
   /** The connect address for the rpc server. */
-  private InetSocketAddress mRpcConnectAddress;
+  private final InetSocketAddress mRpcConnectAddress;
 
   /** Worker start time in milliseconds. */
   private final long mStartTimeMs;
 
   /** The manager for all ufs. */
-  private UfsManager mUfsManager;
+  private final UfsManager mUfsManager;
 
   /** The jvm monitor.*/
   private JvmPauseMonitor mJvmPauseMonitor;

@@ -48,9 +48,9 @@ public class ProbabilisticBufferReviewer implements Reviewer {
     long stopSoftBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES);
     if (stopSoftBytes <= mHardLimitBytes) {
       LOG.warn("{} should be greater than or equal to {}. Setting {} to {}.",
-              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES.toString(),
-              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES.toString(),
-              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES.toString(),
+          PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES,
+          PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES,
+          PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES,
               mHardLimitBytes);
       mSoftLimitBytes = mHardLimitBytes;
     } else {

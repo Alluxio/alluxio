@@ -27,7 +27,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
@@ -102,12 +101,11 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
   /** A serializing executor for sending responses. */
-  private Executor mSerializingExecutor;
+  private final Executor mSerializingExecutor;
   /** The Block Worker. */
   private final DefaultBlockWorker mWorker;
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
-  private final AuthenticatedUserInfo mUserInfo;
 
   /**
    * This is only created in the gRPC event thread when a read request is received.
@@ -123,17 +121,14 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
    * @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker block worker
    * @param responseObserver the response observer of the
-   * @param userInfo the authenticated user info
    * @param domainSocketEnabled if domain socket is enabled
    */
   BlockReadHandler(ExecutorService executorService,
       DefaultBlockWorker blockWorker,
       StreamObserver<ReadResponse> responseObserver,
-      AuthenticatedUserInfo userInfo,
       boolean domainSocketEnabled) {
     mDataReaderExecutor = executorService;
     mResponseObserver = responseObserver;
-    mUserInfo = userInfo;
     mSerializingExecutor =
         new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
     mWorker = blockWorker;
@@ -226,7 +221,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     }
     if (request.getOffset() < 0 || request.getLength() <= 0) {
       throw new InvalidArgumentException(
-          String.format("Invalid read bounds in read request %s.", request.toString()));
+          String.format("Invalid read bounds in read request %s.", request));
     }
   }
 
@@ -513,7 +508,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       // timings
       long openMs = -1;
       long startTransferMs = -1;
-      long transferMs = -1;
       long startMs = System.currentTimeMillis();
       try {
         openBlock(context);
@@ -535,7 +529,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           return new NettyDataBuffer(Unpooled.wrappedBuffer(buf));
         }
       } finally {
-        transferMs = System.currentTimeMillis() - startTransferMs;
+        long transferMs = System.currentTimeMillis() - startTransferMs;
         long durationMs = System.currentTimeMillis() - startMs;
         if (durationMs >= SLOW_BUFFER_MS) {
           // This buffer took much longer than expected

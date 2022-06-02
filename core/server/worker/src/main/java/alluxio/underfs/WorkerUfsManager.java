@@ -72,8 +72,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
             .setReadOnly(info.getProperties().getReadOnly())
             .setShared(info.getProperties().getShared())
             .createMountSpecificConf(info.getProperties().getPropertiesMap()));
-    UfsClient ufsClient = super.get(mountId);
-    return ufsClient;
+    return super.get(mountId);
   }
 
   @Override

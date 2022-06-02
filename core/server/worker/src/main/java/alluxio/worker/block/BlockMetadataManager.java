@@ -118,7 +118,7 @@ public final class BlockMetadataManager {
         default:
           //For user defined evictor
           BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-              Collections.<Long>emptySet(), Collections.<Long>emptySet());
+              Collections.emptySet(), Collections.emptySet());
           mBlockIterator = new EmulatingBlockIterator(this,
               Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
       }
