@@ -52,7 +52,7 @@ public class RocksBenchRead {
       if (db.mUseZipf) {
         return db.mDist.nextValue();
       }
-      return mNxtFileId % mFileCount;
+      return mNxtFileId;
     }
 
     @Setup(Level.Trial)
@@ -100,12 +100,12 @@ public class RocksBenchRead {
       MutableInode<?> inode = genInode(mIsDirectory);
       mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {
-        mBase.writeInode(i, 1, 1, inode);
+        mBase.writeInode(i, 1, 0, inode);
       }
     }
 
     @TearDown(Level.Trial)
-    public void after() throws Exception {
+    public void after() {
       mBase.after();
       mBase = null;
     }
@@ -115,16 +115,16 @@ public class RocksBenchRead {
   public void testMethod(Db db, ThreadState ts, Blackhole bh) {
     switch (db.mReadType) {
       case SER_READ:
-        bh.consume(db.mBase.readInode(ts.getNxtId(db), 1, 1));
+        bh.consume(db.mBase.readInode(ts.mFileCount, ts.getNxtId(db), 1, 0));
         break;
       case NO_SER_READ:
-        bh.consume(db.mBase.readInodeBytes(ts.getNxtId(db), 1, 1));
+        bh.consume(db.mBase.readInodeBytes(ts.mFileCount, ts.getNxtId(db), 1, 0));
         break;
       case SER_NO_ALLOC_READ:
-        bh.consume(db.mBase.readInode(ts.getNxtId(db), 1, 1, ts.mInodeRead));
+        bh.consume(db.mBase.readInode(ts.mFileCount, ts.getNxtId(db), 1, 0, ts.mInodeRead));
         break;
       case NO_SER_NO_ALLOC_READ:
-        bh.consume(db.mBase.readInodeBytes(ts.getNxtId(db), 1, 1, ts.mInodeRead));
+        bh.consume(db.mBase.readInodeBytes(ts.mFileCount, ts.getNxtId(db), 1, 0, ts.mInodeRead));
         break;
       default:
         throw new RuntimeException("Unknown mReadType");

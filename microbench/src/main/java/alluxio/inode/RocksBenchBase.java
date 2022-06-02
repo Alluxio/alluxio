@@ -1,6 +1,7 @@
 package alluxio.inode;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -9,10 +10,20 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.proto.meta.InodeMeta;
 
-import java.io.IOException;
+import com.google.common.primitives.Longs;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.WriteOptions;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RocksBenchBase {
 
@@ -21,7 +32,10 @@ public class RocksBenchBase {
   static final String SER_NO_ALLOC_READ = "serNoAllocRead";
   static final String NO_SER_NO_ALLOC_READ = "noSerNoAllocRead";
 
-  RocksInodeStore mRocksInodeStore;
+  private final RocksInodeStore mRocksInodeStore;
+  private final RocksDB mDB;
+  private final AtomicReference<ColumnFamilyHandle> mInodesColumn;
+  private final WriteOptions mDisableWAL;
 
   RocksBenchBase(String confType) throws IOException {
     Logger.getRootLogger().setLevel(Level.ERROR);
@@ -29,6 +43,10 @@ public class RocksBenchBase {
         AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
     RocksBenchConfig.setRocksConfig(confType, dir, ServerConfiguration.global());
     mRocksInodeStore = new RocksInodeStore(dir);
+    Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> dbInfo = mRocksInodeStore.getDBInodeColumn();
+    mDB = dbInfo.getFirst();
+    mInodesColumn = dbInfo.getSecond();
+    mDisableWAL = new WriteOptions().setDisableWAL(true);
   }
 
   static MutableInode<?> genInode(boolean mIsDirectory) {
@@ -46,32 +64,87 @@ public class RocksBenchBase {
     mRocksInodeStore.close();
   }
 
-  Inode readInode(long nxtId, int threadCount, int threadId) {
-    long nodeId = (nxtId * threadCount) + threadId;
-    return mRocksInodeStore.get(nodeId).get();
+  long getInodeReadId(long totalCount, long nxtId, int threadCount, int threadId) {
+    // since the larger ids were written last (and will be in the memtable), but the zipfan will
+    // generate small numbers the most often, we subtract from the total count to read the
+    // large ids most often
+    // this assumes a workload where latest writes are read more often
+    return (totalCount - ((nxtId * threadCount) + threadId) % totalCount) - 1;
   }
 
-  Inode readInode(long nxtId, int threadCount, int threadId, byte[] inodeBytes) {
-    long nodeId = (nxtId * threadCount) + threadId;
-    return mRocksInodeStore.get(nodeId, inodeBytes).map(Inode::wrap).get();
+  Inode readInode(long totalCount, long nxtId, int threadCount, int threadId) {
+    return mRocksInodeStore.get(getInodeReadId(totalCount, nxtId, threadCount, threadId)).get();
   }
 
-  byte[] readInodeBytes(long nxtId, int threadCount, int threadId) {
-    long nodeId = (nxtId * threadCount) + threadId;
-    return mRocksInodeStore.getBytes(nodeId).get();
+  Inode readInode(long totalCount, long nxtId, int threadCount, int threadId, byte[] inodeBytes) {
+    return get(getInodeReadId(totalCount, nxtId, threadCount, threadId),
+        inodeBytes).map(Inode::wrap).get();
   }
 
-  int readInodeBytes(long nxtId, int threadCount, int threadId, byte[] inodeBytes) {
-    long nodeId = (nxtId * threadCount) + threadId;
-    return mRocksInodeStore.getBytes(nodeId, inodeBytes);
+  byte[] readInodeBytes(long totalCount, long nxtId, int threadCount, int threadId) {
+    return getBytes(getInodeReadId(totalCount, nxtId, threadCount, threadId)).get();
+  }
+
+  int readInodeBytes(long totalCount, long nxtId, int threadCount, int threadId,
+                     byte[] inodeBytes) {
+    return getBytes(getInodeReadId(totalCount, nxtId, threadCount, threadId), inodeBytes);
   }
 
   void writeInode(long nxtId, int threadCount, int threadId, MutableInode<?> inode) {
+    // we write the bytes directly instead of creating a new inode with the new id
+    // since we just want to test the cost of storing the inode and not allocating new ones
     writeBytes(nxtId, threadCount, threadId, inode.toProto().toByteArray());
   }
 
   void writeBytes(long nxtId, int threadCount, int threadId, byte[] inodeBytes) {
     long nodeId = (nxtId * threadCount) + threadId;
-    mRocksInodeStore.writeInodeBytes(nodeId, inodeBytes);
+    try {
+      mDB.put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(nodeId),
+          inodeBytes);
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public int getBytes(long id, byte[] inodeBytes) {
+    try {
+      return mDB.get(mInodesColumn.get(), Longs.toByteArray(id), inodeBytes);
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public Optional<byte[]> getBytes(long id) {
+    byte[] inodeBytes;
+    try {
+      inodeBytes = mDB.get(mInodesColumn.get(), Longs.toByteArray(id));
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
+    if (inodeBytes == null) {
+      return Optional.empty();
+    }
+    return Optional.of(inodeBytes);
+  }
+
+  public Optional<MutableInode<?>> get(long id, byte[] inode) {
+    int count;
+    try {
+      count = mDB.get(mInodesColumn.get(), Longs.toByteArray(id), inode);
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
+    if (count == RocksDB.NOT_FOUND) {
+      return Optional.empty();
+    }
+    if (count > inode.length) {
+      throw new RuntimeException("Byte array too small to read inode");
+    }
+    try {
+      return Optional.of(MutableInode.fromProto(
+          InodeMeta.Inode.parseFrom(ByteBuffer.wrap(inode, 0, count))));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

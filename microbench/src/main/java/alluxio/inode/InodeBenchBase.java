@@ -65,16 +65,16 @@ class InodeBenchBase {
     Logger.getRootLogger().setLevel(Level.ERROR);
     mRegistry = new MasterRegistry();
     CoreMasterContext context = MasterTestUtils.testMasterContext();
-    MetricsMaster mMetricsMaster = new MetricsMasterFactory().create(mRegistry, context);
-    mRegistry.add(MetricsMaster.class, mMetricsMaster);
+    MetricsMaster metricsMaster = new MetricsMasterFactory().create(mRegistry, context);
+    mRegistry.add(MetricsMaster.class, metricsMaster);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, context);
-    InodeDirectoryIdGenerator mInodeDirectoryIdGenerator =
+    InodeDirectoryIdGenerator inodeDirectoryIdGenerator =
         new InodeDirectoryIdGenerator(mBlockMaster);
-    UfsManager mUfsManager = mock(UfsManager.class);
-    MountTable mMountTable = new MountTable(mUfsManager, mock(MountInfo.class));
+    UfsManager ufsManager = mock(UfsManager.class);
+    MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     mInodeStore = getInodeStore(inodeStoreType, rocksConfig, mInodeLockManager);
-    mTree = new InodeTree(mInodeStore, mBlockMaster, mInodeDirectoryIdGenerator,
-        mMountTable, mInodeLockManager);
+    mTree = new InodeTree(mInodeStore, mBlockMaster, inodeDirectoryIdGenerator,
+        mountTable, mInodeLockManager);
     mRegistry.start(true);
     mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE, NoopJournalContext.INSTANCE);
   }

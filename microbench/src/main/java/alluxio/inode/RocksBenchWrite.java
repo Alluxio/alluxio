@@ -57,7 +57,7 @@ public class RocksBenchWrite {
   public static class Db {
 
     @Param({"true", "false"})
-    public boolean mUserSerialization;
+    public boolean mUseSerialization;
 
     @Param({RocksBenchConfig.JAVA_CONFIG, RocksBenchConfig.BASE_CONFIG,
         RocksBenchConfig.EMPTY_CONFIG, RocksBenchConfig.BLOOM_CONFIG})
@@ -79,7 +79,7 @@ public class RocksBenchWrite {
 
   @Benchmark
   public void testMethod(Db db, ThreadState ts) {
-    if (db.mUserSerialization) {
+    if (db.mUseSerialization) {
       db.mBase.writeInode(ts.mNxtFileId, ts.mThreadCount, ts.mMyId, ts.mMyInode);
     } else {
       db.mBase.writeBytes(ts.mNxtFileId, ts.mThreadCount, ts.mMyId, ts.mMyInodeBytes);
