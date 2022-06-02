@@ -20,9 +20,9 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -164,7 +164,7 @@ public final class AlluxioWorkerRestServiceHandler {
           .setStartTimeMs(mWorkerProcess.getStartTimeMs())
           .setTierCapacity(getTierCapacityInternal()).setTierPaths(getTierPathsInternal())
           .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -178,18 +178,18 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(() -> {
       WorkerWebUIInit response = new WorkerWebUIInit();
 
-      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
-          .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+          .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
-              ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setMasterHostname(NetworkAddressUtils
               .getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB,
-                  ServerConfiguration.global()))
-          .setMasterPort(ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT))
-          .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL));
+                  Configuration.global()))
+          .setMasterPort(Configuration.getInt(PropertyKey.MASTER_WEB_PORT))
+          .setRefreshInterval((int) Configuration.getMs(PropertyKey.WEB_REFRESH_INTERVAL));
 
       return response;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -205,7 +205,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
       response.setWorkerInfo(new UIWorkerInfo(mWorkerProcess.getRpcAddress().toString(),
           mWorkerProcess.getStartTimeMs(),
-          ServerConfiguration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+          Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
       BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
       long capacityBytes = 0L;
       long usedBytes = 0L;
@@ -239,7 +239,7 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setStorageDirs(storageDirs);
 
       return response;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -258,7 +258,7 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(() -> {
       WorkerWebUIBlockInfo response = new WorkerWebUIBlockInfo();
 
-      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
       response.setFatalError("").setInvalidPathError("");
@@ -266,7 +266,7 @@ public final class AlluxioWorkerRestServiceHandler {
         // Display file block info
         try {
           URIStatus status = mFsClient.getStatus(new AlluxioURI(requestPath));
-          UIFileInfo uiFileInfo = new UIFileInfo(status, ServerConfiguration.global(),
+          UIFileInfo uiFileInfo = new UIFileInfo(status, Configuration.global(),
               mStoreMeta.getStorageTierAssoc().getOrderedStorageAliases());
           for (long blockId : status.getBlockIds()) {
             // The block last access time is not available. Use -1 for now.
@@ -289,10 +289,11 @@ public final class AlluxioWorkerRestServiceHandler {
         } catch (IOException e) {
           response.setInvalidPathError(
               "Error: File " + requestPath + " is not available " + e.getMessage());
-        } catch (BlockDoesNotExistException e) {
-          response.setFatalError("Error: block not found. " + e.getMessage());
         } catch (AlluxioException e) {
           response.setFatalError("Error: alluxio exception. " + e.getMessage());
+        }
+        catch (AlluxioRuntimeException e) {
+          response.setFatalError("Error: alluxio run time exception. " + e.getMessage());
         }
       }
 
@@ -321,7 +322,7 @@ public final class AlluxioWorkerRestServiceHandler {
         for (long fileId : subFileIds) {
           try {
             URIStatus status = new URIStatus(mBlockWorker.getFileInfo(fileId));
-            UIFileInfo uiFileInfo = new UIFileInfo(status, ServerConfiguration.global(),
+            UIFileInfo uiFileInfo = new UIFileInfo(status, Configuration.global(),
                 mStoreMeta.getStorageTierAssoc().getOrderedStorageAliases());
             for (long blockId : status.getBlockIds()) {
               // The block last access time is not available. Use -1 for now.
@@ -350,7 +351,7 @@ public final class AlluxioWorkerRestServiceHandler {
       }
 
       return response;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -387,7 +388,7 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setOperationMetrics(operations);
 
       return response;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -409,13 +410,13 @@ public final class AlluxioWorkerRestServiceHandler {
       FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       WorkerWebUILogs response = new WorkerWebUILogs();
 
-      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
 
-      String logsPath = ServerConfiguration.getString(PropertyKey.LOGS_DIR);
+      String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -430,7 +431,7 @@ public final class AlluxioWorkerRestServiceHandler {
             fileInfos.add(new UIFileInfo(
                 new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
                     UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
-                    logFile.isDirectory()), ServerConfiguration.global(),
+                    logFile.isDirectory()), Configuration.global(),
                 mStoreMeta.getStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
@@ -520,7 +521,7 @@ public final class AlluxioWorkerRestServiceHandler {
       }
 
       return response;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -551,7 +552,7 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setConfiguration(sortedProperties);
 
       return response;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   private Capacity getCapacityInternal() {
@@ -560,7 +561,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(ServerConfiguration
+    return new TreeMap<>(Configuration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
@@ -622,6 +623,6 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(LOG_LEVEL)
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
-    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), Configuration.global());
   }
 }

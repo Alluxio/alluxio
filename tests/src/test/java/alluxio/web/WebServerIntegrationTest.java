@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -143,7 +143,7 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
     }
     InetSocketAddress webAddr =
         new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType,
-            ServerConfiguration.global()), port);
+            Configuration.global()), port);
     return webAddr;
   }
 }

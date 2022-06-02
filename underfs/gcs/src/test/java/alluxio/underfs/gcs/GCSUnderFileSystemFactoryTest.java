@@ -29,7 +29,7 @@ public final class GCSUnderFileSystemFactoryTest {
   @Test
   public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("gs://test-bucket/path",
-        ConfigurationTestUtils.defaults());
+        ConfigurationTestUtils.copyDefaults());
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for gs paths when using this module", factory);

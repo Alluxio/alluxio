@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 public final class GrpcConnectionPoolTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   @BeforeClass
   public static void classSetup() {
@@ -45,7 +45,7 @@ public final class GrpcConnectionPoolTest {
 
   @After
   public void after() throws Exception {
-    sConf = ConfigurationTestUtils.defaults();
+    sConf = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test

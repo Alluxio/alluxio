@@ -11,10 +11,8 @@
 
 package alluxio.metrics;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.CachedGauge;
@@ -46,13 +44,9 @@ import java.util.concurrent.TimeoutException;
  * tracks the maximum overall number active tasks at any time.
  */
 public class InstrumentedExecutorService implements ExecutorService {
-
-  private static final AlluxioConfiguration CONF =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
-
   private final Logger mSamplingLog =
       new SamplingLogger(LoggerFactory.getLogger(InstrumentedExecutorService.class),
-          CONF.getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
+          Configuration.global().getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
 
   private com.codahale.metrics
       .InstrumentedExecutorService mDelegate;
@@ -108,7 +102,8 @@ public class InstrumentedExecutorService implements ExecutorService {
   private void addedTasks(int count) {
     long activeCount = mSubmitted.getCount() - mCompleted.getCount() + count;
     mHist.update(activeCount);
-    if (activeCount >= CONF.getInt(PropertyKey.METRICS_EXECUTOR_TASK_WARN_SIZE)) {
+    if (activeCount >= Configuration.global()
+        .getInt(PropertyKey.METRICS_EXECUTOR_TASK_WARN_SIZE)) {
       mSamplingLog.warn("Number of active tasks (queued and running) for executor {} is {}",
           mName, activeCount);
     }

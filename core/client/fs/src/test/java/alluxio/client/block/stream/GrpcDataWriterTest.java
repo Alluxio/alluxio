@@ -78,7 +78,7 @@ public final class GrpcDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private ClientContext mClientContext;
 
   @Rule

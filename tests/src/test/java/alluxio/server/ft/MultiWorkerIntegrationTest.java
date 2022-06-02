@@ -29,7 +29,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
@@ -183,19 +183,19 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
       throws IOException {
     FindFirstBlockLocationPolicy.sWorkerAddress = address;
-    Class<?> previousPolicy = ServerConfiguration.getClass(
+    Class<?> previousPolicy = Configuration.getClass(
         PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY);
     // This only works because the client instance hasn't been created yet.
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
+    Configuration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
         FindFirstBlockLocationPolicy.class.getName());
     FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build(),
         total);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY, previousPolicy);
+    Configuration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY, previousPolicy);
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
-    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     BlockStoreClient store = BlockStoreClient.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
@@ -213,7 +213,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext.getClientContext())
               .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
-            new InStreamOptions(status, ServerConfiguration.global()))) {
+            new InStreamOptions(status, Configuration.global()))) {
           ByteStreams.copy(inStream, outStream);
         }
       }

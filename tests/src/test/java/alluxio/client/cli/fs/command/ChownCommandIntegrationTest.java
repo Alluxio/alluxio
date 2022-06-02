@@ -16,7 +16,7 @@ import alluxio.ConfigurationRule;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
@@ -35,7 +35,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()),
-      ServerConfiguration.global());
+      Configuration.modifiableGlobal());
 
   @Test
   public void chown() throws IOException, AlluxioException {

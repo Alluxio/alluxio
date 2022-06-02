@@ -30,7 +30,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -70,7 +70,7 @@ public class BlockWorkerDataReaderTest {
   private static final long SESSION_ID = 10L;
   private static final int LOCK_NUM = 5;
 
-  private final InstancedConfiguration mConf = ServerConfiguration.global();
+  private final InstancedConfiguration mConf = Configuration.modifiableGlobal();
   private final String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
 
@@ -90,7 +90,7 @@ public class BlockWorkerDataReaderTest {
           .put(PropertyKey.WORKER_RPC_PORT, 0)
           .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               AlluxioTestDirectory.createTemporaryDirectory("BlockWorkerDataReaderTest")
-                  .getAbsolutePath()).build(), mConf);
+                  .getAbsolutePath()).build(), Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {
@@ -103,10 +103,10 @@ public class BlockWorkerDataReaderTest {
 
     // Connect to the real UFS for UFS read testing
     UfsManager ufsManager = mock(UfsManager.class);
-    mRootUfs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mRootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
         () -> UnderFileSystem.Factory.create(mRootUfs,
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
+            UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
 

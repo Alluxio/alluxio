@@ -38,7 +38,7 @@ public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {
@@ -55,7 +55,7 @@ public final class DeterministicHashPolicyTest {
     mWorkerInfos.add(new BlockWorkerInfo(
         new WorkerNetAddress().setHost("worker4").setRpcPort(PORT).setDataPort(PORT)
             .setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    sConf = ConfigurationTestUtils.defaults();
+    sConf = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test

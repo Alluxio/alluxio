@@ -12,7 +12,7 @@
 package alluxio.worker.block.management.tier;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockStoreLocation;
@@ -34,11 +34,11 @@ public class SwapRestoreTaskTest extends BaseTierManagementTaskTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     // Disable move task to avoid interference.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     // Current tier layout could end up swapping 1 big block.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, BLOCK_SIZE);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, BLOCK_SIZE);
     // Initialize the tier layout.
     init();
   }

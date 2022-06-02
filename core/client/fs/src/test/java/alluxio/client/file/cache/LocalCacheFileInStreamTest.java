@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -48,7 +49,6 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -91,8 +91,7 @@ import java.util.stream.IntStream;
  */
 @RunWith(Parameterized.class)
 public class LocalCacheFileInStreamTest {
-  private static InstancedConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
+  private static InstancedConfiguration sConf = Configuration.modifiableGlobal();
 
   @Parameters(name = "{index}: page_size({0}), in_stream_buffer_size({1})")
   public static Collection<Object[]> data() {

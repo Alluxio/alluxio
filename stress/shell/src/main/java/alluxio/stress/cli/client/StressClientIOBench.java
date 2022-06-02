@@ -31,7 +31,6 @@ import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
@@ -169,7 +168,8 @@ public class StressClientIOBench extends AbstractStressBench
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
-      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      alluxio.conf.AlluxioProperties alluxioProperties = alluxio.conf.Configuration
+          .global().copyProperties();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 

@@ -13,13 +13,12 @@ package alluxio.metrics;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.CachedGauge;
@@ -68,8 +67,7 @@ public final class MetricsSystem {
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static int sResolveTimeout =
-      (int) new InstancedConfiguration(ConfigurationUtils.defaults())
-          .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+      (int) Configuration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
   // A map from AlluxioURI to corresponding cached escaped path.
   private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
       = new ConcurrentHashMap<>();
@@ -207,7 +205,7 @@ public final class MetricsSystem {
       default:
         break;
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = Configuration.global();
     if (sourceKey != null && conf.isSet(sourceKey)) {
       return conf.getString(sourceKey);
     }

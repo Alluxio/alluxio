@@ -13,7 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.ClientContext;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
@@ -525,7 +525,7 @@ public class SnapshotReplicationManager {
   synchronized RaftJournalServiceClient createJournalServiceClient()
       throws AlluxioStatusException {
     RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
     client.connect();
     return client;
   }

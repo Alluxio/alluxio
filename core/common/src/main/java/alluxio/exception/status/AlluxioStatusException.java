@@ -13,11 +13,11 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DependencyDoesNotExistException;
@@ -185,6 +185,9 @@ public class AlluxioStatusException extends IOException {
     if (t instanceof AlluxioException) {
       return fromAlluxioException((AlluxioException) t);
     }
+    if (t instanceof AlluxioRuntimeException) {
+      return AlluxioStatusException.from(((AlluxioRuntimeException) t).getStatus());
+    }
     if (t instanceof StatusRuntimeException) {
       return fromStatusRuntimeException((StatusRuntimeException) t);
     }
@@ -221,7 +224,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
-    } catch (BlockDoesNotExistException | FileDoesNotExistException | JobDoesNotExistException e) {
+    } catch (FileDoesNotExistException | JobDoesNotExistException e) {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);

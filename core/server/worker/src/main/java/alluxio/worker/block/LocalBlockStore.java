@@ -12,10 +12,10 @@
 package alluxio.worker.block;
 
 import alluxio.client.file.cache.CacheManager;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -44,10 +44,10 @@ public interface LocalBlockStore
    * @return the instance of LocalBlockStore
    */
   static LocalBlockStore create(UfsManager ufsManager) {
-    switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+    switch (Configuration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
       case PAGE:
         try {
-          InstancedConfiguration conf = ServerConfiguration.global();
+          AlluxioConfiguration conf = Configuration.global();
           PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
           CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
           return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);
@@ -180,10 +180,10 @@ public interface LocalBlockStore
    * @param blockId the id of an existing block
    * @param offset the offset within the block
    * @return a {@link BlockReader} instance on this block
-   * @throws BlockDoesNotExistException if lockId is not found
+   * @throws BlockDoesNotExistRuntimeException if lockId is not found
    */
   BlockReader createBlockReader(long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException;
+      throws IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.

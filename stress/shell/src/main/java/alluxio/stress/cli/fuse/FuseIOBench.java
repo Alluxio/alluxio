@@ -15,7 +15,6 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
@@ -24,7 +23,6 @@ import alluxio.stress.fuse.FuseIOOperation;
 import alluxio.stress.fuse.FuseIOParameters;
 import alluxio.stress.fuse.FuseIOTaskResult;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.worker.job.JobMasterClientContext;
@@ -174,8 +172,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     // for cluster mode, find 0-based id, and make sure directories and job workers are 1-to-1
     int numJobWorkers;
     try (JobMasterClient client = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-            ConfigurationUtils.defaults()))).build())) {
+        JobMasterClientContext.newBuilder(ClientContext.create()).build())) {
       numJobWorkers = client.getAllWorkerHealth().size();
     }
     if (numJobWorkers != jobWorkerDirs.length) {

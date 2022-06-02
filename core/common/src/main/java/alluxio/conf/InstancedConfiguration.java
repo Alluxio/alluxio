@@ -70,7 +70,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @return an instanced configuration preset with defaults
    */
   public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
+    return Configuration.copyGlobal();
   }
 
   /**

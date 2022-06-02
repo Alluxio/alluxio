@@ -86,7 +86,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");

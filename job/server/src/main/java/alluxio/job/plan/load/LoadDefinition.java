@@ -159,7 +159,7 @@ public final class LoadDefinition
     return result;
   }
 
-  /**
+  /*
    * @param blockWorkers a list of block workers
    * @param blockInfo information about a block
    * @return the block worker hosts which are not storing the specified block

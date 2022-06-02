@@ -12,14 +12,13 @@
 package alluxio.client.hadoop;
 
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.WritePType;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
@@ -43,7 +42,7 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Configuration conf = new Configuration();
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
     alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
@@ -52,7 +51,7 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
-        .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
+        .mergeAlluxioConfiguration(conf, Configuration.global()));
   }
 
   /**

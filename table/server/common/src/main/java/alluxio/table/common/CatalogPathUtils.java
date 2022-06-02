@@ -13,7 +13,7 @@ package alluxio.table.common;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class CatalogPathUtils {
    */
   public static AlluxioURI getTablePathUdb(String dbName, String tableName, String udbType) {
     return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
+        .concatPath(Configuration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
             tableName, udbType));
   }
 
@@ -56,7 +56,7 @@ public class CatalogPathUtils {
    */
   public static AlluxioURI getTablePathInternal(String dbName, String tableName) {
     return new AlluxioURI(PathUtils
-        .concatPath(ServerConfiguration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
+        .concatPath(Configuration.get(PropertyKey.TABLE_CATALOG_PATH), dbName, TABLES_ROOT,
             tableName, INTERNAL_ROOT));
   }
 }

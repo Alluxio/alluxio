@@ -16,7 +16,7 @@ import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -947,7 +947,7 @@ public class InodeTree implements DelegatingJournaled {
   // Inherit owner and group from ancestor if both are empty
   private static void inheritOwnerAndGroupIfEmpty(MutableInode<?> newInode,
       InodeDirectoryView ancestorInode) {
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
         && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
       // Inherit owner / group if empty
       newInode.setOwner(ancestorInode.getOwner().intern());
@@ -1026,7 +1026,7 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
-    List<String> mediumTypeList = ServerConfiguration.getList(
+    List<String> mediumTypeList = Configuration.getList(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
     for (String medium : pinnedMediumTypes) {
       if (!mediumTypeList.contains(medium)) {
@@ -1282,7 +1282,7 @@ public class InodeTree implements DelegatingJournaled {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       MkdirsOptions mkdirsOptions =
-          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+          MkdirsOptions.defaults(Configuration.global()).setCreateParent(false)
           .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
       if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
         // Directory might already exist. Try loading the status from ufs.

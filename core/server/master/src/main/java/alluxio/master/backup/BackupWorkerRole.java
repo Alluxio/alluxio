@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
@@ -90,13 +90,13 @@ public class BackupWorkerRole extends AbstractBackupRole {
     LOG.info("Creating backup-worker role.");
     // Read properties.
     mBackupHeartbeatIntervalMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_HEARTBEAT_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_HEARTBEAT_INTERVAL);
     mLeaderConnectionIntervalMin =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN);
     mLeaderConnectionIntervalMax =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
     mBackupAbortSuspendTimeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_SUSPEND_TIMEOUT);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_SUSPEND_TIMEOUT);
     // Submit a task to establish and maintain connection with the leader.
     mExecutorService.submit(this::establishConnectionToLeader);
   }
@@ -220,7 +220,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     // Update current backup status with given backup id.
     mBackupTracker.update(new BackupStatus(requestMsg.getBackupId(), BackupState.Initiating));
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
-        (int) ServerConfiguration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+        (int) Configuration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
     // Start sending backup progress to leader.
     startHeartbeatThread();
@@ -345,7 +345,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         leaderConnection.handler(BackupRequestMessage.class, this::handleRequestMessage);
         // Send handshake message to introduce connection to leader.
         leaderConnection.sendAndReceive(new BackupHandshakeMessage(
-            NetworkAddressUtils.getLocalHostName((int) ServerConfiguration.global()
+            NetworkAddressUtils.getLocalHostName((int) Configuration.global()
                 .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))));
       }).get();
     } catch (InterruptedException ie) {
@@ -370,7 +370,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       try {
         // Create inquire client to determine leader address.
         MasterInquireClient inquireClient =
-            MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+            MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
                 .build().getMasterInquireClient();
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
@@ -382,7 +382,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       // InetSocketAddress acquired. Establish messaging connection with the leader.
       try {
         // Create messaging client for backup-leader.
-        GrpcMessagingClient messagingClient = new GrpcMessagingClient(ServerConfiguration.global(),
+        GrpcMessagingClient messagingClient = new GrpcMessagingClient(Configuration.global(),
             mServerUserState, mExecutorService, "BackupWorker");
 
         // Initiate the connection to backup-leader on catalyst context and wait.
