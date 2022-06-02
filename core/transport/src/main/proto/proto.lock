@@ -8169,32 +8169,6 @@
                 "integer": 2
               }
             ]
-          },
-          {
-            "name": "CommandType",
-            "enum_fields": [
-              {
-                "name": "UNKNOWN",
-                "integer": 1
-              },
-              {
-                "name": "DIST_LOAD",
-                "integer": 2
-              }
-            ]
-          },
-          {
-            "name": "CommandState",
-            "enum_fields": [
-              {
-                "name": "Created",
-                "integer": 1
-              },
-              {
-                "name": "Finished",
-                "integer": 2
-              }
-            ]
           }
         ],
         "messages": [
@@ -9106,46 +9080,6 @@
                 ]
               }
             ]
-          },
-          {
-            "name": "CommandOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "bandWidth",
-                "type": "int64"
-              }
-            ]
-          },
-          {
-            "name": "CommandEntry",
-            "fields": [
-              {
-                "id": 1,
-                "name": "commandId",
-                "type": "int64"
-              },
-              {
-                "id": 2,
-                "name": "srcFilePath",
-                "type": "string"
-              },
-              {
-                "id": 3,
-                "name": "type",
-                "type": "CommandType"
-              },
-              {
-                "id": 4,
-                "name": "options",
-                "type": "CommandOptions"
-              },
-              {
-                "id": 5,
-                "name": "state",
-                "type": "CommandState"
-              }
-            ]
           }
         ],
         "imports": [
@@ -9372,11 +9306,6 @@
                 "id": 37,
                 "name": "update_inode_file",
                 "type": "UpdateInodeFileEntry"
-              },
-              {
-                "id": 53,
-                "name": "update_cmd_entry",
-                "type": "CommandEntry"
               },
               {
                 "id": 39,

@@ -15,7 +15,7 @@ import alluxio.master.file.cmdmanager.command.ExecutionStatus;
 import alluxio.master.file.cmdmanager.command.Task;
 
 /**
- * Interface for assigned worker info.
+ * Class for assigned worker info.
  */
 public class ExecutionWorkerInfo {
   /**
