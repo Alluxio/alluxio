@@ -19,14 +19,6 @@ import alluxio.master.file.loadmanager.load.BlockBatch;
  */
 public class ExecutionWorkerInfo {
   /**
-   * Get worker capacity status, whether under pressure.
-   * @return boolean
-   */
-  public boolean getCapacityStatus()  {
-    return true;
-  }
-
-  /**
    * Execute a task.
    * @param blockBatch blockBatch
    * @return LoadResponse

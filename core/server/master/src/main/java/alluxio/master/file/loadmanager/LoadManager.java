@@ -17,7 +17,6 @@ import alluxio.exception.AlluxioRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.LoadResponse;
 import alluxio.job.meta.JobIdGenerator;
-import alluxio.job.wire.Status;
 import alluxio.master.file.loadmanager.load.LoadInfo;
 import alluxio.master.file.loadmanager.load.BlockBatch;
 import alluxio.master.journal.Journaled;
@@ -26,15 +25,16 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -55,11 +55,6 @@ public final class LoadManager implements Journaled {
   private final Scheduler mScheduler = new Scheduler();
 
   /**
-   * Constructor.
-   */
-  public LoadManager() {}
-
-  /**
    * Validate the load information.
    * @param loadInfo load information
    * @return boolean value on whether the load is validated for scheduling or not
@@ -67,20 +62,21 @@ public final class LoadManager implements Journaled {
   public boolean validate(LoadInfo loadInfo) {
     LoadOptions options = loadInfo.getLoadOptions();
     String path = loadInfo.getPath();
-    ValidationStatus status = getValidationStatus(path, options);
-
-    if (status.equals(ValidationStatus.New)) {
+    if (mLoadPathToInfo.containsKey(path)) {
+      boolean isNewOption = mLoadPathToInfo.get(path).getLoadOptions().equals(options);
+      if (isNewOption) {
+        LoadInfo info = mLoadPathToInfo.get(path);
+        long loadId = info.getId();
+        Load load = mLoads.get(loadId);
+        load.updateOptions(options);
+        /*Only update bandwidth here.*/
+        long newBandWidth = options.getBandwidth();
+        info.getLoadOptions().setBandwidth(newBandWidth);
+      }
+      return false;
+    } else {
       return true;
     }
-
-    if (status.equals(ValidationStatus.Update_Options)) {
-      LoadInfo info = mLoadPathToInfo.get(path);
-      long loadId = info.getId();
-      /*Just update load map with new options.*/
-      Load load = mLoads.get(loadId);
-      load.updateOptions(options);
-    }
-    return false;
   }
 
   /**
@@ -96,29 +92,6 @@ public final class LoadManager implements Journaled {
             loadInfo.getPath(), loadInfo.getLoadOptions());
     mScheduler.schedule(load);
     mLoads.put(loadId, load);
-  }
-
-  /**
-   * Get status for a load.
-   * @param id load id
-   * @return running status
-   */
-  public Status getStatus(Long id) {
-    return null;
-  }
-
-  /**
-   * Stop a load for running.
-   * @param id load id
-   */
-  public void stop(Long id) {
-  }
-
-  /**
-   * Close the load manager.
-   * @throws IOException IOException
-   */
-  public void close() throws IOException {
   }
 
   @Override
@@ -156,27 +129,6 @@ public final class LoadManager implements Journaled {
     return CheckpointName.LOAD_DIRECTORY;
   }
 
-  /**
-   * Check load validation status, perform loadInfo option update accordingly.
-   * @param path the file path
-   * @param options the load options
-   * @return validation status
-   */
-  public ValidationStatus getValidationStatus(String path, LoadOptions options) {
-    if (mLoadPathToInfo.containsKey(path)) {
-      boolean isNewOption = mLoadPathToInfo.get(path).getLoadOptions().equals(options);
-      if (isNewOption) {
-        LoadInfo info = mLoadPathToInfo.get(path);
-        /*Only update bandwidth here.*/
-        long newBandWidth = options.getBandwidth();
-        info.getLoadOptions().setBandwidth(newBandWidth);
-        return ValidationStatus.Update_Options;
-      }
-      return ValidationStatus.Ignored;
-    }
-    return ValidationStatus.New;
-  }
-
   static class Scheduler {
     private static final int CAPACITY = 100;
     private static final long TIMEOUT = 100;
@@ -195,20 +147,19 @@ public final class LoadManager implements Journaled {
       boolean offered = mLoadQueue.offer(load, TIMEOUT, TimeUnit.MILLISECONDS);
       if (offered) {
         mCurrentSize.incrementAndGet();
+        mExecutorService.submit(() -> {
+          try {
+            runLoad(load);
+          } catch (AlluxioRuntimeException e) {
+            handleErrorOnStatuses(); // handle based on status
+          } catch (TimeoutException e) {
+            // add retry and handle timeout caused by checking available workers
+          }
+        });
       } else {
         LOG.warn("Cannot enqueue load to the queue, may lose track on this load!"
                 + load.getDetailedInfo());
       }
-
-      mExecutorService.submit(() -> {
-        try {
-          runLoad(load);
-        } catch (AlluxioRuntimeException e) {
-          handleErrorOnStatuses(); // handle based on status
-        } catch (TimeoutException e) {
-          // add retry and handle timeout caused by checking available workers
-        }
-      });
     }
 
     void runLoad(Load load) throws AlluxioRuntimeException, TimeoutException {
@@ -223,13 +174,11 @@ public final class LoadManager implements Journaled {
 
         List<Long> blockIds = blockIterator.getNextBatchBlocks();
         BlockBatch blockBatch = new BlockBatch(blockIds, getNextBatchId());
-        load.addBlockBatch(blockBatch);
-        LoadResponse status = worker.execute(blockBatch);
-        handleCompletion(status);
-      }
-    }
 
-    void handleCompletion(LoadResponse loadResponse) {
+        CompletableFuture<LoadResponse> completableFuture =
+                CompletableFuture.supplyAsync(() -> worker.execute(blockBatch));
+        completableFuture.thenAccept(load::setLoadResponse);
+      }
     }
 
     void handleErrorOnStatuses() {
@@ -248,7 +197,7 @@ public final class LoadManager implements Journaled {
   static class Load {
     private final long mLoadId;
     private final String mPath;
-    private final List<BlockBatch> mBlockBatches = Lists.newArrayList();
+    private List<LoadResponse> mLoadResponse;
     private final LoadOptions mOptions;
 
     public Load(long loadId, String path, LoadOptions options) {
@@ -264,27 +213,17 @@ public final class LoadManager implements Journaled {
       mOptions.setBandwidth(options.getBandwidth());
     }
 
-    public void addBlockBatch(BlockBatch t) {
-      mBlockBatches.add(t);
+    public void setLoadResponse(LoadResponse response) {
+      mLoadResponse.add(response);
     }
 
     public String getPath() {
       return mPath;
     }
 
-    public List<BlockBatch> getBlockBatches() {
-      return mBlockBatches;
-    }
-
     public String getDetailedInfo() {
       return "";
     }
-  }
-
-  private enum ValidationStatus {
-    New,
-    Update_Options,
-    Ignored
   }
 
   static class BlockIterator<T> {
