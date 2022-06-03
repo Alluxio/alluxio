@@ -138,9 +138,9 @@ public class SortedBlockSet<T extends BlockSortedField> {
    * @param <T> type of the sorted field
    */
   class SortedBlockSetEntry<T extends Comparable> implements Comparable<SortedBlockSetEntry> {
-    private long mBlockId;
-    private T mSortedField;
-    private long mChangeIndex;
+    private final long mBlockId;
+    private final T mSortedField;
+    private final long mChangeIndex;
 
     public SortedBlockSetEntry(long blockId, long changeIndex, T sortId) {
       mBlockId = blockId;
@@ -150,7 +150,7 @@ public class SortedBlockSet<T extends BlockSortedField> {
 
     @Override
     public int compareTo(SortedBlockSetEntry o) {
-      /**
+      /*
        * Comparison should be consistent with {@link Object#equals} for {@link SortedSet} to
        * maintain set semantics.
        *

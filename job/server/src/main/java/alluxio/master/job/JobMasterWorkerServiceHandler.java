@@ -53,7 +53,7 @@ public final class JobMasterWorkerServiceHandler
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
       for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
@@ -73,11 +73,8 @@ public final class JobMasterWorkerServiceHandler
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
-          return RegisterJobWorkerPResponse.newBuilder()
-              .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-              .build();
-        }, "registerJobWorker", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> RegisterJobWorkerPResponse.newBuilder()
+        .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+        .build(), "registerJobWorker", "request=%s", responseObserver, request);
   }
 }

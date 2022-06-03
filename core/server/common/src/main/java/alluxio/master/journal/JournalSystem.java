@@ -12,11 +12,10 @@
 package alluxio.master.journal;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcService;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.master.journal.ufs.UfsJournalSystem;
@@ -24,7 +23,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
@@ -200,7 +198,7 @@ public interface JournalSystem {
   /**
    * @return whether the journal system has been formatted
    */
-  boolean isFormatted() throws IOException;
+  boolean isFormatted();
 
   /**
    * @param master the master for which to add the journal sink
@@ -247,7 +245,7 @@ public interface JournalSystem {
   class Builder {
     private URI mLocation;
     private long mQuietTimeMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+        Configuration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
 
     /**
      * Creates a new journal system builder.
@@ -278,7 +276,7 @@ public interface JournalSystem {
      */
     public JournalSystem build(CommonUtils.ProcessType processType) {
       JournalType journalType =
-          ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+          Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       switch (journalType) {
         case NOOP:
           return new NoopJournalSystem();
@@ -293,8 +291,7 @@ public interface JournalSystem {
             // never started, so any value of serviceType is fine.
             serviceType = ServiceType.JOB_MASTER_RAFT;
           }
-          return RaftJournalSystem.create(RaftJournalConfiguration.defaults(serviceType)
-                  .setPath(new File(mLocation.getPath())));
+          return new RaftJournalSystem(mLocation, serviceType);
         default:
           throw new IllegalStateException("Unrecognized journal type: " + journalType);
       }

@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
 import alluxio.master.journal.JournalType;
@@ -196,7 +196,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     Map<Integer, Map<PropertyKey, String>> properties = new HashMap<>();
     for (int i = 0; i < nodeNum; i++) {
       Map<PropertyKey, String> prop = new HashMap<>();
-      prop.put(key, ((ServerConfiguration.getMs(key) / Constants.SECOND_MS) + i) + "sec");
+      prop.put(key, ((Configuration.getMs(key) / Constants.SECOND_MS) + i) + "sec");
       properties.put(i, prop);
     }
     return properties;

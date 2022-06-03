@@ -18,9 +18,7 @@ import static java.util.function.Function.identity;
 import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -41,7 +39,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -92,36 +89,36 @@ public final class BlockMetadataManager {
                 tierOrdinal,
                 WORKER_STORAGE_TIER_ASSOC.size() > 1);
           }
-          catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
+          catch (WorkerOutOfSpaceException e) {
             throw new RuntimeException(e);
           }
         })
         .collect(toImmutableList());
     mAliasToTiers = mTiers.stream().collect(toImmutableMap(StorageTier::getTierAlias, identity()));
     // Create the block iterator.
-    if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+    if (Configuration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
       LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
           PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-      String evictorType = ServerConfiguration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
+      String evictorType = Configuration.getString(PropertyKey.WORKER_EVICTOR_CLASS);
       switch (evictorType) {
         case DEPRECATED_LRU_EVICTOR:
         case DEPRECATED_PARTIAL_LRUEVICTOR:
         case DEPRECATED_GREEDY_EVICTOR:
           LOG.warn("Evictor is deprecated, switching to LRUAnnotator");
-          ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+          Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
               "alluxio.worker.block.annotator.LRUAnnotator");
           mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
           break;
         case DEPRECATED_LRFU_EVICTOR:
           LOG.warn("Evictor is deprecated, switching to LRFUAnnotator");
-          ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+          Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
               "alluxio.worker.block.annotator.LRFUAnnotator");
           mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
           break;
         default:
           //For user defined evictor
           BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-              Collections.<Long>emptySet(), Collections.<Long>emptySet());
+              Collections.emptySet(), Collections.emptySet());
           mBlockIterator = new EmulatingBlockIterator(this,
               Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
       }
@@ -151,22 +148,17 @@ public final class BlockMetadataManager {
    * Aborts a temp block.
    *
    * @param tempBlockMeta the metadata of the temp block to add
-   * @throws BlockDoesNotExistException when block can not be found
    */
-  public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
-    StorageDir dir = tempBlockMeta.getParentDir();
-    dir.removeTempBlockMeta(tempBlockMeta);
+  public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) {
+    tempBlockMeta.getParentDir().removeTempBlockMeta(tempBlockMeta);
   }
 
   /**
    * Adds a temp block.
    *
    * @param tempBlockMeta the metadata of the temp block to add
-   * @throws WorkerOutOfSpaceException when no more space left to hold the block
-   * @throws BlockAlreadyExistsException when the block already exists
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
-      throws WorkerOutOfSpaceException, BlockAlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.addTempBlockMeta(tempBlockMeta);
   }
@@ -176,16 +168,13 @@ public final class BlockMetadataManager {
    *
    * @param tempBlockMeta the metadata of the temp block to commit
    * @throws WorkerOutOfSpaceException when no more space left to hold the block
-   * @throws BlockAlreadyExistsException when the block already exists in committed blocks
-   * @throws BlockDoesNotExistException when temp block can not be found
    */
   public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
-      throws WorkerOutOfSpaceException, BlockAlreadyExistsException, BlockDoesNotExistException {
+      throws WorkerOutOfSpaceException {
     long blockId = tempBlockMeta.getBlockId();
-    Optional<BlockMeta> blockMeta = getBlockMeta(blockId);
-    if (blockMeta.isPresent()) {
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
-          blockMeta.get().getBlockLocation().tierAlias()));
+    if (hasBlockMeta(blockId)) {
+      throw new IllegalStateException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+          getBlockMeta(blockId).get().getBlockLocation().tierAlias()));
     }
     BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
@@ -308,9 +297,8 @@ public final class BlockMetadataManager {
    *
    * @param blockId the id of the temp block
    * @return metadata of the block
-   * @throws BlockDoesNotExistException when block id can not be found
    */
-  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
+  public Optional<TempBlockMeta> getTempBlockMeta(long blockId) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
@@ -318,7 +306,7 @@ public final class BlockMetadataManager {
         }
       }
     }
-    throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    return Optional.empty();
   }
 
   /**
@@ -415,13 +403,11 @@ public final class BlockMetadataManager {
    * @param blockMeta the metadata of the block to move
    * @param tempBlockMeta a placeholder in the destination directory
    * @return the new block metadata if success, absent otherwise
-   * @throws BlockDoesNotExistException when the block to move is not found
-   * @throws BlockAlreadyExistsException when the block to move already exists in the destination
    * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
    *         move
    */
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, BlockAlreadyExistsException {
+      throws WorkerOutOfSpaceException {
     StorageDir srcDir = blockMeta.getParentDir();
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);

@@ -21,7 +21,7 @@ import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
@@ -76,14 +76,14 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     assertEquals(3, mCluster.getClient().getMountTable().size());
     mCluster.getClient().unmount(alluxioMount1);
     assertEquals(2, mCluster.getClient().getMountTable().size());
-    ServerConfiguration.unset(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP);
+    Configuration.unset(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP);
   }
 
   @Test
   public void recoverUfsState() throws Exception {
     FileSystemMasterClient client =
         new RetryHandlingFileSystemMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     client.updateUfsMode(new AlluxioURI(""),
         UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
 
@@ -101,12 +101,12 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     File backup = mFolder.newFolder("backup");
     MetaMasterClient metaClient =
         new RetryHandlingMetaMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     AlluxioURI backupURI = metaClient
         .backup(BackupPRequest.newBuilder().setTargetDirectory(backup.getAbsolutePath())
             .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(true)).build())
         .getBackupUri();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
     mCluster.formatAndRestartMasters();
   }
 }

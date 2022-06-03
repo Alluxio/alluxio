@@ -11,10 +11,10 @@
 
 package alluxio.cli;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -129,7 +129,7 @@ public class ValidateHdfsMount {
     }
 
     ValidationToolRegistry registry
-            = new ValidationToolRegistry(new InstancedConfiguration(ConfigurationUtils.defaults()));
+            = new ValidationToolRegistry(Configuration.global());
     // Load hdfs validation tool from alluxio lib directory
     registry.refresh();
 

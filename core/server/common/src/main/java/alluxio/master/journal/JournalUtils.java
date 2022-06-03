@@ -14,7 +14,7 @@ package alluxio.master.journal;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
@@ -54,7 +54,7 @@ public final class JournalUtils {
    * @return the journal location
    */
   public static URI getJournalLocation() {
-    String journalDirectory = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String journalDirectory = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
     }
@@ -181,11 +181,11 @@ public final class JournalUtils {
     if (t != null) {
       message += "\n" + Throwables.getStackTraceAsString(t);
     }
-    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       throw new RuntimeException(message);
     }
     logger.error(message);
-    if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+    if (!Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
       System.exit(-1);
       throw new RuntimeException(t);
     }

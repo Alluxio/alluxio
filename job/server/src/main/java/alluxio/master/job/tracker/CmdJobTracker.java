@@ -44,7 +44,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class CmdJobTracker {
   private static final Logger LOG = LoggerFactory.getLogger(CmdJobTracker.class);
-  private final Map<Long, CmdInfo> mInfoMap;
+  private final Map<Long, CmdInfo> mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
+      Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
   private final DistLoadCliRunner mDistLoadCliRunner;
   private final MigrateCliRunner mMigrateCliRunner;
   private final PersistRunner mPersistRunner;
@@ -58,13 +59,10 @@ public class CmdJobTracker {
    */
   public CmdJobTracker(FileSystemContext fsContext,
                    JobMaster jobMaster) {
-
     mFsContext = fsContext;
     mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
     mPersistRunner = new PersistRunner(mFsContext, jobMaster);
-    mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
-            Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
   }
 
   /**
@@ -82,8 +80,6 @@ public class CmdJobTracker {
     mDistLoadCliRunner = distLoadCliRunner;
     mMigrateCliRunner = migrateCliRunner;
     mPersistRunner = persistRunner;
-    mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
-            Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
   }
 
   /**
@@ -98,7 +94,7 @@ public class CmdJobTracker {
 
   private void runDistributedCommand(CmdConfig cmdConfig, long jobControlId)
           throws JobDoesNotExistException, IOException {
-    CmdInfo cmdInfo = null;
+    CmdInfo cmdInfo;
     switch (cmdConfig.getOperationType()) {
       case DIST_LOAD:
         LoadCliConfig loadCliConfig = (LoadCliConfig) cmdConfig;
@@ -117,7 +113,7 @@ public class CmdJobTracker {
         MigrateCliConfig migrateCliConfig = (MigrateCliConfig) cmdConfig;
         AlluxioURI srcPath = new AlluxioURI(migrateCliConfig.getSource());
         AlluxioURI dstPath = new AlluxioURI(migrateCliConfig.getDestination());
-        LOG.info("run a dist cp command, cmd config is " + cmdConfig.toString());
+        LOG.info("run a dist cp command, cmd config is " + cmdConfig);
         cmdInfo = mMigrateCliRunner.runDistCp(srcPath, dstPath,
             migrateCliConfig.getOverWrite(), migrateCliConfig.getBatchSize(),
             jobControlId);

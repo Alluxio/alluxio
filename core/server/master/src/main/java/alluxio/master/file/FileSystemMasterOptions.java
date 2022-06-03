@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -28,7 +28,7 @@ public final class FileSystemMasterOptions {
    */
   public static CompleteFilePOptions completeFileDefaults() {
     return CompleteFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemOptions.commonDefaults(ServerConfiguration.global()))
+        .setCommonOptions(FileSystemOptions.commonDefaults(Configuration.global()))
         .setUfsLength(0)
         .build();
   }

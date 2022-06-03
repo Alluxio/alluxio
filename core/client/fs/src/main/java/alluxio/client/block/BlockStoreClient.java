@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,7 +207,7 @@ public final class BlockStoreClient {
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
       List<WorkerNetAddress> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress())
+          locations.stream().map(BlockLocation::getWorkerAddress)
               .collect(toList());
       Collections.shuffle(tieredLocations);
       Optional<Pair<WorkerNetAddress, Boolean>> nearest =
@@ -221,8 +222,7 @@ public final class BlockStoreClient {
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
-      Preconditions.checkNotNull(policy,
-              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      Preconditions.checkNotNull(policy, "The UFS read location policy is not specified");
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
@@ -264,7 +264,7 @@ public final class BlockStoreClient {
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
     if (nonFailed.isEmpty()) {
       return Collections.singleton(workers.stream()
-          .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
+          .min(Comparator.comparingLong(failedWorkers::get)).get());
     }
     return nonFailed;
   }

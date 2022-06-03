@@ -104,11 +104,11 @@ public class LocalCacheManager implements CacheManager {
 
   /**
    * @param conf the Alluxio configuration
+   * @param metaStore the metadata store for local cache
    * @return an instance of {@link LocalCacheManager}
    */
-  public static LocalCacheManager create(AlluxioConfiguration conf)
+  public static LocalCacheManager create(AlluxioConfiguration conf, MetaStore metaStore)
       throws IOException {
-    MetaStore metaStore = MetaStore.create(conf);
     PageStoreOptions options = PageStoreOptions.create(conf);
     PageStore pageStore;
     try {
@@ -420,6 +420,10 @@ public class LocalCacheManager implements CacheManager {
         if (scopeToEvict == null) {
           // Failed to evict page, remove new page from metastore as there will not be enough space
           undoAddPage(pageId);
+        }
+        if (e instanceof PageNotFoundException) {
+          //The victim page got deleted by other thread, likely due to a benign racing. Will retry.
+          return PutResult.BENIGN_RACING;
         }
         LOG.error("Failed to delete page {} from pageStore", pageId, e);
         Metrics.PUT_STORE_DELETE_ERRORS.inc();

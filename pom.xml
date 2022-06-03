@@ -168,6 +168,7 @@
     <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
     <libcephfs.version>0.0.1</libcephfs.version>
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
+    <kerby.version>1.0.1</kerby.version>
   </properties>
 
   <modules>
@@ -176,6 +177,7 @@
     <module>examples</module>
     <module>integration</module>
     <module>logserver</module>
+    <module>microbench</module>
     <module>minicluster</module>
     <module>job</module>
     <module>shaded</module>
@@ -685,6 +687,11 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-slf4j-impl</artifactId>
         <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerby-util</artifactId>
+        <version>${kerby.version}</version>
       </dependency>
       <!-- Test scope -->
       <dependency>

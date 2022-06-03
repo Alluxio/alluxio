@@ -33,9 +33,9 @@ public class MasterBatchTask extends BatchTask {
   private static final int TARGET_THROUGHPUT  = 1_000_000;
 
   @ParametersDelegate
-  private BaseParameters mBaseParameter = new BaseParameters();
+  private final BaseParameters mBaseParameter = new BaseParameters();
   @ParametersDelegate
-  private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
+  private final MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
 
   @Override
   public void run(String[] args) {

@@ -82,6 +82,12 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
               </transformers>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.alluxio:alluxio-microbench</exclude>
+                  <exclude>org.openjdk.jmh:*</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:* </artifact>

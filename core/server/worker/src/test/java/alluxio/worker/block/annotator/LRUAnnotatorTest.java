@@ -12,7 +12,7 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
 
@@ -30,7 +30,7 @@ public class LRUAnnotatorTest extends AbstractBlockAnnotatorTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+    Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
         LRUAnnotator.class.getName());
     init();
   }

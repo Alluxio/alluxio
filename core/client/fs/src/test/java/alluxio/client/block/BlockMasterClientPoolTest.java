@@ -33,7 +33,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(BlockMasterClient.Factory.class)
 public class BlockMasterClientPoolTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Test
   public void create() throws Exception {

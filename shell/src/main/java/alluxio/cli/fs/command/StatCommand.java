@@ -20,7 +20,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -174,7 +173,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
         resp = String.valueOf(status.getLastModificationTimeMs());
         break;
       default:
-        Preconditions.checkArgument(false, "Unknown format specifier %c", formatSpecifier);
+        throw new IllegalArgumentException(
+            String.format("Unknown format specifier %c", formatSpecifier));
     }
     return resp;
   }

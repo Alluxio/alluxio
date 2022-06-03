@@ -51,7 +51,7 @@ public class GCSUnderFileSystemTest {
     mClient = mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults()));
   }
 
   /**

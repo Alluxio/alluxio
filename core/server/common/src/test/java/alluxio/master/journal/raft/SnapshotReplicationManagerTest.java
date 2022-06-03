@@ -15,7 +15,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -72,7 +72,7 @@ public class SnapshotReplicationManagerTest {
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE,
-          "32KB", ServerConfiguration.global());
+          "32KB", Configuration.modifiableGlobal());
 
   private final WaitForOptions mWaitOptions = WaitForOptions.defaults().setTimeoutMs(30_000);
   private SnapshotReplicationManager mLeaderSnapshotManager;

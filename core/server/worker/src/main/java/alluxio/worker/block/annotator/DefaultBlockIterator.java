@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.annotator;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
@@ -43,10 +45,11 @@ public class DefaultBlockIterator implements BlockIterator {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockIterator.class);
 
   /** Map of sorted block set collections per directory. */
-  private final Map<BlockStoreLocation, SortedBlockSet<BlockSortedField>> mPerDirOrderedSets;
+  private final Map<BlockStoreLocation, SortedBlockSet<BlockSortedField>> mPerDirOrderedSets
+      = new ConcurrentHashMap<>();
 
   /** Used to update total order for offline sorting schemes. */
-  private final Set<BlockStoreLocation> mUnorderedLocations;
+  private final Set<BlockStoreLocation> mUnorderedLocations = new ConcurrentHashSet<>();
 
   /** Configured block annotator class. */
   private final BlockAnnotator mBlockAnnotator;
@@ -55,7 +58,7 @@ public class DefaultBlockIterator implements BlockIterator {
   private final BlockMetadataManager mMetaManager;
 
   /** Block store delegate listener. */
-  private BlockStoreEventListener mListener;
+  private final BlockStoreEventListener mListener = new Listener();
 
   /**
    * Creates default block iterator instance.
@@ -64,12 +67,8 @@ public class DefaultBlockIterator implements BlockIterator {
    * @param blockAnnotator block annotator
    */
   public DefaultBlockIterator(BlockMetadataManager metaManager, BlockAnnotator blockAnnotator) {
-    mMetaManager = metaManager;
-    mBlockAnnotator = blockAnnotator;
-
-    mPerDirOrderedSets = new ConcurrentHashMap<>();
-    mUnorderedLocations = new ConcurrentHashSet<>();
-    mListener = new Listener();
+    mMetaManager = requireNonNull(metaManager, "metaManager is null");
+    mBlockAnnotator = requireNonNull(blockAnnotator, "blockAnnotator is null");
 
     initialize();
   }
@@ -382,17 +381,17 @@ public class DefaultBlockIterator implements BlockIterator {
    */
   class Listener extends AbstractBlockStoreEventListener {
     @Override
-    public void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location) {
+    public void onAccessBlock(long blockId, BlockStoreLocation location) {
       blockUpdated(blockId, location);
     }
 
     @Override
-    public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {
+    public void onCommitBlock(long blockId, BlockStoreLocation location) {
       blockUpdated(blockId, location);
     }
 
     @Override
-    public void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location) {
+    public void onRemoveBlock(long blockId, BlockStoreLocation location) {
       blockRemoved(blockId, location);
     }
 
@@ -402,13 +401,13 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     @Override
-    public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+    public void onMoveBlockByClient(long blockId, BlockStoreLocation oldLocation,
         BlockStoreLocation newLocation) {
       blockMoved(blockId, oldLocation, newLocation);
     }
 
     @Override
-    public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+    public void onMoveBlockByWorker(long blockId, BlockStoreLocation oldLocation,
         BlockStoreLocation newLocation) {
       blockMoved(blockId, oldLocation, newLocation);
     }

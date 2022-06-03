@@ -83,7 +83,7 @@ public class AlluxioJnrFuseFileSystemTest {
   private AlluxioJnrFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   public ConfigurationRule mConfiguration =

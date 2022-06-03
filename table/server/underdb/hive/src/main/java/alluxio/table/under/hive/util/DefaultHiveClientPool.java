@@ -15,7 +15,7 @@ import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MAX;
 import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -55,8 +55,8 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
    */
   public DefaultHiveClientPool(String connectionUri) {
     super(Options.defaultOptions()
-        .setMinCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
-        .setMaxCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
+        .setMinCapacity(Configuration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
+        .setMaxCapacity(Configuration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
         .setGcIntervalMs(5L * Constants.MINUTE_MS)
         .setGcExecutor(GC_EXECUTOR));
     mConnectionUri = connectionUri;
