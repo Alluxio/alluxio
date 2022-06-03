@@ -9,51 +9,40 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.cmdmanager.command;
+package alluxio.master.file.loadmanager.load;
 
 import com.google.common.base.Objects;
 
 /**
- * Class for command information.
+ * Class for Load information.
  */
-public class CommandInfo {
-  private long mCommandId; //Command Id.
-  private CmdType mType;
-  private String mPath;
-  private CmdOptions mOptions;
+public class LoadInfo {
+  private final long mLoadId; // Load Id.
+  private final String mPath;
+  private final LoadOptions mOptions;
 
   /**
    * Constructor.
-   * @param id command id
+   * @param id load id
    * @param path file path
-   * @param type command type
    * @param bandwidth bandwidth
    */
-  public CommandInfo(long id, String path, CmdType type, long bandwidth) {
-    mCommandId = id;
+  public LoadInfo(long id, String path, long bandwidth) {
+    mLoadId = id;
     mPath = path;
-    mType = type;
-    mOptions = new CmdOptions(new Bandwidth(bandwidth));
+    mOptions = new LoadOptions(bandwidth);
   }
 
   /**
-   * Get command Id.
+   * Get load Id.
    * @return the id
    */
   public long getId() {
-    return mCommandId;
+    return mLoadId;
   }
 
   /**
-   * Get command type.
-   * @return command type
-   */
-  public CmdType getType() {
-    return mType;
-  }
-
-  /**
-   * Get command file path.
+   * Get load file path.
    * @return file path
    */
   public String getPath() {
@@ -61,41 +50,41 @@ public class CommandInfo {
   }
 
   /**
-   * Get command options.
-   * @return command options
+   * Get load options.
+   * @return load options
    */
-  public CmdOptions getCmdOptions() {
+  public LoadOptions getLoadOptions() {
     return mOptions;
   }
 
   /**
-   * CmdOptions class.
+   * LoadOptions class.
    */
-  public static class CmdOptions {
-    private Bandwidth mBandwidth;
+  public static class LoadOptions {
+    private long mBandwidth;
 
     /**
-     * Create CmdOptions object.
+     * Create LoadOptions object.
      * @param bandwidth bandwidth as param
      */
-    public CmdOptions(Bandwidth bandwidth) {
+    public LoadOptions(Long bandwidth) {
       mBandwidth = bandwidth;
-    }
-
-    /**
-     * Create CmdOptions object.
-     * @param bandwidth bandwidth value as param
-     */
-    public CmdOptions(long bandwidth) {
-      this(new Bandwidth(bandwidth));
     }
 
     /**
      * Get Bandwidth value.
      * @return bandwidth
      */
-    public Bandwidth getBandwidth() {
+    public long getBandwidth() {
       return mBandwidth;
+    }
+
+    /**
+     * Update bandwidth with new value.
+     * @param bandWidth new bandwidth value
+     */
+    public void setBandwidth(long bandWidth) {
+      mBandwidth = bandWidth;
     }
 
     @Override
@@ -106,7 +95,7 @@ public class CommandInfo {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      CmdOptions that = (CmdOptions) o;
+      LoadOptions that = (LoadOptions) o;
       return Objects.equal(mBandwidth, that.mBandwidth);
     }
 

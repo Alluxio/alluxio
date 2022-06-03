@@ -9,15 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.cmdmanager.command;
+package alluxio.master.file.loadmanager;
+
+import alluxio.grpc.LoadResponse;
+import alluxio.master.file.loadmanager.load.BlockBatch;
 
 /**
- * Class for command execution status.
+ * Class for assigned worker info.
  */
-public class ExecutionStatus {
+public class ExecutionWorkerInfo {
   /**
-   * handle completion based on task execution status.
+   * Get worker capacity status, whether under pressure.
+   * @return boolean
    */
-  public void handleCompletion() {
+  public boolean getCapacityStatus()  {
+    return true;
+  }
+
+  /**
+   * Execute a task.
+   * @param blockBatch blockBatch
+   * @return LoadResponse
+   */
+  public LoadResponse execute(BlockBatch blockBatch) {
+    return null;
   }
 }

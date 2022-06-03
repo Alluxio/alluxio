@@ -285,24 +285,18 @@ message UpdateUfsModeEntry {
   optional UfsMode ufsMode = 2 [default = READ_WRITE];
 }
 
-enum CommandType {
-  UNKNOWN = 1;
-  DIST_LOAD = 2;
-}
-
-message CommandOptions {
+message LoadOptions {
   optional int64 bandWidth = 1;
 }
 
-enum CommandState {
-  Created = 1;
-  Finished = 2;
+enum LoadState {
+  CREATED = 1;
+  FINISHED = 2;
 }
 
-message CommandEntry {
-  optional int64 commandId = 1;
+message LoadDirectory {
+  optional int64 loadId = 1;
   optional string srcFilePath = 2;
-  optional CommandType type = 3;
-  optional CommandOptions options = 4;
-  optional CommandState state = 5;
+  optional LoadOptions options = 3;
+  optional LoadState state = 4;
 }

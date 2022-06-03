@@ -9,43 +9,32 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.cmdmanager.command;
+package alluxio.master.file.loadmanager.load;
 
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
- * Task in terms of block ids.
+ * Batch of blocks.
  */
-public class Task {
+public class BlockBatch {
   private final List<Long> mBlockIds;
-  private final long mTaskId;
-
-  private ExecutionStatus mExecutionStatus;
+  private final long mBatchId;
 
   /**
    * Constructor.
    * @param blockIds list of block ids
-   * @param taskId task id
+   * @param batchId batchId
    */
-  public Task(List<Long> blockIds, long taskId) {
+  public BlockBatch(List<Long> blockIds, long batchId) {
     mBlockIds = blockIds;
-    mTaskId = taskId;
+    mBatchId = batchId;
   }
 
   /**
-   * Set ExecutionStatus.
-   * @param status ExecutionStatus
+   * Get batchId.
+   * @return batchId
    */
-  public void setExecutionStatus(ExecutionStatus status) {
-    mExecutionStatus = status;
-  }
-
-  /**
-   * Get task id.
-   * @return task id
-   */
-  public long getTaskId() {
-    return mTaskId;
+  public long getBatchId() {
+    return mBatchId;
   }
 }

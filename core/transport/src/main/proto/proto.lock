@@ -8169,6 +8169,19 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "LoadState",
+            "enum_fields": [
+              {
+                "name": "CREATED",
+                "integer": 1
+              },
+              {
+                "name": "FINISHED",
+                "integer": 2
+              }
+            ]
           }
         ],
         "messages": [
@@ -9080,6 +9093,41 @@
                 ]
               }
             ]
+          },
+          {
+            "name": "LoadOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "bandWidth",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "LoadDirectory",
+            "fields": [
+              {
+                "id": 1,
+                "name": "loadId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "srcFilePath",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "options",
+                "type": "LoadOptions"
+              },
+              {
+                "id": 4,
+                "name": "state",
+                "type": "LoadState"
+              }
+            ]
           }
         ],
         "imports": [
@@ -9306,6 +9354,11 @@
                 "id": 37,
                 "name": "update_inode_file",
                 "type": "UpdateInodeFileEntry"
+              },
+              {
+                "id": 53,
+                "name": "load_directory",
+                "type": "LoadDirectory"
               },
               {
                 "id": 39,
