@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
@@ -542,7 +541,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
+        "Invalid value of %s: %s",
         PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
 
@@ -554,7 +553,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkZkConfiguration() {
     checkState(
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
-        PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
+        "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true",
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
 
