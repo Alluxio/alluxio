@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 /**
@@ -64,14 +65,13 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     // Set this prior to sending the create request to FSM.
     private static WorkerNetAddress sWorkerAddress;
 
-    public FindFirstBlockLocationPolicy(AlluxioConfiguration conf) {
-    }
+    public FindFirstBlockLocationPolicy(AlluxioConfiguration ignored) {}
 
     @Override
-    public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
       return StreamSupport.stream(options.getBlockWorkerInfos().spliterator(), false)
-          .filter(x -> x.getNetAddress().equals(sWorkerAddress)).findFirst().get()
-          .getNetAddress();
+          .filter(x -> x.getNetAddress().equals(sWorkerAddress)).findFirst()
+          .map(BlockWorkerInfo::getNetAddress);
     }
   }
 
@@ -136,7 +136,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void readOneRecoverFromLostWorker() throws Exception {
-    int offset = 1 * Constants.MB;
+    int offset = Constants.MB;
     int length = 5 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
@@ -162,7 +162,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
       PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void positionReadRecoverFromLostWorker() throws Exception {
-    int offset = 1 * Constants.MB;
+    int offset = Constants.MB;
     int length = 7 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
@@ -207,7 +207,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress dest = workers.stream()
           .filter(candidate -> !candidate.getNetAddress().equals(src))
           .findFirst()
-          .get()
+          .orElseThrow(() -> new IllegalStateException("Expected worker"))
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
           blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext.getClientContext())
