@@ -20,8 +20,8 @@ import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.heap.HeapBlockStore;
 import alluxio.master.metastore.rocks.RocksBlockStore;
 import alluxio.proto.meta.Block;
@@ -82,7 +82,7 @@ public class BlockStoreTest {
       {
         put(PropertyKey.ROCKS_BLOCK_CONF_FILE, sDir + CONF_NAME);
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       mBlockStore = mBlockStoreSupplier.get();
       testPutGet();
     }
@@ -102,14 +102,14 @@ public class BlockStoreTest {
       {
         put(PropertyKey.ROCKS_BLOCK_CONF_FILE, path);
       }
-    }, ServerConfiguration.global()).toResource()) {
+    }, Configuration.modifiableGlobal()).toResource()) {
       RuntimeException exception = assertThrows(RuntimeException.class, this::before);
       assertEquals(RocksDBException.class, exception.getCause().getClass());
     }
   }
 
   @Test
-  public void testPutGet() throws Exception {
+  public void testPutGet() {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
       mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
@@ -123,7 +123,7 @@ public class BlockStoreTest {
   }
 
   @Test
-  public void testIterator() throws Exception {
+  public void testIterator() {
     final int blockCount = 3;
     for (int i = 0; i < blockCount; i++) {
       mBlockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
@@ -142,7 +142,7 @@ public class BlockStoreTest {
   }
 
   @Test
-  public void blockLocations() throws Exception {
+  public void blockLocations() {
     final int blockCount = 5;
     final int workerIdStart = 100000;
     // create blocks and locations
@@ -162,7 +162,7 @@ public class BlockStoreTest {
   }
 
   @Test
-  public void blockSize() throws Exception {
+  public void blockSize() {
     final int blockCount = 5;
     final int workerIdStart = 100000;
     // create blocks and locations

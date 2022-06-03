@@ -12,8 +12,8 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
@@ -249,27 +249,27 @@ public final class RocksStore implements Closeable {
     // set using configuration files.
     BlockBasedTableConfig blockConfig = new BlockBasedTableConfig();
     boolean shoudSetConfig = false;
-    if (ServerConfiguration.isSet(cacheSize)) {
+    if (Configuration.isSet(cacheSize)) {
       shoudSetConfig = true;
       // Set the inodes column options
-      Cache inodeCache = new LRUCache(ServerConfiguration.getInt(cacheSize));
+      Cache inodeCache = new LRUCache(Configuration.getInt(cacheSize));
       toClose.add(inodeCache);
       blockConfig.setBlockCache(inodeCache);
     }
-    if (ServerConfiguration.getBoolean(bloomFilter)) {
+    if (Configuration.getBoolean(bloomFilter)) {
       shoudSetConfig = true;
       Filter filter = new BloomFilter();
       toClose.add(filter);
       blockConfig.setFilterPolicy(filter);
     }
-    if (ServerConfiguration.isSet(indexType)) {
+    if (Configuration.isSet(indexType)) {
       shoudSetConfig = true;
-      blockConfig.setIndexType(toRocksIndexType(ServerConfiguration.getEnum(
+      blockConfig.setIndexType(toRocksIndexType(Configuration.getEnum(
           indexType, alluxio.master.metastore.rocks.IndexType.class)));
     }
-    if (ServerConfiguration.isSet(blockIndexType)) {
+    if (Configuration.isSet(blockIndexType)) {
       shoudSetConfig = true;
-      blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(ServerConfiguration.getEnum(
+      blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(Configuration.getEnum(
           blockIndexType, alluxio.master.metastore.rocks.DataBlockIndexType.class)));
     }
     if (shoudSetConfig) {
