@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.conf.AlluxioConfiguration;
 
 import com.google.common.collect.Streams;
 import org.rocksdb.RocksIterator;
@@ -32,7 +33,8 @@ public class RocksPageStoreDir extends QuotaPageStoreDir {
    * @param pageStoreOptions
    * @param pageStore
    */
-  public RocksPageStoreDir(PageStoreOptions pageStoreOptions,
+  public RocksPageStoreDir(AlluxioConfiguration conf,
+                           PageStoreOptions pageStoreOptions,
                            PageStore pageStore) {
     super(conf, pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize());
     checkState(pageStore instanceof RocksPageStore);

@@ -98,10 +98,17 @@ public interface PageStoreDir {
   long getCachedBytes();
 
   /**
-   * @param fileId
-   * @return if the fileId added
+   * @param pageInfo
+   * @return if the page added successfully
    */
-  boolean addFileToDir(String fileId);
+  boolean putPageToDir(PageInfo pageInfo);
+
+  /**
+   * @param fileId
+   * @return if the fileId added successfully
+   */
+  boolean addTempFileToDir(String fileId);
+
 
   /**
    * @param bytes
@@ -113,7 +120,7 @@ public interface PageStoreDir {
    * @param bytes
    * @return the bytes used after release
    */
-  long releaseSpace(int bytes);
+  long releaseSpace(PageInfo bytes);
 
   /**
    * @param fileId

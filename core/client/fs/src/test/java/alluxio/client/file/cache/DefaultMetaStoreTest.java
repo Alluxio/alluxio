@@ -26,6 +26,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Optional;
+
 /**
  * Tests for the {@link DefaultMetaStore} class.
  */
@@ -102,9 +104,9 @@ public class DefaultMetaStoreTest {
   @Test
   public void evict() throws Exception {
     mMetaStore.addPage(mPage, mPageInfo);
-    Assert.assertEquals(mPageInfo, mMetaStore.evict());
+    Assert.assertEquals(mPageInfo, mMetaStore.evict(Optional.empty()));
     mMetaStore.removePage(mPageInfo.getPageId());
-    Assert.assertNull(mMetaStore.evict());
+    Assert.assertNull(mMetaStore.evict(Optional.empty()));
     Assert.assertEquals(0, mCachedPageGauge.getValue());
   }
 }

@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.conf.AlluxioConfiguration;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -31,7 +32,8 @@ public class MemoryPageStoreDir extends QuotaPageStoreDir {
    * @param pageStoreOptions page store options
    * @param pageStore the PageStore instance
    */
-  public MemoryPageStoreDir(PageStoreOptions pageStoreOptions,
+  public MemoryPageStoreDir(AlluxioConfiguration conf,
+                            PageStoreOptions pageStoreOptions,
                             MemoryPageStore pageStore) {
     super(conf, pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize());
     mPageStore = pageStore;

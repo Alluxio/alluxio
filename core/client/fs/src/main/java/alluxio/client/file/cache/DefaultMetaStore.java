@@ -38,27 +38,11 @@ public class DefaultMetaStore implements MetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaStore.class);
   /** A map from PageId to page info. */
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
-  /** The number of logical bytes used. */
-  private final AtomicLong mBytes = new AtomicLong(0);
-  /** The evictor. */
-  private final CacheEvictor mEvictor;
 
   /**
-   * @param conf configuration
+   * Constructor of DefaultMetaStore.
    */
-  public DefaultMetaStore(AlluxioConfiguration conf) {
-    this(CacheEvictor.create(conf));
-    //metrics for the num of pages stored in the cache
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
-        mPageMap::size);
-  }
-
-  /**
-   * @param evictor cache evictor
-   */
-  @VisibleForTesting
-  public DefaultMetaStore(CacheEvictor evictor) {
-    mEvictor = evictor;
+  public DefaultMetaStore() {
   }
 
   @Override
@@ -70,9 +54,8 @@ public class DefaultMetaStore implements MetaStore {
   public void addPage(PageId pageId, PageInfo pageInfo) {
     Preconditions.checkArgument(pageId.equals(pageInfo.getPageId()), "page id mismatch");
     mPageMap.put(pageId, pageInfo);
-    mBytes.addAndGet(pageInfo.getPageSize());
     Metrics.SPACE_USED.inc(pageInfo.getPageSize());
-    mEvictor.updateOnPut(pageId);
+    pageInfo.getLocalCacheDir().putPageToDir(pageInfo);
   }
 
   @Override
@@ -80,8 +63,9 @@ public class DefaultMetaStore implements MetaStore {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
-    mEvictor.updateOnGet(pageId);
-    return mPageMap.get(pageId);
+    PageInfo pageInfo = mPageMap.get(pageId);
+    pageInfo.getLocalCacheDir().getEvictor().updateOnGet(pageId);
+    return pageInfo;
   }
 
   @Override
@@ -90,15 +74,9 @@ public class DefaultMetaStore implements MetaStore {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
     PageInfo pageInfo = mPageMap.remove(pageId);
-    mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    mEvictor.updateOnDelete(pageId);
+    pageInfo.getLocalCacheDir().releaseSpace(pageInfo);
     return pageInfo;
-  }
-
-  @Override
-  public long bytes() {
-    return mBytes.get();
   }
 
   @Override
@@ -108,10 +86,8 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   public void reset() {
-    mBytes.set(0);
     Metrics.SPACE_USED.dec(Metrics.SPACE_USED.getCount());
     mPageMap.clear();
-    mEvictor.reset();
   }
 
   @Override

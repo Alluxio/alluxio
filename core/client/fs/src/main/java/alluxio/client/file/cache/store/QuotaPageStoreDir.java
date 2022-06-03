@@ -11,9 +11,9 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.proto.client.Cache;
 import alluxio.resource.LockResource;
 
 import java.nio.file.Path;
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.GuardedBy;
 
 abstract class QuotaPageStoreDir implements PageStoreDir {
 
-  private final ReentrantReadWriteLock mBlockPageMapLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock mFileIdSetLock = new ReentrantReadWriteLock();
   @GuardedBy("mFileIdSetLock")
   private final Set<String> mFileIdSet = new HashSet<>();
 
@@ -57,8 +57,18 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public boolean addFileToDir(String fileId) {
-    try (LockResource lock = new LockResource(mBlockPageMapLock.writeLock())) {
+  public boolean putPageToDir(PageInfo pageInfo) {
+    mEvictor.updateOnPut(pageInfo.getPageId());
+    try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
+      mFileIdSet.add(pageInfo.getPageId().getFileId());
+    }
+    mBytesUsed.addAndGet(pageInfo.getPageSize());
+    return true;
+  }
+
+  @Override
+  public boolean addTempFileToDir(String fileId) {
+    try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       return mFileIdSet.add(fileId);
     }
   }
@@ -76,13 +86,13 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long releaseSpace(int bytes) {
-    return mBytesUsed.addAndGet(bytes);
+  public long releaseSpace(PageInfo pageInfo) {
+    return mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
 
   @Override
   public boolean hasFile(String fileId) {
-    try (LockResource lock = new LockResource(mBlockPageMapLock.readLock())) {
+    try (LockResource lock = new LockResource(mFileIdSetLock.readLock())) {
       return mFileIdSet.contains(fileId);
     }
   }

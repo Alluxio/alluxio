@@ -17,6 +17,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -102,7 +103,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
   @Nullable
   public PageInfo evict(CacheScope cacheScope) {
     if (cacheScope == CacheScope.GLOBAL) {
-      return evict();
+      return evict(Optional.empty());
     }
     CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
     return evictInternal(evictor);

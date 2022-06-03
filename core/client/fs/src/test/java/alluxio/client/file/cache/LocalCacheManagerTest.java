@@ -99,7 +99,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "60s");
     mPageStoreOptions = (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mPageStoreDir = new LocalPageStoreDir(mPageStoreOptions, mPageStore);
+    mPageStoreDir = new LocalPageStoreDir(mConf, mPageStoreOptions, mPageStore);
     mEvictor = new FIFOCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mEvictor);
     mCacheManager = createLocalCacheManager();
@@ -572,7 +572,7 @@ public final class LocalCacheManagerTest {
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
     mPageStore.put(PAGE_ID1, PAGE1);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore,
-        new LocalPageStoreDir(mPageStoreOptions, mPageStore));
+        new LocalPageStoreDir(mConf, mPageStoreOptions, mPageStore));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
@@ -587,7 +587,7 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     SlowGetPageStoreDir slowGetPageStoreDir = new SlowGetPageStoreDir(
         mPageStoreOptions,
-        new LocalPageStoreDir(mPageStoreOptions, new LocalPageStore(mPageStoreOptions)));
+        new LocalPageStoreDir(mConf, mPageStoreOptions, new LocalPageStore(mPageStoreOptions)));
     slowGetPageStoreDir.getPageStore().put(PAGE_ID1, PAGE1);
     slowGetPageStoreDir.getPageStore().put(pageUuid, PAGE2);
     mCacheManager = LocalCacheManager.create(
@@ -745,7 +745,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     HangingPageStore pageStore = new HangingPageStore(pageStoreOptions);
-    PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions, pageStore);
+    PageStoreDir dir = new LocalPageStoreDir(mConf, (LocalPageStoreOptions) pageStoreOptions, pageStore);
 
     pageStore.setPutHanging(true);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
@@ -774,7 +774,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     HangingPageStore pageStore = new HangingPageStore(pageStoreOptions);
-    PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions, pageStore);
+    PageStoreDir dir = new LocalPageStoreDir(mConf, (LocalPageStoreOptions) pageStoreOptions, pageStore);
     pageStore.setPutHanging(true);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
@@ -791,7 +791,7 @@ public final class LocalCacheManagerTest {
   public void recoverCacheFromFailedPut() throws Exception {
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     FaultyPageStore pageStore = new FaultyPageStore();
-    PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions, pageStore);
+    PageStoreDir dir = new LocalPageStoreDir(mConf, (LocalPageStoreOptions) pageStoreOptions, pageStore);
 
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
     pageStore.setPutFaulty(true);
@@ -813,7 +813,7 @@ public final class LocalCacheManagerTest {
   public void failedPageStoreDeleteOnEviction() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(PAGE_SIZE_BYTES));
     FaultyPageStore pageStore = new FaultyPageStore();
-    LocalPageStoreDir dir = new LocalPageStoreDir(mPageStoreOptions, pageStore);
+    LocalPageStoreDir dir = new LocalPageStoreDir(mConf, mPageStoreOptions, pageStore);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
     // first put should be ok
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
@@ -842,7 +842,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(PAGE_SIZE_BYTES));
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     HangingPageStore pageStore = new HangingPageStore(pageStoreOptions);
-    PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions,
+    PageStoreDir dir = new LocalPageStoreDir(mConf, (LocalPageStoreOptions) pageStoreOptions,
         new TimeBoundPageStore(pageStore, pageStoreOptions));
     LocalCacheManager cacheManager =
         createLocalCacheManager(mConf, mMetaStore, dir);
@@ -857,7 +857,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     HangingPageStore pageStore = new HangingPageStore(pageStoreOptions);
-    PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions,
+    PageStoreDir dir = new LocalPageStoreDir(mConf, (LocalPageStoreOptions) pageStoreOptions,
         new TimeBoundPageStore(pageStore, pageStoreOptions));
     LocalCacheManager cacheManager =
         createLocalCacheManager(mConf, mMetaStore, dir);
@@ -872,7 +872,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     HangingPageStore pageStore = new HangingPageStore(pageStoreOptions);
-    PageStoreDir dir = new LocalPageStoreDir((LocalPageStoreOptions) pageStoreOptions,
+    PageStoreDir dir = new LocalPageStoreDir(mConf, (LocalPageStoreOptions) pageStoreOptions,
         new TimeBoundPageStore(pageStore, pageStoreOptions));
     LocalCacheManager cacheManager =
         createLocalCacheManager(mConf, mMetaStore, dir);
@@ -903,7 +903,7 @@ public final class LocalCacheManagerTest {
       }
     };
     PageStoreDir dir =
-        new LocalPageStoreDir((LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0),
+        new LocalPageStoreDir(mConf, (LocalPageStoreOptions) PageStoreOptions.create(mConf).get(0),
             pageStore);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, dir);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
@@ -1003,7 +1003,7 @@ public final class LocalCacheManagerTest {
 
     public SlowGetPageStoreDir(LocalPageStoreOptions pageStoreOptions,
                                PageStoreDir pageStoreDir) {
-      super(pageStoreOptions, pageStoreDir.getPageStore());
+      super(mConf, pageStoreOptions, pageStoreDir.getPageStore());
       mUnderPageStoreDir = pageStoreDir;
     }
 
