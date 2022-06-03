@@ -61,7 +61,7 @@ public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
   private InStreamOptions mOptions;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   @Before

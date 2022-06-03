@@ -64,7 +64,7 @@ public final class BlockLocationUtilsTest {
         any(AlluxioConfiguration.class))).thenReturn(true);
 
     // choose worker with domain socket accessible ignoring rack
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
     conf.set(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID, true);
     List<WorkerNetAddress> addresses = workers.stream()
         .map(worker -> worker.getNetAddress())

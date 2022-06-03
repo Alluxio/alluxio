@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
@@ -52,7 +52,7 @@ public final class UfsInputStreamCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamCache.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final boolean CACHE_ENABLED =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
+      Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
 
   /**
    * A map from the ufs file id to the metadata of the input streams. Synchronization on this map
@@ -61,17 +61,16 @@ public final class UfsInputStreamCache {
   private final Map<Long, StreamIdSet> mFileIdToStreamIds;
   /** Cache of the input streams, from the input stream id to the input stream. */
   private final Cache<Long, CachedSeekableInputStream> mStreamCache;
-  /** Thread pool for asynchronously removing the expired input streams. */
-  private final ExecutorService mRemovalThreadPool;
 
   /**
    * Constructs a new UFS input stream cache.
    */
   public UfsInputStreamCache() {
     mFileIdToStreamIds = new ConcurrentHashMap<>();
-    mRemovalThreadPool = ExecutorServiceFactories
-        .fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
-        .create();
+    /* Thread pool for asynchronously removing the expired input streams. */
+    ExecutorService removalThreadPool =
+        ExecutorServiceFactories.fixedThreadPool(Constants.UFS_INPUT_STREAM_CACHE_EXPIRATION, 2)
+            .create();
 
     // A listener to the input stream removal.
     RemovalListener<Long, CachedSeekableInputStream> listener =
@@ -117,11 +116,11 @@ public final class UfsInputStreamCache {
           }
         };
     mStreamCache = CacheBuilder.newBuilder()
-        .maximumSize(ServerConfiguration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
+        .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
         .expireAfterAccess(
-            ServerConfiguration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
+            Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
             TimeUnit.MILLISECONDS)
-        .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
+        .removalListener(RemovalListeners.asynchronous(listener, removalThreadPool)).build();
   }
 
   /**

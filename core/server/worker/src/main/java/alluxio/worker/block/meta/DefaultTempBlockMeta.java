@@ -12,7 +12,7 @@
 package alluxio.worker.block.meta;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -25,9 +25,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class DefaultTempBlockMeta implements TempBlockMeta {
-  private static final String TMP_DIR = ServerConfiguration.getString(
+  private static final String TMP_DIR = Configuration.getString(
       PropertyKey.WORKER_DATA_TMP_FOLDER);
-  private static final int SUB_DIR_MAX = ServerConfiguration.getInt(
+  private static final int SUB_DIR_MAX = Configuration.getInt(
       PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
   private final long mBlockId;
   private final StorageDir mDir;

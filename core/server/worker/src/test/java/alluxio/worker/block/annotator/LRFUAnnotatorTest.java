@@ -12,7 +12,7 @@
 package alluxio.worker.block.annotator;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
 
@@ -30,10 +30,10 @@ public class LRFUAnnotatorTest extends AbstractBlockAnnotatorTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+    Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
         LRFUAnnotator.class.getName());
     // To make it behave close to an absolute LFU.
-    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR, 0);
+    Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR, 0);
     init();
   }
 

@@ -105,8 +105,6 @@ public final class ClientIOParameters extends FileSystemParameters {
   public Map<String, String> mConf = new HashMap<>();
 
   /**
-   * @return ClientIOOperation of this bench
-   *
    * Converts from String to ClientIOOperation instance.
    */
   public static class ClientIOOperationConverter implements IStringConverter<ClientIOOperation> {

@@ -29,11 +29,11 @@ import org.junit.Test;
  */
 public final class FileSystemContextTest {
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
   }
 
   /**

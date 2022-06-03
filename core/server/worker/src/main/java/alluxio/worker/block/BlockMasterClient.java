@@ -87,7 +87,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
     mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }

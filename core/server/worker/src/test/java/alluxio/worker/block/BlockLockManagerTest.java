@@ -12,14 +12,13 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 
@@ -35,6 +34,7 @@ import org.junit.rules.TemporaryFolder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +66,7 @@ public final class BlockLockManagerTest {
 
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -83,10 +83,10 @@ public final class BlockLockManagerTest {
   @Test
   public void tryLockBlock() {
     // Read-lock on can both get through
-    long lockId1 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ,
-        1, TimeUnit.MINUTES);
-    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ,
-        1, TimeUnit.MINUTES);
+    OptionalLong lockId1 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID,
+        BlockLockType.READ, 1, TimeUnit.MINUTES);
+    OptionalLong lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID,
+        BlockLockType.READ, 1, TimeUnit.MINUTES);
     assertNotEquals(lockId1, lockId2);
   }
 
@@ -95,14 +95,14 @@ public final class BlockLockManagerTest {
     // Hold a read-lock on test block
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     // Read-lock on the same block should get through
-    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.READ,
-        1, TimeUnit.SECONDS);
-    assertNotEquals(BlockWorker.INVALID_LOCK_ID, lockId2);
-    mLockManager.unlockBlock(lockId2);
+    OptionalLong lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID,
+        BlockLockType.READ, 1, TimeUnit.SECONDS);
+    assertNotEquals(OptionalLong.empty(), lockId2);
+    mLockManager.unlockBlock(lockId2.getAsLong());
     // Write-lock should fail
-    long lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.WRITE,
-        1, TimeUnit.SECONDS);
-    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId3);
+    OptionalLong lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID,
+        BlockLockType.WRITE, 1, TimeUnit.SECONDS);
+    assertEquals(OptionalLong.empty(), lockId3);
     mLockManager.unlockBlock(lockId1);
   }
 
@@ -111,25 +111,14 @@ public final class BlockLockManagerTest {
     // Hold a write-lock on test block
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.WRITE);
     // Read-lock should fail
-    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.READ,
-        1, TimeUnit.SECONDS);
-    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId2);
+    OptionalLong lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID,
+        BlockLockType.READ, 1, TimeUnit.SECONDS);
+    assertEquals(OptionalLong.empty(), lockId2);
     // Write-lock should fail
-    long lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.WRITE,
-        1, TimeUnit.SECONDS);
-    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId3);
+    OptionalLong lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID,
+        BlockLockType.WRITE, 1, TimeUnit.SECONDS);
+    assertEquals(OptionalLong.empty(), lockId3);
     mLockManager.unlockBlock(lockId1);
-  }
-
-  /**
-   * Tests that an exception is thrown when trying to unlock a block via
-   * {@link BlockLockManager#unlockBlockNoException(long)} which is not locked.
-   */
-  @Test
-  public void unlockNonExistingLock() throws Exception {
-    long badLockId = 1;
-    // Unlock a non-existing lockId, expect to see IOException
-    assertFalse(mLockManager.unlockBlockNoException(badLockId));
   }
 
   /**
@@ -139,7 +128,7 @@ public final class BlockLockManagerTest {
   @Test
   public void validateLockIdWithNoRecord() throws Exception {
     long badLockId = 1;
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Validate a non-existing lockId, expect to see IOException
     mLockManager.validateLock(TEST_SESSION_ID, TEST_BLOCK_ID, badLockId);
@@ -185,7 +174,7 @@ public final class BlockLockManagerTest {
     long sessionId2 = TEST_SESSION_ID + 1;
     long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(BlockDoesNotExistRuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupSession(sessionId2);
     // Expect validating sessionId1 to get through
@@ -256,12 +245,11 @@ public final class BlockLockManagerTest {
    * Tests that block locks are returned to the pool when they are no longer in use.
    */
   @Test(timeout = 10000)
-  public void reuseLock() throws Exception {
+  public void reuseLock() {
     setMaxLocks(1);
     BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
-    assertTrue(
-        manager.unlockBlockNoException(lockId1)); // Without this line the next lock would hang.
+    manager.unlockBlock(lockId1); // Without this line the next lock would hang.
     manager.lockBlock(TEST_SESSION_ID, 2, BlockLockType.WRITE);
   }
 
@@ -274,7 +262,7 @@ public final class BlockLockManagerTest {
     final BlockLockManager manager = new BlockLockManager();
     long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
     manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
-    assertTrue(manager.unlockBlockNoException(lockId1));
+    manager.unlockBlock(lockId1);
     lockExpectingHang(manager, 2);
   }
 
@@ -336,7 +324,7 @@ public final class BlockLockManagerTest {
             // Lock and unlock the block lockUnlocksPerThread times.
             for (int j = 0; j < lockUnlocksPerThread; j++) {
               long lockId = manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
-              assertTrue(manager.unlockBlockNoException(lockId));
+              manager.unlockBlock(lockId);
             }
             // Lock the block one last time.
             manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
@@ -364,7 +352,7 @@ public final class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS,
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS,
         maxLocks);
   }
 }

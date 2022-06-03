@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -197,7 +197,7 @@ public class InodeSyncStream {
 
   /** The maximum number of concurrent paths that can be syncing at any moment. */
   private final int mConcurrencyLevel =
-      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
+      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
   private final FileSystemMasterAuditContext mAuditContext;
   private final Function<LockedInodePath, Inode> mAuditContextSrcInodeFunc;
@@ -236,7 +236,7 @@ public class InodeSyncStream {
     mPendingPaths = new ConcurrentLinkedQueue<>();
     mDescendantType = descendantType;
     mRpcContext = rpcContext;
-    mMetadataSyncService = fsMaster.mSyncMetadataExecutor;
+    mMetadataSyncService = fsMaster.mSyncMetadataExecutorIns;
     mForceSync = forceSync;
     mRootScheme = rootPath;
     mSyncOptions = options;
@@ -262,10 +262,10 @@ public class InodeSyncStream {
       }
     } else {
       long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-          ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+          Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
       validCacheTime = System.currentTimeMillis() - syncInterval;
     }
-    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor,
+    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutorIns,
         fsMaster.getAbsentPathCache(), validCacheTime);
     // Maintain a global counter of active sync streams
     DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_COUNT.inc();
@@ -432,7 +432,7 @@ public class InodeSyncStream {
     }
 
     boolean success = syncPathCount > 0;
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_REPORT_FAILURE)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_REPORT_FAILURE)) {
       // There should not be any failed or outstanding jobs
       success = (failedSyncPathCount == 0) && mSyncPathJobs.isEmpty() && mPendingPaths.isEmpty();
     }
@@ -536,7 +536,7 @@ public class InodeSyncStream {
   }
 
   private Object getFromUfs(Callable<Object> task) throws InterruptedException {
-    final Future<Object> future = mFsMaster.mSyncPrefetchExecutor.submit(task);
+    final Future<Object> future = mFsMaster.mSyncPrefetchExecutorIns.submit(task);
     DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_OPS_COUNT.inc();
     while (true) {
       try {

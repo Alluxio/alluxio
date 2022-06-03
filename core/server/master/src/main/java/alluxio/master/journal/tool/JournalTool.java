@@ -14,7 +14,7 @@ package alluxio.master.journal.tool;
 import alluxio.RuntimeConstants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journal.JournalType;
 
 import org.apache.commons.cli.CommandLine;
@@ -101,7 +101,7 @@ public final class JournalTool {
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
   private static void dumpJournal() throws Throwable {
     JournalType journalType =
-        ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+        Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
 
     AbstractJournalDumper journalDumper;
     switch (journalType) {
@@ -145,7 +145,7 @@ public final class JournalTool {
     if (cmd.hasOption(INPUT_DIR_OPTION_NAME)) {
       sInputDir = new File(cmd.getOptionValue(INPUT_DIR_OPTION_NAME)).getAbsolutePath();
     } else {
-      sInputDir = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
+      sInputDir = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     }
     sOutputDir = new File(cmd.getOptionValue(OUTPUT_DIR_OPTION_NAME,
         "journal_dump-" + System.currentTimeMillis())).getAbsolutePath();

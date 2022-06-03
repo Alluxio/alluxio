@@ -13,7 +13,7 @@ package alluxio.master.backup;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
@@ -103,7 +103,7 @@ public abstract class AbstractBackupRole implements BackupRole {
     initializeCatalystContext();
     // Read properties.
     mCatalystRequestTimeout =
-        ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_TRANSPORT_TIMEOUT);
+        Configuration.getMs(PropertyKey.MASTER_BACKUP_TRANSPORT_TIMEOUT);
     // Initialize backup tracker.
     mBackupTracker = new BackupTracker();
   }
@@ -152,18 +152,18 @@ public abstract class AbstractBackupRole implements BackupRole {
         mUfsManager.getRoot().acquireUfsResource()) {
       // Get backup parent directory.
       String backupParentDir = request.hasTargetDirectory() ? request.getTargetDirectory()
-          : ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
+          : Configuration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY);
       // Get ufs resource for backup.
       UnderFileSystem ufs = ufsResource.get();
       if (request.getOptions().getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
         // TODO(lu) Support getting UFS based on type from UfsManager
         ufs = closer.register(UnderFileSystem.Factory.create("/",
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
+            UnderFileSystemConfiguration.defaults(Configuration.global())));
       }
       // Ensure parent directory for backup.
       if (!ufs.isDirectory(backupParentDir)) {
         if (!ufs.mkdirs(backupParentDir,
-            MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(true))) {
+            MkdirsOptions.defaults(Configuration.global()).setCreateParent(true))) {
           throw new IOException(String.format("Failed to create directory %s", backupParentDir));
         }
       }
@@ -174,7 +174,7 @@ public abstract class AbstractBackupRole implements BackupRole {
           now.toEpochMilli());
       String backupFilePath = PathUtils.concatPath(backupParentDir, backupFileName);
       // Calculate URI for the path.
-      String rootUfs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootUfs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       if (request.getOptions().getLocalFileSystem()) {
         rootUfs = "file:///";
       }

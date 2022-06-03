@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -19,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -47,7 +49,6 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -63,12 +64,17 @@ import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,20 +89,33 @@ import java.util.stream.IntStream;
 /**
  * Unit tests for {@link LocalCacheFileInStream}.
  */
+@RunWith(Parameterized.class)
 public class LocalCacheFileInStreamTest {
-  private static AlluxioConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
-  private static final int PAGE_SIZE =
-      (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+  private static InstancedConfiguration sConf = Configuration.modifiableGlobal();
+
+  @Parameters(name = "{index}: page_size({0}), in_stream_buffer_size({1})")
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        { Constants.MB, 0 }, { Constants.MB, 8 * Constants.KB }
+    });
+  }
+
+  @Parameter(0)
+  public int mPageSize;
+
+  @Parameter(1)
+  public int mBufferSize;
 
   @Before
   public void before() {
     MetricsSystem.clearAllMetrics();
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, mPageSize);
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE, mBufferSize);
   }
 
   @Test
   public void readFullPage() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     int bufferSize = fileSize;
     int pages = 1;
     verifyReadFullFile(fileSize, bufferSize, pages);
@@ -104,7 +123,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readFullPageThroughReadByteBufferMethod() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     int bufferSize = fileSize;
     int pages = 1;
     verifyReadFullFileThroughReadByteBufferMethod(fileSize, bufferSize, pages);
@@ -112,7 +131,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readSmallPage() throws Exception {
-    int fileSize = PAGE_SIZE / 5;
+    int fileSize = mPageSize / 5;
     int bufferSize = fileSize;
     int pages = 1;
     verifyReadFullFile(fileSize, bufferSize, pages);
@@ -120,7 +139,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readSmallPageThroughReadByteBufferMethod() throws Exception {
-    int fileSize = PAGE_SIZE / 5;
+    int fileSize = mPageSize / 5;
     int bufferSize = fileSize;
     int pages = 1;
     verifyReadFullFileThroughReadByteBufferMethod(fileSize, bufferSize, pages);
@@ -154,7 +173,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readPartialPage() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -182,7 +201,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readPartialPageThroughReadByteBufferMethod() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -211,7 +230,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readMultiPage() throws Exception {
     int pages = 2;
-    int fileSize = PAGE_SIZE + 10;
+    int fileSize = mPageSize + 10;
     int bufferSize = fileSize;
     verifyReadFullFile(fileSize, bufferSize, pages);
   }
@@ -219,7 +238,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readMultiPageThroughReadByteBufferMethod() throws Exception {
     int pages = 2;
-    int fileSize = PAGE_SIZE + 10;
+    int fileSize = mPageSize + 10;
     int bufferSize = fileSize;
     verifyReadFullFileThroughReadByteBufferMethod(fileSize, bufferSize, pages);
   }
@@ -227,7 +246,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readMultiPageMixed() throws Exception {
     int pages = 10;
-    int fileSize = PAGE_SIZE * pages;
+    int fileSize = mPageSize * pages;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -235,9 +254,9 @@ public class LocalCacheFileInStreamTest {
     // populate cache
     int pagesCached = 0;
     for (int i = 0; i < pages; i++) {
-      stream.seek(PAGE_SIZE * i);
+      stream.seek(mPageSize * i);
       if (ThreadLocalRandom.current().nextBoolean()) {
-        Assert.assertEquals(testData[(i * PAGE_SIZE)], stream.read());
+        Assert.assertEquals(testData[(i * mPageSize)], stream.read());
         pagesCached++;
       }
     }
@@ -256,7 +275,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readMultiPageMixedThroughReadByteBufferMethod() throws Exception {
     int pages = 10;
-    int fileSize = PAGE_SIZE * pages;
+    int fileSize = mPageSize * pages;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -264,9 +283,9 @@ public class LocalCacheFileInStreamTest {
     // populate cache
     int pagesCached = 0;
     for (int i = 0; i < pages; i++) {
-      stream.seek(PAGE_SIZE * i);
+      stream.seek(mPageSize * i);
       if (ThreadLocalRandom.current().nextBoolean()) {
-        Assert.assertEquals(testData[(i * PAGE_SIZE)], stream.read());
+        Assert.assertEquals(testData[(i * mPageSize)], stream.read());
         pagesCached++;
       }
     }
@@ -285,7 +304,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readOversizedBuffer() throws Exception {
     int pages = 1;
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     int bufferSize = fileSize * 2;
     verifyReadFullFile(fileSize, bufferSize, pages);
   }
@@ -293,7 +312,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readOversizedBufferThroughReadByteBufferMethod() throws Exception {
     int pages = 1;
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     int bufferSize = fileSize * 2;
     verifyReadFullFileThroughReadByteBufferMethod(fileSize, bufferSize, pages);
   }
@@ -301,7 +320,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readSmallPageOversizedBuffer() throws Exception {
     int pages = 1;
-    int fileSize = PAGE_SIZE / 3;
+    int fileSize = mPageSize / 3;
     int bufferSize = fileSize * 2;
     verifyReadFullFile(fileSize, bufferSize, pages);
   }
@@ -309,14 +328,14 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readSmallPageOversizedBufferThroughReadByteBufferMethod() throws Exception {
     int pages = 1;
-    int fileSize = PAGE_SIZE / 3;
+    int fileSize = mPageSize / 3;
     int bufferSize = fileSize * 2;
     verifyReadFullFileThroughReadByteBufferMethod(fileSize, bufferSize, pages);
   }
 
   @Test
   public void positionedReadPartialPage() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -344,7 +363,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void positionReadOversizedBuffer() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -369,7 +388,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readPagesMetrics() throws Exception {
-    int fileSize = PAGE_SIZE * 5;
+    int fileSize = mPageSize * 5;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -397,7 +416,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void externalStoreMultiRead() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     Map<AlluxioURI, byte[]> files = new HashMap<>();
@@ -426,7 +445,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void externalStoreMultiReadThroughReadByteBufferMethod() throws Exception {
-    int fileSize = PAGE_SIZE;
+    int fileSize = mPageSize;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     Map<AlluxioURI, byte[]> files = new HashMap<>();
@@ -470,7 +489,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void cacheMetricCacheHitReadTime() throws Exception {
-    byte[] testData = BufferUtils.getIncreasingByteArray(PAGE_SIZE);
+    byte[] testData = BufferUtils.getIncreasingByteArray(mPageSize);
     AlluxioURI testFileName = new AlluxioURI("/test");
     Map<AlluxioURI, byte[]> files = ImmutableMap.of(testFileName, testData);
     StepTicker timeSource = new StepTicker();

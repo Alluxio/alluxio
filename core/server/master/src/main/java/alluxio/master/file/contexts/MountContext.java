@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MountPOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -46,7 +46,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    * @return the instance of {@link MountContext} with default values for master
    */
   public static MountContext mergeFrom(MountPOptions.Builder optionsBuilder) {
-    MountPOptions masterOptions = FileSystemOptions.mountDefaults(ServerConfiguration.global());
+    MountPOptions masterOptions = FileSystemOptions.mountDefaults(Configuration.global());
     MountPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -56,7 +56,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    * @return the instance of {@link MountContext} with default values for master
    */
   public static MountContext defaults() {
-    return create(FileSystemOptions.mountDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptions.mountDefaults(Configuration.global()).toBuilder());
   }
 
   @Override

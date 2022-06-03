@@ -16,13 +16,12 @@ import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -944,7 +943,7 @@ public class InodeTree implements DelegatingJournaled {
   // Inherit owner and group from ancestor if both are empty
   private static void inheritOwnerAndGroupIfEmpty(MutableInode<?> newInode,
       InodeDirectoryView ancestorInode) {
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
         && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
       // Inherit owner / group if empty
       newInode.setOwner(ancestorInode.getOwner().intern());
@@ -1026,7 +1025,7 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
-    List<String> mediumTypeList = ServerConfiguration.getList(
+    List<String> mediumTypeList = Configuration.getList(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE);
     for (String medium : pinnedMediumTypes) {
       if (!mediumTypeList.contains(medium)) {
@@ -1095,9 +1094,9 @@ public class InodeTree implements DelegatingJournaled {
       Integer replicationMax, Integer replicationMin, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkArgument(replicationMin != null || replicationMax != null,
-        PreconditionMessage.INVALID_REPLICATION_MAX_MIN_VALUE_NULL);
+        "Both min and max replication are null");
     Preconditions.checkArgument(replicationMin == null || replicationMin >= 0,
-        PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+        "Min replication must be a non-negative integer");
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
     Inode inode = inodePath.getInode();
@@ -1109,7 +1108,8 @@ public class InodeTree implements DelegatingJournaled {
 
       Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
           || newMax >= newMin,
-          PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
+          "Cannot set min and max replication to be %s and %s: "
+              + "min replication must be smaller or equal than max replication",
           newMin, newMax);
 
       mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
@@ -1172,7 +1172,7 @@ public class InodeTree implements DelegatingJournaled {
    */
   public boolean isRootId(long fileId) {
     Preconditions.checkNotNull(mState.getRoot(),
-        PreconditionMessage.INODE_TREE_UNINITIALIZED_IS_ROOT_ID);
+        "Cannot call isRootId() before initializeRoot()");
     return fileId == mState.getRoot().getId();
   }
 
@@ -1288,7 +1288,7 @@ public class InodeTree implements DelegatingJournaled {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       MkdirsOptions mkdirsOptions =
-          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+          MkdirsOptions.defaults(Configuration.global()).setCreateParent(false)
           .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
       if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
         // Directory might already exist. Try loading the status from ufs.

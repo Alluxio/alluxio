@@ -22,8 +22,8 @@ with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
 
-Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
-work with Apache Hadoop HDFS of version `3.3.0`. To work with Hadoop distributions of other
+Note that, when building Alluxio from source code, by default Alluxio server binaries are built to
+work with Apache Hadoop HDFS of version `3.3.1`. To work with Hadoop distributions of other
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 

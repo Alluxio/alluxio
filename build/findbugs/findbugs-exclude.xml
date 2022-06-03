@@ -49,4 +49,9 @@
     </Or>
   </Match>
 
+  <!-- Skip JMH microbench generated source files -->
+  <Match>
+    <Package name="~.*jmh_generated.*"/>
+  </Match>
+
 </FindBugsFilter>

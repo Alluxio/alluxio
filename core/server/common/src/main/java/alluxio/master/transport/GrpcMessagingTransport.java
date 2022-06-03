@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -141,25 +140,29 @@ public class GrpcMessagingTransport {
       mClosed = true;
 
       // Close created clients.
-      List<CompletableFuture<Void>> clientCloseFutures = new ArrayList<>(mClients.size());
+      int index = 0;
+      CompletableFuture<Void>[] clientCloseFutures = new CompletableFuture[mClients.size()];
       for (GrpcMessagingClient client : mClients) {
-        clientCloseFutures.add(client.close());
+        clientCloseFutures[index] = client.close();
+        index++;
       }
       mClients.clear();
       try {
-        CompletableFuture.allOf(clientCloseFutures.toArray(new CompletableFuture[0])).get();
+        CompletableFuture.allOf(clientCloseFutures).get();
       } catch (Exception e) {
         LOG.warn("Failed to close messaging transport clients.", e);
       }
 
       // Close created servers.
-      List<CompletableFuture<Void>> serverCloseFutures = new ArrayList<>(mServers.size());
+      index = 0;
+      CompletableFuture<Void>[] serverCloseFutures = new CompletableFuture[mServers.size()];
       for (GrpcMessagingServer server : mServers) {
-        serverCloseFutures.add(server.close());
+        serverCloseFutures[index] = server.close();
+        index++;
       }
       mServers.clear();
       try {
-        CompletableFuture.allOf(serverCloseFutures.toArray(new CompletableFuture[0])).get();
+        CompletableFuture.allOf(serverCloseFutures).get();
       } catch (Exception e) {
         LOG.warn("Failed to close messaging transport servers.", e);
       }

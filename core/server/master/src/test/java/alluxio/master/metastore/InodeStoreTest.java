@@ -20,7 +20,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
@@ -67,7 +67,7 @@ public class InodeStoreTest {
   @Rule
   public ConfigurationRule mConf =
       new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
-          CACHE_SIZE, ServerConfiguration.global());
+          CACHE_SIZE, Configuration.modifiableGlobal());
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 

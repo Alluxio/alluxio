@@ -14,7 +14,7 @@ package alluxio.testutils.master;
 import static org.mockito.Mockito.mock;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -77,7 +77,7 @@ public class MasterTestUtils {
    * @return a resource that contains the master registry and the journal system
    */
   public static FsMasterResource createLeaderFileSystemMasterFromJournalCopy() throws Exception {
-    String masterJournal = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String masterJournal = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     File tmpDirFile = Files.createTempDir();
     tmpDirFile.deleteOnExit();
     String tempDir = tmpDirFile.getAbsolutePath();
@@ -95,7 +95,7 @@ public class MasterTestUtils {
    */
   private static FsMasterResource createFileSystemMasterFromJournal(boolean isLeader,
       UserState userState) throws Exception {
-    String masterJournal = ServerConfiguration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String masterJournal = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
     return createFileSystemMasterFromJournal(isLeader, userState, masterJournal);
   }
 
@@ -114,8 +114,8 @@ public class MasterTestUtils {
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
-    int port = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
-    String baseDir = ServerConfiguration.getString(PropertyKey.MASTER_METASTORE_DIR);
+    int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+    String baseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     if (userState == null) {
       userState = ServerUserState.global();

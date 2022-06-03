@@ -12,7 +12,7 @@
 package alluxio.worker.block.management.tier;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
@@ -59,13 +59,13 @@ public abstract class BaseTierManagementTaskTest {
    */
   protected void init() throws Exception {
     // Disable reviewer to make sure the allocator behavior stays deterministic
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             "alluxio.worker.block.reviewer.AcceptingReviewer");
     // Use LRU for stronger overlap guarantee.
-    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS, LRUAnnotator.class.getName());
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    Configuration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS, LRUAnnotator.class.getName());
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     // Set timeout for faster task execution.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "100ms");
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "100ms");
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
@@ -87,7 +87,8 @@ public abstract class BaseTierManagementTaskTest {
   protected void startSimulateLoad() throws Exception {
     mBlockStore.createBlock(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID,
         AllocateOptions.forCreate(0, BlockStoreLocation.anyTier()));
-    mSimulateWriter = mBlockStore.getBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
+    mSimulateWriter =
+        mBlockStore.createBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
   }
 
   /**

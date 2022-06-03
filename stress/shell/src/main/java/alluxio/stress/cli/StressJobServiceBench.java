@@ -16,11 +16,11 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.fs.command.DistributedLoadCommand;
+import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -34,7 +34,6 @@ import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -68,7 +67,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   private static final Logger LOG = LoggerFactory.getLogger(StressJobServiceBench.class);
   public static final int MAX_RESPONSE_TIME_BUCKET_INDEX = 0;
   @ParametersDelegate
-  private JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
+  private final JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
   private FileSystemContext mFsContext;
   private JobMasterClient mJobMasterClient;
 
@@ -86,8 +85,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public void prepare() throws Exception {
-    mFsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    mFsContext = FileSystemContext.create();
     final ClientContext clientContext = mFsContext.getClientContext();
     mJobMasterClient =
         JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());
@@ -173,7 +171,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         mResult.merge(threadResult);
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
     }
 
@@ -223,7 +221,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         runInternal();
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
@@ -263,7 +261,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           deletePath(fileSystem, dirPath);
           long deleteEnd = CommonUtils.getCurrentMs();
           LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
-          int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+          long fileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
           mResult.setRecordStartMs(mContext.getStartMs());
           createFiles(fileSystem, mParameters.mNumFilesPerDir, dirPath, fileSize);
           long createEnd = CommonUtils.getCurrentMs();
@@ -305,12 +303,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private long runDistributedLoad(String dirPath) throws AlluxioException, IOException {
+    private long runDistributedLoad(String dirPath) {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
       long stopTime;
       try {
-        long jobControlId = cmd.runDistLoad(new AlluxioURI(dirPath),
+        long jobControlId = DistributedLoadUtils.runDistLoad(cmd, new AlluxioURI(dirPath),
                 numReplication, mParameters.mBatchSize,
                 new HashSet<>(), new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), false);
@@ -323,27 +321,25 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       return stopTime;
     }
 
-    private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
+    private void createFiles(FileSystem fs, int numFiles, String dirPath, long fileSize)
         throws IOException, AlluxioException {
       CreateFilePOptions options = CreateFilePOptions.newBuilder()
           .setRecursive(true).setWriteType(WritePType.THROUGH).build();
 
+      byte[] buf = new byte[Constants.MB];
+      Arrays.fill(buf, (byte) 'A');
       for (int fileId = 0; fileId < numFiles; fileId++) {
         String filePath = String.format("%s/%d", dirPath, fileId);
-        createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
+        try (FileOutStream os = fs.createFile(new AlluxioURI(filePath), options)) {
+          long bytesWritten = 0;
+          while (bytesWritten < fileSize) {
+            int toWrite = (int) Math.min(buf.length, fileSize - bytesWritten);
+            os.write(buf, 0, toWrite);
+            bytesWritten += toWrite;
+          }
+        }
       }
       mResult.incrementNumSuccess(numFiles);
-    }
-  }
-
-  private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
-      int len) throws IOException, AlluxioException {
-    try (FileOutStream os = fs.createFile(fileURI, options)) {
-      byte[] arr = new byte[len];
-      for (int k = 0; k < len; k++) {
-        arr[k] = (byte) k;
-      }
-      os.write(arr);
     }
   }
 

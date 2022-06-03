@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -49,7 +49,7 @@ public class CheckConsistencyContext
    */
   public static CheckConsistencyContext mergeFrom(CheckConsistencyPOptions.Builder optionsBuilder) {
     CheckConsistencyPOptions masterOptions =
-        FileSystemOptions.checkConsistencyDefaults(ServerConfiguration.global());
+        FileSystemOptions.checkConsistencyDefaults(Configuration.global());
     CheckConsistencyPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -60,7 +60,7 @@ public class CheckConsistencyContext
    */
   public static CheckConsistencyContext defaults() {
     return create(FileSystemOptions
-        .checkConsistencyDefaults(ServerConfiguration.global()).toBuilder());
+        .checkConsistencyDefaults(Configuration.global()).toBuilder());
   }
 
   @Override

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Inode;
@@ -68,7 +68,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
   public ConfigurationRule mConf = new ConfigurationRule(
       ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE,
           PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5),
-      ServerConfiguration.global());
+      Configuration.modifiableGlobal());
 
   @Before
   public void before() {
