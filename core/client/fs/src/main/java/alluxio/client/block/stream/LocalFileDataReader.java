@@ -113,7 +113,7 @@ public final class LocalFileDataReader implements DataReader {
      * @param address the worker address
      * @param blockId the block ID
      * @param localReaderChunkSize chunk size in bytes for local reads
-     * @param options the instream options
+     * @param options the InStream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long localReaderChunkSize, InStreamOptions options) throws IOException {

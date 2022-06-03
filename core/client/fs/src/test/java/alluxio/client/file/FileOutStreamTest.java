@@ -75,6 +75,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -450,9 +451,9 @@ public class FileOutStreamTest {
   }
 
   @Test
-  public void createWithNoWorker() throws Exception {
+  public void createWithNoWorker()  {
     OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
-        .setLocationPolicy((getWorkerOptions) -> null)
+        .setLocationPolicy((getWorkerOptions) -> Optional.empty())
         .setWriteType(WriteType.CACHE_THROUGH);
     Exception e = assertThrows(UnavailableException.class,
         () -> mTestStream = createTestStream(FILE_NAME, options));
