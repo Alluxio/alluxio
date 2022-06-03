@@ -15,9 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import org.apache.ratis.thirdparty.com.google.rpc.PreconditionFailure;
 
 import java.util.ArrayList;
 import java.util.List;
