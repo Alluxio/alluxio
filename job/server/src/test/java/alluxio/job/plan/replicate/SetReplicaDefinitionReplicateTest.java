@@ -265,7 +265,7 @@ public final class SetReplicaDefinitionReplicateTest {
     byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
 
     TestBlockInStream mockInStream =
-        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+        new TestBlockInStream(input, TEST_BLOCK_ID, input.length,
             BlockInStreamSource.NODE_LOCAL);
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
@@ -284,7 +284,7 @@ public final class SetReplicaDefinitionReplicateTest {
                 : Collections.emptySet());
         byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
         TestBlockInStream mockInStream =
-            new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+            new TestBlockInStream(input, TEST_BLOCK_ID, input.length,
                 BlockInStreamSource.NODE_LOCAL);
         TestBlockOutStream mockOutStream =
             new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);

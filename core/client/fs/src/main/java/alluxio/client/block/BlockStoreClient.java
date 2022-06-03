@@ -105,7 +105,7 @@ public final class BlockStoreClient {
   /**
    * Gets a stream to read the data of a block. This method is primarily responsible for
    * determining the data source and type of data source. The latest BlockInfo will be fetched
-   * from the master to ensure the locations are up to date.
+   * from the master to ensure the locations are up-to-date.
    *
    * @param blockId the id of the block to read
    * @param options the options associated with the read request
@@ -118,13 +118,13 @@ public final class BlockStoreClient {
   /**
    * Gets a stream to read the data of a block. This method is primarily responsible for
    * determining the data source and type of data source. The latest BlockInfo will be fetched
-   * from the master to ensure the locations are up to date. It takes a map of failed workers and
+   * from the master to ensure the locations are up-to-date. It takes a map of failed workers and
    * their most recently failed time and tries to update it when BlockInStream created failed,
    * attempting to avoid reading from a recently failed worker.
    *
    * @param blockId the id of the block to read
    * @param options the options associated with the read request
-   * @param failedWorkers the map of workers address to most recent failure time
+   * @param failedWorkers the map of workers addresses to most recent failure time
    * @return a stream which reads from the beginning of the block
    */
   public BlockInStream getInStream(long blockId, InStreamOptions options,
@@ -139,7 +139,7 @@ public final class BlockStoreClient {
    *
    * @param info the block info
    * @param options the options associated with the read request
-   * @param failedWorkers the map of workers address to most recent failure time
+   * @param failedWorkers the map of workers addresses to most recent failure time
    * @return a stream which reads from the beginning of the block
    */
   public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
@@ -167,14 +167,14 @@ public final class BlockStoreClient {
    * @param info the info of the block to read
    * @param status the URIStatus associated with the read request
    * @param policy the policy determining the Alluxio worker location
-   * @param failedWorkers the map of workers address to most recent failure time
+   * @param failedWorkers the map of workers addresses to most recent failure time
    * @return the data source and type of data source of the block
    */
   public Pair<WorkerNetAddress, BlockInStreamSource> getDataSourceAndType(BlockInfo info,
       URIStatus status, BlockLocationPolicy policy, Map<WorkerNetAddress, Long> failedWorkers)
       throws IOException {
     List<BlockLocation> locations = info.getLocations();
-    List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
+    List<BlockWorkerInfo> blockWorkerInfo = Collections.emptyList();
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workerPool;
     // Note that, it is possible that the blocks have been written as UFS blocks
@@ -231,26 +231,22 @@ public final class BlockStoreClient {
               .setLength(info.getLength())
               .setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
-      dataSource = policy.getWorker(getWorkerOptions);
-      if (dataSource != null) {
-        if (mContext.hasProcessLocalWorker()
-            && dataSource.equals(mContext.getNodeLocalWorker())) {
-          dataSourceType = BlockInStreamSource.PROCESS_LOCAL;
-          LOG.debug("Create BlockInStream to read data from UFS through process local worker {}",
-              dataSource);
-        } else {
-          LOG.debug("Create BlockInStream to read data from UFS through worker {} "
-              + "(client embedded in local worker process: {},"
-                  + "client co-located with worker in different processes: {}, "
-                  + "local worker address: {})",
-              dataSource, mContext.hasProcessLocalWorker(), mContext.hasNodeLocalWorker(),
-              mContext.hasNodeLocalWorker() ? mContext.getNodeLocalWorker() : "N/A");
-        }
+      dataSource = policy.getWorker(getWorkerOptions).orElseThrow(
+          () -> new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage())
+      );
+      if (mContext.hasProcessLocalWorker()
+          && dataSource.equals(mContext.getNodeLocalWorker())) {
+        dataSourceType = BlockInStreamSource.PROCESS_LOCAL;
+        LOG.debug("Create BlockInStream to read data from UFS through process local worker {}",
+            dataSource);
+      } else {
+        LOG.debug("Create BlockInStream to read data from UFS through worker {} "
+                + "(client embedded in local worker process: {},"
+                + "client co-located with worker in different processes: {}, "
+                + "local worker address: {})",
+            dataSource, mContext.hasProcessLocalWorker(), mContext.hasNodeLocalWorker(),
+            mContext.hasNodeLocalWorker() ? mContext.getNodeLocalWorker() : "N/A");
       }
-    }
-
-    if (dataSource == null) {
-      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
     return new Pair<>(dataSource, dataSourceType);
   }
@@ -258,7 +254,7 @@ public final class BlockStoreClient {
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,
       Map<WorkerNetAddress, Long> failedWorkers) {
     if (workers.isEmpty()) {
-      return Collections.EMPTY_SET;
+      return Collections.emptySet();
     }
     Set<WorkerNetAddress> nonFailed =
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
@@ -317,14 +313,19 @@ public final class BlockStoreClient {
         && options.getReplicationDurable() > options.getReplicationMin())
         ? options.getReplicationDurable() : options.getReplicationMin();
     if (initialReplicas <= 1) {
-      address = locationPolicy.getWorker(workerOptions);
-      if (address == null) {
-        if (mContext.getCachedWorkers().isEmpty()) {
-          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-        }
-        throw new UnavailableException(
-            ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
-      }
+      address = locationPolicy.getWorker(workerOptions).orElseThrow(
+          () -> {
+            try {
+              if (mContext.getCachedWorkers().isEmpty()) {
+                return new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+              }
+            } catch (IOException e) {
+              return e;
+            }
+            return new UnavailableException(
+                ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+          }
+      );
       // TODO(ggezer): Retry on another worker if this has no storage.
       return getOutStream(blockId, blockSize, address, options);
     }
@@ -344,13 +345,11 @@ public final class BlockStoreClient {
     List<WorkerNetAddress> workerAddressList = new ArrayList<>();
     List<BlockWorkerInfo> updatedInfos = Lists.newArrayList(workerOptions.getBlockWorkerInfos());
     for (int i = 0; i < initialReplicas; i++) {
-      address = locationPolicy.getWorker(workerOptions);
-      if (address == null) {
-        break;
-      }
-      workerAddressList.add(address);
-      updatedInfos.removeAll(blockWorkersByHost.get(address.getHost()));
-      workerOptions.setBlockWorkerInfos(updatedInfos);
+      locationPolicy.getWorker(workerOptions).ifPresent(workerAddress -> {
+        workerAddressList.add(workerAddress);
+        updatedInfos.removeAll(blockWorkersByHost.get(workerAddress.getHost()));
+        workerOptions.setBlockWorkerInfos(updatedInfos);
+      });
     }
     if (workerAddressList.size() < initialReplicas) {
       throw new alluxio.exception.status.ResourceExhaustedException(String.format(
