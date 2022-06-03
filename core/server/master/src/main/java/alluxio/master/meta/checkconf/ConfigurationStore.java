@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is responsible for recording server-side configuration.
  */
 @ThreadSafe
-public class ServerConfigurationStore {
+public class ConfigurationStore {
   /** Map from a node address to its configuration. */
   private final Map<Address, List<ConfigRecord>> mConfMap;
   /** Set that contains the addresses of lost nodes. */
@@ -42,15 +42,15 @@ public class ServerConfigurationStore {
   private final List<Runnable> mChangeListeners = new ArrayList<>();
 
   /**
-   * Constructs a new {@link ServerConfigurationStore}.
+   * Constructs a new {@link ConfigurationStore}.
    */
-  public ServerConfigurationStore() {
+  public ConfigurationStore() {
     mConfMap = new HashMap<>();
     mLostNodes = new HashSet<>();
   }
 
   /**
-   * Resets the default {@link ServerConfigurationStore}.
+   * Resets the default {@link ConfigurationStore}.
    */
   public synchronized void reset() {
     mConfMap.clear();
