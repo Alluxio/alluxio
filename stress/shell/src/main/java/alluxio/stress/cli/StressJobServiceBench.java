@@ -67,7 +67,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   private static final Logger LOG = LoggerFactory.getLogger(StressJobServiceBench.class);
   public static final int MAX_RESPONSE_TIME_BUCKET_INDEX = 0;
   @ParametersDelegate
-  private JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
+  private final JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
   private FileSystemContext mFsContext;
   private JobMasterClient mJobMasterClient;
 
@@ -303,7 +303,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private long runDistributedLoad(String dirPath) throws AlluxioException, IOException {
+    private long runDistributedLoad(String dirPath) {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
       long stopTime;

@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -74,7 +73,8 @@ public final class DefaultStorageTier implements StorageTier {
     PropertyKey tierDirCapacityConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
     List<String> dirQuotas = Configuration.getList(tierDirCapacityConf);
-    Preconditions.checkState(dirQuotas.size() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
+    Preconditions.checkState(dirQuotas.size() > 0,
+        "Tier capacity configuration should not be blank");
 
     PropertyKey tierDirMediumConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
