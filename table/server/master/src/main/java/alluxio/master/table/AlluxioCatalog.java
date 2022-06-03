@@ -13,7 +13,7 @@ package alluxio.master.table;
 
 import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
@@ -70,7 +70,7 @@ public class AlluxioCatalog implements Journaled {
    * Creates an instance.
    */
   public AlluxioCatalog() {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create(Configuration.global());
     mUdbRegistry = new UnderDatabaseRegistry();
     mUdbRegistry.refresh();
     mLayoutRegistry = new LayoutRegistry();

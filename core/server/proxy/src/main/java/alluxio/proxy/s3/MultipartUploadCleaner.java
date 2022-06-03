@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
@@ -51,13 +51,13 @@ public class MultipartUploadCleaner {
    */
   private MultipartUploadCleaner() {
     mTimeout =
-        ServerConfiguration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT);
+        Configuration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT);
     mRetry =
-        ServerConfiguration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT);
+        Configuration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT);
     mRetryDelay =
-        ServerConfiguration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY);
+        Configuration.getMs(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY);
     mExecutor = new ScheduledThreadPoolExecutor(
-        ServerConfiguration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE));
+        Configuration.getInt(PropertyKey.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE));
     mTasks = new ConcurrentHashMap<>();
   }
 

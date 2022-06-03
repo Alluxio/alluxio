@@ -14,7 +14,7 @@ package alluxio.master.metrics;
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
@@ -64,7 +64,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   DefaultMetricsMaster(CoreMasterContext masterContext) {
     this(masterContext, new SystemClock(),
         ExecutorServiceFactories.fixedThreadPool(Constants.METRICS_MASTER_NAME,
-            ServerConfiguration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
+            Configuration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
   }
 
   /**
@@ -176,8 +176,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
-          ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
-          ServerConfiguration.global(), mMasterContext.getUserState()));
+          Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          Configuration.global(), mMasterContext.getUserState()));
     }
   }
 

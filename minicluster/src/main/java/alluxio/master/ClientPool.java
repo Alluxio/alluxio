@@ -13,7 +13,7 @@ package alluxio.master;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public final class ClientPool implements Closeable {
    * @return a {@link FileSystem} client
    */
   public FileSystem getClient() throws IOException {
-    final FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
+    final FileSystem fs = FileSystem.Factory.create(Configuration.global());
     mClients.add(fs);
     return fs;
   }

@@ -40,7 +40,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.job.JobServerContext;
@@ -93,7 +93,7 @@ public final class SetReplicaDefinitionReplicateTest {
       new WorkerNetAddress().setHost("host3").setDataPort(10);
   private static final WorkerNetAddress LOCAL_ADDRESS =
       new WorkerNetAddress().setHost(NetworkAddressUtils
-          .getLocalHostName((int) ServerConfiguration
+          .getLocalHostName((int) Configuration
               .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
@@ -115,9 +115,9 @@ public final class SetReplicaDefinitionReplicateTest {
   public void before() throws Exception {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
-        .thenReturn(ClientContext.create(ServerConfiguration.global()));
+        .thenReturn(ClientContext.create(Configuration.global()));
     when(mMockFileSystemContext.getClusterConf())
-        .thenReturn(ServerConfiguration.global());
+        .thenReturn(Configuration.global());
     mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);

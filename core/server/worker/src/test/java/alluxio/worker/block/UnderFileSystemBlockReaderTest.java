@@ -21,7 +21,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -79,11 +79,11 @@ public final class UnderFileSystemBlockReaderTest {
               .getAbsolutePath());
           put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
         }
-      }, ServerConfiguration.global());
+      }, Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {
-    String ufsFolder = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsFolder = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String testFilePath = File.createTempFile("temp", null, new File(ufsFolder)).getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE * 2);
     BufferUtils.writeBufferToFile(testFilePath, buffer);
@@ -92,7 +92,7 @@ public final class UnderFileSystemBlockReaderTest {
     mUfsInstreamCache = new UfsInputStreamCache();
     mUfsClient = new UfsClient(
         () -> UnderFileSystem.Factory.create(testFilePath,
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
+            UnderFileSystemConfiguration.defaults(Configuration.global())),
         new AlluxioURI(testFilePath));
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)

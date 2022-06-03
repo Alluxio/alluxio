@@ -11,13 +11,13 @@
 
 package alluxio.security.user;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 
 /**
  * Server global instance of the UserState.
  */
 public class ServerUserState {
-  private static final UserState INSTANCE = UserState.Factory.create(ServerConfiguration.global());
+  private static final UserState INSTANCE = UserState.Factory.create(Configuration.global());
 
   private ServerUserState() {} // prevent instantiation
 

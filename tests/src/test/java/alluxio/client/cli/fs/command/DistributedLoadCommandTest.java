@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -72,8 +72,8 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     sLocalAlluxioJobCluster.start();
     sFileSystem = sLocalAlluxioCluster.getClient();
     sJobMaster = sLocalAlluxioJobCluster.getMaster().getJobMaster();
-    sJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
-    sFsShell = new FileSystemShell(ServerConfiguration.global());
+    sJobShell = new alluxio.cli.job.JobShell(Configuration.global());
+    sFsShell = new FileSystemShell(Configuration.global());
   }
 
   @Test
@@ -257,7 +257,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadDirWithCorrectCount() throws IOException, AlluxioException {
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 66;
     for (int i = 0; i < fileSize; i++) {
@@ -276,7 +276,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadDirWithFailure() throws IOException, AlluxioException {
-    FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
+    FileSystemShell fsShell = new FileSystemShell(Configuration.global());
     FileSystem fs = sResource.get().getClient();
     int fileSize = 20;
     List<String> failures = new ArrayList<>();

@@ -121,16 +121,15 @@ public class DistributedCmdMetrics {
 
   /**
    * get file size for a given filePath, return 0 if exceeding retries.
-   * @param filePath
-   * @param fileSystem
-   * @param retryPolicy
+   * @param filePath file path
+   * @param fileSystem file system
+   * @param retryPolicy retry policy
    * @return file size
    */
   public static long getFileSize(String filePath, FileSystem fileSystem, RetryPolicy retryPolicy) {
     while (retryPolicy.attempt()) {
       try {
-        long fileSize = fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
-        return fileSize;
+        return fileSystem.getStatus(new AlluxioURI(filePath)).getLength();
       } catch (IOException | AlluxioException | RuntimeException e) {
         LOG.warn("Retry getStatus for URI {} for {}-th time, {}",
                 filePath, retryPolicy.getAttemptCount(), Arrays.toString(e.getStackTrace()));
@@ -265,7 +264,7 @@ public class DistributedCmdMetrics {
 
 /**
  * Increment for both batch and non-batch configs for Cancel status.
-  * @param config
+  * @param config job config
  */
   public static void incrementForAllConfigsCancelStatus(JobConfig config) {
     if (config instanceof BatchedJobConfig) {
@@ -277,7 +276,7 @@ public class DistributedCmdMetrics {
 
 /**
  * Increment for both batch and non-batch configs for Fail status.
- * @param config
+ * @param config job config
  */
   public static void incrementForAllConfigsFailStatus(JobConfig config) {
     if (config instanceof BatchedJobConfig) {

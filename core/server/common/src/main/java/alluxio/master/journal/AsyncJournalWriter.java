@@ -17,7 +17,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.sink.JournalSink;
@@ -174,7 +174,7 @@ public final class AsyncJournalWriter {
     mFlushCounter = new AtomicLong(0);
     mWriteCounter = 0L;
     mFlushBatchTimeNs = TimeUnit.NANOSECONDS.convert(
-        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
+        Configuration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
         TimeUnit.MILLISECONDS);
     mJournalSinks = journalSinks;
     mFlushThread.start();

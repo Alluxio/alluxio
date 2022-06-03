@@ -16,7 +16,7 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -38,7 +38,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,44 +56,35 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
-  /** FileSystem client for jobs. */
-  private final FileSystem mFileSystem;
-
-  /** FileSystemContext for jobs. */
-  private final FileSystemContext mFsContext;
-
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
-  /** The connect address for the rpc server. */
+  /** The connection address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
-
-  /** The manager for all ufs. */
-  private UfsManager mUfsManager;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
-        ServerConfiguration.global());
-    if (!ServerConfiguration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
-      ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME,
+        Configuration.global());
+    if (!Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
+      Configuration.set(PropertyKey.JOB_MASTER_HOSTNAME,
           NetworkAddressUtils.getLocalHostName(
-              (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+              (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     }
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
-    mFileSystem = FileSystem.Factory.create(mFsContext);
-    mUfsManager = new JobUfsManager();
+    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
+    FileSystem fileSystem = FileSystem.Factory.create(fsContext);
+    UfsManager ufsManager = new JobUfsManager();
     try {
       if (!mJournalSystem.isFormatted()) {
         mJournalSystem.format();
       }
       // Create master.
       mJobMaster = new JobMaster(
-          new MasterContext(mJournalSystem, null, mUfsManager), mFileSystem, mFsContext,
-          mUfsManager);
+          new MasterContext<>(mJournalSystem, null, ufsManager), fileSystem, fsContext,
+          ufsManager);
     } catch (Exception e) {
       LOG.error("Failed to create job master", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException("Failed to create job master", e);
     }
   }
 
@@ -164,7 +154,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       mJobMaster.start(isLeader);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e.getMessage(), e);
     }
   }
 
@@ -173,7 +163,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       mJobMaster.stop();
     } catch (IOException e) {
       LOG.error("Failed to stop job master", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException("Failed to stop job master", e);
     }
   }
 
@@ -224,18 +214,18 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
-            ServerConfiguration.global(), ServerUserState.global())
+            Configuration.global(), ServerUserState.global())
         .flowControlWindow(
-            (int) ServerConfiguration.getBytes(PropertyKey.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW))
-        .keepAliveTime(ServerConfiguration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS),
+            (int) Configuration.getBytes(PropertyKey.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW))
+        .keepAliveTime(Configuration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS),
             TimeUnit.MILLISECONDS)
         .keepAliveTimeout(
-            ServerConfiguration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            Configuration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
             TimeUnit.MILLISECONDS)
         .permitKeepAlive(
-            ServerConfiguration.getMs(PropertyKey.JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+            Configuration.getMs(PropertyKey.JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
             TimeUnit.MILLISECONDS)
-        .maxInboundMessageSize((int) ServerConfiguration
+        .maxInboundMessageSize((int) Configuration
             .getBytes(PropertyKey.JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     // Register job-master services.
     registerServices(builder, mJobMaster.getServices());
@@ -281,7 +271,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
           .build(ProcessType.JOB_MASTER);
-      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");
         PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();

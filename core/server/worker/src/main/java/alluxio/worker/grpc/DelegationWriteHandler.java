@@ -31,7 +31,7 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private final UfsManager mUfsManager;
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
-  private AuthenticatedUserInfo mUserInfo;
+  private final AuthenticatedUserInfo mUserInfo;
   private final boolean mDomainSocketEnabled;
 
   /**

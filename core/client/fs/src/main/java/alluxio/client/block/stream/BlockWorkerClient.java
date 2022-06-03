@@ -18,6 +18,7 @@ import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.LoadRequest;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -40,7 +41,6 @@ import java.io.IOException;
  * gRPC client for worker communication.
  */
 public interface BlockWorkerClient extends Closeable {
-
   /**
    * Factory for block worker client.
    */
@@ -150,4 +150,12 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   void cache(CacheRequest request);
+
+  /**
+   * load blocks into alluxio.
+   *
+   * @param request the cache request
+   * @throws StatusRuntimeException if any error occurs
+   */
+  void load(LoadRequest request);
 }

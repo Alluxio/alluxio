@@ -264,8 +264,7 @@ public final class GetConf {
    * @param args the arguments to specify the unit (optional) and configuration key (optional)
    */
   public static void main(String[] args) {
-    System.exit(getConf(
-        ClientContext.create(ConfigurationUtils.defaults()), args));
+    System.exit(getConf(ClientContext.create(), args));
   }
 
   private GetConf() {} // this class is not intended for instantiation

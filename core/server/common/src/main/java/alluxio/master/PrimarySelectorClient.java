@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 
 import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;
@@ -78,7 +78,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     } else {
       mLeaderFolder = leaderPath + AlluxioURI.SEPARATOR;
     }
-    mConnectionErrorPolicy = ServerConfiguration.getEnum(
+    mConnectionErrorPolicy = Configuration.getEnum(
         PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, ZookeeperConnectionErrorPolicy.class);
 
     mLeaderZkSessionId = NOT_A_LEADER;
@@ -245,9 +245,9 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     curatorBuilder.connectString(mZookeeperAddress);
     curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     curatorBuilder
-        .sessionTimeoutMs((int) ServerConfiguration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT));
+        .sessionTimeoutMs((int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT));
     curatorBuilder.connectionTimeoutMs(
-        (int) ServerConfiguration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT));
+        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT));
     // Force compatibility mode to support writing to 3.4.x servers.
     curatorBuilder.zk34CompatibilityMode(true);
     // Prevent using container parents as it breaks compatibility with 3.4.x servers.

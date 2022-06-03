@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.retry.CountingRetry;
@@ -86,15 +86,15 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     init(0);
   }
 
   private void init(long reservedBytes) throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             "alluxio.worker.block.reviewer.AcceptingReviewer");
     // No reserved space for tests that are not swap related.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
@@ -503,7 +503,7 @@ public final class TieredBlockStoreTest {
 
   @Test
   public void moveBlockWithReservedSpace() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     final long RESERVE_SIZE = BLOCK_SIZE;
     init(RESERVE_SIZE);
 

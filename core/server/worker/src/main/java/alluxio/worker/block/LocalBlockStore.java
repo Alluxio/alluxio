@@ -12,9 +12,9 @@
 package alluxio.worker.block;
 
 import alluxio.client.file.cache.CacheManager;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
@@ -44,10 +44,10 @@ public interface LocalBlockStore
    * @return the instance of LocalBlockStore
    */
   static LocalBlockStore create(UfsManager ufsManager) {
-    switch (ServerConfiguration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+    switch (Configuration.getEnum(PropertyKey.USER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
       case PAGE:
         try {
-          InstancedConfiguration conf = ServerConfiguration.global();
+          AlluxioConfiguration conf = Configuration.global();
           PagedBlockMetaStore pagedBlockMetaStore = new PagedBlockMetaStore(conf);
           CacheManager cacheManager = CacheManager.Factory.create(conf, pagedBlockMetaStore);
           return new PagedLocalBlockStore(cacheManager, ufsManager, pagedBlockMetaStore, conf);

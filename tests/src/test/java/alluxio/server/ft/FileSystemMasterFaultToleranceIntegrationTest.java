@@ -17,7 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -58,18 +58,18 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser =
-      new AuthenticatedUserRule(TEST_USER, ServerConfiguration.global());
+      new AuthenticatedUserRule(TEST_USER, Configuration.global());
 
   @Before
   public final void before() throws Exception {
     mMultiMasterLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2, 0);
     mMultiMasterLocalAlluxioCluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
-    ServerConfiguration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
-    ServerConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
+    Configuration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
     mMultiMasterLocalAlluxioCluster.start();
   }
 

@@ -21,7 +21,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.AllocateOptions;
@@ -48,9 +47,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
 
   private final LocalBlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
-  private final AuthenticatedUserInfo mUserInfo;
   private OpenLocalBlockRequest mRequest;
-  /** The lock Id of the block being read. */
+  /** The lock id of the block being read. */
   private OptionalLong mLockId;
   private long mSessionId;
 
@@ -58,14 +56,12 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
    * @param localBlockStore the local block store
-   * @param userInfo the authenticated user info
    */
   ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
-      StreamObserver<OpenLocalBlockResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
     mLockId = OptionalLong.empty();
     mResponseObserver = responseObserver;
-    mUserInfo = userInfo;
   }
 
   /**
@@ -141,7 +137,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   public void onCompleted() {
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
-      public OpenLocalBlockResponse call() throws Exception {
+      public OpenLocalBlockResponse call() {
         if (mLockId.isPresent()) {
           DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
           mLocalBlockStore.unpinBlock(mLockId.getAsLong());

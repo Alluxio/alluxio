@@ -12,12 +12,11 @@
 package alluxio.fuse;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,8 +36,7 @@ public class StackMain {
     }
     Path root = Paths.get(args[1]);
     Path mountPoint = Paths.get(args[0]);
-    AlluxioConfiguration conf = new InstancedConfiguration(
-        ConfigurationUtils.copyDefaults());
+    AlluxioConfiguration conf = Configuration.global();
     LibFuse.loadLibrary(AlluxioFuseUtils.getVersionPreference(conf));
     StackFS fs = new StackFS(root, mountPoint);
     String[] fuseOpts = new String[args.length - 2];
