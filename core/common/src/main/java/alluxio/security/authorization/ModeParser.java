@@ -16,6 +16,7 @@ import alluxio.security.authorization.Mode.Bits;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.MessageFormat;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -72,12 +73,14 @@ public final class ModeParser {
             .getMessage(value, spec));
       }
       if (!StringUtils.containsOnly(specParts[0], VALID_TARGETS)) {
-        throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE_TARGETS
-            .getMessage(value, spec, specParts[0]));
+        throw new IllegalArgumentException(MessageFormat.format(
+            "Invalid mode {0} - contains invalid segment {1} which has invalid targets {2}", value,
+            spec, specParts[0]));
       }
       if (!StringUtils.containsOnly(specParts[1], VALID_PERMISSIONS)) {
-        throw new IllegalArgumentException(ExceptionMessage.INVALID_MODE_PERMISSIONS
-            .getMessage(value, spec, specParts[1]));
+        throw new IllegalArgumentException(MessageFormat.format(
+            "Invalid mode {0} - contains invalid segment {1} which has invalid permissions {2}",
+            value, spec, specParts[1]));
       }
 
       // Build the permissions being specified

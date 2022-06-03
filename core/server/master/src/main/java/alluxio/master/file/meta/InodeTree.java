@@ -63,6 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -546,7 +547,7 @@ public class InodeTree implements DelegatingJournaled {
       count++;
       if (count > PATH_TRAVERSAL_RETRIES) {
         throw new FileDoesNotExistException(
-            ExceptionMessage.INODE_DOES_NOT_EXIST_RETRIES.getMessage(id));
+            MessageFormat.format("inodeId {0,number,#} does not exist; too many retries", id));
       }
     }
   }
@@ -1232,7 +1233,8 @@ public class InodeTree implements DelegatingJournaled {
         return;
       }
     }
-    throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(dir.getName()));
+    throw new IOException(
+        MessageFormat.format("Failed to create {0} in the under file system", dir.getName()));
   }
 
   /**

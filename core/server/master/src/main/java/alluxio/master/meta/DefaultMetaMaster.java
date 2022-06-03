@@ -22,7 +22,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPRequest;
@@ -72,6 +71,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.text.MessageFormat;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
@@ -567,7 +567,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       throws NotFoundException {
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
-      throw new NotFoundException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
+      throw new NotFoundException(
+          MessageFormat.format("No master with masterId {0,number,#} is found", masterId));
     }
 
     master.updateLastUpdatedTimeMs();
