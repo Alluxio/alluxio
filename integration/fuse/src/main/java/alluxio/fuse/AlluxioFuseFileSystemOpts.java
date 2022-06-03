@@ -14,7 +14,10 @@ package alluxio.fuse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import org.apache.ratis.thirdparty.com.google.rpc.PreconditionFailure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,15 +105,35 @@ public final class AlluxioFuseFileSystemOpts {
   }
 
   private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, int fuseMaxPathCached,
-        int fuseUmountTimeout, boolean isDebug, List<String> fuseOptions, String mountPoint,
+        int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions, String mountPoint,
         boolean specialCommandEnabled, long statCacheTimeout,
         boolean userGroupTranslationEnabled) {
+    Preconditions.checkNotNull(alluxioPath,
+        "Option alluxioPath for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(fsName,
+        "Option fsName for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(fuseMaxPathCached,
+        "Option fuseMaxPathCached for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(fuseUmountTimeout,
+        "Option fuseUmountTimeout for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(isDebug,
+        "Option isDebug for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(libfuseOptions,
+        "Option libfuseOptions for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(mountPoint,
+        "Option mountPoint for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(specialCommandEnabled,
+        "Option specialCommandEnabled for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(statCacheTimeout,
+        "Option statCacheTimeout for an AlluxioFuse filesystem should not be null.");
+    Preconditions.checkNotNull(userGroupTranslationEnabled,
+        "Option userGroupTranslationEnabled for an AlluxioFuse filesystem should not be null.");
     mAlluxioPath = alluxioPath;
     mFsName = fsName;
     mFuseMaxPathCached = fuseMaxPathCached;
     mFuseUmountTimeout = fuseUmountTimeout;
     mIsDebug = isDebug;
-    mLibfuseOptions = fuseOptions;
+    mLibfuseOptions = libfuseOptions;
     mMountPoint = mountPoint;
     mSpecialCommandEnabled = specialCommandEnabled;
     mStatCacheTimeout = statCacheTimeout;
