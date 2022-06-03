@@ -215,10 +215,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary<JobService
           maxGraph.addDataSeries(entry.getKey(), data);
         }
         graphs.add(maxGraph);
-
-        for (LineGraph graph : responseTimeGraphPerMethod.values()) {
-          graphs.add(graph);
-        }
+        graphs.addAll(responseTimeGraphPerMethod.values());
       }
 
       return graphs;

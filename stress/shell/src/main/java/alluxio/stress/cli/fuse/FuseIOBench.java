@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   private static final String TEST_DIR = "fuseIOStressBench";
 
   @ParametersDelegate
-  private FuseIOParameters mParameters = new FuseIOParameters();
+  private final FuseIOParameters mParameters = new FuseIOParameters();
 
   /** Names of the directories created for the test, also unique ids of the job workers. */
   private List<String> mJobWorkerDirNames;
@@ -134,10 +135,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
     if (mParameters.mThreads > mParameters.mNumDirs
         && mParameters.mOperation != FuseIOOperation.LIST_FILE) {
-      throw new IllegalArgumentException(String.format(
+      throw new IllegalArgumentException(
           "Some of the threads are not being used. Please set the number of directories to "
-              + "be at least the number of threads, preferably a multiple of it."
-      ));
+              + "be at least the number of threads, preferably a multiple of it.");
     }
     // Update mLocalPath to always include the designated test directory.
     mParameters.mLocalPath = Paths.get(mParameters.mLocalPath, TEST_DIR).toString();
@@ -153,9 +153,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     if ((mParameters.mOperation == FuseIOOperation.REMOTE_READ
         || mParameters.mOperation == FuseIOOperation.CLUSTER_READ)
         && !mBaseParameters.mDistributed) {
-      throw new IllegalArgumentException(String.format(
-          "Single-node Fuse IO stress bench doesn't support RemoteRead or ClusterRead."
-      ));
+      throw new IllegalArgumentException(
+          "Single-node Fuse IO stress bench doesn't support RemoteRead or ClusterRead.");
     }
     File[] jobWorkerDirs = localPath.listFiles();
     if (jobWorkerDirs == null) {
@@ -166,7 +165,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
     if (!mBaseParameters.mDistributed) {
       // single-node case only has one directory
-      mJobWorkerDirNames = Arrays.asList(mBaseParameters.mId);
+      mJobWorkerDirNames = Collections.singletonList(mBaseParameters.mId);
       return;
     }
     // for cluster mode, find 0-based id, and make sure directories and job workers are 1-to-1
@@ -179,9 +178,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       throw new IllegalStateException("Some job worker crashed or joined after data are written. "
           + "The test is stopped.");
     }
-    mJobWorkerDirNames = Arrays.asList(jobWorkerDirs).stream()
-        .map(file -> file.getName())
-        .collect(Collectors.toList());
+    mJobWorkerDirNames = Collections.unmodifiableList(
+        Arrays.stream(jobWorkerDirs).map(File::getName).collect(Collectors.toList()));
     mJobWorkerZeroBasedId = mJobWorkerDirNames.indexOf(mBaseParameters.mId);
     if (mJobWorkerZeroBasedId == -1) {
       throw new IllegalStateException(String.format(
@@ -237,7 +235,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
    * @param startMs start time for profiling
    * @param endMs end time for profiling
    * @return TimeToFirstByteStatistics
-   * @throws IOException
+   * @throws IOException exception
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   public synchronized Map<String, SummaryStatistics> addAdditionalResult(
@@ -291,7 +289,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         responseTime99Percentile, maxResponseTimesMs);
   }
 
-  private final class BenchContext {
+  private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
 
@@ -337,7 +335,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private FileInputStream mInStream = null;
     private FileOutputStream mOutStream = null;
     private long mCurrentOffset;
-    private long mRecordMs;
+    private final long mRecordMs;
 
     private final FuseIOTaskResult mFuseIOTaskResult = new FuseIOTaskResult();
 
