@@ -48,7 +48,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final String TEST_DIR_NAME = "UfsIOTest";
 
   @ParametersDelegate
-  private UfsIOParameters mParameters = new UfsIOParameters();
+  private final UfsIOParameters mParameters = new UfsIOParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 

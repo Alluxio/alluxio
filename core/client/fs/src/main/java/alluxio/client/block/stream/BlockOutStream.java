@@ -15,7 +15,6 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.PreconditionMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -122,7 +121,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
 
   @Override
   public void write(int b) throws IOException {
-    Preconditions.checkState(remaining() > 0, PreconditionMessage.ERR_END_OF_BLOCK);
+    Preconditions.checkState(remaining() > 0, "Cannot write past end of block");
     updateCurrentChunk(false);
     mCurrentChunk.writeByte(b);
   }
@@ -141,6 +140,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
    * Writes the data in the specified byte buf to this output stream.
    *
    * @param buf the buffer
+   * @throws IOException exception
    */
   public void write(io.netty.buffer.ByteBuf buf) throws IOException {
     write(buf, 0, buf.readableBytes());

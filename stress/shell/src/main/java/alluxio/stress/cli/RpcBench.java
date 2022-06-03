@@ -95,14 +95,13 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
       LOG.info("{} jobs submitted", futures.size());
 
       // Collect the result
-      RpcTaskResult merged = futures.stream()
+      return futures.stream()
           .map(CompletableFuture::join)
           .reduce(new RpcTaskResult(mBaseParameters, rpcBenchParameters),
               (sum, one) -> {
                 sum.merge(one);
                 return sum;
               });
-      return merged;
     } catch (Exception e) {
       LOG.error("Failed to execute RPC in pool", e);
       RpcTaskResult result = new RpcTaskResult();
