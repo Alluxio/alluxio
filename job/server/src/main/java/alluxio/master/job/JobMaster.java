@@ -18,7 +18,7 @@ import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
@@ -164,9 +164,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkflowTracker = new WorkflowTracker(this);
 
     mPlanTracker = new PlanTracker(
-        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY),
-        ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-        ServerConfiguration.getInt(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+        Configuration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+        Configuration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
+        Configuration.getInt(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();
@@ -204,9 +204,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
-              ServerConfiguration.global(), mMasterContext.getUserState()));
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+              (int) Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+              Configuration.global(), mMasterContext.getUserState()));
+      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
@@ -650,7 +650,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   private JobMasterAuditContext createAuditContext(String command) {
     // Audit log may be enabled during runtime
     AsyncUserAccessAuditLogWriter auditLogWriter = null;
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
       auditLogWriter = mAsyncAuditLogWriter;
     }
     JobMasterAuditContext auditContext =
@@ -659,13 +659,13 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       String user = null;
       String ugi = "";
       try {
-        user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+        user = AuthenticatedClientUser.getClientUser(Configuration.global());
       } catch (AccessControlException e) {
         ugi = "N/A";
       }
       if (user != null) {
         try {
-          String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
+          String primaryGroup = CommonUtils.getPrimaryGroupName(user, Configuration.global());
           ugi = user + "," + primaryGroup;
         } catch (IOException e) {
           LOG.debug("Failed to get primary group for user {}.", user);
@@ -673,7 +673,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         }
       }
       AuthType authType =
-          ServerConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+          Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
           .setIp(ClientIpAddressInjector.getIpAddress())
@@ -696,7 +696,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = (int) ServerConfiguration
+      int masterWorkerTimeoutMs = (int) Configuration
           .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<>();
       // Run under shared lock for mWorkers

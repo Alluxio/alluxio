@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -197,7 +197,7 @@ public class ActiveSyncManager implements Journaled {
       }
 
       try {
-        if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
+        if ((txId == SyncInfo.INVALID_TXID) && Configuration.getBoolean(
             PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
           mExecutorService.submit(
               () -> entry.getValue().parallelStream().forEach(
@@ -242,8 +242,8 @@ public class ActiveSyncManager implements Journaled {
       ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
       Future<?> future = getExecutor().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_ACTIVE_UFS_SYNC,
-              syncer, (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
-              ServerConfiguration.global(), ServerUserState.global()));
+              syncer, (int) Configuration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_INTERVAL),
+              Configuration.global(), ServerUserState.global()));
       mPollerMap.put(mountId, future);
     }
   }
@@ -527,12 +527,12 @@ public class ActiveSyncManager implements Journaled {
               // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
-              if (ServerConfiguration.getBoolean(
+              if (Configuration.getBoolean(
                   PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
                 RetryUtils.retry("active sync during start",
                     () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
                         null, getExecutor()),
-                    RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                    RetryUtils.defaultActiveSyncClientRetry(Configuration
                         .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
               }
             } catch (IOException e) {

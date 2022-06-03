@@ -19,9 +19,9 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.security.User;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.Test;
 
@@ -131,6 +131,6 @@ public class FileSystemCacheTest {
     principals.add(user);
     return new FileSystemCache.Key(
         new Subject(false, principals, new HashSet<>(), new HashSet<>()),
-        ConfigurationUtils.defaults());
+        Configuration.global());
   }
 }

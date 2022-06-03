@@ -12,7 +12,7 @@
 package alluxio.master.metastore.rocks;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -79,7 +79,7 @@ public class RocksBlockStore implements BlockStore {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
+        Configuration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     mColumnFamilyOptions = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION);
@@ -101,7 +101,7 @@ public class RocksBlockStore implements BlockStore {
 
     // metrics
     final long CACHED_GAUGE_TIMEOUT_S =
-        ServerConfiguration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_METASTORE_METRICS_REFRESH_INTERVAL);
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_ROCKS_BLOCK_BACKGROUND_ERRORS.getName(),
         () -> getProperty("rocksdb.background-errors"),

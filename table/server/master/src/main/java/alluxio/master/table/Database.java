@@ -12,7 +12,7 @@
 package alluxio.master.table;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
@@ -74,7 +74,7 @@ public class Database implements Journaled {
   private final String mConfigPath;
   private DbConfig mDbConfig;
   private final long mUdbSyncTimeoutMs =
-      ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
+      Configuration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
   private DatabaseInfo mDatabaseInfo;
 

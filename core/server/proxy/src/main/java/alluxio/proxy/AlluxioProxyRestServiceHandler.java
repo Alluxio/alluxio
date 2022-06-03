@@ -14,7 +14,7 @@ package alluxio.proxy;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
@@ -87,11 +87,11 @@ public final class AlluxioProxyRestServiceHandler {
               .setUptimeMs(mProxyProcess.getUptimeMs())
               .setVersion(RuntimeConstants.VERSION);
       return result;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(ServerConfiguration
+    return new TreeMap<>(Configuration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 }

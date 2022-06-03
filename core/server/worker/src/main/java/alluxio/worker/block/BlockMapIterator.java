@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.LocationBlockIdListEntry;
@@ -54,7 +54,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
    * @param blockLocationMap the block lists for each location
    */
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
-    this(blockLocationMap, ServerConfiguration.global());
+    this(blockLocationMap, Configuration.global());
   }
 
   /**

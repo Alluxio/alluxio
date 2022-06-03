@@ -23,7 +23,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -293,7 +293,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Metrics.registerGauges(this);
 
     mWorkerInfoCache = CacheBuilder.newBuilder()
-        .refreshAfterWrite(ServerConfiguration
+        .refreshAfterWrite(Configuration
             .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
         .build(new CacheLoader<String, List<WorkerInfo>>() {
           @Override
@@ -422,7 +422,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * and propagate an error to the worker side.
    */
   public class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
-    private final long mTimeout = ServerConfiguration.global()
+    private final long mTimeout = Configuration.global()
         .getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     @Override
@@ -471,17 +471,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
-          ServerConfiguration.global(), mMasterContext.getUserState()));
+          (int) Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
+          Configuration.global(), mMasterContext.getUserState()));
     }
 
     // This periodically scans all open register streams and closes hanging ones
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            (int) ServerConfiguration.global().getMs(
+            (int) Configuration.global().getMs(
                 PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
-            ServerConfiguration.global(), mMasterContext.getUserState()));
+            Configuration.global(), mMasterContext.getUserState()));
   }
 
   @Override
@@ -1453,7 +1453,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
-      long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {

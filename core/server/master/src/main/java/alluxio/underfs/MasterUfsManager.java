@@ -12,7 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
@@ -64,7 +64,7 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   protected void connectUfs(UnderFileSystem fs) throws IOException {
     fs.connectFromMaster(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()));
+            Configuration.global()));
   }
 
   @Override

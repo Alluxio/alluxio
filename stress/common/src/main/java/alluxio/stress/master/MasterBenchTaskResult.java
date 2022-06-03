@@ -14,7 +14,6 @@ package alluxio.stress.master;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -244,20 +243,14 @@ public final class MasterBenchTaskResult implements TaskResult {
       Map<String, MasterBenchTaskResult> nodes = new HashMap<>();
       MasterBenchTaskResult mergingTaskResult = null;
 
-      for (TaskResult taskResult : results) {
-        if (!(taskResult instanceof MasterBenchTaskResult)) {
-          throw new IOException(
-              "TaskResult is not of type MasterBenchTaskResult. class: " + taskResult.getClass()
-                  .getName());
-        }
-        MasterBenchTaskResult result = (MasterBenchTaskResult) taskResult;
-        nodes.put(result.getBaseParameters().mId, result);
+      for (MasterBenchTaskResult taskResult : results) {
+        nodes.put(taskResult.getBaseParameters().mId, taskResult);
 
         if (mergingTaskResult == null) {
-          mergingTaskResult = result;
+          mergingTaskResult = taskResult;
           continue;
         }
-        mergingTaskResult.aggregateByWorker(result);
+        mergingTaskResult.aggregateByWorker(taskResult);
       }
 
       return new MasterBenchSummary(mergingTaskResult, nodes);

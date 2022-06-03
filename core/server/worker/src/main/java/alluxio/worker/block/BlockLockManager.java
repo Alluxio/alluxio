@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
@@ -53,7 +53,7 @@ public final class BlockLockManager {
 
  /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
     public void close() {}
 

@@ -14,8 +14,8 @@ package alluxio.worker.block;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -95,7 +95,7 @@ public class TieredBlockStore implements LocalBlockStore
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final long REMOVE_BLOCK_TIMEOUT_MS = 60_000;
   private static final long FREE_AHEAD_BYTETS =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
+      Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -870,7 +870,7 @@ public class TieredBlockStore implements LocalBlockStore
   // TODO(peis): Consider using domain socket to avoid setting the permission to 777.
   private static void createBlockFile(String blockPath) throws IOException {
     FileUtils.createBlockPath(blockPath,
-        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+        Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
     LOG.debug("Created new file block, block path: {}", blockPath);

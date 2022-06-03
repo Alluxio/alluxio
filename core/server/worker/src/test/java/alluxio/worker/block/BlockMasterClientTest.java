@@ -14,8 +14,6 @@ package alluxio.worker.block;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
@@ -32,12 +30,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BlockMasterClientTest {
-  private InstancedConfiguration mConf = ServerConfiguration.global();
-
   @Test
   public void convertBlockListMapToProtoMergeDirsInSameTier() {
     BlockMasterClient client = new BlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
+        MasterClientContext.newBuilder(ClientContext.create()).build());
 
     Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
     BlockStoreLocation memDir0 = new BlockStoreLocation("MEM", 0);

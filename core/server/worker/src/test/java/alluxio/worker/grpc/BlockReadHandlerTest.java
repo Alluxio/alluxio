@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.util.CommonUtils;
@@ -60,7 +60,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class BlockReadHandlerTest {
   private static final long CHUNK_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   private BlockReadHandler mReadHandler;

@@ -181,7 +181,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     return context.getResult();
   }
 
-  private final class BenchContext {
+  private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
 

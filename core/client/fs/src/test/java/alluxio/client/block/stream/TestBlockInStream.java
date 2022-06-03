@@ -11,7 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.util.ConfigurationUtils;
+import alluxio.conf.Configuration;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class TestBlockInStream extends BlockInStream {
   public TestBlockInStream(byte[] data, long id, long length, boolean shortCircuit,
       BlockInStreamSource source) {
     super(new Factory(data, shortCircuit),
-        ConfigurationUtils.defaults(),
+        Configuration.global(),
         new WorkerNetAddress(), source, id, length);
     mBytesRead = 0;
   }

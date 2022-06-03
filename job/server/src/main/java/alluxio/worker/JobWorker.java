@@ -17,7 +17,7 @@ import alluxio.Server;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -68,7 +68,7 @@ public final class JobWorker extends AbstractWorker {
     super(ExecutorServiceFactories.fixedThreadPool("job-worker-executor", 1));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
   }
 
   @Override
@@ -91,7 +91,7 @@ public final class JobWorker extends AbstractWorker {
     super.start(address);
 
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks(ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+    MetricsSystem.startSinks(Configuration.getString(PropertyKey.METRICS_CONF_FILE));
 
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);
@@ -100,15 +100,15 @@ public final class JobWorker extends AbstractWorker {
       throw Throwables.propagate(e);
     }
     TaskExecutorManager taskExecutorManager =
-        new TaskExecutorManager(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE),
+        new TaskExecutorManager(Configuration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE),
             address);
 
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
             new CommandHandlingExecutor(mJobServerContext, taskExecutorManager, mJobMasterClient,
                 address),
-            (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global(), ServerUserState.global()));
+            (int) Configuration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
+            Configuration.global(), ServerUserState.global()));
   }
 
   @Override

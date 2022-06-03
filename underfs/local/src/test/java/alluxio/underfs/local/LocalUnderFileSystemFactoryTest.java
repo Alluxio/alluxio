@@ -12,10 +12,9 @@
 package alluxio.underfs.local;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +29,7 @@ public class LocalUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+    AlluxioConfiguration conf = Configuration.global();
     UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("/local/test/path", conf);
     UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("file://local/test/path",
         conf);

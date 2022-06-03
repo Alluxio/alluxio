@@ -13,7 +13,7 @@ package alluxio.worker.block.annotator;
 
 import alluxio.StorageTierAssoc;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -52,10 +52,10 @@ public class EmulatingBlockIteratorTest {
   @Before
   public void before() throws Exception {
     // Set an evictor class in order to activate emulation.
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     // No reserved bytes for precise capacity planning.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
 
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());

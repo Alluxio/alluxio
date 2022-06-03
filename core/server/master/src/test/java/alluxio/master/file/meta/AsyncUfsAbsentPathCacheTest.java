@@ -19,7 +19,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.options.MountInfo;
@@ -57,7 +57,7 @@ public class AsyncUfsAbsentPathCacheTest {
   public ConfigurationRule mMaxPathRule = new ConfigurationRule(
       PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY,
       3,
-      ServerConfiguration.global()
+      Configuration.modifiableGlobal()
   );
 
   /**

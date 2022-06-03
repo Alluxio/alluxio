@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
 import alluxio.grpc.JournalQueryRequest;
@@ -170,8 +170,8 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
         () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex
-                > ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
-                && System.currentTimeMillis() - mLastCheckPointTime > ServerConfiguration.getMs(
+                > Configuration.getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+                && System.currentTimeMillis() - mLastCheckPointTime > Configuration.getMs(
                 PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
     );
   }
@@ -565,7 +565,7 @@ public class JournalStateMachine extends BaseStateMachine {
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(stream), getStateMachines());
     } catch (Exception e) {
       JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s", snapshotId);
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         return;
       }
     }

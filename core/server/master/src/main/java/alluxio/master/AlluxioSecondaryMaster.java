@@ -15,7 +15,7 @@ import alluxio.Process;
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.underfs.MasterUfsManager;
@@ -47,7 +47,7 @@ public final class AlluxioSecondaryMaster implements Process {
    * Creates a {@link AlluxioSecondaryMaster}.
    */
   AlluxioSecondaryMaster() {
-    String baseDir = ServerConfiguration.getString(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
+    String baseDir = Configuration.getString(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
     // Create masters.
     MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
@@ -56,7 +56,7 @@ public final class AlluxioSecondaryMaster implements Process {
         .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
         .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
         .setStartTimeMs(System.currentTimeMillis())
-        .setPort(ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT))
+        .setPort(Configuration.getInt(PropertyKey.MASTER_RPC_PORT))
         .setUfsManager(new MasterUfsManager())
         .build());
     // Check that journals of each service have been formatted.
