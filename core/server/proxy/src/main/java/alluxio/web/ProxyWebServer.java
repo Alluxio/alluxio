@@ -14,9 +14,9 @@ package alluxio.web;
 import alluxio.Constants;
 import alluxio.StreamCache;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.util.io.PathUtils;
@@ -40,9 +40,9 @@ public final class ProxyWebServer extends WebServer {
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
 
-  private FileSystem mFileSystem;
+  private final FileSystem mFileSystem;
 
-  private InstancedConfiguration mSConf;
+  private final AlluxioConfiguration mSConf = Configuration.global();
 
   /**
    * Creates a new instance of {@link ProxyWebServer}.
@@ -59,7 +59,6 @@ public final class ProxyWebServer extends WebServer {
     ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3")
         .register(JacksonProtobufObjectMapperProvider.class);
 
-    mSConf = ServerConfiguration.global();
     mFileSystem = FileSystem.Factory.create(mSConf);
 
     ServletContainer servlet = new ServletContainer(config) {
@@ -72,7 +71,7 @@ public final class ProxyWebServer extends WebServer {
         getServletContext()
             .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, mFileSystem);
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
-            new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
+            new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
         getServletContext()
             .setAttribute(SERVER_CONFIGURATION_RESOURCE_KEY, mSConf);
       }

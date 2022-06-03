@@ -446,7 +446,7 @@ public final class DefaultStorageDirTest {
 
     mDir.addTempBlockMeta(mTempBlockMeta);
     assertTrue(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
-    assertEquals(mTempBlockMeta, mDir.getTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertEquals(mTempBlockMeta, mDir.getTempBlockMeta(TEST_TEMP_BLOCK_ID).get());
     assertEquals(TEST_DIR_CAPACITY - TEST_REVERSED_BYTES - TEST_TEMP_BLOCK_SIZE,
         mDir.getAvailableBytes());
 

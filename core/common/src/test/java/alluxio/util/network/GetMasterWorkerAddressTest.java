@@ -35,7 +35,7 @@ public class GetMasterWorkerAddressTest {
    */
   @Test
   public void getMasterAddress() {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
 
     // connect host and port
     conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
@@ -46,19 +46,19 @@ public class GetMasterWorkerAddressTest {
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved("RemoteMaster1", 10000), masterAddress);
-    conf = ConfigurationTestUtils.defaults();
+    conf = ConfigurationTestUtils.copyDefaults();
 
     // port only
     conf.set(PropertyKey.MASTER_RPC_PORT, 20000);
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved(defaultHostname, 20000), masterAddress);
-    conf = ConfigurationTestUtils.defaults();
+    conf = ConfigurationTestUtils.copyDefaults();
 
     // connect host only
     conf.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster3");
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     assertEquals(InetSocketAddress.createUnresolved("RemoteMaster3", defaultPort), masterAddress);
-    conf = ConfigurationTestUtils.defaults();
+    conf = ConfigurationTestUtils.copyDefaults();
 
     // all default
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);

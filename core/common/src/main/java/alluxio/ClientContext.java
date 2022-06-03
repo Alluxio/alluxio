@@ -11,9 +11,11 @@
 
 package alluxio;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
@@ -24,7 +26,6 @@ import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
-import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 
 /**
@@ -47,7 +48,7 @@ import javax.security.auth.Subject;
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;
-  private volatile PathConfiguration mPathConf;
+  private volatile PathConfiguration mPathConf = PathConfiguration.create(new HashMap<>());
   private volatile UserState mUserState;
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
@@ -57,8 +58,7 @@ public class ClientContext {
    * A client context with information about the subject and configuration of the client.
    *
    * @param subject the security subject to use
-   * @param alluxioConf the {@link AlluxioConfiguration} to use. If null, the site property defaults
-   *     will be loaded
+   * @param alluxioConf the {@link AlluxioConfiguration} to use
    * @return a new client context with the specified properties and subject
    */
   public static ClientContext create(Subject subject, AlluxioConfiguration alluxioConf) {
@@ -70,7 +70,7 @@ public class ClientContext {
    * @return the client context with the given properties and an empty subject
    */
   public static ClientContext create(AlluxioConfiguration alluxioConf) {
-    return new ClientContext(null, alluxioConf);
+    return new ClientContext(new Subject(), alluxioConf);
   }
 
   /**
@@ -78,7 +78,7 @@ public class ClientContext {
    * an empty subject.
    */
   public static ClientContext create() {
-    return new ClientContext(null, null);
+    return new ClientContext(new Subject(), Configuration.global());
   }
 
   /**
@@ -93,20 +93,10 @@ public class ClientContext {
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
-  private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
-    if (subject == null) {
-      subject = new Subject();
-    }
-    // Copy the properties so that future modification doesn't affect this ClientContext.
-    if (alluxioConf != null) {
-      mClusterConf = new InstancedConfiguration(alluxioConf.copyProperties(),
-          alluxioConf.clusterDefaultsLoaded());
-      mClusterConfHash = alluxioConf.hash();
-    } else {
-      mClusterConf = ConfigurationUtils.defaults();
-      mClusterConfHash = mClusterConf.hash();
-    }
-    mPathConf = PathConfiguration.create(new HashMap<>());
+  private ClientContext(Subject subject, AlluxioConfiguration alluxioConf) {
+    requireNonNull(subject, "subject is null");
+    mClusterConf = requireNonNull(alluxioConf, "alluxioConf is null");
+    mClusterConfHash = alluxioConf.hash();
     mUserState = UserState.Factory.create(mClusterConf, subject);
   }
 

@@ -41,7 +41,6 @@ public interface PermissionChecker {
    * @param bits bits that capture the action {@link Mode.Bits} by user
    * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
    */
   void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
       throws AccessControlException;

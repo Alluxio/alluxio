@@ -14,14 +14,14 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -42,8 +42,7 @@ import java.util.List;
  */
 public final class JournalCrashTest {
 
-  private static InstancedConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.copyDefaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   private JournalCrashTest() {} // prevent instantiation
 

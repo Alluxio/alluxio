@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -41,12 +41,12 @@ public final class RaftJournalSystemConfigTest {
 
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
   public void defaultDefaults() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "testhost");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "testhost");
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     InetSocketAddress address = getLocalAddress(system);
@@ -56,7 +56,7 @@ public final class RaftJournalSystemConfigTest {
   @Test
   public void port() throws Exception {
     int testPort = 10000;
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, testPort);
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, testPort);
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     InetSocketAddress localAddress = getLocalAddress(system);
@@ -67,7 +67,7 @@ public final class RaftJournalSystemConfigTest {
 
   @Test
   public void derivedMasterHostname() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "test");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "test");
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.MASTER_RAFT);
     InetSocketAddress address = getLocalAddress(system);
@@ -76,7 +76,7 @@ public final class RaftJournalSystemConfigTest {
 
   @Test
   public void derivedJobMasterHostname() throws Exception {
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, "test");
+    Configuration.set(PropertyKey.JOB_MASTER_HOSTNAME, "test");
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
     InetSocketAddress address = getLocalAddress(system);
@@ -85,7 +85,7 @@ public final class RaftJournalSystemConfigTest {
 
   @Test
   public void derivedJobMasterHostnameFromMasterHostname() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "test");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "test");
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
     InetSocketAddress address = getLocalAddress(system);
@@ -94,10 +94,10 @@ public final class RaftJournalSystemConfigTest {
 
   @Test
   public void derivedJobMasterAddressesFromMasterAddresses() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+    Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
         "host1:10,host2:20,host3:10");
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "host1");
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 5);
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "host1");
+    Configuration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 5);
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
     List<InetSocketAddress> addresses = getClusterAddresses(system);
@@ -109,10 +109,10 @@ public final class RaftJournalSystemConfigTest {
 
   @Test
   public void derivedJobMasterAddressesFromJobMasterAddresses() throws Exception {
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+    Configuration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES,
         "host1:10,host2:20,host3:10");
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, "host1");
-    ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 10);
+    Configuration.set(PropertyKey.JOB_MASTER_HOSTNAME, "host1");
+    Configuration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 10);
     RaftJournalSystem system =
         new RaftJournalSystem(mFolder.newFolder().toURI(), ServiceType.JOB_MASTER_RAFT);
     List<InetSocketAddress> addresses = getClusterAddresses(system);
@@ -131,7 +131,7 @@ public final class RaftJournalSystemConfigTest {
     // raftNodeAddress1's hostname is different with localAddress hostname, but
     // their ip both point to the local node.
     InetSocketAddress raftNodeAddress1 = new InetSocketAddress(NetworkAddressUtils
-        .getLocalHostName((int) ServerConfiguration.global()
+        .getLocalHostName((int) Configuration.global()
             .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 10);
     InetSocketAddress raftNodeAddress2 = new InetSocketAddress("host2", 20);
     InetSocketAddress raftNodeAddress3 = new InetSocketAddress("host3", 30);
@@ -139,7 +139,7 @@ public final class RaftJournalSystemConfigTest {
     clusterAddresses.add(raftNodeAddress2);
     clusterAddresses.add(raftNodeAddress3);
     assertTrue(clusterAddresses.contains(localAddress)
-        || NetworkAddressUtils.containsLocalIp(clusterAddresses, ServerConfiguration.global()));
+        || NetworkAddressUtils.containsLocalIp(clusterAddresses, Configuration.global()));
   }
 
   private InetSocketAddress getLocalAddress(RaftJournalSystem system) throws Exception {

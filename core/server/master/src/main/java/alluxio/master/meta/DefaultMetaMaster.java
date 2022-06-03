@@ -19,7 +19,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -65,7 +65,6 @@ import alluxio.wire.Address;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
-import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -137,7 +136,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
       = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
-      ServerConfiguration.global());
+      Configuration.global());
 
   /** Indicates if newer version is available. */
   private boolean mNewerVersionAvailable;
@@ -246,7 +245,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mCoreMasterContext = masterContext;
     mMasterAddress =
-        new Address().setHost(ServerConfiguration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
+        new Address().setHost(Configuration.getOrDefault(PropertyKey.MASTER_HOSTNAME,
             "localhost"))
             .setRpcPort(mPort);
     mBlockMaster = blockMaster;
@@ -258,9 +257,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     mPathProperties = new PathProperties();
     mState = new State();
-    if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class)
+    if (Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class)
         .equals(JournalType.EMBEDDED) && OSUtils.isLinux()) {
-      mJournalSpaceMonitor = new JournalSpaceMonitor(ServerConfiguration.global());
+      mJournalSpaceMonitor = new JournalSpaceMonitor(Configuration.global());
     } else {
       mJournalSpaceMonitor = null;
     }
@@ -299,22 +298,22 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.MASTER));
+          ConfigurationUtils.getConfiguration(Configuration.global(), Scope.MASTER));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          (int) ServerConfiguration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
-          ServerConfiguration.global(), mMasterContext.getUserState()));
+          (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+          Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
               new LogConfigReportHeartbeatExecutor(),
-              (int) ServerConfiguration
+              (int) Configuration
                   .getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
-              ServerConfiguration.global(), mMasterContext.getUserState()));
+              Configuration.global(), mMasterContext.getUserState()));
 
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfsManager);
         mDailyBackup.start();
@@ -322,8 +321,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (mJournalSpaceMonitor != null) {
         getExecutorService().submit(new HeartbeatThread(
             HeartbeatContext.MASTER_JOURNAL_SPACE_MONITOR, mJournalSpaceMonitor,
-            ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
-            ServerConfiguration.global(), mMasterContext.getUserState()));
+            Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
+            Configuration.global(), mMasterContext.getUserState()));
       }
       if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
         try (JournalContext context = createJournalContext()) {
@@ -331,32 +330,32 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           mState.applyAndJournal(context, clusterID);
           LOG.info("Created new cluster ID {}", clusterID);
         }
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
-            && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
+            && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
-              ServerConfiguration.global(), mMasterContext.getUserState()));
+              (int) Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
+              Configuration.global(), mMasterContext.getUserState()));
         }
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
       }
       mBackupRole = new BackupLeaderRole(mCoreMasterContext);
     } else {
-      if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
+      if (ConfigurationUtils.isHaMode(Configuration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
-                .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+                .newBuilder(ClientContext.create(Configuration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
-            (int) ServerConfiguration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global(), mMasterContext.getUserState()));
+            (int) Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+            Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }
       // Enable worker role if backup delegation is enabled.
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)) {
         mBackupRole = new BackupWorkerRole(mCoreMasterContext);
       }
     }
@@ -392,7 +391,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
       mJournalSystem.checkpoint();
       return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-          ServerConfiguration.global());
+          Configuration.global());
     } catch (Exception e) {
       throw new IOException("Failed to take a checkpoint.", e);
     }
@@ -404,18 +403,18 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public Configuration getConfiguration(GetConfigurationPOptions options) {
+  public alluxio.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
     // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
     // consistent snapshot of the system's state at a certain time, the path configuration might
     // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
     // the properties.
-    Configuration.Builder builder = Configuration.newBuilder();
+    alluxio.wire.Configuration.Builder builder = alluxio.wire.Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {
-      for (PropertyKey key : ServerConfiguration.keySet()) {
+      for (PropertyKey key : Configuration.keySet()) {
         if (key.isBuiltIn()) {
-          Source source = ServerConfiguration.getSource(key);
-          Object value = ServerConfiguration.getOrDefault(key, null,
+          Source source = Configuration.getSource(key);
+          Object value = Configuration.getOrDefault(key, null,
               ConfigurationValueOptions.defaults().useDisplayValue(true)
                   .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);
@@ -423,7 +422,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       }
       // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
-      builder.setClusterConfHash(ServerConfiguration.hash());
+      builder.setClusterConfHash(Configuration.hash());
     }
 
     if (!options.getIgnorePathConf()) {
@@ -439,7 +438,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public ConfigHash getConfigHash() {
-    return new ConfigHash(ServerConfiguration.hash(), mPathProperties.hash());
+    return new ConfigHash(Configuration.hash(), mPathProperties.hash());
   }
 
   @Override
@@ -543,7 +542,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public int getWebPort() {
-    return ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT);
+    return Configuration.getInt(PropertyKey.MASTER_WEB_PORT);
   }
 
   @Override
@@ -612,10 +611,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
-        if (ServerConfiguration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+        if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
-          Object oldValue = ServerConfiguration.get(key);
-          ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
+          Object oldValue = Configuration.get(key);
+          Configuration.set(key, entry.getValue(), Source.RUNTIME);
           result.put(entry.getKey(), true);
           successCount++;
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
@@ -646,7 +645,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     @Override
     public void heartbeat() {
-      long masterTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();

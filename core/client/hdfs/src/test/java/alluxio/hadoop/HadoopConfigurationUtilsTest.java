@@ -30,7 +30,7 @@ public final class HadoopConfigurationUtilsTest {
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
   private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
   private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   /**
    * Test for the {@link HadoopConfigurationUtils#getConfigurationFromHadoop} method for an empty

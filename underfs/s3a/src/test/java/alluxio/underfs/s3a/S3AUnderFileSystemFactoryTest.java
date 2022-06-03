@@ -40,7 +40,7 @@ public class S3AUnderFileSystemFactoryTest {
 
   @Before
   public void before() {
-    mAlluxioConf = ConfigurationTestUtils.defaults();
+    mAlluxioConf = ConfigurationTestUtils.copyDefaults();
     mConf = UnderFileSystemConfiguration.defaults(mAlluxioConf);
     mFactory1 = UnderFileSystemFactoryRegistry.find(mS3APath, mAlluxioConf);
   }

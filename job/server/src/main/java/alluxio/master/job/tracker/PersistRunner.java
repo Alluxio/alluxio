@@ -20,11 +20,9 @@ import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
 import alluxio.master.job.metrics.DistributedCmdMetrics;
 import alluxio.retry.CountingRetry;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 
-import java.io.IOException;
 import javax.annotation.Nullable;
 
 /**
@@ -33,17 +31,17 @@ import javax.annotation.Nullable;
 public class PersistRunner {
   static final long DEFAULT_FILE_COUNT = 1;
 
-  private FileSystem mFileSystem;
-  private JobMaster mJobMaster;
+  private final FileSystem mFileSystem;
+  private final JobMaster mJobMaster;
 
   /**
    * constructor.
-   * @param fsContext
-   * @param jobMaster
+   * @param fsContext file system context
+   * @param jobMaster job master
    */
   public PersistRunner(@Nullable FileSystemContext fsContext, JobMaster jobMaster) {
     if (fsContext == null) {
-      fsContext = FileSystemContext.create(ConfigurationUtils.defaults());
+      fsContext = FileSystemContext.create();
     }
     mFileSystem = FileSystem.Factory.create(fsContext);
     mJobMaster = jobMaster;
@@ -55,8 +53,7 @@ public class PersistRunner {
    * @param jobControlId THe parent level job control ID
    * @return CmdInfo
    */
-  public CmdInfo runPersistJob(PersistCmdConfig config,
-                            long jobControlId) throws IOException {
+  public CmdInfo runPersistJob(PersistCmdConfig config, long jobControlId) {
     long submissionTime = System.currentTimeMillis();
     CmdInfo cmdInfo = new CmdInfo(jobControlId, OperationType.PERSIST, JobSource.SYSTEM,
             submissionTime, Lists.newArrayList(config.getFilePath()));
@@ -71,10 +68,9 @@ public class PersistRunner {
 
   // Create a JobConfig and set file count and size for the AsyncPersist job.
   private void setJobConfigAndFileMetrics(PersistCmdConfig config, CmdRunAttempt attempt) {
-    long fileCount = DEFAULT_FILE_COUNT; // file count is default 1
     long fileSize = DistributedCmdMetrics.getFileSize(config.getFilePath(),
             mFileSystem, new CountingRetry(3));
-    attempt.setFileCount(fileCount);
+    attempt.setFileCount(DEFAULT_FILE_COUNT);
     attempt.setFileSize(fileSize);
     attempt.setConfig(config.toPersistConfig());
   }

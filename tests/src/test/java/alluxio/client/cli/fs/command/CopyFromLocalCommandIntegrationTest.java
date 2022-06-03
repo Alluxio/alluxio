@@ -22,7 +22,7 @@ import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -234,11 +234,11 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
   public void copyFromLocalMustCacheThenCacheThrough() throws Exception {
     File file = mTestFolder.newFile();
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.MUST_CACHE.toString(), ServerConfiguration.global()).toResource()) {
+        WriteType.MUST_CACHE.toString(), Configuration.modifiableGlobal()).toResource()) {
       Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.CACHE_THROUGH.toString(), ServerConfiguration.global()).toResource()) {
+        WriteType.CACHE_THROUGH.toString(), Configuration.modifiableGlobal()).toResource()) {
       mOutput.reset();
       sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
     }

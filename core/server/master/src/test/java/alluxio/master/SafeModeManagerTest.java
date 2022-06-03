@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.ConfigurationRule;
 import alluxio.clock.ManualClock;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -37,7 +37,7 @@ public class SafeModeManagerTest {
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, SAFEMODE_WAIT_TEST),
-      ServerConfiguration.global());
+      Configuration.modifiableGlobal());
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -73,7 +73,7 @@ public class SafeModeManagerTest {
   @Test
   public void leaveSafeModeAfterRpcServerStart() throws Exception {
     mSafeModeManager.notifyRpcServerStarted();
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
 
     assertFalse(mSafeModeManager.isInSafeMode());
   }
@@ -81,7 +81,7 @@ public class SafeModeManagerTest {
   @Test
   public void stayInSafeModeAfterPrimaryMasterStart() throws Exception {
     mSafeModeManager.notifyPrimaryMasterStarted();
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
 
     assertTrue(mSafeModeManager.isInSafeMode());
   }
@@ -89,7 +89,7 @@ public class SafeModeManagerTest {
   @Test
   public void reenterSafeModeOnPrimaryMasterStart() throws Exception {
     mSafeModeManager.notifyRpcServerStarted();
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
     mSafeModeManager.notifyPrimaryMasterStarted();
 
     assertTrue(mSafeModeManager.isInSafeMode());
@@ -98,7 +98,7 @@ public class SafeModeManagerTest {
   @Test
   public void reenterSafeModeOnRpcServerStart() throws Exception {
     mSafeModeManager.notifyRpcServerStarted();
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
     mSafeModeManager.notifyRpcServerStarted();
 
     assertTrue(mSafeModeManager.isInSafeMode());
@@ -109,9 +109,9 @@ public class SafeModeManagerTest {
     mSafeModeManager.notifyRpcServerStarted();
 
     // Enters safe mode again while in safe mode.
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     mSafeModeManager.notifyRpcServerStarted();
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
 
     // Verifies safe mode timer is reset.
     assertTrue(mSafeModeManager.isInSafeMode());
@@ -124,9 +124,9 @@ public class SafeModeManagerTest {
     mSafeModeManager.notifyRpcServerStarted();
 
     // Enters safe mode again while in safe mode.
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     mSafeModeManager.notifyPrimaryMasterStarted();
-    mClock.addTimeMs(ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
 
     // Verifies safe mode timer is cleared.
     assertTrue(mSafeModeManager.isInSafeMode());

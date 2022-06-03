@@ -32,7 +32,7 @@ public class FileSystemOptionsTest {
 
   @Before
   public void before() throws Exception {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test
