@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -99,7 +99,7 @@ class InodeBenchBase {
       case ROCKS:
         String dir =
             AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
-        RocksBenchConfig.setRocksConfig(rocksConfig, dir, ServerConfiguration.global());
+        RocksBenchConfig.setRocksConfig(rocksConfig, dir, Configuration.modifiableGlobal());
         return new RocksInodeStore(dir);
       case ROCKSCACHE:
         dir =

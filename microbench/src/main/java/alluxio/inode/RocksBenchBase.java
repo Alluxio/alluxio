@@ -2,7 +2,7 @@ package alluxio.inode;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Inode;
@@ -41,7 +41,7 @@ public class RocksBenchBase {
     Logger.getRootLogger().setLevel(Level.ERROR);
     String dir =
         AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
-    RocksBenchConfig.setRocksConfig(confType, dir, ServerConfiguration.global());
+    RocksBenchConfig.setRocksConfig(confType, dir, Configuration.modifiableGlobal());
     mRocksInodeStore = new RocksInodeStore(dir);
     Pair<RocksDB, AtomicReference<ColumnFamilyHandle>> dbInfo = mRocksInodeStore.getDBInodeColumn();
     mDB = dbInfo.getFirst();

@@ -4,7 +4,6 @@ import static alluxio.inode.InodeBenchBase.HEAP;
 import static alluxio.inode.InodeBenchBase.ROCKS;
 import static alluxio.inode.InodeBenchBase.ROCKSCACHE;
 
-import alluxio.collections.Pair;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;

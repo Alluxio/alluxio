@@ -24,7 +24,7 @@ import java.util.Arrays;
  * This benchmark measures the time it takes to write inodes to
  * a tree like structure, this includes locking and traversing the
  * path.
- * The following parameters can be varried:
+ * The following parameters can be varied:
  * mType - the type of inode storage to use
  * mDepth - the number of levels in the inode tree
  *
