@@ -12,10 +12,6 @@
 package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Fuse Auth Policy Interface.
@@ -26,6 +22,5 @@ public interface AuthPolicy {
    *
    * @param uri the path uri
    */
-  void setUserGroupIfNeeded(AlluxioURI uri)
-      throws IOException, AlluxioException, ExecutionException;
+  void setUserGroupIfNeeded(AlluxioURI uri);
 }

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -27,8 +26,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -44,7 +41,7 @@ public class FuseFileOutStream implements FuseFileStream {
   private final long mMode;
   private final long mOriginalFileLen;
 
-  private FileOutStream mOutStream;
+  private Optional<FileOutStream> mOutStream;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -58,8 +55,7 @@ public class FuseFileOutStream implements FuseFileStream {
    * @return a {@link FuseFileInOrOutStream}
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, int flags, long mode, Optional<URIStatus> status)
-      throws IOException, AlluxioException, ExecutionException {
+      AlluxioURI uri, int flags, long mode, Optional<URIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
@@ -70,21 +66,26 @@ public class FuseFileOutStream implements FuseFileStream {
     long fileLen = status.map(URIStatus::getLength).orElse(0L);
     if (status.isPresent()) {
       if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
-        fileSystem.delete(uri);
+        AlluxioFuseUtils.deleteFile(fileSystem, uri);
         fileLen = 0;
         LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
             + "Alluxio deleted the old file and created a new file for writing", uri, flags));
       } else {
         // Support open(O_WRONLY flag) - truncate(0) - write() workflow, otherwise error out
-        return new FuseFileOutStream(fileSystem, authPolicy, null, fileLen, uri, mode);
+        return new FuseFileOutStream(fileSystem, authPolicy, Optional.empty(), fileLen, uri, mode);
       }
     }
     return new FuseFileOutStream(fileSystem, authPolicy,
-        AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, mode), fileLen, uri, mode);
+        Optional.of(AlluxioFuseUtils.createFile(fileSystem, authPolicy, uri, mode)),
+        fileLen, uri, mode);
   }
 
   private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
-      @Nullable FileOutStream outStream, long fileLen, AlluxioURI uri, long mode) {
+      Optional<FileOutStream> outStream, long fileLen, AlluxioURI uri, long mode) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(authPolicy);
+    Preconditions.checkNotNull(outStream);
+    Preconditions.checkNotNull(uri);
     mFileSystem = fileSystem;
     mAuthPolicy = authPolicy;
     mOutStream = outStream;
@@ -94,21 +95,22 @@ public class FuseFileOutStream implements FuseFileStream {
   }
 
   @Override
-  public int read(ByteBuffer buf, long size, long offset) throws IOException {
+  public int read(ByteBuffer buf, long size, long offset) {
     throw new UnsupportedOperationException("Cannot read from write only stream");
   }
 
   @Override
-  public synchronized void write(ByteBuffer buf, long size, long offset) throws IOException {
+  public synchronized void write(ByteBuffer buf, long size, long offset) {
     if (size > Integer.MAX_VALUE) {
-      throw new IOException(String.format("Cannot write more than %s", Integer.MAX_VALUE));
+      throw new UnsupportedOperationException(
+          String.format("Cannot write more than %s", Integer.MAX_VALUE));
     }
-    if (mOutStream == null) {
-      throw new IOException(
+    if (!mOutStream.isPresent()) {
+      throw new UnsupportedOperationException(
           "Cannot overwrite/extending existing file without O_TRUNC flag or truncate(0) operation");
     }
     int sz = (int) size;
-    long bytesWritten = mOutStream.getBytesWritten();
+    long bytesWritten = mOutStream.get().getBytesWritten();
     if (offset != bytesWritten && offset + sz > bytesWritten) {
       throw new UnsupportedOperationException(String.format("Only sequential write is supported. "
           + "Cannot write bytes of size %s to offset %s when %s bytes have written to path %s",
@@ -121,35 +123,39 @@ public class FuseFileOutStream implements FuseFileStream {
     }
     final byte[] dest = new byte[sz];
     buf.get(dest, 0, sz);
-    mOutStream.write(dest);
+    try {
+      mOutStream.get().write(dest);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public synchronized long getFileLength() {
-    if (mOutStream == null) {
-      return mOriginalFileLen;
-    }
-    return mOutStream.getBytesWritten();
+    return mOutStream.map(FileOutStream::getBytesWritten).orElse(mOriginalFileLen);
   }
 
   @Override
-  public synchronized void flush() throws IOException {
-    if (mOutStream == null) {
+  public synchronized void flush() {
+    if (!mOutStream.isPresent()) {
       return;
     }
-    mOutStream.flush();
+    try {
+      mOutStream.get().flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
-  public synchronized void truncate(long size)
-      throws IOException, ExecutionException, AlluxioException {
-    if (mOutStream != null && mOutStream.getBytesWritten() == size) {
+  public synchronized void truncate(long size) {
+    if (mOutStream.isPresent() && mOutStream.get().getBytesWritten() == size) {
       return;
     }
     if (size == 0) {
       close();
-      mFileSystem.delete(mURI);
-      mOutStream = AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode);
+      AlluxioFuseUtils.deleteFile(mFileSystem, mURI);
+      mOutStream = Optional.of(AlluxioFuseUtils.createFile(mFileSystem, mAuthPolicy, mURI, mMode));
       return;
     }
     throw new UnsupportedOperationException(
@@ -157,9 +163,13 @@ public class FuseFileOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void close() throws IOException {
-    if (mOutStream != null) {
-      mOutStream.close();
+  public synchronized void close() {
+    if (mOutStream.isPresent()) {
+      try {
+        mOutStream.get().close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

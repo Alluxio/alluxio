@@ -73,8 +73,7 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri)
-      throws IOException, AlluxioException, ExecutionException {
+  public void setUserGroupIfNeeded(AlluxioURI uri) {
     FuseContext fc = mFuseFileSystem.getContext();
     if (!mIsUserGroupTranslation) {
       return;
@@ -92,19 +91,23 @@ public final class SystemUserGroupAuthPolicy implements AuthPolicy {
       // no need to set attribute
       return;
     }
-    String groupName = gid != AlluxioFuseUtils.DEFAULT_GID
-        ? mGroupnameCache.get(gid) : AlluxioFuseUtils.DEFAULT_GROUP_NAME;
-    String userName = uid != AlluxioFuseUtils.DEFAULT_UID
-        ? mUsernameCache.get(uid) : AlluxioFuseUtils.DEFAULT_USER_NAME;
-    if (userName.isEmpty() || groupName.isEmpty()) {
-      // cannot get valid user name and group name
-      return;
+    try {
+      String groupName = gid != AlluxioFuseUtils.DEFAULT_GID
+          ? mGroupnameCache.get(gid) : AlluxioFuseUtils.DEFAULT_GROUP_NAME;
+      String userName = uid != AlluxioFuseUtils.DEFAULT_UID
+          ? mUsernameCache.get(uid) : AlluxioFuseUtils.DEFAULT_USER_NAME;
+      if (userName.isEmpty() || groupName.isEmpty()) {
+        // cannot get valid user name and group name
+        return;
+      }
+      SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
+          .setGroup(groupName)
+          .setOwner(userName)
+          .build();
+      LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
+      mFileSystem.setAttribute(uri, attributeOptions);
+    } catch (IOException | ExecutionException | AlluxioException e) {
+      throw new RuntimeException(e);
     }
-    SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(groupName)
-        .setOwner(userName)
-        .build();
-    LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
-    mFileSystem.setAttribute(uri, attributeOptions);
   }
 }

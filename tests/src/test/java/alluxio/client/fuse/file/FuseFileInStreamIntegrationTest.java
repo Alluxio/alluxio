@@ -21,7 +21,6 @@ import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
@@ -44,14 +43,14 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
     }
   }
 
-  @Test (expected = IOException.class)
+  @Test (expected = UnsupportedOperationException.class)
   public void createNonexisting() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     FuseFileInStream.create(mFileSystem, alluxioURI,
         OpenFlags.O_RDONLY.intValue(), Optional.empty());
   }
 
-  @Test (expected = IOException.class)
+  @Test (expected = UnsupportedOperationException.class)
   public void createTruncate() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);

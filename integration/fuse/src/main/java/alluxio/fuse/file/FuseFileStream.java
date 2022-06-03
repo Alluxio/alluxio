@@ -16,16 +16,13 @@ import static jnr.constants.platform.OpenFlags.O_ACCMODE;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
 
 import jnr.constants.platform.OpenFlags;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,7 +38,7 @@ public interface FuseFileStream extends AutoCloseable {
    * @param offset the offset to read
    * @return the bytes read
    */
-  int read(ByteBuffer buf, long size, long offset) throws IOException, AlluxioException;
+  int read(ByteBuffer buf, long size, long offset);
 
   /**
    * Writes data to the stream.
@@ -50,63 +47,72 @@ public interface FuseFileStream extends AutoCloseable {
    * @param size the size to write
    * @param offset the offset to write
    */
-  void write(ByteBuffer buf, long size, long offset)
-      throws IOException, ExecutionException, AlluxioException;
+  void write(ByteBuffer buf, long size, long offset);
 
   /**
    * Gets the file length.
    *
    * @return file length
    */
-  long getFileLength() throws IOException;
+  long getFileLength();
 
   /**
    * Flushes the stream.
    */
-  void flush() throws IOException;
+  void flush();
 
   /**
    * Truncates the file to the given size.
    *
    * @param size the truncate size
    */
-  void truncate(long size) throws IOException, ExecutionException, AlluxioException;
+  void truncate(long size);
 
   /**
    * Closes the stream.
    */
-  void close() throws IOException;
+  void close();
 
   /**
    * Factory for {@link FuseFileInStream}.
    */
   @ThreadSafe
   class Factory {
-    private Factory() {} // prevent instantiation
+    private final FileSystem mFileSystem;
+    private final AuthPolicy mAuthPolicy;
+
+    /**
+     * Creates an instance of {@link FuseFileStream.Factory} for
+     * creating fuse streams.
+     *
+     * @param fileSystem the file system
+     * @param authPolicy the authentication policy
+     */
+    public Factory(FileSystem fileSystem, AuthPolicy authPolicy) {
+      mFileSystem = fileSystem;
+      mAuthPolicy = authPolicy;
+    }
 
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fileSystem the Alluxio file system
-     * @param authPolicy the Authentication policy
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @param mode the create file mode, -1 if not set
      * @param status the uri status
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags, long mode, Optional<URIStatus> status)
-        throws IOException, ExecutionException, AlluxioException {
+    public FuseFileStream create(
+        AlluxioURI uri, int flags, long mode, Optional<URIStatus> status) {
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
-          return FuseFileInStream.create(fileSystem, uri, flags, status);
+          return FuseFileInStream.create(mFileSystem, uri, flags, status);
         case O_WRONLY:
-          return FuseFileOutStream.create(fileSystem, authPolicy, uri, flags, mode, status);
+          return FuseFileOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
         case O_RDWR:
-          return FuseFileInOrOutStream.create(fileSystem, authPolicy, uri, flags, mode, status);
+          return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, uri, flags, mode, status);
         default:
-          throw new IOException(String.format("Cannot create file stream with flag 0x%x. "
+          throw new RuntimeException(String.format("Cannot create file stream with flag 0x%x. "
               + "Alluxio does not support file modification. "
               + "Cannot open directory in fuse.open().", flags));
       }
@@ -115,18 +121,14 @@ public interface FuseFileStream extends AutoCloseable {
     /**
      * Factory method for creating an implementation of {@link FuseFileStream}.
      *
-     * @param fileSystem the Alluxio file system
-     * @param authPolicy the Authentication policy
      * @param uri the Alluxio URI
      * @param flags the create/open flags
      * @param mode the create file mode, -1 if not set
      * @return the created fuse file stream
      */
-    public static FuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
-        AlluxioURI uri, int flags, long mode)
-        throws IOException, AlluxioException, ExecutionException {
-      return create(fileSystem, authPolicy, uri, flags, mode,
-          AlluxioFuseUtils.getPathStatus(fileSystem, uri));
+    public FuseFileStream create(AlluxioURI uri, int flags, long mode) {
+      return create(uri, flags, mode,
+          AlluxioFuseUtils.getPathStatus(mFileSystem, uri));
     }
   }
 }

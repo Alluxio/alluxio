@@ -45,16 +45,16 @@ public class FuseFileInStream implements FuseFileStream {
    * @return a {@link FuseFileInStream}
    */
   public static FuseFileInStream create(FileSystem fileSystem, AlluxioURI uri,
-      int flags, Optional<URIStatus> status) throws IOException, AlluxioException {
+      int flags, Optional<URIStatus> status) {
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(uri);
     if (AlluxioFuseOpenUtils.containsTruncate(flags)) {
-      throw new IOException(String.format(
+      throw new UnsupportedOperationException(String.format(
           "Failed to create read-only stream for path %s: flags 0x%x contains truncate",
           uri, flags));
     }
     if (!status.isPresent()) {
-      throw new IOException(String.format(
+      throw new UnsupportedOperationException(String.format(
           "Failed to create read-only stream for %s: file does not exist", uri));
     }
 
@@ -63,41 +63,51 @@ public class FuseFileInStream implements FuseFileStream {
       // Cannot open incomplete file for read
       // wait for file to complete in read or read_write mode
       if (!AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri)) {
-        throw new IOException(String.format(
+        throw new UnsupportedOperationException(String.format(
             "Failed to create read-only stream for %s: incomplete file", uri));
       }
     }
 
-    FileInStream is = fileSystem.openFile(uri);
-    return new FuseFileInStream(is, uriStatus.getLength(), uri);
+    try {
+      FileInStream is = fileSystem.openFile(uri);
+      return new FuseFileInStream(is, uriStatus.getLength(), uri);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private FuseFileInStream(FileInStream inStream, long fileLength, AlluxioURI uri) {
+    Preconditions.checkNotNull(inStream);
+    Preconditions.checkNotNull(uri);
     mInStream = inStream;
     mFileLength = fileLength;
     mURI = uri;
   }
 
   @Override
-  public synchronized int read(ByteBuffer buf, long size, long offset) throws IOException {
+  public synchronized int read(ByteBuffer buf, long size, long offset) {
     final int sz = (int) size;
     int nread = 0;
     int rd = 0;
-    if (offset - mInStream.getPos() >= mInStream.remaining()) {
-      return 0;
-    }
-    mInStream.seek(offset);
-    while (rd >= 0 && nread < sz) {
-      rd = mInStream.read(buf, nread, sz - nread);
-      if (rd >= 0) {
-        nread += rd;
+    try {
+      if (offset - mInStream.getPos() >= mInStream.remaining()) {
+        return 0;
       }
+      mInStream.seek(offset);
+      while (rd >= 0 && nread < sz) {
+        rd = mInStream.read(buf, nread, sz - nread);
+        if (rd >= 0) {
+          nread += rd;
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
     return nread;
   }
 
   @Override
-  public void write(ByteBuffer buf, long size, long offset) throws UnsupportedOperationException {
+  public void write(ByteBuffer buf, long size, long offset) {
     throw new UnsupportedOperationException(String
         .format("Cannot write to read-only stream of path %s", mURI));
   }
@@ -117,7 +127,11 @@ public class FuseFileInStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized void close() throws IOException {
-    mInStream.close();
+  public synchronized void close() {
+    try {
+      mInStream.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

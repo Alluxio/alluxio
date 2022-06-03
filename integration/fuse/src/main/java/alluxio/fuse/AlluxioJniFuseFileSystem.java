@@ -123,6 +123,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
   private final AuthPolicy mAuthPolicy;
+  private final FuseFileStream.Factory mStreamFactory;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -184,6 +185,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
+    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
     if (opts.isDebug()) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -219,16 +221,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    try {
-      FuseFileStream stream = FuseFileStream.Factory
-          .create(mFileSystem, mAuthPolicy, uri, fi.flags.get(), mode);
-      long fd = mNextOpenFileId.getAndIncrement();
-      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
-      fi.fh.set(fd);
-    } catch (Throwable t) {
-      LOG.error(String.format("Failed to create/open %s with flags=0x%x", path, fi.flags.get()), t);
-      return -ErrorCodes.EIO();
-    }
+    FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
+    long fd = mNextOpenFileId.getAndIncrement();
+    mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+    fi.fh.set(fd);
     return 0;
   }
 
@@ -338,7 +334,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       mFileSystem.iterateStatus(uri, file -> {
         FuseFillDir.apply(filter, buff, file.getName(), null, 0);
       });
-    } catch (Throwable e) {
+    } catch (IOException | AlluxioException e) {
       LOG.error("Failed to readdir {}", path, e);
       return -ErrorCodes.EIO();
     }
@@ -361,12 +357,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      return entry.getFileStream().read(buf, size, offset);
-    } catch (IOException | AlluxioException e) {
-      LOG.error("Failed to read {}: size={} offset={}", path, size, offset, e);
-      return -ErrorCodes.EIO();
-    }
+    return entry.getFileStream().read(buf, size, offset);
   }
 
   @Override
@@ -384,12 +375,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to write {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      entry.getFileStream().write(buf, size, offset);
-    } catch (Exception e) {
-      LOG.error("Failed to write {}:", path, e);
-      return -ErrorCodes.EIO();
-    }
+    entry.getFileStream().write(buf, size, offset);
     return (int) size;
   }
 
@@ -406,12 +392,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      entry.getFileStream().flush();
-    } catch (IOException e) {
-      LOG.error("Failed to flush {}:", path, e);
-      return -ErrorCodes.EIO();
-    }
+    entry.getFileStream().flush();
     return 0;
   }
 
@@ -430,9 +411,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     try {
       entry.getFileStream().close();
-    } catch (IOException e) {
-      LOG.error("Failed to close {}:", path, e);
-      return -ErrorCodes.EIO();
     } finally {
       mFileEntries.remove(entry);
     }
@@ -457,8 +435,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
               .setMode(new Mode((short) mode).toProto())
               .build());
       mAuthPolicy.setUserGroupIfNeeded(uri);
-    } catch (Throwable t) {
-      LOG.error("Failed to mkdir {}", path, t);
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Failed to mkdir {}", path, e);
       return -ErrorCodes.EIO();
     }
     return 0;
@@ -481,13 +459,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    * @return 0 on success, a negative value on error
    */
   private int rmInternal(String path) {
-    try {
-      mFileSystem.delete(mPathResolverCache.getUnchecked(path));
-    } catch (Throwable t) {
-      LOG.error("Failed to delete {}", path, t);
-      return -ErrorCodes.EIO();
-    }
-
+    AlluxioFuseUtils.deleteFile(mFileSystem, mPathResolverCache.getUnchecked(path));
     return 0;
   }
 
@@ -506,13 +478,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           sourcePath, destPath, name, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
-    Optional<URIStatus> status;
-    try {
-      status = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
-    } catch (Throwable t) {
-      LOG.error("Failed to rename {} to {}: cannot get status of source", sourcePath, destPath);
-      return -ErrorCodes.EIO();
-    }
+    Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, sourceUri);
     if (!status.isPresent()) {
       LOG.error("Failed to rename {} to {}: source non-existing", sourcePath, destPath);
       return -ErrorCodes.EEXIST();
@@ -525,7 +491,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     try {
       mFileSystem.rename(sourceUri, destUri);
-    } catch (Throwable e) {
+    } catch (IOException | AlluxioException e) {
       LOG.error("Failed to rename {} to {}", sourcePath, destPath, e);
       return -ErrorCodes.EIO();
     }
@@ -539,16 +505,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chmodInternal(String path, long mode) {
-    AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-
-    SetAttributePOptions options = SetAttributePOptions.newBuilder()
-        .setMode(new Mode((short) mode).toProto()).build();
-    try {
-      mFileSystem.setAttribute(uri, options);
-    } catch (Throwable t) {
-      LOG.error("Failed to change {} to mode {}", path, mode, t);
-      return AlluxioFuseUtils.getErrorCode(t);
-    }
+    AlluxioFuseUtils.setAttribute(mFileSystem, mPathResolverCache.getUnchecked(path),
+        SetAttributePOptions.newBuilder()
+            .setMode(new Mode((short) mode).toProto()).build());
     return 0;
   }
 
@@ -566,41 +525,35 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EOPNOTSUPP();
     }
 
-    try {
-      SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
-      final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-
-      String userName = "";
-      if (uid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-          && uid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-        userName = AlluxioFuseUtils.getUserName(uid);
-        if (userName.isEmpty()) {
-          // This should never be reached
-          LOG.error("Failed to chown {}: failed to get user name from uid {}", path, uid);
-          return -ErrorCodes.EINVAL();
-        }
-        optionsBuilder.setOwner(userName);
+    SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
+    String userName = "";
+    if (uid != AlluxioFuseUtils.ID_NOT_SET_VALUE
+        && uid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
+      userName = AlluxioFuseUtils.getUserName(uid);
+      if (userName.isEmpty()) {
+        // This should never be reached
+        LOG.error("Failed to chown {}: failed to get user name from uid {}", path, uid);
+        return -ErrorCodes.EINVAL();
       }
-
-      String groupName;
-      if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
-          && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
-        groupName = AlluxioFuseUtils.getGroupName(gid);
-        if (groupName.isEmpty()) {
-          // This should never be reached
-          LOG.error("Failed to chown {}: failed to get group name from gid {}", path, gid);
-          return -ErrorCodes.EINVAL();
-        }
-        optionsBuilder.setGroup(groupName);
-      } else if (!userName.isEmpty()) {
-        groupName = AlluxioFuseUtils.getGroupName(userName);
-        optionsBuilder.setGroup(groupName);
-      }
-      mFileSystem.setAttribute(uri, optionsBuilder.build());
-    } catch (Throwable t) {
-      LOG.error("Failed to chown {} to uid {} and gid {}", path, uid, gid, t);
-      return AlluxioFuseUtils.getErrorCode(t);
+      optionsBuilder.setOwner(userName);
     }
+
+    String groupName;
+    if (gid != AlluxioFuseUtils.ID_NOT_SET_VALUE
+        && gid != AlluxioFuseUtils.ID_NOT_SET_VALUE_UNSIGNED) {
+      groupName = AlluxioFuseUtils.getGroupName(gid);
+      if (groupName.isEmpty()) {
+        // This should never be reached
+        LOG.error("Failed to chown {}: failed to get group name from gid {}", path, gid);
+        return -ErrorCodes.EINVAL();
+      }
+      optionsBuilder.setGroup(groupName);
+    } else if (!userName.isEmpty()) {
+      groupName = AlluxioFuseUtils.getGroupName(userName);
+      optionsBuilder.setGroup(groupName);
+    }
+    AlluxioFuseUtils.setAttribute(mFileSystem, mPathResolverCache.getUnchecked(path),
+        optionsBuilder.build());
     return 0;
   }
 
@@ -622,25 +575,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int truncateInternal(String path, long size) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(PATH_INDEX, path);
-    try {
-      if (entry != null) {
-        entry.getFileStream().truncate(size);
-        return 0;
-      }
-    } catch (Exception e) {
-      LOG.info("Failed to truncate {} to {}:", path, size, e);
-      return -ErrorCodes.EIO();
+    if (entry != null) {
+      entry.getFileStream().truncate(size);
+      return 0;
     }
-
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    Optional<URIStatus> status;
-    try {
-      status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
-    } catch (Throwable t) {
-      LOG.error("Failed to truncate {} to {} bytes: failed to get file status", path, size, t);
-      return -ErrorCodes.EIO();
-    }
-
+    Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
     if (!status.isPresent()) {
       if (size == 0) {
         return 0;
@@ -655,13 +595,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         return 0;
       }
       if (size == 0) {
-        try {
-          mFileSystem.delete(uri);
-          return 0;
-        } catch (Exception e) {
-          LOG.error("Failed to truncate {} to {} bytes: failed to delete file", path, size, e);
-          return -ErrorCodes.EIO();
-        }
+        AlluxioFuseUtils.deleteFile(mFileSystem, uri);
       }
       LOG.error("Failed to truncate file {}({} bytes) to {} bytes: not supported.",
           path, fileLen, size);
@@ -737,8 +671,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
               BlockMasterInfo.BlockMasterInfoField.FREE_BYTES,
               BlockMasterInfo.BlockMasterInfoField.USED_BYTES));
       return masterClientResource.get().getBlockMasterInfo(blockMasterInfoFilter);
-    } catch (Throwable t) {
-      LOG.error("Failed to acquire block master information", t);
+    } catch (IOException e) {
+      LOG.error("Failed to acquire block master information", e);
       return null;
     }
   }

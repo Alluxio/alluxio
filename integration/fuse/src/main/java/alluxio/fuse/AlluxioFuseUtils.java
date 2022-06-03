@@ -29,6 +29,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
@@ -49,7 +50,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -87,15 +87,57 @@ public final class AlluxioFuseUtils {
    * @return a file out stream
    */
   public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
-      AlluxioURI uri, long mode) throws IOException, ExecutionException, AlluxioException {
+      AlluxioURI uri, long mode) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(uri);
-    FileOutStream out = fileSystem.createFile(uri,
-        CreateFilePOptions.newBuilder()
-            .setMode(new Mode((short) mode).toProto()).build());
-    if (authPolicy != null) {
-      authPolicy.setUserGroupIfNeeded(uri);
+    CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
+    if (mode != MODE_NOT_SET_VALUE) {
+      optionsBuilder.setMode(new Mode((short) mode).toProto());
     }
-    return out;
+    try {
+      FileOutStream out = fileSystem.createFile(uri,
+          optionsBuilder.build());
+      authPolicy.setUserGroupIfNeeded(uri);
+      return out;
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Deletes a file in alluxio namespace.
+   *
+   * @param fileSystem the file system
+   * @param uri the alluxio uri
+   */
+  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(uri);
+    try {
+      fileSystem.delete(uri);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Sets attribute for a file.
+   *
+   * @param fileSystem the file system
+   * @param uri the alluxio uri
+   * @param options the set attribute options
+   */
+  public static void setAttribute(FileSystem fileSystem,
+      AlluxioURI uri, SetAttributePOptions options) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(uri);
+    Preconditions.checkNotNull(options);
+    try {
+      fileSystem.setAttribute(uri, options);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -312,12 +354,15 @@ public final class AlluxioFuseUtils {
    * @param uri the Alluxio uri to get status of
    * @return the file status
    */
-  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri)
-      throws IOException, AlluxioException {
+  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(uri);
     try {
       return Optional.of(fileSystem.getStatus(uri));
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
       return Optional.empty();
+    } catch (IOException | AlluxioException ex) {
+      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
     }
   }
 
@@ -331,6 +376,8 @@ public final class AlluxioFuseUtils {
    * @return whether the file is completed or not
    */
   public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(uri);
     try {
       CommonUtils.waitFor("file completed", () -> {
         try {

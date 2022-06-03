@@ -22,7 +22,6 @@ import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
@@ -43,7 +42,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     Assert.assertEquals(0, status.getLength());
   }
 
-  @Test (expected = IOException.class)
+  @Test (expected = UnsupportedOperationException.class)
   public void createExisting() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
