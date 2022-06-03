@@ -22,7 +22,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -1088,9 +1087,9 @@ public class InodeTree implements DelegatingJournaled {
       Integer replicationMax, Integer replicationMin, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkArgument(replicationMin != null || replicationMax != null,
-        PreconditionMessage.INVALID_REPLICATION_MAX_MIN_VALUE_NULL);
+        "Both min and max replication are null");
     Preconditions.checkArgument(replicationMin == null || replicationMin >= 0,
-        PreconditionMessage.INVALID_REPLICATION_MIN_VALUE);
+        "Min replication must be a non-negative integer");
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
     Inode inode = inodePath.getInode();
@@ -1102,7 +1101,8 @@ public class InodeTree implements DelegatingJournaled {
 
       Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
           || newMax >= newMin,
-          PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
+          "Cannot set min and max replication to be %s and %s: "
+              + "min replication must be smaller or equal than max replication",
           newMin, newMax);
 
       mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
@@ -1162,7 +1162,7 @@ public class InodeTree implements DelegatingJournaled {
    */
   public boolean isRootId(long fileId) {
     Preconditions.checkNotNull(mState.getRoot(),
-        PreconditionMessage.INODE_TREE_UNINITIALIZED_IS_ROOT_ID);
+        "Cannot call isRootId() before initializeRoot()");
     return fileId == mState.getRoot().getId();
   }
 

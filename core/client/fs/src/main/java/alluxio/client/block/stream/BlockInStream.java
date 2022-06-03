@@ -319,9 +319,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (mEOF) {
       closeDataReader();
-      Preconditions
-          .checkState(mPos >= mLength, PreconditionMessage.BLOCK_LENGTH_INCONSISTENT.toString(),
-              mId, mLength, mPos);
+      Preconditions.checkState(mPos >= mLength,
+          "Block %s is expected to be %s bytes, but only %s bytes are available. "
+              + "Please ensure its metadata is consistent between Alluxio and UFS.",
+          mId, mLength, mPos);
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
@@ -382,9 +383,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public void seek(long pos) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions
-        .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_REGION.toString(),
-            mId);
+    Preconditions.checkArgument(pos <= mLength,
+        "Seek position past the end of the read region (block or file).", mId);
     if (pos == mPos) {
       return;
     }
@@ -508,7 +508,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * Convenience method to ensure the stream is not closed.
    */
   private void checkIfClosed() {
-    Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
+    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 
   /**
