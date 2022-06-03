@@ -25,8 +25,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -53,10 +53,11 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link ClientIOWritePolicy}.
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
-   * @param conf Alluxio configuration
+   * @param ignoredConf is unused
    */
-  public ClientIOWritePolicy(AlluxioConfiguration conf) {}
+  public ClientIOWritePolicy(AlluxioConfiguration ignoredConf) {}
 
   /**
    *
@@ -64,8 +65,7 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
    * @return the address of the worker to write to
    */
   @Override
-  @Nullable
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     Map<WorkerNetAddress, BlockWorkerInfo> eligibleWorkers = new HashMap<>();
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
       eligibleWorkers.put(info.getNetAddress(), info);
@@ -94,11 +94,11 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
       BlockWorkerInfo workerInfo = eligibleWorkers.get(candidate);
       if (workerInfo != null && workerInfo.getCapacityBytes() >= options.getBlockInfo()
           .getLength()) {
-        return candidate;
+        return Optional.of(candidate);
       }
     }
 
-    return null;
+    return Optional.empty();
   }
 
   @Override
@@ -112,8 +112,7 @@ public final class ClientIOWritePolicy implements BlockLocationPolicy {
     ClientIOWritePolicy that = (ClientIOWritePolicy) o;
     return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
         && Objects.equal(mIndex, that.mIndex)
-        && Objects.equal(mInitialized, that.mInitialized)
-        ;
+        && Objects.equal(mInitialized, that.mInitialized);
   }
 
   @Override

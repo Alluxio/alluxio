@@ -58,6 +58,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
@@ -601,9 +602,8 @@ public class FileSystemContext implements Closeable {
    *
    * @return the acquired block worker or null if this client is not interal to a block worker
    */
-  @Nullable
-  public BlockWorker getProcessLocalWorker() {
-    return mBlockWorker;
+  public Optional<BlockWorker> getProcessLocalWorker() {
+    return Optional.ofNullable(mBlockWorker);
   }
 
   /**

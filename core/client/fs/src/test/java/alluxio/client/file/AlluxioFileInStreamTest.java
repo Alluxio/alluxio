@@ -165,20 +165,20 @@ public final class AlluxioFileInStreamTest {
       fileBlockInfos.add(fbInfo);
       final byte[] input = BufferUtils
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
-      mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
+      mInStreams.add(new TestBlockInStream(input, i, input.length, mBlockSource));
       when(mContext.getCachedWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
           .thenAnswer(invocation -> {
             long blockId = (Long) invocation.getArguments()[0];
             return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+                blockId, input.length, mBlockSource) : mInStreams.get((int) blockId);
           });
       when(mBlockStore.getInStream(eq(new BlockInfo().setBlockId(i)), any(InStreamOptions.class),
           any())).thenAnswer(invocation -> {
             long blockId = ((BlockInfo) invocation.getArguments()[0]).getBlockId();
             return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+                blockId, input.length, mBlockSource) : mInStreams.get((int) blockId);
           });
     }
     mInfo.setBlockIds(blockIds);
@@ -778,7 +778,7 @@ public final class AlluxioFileInStreamTest {
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, false, mBlockSource);
+            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, mBlockSource);
           }
         });
     byte[] buffer = new byte[(int) BLOCK_LENGTH];

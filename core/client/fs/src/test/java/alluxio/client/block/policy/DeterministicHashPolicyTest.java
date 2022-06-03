@@ -63,7 +63,8 @@ public final class DeterministicHashPolicyTest {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         DeterministicHashPolicy.class, sConf);
     String host = policy.getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
-        .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB))).getHost();
+        .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
+        .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost();
     for (int i = 0; i < 10; i++) {
       DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
           DeterministicHashPolicy.class,
@@ -72,11 +73,11 @@ public final class DeterministicHashPolicyTest {
       assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
-          .getHost());
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
       assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
-          .getHost());
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
     }
   }
 
@@ -89,7 +90,8 @@ public final class DeterministicHashPolicyTest {
       assertNotEquals("worker1", policy.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(blockId)
-              .setLength(2 * (long) Constants.GB))).getHost());
+                  .setLength(2 * (long) Constants.GB)))
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
     }
   }
 
@@ -104,11 +106,13 @@ public final class DeterministicHashPolicyTest {
       addresses1.add(policy2.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1)
-                  .setLength(2 * (long) Constants.GB))).getHost());
+                  .setLength(2 * (long) Constants.GB)))
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
       addresses2.add(policy2.getWorker(
-          GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1)
-              .setLength(2 * (long) Constants.GB))).getHost());
+                  .setLength(2 * (long) Constants.GB)))
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
     }
     // With sufficient traffic, 2 (= #shards) workers should be picked to serve the block.
     assertEquals(2, addresses1.size());
