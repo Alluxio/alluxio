@@ -12,11 +12,10 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
-
-import java.util.Optional;
 
 /**
  * The metadata store for pages stored in cache.
@@ -31,7 +30,7 @@ public interface MetaStore {
     if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)) {
       return new QuotaMetaStore(conf);
     }
-    return new DefaultMetaStore(conf);
+    return new DefaultMetaStore();
   }
 
   /**
@@ -81,5 +80,14 @@ public interface MetaStore {
    * @param pageStoreDir
    * @return a page to evict
    */
-  PageInfo evict(Optional<PageStoreDir> pageStoreDir);
+  default PageInfo evict(PageStoreDir pageStoreDir) {
+    return evict(CacheScope.GLOBAL, pageStoreDir);
+  }
+
+  /**
+   * @param cacheScope
+   * @param pageStoreDir
+   * @return a page to evict
+   */
+  PageInfo evict(CacheScope cacheScope, PageStoreDir pageStoreDir);
 }

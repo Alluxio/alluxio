@@ -24,9 +24,11 @@ import alluxio.metrics.MetricsSystem;
 import com.codahale.metrics.Gauge;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.util.Optional;
+import java.nio.file.Paths;
 
 /**
  * Tests for the {@link DefaultMetaStore} class.
@@ -34,11 +36,13 @@ import java.util.Optional;
 public class DefaultMetaStoreTest {
   protected final PageId mPage = new PageId("1L", 2L);
   protected final AlluxioConfiguration mConf = Configuration.global();
-  protected final PageInfo mPageInfo =
-      new PageInfo(mPage, 1024,
-          PageStoreDir.createPageStoreDir(mConf, new LocalPageStoreOptions()));
+  protected PageStoreDir mPageStoreDir;
+  protected PageInfo mPageInfo;
   protected DefaultMetaStore mMetaStore;
   protected Gauge mCachedPageGauge;
+
+  @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   /**
    * Sets up the instances.
@@ -46,7 +50,13 @@ public class DefaultMetaStoreTest {
   @Before
   public void before() {
     MetricsSystem.clearAllMetrics();
-    mMetaStore = new DefaultMetaStore(mConf);
+    mPageStoreDir =
+        PageStoreDir.createPageStoreDir(mConf,
+            new LocalPageStoreOptions().setRootDir(
+                Paths.get(mTempFolder.getRoot().getAbsolutePath())));
+    mPageInfo = new PageInfo(mPage, 1024,
+        mPageStoreDir);
+    mMetaStore = new DefaultMetaStore();
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
@@ -104,9 +114,9 @@ public class DefaultMetaStoreTest {
   @Test
   public void evict() throws Exception {
     mMetaStore.addPage(mPage, mPageInfo);
-    Assert.assertEquals(mPageInfo, mMetaStore.evict(Optional.empty()));
+    Assert.assertEquals(mPageInfo, mMetaStore.evict(mPageStoreDir));
     mMetaStore.removePage(mPageInfo.getPageId());
-    Assert.assertNull(mMetaStore.evict(Optional.empty()));
+    Assert.assertNull(mMetaStore.evict(mPageStoreDir));
     Assert.assertEquals(0, mCachedPageGauge.getValue());
   }
 }

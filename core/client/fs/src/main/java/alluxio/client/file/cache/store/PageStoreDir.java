@@ -43,9 +43,10 @@ public interface PageStoreDir {
       case LOCAL:
         checkState(pageStoreOptions instanceof LocalPageStoreOptions);
         return new LocalPageStoreDir(
-            conf,
             (LocalPageStoreOptions) pageStoreOptions,
-            PageStore.openOrCreatePageStore(pageStoreOptions));
+            PageStore.openOrCreatePageStore(pageStoreOptions),
+            CacheEvictor.create(conf)
+        );
       case ROCKS:
       case MEM:
       default:
@@ -108,7 +109,6 @@ public interface PageStoreDir {
    * @return if the fileId added successfully
    */
   boolean addTempFileToDir(String fileId);
-
 
   /**
    * @param bytes

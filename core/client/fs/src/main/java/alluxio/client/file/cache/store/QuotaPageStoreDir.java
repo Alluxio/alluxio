@@ -13,7 +13,6 @@ package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.resource.LockResource;
 
 import java.nio.file.Path;
@@ -35,10 +34,10 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
 
   private final CacheEvictor mEvictor;
 
-  QuotaPageStoreDir(AlluxioConfiguration conf, Path rootPath, long capacity) {
+  QuotaPageStoreDir(Path rootPath, long capacity, CacheEvictor evictor) {
     mRootPath = rootPath;
     mCapacity = capacity;
-    mEvictor = CacheEvictor.create(conf);
+    mEvictor = evictor;
   }
 
   @Override
@@ -53,7 +52,7 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
 
   @Override
   public long getCachedBytes() {
-    return 0;
+    return mBytesUsed.get();
   }
 
   @Override
@@ -87,6 +86,7 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
 
   @Override
   public long releaseSpace(PageInfo pageInfo) {
+    mEvictor.updateOnDelete(pageInfo.getPageId());
     return mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
 

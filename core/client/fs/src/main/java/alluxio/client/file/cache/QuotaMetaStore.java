@@ -12,12 +12,12 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -35,7 +35,6 @@ public class QuotaMetaStore extends DefaultMetaStore {
    * @param conf configuration
    */
   public QuotaMetaStore(AlluxioConfiguration conf) {
-    super(conf);
     mBytesInScope = new ConcurrentHashMap<>();
     mCacheEvictors = new ConcurrentHashMap<>();
     mSupplier = () -> CacheEvictor.create(conf);
@@ -98,12 +97,14 @@ public class QuotaMetaStore extends DefaultMetaStore {
 
   /**
    * @param cacheScope scope to evict
+   * @param pageStoreDir the page store dir targeted to evict
    * @return a page to evict in this scope
    */
+  @Override
   @Nullable
-  public PageInfo evict(CacheScope cacheScope) {
+  public PageInfo evict(CacheScope cacheScope, PageStoreDir pageStoreDir) {
     if (cacheScope == CacheScope.GLOBAL) {
-      return evict(Optional.empty());
+      return evictInternal(pageStoreDir.getEvictor());
     }
     CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
     return evictInternal(evictor);

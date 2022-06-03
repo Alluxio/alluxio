@@ -11,9 +11,11 @@
 
 package alluxio.client.file.cache.store;
 
+import static java.util.Objects.requireNonNull;
+
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.cache.evictor.CacheEvictor;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -31,14 +33,15 @@ public class MemoryPageStoreDir extends QuotaPageStoreDir {
    * Constructor of MemPageStoreDir.
    * @param pageStoreOptions page store options
    * @param pageStore the PageStore instance
+   * @param cacheEvictor the evictor
    */
-  public MemoryPageStoreDir(AlluxioConfiguration conf,
-                            PageStoreOptions pageStoreOptions,
-                            MemoryPageStore pageStore) {
-    super(conf, pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize());
-    mPageStore = pageStore;
-    mCapacity = pageStoreOptions.getCacheSize();
-    mRootPath = pageStoreOptions.getRootDir();
+  public MemoryPageStoreDir(PageStoreOptions pageStoreOptions,
+                            MemoryPageStore pageStore,
+                            CacheEvictor cacheEvictor) {
+    super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize(), cacheEvictor);
+    mPageStore = requireNonNull(pageStore);
+    mCapacity = requireNonNull(pageStoreOptions.getCacheSize());
+    mRootPath = requireNonNull(pageStoreOptions.getRootDir());
   }
 
   @Override
@@ -52,21 +55,11 @@ public class MemoryPageStoreDir extends QuotaPageStoreDir {
   }
 
   @Override
-  public long getCapacity() {
-    return mCapacity;
-  }
-
-  @Override
   public void resetPageStore() {
   }
 
   @Override
   public void restorePages(Consumer<PageInfo> pageInfoConsumer) {
     //do nothing
-  }
-
-  @Override
-  public long getCachedBytes() {
-    return 0;
   }
 }

@@ -117,8 +117,6 @@ public class PageStoreTest {
         mPageStore.get(id, offset, len, buf, 0));
   }
 
-
-
   @Test
   public void getSmallLen() throws Exception {
     int len = 32;

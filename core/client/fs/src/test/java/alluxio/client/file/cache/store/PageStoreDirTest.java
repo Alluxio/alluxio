@@ -35,7 +35,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class PageStoreDirTest {
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
@@ -90,7 +91,7 @@ public class PageStoreDirTest {
     for (int i = 0; i < count; i++) {
       PageId id = new PageId(UUID.randomUUID().toString(), i);
       mPageStoreDir.getPageStore().put(id, data);
-      pages.add(new PageInfo(id, data.length,mPageStoreDir));
+      pages.add(new PageInfo(id, data.length, mPageStoreDir));
     }
     Set<PageInfo> restored = new HashSet<>();
     mPageStoreDir.restorePages((pageInfo -> restored.add(pageInfo)));

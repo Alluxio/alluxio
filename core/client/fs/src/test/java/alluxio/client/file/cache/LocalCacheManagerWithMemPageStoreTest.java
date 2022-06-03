@@ -74,7 +74,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
     mPageStoreOptions = PageStoreOptions.create(mConf).get(0);
     mPageStoreDir = PageStoreDir.createPageStoreDir(mConf, mPageStoreOptions);
     mEvictor = new FIFOCacheEvictor(mConf);
-    mMetaStore = new DefaultMetaStore(mEvictor);
+    mMetaStore = new DefaultMetaStore();
     mCacheManager = createLocalCacheManager();
   }
 
@@ -236,7 +236,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
   @Test
   public void noEvictionPolicy() throws Exception {
     mEvictor = new UnevictableCacheEvictor(mConf);
-    mMetaStore = new DefaultMetaStore(mEvictor);
+    mMetaStore = new DefaultMetaStore();
     mCacheManager = createLocalCacheManager();
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE) / PAGE_SIZE_BYTES;
     for (int i = 0; i < numPages; i++) {
@@ -277,7 +277,7 @@ public final class LocalCacheManagerWithMemPageStoreTest {
 
   @Test
   public void putMoreThanCacheCapacityLRU() throws Exception {
-    mMetaStore = new DefaultMetaStore(mConf);
+    mMetaStore = new DefaultMetaStore();
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, ImmutableList.of(mPageStoreDir));
     int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
     //fill up the cache

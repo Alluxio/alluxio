@@ -5,7 +5,7 @@ import static alluxio.client.file.cache.store.PageStoreDir.getFileBucket;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.cache.evictor.CacheEvictor;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -33,14 +33,16 @@ public class LocalPageStoreDir extends QuotaPageStoreDir {
 
   /**
    * Constructor for LocalCacheDir.
-   * @param conf
    * @param pageStoreOptions
    * @param pageStore
+   * @param evictor
    */
-  public LocalPageStoreDir(AlluxioConfiguration conf,
-                           LocalPageStoreOptions pageStoreOptions,
-                           PageStore pageStore) {
-    super(conf, pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize());
+  public LocalPageStoreDir(LocalPageStoreOptions pageStoreOptions,
+                           PageStore pageStore,
+                           CacheEvictor evictor) {
+    super(pageStoreOptions.getRootDir(),
+        (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio())),
+        evictor);
     mPageStoreOptions = pageStoreOptions;
     mPageStore = pageStore;
     mFileBuckets = pageStoreOptions.getFileBuckets();
@@ -84,11 +86,6 @@ public class LocalPageStoreDir extends QuotaPageStoreDir {
   public void restorePages(Consumer<PageInfo> pageInfoConsumer) throws IOException {
     Files.walk(getRootPath()).filter(Files::isRegularFile).map(this::getPageInfo)
         .forEach(pageInfoConsumer);
-  }
-
-  @Override
-  public long getCachedBytes() {
-    return 0;
   }
 
   /**

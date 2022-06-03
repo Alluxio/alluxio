@@ -5,7 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.client.file.cache.evictor.CacheEvictor;
 
 import com.google.common.collect.Streams;
 import org.rocksdb.RocksIterator;
@@ -32,11 +32,12 @@ public class RocksPageStoreDir extends QuotaPageStoreDir {
    * Constructor of RocksPageStoreDir.
    * @param pageStoreOptions
    * @param pageStore
+   * @param cacheEvictor
    */
-  public RocksPageStoreDir(AlluxioConfiguration conf,
-                           PageStoreOptions pageStoreOptions,
-                           PageStore pageStore) {
-    super(conf, pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize());
+  public RocksPageStoreDir(PageStoreOptions pageStoreOptions,
+                           PageStore pageStore,
+                           CacheEvictor cacheEvictor) {
+    super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize(), cacheEvictor);
     checkState(pageStore instanceof RocksPageStore);
     mPageStore = (RocksPageStore) pageStore;
     mPageStoreOptions = pageStoreOptions;
@@ -55,11 +56,6 @@ public class RocksPageStoreDir extends QuotaPageStoreDir {
   }
 
   @Override
-  public long getCapacity() {
-    return mCapacity;
-  }
-
-  @Override
   public void resetPageStore() {
     try {
       mPageStore.close();
@@ -75,11 +71,6 @@ public class RocksPageStoreDir extends QuotaPageStoreDir {
     RocksIterator iter = mPageStore.createNewInterator();
     iter.seekToFirst();
     Streams.stream(new PageIterator(iter, this)).onClose(iter::close).forEach(pageInfoConsumer);
-  }
-
-  @Override
-  public long getCachedBytes() {
-    return 0;
   }
 
   private class PageIterator implements Iterator<PageInfo> {

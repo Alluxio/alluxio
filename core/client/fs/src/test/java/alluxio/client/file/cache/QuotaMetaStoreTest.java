@@ -26,13 +26,13 @@ import alluxio.metrics.MetricsSystem;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 /**
  * Tests for the {@link QuotaMetaStore} class.
  */
 public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
-  private final PageStoreDir mPageStoreDir =
-      PageStoreDir.createPageStoreDir(mConf, new LocalPageStoreOptions());
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private final CacheScope mPartitionScope = CacheScope.create("schema.table.partition");
   private final CacheScope mTableScope = CacheScope.create("schema.table");
   private final CacheScope mSchemaScope = CacheScope.create("schema");
@@ -43,6 +43,12 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
   @Before
   public void before() {
     MetricsSystem.clearAllMetrics();
+    mPageStoreDir =
+        PageStoreDir.createPageStoreDir(mConf,
+            new LocalPageStoreOptions().setRootDir(
+                Paths.get(mTempFolder.getRoot().getAbsolutePath())));
+    mPageInfo = new PageInfo(mPage, 1024,
+        mPageStoreDir);
     mMetaStore = new QuotaMetaStore(mConf);
     mQuotaMetaStore = (QuotaMetaStore) mMetaStore;
     mCachedPageGauge =
@@ -51,13 +57,13 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
 
   @Test
   public void evictInScope() throws Exception {
-    assertNull(mQuotaMetaStore.evict(CacheScope.GLOBAL));
+    assertNull(mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir));
     PageInfo pageInfo = new PageInfo(mPage, mPageSize, mSchemaScope, mPageStoreDir);
     mQuotaMetaStore.addPage(mPage, pageInfo);
-    assertNull(mQuotaMetaStore.evict(mPartitionScope));
-    assertNull(mQuotaMetaStore.evict(mTableScope));
-    assertEquals(pageInfo, mQuotaMetaStore.evict(mSchemaScope));
-    assertEquals(pageInfo, mQuotaMetaStore.evict(CacheScope.GLOBAL));
+    assertNull(mQuotaMetaStore.evict(mPartitionScope, mPageStoreDir));
+    assertNull(mQuotaMetaStore.evict(mTableScope, mPageStoreDir));
+    assertEquals(pageInfo, mQuotaMetaStore.evict(mSchemaScope, mPageStoreDir));
+    assertEquals(pageInfo, mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir));
   }
 
   @Test
@@ -70,20 +76,20 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
     PageInfo pageInfo2 = new PageInfo(pageId2, 5678, partitionScope2, mPageStoreDir);
     mQuotaMetaStore.addPage(pageId1, pageInfo1);
     mQuotaMetaStore.addPage(pageId2, pageInfo2);
-    assertEquals(pageInfo1, mQuotaMetaStore.evict(partitionScope1));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2));
-    PageInfo evicted = mQuotaMetaStore.evict(mTableScope);
+    assertEquals(pageInfo1, mQuotaMetaStore.evict(partitionScope1, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2, mPageStoreDir));
+    PageInfo evicted = mQuotaMetaStore.evict(mTableScope, mPageStoreDir);
     assertTrue(evicted == pageInfo1 || evicted == pageInfo2);
-    evicted = mQuotaMetaStore.evict(mSchemaScope);
+    evicted = mQuotaMetaStore.evict(mSchemaScope, mPageStoreDir);
     assertTrue(evicted == pageInfo1 || evicted == pageInfo2);
-    evicted = mQuotaMetaStore.evict(CacheScope.GLOBAL);
+    evicted = mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir);
     assertTrue(evicted == pageInfo1 || evicted == pageInfo2);
     mQuotaMetaStore.removePage(pageId1);
-    assertNull(mQuotaMetaStore.evict(partitionScope1));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(mTableScope));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(mSchemaScope));
-    assertEquals(pageInfo2, mQuotaMetaStore.evict(CacheScope.GLOBAL));
+    assertNull(mQuotaMetaStore.evict(partitionScope1, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(partitionScope2, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(mTableScope, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(mSchemaScope, mPageStoreDir));
+    assertEquals(pageInfo2, mQuotaMetaStore.evict(CacheScope.GLOBAL, mPageStoreDir));
   }
 
   @Test

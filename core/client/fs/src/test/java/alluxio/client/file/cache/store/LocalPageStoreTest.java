@@ -58,7 +58,8 @@ public class LocalPageStoreTest {
       pageStore.put(id, "test".getBytes());
     }
     assertEquals(1, Files.list(
-        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()))).count());
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
   }
 
   @Test
@@ -72,7 +73,8 @@ public class LocalPageStoreTest {
       pageStore.put(id, "test".getBytes());
     }
     assertEquals(10, Files.list(
-        Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize()))).count());
+            Paths.get(mOptions.getRootDir().toString(), Long.toString(mOptions.getPageSize())))
+        .count());
   }
 
   @Test

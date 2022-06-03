@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -331,9 +330,9 @@ public class LocalCacheManager implements CacheManager {
               new PageInfo(pageId, page.length, cacheContext.getCacheScope(), pageStoreDir));
         } else {
           if (mQuotaEnabled) {
-            victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
+            victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict, pageStoreDir);
           } else {
-            victimPageInfo = mMetaStore.evict(Optional.of(pageStoreDir));
+            victimPageInfo = mMetaStore.evict(pageStoreDir);
           }
           if (victimPageInfo == null) {
             LOG.error("Unable to find page to evict: space used {}, page length {}, cache size {}",
