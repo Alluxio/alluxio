@@ -34,7 +34,10 @@ import java.util.Random;
  * mUserSerialization - enable or disable ProtoBuf serialization of values.
  * mFileCount - the initial number of inodes stored in RocksDB.
  * mIsDirectory - have the Inodes represent directories or files.
- * mUseZipf - if to use a Zipfian distribution when choosing the keys to read
+ * mUseZipf - if to use a Zipfian distribution when choosing the keys to read.
+ *  The more likely keys to be read will be the ones written last,
+ *  meaning that they will more likely be in the RocksDB memtable.
+ * mRocksConfig - see {@link RocksBenchConfig}
  */
 public class RocksBenchRead {
   @State(Scope.Thread)

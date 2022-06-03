@@ -25,10 +25,10 @@ import java.util.Arrays;
  * a tree like structure, this includes locking and traversing the
  * path.
  * The following parameters can be varied:
- * mType - the type of inode storage to use
  * mDepth - the number of levels in the inode tree
- *
-**/
+ * mType - the type of inode storage to use
+ * mRocksConfig - see {@link RocksBenchConfig}
+ * **/
 public class InodeBenchWrite {
 
   @State(Scope.Thread)

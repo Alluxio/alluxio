@@ -26,14 +26,17 @@ import java.util.Random;
  * a tree like structure, this includes locking and traversing the
  * read path.
  * The following parameters can be varied:
- * mType - the type of inode storage to use
  * mSingleFile - if true the operation measured is to traverse the tree and return
  *   a single inode. If false the operation measured is to traverse the tree and list
  *   the files in the reached directory.
  * mDepth - the number of levels in the inode tree
  * mFileCount - the number of inodes created at each depth
  * mUseZipf - if true depths and inodes to be read will be chosen
- *   according to a Zipfian distribution.
+ *   according to a Zipfian distribution. This means that directories
+ *   with shallow depth will be more likely to be chosen, and files with
+ *   larger ids are more likely to be chosen (i.e. those written later).
+ * mType - the type of inode storage to use
+ * mRocksConfig - see {@link RocksBenchConfig}
  */
 public class InodeBenchRead {
 
@@ -70,7 +73,7 @@ public class InodeBenchRead {
       if (db.mUseZipf) {
         return db.mDist.nextValue();
       }
-      mNxtFileId[mNxtDepth] = (mNxtFileId[mNxtDepth] + 1) % db.mFileCount;
+      mNxtFileId[mNxtDepth] = (db.mFileCount - (mNxtFileId[mNxtDepth] + 1) % db.mFileCount) - 1;
       return mNxtFileId[mNxtDepth];
     }
 
@@ -105,7 +108,7 @@ public class InodeBenchRead {
     ZipfianGenerator mDistDepth;
     InodeBenchBase mBase;
 
-    @Setup(Level.Iteration)
+    @Setup(Level.Trial)
     public void setup() throws Exception {
       mBase = new InodeBenchBase(mType, mRocksConfig);
       mBase.createBasePath(mDepth);
@@ -120,7 +123,7 @@ public class InodeBenchRead {
       }
     }
 
-    @TearDown(Level.Iteration)
+    @TearDown(Level.Trial)
     public void after() throws Exception {
       mBase.after();
       mBase = null;
@@ -134,8 +137,6 @@ public class InodeBenchRead {
     } else {
       db.mBase.listDir(ts.nextDepth(db), bh::consume);
     }
-    ts.mNxtFileId[ts.mNxtDepth] = (ts.mNxtFileId[ts.mNxtDepth] + 1) % db.mFileCount;
-    ts.mNxtDepth = (ts.mNxtDepth + 1) % (db.mDepth + 1);
   }
 
   public static void main(String []args) throws RunnerException {

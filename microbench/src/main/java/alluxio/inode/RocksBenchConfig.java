@@ -12,6 +12,25 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+
+/**
+ * This class is used to set different RocksDB configurations for the
+ * benchmarks through the mRocksConfig option, as follows:
+ * mRocksConfig - if using rocks, or rocksCache for mType, then the type
+ *   of RocksDB configuration to use (if using heap then this option must
+ *   be set to javaConfig). This can be one of the following:
+ *     - javaConfig - this uses the configuration defined in the java code in
+ *     {@link alluxio.master.metastore.rocks.RocksInodeStore} (i.e. no configuration
+ *     file is used)
+ *     - emptyConfig - this uses a configuration file with no configurations, i.e.
+ *     it uses all RocksDB defaults.
+ *     - bloomConfig - this uses a configuration with bloom filters enabled, both
+ *     for the memtable and the block files. Additionally, it uses larger caches
+ *     and uses block has indices for faster point lookups.
+ *     - baseConfig - this is the same as javaConfig, except defined in a string
+ *     representing a config file, allowing easy modifications.
+
+ */
 public class RocksBenchConfig {
 
   static final String JAVA_CONFIG = "javaConfig";

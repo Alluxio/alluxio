@@ -25,7 +25,8 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
  * The following options can be varied:
  * mIsDirectory - if the inodes written should represent a file or directory
  * mUseSerialization - if true, the measured time will include serializing an inode to bytes.
- */
+ * mRocksConfig - see {@link RocksBenchConfig}
+ **/
 public class RocksBenchWrite {
   @State(Scope.Thread)
   public static class ThreadState {
