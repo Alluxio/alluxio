@@ -9,6 +9,7 @@ require (
 	github.com/onsi/gomega v1.4.2
 	github.com/pkg/errors v0.8.1
 	go.uber.org/zap v1.9.1
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0

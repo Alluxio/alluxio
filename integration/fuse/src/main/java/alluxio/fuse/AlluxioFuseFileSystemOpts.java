@@ -14,7 +14,6 @@ package alluxio.fuse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
@@ -22,35 +21,47 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Constructs an {@link AlluxioFuseFileSystemOpts} that contains
- * all fuse-related options used by libfuse, and the alluxioPath used by Alluxio.
+ * This class holds all fuse-related options used by libfuse and AlluxioFuse.
  */
 public final class AlluxioFuseFileSystemOpts {
   private final String mAlluxioPath;
-  private final List<String> mLibfuseOptions;
+  private final String mFsName;
+  private final int mFuseMaxPathCached;
+  private final int mFuseUmountTimeout;
   private final boolean mIsDebug;
+  private final List<String> mLibfuseOptions;
   private final String mMountPoint;
+  private final boolean mSpecialCommandEnabled;
+  private final long mStatCacheTimeout;
+  private final boolean mUserGroupTranslationEnabled;
 
   /**
-   * Constructs an AlluxioFuseFileSystemOpts with only Alluxio cluster configuration.
+   * Constructs an {@link AlluxioFuseFileSystemOpts} with only Alluxio cluster configuration.
    *
    * @param conf     Alluxio cluster configuration
    * @return AlluxioFuseFileSystemOpts
    */
   public static AlluxioFuseFileSystemOpts create(AlluxioConfiguration conf) {
-    List<String> fuseOptions = conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)
+    List<String> libfuseOptions = conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)
         ? conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
         : ImmutableList.of();
     return new AlluxioFuseFileSystemOpts(
         conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH),
+        conf.getString(PropertyKey.FUSE_FS_NAME),
+        conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX),
+        (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT),
+        conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED),
+        libfuseOptions,
         conf.getString(PropertyKey.FUSE_MOUNT_POINT),
-        fuseOptions,
-        conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)
+        conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED),
+        conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL),
+        conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED)
     );
   }
 
   /**
-   * Constructs an AlluxioFuseFileSystemOpts with Alluxio cluster configuration and command line.
+   * Constructs an {@link AlluxioFuseFileSystemOpts} with
+   * Alluxio cluster configuration and command line.
    * Command line input has higher precedence if a property is set both in config and command.
    *
    * @param conf     Alluxio cluster configuration
@@ -62,9 +73,10 @@ public final class AlluxioFuseFileSystemOpts {
     Optional<String> alluxioPathFromCli = fuseCliOpts.getMountAlluxioPath();
     String alluxioPath = alluxioPathFromCli.orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
-    Optional<String> mountPointFromCli = fuseCliOpts.getMountPoint();
-    String mountPoint = mountPointFromCli.orElseGet(
-        () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
+    String fsName = conf.getString(PropertyKey.FUSE_FS_NAME);
+    int fuseMaxPathCached = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    int fuseUmountTimeout = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
+    boolean isDebug = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
     Optional<List<String>> libfuseOptionsFromCli = fuseCliOpts.getFuseOptions();
     List<String> libfuseOptions;
     if (libfuseOptionsFromCli.isPresent()) {
@@ -77,32 +89,32 @@ public final class AlluxioFuseFileSystemOpts {
       }
     }
     libfuseOptions = optimizeAndFormatFuseOptions(libfuseOptions);
-    boolean isDebug = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
-
-    return new AlluxioFuseFileSystemOpts(alluxioPath, mountPoint, libfuseOptions, isDebug);
+    Optional<String> mountPointFromCli = fuseCliOpts.getMountPoint();
+    String mountPoint = mountPointFromCli.orElseGet(
+        () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
+    boolean specialCommandEnabled = conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED);
+    long statCacheTimeout = conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
+    boolean userGroupTranslationEnabled = conf.getBoolean(
+        PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+    return new AlluxioFuseFileSystemOpts(alluxioPath, fsName, fuseMaxPathCached, fuseUmountTimeout,
+        isDebug, libfuseOptions, mountPoint, specialCommandEnabled, statCacheTimeout,
+        userGroupTranslationEnabled);
   }
 
-  /**
-   * Constructs an AlluxioFuseFileSystemOpts solely for testing purpose.
-   *
-   * @param  alluxioPath
-   * @param  mountPoint
-   * @param  fuseOptions
-   * @param  isDebug
-   * @return AlluxioFuseFileSystemOpts
-   */
-  @VisibleForTesting
-  public static AlluxioFuseFileSystemOpts create(
-      String alluxioPath, String mountPoint, List<String> fuseOptions, boolean isDebug) {
-    return new AlluxioFuseFileSystemOpts(alluxioPath, mountPoint, fuseOptions, isDebug);
-  }
-
-  private AlluxioFuseFileSystemOpts(
-      String alluxioPath, String mountPoint, List<String> fuseOptions, boolean isDebug) {
+  private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, int fuseMaxPathCached,
+        int fuseUmountTimeout, boolean isDebug, List<String> fuseOptions, String mountPoint,
+        boolean specialCommandEnabled, long statCacheTimeout,
+        boolean userGroupTranslationEnabled) {
     mAlluxioPath = alluxioPath;
-    mMountPoint = mountPoint;
-    mLibfuseOptions = fuseOptions;
+    mFsName = fsName;
+    mFuseMaxPathCached = fuseMaxPathCached;
+    mFuseUmountTimeout = fuseUmountTimeout;
     mIsDebug = isDebug;
+    mLibfuseOptions = fuseOptions;
+    mMountPoint = mountPoint;
+    mSpecialCommandEnabled = specialCommandEnabled;
+    mStatCacheTimeout = statCacheTimeout;
+    mUserGroupTranslationEnabled = userGroupTranslationEnabled;
   }
 
   /**
@@ -113,10 +125,31 @@ public final class AlluxioFuseFileSystemOpts {
   }
 
   /**
-   * @return the mount point
+   * @return the Filesystem name
    */
-  public String getMountPoint() {
-    return mMountPoint;
+  public String getFsName() {
+    return mFsName;
+  }
+
+  /**
+   * @return the max number of FUSE-to-Alluxio path mappings to cache
+   */
+  public int getFuseMaxPathCached() {
+    return mFuseMaxPathCached;
+  }
+
+  /**
+   * @return the wait timeout for fuse to umount
+   */
+  public int getFuseUmountTimeout() {
+    return mFuseUmountTimeout;
+  }
+
+  /**
+   * @return if using debug-level logging for AlluxiJniFuseFileSystem and Libfuse
+   */
+  public boolean isDebug() {
+    return mIsDebug;
   }
 
   /**
@@ -127,10 +160,31 @@ public final class AlluxioFuseFileSystemOpts {
   }
 
   /**
-   * @return if using debug-level logging for AlluxiJniFuseFileSystem and Libfuse
+   * @return the mount point
    */
-  public boolean isDebug() {
-    return mIsDebug;
+  public String getMountPoint() {
+    return mMountPoint;
+  }
+
+  /**
+   * @return whether AlluxioFuse special command is enabled
+   */
+  public boolean isSpecialCommandEnabled() {
+    return mSpecialCommandEnabled;
+  }
+
+  /**
+   * @return the time the result of statfs is cached
+   */
+  public long getStatCacheTimeout() {
+    return mStatCacheTimeout;
+  }
+
+  /**
+   * @return whether user and group are translated from Alluxio to Unix
+   */
+  public boolean isUserGroupTranslationEnabled() {
+    return mUserGroupTranslationEnabled;
   }
 
   private static List<String> optimizeAndFormatFuseOptions(List<String> fuseOpts) {

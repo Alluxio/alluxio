@@ -21,7 +21,6 @@ import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.collect.ImmutableList;
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,9 +44,10 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void mountFuse(FileSystemContext context,
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
+    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     InstancedConfiguration conf = ServerConfiguration.global();
-    AlluxioFuseFileSystemOpts fuseFsOpts =
-        AlluxioFuseFileSystemOpts.create(alluxioRoot, mountPoint, ImmutableList.of(), false);
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
     mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts, conf);
     mFuseFileSystem.mount(false, false, new String[] {});
   }

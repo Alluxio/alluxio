@@ -16,18 +16,16 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
-
-import com.google.common.collect.ImmutableList;
+import alluxio.fuse.AlluxioJnrFuseFileSystem;
 
 import java.nio.file.Paths;
 
 /**
- * Integration tests for JNR-FUSE based {@link AlluxioFuseFileSystem}.
+ * Integration tests for JNR-FUSE based {@link AlluxioJnrFuseFileSystem}.
  */
 public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
-  private AlluxioFuseFileSystem mFuseFileSystem;
+  private AlluxioJnrFuseFileSystem mFuseFileSystem;
 
   @Override
   public void configure() {
@@ -37,10 +35,11 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void mountFuse(FileSystemContext context,
       FileSystem fileSystem, String mountPoint, String alluxioRoot) {
+    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, alluxioRoot);
+    ServerConfiguration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     InstancedConfiguration conf = ServerConfiguration.global();
-    AlluxioFuseFileSystemOpts fuseFsOpts =
-        AlluxioFuseFileSystemOpts.create(alluxioRoot, mountPoint, ImmutableList.of(), false);
-    mFuseFileSystem = new AlluxioFuseFileSystem(fileSystem, fuseFsOpts, conf);
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
+    mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, fuseFsOpts);
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 

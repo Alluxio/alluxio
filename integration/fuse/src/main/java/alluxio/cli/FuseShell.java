@@ -46,7 +46,7 @@ public final class FuseShell {
     mConf = conf;
     mCommands = CommandUtils.loadCommands(FuseShell.class.getPackage().getName(),
         new Class [] {FileSystem.class, AlluxioConfiguration.class},
-        new Object[] {mFileSystem, mConf});
+        new Object[] {mFileSystem});
   }
 
   /**

@@ -85,7 +85,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
   private final FileSystem mFileSystem;
   private final FileSystemContext mFileSystemContext;
-  private final AlluxioConfiguration mConf;
   // base path within Alluxio namespace that is used for FUSE operations
   // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
   // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
@@ -125,6 +124,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final IndexedSet<CreateFileEntry<FileOutStream>> mCreateFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
+  private final boolean mIsSpecialCommandEnabled;
   private final AuthPolicy mAuthPolicy;
 
   /** df command will treat -1 as an unknown value. */
@@ -146,19 +146,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       FileSystemContext fsContext, FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts,
       AlluxioConfiguration conf) {
     super(Paths.get(fuseFsOpts.getMountPoint()));
-    mFsName = conf.getString(PropertyKey.FUSE_FS_NAME);
+    mFsName = fuseFsOpts.getFsName();
     mFileSystemContext = fsContext;
     mFileSystem = fs;
-    mConf = conf;
     mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
     mMountPoint = fuseFsOpts.getMountPoint();
     mFuseShell = new FuseShell(fs, conf);
-    long statCacheTimeout = conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
+    long statCacheTimeout = fuseFsOpts.getStatCacheTimeout();
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
         : this::acquireBlockMasterInfo;
     mPathResolverCache = CacheBuilder.newBuilder()
-        .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
+        .maximumSize(fuseFsOpts.getFuseMaxPathCached())
         .build(new CacheLoader<String, AlluxioURI>() {
           @Override
           public AlluxioURI load(String fusePath) {
@@ -185,8 +184,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             return AlluxioFuseUtils.getGidFromGroupName(groupName);
           }
         });
-    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
+    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
+    mMaxUmountWaitTime = fuseFsOpts.getFuseUmountTimeout();
+    mIsSpecialCommandEnabled = fuseFsOpts.isSpecialCommandEnabled();
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
     if (fuseFsOpts.isDebug()) {
       try {
@@ -246,8 +246,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       URIStatus status;
       // Handle special metadata cache operation
-      if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
-          && mFuseShell.isSpecialCommand(uri)) {
+      if (mIsSpecialCommandEnabled && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {

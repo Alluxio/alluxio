@@ -54,7 +54,6 @@ import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
@@ -80,6 +79,7 @@ public class AlluxioJniFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
   private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
+  private static final String MOUNT_POINT = "/t/mountPoint";
 
   private AlluxioJniFuseFileSystem mFuseFs;
   private FileSystemContext mFileSystemContext;
@@ -90,12 +90,13 @@ public class AlluxioJniFuseFileSystemTest {
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, 0,
-          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true), mConf);
+          PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true,
+          PropertyKey.FUSE_MOUNT_ALLUXIO_PATH, TEST_ROOT_PATH,
+          PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT), mConf);
 
   @Before
   public void before() throws Exception {
-    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(
-        TEST_ROOT_PATH, "/test/mountPoint", ImmutableList.of(), false);
+    AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(mConf);
     mFileSystemContext = mock(FileSystemContext.class);
     mFileSystem = mock(FileSystem.class);
     try {

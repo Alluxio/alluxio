@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -61,13 +62,13 @@ public final class AlluxioFuse {
     FileSystemContext fsContext = FileSystemContext.create(conf);
     conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(conf, fsContext);
 
-    final AlluxioFuseCliOpts cliOpts = AlluxioFuseCliOpts.AlluxioFuseCliParser
+    final Optional<AlluxioFuseCliOpts> cliOpts = AlluxioFuseCliOpts.AlluxioFuseCliParser
         .parseAndCreateAlluxioFuseCliOpts(args);
-    if (cliOpts == null) {
+    if (!cliOpts.isPresent()) {
       System.exit(1);
     }
     final AlluxioFuseFileSystemOpts fuseFsOpts =
-        AlluxioFuseFileSystemOpts.create(conf, cliOpts);
+        AlluxioFuseFileSystemOpts.create(conf, cliOpts.get());
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
@@ -151,7 +152,7 @@ public final class AlluxioFuse {
         // in the write path.
         // TODO(binfan): support kernel_cache (issues#10840)
         fuseOpts.add("-odirect_io");
-        final AlluxioFuseFileSystem fuseFs = new AlluxioFuseFileSystem(fs, fuseFsOpts, conf);
+        final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, fuseFsOpts);
         try {
           fuseFs.mount(Paths.get(fuseFsOpts.getMountPoint()), blocking, fuseFsOpts.isDebug(),
               fuseOpts.toArray(new String[0]));
