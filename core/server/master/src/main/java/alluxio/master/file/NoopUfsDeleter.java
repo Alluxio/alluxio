@@ -24,7 +24,5 @@ public final class NoopUfsDeleter implements UfsDeleter {
   public static final NoopUfsDeleter INSTANCE = new NoopUfsDeleter();
 
   @Override
-  public void delete(AlluxioURI alluxioUri, Inode inode) {
-    // do nothing
-  }
+  public void delete(AlluxioURI alluxioUri, Inode inode) {}
 }

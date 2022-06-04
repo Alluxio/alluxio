@@ -53,7 +53,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The metadata fields are separated into a few different groups.
  * Each group has its corresponding locking mechanism.
  * The {@link MasterWorkerInfo} has the following groups of metadata:
- *  1. Metadata like ID, address etc, represented by a {@link StaticWorkerMeta} object.
+ *  1. Metadata like ID, address etc., represented by a {@link StaticWorkerMeta} object.
  *     This group is thread safe, meaning no locking is required.
  *  2. Worker last updated timestamp. This is thread safe, meaning no locking is required.
  *  3. Worker register status. This is guarded by a {@link StampedLock#asReadWriteLock()}.
@@ -108,7 +108,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 1. In {@link DefaultBlockMaster}, the methods related to worker register/heartbeat,
  *    and block removal/commit.
  * 2. In {@link alluxio.master.block.WorkerRegisterContext},
- *    the write locks are held throughout the lifecycle.
+ *    to write locks are held throughout the lifecycle.
  * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
  */
 @NotThreadSafe
@@ -264,22 +264,6 @@ public final class MasterWorkerInfo {
   public void scheduleRemoveFromWorker(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.add(blockId);
-  }
-
-  /**
-   * Adds a new worker lost storage path.
-   *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * An exclusive lock is required.
-   *
-   * @param tierAlias the tier alias
-   * @param dirPath the lost storage path
-   */
-  public void addLostStorage(String tierAlias, String dirPath) {
-    List<String> paths = mUsage.mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
-    paths.add(dirPath);
-    mUsage.mLostStorage.put(tierAlias, paths);
   }
 
   /**
@@ -447,17 +431,6 @@ public final class MasterWorkerInfo {
    */
   public long getUsedBytes() {
     return mUsage.mUsedBytes;
-  }
-
-  /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * A shared lock is required.
-   *
-   * @return the storage tier mapping for the worker
-   */
-  public StorageTierAssoc getStorageTierAssoc() {
-    return mUsage.mStorageTierAssoc;
   }
 
   /**
@@ -655,8 +628,7 @@ public final class MasterWorkerInfo {
    * @return a {@link LockResource} of the {@link WorkerMetaLock}
    */
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
-    LockResource lr = new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
-    return lr;
+    return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
   }
 
   /**
