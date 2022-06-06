@@ -70,7 +70,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
 
   @Test
   public void distributedCp() throws Exception {
-    FileSystem fs = FileSystem.Factory.create(Configuration.global());
+    FileSystem fs = FileSystem.Factory.create();
     try (OutputStream out = fs.createFile(new AlluxioURI("/test"))) {
       out.write("Hello".getBytes());
     }
