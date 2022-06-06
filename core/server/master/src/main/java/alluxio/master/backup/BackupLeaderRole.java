@@ -164,10 +164,16 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Whether to attempt to delegate backup to a backup worker.
       delegateBackup = ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
           && ConfigurationUtils.isHaMode(ServerConfiguration.global());
+      // Check if backup-delegation is suppressed by back-up client.
+      if (delegateBackup && request.getOptions().getBypassDelegation()) {
+        LOG.info("Back-up delegation is suppressed by back-up client.");
+        delegateBackup = false;
+      }
       // Fail, if in HA mode and no masters available to delegate,
       // unless `AllowLeader` flag in the backup request is set.
       if (delegateBackup && mBackupWorkerHostNames.size() == 0) {
         if (request.getOptions().getAllowLeader()) {
+          LOG.info("Back-up delegation is deactivated for cluster with no followers.");
           delegateBackup = false;
         } else {
           throw new BackupDelegationException("No master found to delegate backup.");
