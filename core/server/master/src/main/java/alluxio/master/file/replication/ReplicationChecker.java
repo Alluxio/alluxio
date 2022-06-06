@@ -173,7 +173,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // It is possible the job master process is not answering rpcs,
       // log but do not throw the exception
       // which will kill the replication checker thread.
-      LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
+      LOG.debug("Failed to contact job master to get updated list of replication jobs: ", e);
     }
 
     Set<Long> inodes;
