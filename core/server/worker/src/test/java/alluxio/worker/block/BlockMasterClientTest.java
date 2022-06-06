@@ -12,12 +12,16 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.AdditionalAnswers.delegatesTo;
+import static org.mockito.Mockito.mock;
 
 import alluxio.ClientContext;
+import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
@@ -34,30 +38,36 @@ import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.StorageList;
+import alluxio.master.MasterClientContext;
+import alluxio.retry.RetryUtils;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.user.ServerUserState;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.master.MasterClientContext;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.grpc.Channel;
-import io.grpc.inprocess.InProcessChannelBuilder;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
-import io.grpc.testing.GrpcCleanupRule;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,14 +75,40 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BlockMasterClientTest {
 
+  private static final InetSocketAddress TEST_SOCKET_ADDRESS =
+      new InetSocketAddress("0.0.0.0", 9999);
+
   @Rule
-  public final GrpcCleanupRule mGrpcCleanup = new GrpcCleanupRule();
+  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
+      .of(PropertyKey.MASTER_HOSTNAME, "localhost",
+          PropertyKey.MASTER_RPC_PORT, 9999,
+          PropertyKey.MASTER_RPC_ADDRESSES, ImmutableList.of(TEST_SOCKET_ADDRESS),
+          PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s",
+          PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "100ms",
+          PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms",
+          PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL),
+      Configuration.modifiableGlobal());
+
+  // mock rpc server and channel managed by test suite
+  private GrpcServer mServer;
+  private GrpcChannel mChannel;
 
   private final AlluxioConfiguration mConf = Configuration.global();
+
+  @Test
+  public void testClientInfo() {
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create()).build());
+
+    assertEquals(ServiceType.BLOCK_MASTER_WORKER_SERVICE, client.getRemoteServiceType());
+    assertEquals(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME, client.getServiceName());
+    assertEquals(Constants.BLOCK_MASTER_WORKER_SERVICE_VERSION, client.getServiceVersion());
+  }
 
   @Test
   public void convertBlockListMapToProtoMergeDirsInSameTier() {
@@ -124,15 +160,15 @@ public class BlockMasterClientTest {
 
   @Test
   public void testCommitBlock() throws Exception {
-    HashMap<Long, Long> committedBlocks = new HashMap<>();
-    final long workerId = 0L;
-    final long blockId = 0L;
+    ConcurrentHashMap<Long, Long> committedBlocks = new ConcurrentHashMap<>();
+    final long workerId = 1L;
+    final long blockId = 2L;
     final long usedBytesOnTier = 1024 * 1024L;
     final long length = 1024 * 1024L;
     final String tierAlias = "MEM";
     final String mediumType = "MEM";
 
-    Channel mockChannel = createMockService(
+    createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void commitBlock(CommitBlockPRequest request,
@@ -148,10 +184,9 @@ public class BlockMasterClientTest {
     // create test client and redirect to our mock channel
     BlockMasterClient client = new MockStubBlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mockChannel
+        mChannel
     );
 
-    assert client.mClient.getChannel() == mockChannel;
     client.commitBlock(workerId, usedBytesOnTier, tierAlias, mediumType, blockId, length);
 
     assertEquals(1, committedBlocks.size());
@@ -160,11 +195,11 @@ public class BlockMasterClientTest {
 
   @Test
   public void testCommitUfsBlock() throws Exception {
-    HashMap<Long, Long> committedUfsBlocks = new HashMap<>();
-    final long blockId = 0L;
+    ConcurrentHashMap<Long, Long> committedUfsBlocks = new ConcurrentHashMap<>();
+    final long blockId = 1L;
     final long length = 1024 * 1024L;
 
-    Channel mockChannel = createMockService(
+    createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void commitBlockInUfs(CommitBlockInUfsPRequest request,
@@ -180,7 +215,7 @@ public class BlockMasterClientTest {
     // create test client and redirect to our mock channel
     BlockMasterClient client = new MockStubBlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mockChannel
+        mChannel
     );
 
     client.commitBlockInUfs(blockId, length);
@@ -195,10 +230,10 @@ public class BlockMasterClientTest {
     testExistsAddress.setTieredIdentity(new TieredIdentity(new ArrayList<>()));
     WorkerNetAddress testNonExistsAddress = new WorkerNetAddress();
     testNonExistsAddress.setHost("1.2.3.4");
-    long workerId = 0L;
+    long workerId = 1L;
     Map<WorkerNetAddress, Long> workerIds = ImmutableMap.of(testExistsAddress, workerId);
 
-    Channel mockChannel = createMockService(
+    createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void getWorkerId(GetWorkerIdPRequest request,
@@ -215,7 +250,7 @@ public class BlockMasterClientTest {
 
     BlockMasterClient client = new MockStubBlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mockChannel);
+        mChannel);
 
     assertEquals(workerId, client.getId(testExistsAddress));
     assertEquals(-1L, client.getId(testNonExistsAddress));
@@ -223,7 +258,7 @@ public class BlockMasterClientTest {
 
   @Test
   public void testHeartBeat() throws Exception {
-    final long workerId = 0L;
+    final long workerId = 1L;
     final Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 1024 * 1024L);
     final Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", 1024L);
     final List<Long> removedBlocks = ImmutableList.of();
@@ -234,13 +269,14 @@ public class BlockMasterClientTest {
     );
     final List<Metric> metrics = ImmutableList.of();
 
-    Channel mockChannel = createMockService(
+    createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void blockHeartbeat(BlockHeartbeatPRequest request,
                                      StreamObserver<BlockHeartbeatPResponse> responseObserver) {
             responseObserver.onNext(
-                BlockHeartbeatPResponse.newBuilder().setCommand(Command.newBuilder().setCommandType(
+                BlockHeartbeatPResponse.newBuilder().setCommand(Command.newBuilder()
+                .setCommandType(
                     CommandType.Nothing)).build()
             );
             responseObserver.onCompleted();
@@ -249,7 +285,7 @@ public class BlockMasterClientTest {
 
     BlockMasterClient client = new MockStubBlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mockChannel
+        mChannel
     );
 
     assertEquals(CommandType.Nothing, client.heartbeat(
@@ -262,9 +298,10 @@ public class BlockMasterClientTest {
         metrics).getCommandType());
   }
 
-  @Test(expected = FailedToAcquireRegisterLeaseException.class)
-  public void testAcquireRegisterLeaseFailure() throws Exception {
-    testAcquireRegisterLease(false);
+  @Test
+  public void testAcquireRegisterLeaseFailure() {
+    assertThrows(FailedToAcquireRegisterLeaseException.class,
+        () -> testAcquireRegisterLease(false));
   }
 
   @Test
@@ -283,7 +320,7 @@ public class BlockMasterClientTest {
   }
 
   private void testAcquireRegisterLease(boolean expectedSuccess) throws Exception {
-    Channel mockChannel = createMockService(
+    createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void requestRegisterLease(
@@ -297,37 +334,57 @@ public class BlockMasterClientTest {
 
     BlockMasterClient client = new MockStubBlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mockChannel
+        mChannel
     );
 
     client.acquireRegisterLeaseWithBackoff(
-        0L,
+        1L,
         1,
-        ExponentialTimeBoundedRetry
-            .builder()
-            .withMaxDuration(Duration.of(500, ChronoUnit.MILLIS))
-            .withInitialSleep(Duration.of(0, ChronoUnit.MILLIS))
-            .withMaxSleep(Duration.of(100, ChronoUnit.MILLIS))
-            .withSkipInitialSleep()
-            .build());
+        RetryUtils.noRetryPolicy());
   }
 
   public void register(boolean stream) throws Exception {
-    final long workerId = 0L;
+    final long workerId = 1L;
     final List<String> storageTierAliases = ImmutableList.of("MEM");
     final Map<String, Long> totalBytesOnTiers = ImmutableMap.of("MEM", 1024 * 1024L);
     final Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", 1024L);
-    final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation = ImmutableMap.of();
+    // currently have one block at (MEM, 0, MEM)
+    // dir-index is set to 0 for recovery from proto
+    final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation = ImmutableMap.of(
+        new BlockStoreLocation("MEM", 0, "MEM"), ImmutableList.of(0L)
+    );
     final Map<String, List<String>> lostStorage = ImmutableMap.of("MEM", ImmutableList.of());
     final List<ConfigProperty> configList = ImmutableList.of();
 
     List<Long> registeredWorkerIds = new ArrayList<>();
 
-    Channel mockChannel = createMockService(
+    createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void registerWorker(RegisterWorkerPRequest request,
                                      StreamObserver<RegisterWorkerPResponse> responseObserver) {
+
+            // verify request data
+            assertEquals(workerId, request.getWorkerId());
+            assertEquals(storageTierAliases, request.getStorageTiersList());
+            assertEquals(totalBytesOnTiers, request.getTotalBytesOnTiersMap());
+            assertEquals(usedBytesOnTiers, request.getUsedBytesOnTiersMap());
+
+            // verify that we get all the block information
+            for (LocationBlockIdListEntry entry: request.getCurrentBlocksList()) {
+              BlockStoreLocationProto locationProto = entry.getKey();
+              BlockStoreLocation location = new BlockStoreLocation(
+                  locationProto.getTierAlias(), 0, locationProto.getMediumType());
+              List<Long> blockIdList = currentBlocksOnLocation.get(location);
+              assert blockIdList != null
+                  && blockIdList.containsAll(entry.getValue().getBlockIdList());
+            }
+
+            assertEquals(lostStorage.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                    e -> StorageList.newBuilder().addAllStorage(e.getValue()).build())),
+                request.getLostStorageMap());
+
             registeredWorkerIds.add(request.getWorkerId());
             responseObserver.onNext(RegisterWorkerPResponse.newBuilder().build());
             responseObserver.onCompleted();
@@ -357,7 +414,7 @@ public class BlockMasterClientTest {
 
     BlockMasterClient client = new MockStubBlockMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mockChannel
+        mChannel
     );
 
     if (stream) {
@@ -385,9 +442,26 @@ public class BlockMasterClientTest {
     assertEquals(workerId, (long) registeredWorkerIds.get(0));
   }
 
+  @After
+  public void cleanUp() {
+    if (mServer != null && mServer.isServing()) {
+      mServer.shutdown();
+    }
+
+    if (mChannel != null && !mChannel.isShutdown()) {
+      mChannel.shutdown();
+    }
+
+    mChannel = null;
+    mServer = null;
+  }
+
   // create a mock grpc server that uses delegate to handle rpc calls
-  private Channel createMockService(
+  private void createMockService(
       BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase delegate) throws IOException {
+
+    // make sure to clean up resources
+    cleanUp();
 
     // create mock service handler
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase mockService =
@@ -395,14 +469,21 @@ public class BlockMasterClientTest {
             BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase.class,
             delegatesTo(delegate));
 
-    // create a mock server using mock service
-    String serverName = InProcessServerBuilder.generateName();
-    mGrpcCleanup.register(InProcessServerBuilder
-        .forName(serverName).directExecutor().addService(mockService).build().start());
+    // set up mock server with custom handler
+    mServer = GrpcServerBuilder.forAddress(
+        GrpcServerAddress.create("localhost", TEST_SOCKET_ADDRESS),
+        mConf,
+        ServerUserState.global()
+    )
+        .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(mockService))
+        .build()
+        .start();
 
-    // return the channel to the mock server
-    return mGrpcCleanup.register(
-        InProcessChannelBuilder.forName(serverName).directExecutor().build());
+    assert mServer.isServing();
+
+    mChannel = GrpcChannelBuilder.newBuilder(
+        GrpcServerAddress.create("localhost", TEST_SOCKET_ADDRESS),
+        mConf).disableAuthentication().build();
   }
 
   // a sub-class of BlockMasterClient that re-direct grpc requests
@@ -410,25 +491,22 @@ public class BlockMasterClientTest {
   private static class MockStubBlockMasterClient extends BlockMasterClient {
     public MockStubBlockMasterClient(
         MasterClientContext conf,
-        Channel mockChannel) {
+        GrpcChannel mockChannel) {
       super(conf);
-      mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mockChannel);
-      mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mockChannel);
+      mChannel = mockChannel;
     }
 
     @Override
     public void connect() {
-      // empty implementation
+      // channel passed by test suite is always connected
+      mConnected = true;
+      afterConnect();
     }
 
     @Override
     public void disconnect() {
       // empty implementation
-    }
-
-    @Override
-    public void afterConnect() {
-      // empty implementation
+      // connection is cleaned up by test suite
     }
   }
 }
