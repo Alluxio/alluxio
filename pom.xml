@@ -786,7 +786,7 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.18</version>
+        <version>1.4.19</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
