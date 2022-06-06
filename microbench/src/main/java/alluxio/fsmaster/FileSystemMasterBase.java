@@ -3,8 +3,8 @@ package alluxio.fsmaster;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -64,7 +64,7 @@ public class FileSystemMasterBase {
             mFolder.newFolder("FileSystemMasterTest").getAbsolutePath());
         put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
       }
-    }, ServerConfiguration.global());
+    }, Configuration.modifiableGlobal());
     config.before();
     AuthenticatedClientUser.set("test");
 
@@ -73,7 +73,7 @@ public class FileSystemMasterBase {
         .setQuietTimeMs(0)
         .build(CommonUtils.ProcessType.MASTER);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
-        new TestUserState("test", ServerConfiguration.global()));
+        new TestUserState("test", Configuration.global()));
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
@@ -112,7 +112,7 @@ public class FileSystemMasterBase {
     mFsMaster.close();
     mFsMaster.stop();
     mFolder.delete();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   public FileInfo createFile(long id) throws Exception {
