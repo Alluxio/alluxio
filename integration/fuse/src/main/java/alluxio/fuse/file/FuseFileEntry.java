@@ -40,10 +40,9 @@ public final class FuseFileEntry<T extends FuseFileStream>
     Preconditions.checkArgument(id >= 0, "id should not be negative");
     Preconditions.checkArgument(path != null && !path.isEmpty(),
         "path should not be null or empty");
-    Preconditions.checkNotNull(fileStream, "file stream cannot be null");
+    mFileStream = Preconditions.checkNotNull(fileStream, "file stream cannot be null");
     mId = id;
     mPath = path;
-    mFileStream = fileStream;
   }
 
   /**

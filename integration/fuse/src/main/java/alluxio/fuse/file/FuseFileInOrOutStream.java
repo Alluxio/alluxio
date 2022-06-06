@@ -87,20 +87,16 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   private FuseFileInOrOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
       Optional<FuseFileInStream> inStream, Optional<FuseFileOutStream> outStream,
-      Optional<URIStatus> status, AlluxioURI uri, long mode) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(authPolicy);
-    Preconditions.checkNotNull(status);
-    Preconditions.checkNotNull(uri);
+      Optional<URIStatus> originalStatus, AlluxioURI uri, long mode) {
+    mFileSystem = Preconditions.checkNotNull(fileSystem);
+    mAuthPolicy = Preconditions.checkNotNull(authPolicy);
+    mOriginalStatus = Preconditions.checkNotNull(originalStatus);
+    mUri = Preconditions.checkNotNull(uri);
     Preconditions.checkArgument(!(inStream.isPresent() && outStream.isPresent()),
         "Cannot create both input and output stream");
-    mFileSystem = fileSystem;
-    mAuthPolicy = authPolicy;
-    mOriginalStatus = status;
-    mUri = uri;
-    mMode = mode;
     mInStream = inStream;
     mOutStream = outStream;
+    mMode = mode;
   }
 
   @Override

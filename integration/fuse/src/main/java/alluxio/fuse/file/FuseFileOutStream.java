@@ -82,15 +82,11 @@ public class FuseFileOutStream implements FuseFileStream {
 
   private FuseFileOutStream(FileSystem fileSystem, AuthPolicy authPolicy,
       Optional<FileOutStream> outStream, long fileLen, AlluxioURI uri, long mode) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(authPolicy);
-    Preconditions.checkNotNull(outStream);
-    Preconditions.checkNotNull(uri);
-    mFileSystem = fileSystem;
-    mAuthPolicy = authPolicy;
-    mOutStream = outStream;
+    mFileSystem = Preconditions.checkNotNull(fileSystem);
+    mAuthPolicy = Preconditions.checkNotNull(authPolicy);
+    mOutStream = Preconditions.checkNotNull(outStream);
+    mURI = Preconditions.checkNotNull(uri);
     mOriginalFileLen = fileLen;
-    mURI = uri;
     mMode = mode;
   }
 

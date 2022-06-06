@@ -77,11 +77,9 @@ public class FuseFileInStream implements FuseFileStream {
   }
 
   private FuseFileInStream(FileInStream inStream, long fileLength, AlluxioURI uri) {
-    Preconditions.checkNotNull(inStream);
-    Preconditions.checkNotNull(uri);
-    mInStream = inStream;
+    mInStream = Preconditions.checkNotNull(inStream);
+    mURI = Preconditions.checkNotNull(uri);
     mFileLength = fileLength;
-    mURI = uri;
   }
 
   @Override
