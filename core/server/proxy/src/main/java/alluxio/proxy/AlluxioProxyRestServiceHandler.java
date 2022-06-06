@@ -13,8 +13,8 @@ package alluxio.proxy;
 
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
@@ -80,13 +80,11 @@ public final class AlluxioProxyRestServiceHandler {
       if (rawConfiguration != null) {
         rawConfig = rawConfiguration;
       }
-      AlluxioProxyInfo result =
-          new AlluxioProxyInfo()
-              .setConfiguration(getConfigurationInternal(rawConfig))
-              .setStartTimeMs(mProxyProcess.getStartTimeMs())
-              .setUptimeMs(mProxyProcess.getUptimeMs())
-              .setVersion(RuntimeConstants.VERSION);
-      return result;
+      return new AlluxioProxyInfo()
+          .setConfiguration(getConfigurationInternal(rawConfig))
+          .setStartTimeMs(mProxyProcess.getStartTimeMs())
+          .setUptimeMs(mProxyProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION);
     }, Configuration.global());
   }
 

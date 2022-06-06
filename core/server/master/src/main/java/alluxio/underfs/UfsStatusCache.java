@@ -189,7 +189,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public UfsStatus fetchStatusIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException {
     UfsStatus status;
     try {
       status = getStatus(path);

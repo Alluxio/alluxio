@@ -22,7 +22,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
-import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -121,14 +120,14 @@ public class ClientContext {
     if (!loadClusterConf && !loadPathConf) {
       return;
     }
-    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+    GetConfigurationPResponse response = Configuration.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
+      mClusterConf = Configuration.getClusterConf(response, conf, Scope.CLIENT);
       mClusterConfHash = response.getClusterConfigHash();
     }
     if (loadPathConf) {
-      mPathConf = ConfigurationUtils.getPathConf(response, conf);
+      mPathConf = Configuration.getPathConf(response, conf);
       mPathConfHash = response.getPathConfigHash();
       mIsPathConfLoaded = true;
     }

@@ -73,14 +73,6 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
-   * @param inode the inode to list child ids for
-   * @return the result of {@link #getChildIds(InodeDirectoryView, ReadOption)} with default option
-   */
-  default CloseableIterator<Long> getChildIds(InodeDirectoryView inode) {
-    return getChildIds(inode, ReadOption.defaults());
-  }
-
-  /**
    * Returns an iterator over the children of the specified inode.
    *
    * The iterator is weakly consistent. It can operate in the presence of concurrent modification,

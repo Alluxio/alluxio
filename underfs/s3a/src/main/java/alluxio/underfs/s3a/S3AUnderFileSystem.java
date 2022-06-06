@@ -218,7 +218,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
             numTransferThreads).create();
 
     TransferManager transferManager = TransferManagerBuilder.standard()
-        .withS3Client(createAmazonS3(credentials, clientConf, endpointConfiguration, conf))
+        .withS3Client(amazonS3Client)
         .withExecutorFactory(() -> service)
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
         .build();

@@ -25,7 +25,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPOptions;
@@ -61,6 +60,7 @@ import java.net.URI;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -188,8 +188,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
                 "Not allowed to create() (overwrite=false) for existing Alluxio path: " + uri);
           }
           if (mFileSystem.getStatus(uri).isFolder()) {
-            throw new IOException(
-                ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(uri));
+            throw new IOException(MessageFormat
+                .format("{0} already exists. Directories cannot be overwritten with create", uri));
           }
           mFileSystem.delete(uri);
         }

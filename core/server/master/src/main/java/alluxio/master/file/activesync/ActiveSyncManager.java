@@ -16,7 +16,6 @@ import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -48,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -536,7 +536,8 @@ public class ActiveSyncManager implements Journaled {
                         .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
               }
             } catch (IOException e) {
-              LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
+              LOG.info(MessageFormat.format(
+                  "IOException encountered during initial syncing of sync point {0}",
                   resolution.getUri()), e);
             }
           });

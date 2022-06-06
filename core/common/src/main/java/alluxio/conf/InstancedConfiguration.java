@@ -214,7 +214,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull String value) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     if (key.validateValue(value)) {
       mProperties.put(key, key.formatValue(value), Source.RUNTIME);
     } else {
@@ -239,7 +239,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
     value = key.formatValue(value);

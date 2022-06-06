@@ -353,11 +353,11 @@ public class InodeSyncStream {
     // Process any children after the root.
     while (!mPendingPaths.isEmpty() || !mSyncPathJobs.isEmpty()) {
       if (Thread.currentThread().isInterrupted()) {
-        LOG.warn("Metadata syncing was interrupted before completion; {}", toString());
+        LOG.warn("Metadata syncing was interrupted before completion; {}", this);
         break;
       }
       if (mRpcContext.isCancelled()) {
-        LOG.warn("Metadata syncing was cancelled before completion; {}", toString());
+        LOG.warn("Metadata syncing was cancelled before completion; {}", this);
         break;
       }
       // There are still paths to process

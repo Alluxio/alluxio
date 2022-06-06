@@ -414,14 +414,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       // This implementation must be careful because edges can be asynchronously evicted from the
       // cache to the backing store. To account for this, we read from the cache before consulting
       // the backing store.
-      Map<String, Long> childIds = new HashMap<>();
-      mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()).forEach((name, id) -> {
-        childIds.put(name, id);
-      });
+      Map<String, Long> childIds =
+          new HashMap<>(mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()));
       // Copy the list of unflushed deletes before reading the backing store to prevent racing async
       // deletion.
       Set<String> unflushedDeletes =
-          new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.EMPTY_SET));
+          new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.emptySet()));
       // Cannot use mBackingStore.getChildren because it only returns inodes cached in the backing
       // store, causing us to lose inodes stored only in the cache.
       try (CloseableIterator<Long> childIter = mBackingStore.getChildIds(inodeId)) {
@@ -614,12 +612,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     private final int mMaxSize;
     private final int mHighWaterMark;
     private final int mLowWaterMark;
-    private AtomicLong mWeight = new AtomicLong(0);
-    private Lock mEvictionLock = new ReentrantLock();
+    private final AtomicLong mWeight = new AtomicLong(0);
+    private final Lock mEvictionLock = new ReentrantLock();
 
     StatsCounter mStatsCounter;
 
-    private Map<Long, ListingCacheEntry> mMap = new ConcurrentHashMap<>();
+    private final Map<Long, ListingCacheEntry> mMap = new ConcurrentHashMap<>();
     private Iterator<Map.Entry<Long, ListingCacheEntry>> mEvictionHead = mMap.entrySet().iterator();
 
     private ListingCache(CacheConfiguration conf) {
@@ -633,7 +631,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
           MetricKey.MASTER_LISTING_CACHE_LOAD_TIMES,
           MetricKey.MASTER_LISTING_CACHE_MISSES);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LISTING_CACHE_SIZE.getName(),
-          () -> mWeight.get());
+          mWeight::get);
     }
 
     /**

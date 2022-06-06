@@ -15,8 +15,6 @@ import alluxio.wire.Address;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -25,8 +23,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterInfo {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
-
   /** Master's address. */
   private final Address mAddress;
   /** The id of the master. */

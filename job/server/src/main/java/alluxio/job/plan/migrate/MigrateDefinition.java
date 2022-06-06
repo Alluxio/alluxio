@@ -20,8 +20,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
@@ -103,7 +103,7 @@ public final class MigrateDefinition
     }
     List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getCachedWorkers();
     if (status.isFolder()) {
-      throw new RuntimeException(ExceptionMessage.MIGRATE_DIRECTORY.getMessage());
+      throw new RuntimeException("Cannot migrate directory");
     } else {
       WorkerInfo bestJobWorker =
           getBestJobWorker(status, alluxioWorkerInfoList, jobWorkerInfoList, hostnameToWorker);
