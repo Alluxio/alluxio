@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.heap;
 
-import static java.util.stream.Collectors.toList;
-
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
@@ -31,6 +29,7 @@ import alluxio.master.metastore.ReadOption;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +42,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.StreamSupport;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -94,18 +96,14 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
-    return children(inodeId).values();
-  }
-
-  @Override
-  public Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
-    return children(inodeId).values().stream()
+  public CloseableIterator<? extends Inode> getChildren(Long inodeId, ReadOption option) {
+    CloseableIterator<Long> childIter = getChildIds(inodeId, option);
+    return CloseableIterator.create(StreamSupport.stream(
+        Spliterators.spliteratorUnknownSize(childIter, Spliterator.ORDERED), false)
         .map(this::get)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .map(Inode::wrap)
-        .collect(toList());
+        .map(Inode::wrap).iterator(), (any) -> childIter.closeResource());
   }
 
   @Override
@@ -171,5 +169,10 @@ public class HeapInodeStore implements InodeStore {
   @Override
   public CheckpointName getCheckpointName() {
     return CheckpointName.HEAP_INODE_STORE;
+  }
+
+  @Override
+  public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
+    return CloseableIterator.noopCloseable(children(inodeId).values().iterator());
   }
 }

@@ -33,6 +33,7 @@ import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.resource.RWLockResource;
 import alluxio.util.ConfigurationUtils;
@@ -207,8 +208,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
-    return () -> mListingCache.getChildIds(inodeId, option).iterator();
+  public CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option) {
+    return CloseableIterator.noopCloseable(mListingCache.getChildIds(inodeId, option).iterator());
   }
 
   @Override
@@ -421,14 +422,16 @@ public final class CachingInodeStore implements InodeStore, Closeable {
           new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.emptySet()));
       // Cannot use mBackingStore.getChildren because it only returns inodes cached in the backing
       // store, causing us to lose inodes stored only in the cache.
-      mBackingStore.getChildIds(inodeId).forEach(childId -> {
-        CachingInodeStore.this.get(childId, option).map(inode -> {
-          if (!unflushedDeletes.contains(inode.getName())) {
-            childIds.put(inode.getName(), inode.getId());
-          }
-          return null;
+      try (CloseableIterator<Long> childIter = mBackingStore.getChildIds(inodeId)) {
+        childIter.forEachRemaining(childId -> {
+          CachingInodeStore.this.get(childId, option).map(inode -> {
+            if (!unflushedDeletes.contains(inode.getName())) {
+              childIds.put(inode.getName(), inode.getId());
+            }
+            return null;
+          });
         });
-      });
+      }
       return childIds;
     }
 

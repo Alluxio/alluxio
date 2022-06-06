@@ -44,6 +44,7 @@ import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -976,23 +977,26 @@ public class InodeTree implements DelegatingJournaled {
     if (inode == null || inode.isFile()) {
       return;
     }
-    for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-      LockedInodePath childPath;
-      try {
-        childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
-      } catch (InvalidPathException e) {
-        // Child does not exist.
-        continue;
+    try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+      while (it.hasNext()) {
+        Inode child = it.next();
+        LockedInodePath childPath;
+        try {
+          childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
+        } catch (InvalidPathException e) {
+          // Child does not exist.
+          continue;
+        }
+        try {
+          descendants.add(childPath);
+        } catch (Error e) {
+          // If adding to descendants fails due to OOM, this object
+          // will not be tracked so we must close it manually
+          childPath.close();
+          throw e;
+        }
+        gatherDescendants(childPath, descendants);
       }
-      try {
-        descendants.add(childPath);
-      } catch (Error e) {
-        // If adding to descendants fails due to OOM, this object
-        // will not be tracked so we must close it manually
-        childPath.close();
-        throw e;
-      }
-      gatherDescendants(childPath, descendants);
     }
   }
 
@@ -1062,11 +1066,14 @@ public class InodeTree implements DelegatingJournaled {
     if (inode.isDirectory()) {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath childPath =
-            inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
-          // No need for additional locking since the parent is write-locked.
-          setPinned(rpcContext, childPath, pinned, mediumTypes, opTimeMs);
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath childPath =
+                   inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
+            // No need for additional locking since the parent is write-locked.
+            setPinned(rpcContext, childPath, pinned, mediumTypes, opTimeMs);
+          }
         }
       }
     }
@@ -1118,11 +1125,14 @@ public class InodeTree implements DelegatingJournaled {
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        try (LockedInodePath tempInodePath =
-            inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
-          // No need for additional locking since the parent is write-locked.
-          setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
+      try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(inode.asDirectory())) {
+        while (it.hasNext()) {
+          Inode child = it.next();
+          try (LockedInodePath tempInodePath =
+                   inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
+            // No need for additional locking since the parent is write-locked.
+            setReplication(rpcContext, tempInodePath, replicationMax, replicationMin, opTimeMs);
+          }
         }
       }
     }
