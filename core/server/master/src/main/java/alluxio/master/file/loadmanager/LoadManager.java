@@ -25,8 +25,6 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,13 +94,19 @@ public final class LoadManager implements Journaled {
 
   @Override
   public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return CloseableIterator.noopCloseable(mLoadPathToInfo.keySet().stream()
-            .map(loadInfo -> Journal.JournalEntry.newBuilder().setLoadDirectory(
-                            File.LoadDirectory.newBuilder()
-                                    .setSrcFilePath(loadInfo)
-                                    .setLoadId(0)
-                    )
-                    .build())
+    return CloseableIterator.noopCloseable(mLoadPathToInfo.entrySet().stream()
+            .map(loadEntry -> {
+              File.LoadOptions options = File.LoadOptions.newBuilder()
+                      .setBandWidth(loadEntry.getValue()
+                      .getLoadOptions().getBandwidth())
+                      .build();
+              return Journal.JournalEntry.newBuilder().setLoadDirectory(
+                      File.LoadDirectory.newBuilder()
+                      .setSrcFilePath(loadEntry.getKey())
+                      .setLoadId(loadEntry.getValue().getId())
+                      .setOptions(options))
+                      .build();
+            })
             .iterator());
   }
 

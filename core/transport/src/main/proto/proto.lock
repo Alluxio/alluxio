@@ -8169,19 +8169,6 @@
                 "integer": 2
               }
             ]
-          },
-          {
-            "name": "LoadState",
-            "enum_fields": [
-              {
-                "name": "CREATED",
-                "integer": 1
-              },
-              {
-                "name": "FINISHED",
-                "integer": 2
-              }
-            ]
           }
         ],
         "messages": [
@@ -9121,11 +9108,6 @@
                 "id": 3,
                 "name": "options",
                 "type": "LoadOptions"
-              },
-              {
-                "id": 4,
-                "name": "state",
-                "type": "LoadState"
               }
             ]
           }
@@ -9271,6 +9253,11 @@
                 "type": "InodeLastModificationTimeEntry"
               },
               {
+                "id": 53,
+                "name": "load_directory",
+                "type": "LoadDirectory"
+              },
+              {
                 "id": 38,
                 "name": "new_block",
                 "type": "NewBlockEntry"
@@ -9354,11 +9341,6 @@
                 "id": 37,
                 "name": "update_inode_file",
                 "type": "UpdateInodeFileEntry"
-              },
-              {
-                "id": 53,
-                "name": "load_directory",
-                "type": "LoadDirectory"
               },
               {
                 "id": 39,

@@ -49,6 +49,7 @@ message JournalEntry {
   optional InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;
   optional InodeFileEntry inode_file = 11;
   optional InodeLastModificationTimeEntry inode_last_modification_time = 12;
+  optional LoadDirectory load_directory = 53;
   optional NewBlockEntry new_block = 38;
   optional PathPropertiesEntry path_properties = 40;
   optional PersistDirectoryEntry persist_directory = 15;
@@ -66,7 +67,6 @@ message JournalEntry {
   optional UpdateInodeEntry update_inode = 35;
   optional UpdateInodeDirectoryEntry update_inode_directory = 36;
   optional UpdateInodeFileEntry update_inode_file = 37;
-  optional LoadDirectory load_directory = 53;
 
   // This journal entry is a list of other entries. when a journal entry
   // contains other journal entries, all other optional fields must be unset.

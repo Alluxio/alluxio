@@ -289,14 +289,8 @@ message LoadOptions {
   optional int64 bandWidth = 1;
 }
 
-enum LoadState {
-  CREATED = 1;
-  FINISHED = 2;
-}
-
 message LoadDirectory {
   optional int64 loadId = 1;
   optional string srcFilePath = 2;
   optional LoadOptions options = 3;
-  optional LoadState state = 4;
 }
