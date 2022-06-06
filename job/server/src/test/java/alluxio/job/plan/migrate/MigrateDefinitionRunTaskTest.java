@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -29,6 +28,7 @@ import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.MockFileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -65,7 +65,7 @@ public final class MigrateDefinitionRunTaskTest {
 
   @Before
   public void before() throws Exception {
-    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
+    AlluxioConfiguration conf = Configuration.global();
     mMockFileSystem = mock(FileSystem.class);
     mMockFileSystemContext = mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())

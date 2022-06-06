@@ -14,10 +14,10 @@ package alluxio.client.block.policy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockInfo;
@@ -38,7 +38,7 @@ public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
+  private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
   @Before
   public void before() {
@@ -55,7 +55,6 @@ public final class DeterministicHashPolicyTest {
     mWorkerInfos.add(new BlockWorkerInfo(
         new WorkerNetAddress().setHost("worker4").setRpcPort(PORT).setDataPort(PORT)
             .setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    sConf = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test

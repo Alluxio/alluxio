@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -36,6 +35,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -91,7 +91,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PrepareForTest({FileSystemContext.class})
 public final class BlockStoreClientTest {
 
-  private static final InstancedConfiguration S_CONF = ConfigurationTestUtils.copyDefaults();
+  private static final InstancedConfiguration S_CONF = Configuration.copyGlobal();
 
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 100L;

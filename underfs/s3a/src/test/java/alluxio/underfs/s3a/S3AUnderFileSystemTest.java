@@ -13,7 +13,7 @@ package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -54,7 +54,7 @@ public class S3AUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
-  private static  InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
+  private static  InstancedConfiguration sConf = Configuration.copyGlobal();
 
   private static final String BUCKET_NAME = "bucket";
   private static final String DEFAULT_OWNER = "";

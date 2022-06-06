@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
@@ -40,18 +40,16 @@ public class GCSUnderFileSystemTest {
   private static final String DST = "dst";
 
   private static final String BUCKET_NAME = "bucket";
-  private static final short BUCKET_MODE = 0;
-  private static final String ACCOUNT_OWNER = "account owner";
 
   /**
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException, ServiceException {
+  public void before() {
     mClient = mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults()));
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
   }
 
   /**

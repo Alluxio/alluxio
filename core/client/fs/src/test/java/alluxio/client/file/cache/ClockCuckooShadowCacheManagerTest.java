@@ -14,9 +14,9 @@ package alluxio.client.file.cache;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.quota.CacheScope;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -37,7 +37,7 @@ public final class ClockCuckooShadowCacheManagerTest {
   private static final CacheScope SCOPE1 = CacheScope.create("schema1.table1");
   private static final CacheScope SCOPE2 = CacheScope.create("schema1.table2");
   private ClockCuckooShadowCacheManager mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Before
   public void before() {
