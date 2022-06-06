@@ -41,7 +41,6 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -88,9 +87,6 @@ public final class AlluxioFuseUtils {
    */
   public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
       AlluxioURI uri, long mode) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(authPolicy);
-    Preconditions.checkNotNull(uri);
     CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
     if (mode != MODE_NOT_SET_VALUE) {
       optionsBuilder.setMode(new Mode((short) mode).toProto());
@@ -112,8 +108,6 @@ public final class AlluxioFuseUtils {
    * @param uri the alluxio uri
    */
   public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(uri);
     try {
       fileSystem.delete(uri);
     } catch (IOException | AlluxioException e) {
@@ -130,9 +124,6 @@ public final class AlluxioFuseUtils {
    */
   public static void setAttribute(FileSystem fileSystem,
       AlluxioURI uri, SetAttributePOptions options) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(uri);
-    Preconditions.checkNotNull(options);
     try {
       fileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
@@ -355,8 +346,6 @@ public final class AlluxioFuseUtils {
    * @return the file status
    */
   public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(uri);
     try {
       return Optional.of(fileSystem.getStatus(uri));
     } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
@@ -376,8 +365,6 @@ public final class AlluxioFuseUtils {
    * @return whether the file is completed or not
    */
   public static boolean waitForFileCompleted(FileSystem fileSystem, AlluxioURI uri) {
-    Preconditions.checkNotNull(fileSystem);
-    Preconditions.checkNotNull(uri);
     try {
       CommonUtils.waitFor("file completed", () -> {
         try {
