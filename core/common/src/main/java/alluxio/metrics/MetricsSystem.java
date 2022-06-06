@@ -67,7 +67,7 @@ public final class MetricsSystem {
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static int sResolveTimeout =
-      (int) Configuration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
   // A map from AlluxioURI to corresponding cached escaped path.
   private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
       = new ConcurrentHashMap<>();
