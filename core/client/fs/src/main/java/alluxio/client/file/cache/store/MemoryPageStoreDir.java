@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 /**
  * Represents the dir and file level metadata of the MemPageStore.
  */
-public class MemoryPageStoreDir extends QuotaPageStoreDir {
+public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
 
   private final long mCapacity;
   private final Path mRootPath;

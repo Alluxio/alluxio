@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 /**
  *
  */
-public class LocalPageStoreDir extends QuotaPageStoreDir {
+public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStoreDir.class);
 
   private final LocalPageStoreOptions mPageStoreOptions;

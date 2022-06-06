@@ -80,7 +80,7 @@ public class DefaultMetaStore implements MetaStore {
     PageInfo pageInfo = mPageMap.remove(pageId);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().releaseSpace(pageInfo);
+    pageInfo.getLocalCacheDir().deletePageFromDir(pageInfo);
     return pageInfo;
   }
 

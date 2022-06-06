@@ -131,7 +131,14 @@ public interface PageStoreDir {
    * @param bytes
    * @return the bytes used after release
    */
-  long releaseSpace(PageInfo bytes);
+  long deletePageFromDir(PageInfo bytes);
+
+  /**
+   * Release the pre-reserved space.
+   * @param bytes
+   * @return the bytes used after the release
+   */
+  long releaseSpace(int bytes);
 
   /**
    * @param fileId

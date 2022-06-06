@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 /**
  * Represent the dir and file level metadata of a rocksdb page store.
  */
-public class RocksPageStoreDir extends QuotaPageStoreDir {
+public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
 
   private final long mCapacity;
   private final Path mRootPath;

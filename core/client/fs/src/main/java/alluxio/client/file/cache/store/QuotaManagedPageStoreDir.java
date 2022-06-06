@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 
-abstract class QuotaPageStoreDir implements PageStoreDir {
+abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   private final ReentrantReadWriteLock mFileIdSetLock = new ReentrantReadWriteLock();
   @GuardedBy("mFileIdSetLock")
@@ -34,7 +34,7 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
 
   private final CacheEvictor mEvictor;
 
-  QuotaPageStoreDir(Path rootPath, long capacity, CacheEvictor evictor) {
+  QuotaManagedPageStoreDir(Path rootPath, long capacity, CacheEvictor evictor) {
     mRootPath = rootPath;
     mCapacity = capacity;
     mEvictor = evictor;
@@ -66,6 +66,12 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
   }
 
   @Override
+  public long deletePageFromDir(PageInfo pageInfo) {
+    mEvictor.updateOnDelete(pageInfo.getPageId());
+    return mBytesUsed.addAndGet(-pageInfo.getPageSize());
+  }
+
+  @Override
   public boolean addTempFileToDir(String fileId) {
     try (LockResource lock = new LockResource(mFileIdSetLock.writeLock())) {
       return mFileIdSet.add(fileId);
@@ -85,9 +91,8 @@ abstract class QuotaPageStoreDir implements PageStoreDir {
   }
 
   @Override
-  public long releaseSpace(PageInfo pageInfo) {
-    mEvictor.updateOnDelete(pageInfo.getPageId());
-    return mBytesUsed.addAndGet(-pageInfo.getPageSize());
+  public long releaseSpace(int bytes) {
+    return mBytesUsed.addAndGet(-bytes);
   }
 
   @Override
