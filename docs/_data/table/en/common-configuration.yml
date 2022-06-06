@@ -18,16 +18,26 @@ alluxio.fuse.fs.name:
   'The FUSE file system name.'
 alluxio.fuse.jnifuse.enabled:
   'Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.'
+alluxio.fuse.jnifuse.libfuse.version:
+  'The version of libfuse used by libjnifuse. Set 2 to force use libfuse2, 3 to libfuse3, and other value to use libfuse2 first, libfuse3 if libfuse2 failed'
 alluxio.fuse.logging.threshold:
   'Logging a FUSE API call when it takes more time than the threshold.'
 alluxio.fuse.maxwrite.bytes:
   'Maximum granularity of write operations, capped by the kernel to 128KB max (as of Linux 3.16.0).'
+alluxio.fuse.mount.alluxio.path:
+  'The Alluxio path to mount to the given Fuse mount point configured by alluxio.fuse.mount.point in the worker when alluxio.worker.fuse.enabled is enabled or in the standalone Fuse process.'
+alluxio.fuse.mount.options:
+  'The platform specific Fuse mount options to mount the given Fuse mount point. If multiple mount options are provided, separate them with comma.'
+alluxio.fuse.mount.point:
+  'The absolute local filesystem path that worker (if alluxio.worker.fuse.enabled is enabled)or standalone Fuse will mount Alluxio path to.'
 alluxio.fuse.shared.caching.reader.enabled:
   '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
 alluxio.fuse.special.command.enabled:
   'If enabled, user can issue special FUSE commands by using ''ls -l /path/to/fuse_mount/.alluxiocli.&lt;command_name&gt;.&lt;subcommand_name&gt;'', For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll'' will drop all the user metadata cache. ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size'' will get the metadata cache size， the size value will be show in the output''s filesize field. ''ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop'' will drop the metadata cache of path ''/mnt/alluxio-fuse/path/to/be/cleaned/'''
+alluxio.fuse.stat.cache.refresh.interval:
+  'The fuse filesystem statistics (e.g. Alluxio capacity information) will be refreshed after being cached for this time period. If the refresh time is too big, operations on the FUSE may fail because of the stale filesystem statistics. If it is too small, continuously fetching filesystem statistics create a large amount of master RPC calls and lower the overall performance of the Fuse application. A value small than or equal to zero means no statistics cache on the Fuse side.'
 alluxio.fuse.umount.timeout:
-  'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem. After the timeout, all in progress file read will be forced to stop and all in progress file write will be abandoned.'
+  'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem when SIGTERM signal is received. A value smaller than or equal to zero means no umount wait time. '
 alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
 alluxio.fuse.web.bind.host:
@@ -40,46 +50,6 @@ alluxio.fuse.web.port:
   'The port Alluxio FUSE web UI runs on.'
 alluxio.home:
   'Alluxio installation directory.'
-alluxio.hub.agent.executor.threads.min:
-  'The minimum number of threads used when scheduling tasks.'
-alluxio.hub.agent.heartbeat.interval:
-  'The interval in seconds that the Hub Agent sends a heartbeat to the Hub Manager.'
-alluxio.hub.agent.rpc.bind.host:
-  'The host that the hub agent''s RPC server should bind to'
-alluxio.hub.agent.rpc.hostname:
-  'The hostname (or IP address) used to connect to the hub agent'
-alluxio.hub.agent.rpc.port:
-  'The port that the hub agent''s RPC port should bind to'
-alluxio.hub.authentication.apiKey:
-  'The API key of Hub manager.'
-alluxio.hub.authentication.secretKey:
-  'The secret key of Hub Manager.'
-alluxio.hub.cluster.id:
-  'A user-defined id for the Hub cluster. Must be unique from other Hub clusters connecting to the same Hosted Hub tenant. Must be a 4-character alphanumeric string.'
-alluxio.hub.cluster.label:
-  'A user-defined label for the Hub cluster.'
-alluxio.hub.hosted.rpc.hostname:
-  'The hostname (or IP address) that managers should use to connect to the hosted hub'
-alluxio.hub.hosted.rpc.port:
-  'The port that the hosted hub''s RPC server should bind to'
-alluxio.hub.manager.agent.delete.threshold.time:
-  'If an agent node hasn''t sent a heartbeat for this amount of time, the manager will consider it as gone and stop tracking the node as a part of the cluster.'
-alluxio.hub.manager.agent.lost.threshold.time:
-  'If an agent node hasn''t sent a heartbeat for this amount of time, the manager will consider it as lost.'
-alluxio.hub.manager.executor.threads.min:
-  'The minimum number of threads used when scheduling tasks.'
-alluxio.hub.manager.presto.conf.path:
-  'The path to the presto configuration directory'
-alluxio.hub.manager.register.retry.time:
-  'If the manager fails to register with the Hub in this amount  of time, the manager will need to be restarted to register again.'
-alluxio.hub.manager.rpc.bind.host:
-  'The host that the hub manager''s RPC server should bind to'
-alluxio.hub.manager.rpc.hostname:
-  'The hostname (or IP address) that agents should use to connect to the hub manager'
-alluxio.hub.manager.rpc.port:
-  'The port that the hub manager''s RPC server should bind to'
-alluxio.hub.network.tls.enabled:
-  'If true, enables TLS on all network communication between hosted Hub and manager.'
 alluxio.job.master.bind.host:
   'The host that the Alluxio job master will bind to.'
 alluxio.job.master.client.threads:
@@ -192,6 +162,8 @@ alluxio.proxy.s3.complete.multipart.upload.pool.size:
   'The complete multipart upload thread pool size.'
 alluxio.proxy.s3.deletetype:
   'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
+alluxio.proxy.s3.header.metadata.max.size:
+  'The maximum size to allow for user-defined metadata in S3 PUTrequest headers. Set to 0 to disable size limits.'
 alluxio.proxy.s3.multipart.temporary.dir.suffix:
   'Suffix for the directory which holds parts during a multipart upload.'
 alluxio.proxy.s3.multipart.upload.cleaner.pool.size:
@@ -432,10 +404,6 @@ alluxio.zookeeper.leader.path:
   'Leader directory in ZooKeeper.'
 alluxio.zookeeper.session.timeout:
   'Session timeout to use when connecting to Zookeeper'
-s3a.accessKeyId:
-  'The access key of S3 bucket.'
-s3a.secretKey:
-  'The secret key of S3 bucket.'
 fs.azure.account.oauth2.client.endpoint:
   'The oauth endpoint for ABFS.'
 fs.azure.account.oauth2.client.id:
@@ -494,3 +462,7 @@ fs.swift.tenant:
   'Swift user for authentication.'
 fs.swift.user:
   'Swift tenant for authentication.'
+s3a.accessKeyId:
+  'The access key of S3 bucket.'
+s3a.secretKey:
+  'The secret key of S3 bucket.'

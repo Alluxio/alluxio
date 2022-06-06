@@ -16,7 +16,7 @@ import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_
 import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.RpcContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
@@ -131,12 +131,12 @@ public class InodeTreePersistentState implements Journaled {
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
-        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+        Configuration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
             .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
     mRetryCacheEnabled =
-        ServerConfiguration.getBoolean(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED);
+        Configuration.getBoolean(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED);
     mOpIdCache = CacheBuilder.newBuilder()
-        .maximumSize(ServerConfiguration.getInt(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE))
+        .maximumSize(Configuration.getInt(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE))
         .build();
   }
 

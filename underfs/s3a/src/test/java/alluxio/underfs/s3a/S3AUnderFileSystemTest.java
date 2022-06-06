@@ -54,7 +54,7 @@ public class S3AUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
-  private static  InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static  InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
 
   private static final String BUCKET_NAME = "bucket";
   private static final String DEFAULT_OWNER = "";

@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -101,7 +101,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
-      ServerConfiguration.global());
+      Configuration.global());
 
   private FileSystemMaster mFsMaster;
 
@@ -140,7 +140,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
 
     // Add ufs only paths
-    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "ufs_dir"));
     Files.createFile(Paths.get(ufs, "ufs_file"));
 
@@ -177,7 +177,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
     AlluxioURI dir = new AlluxioURI("/dir/");
 
     // Add ufs nested file.
-    String ufs = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "dir"));
     Files.createFile(Paths.get(ufs, "dir", "file"));
 

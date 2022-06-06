@@ -17,7 +17,7 @@ import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
@@ -124,7 +124,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   public CachingInodeStore(InodeStore backingStore, InodeLockManager lockManager) {
     mBackingStore = backingStore;
     mLockManager = lockManager;
-    AlluxioConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     int maxSize = conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE);
     Preconditions.checkState(maxSize > 0,
         "Maximum cache size %s must be positive, but is set to %s",
@@ -413,14 +413,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       // This implementation must be careful because edges can be asynchronously evicted from the
       // cache to the backing store. To account for this, we read from the cache before consulting
       // the backing store.
-      Map<String, Long> childIds = new HashMap<>();
-      mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()).forEach((name, id) -> {
-        childIds.put(name, id);
-      });
+      Map<String, Long> childIds =
+          new HashMap<>(mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()));
       // Copy the list of unflushed deletes before reading the backing store to prevent racing async
       // deletion.
       Set<String> unflushedDeletes =
-          new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.EMPTY_SET));
+          new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.emptySet()));
       // Cannot use mBackingStore.getChildren because it only returns inodes cached in the backing
       // store, causing us to lose inodes stored only in the cache.
       mBackingStore.getChildIds(inodeId).forEach(childId -> {
@@ -611,12 +609,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     private final int mMaxSize;
     private final int mHighWaterMark;
     private final int mLowWaterMark;
-    private AtomicLong mWeight = new AtomicLong(0);
-    private Lock mEvictionLock = new ReentrantLock();
+    private final AtomicLong mWeight = new AtomicLong(0);
+    private final Lock mEvictionLock = new ReentrantLock();
 
     StatsCounter mStatsCounter;
 
-    private Map<Long, ListingCacheEntry> mMap = new ConcurrentHashMap<>();
+    private final Map<Long, ListingCacheEntry> mMap = new ConcurrentHashMap<>();
     private Iterator<Map.Entry<Long, ListingCacheEntry>> mEvictionHead = mMap.entrySet().iterator();
 
     private ListingCache(CacheConfiguration conf) {
@@ -630,7 +628,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
           MetricKey.MASTER_LISTING_CACHE_LOAD_TIMES,
           MetricKey.MASTER_LISTING_CACHE_MISSES);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LISTING_CACHE_SIZE.getName(),
-          () -> mWeight.get());
+          mWeight::get);
     }
 
     /**

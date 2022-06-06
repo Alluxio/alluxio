@@ -40,7 +40,7 @@ public class GenerateReport {
   private static final Logger LOG = LoggerFactory.getLogger(GenerateReport.class);
 
   @ParametersDelegate
-  private Parameters mParameters = new Parameters();
+  private final Parameters mParameters = new Parameters();
 
   private static class Parameters {
     @Parameter(names = "--input",

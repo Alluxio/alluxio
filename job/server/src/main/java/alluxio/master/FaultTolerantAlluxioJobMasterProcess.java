@@ -32,13 +32,13 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioJobMasterProcess.class);
 
-  private PrimarySelector mLeaderSelector;
-  private Thread mServingThread;
+  private final PrimarySelector mLeaderSelector;
+  private Thread mServingThread = null;
 
   /**
    * Creates a {@link FaultTolerantAlluxioJobMasterProcess}.
    */
-  protected FaultTolerantAlluxioJobMasterProcess(JournalSystem journalSystem,
+  FaultTolerantAlluxioJobMasterProcess(JournalSystem journalSystem,
       PrimarySelector leaderSelector) {
     super(journalSystem);
     try {
@@ -47,7 +47,6 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
       throw new RuntimeException(e);
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
-    mServingThread = null;
   }
 
   @Override
@@ -92,9 +91,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   @Override
   public void stop() throws Exception {
     super.stop();
-    if (mLeaderSelector != null) {
-      mLeaderSelector.stop();
-    }
+    mLeaderSelector.stop();
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import static alluxio.conf.PropertyKey.PropertyType.STRING;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -23,7 +24,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
@@ -76,18 +76,7 @@ public final class UnderFileSystemContractTest {
    * A constructor from default.
    * */
   public UnderFileSystemContractTest() {
-    mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-  }
-
-  /**
-   * Initiate the tests for a specific UFS path and UFS configs.
-   *
-   * @param path the UFS path
-   * @param conf the UFs configurations
-   * */
-  public UnderFileSystemContractTest(String path, InstancedConfiguration conf) {
-    mUfsPath = path;
-    mConf = conf;
+    mConf = Configuration.modifiableGlobal();
   }
 
   /**

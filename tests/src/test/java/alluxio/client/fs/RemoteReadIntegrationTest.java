@@ -24,7 +24,7 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateFilePOptions;
@@ -83,8 +83,8 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    UserState us = UserState.Factory.create(ServerConfiguration.global());
-    mFsContext = FileSystemContext.create(us.getSubject(), ServerConfiguration.global());
+    UserState us = UserState.Factory.create(Configuration.global());
+    mFsContext = FileSystemContext.create(us.getSubject(), Configuration.global());
     mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
         .setRecursive(true).build();
     mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
@@ -247,10 +247,10 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
+      InStreamOptions options = new InStreamOptions(status, Configuration.global());
       long blockId = status.getBlockIds().get(0);
       BlockStoreClient blockStore =
-          BlockStoreClient.create(FileSystemContext.create(ServerConfiguration.global()));
+          BlockStoreClient.create(FileSystemContext.create(Configuration.global()));
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
@@ -283,10 +283,10 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
+      InStreamOptions options = new InStreamOptions(status, Configuration.global());
       long blockId = status.getBlockIds().get(0);
       BlockInfo info =
-          BlockStoreClient.create(FileSystemContext.create(ServerConfiguration.global()))
+          BlockStoreClient.create(FileSystemContext.create(Configuration.global()))
               .getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
@@ -313,11 +313,11 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
+      InStreamOptions options = new InStreamOptions(status, Configuration.global());
       long blockId = status.getBlockIds().get(0);
       BlockInfo info =
           BlockStoreClient.create(FileSystemContext
-              .create(ServerConfiguration.global())).getInfo(blockId);
+              .create(Configuration.global())).getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
@@ -555,10 +555,10 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
 
       URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
+      InStreamOptions options = new InStreamOptions(status, Configuration.global());
       long blockId = status.getBlockIds().get(0);
       BlockInfo info = BlockStoreClient
-          .create(FileSystemContext.create(ServerConfiguration.global())).getInfo(blockId);
+          .create(FileSystemContext.create(Configuration.global())).getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =

@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.OperationId;
@@ -52,7 +52,7 @@ public class CreateFileContext
    */
   public static CreateFileContext mergeFrom(CreateFilePOptions.Builder optionsBuilder) {
     CreateFilePOptions masterOptions =
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global(), false);
+        FileSystemOptions.createFileDefaults(Configuration.global(), false);
     CreateFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return new CreateFileContext(mergedOptionsBuilder);
@@ -63,7 +63,7 @@ public class CreateFileContext
    */
   public static CreateFileContext defaults() {
     return create(
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global(), false).toBuilder());
+        FileSystemOptions.createFileDefaults(Configuration.global(), false).toBuilder());
   }
 
   /**

@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.collections.LockPool;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -39,12 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Class for managing inode locking. We manage locks centrally instead of embedded in the inode
  * tree. This allows us to create locks only as needed, and garbage collect locks that aren't in
  * use. As a result, we save memory when the inode tree contains many millions of files.
- *
- * We use WeakSafeReentrantReadWriteLock instead of ReentrantReadWriteLock because the read locks
- * and write locks returned by ReentrantReadWriteLock do not contain a reference to the original
- * ReentrantReadWriteLock, so the original lock can be garbage collected early.
- * WeakSafeReentrantReadWriteLock stores the reference to the original lock to avoid this problem.
- * See https://github.com/google/guava/issues/2477
  */
 public class InodeLockManager implements Closeable {
   /**
@@ -56,19 +50,19 @@ public class InodeLockManager implements Closeable {
    */
   private final LockPool<Long> mInodeLocks =
       new LockPool<>((key) -> new ReentrantReadWriteLock(),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
   private final LockPool<Edge> mEdgeLocks =
       new LockPool<>((key) -> new ReentrantReadWriteLock(),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
+          Configuration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**
    * Locks for guarding changes to last modified time and size on read-locked parent inodes.

@@ -47,7 +47,7 @@ import java.io.File;
 public final class HdfsUnderFileSystemTest {
 
   private HdfsUnderFileSystem mHdfsUnderFileSystem;
-  private final AlluxioConfiguration mAlluxioConf = ConfigurationTestUtils.defaults();
+  private final AlluxioConfiguration mAlluxioConf = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
@@ -55,7 +55,7 @@ public final class HdfsUnderFileSystemTest {
   @Before
   public final void before() throws Exception {
     UnderFileSystemConfiguration conf =
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults())
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults())
             .createMountSpecificConf(ImmutableMap.of("hadoop.security.group.mapping",
                 "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
             PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
@@ -80,7 +80,7 @@ public final class HdfsUnderFileSystemTest {
   @Test
   public void prepareConfiguration() throws Exception {
     UnderFileSystemConfiguration ufsConf =
-        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults());
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults());
     org.apache.hadoop.conf.Configuration conf = HdfsUnderFileSystem.createConfiguration(ufsConf);
     Assert.assertEquals(ufsConf.get(PropertyKey.UNDERFS_HDFS_IMPL), conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));

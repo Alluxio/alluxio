@@ -12,7 +12,7 @@
 package alluxio.master.journalv0.ufs;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.master.journalv0.MutableJournal;
 import alluxio.underfs.UfsStatus;
@@ -48,7 +48,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
   public void format() throws IOException {
     LOG.info("Formatting {}", mLocation);
     try (UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation.toString(),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))) {
+        UnderFileSystemConfiguration.defaults(Configuration.global()))) {
       if (ufs.isDirectory(mLocation.toString())) {
         for (UfsStatus p : ufs.listStatus(mLocation.toString())) {
           URI childPath;
@@ -75,7 +75,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
       // Create a breadcrumb that indicates that the journal folder has been formatted.
       try {
         UnderFileSystemUtils.touch(ufs, URIUtils.appendPath(mLocation,
-            ServerConfiguration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX)
+            Configuration.getString(PropertyKey.MASTER_FORMAT_FILE_PREFIX)
                 + System.currentTimeMillis())
             .toString());
       } catch (URISyntaxException e) {

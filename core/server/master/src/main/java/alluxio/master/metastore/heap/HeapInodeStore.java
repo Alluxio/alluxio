@@ -15,7 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -61,7 +61,7 @@ public class HeapInodeStore implements InodeStore {
    */
   public HeapInodeStore() {
     super();
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
       MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
           () -> ObjectSizeCalculator.getObjectSize(mInodes,
           ImmutableSet.of(Long.class, MutableInodeFile.class, MutableInodeDirectory.class)));
@@ -127,7 +127,7 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public Set<EdgeEntry> allEdges() {
-    return mEdges.flattenEntries((a, b, c) -> new EdgeEntry(a, b, c));
+    return mEdges.flattenEntries(EdgeEntry::new);
   }
 
   @Override

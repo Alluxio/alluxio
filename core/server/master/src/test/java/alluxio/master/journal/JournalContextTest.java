@@ -22,7 +22,7 @@ import static org.mockito.Mockito.doAnswer;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -85,7 +85,7 @@ public class JournalContextTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
 
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mTemporaryFolder);
@@ -104,7 +104,7 @@ public class JournalContextTest {
   public void after() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
