@@ -124,9 +124,8 @@ public abstract class AbstractBackupRole implements BackupRole {
   protected void sendMessageBlocking(GrpcMessagingConnection connection, Object message)
       throws IOException {
     try {
-      mGrpcMessagingContext.execute(() -> {
-        return connection.sendAndReceive(message);
-      }).get().get(); // First get is for the task, second is for the messaging future.
+      // First get is for the task, second is for the messaging future.
+      mGrpcMessagingContext.execute(() -> connection.sendAndReceive(message)).get().get();
     } catch (InterruptedException ie) {
       throw new RuntimeException("Interrupted while waiting for messaging to complete.");
     } catch (ExecutionException ee) {
@@ -146,9 +145,8 @@ public abstract class AbstractBackupRole implements BackupRole {
       throws IOException {
     AlluxioURI backupUri;
 
-    final Closer closer = Closer.create();
     // Acquire the UFS resource under which backup is being created.
-    try (CloseableResource<UnderFileSystem> ufsResource =
+    try (Closer closer = Closer.create(); CloseableResource<UnderFileSystem> ufsResource =
         mUfsManager.getRoot().acquireUfsResource()) {
       // Get backup parent directory.
       String backupParentDir = request.hasTargetDirectory() ? request.getTargetDirectory()
@@ -198,8 +196,6 @@ public abstract class AbstractBackupRole implements BackupRole {
         throw new IOException(String.format("Backup failed. BackupUri: %s, LastEntryCount: %d",
             backupUri, entryCounter.get()), e);
       }
-    } finally {
-      closer.close();
     }
     return backupUri;
   }

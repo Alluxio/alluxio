@@ -150,7 +150,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   @Override
-  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException {
+  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) {
     throw new IllegalStateException("Backup-worker role can't serve RPCs");
   }
 
@@ -241,7 +241,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
             "Initiating catching up of journals to consistent sequences before starting backup. {}",
             requestMsg.getJournalSequences());
         CatchupFuture catchupFuture = mJournalSystem.catchup(requestMsg.getJournalSequences());
-        CompletableFuture.runAsync(() -> catchupFuture.waitTermination())
+        CompletableFuture.runAsync(catchupFuture::waitTermination)
             .get(BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
         LOG.info("Journal transition completed. Taking a backup.");
@@ -319,9 +319,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   private void activateLeaderConnection(GrpcMessagingConnection leaderConnection)
       throws IOException {
     // Register connection error listener.
-    leaderConnection.onException((error) -> {
-      LOG.warn("Backup-leader connection failed.", error);
-    });
+    leaderConnection.onException((error) -> LOG.warn("Backup-leader connection failed.", error));
     // Register connection close listener.
     mLeaderConnectionCloseListener = leaderConnection.onClose((connection) -> {
       LOG.info("Backup-leader connection closed. {}", connection);
@@ -332,9 +330,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         mBackupTracker.reset();
       }
       // Re-establish leader connection to a potentially new leader.
-      mExecutorService.submit(() -> {
-        establishConnectionToLeader();
-      });
+      mExecutorService.submit(this::establishConnectionToLeader);
     });
     // Register message handlers under catalyst context.
     try {
@@ -375,7 +371,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
       } catch (Throwable t) {
-        LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t.toString(),
+        LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t,
             infiniteRetryPolicy.getAttemptCount());
         continue;
       }
@@ -395,7 +391,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         break;
       } catch (Throwable t) {
         LOG.warn("Failed to establish connection to backup-leader: {}. Error:{}. Attempt:{}",
-            leaderAddress, t.toString(), infiniteRetryPolicy.getAttemptCount());
+            leaderAddress, t, infiniteRetryPolicy.getAttemptCount());
       }
     }
   }
