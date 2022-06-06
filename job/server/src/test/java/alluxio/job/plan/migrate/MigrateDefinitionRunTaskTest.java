@@ -14,6 +14,7 @@ package alluxio.job.plan.migrate;
 import static junit.framework.TestCase.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,20 +44,13 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, MigrateCommand, RunTaskContext)}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class})
 public final class MigrateDefinitionRunTaskTest {
   private static final String TEST_DIR = "/DIR";
   private static final String TEST_SOURCE = "/DIR/TEST_SOURCE";
@@ -72,8 +66,8 @@ public final class MigrateDefinitionRunTaskTest {
   @Before
   public void before() throws Exception {
     AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
-    mMockFileSystem = Mockito.mock(FileSystem.class);
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystem = mock(FileSystem.class);
+    mMockFileSystemContext = mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(conf));
     when(mMockFileSystemContext.getClusterConf()).thenReturn(conf);
@@ -84,7 +78,7 @@ public final class MigrateDefinitionRunTaskTest {
     mMockOutStream = new MockFileOutStream(mMockFileSystemContext);
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)),
         any(CreateFilePOptions.class))).thenReturn(mMockOutStream);
-    mMockUfsManager = Mockito.mock(UfsManager.class);
+    mMockUfsManager = mock(UfsManager.class);
   }
 
   /**
