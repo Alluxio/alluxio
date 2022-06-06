@@ -46,8 +46,8 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.meta.checkconf.ServerConfigurationChecker;
-import alluxio.master.meta.checkconf.ServerConfigurationStore;
+import alluxio.master.meta.checkconf.ConfigurationChecker;
+import alluxio.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
@@ -119,12 +119,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final Clock mClock = new SystemClock();
 
   /** The master configuration store. */
-  private final ServerConfigurationStore mMasterConfigStore = new ServerConfigurationStore();
+  private final ConfigurationStore mMasterConfigStore = new ConfigurationStore();
   /** The worker configuration store. */
-  private final ServerConfigurationStore mWorkerConfigStore = new ServerConfigurationStore();
+  private final ConfigurationStore mWorkerConfigStore = new ConfigurationStore();
   /** The server-side configuration checker. */
-  private final ServerConfigurationChecker mConfigChecker =
-      new ServerConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
+  private final ConfigurationChecker mConfigChecker =
+      new ConfigurationChecker(mMasterConfigStore, mWorkerConfigStore);
 
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MasterInfo> mMasters =
@@ -420,7 +420,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           builder.addClusterProperty(key.getName(), value, source);
         }
       }
-      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // NOTE(cc): assumes that Configuration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
       builder.setClusterConfHash(Configuration.hash());
     }
