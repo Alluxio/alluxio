@@ -132,7 +132,7 @@ public class BlockMasterClientTest {
     final String tierAlias = "MEM";
     final String mediumType = "MEM";
 
-    Channel mockChannel = createMockHandler(
+    Channel mockChannel = createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void commitBlock(CommitBlockPRequest request,
@@ -155,7 +155,7 @@ public class BlockMasterClientTest {
     client.commitBlock(workerId, usedBytesOnTier, tierAlias, mediumType, blockId, length);
 
     assertEquals(1, committedBlocks.size());
-    assertEquals((Long) workerId, committedBlocks.get(blockId));
+    assertEquals(workerId, (long) committedBlocks.get(blockId));
   }
 
   @Test
@@ -164,7 +164,7 @@ public class BlockMasterClientTest {
     final long blockId = 0L;
     final long length = 1024 * 1024L;
 
-    Channel mockChannel = createMockHandler(
+    Channel mockChannel = createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void commitBlockInUfs(CommitBlockInUfsPRequest request,
@@ -186,7 +186,7 @@ public class BlockMasterClientTest {
     client.commitBlockInUfs(blockId, length);
 
     assertEquals(1, committedUfsBlocks.size());
-    assertEquals((Long) length, committedUfsBlocks.get(blockId));
+    assertEquals(length, (long) committedUfsBlocks.get(blockId));
   }
 
   @Test
@@ -195,10 +195,10 @@ public class BlockMasterClientTest {
     testExistsAddress.setTieredIdentity(new TieredIdentity(new ArrayList<>()));
     WorkerNetAddress testNonExistsAddress = new WorkerNetAddress();
     testNonExistsAddress.setHost("1.2.3.4");
-    Long workerId = 0L;
+    long workerId = 0L;
     Map<WorkerNetAddress, Long> workerIds = ImmutableMap.of(testExistsAddress, workerId);
 
-    Channel mockChannel = createMockHandler(
+    Channel mockChannel = createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void getWorkerId(GetWorkerIdPRequest request,
@@ -217,7 +217,7 @@ public class BlockMasterClientTest {
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
         mockChannel);
 
-    assertEquals((long) workerId, client.getId(testExistsAddress));
+    assertEquals(workerId, client.getId(testExistsAddress));
     assertEquals(-1L, client.getId(testNonExistsAddress));
   }
 
@@ -234,7 +234,7 @@ public class BlockMasterClientTest {
     );
     final List<Metric> metrics = ImmutableList.of();
 
-    Channel mockChannel = createMockHandler(
+    Channel mockChannel = createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void blockHeartbeat(BlockHeartbeatPRequest request,
@@ -283,17 +283,14 @@ public class BlockMasterClientTest {
   }
 
   private void testAcquireRegisterLease(boolean expectedSuccess) throws Exception {
-    // our mock server will grant lease for block count <= 5 but will reject
-    // lease for block count > 5
-    Channel mockChannel = createMockHandler(
+    Channel mockChannel = createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void requestRegisterLease(
               GetRegisterLeasePRequest request,
               StreamObserver<GetRegisterLeasePResponse> responseObserver) {
-            boolean allowed = request.getBlockCount() <= 5;
             responseObserver.onNext(
-                GetRegisterLeasePResponse.newBuilder().setAllowed(allowed).build());
+                GetRegisterLeasePResponse.newBuilder().setAllowed(expectedSuccess).build());
             responseObserver.onCompleted();
           }
         });
@@ -303,11 +300,9 @@ public class BlockMasterClientTest {
         mockChannel
     );
 
-    int blockCount = expectedSuccess ? 5 : 10;
-
     client.acquireRegisterLeaseWithBackoff(
         0L,
-        blockCount,
+        1,
         ExponentialTimeBoundedRetry
             .builder()
             .withMaxDuration(Duration.of(500, ChronoUnit.MILLIS))
@@ -328,7 +323,7 @@ public class BlockMasterClientTest {
 
     List<Long> registeredWorkerIds = new ArrayList<>();
 
-    Channel mockChannel = createMockHandler(
+    Channel mockChannel = createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
           public void registerWorker(RegisterWorkerPRequest request,
@@ -391,7 +386,7 @@ public class BlockMasterClientTest {
   }
 
   // create a mock grpc server that uses delegate to handle rpc calls
-  private Channel createMockHandler(
+  private Channel createMockService(
       BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase delegate) throws IOException {
 
     // create mock service handler
@@ -410,6 +405,8 @@ public class BlockMasterClientTest {
         InProcessChannelBuilder.forName(serverName).directExecutor().build());
   }
 
+  // a sub-class of BlockMasterClient that re-direct grpc requests
+  // to a mock channel provided by test functions
   private static class MockStubBlockMasterClient extends BlockMasterClient {
     public MockStubBlockMasterClient(
         MasterClientContext conf,
@@ -426,6 +423,11 @@ public class BlockMasterClientTest {
 
     @Override
     public void disconnect() {
+      // empty implementation
+    }
+
+    @Override
+    public void afterConnect() {
       // empty implementation
     }
   }
