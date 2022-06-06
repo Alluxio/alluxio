@@ -298,7 +298,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (isPrimary) {
       // Add the configuration of the current leader master
       mMasterConfigStore.registerNewConf(mMasterAddress,
-          ConfigurationUtils.getConfiguration(Configuration.global(), Scope.MASTER));
+          Configuration.getConfiguration(Scope.MASTER));
 
       // The service that detects lost standby master nodes
       getExecutorService().submit(new HeartbeatThread(
