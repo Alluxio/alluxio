@@ -364,18 +364,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int openInternal(String path, FuseFileInfo fi, int flags, OpenAction openAction) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     if (openAction == OpenAction.NOT_SUPPORTED) {
-      LOG.error("Failed to open {}: Not supported open flag {}. "
+      LOG.error(String.format("Failed to open %s: Not supported open flag 0x%x. "
           + "Alluxio does not support file modification. "
           + "Cannot open directory in fuse.open().",
-          path, flags);
+          path, flags));
       return -ErrorCodes.EOPNOTSUPP();
     }
 
     boolean truncate = AlluxioFuseOpenUtils.containsTruncate(flags);
     if (openAction == OpenAction.READ_ONLY && truncate) {
       LOG.error(
-          "Failed to open {}: can not pass flag {} for reading and truncating.",
-          path, flags);
+          String.format("Failed to open %s: can not pass flag 0x%x for reading and truncating.",
+          path, flags));
       return -ErrorCodes.EACCES();
     }
 
@@ -412,8 +412,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // file cannot be removed with O_WRONLY or O_RDWR flag itself
         // O_TRUNC or fuse.truncate(size=0) is needed.
         mFileSystem.delete(uri);
-        LOG.debug("Open path {} with flag {} for overwriting. "
-            + "Alluxio deleted the old file and created a new file for writing", path, flags);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Open path %s with flag 0x%x for overwriting.    "
+              + "Alluxio deleted the old file and created a new file for writing", path, flags));
+        }
         status = null;
       }
       if (readOnly) {
@@ -453,11 +455,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (is == null) {
         final int flags = fi.flags.get();
         if (AlluxioFuseOpenUtils.getOpenAction(flags) == OpenAction.READ_WRITE) {
-          LOG.error("Alluxio only supports read-only or write-only. "
-              + "Path {} is opened with flag {} for reading and writing concurrently. "
+          LOG.error(String.format("Alluxio only supports read-only or write-only. "
+              + "Path %s is opened with flag 0x%x for reading and writing concurrently. "
               + "Cannot find stream for reading may because "
               + "open with O_RDWR is treated as write-only. ",
-              path, flags);
+              path, flags));
         } else {
           LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
         }
@@ -507,9 +509,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     CreateFileEntry<FileOutStream> ce = mCreateFileEntries.getFirstByField(ID_INDEX, fd);
     if (ce == null) {
       if (offset != 0) {
-        LOG.error("Cannot write to offset {} for path {} with flags {}."
+        LOG.error(String.format("Cannot write to offset %s for path %s with flags 0x%x."
             + "Output stream is not initiated.",
-            offset, path, fi.flags.get());
+            offset, path, fi.flags.get()));
         return -ErrorCodes.EBADFD();
       }
       // Several cases may happen here
@@ -532,9 +534,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         // open (O_WRONLY or O_RDWR) needs O_TRUNC open flag
         // or fuse.truncate(size = 0) to delete existing file
         // otherwise cannot overwrite existing file
-        LOG.error("Cannot overwrite existing file {} "
-            + "without O_TRUNC flag or fuse.truncate(size=0), flag {}",
-            path, fi.flags.get());
+        LOG.error(String.format("Cannot overwrite existing file %s "
+            + "without O_TRUNC flag or fuse.truncate(size=0), flag 0x%x",
+            path, fi.flags.get()));
         return -ErrorCodes.EEXIST();
       }
 
