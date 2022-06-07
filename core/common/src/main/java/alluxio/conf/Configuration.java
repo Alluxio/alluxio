@@ -242,6 +242,16 @@ public final class Configuration
   }
 
   /**
+   * Gets the long integer representation of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as a {@code long}
+   */
+  public static long getLong(PropertyKey key) {
+    return SERVER_CONFIG_REFERENCE.get().getLong(key);
+  }
+
+  /**
    * Gets the boolean representation of the value for the given key.
    *
    * @param key the key to get the value for
