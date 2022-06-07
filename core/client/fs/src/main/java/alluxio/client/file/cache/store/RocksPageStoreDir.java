@@ -22,7 +22,6 @@ import com.google.common.collect.Streams;
 import org.rocksdb.RocksIterator;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
@@ -33,8 +32,6 @@ import javax.annotation.Nullable;
  */
 public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
 
-  private final long mCapacity;
-  private final Path mRootPath;
   private final PageStoreOptions mPageStoreOptions;
 
   private RocksPageStore mPageStore;
@@ -52,10 +49,8 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
     checkState(pageStore instanceof RocksPageStore);
     mPageStore = (RocksPageStore) pageStore;
     mPageStoreOptions = pageStoreOptions;
-    mCapacity = pageStoreOptions.getCacheSize();
-    mRootPath = pageStoreOptions.getRootDir();
   }
-  
+
   @Override
   public PageStore getPageStore() {
     return mPageStore;
@@ -68,7 +63,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
       // when cache is large, e.g. millions of pages, initialize may take a while on deletion
       mPageStore = (RocksPageStore) PageStore.create(mPageStoreOptions);
     } catch (Exception e) {
-      throw new RuntimeException("Reset page store failed for dir " + mRootPath.toString(), e);
+      throw new RuntimeException("Reset page store failed for dir " + getRootPath().toString(), e);
     }
   }
 

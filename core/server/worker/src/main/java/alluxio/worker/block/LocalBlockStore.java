@@ -32,7 +32,6 @@ import java.util.Set;
  */
 public interface LocalBlockStore
     extends SessionCleanable, Closeable {
-
   /**
    * Pins the block indicating subsequent access.
    *
@@ -169,7 +168,7 @@ public interface LocalBlockStore
    * @return a {@link BlockReader} instance on this block
    */
   default BlockReader createBlockReader(long sessionId, long blockId,
-      Protocol.OpenUfsBlockOptions options) {
+                                        Protocol.OpenUfsBlockOptions options) {
     throw new UnsupportedOperationException();
   }
 
@@ -180,7 +179,7 @@ public interface LocalBlockStore
    * @param blockId the id of an existing block
    * @param moveOptions the options for move
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
+   * block
    */
   void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws WorkerOutOfSpaceException, IOException;

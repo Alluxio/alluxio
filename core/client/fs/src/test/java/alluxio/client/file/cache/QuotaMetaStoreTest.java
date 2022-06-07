@@ -15,11 +15,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -32,7 +32,7 @@ import java.nio.file.Paths;
  * Tests for the {@link QuotaMetaStore} class.
  */
 public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConf = Configuration.global();
   private final CacheScope mPartitionScope = CacheScope.create("schema.table.partition");
   private final CacheScope mTableScope = CacheScope.create("schema.table");
   private final CacheScope mSchemaScope = CacheScope.create("schema");

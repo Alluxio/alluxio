@@ -13,11 +13,11 @@ package alluxio.client.file.cache.store;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class PageStoreDirTest {
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final AlluxioConfiguration mConf = Configuration.global();
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
