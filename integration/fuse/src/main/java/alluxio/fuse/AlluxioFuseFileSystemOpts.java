@@ -222,7 +222,7 @@ public final class AlluxioFuseFileSystemOpts {
   }
 
   /**
-   * @return if caching meatadat on client side
+   * @return if caching metadata on client side
    */
   public boolean isMetadataCacheEnabled() {
     return mMetadataCacheEnabled;

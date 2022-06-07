@@ -114,7 +114,7 @@ public class FuseShellTest {
   public  void runMetadataCacheCommandWhenSpecialCommandDisable() throws InvalidArgumentException {
     mConf.set(PropertyKey.USER_METADATA_CACHE_ENABLED, false);
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
-    mFuseShell.runCommand(reservedPath);
+    new FuseShell(mFileSystem, AlluxioFuseFileSystemOpts.create(mConf)).runCommand(reservedPath);
   }
 
   @Test(expected = InvalidArgumentException.class)
