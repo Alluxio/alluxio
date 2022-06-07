@@ -48,7 +48,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     AlluxioConfiguration conf = Configuration.global();
     AlluxioFuseFileSystemOpts fuseFsOpts = AlluxioFuseFileSystemOpts.create(conf);
-    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts, conf);
+    mFuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem, fuseFsOpts);
     mFuseFileSystem.mount(false, false, new String[] {});
   }
 

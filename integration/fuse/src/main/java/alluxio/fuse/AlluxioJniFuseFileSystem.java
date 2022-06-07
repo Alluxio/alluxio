@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
@@ -85,13 +84,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
   private final FileSystem mFileSystem;
   private final FileSystemContext mFileSystemContext;
-  // base path within Alluxio namespace that is used for FUSE operations
-  // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
-  // is /users/foo, then an operation on /mnt/alluxio/bar will be translated on
-  // an action on the URI alluxio://<master>:<port>/users/foo/bar
-  private final Path mAlluxioRootPath;
-  private final String mMountPoint;
-  private final String mFsName;
   // Caches the filesystem statistics for Fuse.statfs
   private final Supplier<BlockMasterInfo> mFsStatCache;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
@@ -99,10 +91,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
-  private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
   private final FuseShell mFuseShell;
+  private final AlluxioFuseFileSystemOpts mFuseFsOpts;
   private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
       ID_INDEX =
       new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
@@ -123,8 +115,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       };
   private final IndexedSet<CreateFileEntry<FileOutStream>> mCreateFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
-  private final boolean mIsUserGroupTranslation;
-  private final boolean mIsSpecialCommandEnabled;
   private final AuthPolicy mAuthPolicy;
 
   /** df command will treat -1 as an unknown value. */
@@ -140,18 +130,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    * @param fsContext the file system context
    * @param fs Alluxio file system
    * @param fuseFsOpts options for fuse filesystem
-   * @param conf Alluxio configuration
    */
   public AlluxioJniFuseFileSystem(
-      FileSystemContext fsContext, FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts,
-      AlluxioConfiguration conf) {
+      FileSystemContext fsContext, FileSystem fs, AlluxioFuseFileSystemOpts fuseFsOpts) {
     super(Paths.get(fuseFsOpts.getMountPoint()));
-    mFsName = fuseFsOpts.getFsName();
     mFileSystemContext = fsContext;
     mFileSystem = fs;
-    mAlluxioRootPath = Paths.get(fuseFsOpts.getAlluxioPath());
-    mMountPoint = fuseFsOpts.getMountPoint();
-    mFuseShell = new FuseShell(fs, conf);
+    mFuseFsOpts = fuseFsOpts;
+    mFuseShell = new FuseShell(fs, fuseFsOpts);
     long statCacheTimeout = fuseFsOpts.getStatCacheTimeout();
     mFsStatCache = statCacheTimeout > 0 ? Suppliers.memoizeWithExpiration(
         this::acquireBlockMasterInfo, statCacheTimeout, TimeUnit.MILLISECONDS)
@@ -164,7 +150,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             // fusePath is guaranteed to always be an absolute path (i.e., starts
             // with a fwd slash) - relative to the FUSE mount point
             final String relPath = fusePath.substring(1);
-            final Path tpath = mAlluxioRootPath.resolve(relPath);
+            final Path tpath = Paths.get(fuseFsOpts.getAlluxioPath()).resolve(relPath);
             return new AlluxioURI(tpath.toString());
           }
         });
@@ -184,10 +170,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             return AlluxioFuseUtils.getGidFromGroupName(groupName);
           }
         });
-    mIsUserGroupTranslation = fuseFsOpts.isUserGroupTranslationEnabled();
-    mMaxUmountWaitTime = fuseFsOpts.getFuseUmountTimeout();
-    mIsSpecialCommandEnabled = fuseFsOpts.isSpecialCommandEnabled();
-    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
+    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);
     if (fuseFsOpts.isDebug()) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -246,7 +229,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       URIStatus status;
       // Handle special metadata cache operation
-      if (mIsSpecialCommandEnabled && mFuseShell.isSpecialCommand(uri)) {
+      if (mFuseFsOpts.isSpecialCommandEnabled() && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
         status = mFuseShell.runCommand(uri);
       } else {
@@ -294,7 +277,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      if (mIsUserGroupTranslation) {
+      if (mFuseFsOpts.isUserGroupTranslationEnabled()) {
         // Translate the file owner/group to unix uid/gid
         // Show as uid==-1 (nobody) if owner does not exist in unix
         // Show as gid==-1 (nogroup) if group does not exist in unix
@@ -769,7 +752,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chownInternal(String path, long uid, long gid) {
-    if (!mIsUserGroupTranslation) {
+    if (!mFuseFsOpts.isUserGroupTranslationEnabled()) {
       LOG.warn("Failed to chown {}: "
           + "Please set {} to true to enable user group translation in Alluxio-FUSE.",
           path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
@@ -1012,27 +995,29 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   @Override
   public String getFileSystemName() {
-    return mFsName;
+    return mFuseFsOpts.getFsName();
   }
 
   @Override
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-    if (mMaxUmountWaitTime > 0 && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
-      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
+    if (mFuseFsOpts.getFuseUmountTimeout() > 0
+        && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
+      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish",
+          mFuseFsOpts.getMountPoint());
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
             () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
-            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
+            WaitForOptions.defaults().setTimeoutMs(mFuseFsOpts.getFuseUmountTimeout()));
       } catch (InterruptedException e) {
-        LOG.error("Unmount {} interrupted", mMountPoint);
+        LOG.error("Unmount {} interrupted", mFuseFsOpts.getMountPoint());
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
             + "when unmounting {}. {} fileInStream remain unclosed. "
             + "{} fileOutStream remain unclosed.",
-            mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
+            mFuseFsOpts.getMountPoint(), mOpenFileEntries.size(), mCreateFileEntries.size());
         if (!force) {
           throw new FuseException("Timed out for umount due to device is busy.");
         }

@@ -27,10 +27,14 @@ import java.util.Optional;
 public final class AlluxioFuseFileSystemOpts {
   private final String mAlluxioPath;
   private final String mFsName;
+  private final Class mFuseAuthPolicyClass;
+  private final String mFuseAuthPolicyCustomGroup;
+  private final String mFuseAuthPolicyCustomUser;
   private final int mFuseMaxPathCached;
   private final int mFuseUmountTimeout;
   private final boolean mIsDebug;
   private final List<String> mLibfuseOptions;
+  private final boolean mMetadataCacheEnabled;
   private final String mMountPoint;
   private final boolean mSpecialCommandEnabled;
   private final long mStatCacheTimeout;
@@ -43,16 +47,22 @@ public final class AlluxioFuseFileSystemOpts {
    * @return AlluxioFuseFileSystemOpts
    */
   public static AlluxioFuseFileSystemOpts create(AlluxioConfiguration conf) {
+    Preconditions.checkNotNull(conf,
+        "AlluxioConfiguration should not be null for creating AlluxioFuseFileSystemOpts.");
     List<String> libfuseOptions = conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)
         ? conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
         : ImmutableList.of();
     return new AlluxioFuseFileSystemOpts(
         conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH),
         conf.getString(PropertyKey.FUSE_FS_NAME),
+        conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS),
+        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP),
+        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER),
         conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX),
         (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT),
         conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED),
         libfuseOptions,
+        conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED),
         conf.getString(PropertyKey.FUSE_MOUNT_POINT),
         conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED),
         conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL),
@@ -71,13 +81,13 @@ public final class AlluxioFuseFileSystemOpts {
    */
   public static AlluxioFuseFileSystemOpts create(
       AlluxioConfiguration conf, AlluxioFuseCliOpts fuseCliOpts) {
+    Preconditions.checkNotNull(conf,
+        "AlluxioConfiguration should not be null for creating AlluxioFuseFileSystemOpts.");
+    Preconditions.checkNotNull(fuseCliOpts,
+        "AlluxioFuseCliOpts should not be null for creating AlluxioFuseFileSystemOpts.");
     Optional<String> alluxioPathFromCli = fuseCliOpts.getMountAlluxioPath();
     String alluxioPath = alluxioPathFromCli.orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
-    String fsName = conf.getString(PropertyKey.FUSE_FS_NAME);
-    int fuseMaxPathCached = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    int fuseUmountTimeout = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
-    boolean isDebug = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
     Optional<List<String>> libfuseOptionsFromCli = fuseCliOpts.getFuseOptions();
     List<String> libfuseOptions;
     if (libfuseOptionsFromCli.isPresent()) {
@@ -93,46 +103,45 @@ public final class AlluxioFuseFileSystemOpts {
     Optional<String> mountPointFromCli = fuseCliOpts.getMountPoint();
     String mountPoint = mountPointFromCli.orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
-    boolean specialCommandEnabled = conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED);
-    long statCacheTimeout = conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL);
-    boolean userGroupTranslationEnabled = conf.getBoolean(
-        PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    return new AlluxioFuseFileSystemOpts(alluxioPath, fsName, fuseMaxPathCached, fuseUmountTimeout,
-        isDebug, libfuseOptions, mountPoint, specialCommandEnabled, statCacheTimeout,
-        userGroupTranslationEnabled);
+    return new AlluxioFuseFileSystemOpts(alluxioPath,
+        conf.getString(PropertyKey.FUSE_FS_NAME),
+        conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS),
+        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP),
+        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER),
+        conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX),
+        (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT),
+        conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED),
+        libfuseOptions,
+        conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED),
+        mountPoint,
+        conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED),
+        conf.getMs(PropertyKey.FUSE_STAT_CACHE_REFRESH_INTERVAL),
+        conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED));
   }
 
-  private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, int fuseMaxPathCached,
-        int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions, String mountPoint,
-        boolean specialCommandEnabled, long statCacheTimeout,
-        boolean userGroupTranslationEnabled) {
-    Preconditions.checkNotNull(alluxioPath,
+  private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, Class fuseAuthPolicyClass,
+        String fuseAuthPolicyCustomGroup, String fuseAuthPolicyCustomUser, int fuseMaxPathCached,
+        int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions,
+        boolean metaDataCacheEnabled, String mountPoint, boolean specialCommandEnabled,
+        long statCacheTimeout, boolean userGroupTranslationEnabled) {
+    mAlluxioPath = Preconditions.checkNotNull(alluxioPath,
         "Option alluxioPath for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(fsName,
+    mFsName = Preconditions.checkNotNull(fsName,
         "Option fsName for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(fuseMaxPathCached,
-        "Option fuseMaxPathCached for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(fuseUmountTimeout,
-        "Option fuseUmountTimeout for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(isDebug,
-        "Option isDebug for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(libfuseOptions,
-        "Option libfuseOptions for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(mountPoint,
-        "Option mountPoint for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(specialCommandEnabled,
-        "Option specialCommandEnabled for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(statCacheTimeout,
-        "Option statCacheTimeout for an AlluxioFuse filesystem should not be null.");
-    Preconditions.checkNotNull(userGroupTranslationEnabled,
-        "Option userGroupTranslationEnabled for an AlluxioFuse filesystem should not be null.");
-    mAlluxioPath = alluxioPath;
-    mFsName = fsName;
+    mFuseAuthPolicyClass = Preconditions.checkNotNull(fuseAuthPolicyClass,
+        "Option fuseAuthPolicyClass for an AlluxioFuse filesystem should not be null.");
+    mFuseAuthPolicyCustomGroup = Preconditions.checkNotNull(fuseAuthPolicyCustomGroup,
+        "Option fuseAuthPolicyCustomGroup for an AlluxioFuse filesystem should not be null.");
+    mFuseAuthPolicyCustomUser = Preconditions.checkNotNull(fuseAuthPolicyCustomUser,
+        "Option fuseAuthPolicyCustomUser for an AlluxioFuse filesystem should not be null.");
     mFuseMaxPathCached = fuseMaxPathCached;
     mFuseUmountTimeout = fuseUmountTimeout;
     mIsDebug = isDebug;
-    mLibfuseOptions = libfuseOptions;
-    mMountPoint = mountPoint;
+    mLibfuseOptions = Preconditions.checkNotNull(libfuseOptions,
+        "Option libfuseOptions for an AlluxioFuse filesystem should not be null.");
+    mMetadataCacheEnabled = metaDataCacheEnabled;
+    mMountPoint = Preconditions.checkNotNull(mountPoint,
+        "Option mountPoint for an AlluxioFuse filesystem should not be null.");
     mSpecialCommandEnabled = specialCommandEnabled;
     mStatCacheTimeout = statCacheTimeout;
     mUserGroupTranslationEnabled = userGroupTranslationEnabled;
@@ -150,6 +159,27 @@ public final class AlluxioFuseFileSystemOpts {
    */
   public String getFsName() {
     return mFsName;
+  }
+
+  /**
+   * @return the authorization policy class for Fuse
+   */
+  public Class getFuseAuthPolicyClass() {
+    return mFuseAuthPolicyClass;
+  }
+
+  /**
+   * @return the fuse group for the authorization policy
+   */
+  public String getFuseAuthPolicyCustomGroup() {
+    return mFuseAuthPolicyCustomGroup;
+  }
+
+  /**
+   * @return the fuse user for the authorization policy
+   */
+  public String getFuseAuthPolicyCustomUser() {
+    return mFuseAuthPolicyCustomUser;
   }
 
   /**
@@ -178,6 +208,13 @@ public final class AlluxioFuseFileSystemOpts {
    */
   public List<String> getFuseOptions() {
     return mLibfuseOptions;
+  }
+
+  /**
+   * @return if caching meatadat on client side
+   */
+  public boolean isMetadataCacheEnabled() {
+    return mMetadataCacheEnabled;
   }
 
   /**

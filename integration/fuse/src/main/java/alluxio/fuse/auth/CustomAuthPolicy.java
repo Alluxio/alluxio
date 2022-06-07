@@ -13,8 +13,7 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
@@ -34,14 +33,14 @@ public class CustomAuthPolicy implements AuthPolicy {
 
   /**
    * @param fileSystem     the Alluxio file system
-   * @param conf           alluxio configuration
+   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem the FuseFileSystem
    */
-  public CustomAuthPolicy(FileSystem fileSystem, AlluxioConfiguration conf,
+  public CustomAuthPolicy(FileSystem fileSystem, AlluxioFuseFileSystemOpts fuseFsOpts,
       AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
-    mUname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
-    mGname = conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
+    mUname = fuseFsOpts.getFuseAuthPolicyCustomUser();
+    mGname = fuseFsOpts.getFuseAuthPolicyCustomGroup();
   }
 
   @Override

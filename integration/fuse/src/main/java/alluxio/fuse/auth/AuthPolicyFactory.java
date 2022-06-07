@@ -12,8 +12,8 @@
 package alluxio.fuse.auth;
 
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
 /**
@@ -25,19 +25,19 @@ public class AuthPolicyFactory {
    * Creates a new instance of {@link AuthPolicy}.
    *
    * @param fileSystem     the Alluxio file system
-   * @param conf           alluxio configuration
+   * @param fuseFsOpts     the options for AlluxioFuse filesystem
    * @param fuseFileSystem the FuseFileSystem
    * @return AuthPolicy
    */
   public static AuthPolicy create(FileSystem fileSystem,
-      AlluxioConfiguration conf,
+      AlluxioFuseFileSystemOpts fuseFsOpts,
       AbstractFuseFileSystem fuseFileSystem) {
-    Class authPolicyClazz = conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS);
+    Class authPolicyClazz = fuseFsOpts.getFuseAuthPolicyClass();
     try {
       return (AuthPolicy) authPolicyClazz.getConstructor(
-          new Class[] {FileSystem.class, AlluxioConfiguration.class,
+          new Class[] {FileSystem.class, AlluxioFuseFileSystemOpts.class,
               AbstractFuseFileSystem.class})
-          .newInstance(fileSystem, conf, fuseFileSystem);
+          .newInstance(fileSystem, fuseFsOpts, fuseFileSystem);
     } catch (ReflectiveOperationException e) {
       throw new IllegalStateException(
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to invalid policy "
