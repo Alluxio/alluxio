@@ -62,6 +62,8 @@ public final class LoadManagerTest {
       mScheduler.schedule(s);
     }
 
+    Thread.sleep(10000);
+
     for (Load s: allCmds) {
       verify(mScheduler).runLoad(s);
     }
