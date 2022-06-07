@@ -17,9 +17,6 @@ import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
 import alluxio.master.journal.raft.RaftJournalSystem;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 
 /**
@@ -27,10 +24,8 @@ import java.io.IOException;
  * processes.
  */
 public class DefaultJournalMaster implements JournalMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultJournalMaster.class);
-
-  private JournalDomain mJournalDomain;
-  private JournalSystem mJournalSystem;
+  private final JournalDomain mJournalDomain;
+  private final JournalSystem mJournalSystem;
 
   /**
    * @param journalDomain domain for the journal

@@ -12,8 +12,8 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
@@ -292,8 +292,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this,
-        Configuration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX));
+    mStateMachine = new JournalStateMachine(mJournals, this);
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();

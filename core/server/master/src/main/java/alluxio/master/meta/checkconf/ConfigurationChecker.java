@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 /**
  * This class is responsible for checking server-side configuration.
  */
-public class ServerConfigurationChecker {
-  private static final Logger LOG = LoggerFactory.getLogger(ServerConfigurationChecker.class);
+public class ConfigurationChecker {
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigurationChecker.class);
   private static final int LOG_CONF_SIZE = 5;
   private static final String CONSISTENT_CONFIGURATION_INFO
       = "All server-side configurations are consistent.";
@@ -43,22 +43,22 @@ public class ServerConfigurationChecker {
       + "For details, please visit Alluxio web UI or "
       + "run fsadmin doctor CLI.";
   /** Contain all the master configuration information. */
-  private final ServerConfigurationStore mMasterStore;
+  private final ConfigurationStore mMasterStore;
   /** Contain all the worker configuration information. */
-  private final ServerConfigurationStore mWorkerStore;
+  private final ConfigurationStore mWorkerStore;
   /** Contain the checker results. */
   private ConfigCheckReport mConfigCheckReport;
   /** Whether the configuration has been changed since the last time the report was generated. */
   private volatile boolean mConfigDirty = true;
 
   /**
-   * Constructs a new {@link ServerConfigurationChecker}.
+   * Constructs a new {@link ConfigurationChecker}.
    *
    * @param masterStore master configuration store
    * @param workerStore worker configuration store
    */
-  public ServerConfigurationChecker(ServerConfigurationStore masterStore,
-      ServerConfigurationStore workerStore) {
+  public ConfigurationChecker(ConfigurationStore masterStore,
+      ConfigurationStore workerStore) {
     mMasterStore = masterStore;
     mWorkerStore = workerStore;
     mConfigCheckReport = new ConfigCheckReport();

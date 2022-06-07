@@ -35,9 +35,9 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -152,7 +152,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
       mStore.addChild(0, dir);
     }
 
-    assertEquals(CACHE_SIZE * 2, Iterables.size(mStore.getChildren(0L)));
+    assertEquals(CACHE_SIZE * 2, CloseableIterator.size(mStore.getChildren(0L)));
   }
 
   @Test
@@ -184,7 +184,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
       mStore.writeNewInode(child);
       mStore.addChild(TEST_INODE_ID, child);
     }
-    assertEquals(10, Iterables.size(mStore.getChildren(TEST_INODE_DIR)));
+    assertEquals(10, CloseableIterator.size(mStore.getChildren(TEST_INODE_DIR)));
 
     verifyNoBackingStoreReads();
   }
@@ -255,7 +255,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
       mStore.addChild(bigDir.getId(), createInodeDir(i, bigDir.getId()));
     }
     // Cache the large directory
-    assertEquals(dirSize, Iterables.size(mStore.getChildIds(bigDir.getId())));
+    assertEquals(dirSize, CloseableIterator.size(mStore.getChildIds(bigDir.getId())));
     // Perform another operation to trigger eviction
     mStore.addChild(bigDir.getId(), createInodeDir(10000, bigDir.getId()));
     assertFalse(mStore.mListingCache.getCachedChildIds(TEST_INODE_ID).isPresent());
@@ -281,7 +281,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
     }
     for (MutableInodeDirectory inode : inodes) {
       for (int i = 0; i < 10; i++) {
-        assertEquals(0, Iterables.size(mStore.getChildIds(inode.getId())));
+        assertEquals(0, CloseableIterator.size(mStore.getChildIds(inode.getId())));
       }
       verify(mBackingStore, times(0)).getChildIds(inode.getId());
     }
@@ -293,10 +293,10 @@ public class CachingInodeStoreMockedBackingStoreTest {
       MutableInodeDirectory dir = createInodeDir(inodeId, 0);
       mStore.addChild(0, dir);
     }
-    assertEquals(0, Iterables.size(mBackingStore.getChildren(0L)));
+    assertEquals(0, CloseableIterator.size(mBackingStore.getChildren(0L)));
     mStore.mEdgeCache.flush();
     mStore.mInodeCache.flush();
-    assertEquals(CACHE_SIZE / 2, Iterables.size(mBackingStore.getChildren(0L)));
+    assertEquals(CACHE_SIZE / 2, CloseableIterator.size(mBackingStore.getChildren(0L)));
   }
 
   private MutableInodeDirectory createInodeDir(long id, long parentId) {

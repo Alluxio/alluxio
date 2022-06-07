@@ -928,7 +928,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
       LOG.error("Failed to remove {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return 0;
   }
 
