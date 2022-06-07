@@ -55,12 +55,7 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
     mCapacity = pageStoreOptions.getCacheSize();
     mRootPath = pageStoreOptions.getRootDir();
   }
-
-  @Override
-  public Path getRootPath() {
-    return mRootPath;
-  }
-
+  
   @Override
   public PageStore getPageStore() {
     return mPageStore;

@@ -17,7 +17,6 @@ import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 
-import java.nio.file.Path;
 import java.util.function.Consumer;
 
 /**
@@ -25,8 +24,6 @@ import java.util.function.Consumer;
  */
 public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
 
-  private final long mCapacity;
-  private final Path mRootPath;
   private final MemoryPageStore mPageStore;
 
   /**
@@ -40,13 +37,6 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
                             CacheEvictor cacheEvictor) {
     super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize(), cacheEvictor);
     mPageStore = requireNonNull(pageStore);
-    mCapacity = requireNonNull(pageStoreOptions.getCacheSize());
-    mRootPath = requireNonNull(pageStoreOptions.getRootDir());
-  }
-
-  @Override
-  public Path getRootPath() {
-    return mRootPath;
   }
 
   @Override
