@@ -9080,36 +9080,6 @@
                 ]
               }
             ]
-          },
-          {
-            "name": "LoadOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "bandWidth",
-                "type": "int64"
-              }
-            ]
-          },
-          {
-            "name": "LoadDirectory",
-            "fields": [
-              {
-                "id": 1,
-                "name": "loadId",
-                "type": "int64"
-              },
-              {
-                "id": 2,
-                "name": "srcFilePath",
-                "type": "string"
-              },
-              {
-                "id": 3,
-                "name": "options",
-                "type": "LoadOptions"
-              }
-            ]
           }
         ],
         "imports": [
@@ -9251,11 +9221,6 @@
                 "id": 12,
                 "name": "inode_last_modification_time",
                 "type": "InodeLastModificationTimeEntry"
-              },
-              {
-                "id": 53,
-                "name": "load_directory",
-                "type": "LoadDirectory"
               },
               {
                 "id": 38,

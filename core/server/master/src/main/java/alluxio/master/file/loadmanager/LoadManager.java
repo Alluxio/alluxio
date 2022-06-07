@@ -19,11 +19,6 @@ import alluxio.grpc.LoadResponse;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.master.file.loadmanager.load.LoadInfo;
 import alluxio.master.file.loadmanager.load.BlockBatch;
-import alluxio.master.journal.Journaled;
-import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.proto.journal.File;
-import alluxio.proto.journal.Journal;
-import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -45,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * The Load manager which controls load operations.
  */
-public final class LoadManager implements Journaled {
+public final class LoadManager {
   private static final Logger LOG = LoggerFactory.getLogger(LoadManager.class);
   private final Map<String, LoadInfo>
           mLoadPathToInfo = Maps.newHashMap();
@@ -91,47 +86,6 @@ public final class LoadManager implements Journaled {
             loadInfo.getPath(), loadInfo.getLoadOptions());
     mScheduler.schedule(load);
     mLoads.put(loadId, load);
-  }
-
-  @Override
-  public CloseableIterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return CloseableIterator.noopCloseable(mLoadPathToInfo.entrySet().stream()
-            .map(loadEntry -> {
-              File.LoadOptions options = File.LoadOptions.newBuilder()
-                      .setBandWidth(loadEntry.getValue()
-                      .getLoadOptions().getBandwidth())
-                      .build();
-              return Journal.JournalEntry.newBuilder().setLoadDirectory(
-                      File.LoadDirectory.newBuilder()
-                      .setSrcFilePath(loadEntry.getKey())
-                      .setLoadId(loadEntry.getValue().getId())
-                      .setOptions(options))
-                      .build();
-            })
-            .iterator());
-  }
-
-  @Override
-  public boolean processJournalEntry(Journal.JournalEntry entry) {
-    if (entry.hasLoadDirectory()) {
-      File.LoadDirectory loadDirectory = entry.getLoadDirectory();
-      mLoadPathToInfo.put(loadDirectory.getSrcFilePath(),
-              new LoadInfo(mJobIdGenerator.getNewJobId(), loadDirectory.getSrcFilePath(),
-                      loadDirectory.getOptions().getBandWidth()));
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public void resetState() {
-    mLoadPathToInfo.clear();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return CheckpointName.LOAD_DIRECTORY;
   }
 
   static class Scheduler {

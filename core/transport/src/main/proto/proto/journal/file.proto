@@ -284,13 +284,3 @@ message UpdateUfsModeEntry {
   optional string ufsPath = 1;
   optional UfsMode ufsMode = 2 [default = READ_WRITE];
 }
-
-message LoadOptions {
-  optional int64 bandWidth = 1;
-}
-
-message LoadDirectory {
-  optional int64 loadId = 1;
-  optional string srcFilePath = 2;
-  optional LoadOptions options = 3;
-}

@@ -82,7 +82,6 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeFile(InodeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeLastModificationTime(InodeLastModificationTimeEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setLoadDirectory(File.LoadDirectory.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setNewBlock(NewBlockEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setPathProperties(PathPropertiesEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.getDefaultInstance()).build(),
