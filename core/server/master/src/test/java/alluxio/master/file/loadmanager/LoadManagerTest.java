@@ -11,17 +11,15 @@
 
 package alluxio.master.file.loadmanager;
 
-import static alluxio.master.file.loadmanager.LoadManager.Scheduler;
 import static alluxio.master.file.loadmanager.LoadManager.Load;
-
-import alluxio.master.file.loadmanager.load.LoadInfo;
-
+import static alluxio.master.file.loadmanager.LoadManager.Scheduler;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import alluxio.exception.AlluxioRuntimeException;
+import alluxio.master.file.loadmanager.load.LoadInfo;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
@@ -42,7 +40,7 @@ public final class LoadManagerTest {
   private static final int CMD_SUCCESS_COUNT = 10;
   private static final int TIMEOUT_CMD_COUNT = 3;
   private static final int ALLUXIO_RT_COUNT = 3;
-  private Scheduler mScheduler = spy(new Scheduler());;
+  private final Scheduler mScheduler = spy(new Scheduler());
   private final AtomicLong mLoadId = new AtomicLong();
 
   @Rule
@@ -58,7 +56,7 @@ public final class LoadManagerTest {
             ALLUXIO_RT_COUNT, Optional.of(AlluxioRuntimeException::new));
 
     List<Load> allCmds = Stream.of(successCmd, timeoutCmd, alluxioRunTimeCmd)
-            .flatMap(List::stream).collect(Collectors.toList());;
+            .flatMap(List::stream).collect(Collectors.toList());
 
     for (Load s: allCmds) {
       mScheduler.schedule(s);
@@ -100,8 +98,8 @@ public final class LoadManagerTest {
   }
 
   private void addException(Load load, Function<String, Exception> fn) throws Exception {
-    Throwable mThrow = generateException(fn, load.getPath()).get();
-    doThrow(mThrow).when(mScheduler).runLoad(load);
+    Throwable throwable = generateException(fn, load.getPath()).get();
+    doThrow(throwable).when(mScheduler).runLoad(load);
   }
 
   private <T, E> Supplier<E> generateException(Function<T, E> fn, T v) {
