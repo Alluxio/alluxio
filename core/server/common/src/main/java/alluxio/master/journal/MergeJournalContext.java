@@ -50,7 +50,7 @@ public final class MergeJournalContext implements JournalContext {
   private final JournalContext mJournalContext;
   private final AlluxioURI mUri;
   private final UnaryOperator<List<JournalEntry>> mMergeOperator;
-  private final List<JournalEntry> mJournalEntries;
+  private final List<JournalEntry> mJournalEntries = new ArrayList<>();
   private long mFileId = INVALID_FILE_ID;
 
   /**
@@ -64,7 +64,6 @@ public final class MergeJournalContext implements JournalContext {
     Preconditions.checkNotNull(journalContext, "journalContext");
     mJournalContext = journalContext;
     mMergeOperator = merger;
-    mJournalEntries = new ArrayList<>();
     mUri = uri;
   }
 

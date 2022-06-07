@@ -26,7 +26,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -108,13 +108,13 @@ public abstract class AbstractFuseIntegrationTest {
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName());
     mMountPoint = AlluxioTestDirectory.createTemporaryDirectory(clusterName).getAbsolutePath();
     mAlluxioCluster.initConfiguration(ALLUXIO_ROOT);
-    ServerConfiguration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     configure();
     IntegrationTestUtils.reserveMasterPorts();
-    ServerConfiguration.global().validate();
+    Configuration.global().validate();
     mAlluxioCluster.start();
-    mFileSystemContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystemContext = FileSystemContext.create(Configuration.global());
     mFileSystem = mAlluxioCluster.getClient(mFileSystemContext);
     mountFuse(mFileSystemContext, mFileSystem, mMountPoint, ALLUXIO_ROOT);
     if (!waitForFuseMounted()) {

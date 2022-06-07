@@ -12,9 +12,8 @@
 package alluxio.underfs.oss;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
@@ -47,8 +46,7 @@ public class OSSOutputStreamTest {
   private OSS mOssClient;
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   /**
    * The exception expected to be thrown.

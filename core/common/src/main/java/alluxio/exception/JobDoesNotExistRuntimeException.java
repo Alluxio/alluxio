@@ -9,21 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.exception;
 
-import alluxio.proto.journal.Journal.JournalEntry;
+import io.grpc.Status;
 
 /**
- * Interface for classes which can replay journal entries.
+ * The exception thrown when a job definition does not exist in Alluxio.
  */
-public interface JournalEntryReplayable {
+public class JobDoesNotExistRuntimeException extends AlluxioRuntimeException {
+  private static final long serialVersionUID = -7291730624984048562L;
+  private static final Status STATUS = Status.UNIMPLEMENTED;
 
   /**
-   * Applies a journal entry, returning false if the journal entry is not recognized. This method
-   * should only be used during journal replay.
+   * Constructs a new exception with the specified detail message.
    *
-   * @param entry the entry to apply
-   * @return whether the journal entry was processed
+   * @param message the detail message
    */
-  boolean replayJournalEntryFromJournal(JournalEntry entry);
+  public JobDoesNotExistRuntimeException(String message) {
+    super(STATUS, message);
+  }
 }

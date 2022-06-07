@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsDirectoryStatus;
@@ -29,7 +30,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -59,8 +59,7 @@ import java.util.Map;
 public class LocalUnderFileSystemTest {
   private String mLocalUfsRoot;
   private UnderFileSystem mLocalUfs;
-  private static AlluxioConfiguration sConf =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
+  private static AlluxioConfiguration sConf = Configuration.global();
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();

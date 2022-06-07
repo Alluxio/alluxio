@@ -29,7 +29,7 @@ public class SwiftUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("swift://localhost/test/path", conf);
     UnderFileSystemFactory factory2 =

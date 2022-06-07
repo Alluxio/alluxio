@@ -22,11 +22,8 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -89,15 +86,15 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     init(0);
   }
 
   private void init(long reservedBytes) throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             "alluxio.worker.block.reviewer.AcceptingReviewer");
     // No reserved space for tests that are not swap related.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, reservedBytes);
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
@@ -382,7 +379,7 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, 1, mTestDir1);
     mBlockStore.requestSpace(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE - 1);
     assertTrue(mTestDir1.hasTempBlockMeta(TEMP_BLOCK_ID));
-    assertEquals(BLOCK_SIZE, mTestDir1.getTempBlockMeta(TEMP_BLOCK_ID).getBlockSize());
+    assertEquals(BLOCK_SIZE, mTestDir1.getTempBlockMeta(TEMP_BLOCK_ID).get().getBlockSize());
     assertEquals(mTestDir1.getCapacityBytes() - BLOCK_SIZE, mTestDir1.getAvailableBytes());
   }
 
@@ -506,7 +503,7 @@ public final class TieredBlockStoreTest {
 
   @Test
   public void moveBlockWithReservedSpace() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     final long RESERVE_SIZE = BLOCK_SIZE;
     init(RESERVE_SIZE);
 
@@ -573,7 +570,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void getBlockWriterForNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.createBlockWriter(SESSION_ID1, BLOCK_ID1);
@@ -584,7 +581,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void abortNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.abortBlock(SESSION_ID1, BLOCK_ID1);
@@ -596,7 +593,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void abortBlockNotOwnedBySessionId() throws Exception {
-    mThrown.expect(InvalidWorkerStateException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION.getMessage(TEMP_BLOCK_ID,
         SESSION_ID1, SESSION_ID2));
 
@@ -609,7 +606,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void abortCommitedBlock() throws Exception {
-    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -622,7 +619,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
@@ -634,7 +631,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void moveTempBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -650,7 +647,7 @@ public final class TieredBlockStoreTest {
   public void cacheSameBlockInDifferentDirs() throws Exception {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mBlockIterator);
-    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
         FIRST_TIER_ALIAS));
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
@@ -665,7 +662,7 @@ public final class TieredBlockStoreTest {
   public void cacheSameBlockInDifferentTiers() throws Exception {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mBlockIterator);
-    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
         FIRST_TIER_ALIAS));
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir3, mMetaManager,
@@ -673,16 +670,19 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to commit a block twice.
+   * Tests committing a block twice.
    */
   @Test
   public void commitBlockTwice() throws Exception {
-    mThrown.expect(BlockAlreadyExistsException.class);
-    mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
-
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    assertFalse(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
+    assertTrue(mBlockStore.hasTempBlockMeta(TEMP_BLOCK_ID));
     mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID , false);
+    assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
+    assertFalse(mBlockStore.hasTempBlockMeta(TEMP_BLOCK_ID));
     mBlockStore.commitBlock(SESSION_ID1, TEMP_BLOCK_ID, false);
+    assertTrue(mBlockStore.hasBlockMeta(TEMP_BLOCK_ID));
+    assertFalse(mBlockStore.hasTempBlockMeta(TEMP_BLOCK_ID));
   }
 
   /**
@@ -690,7 +690,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void commitNonExistingBlock() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1, false);
@@ -702,7 +702,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void commitBlockNotOwnedBySessionId() throws Exception {
-    mThrown.expect(InvalidWorkerStateException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION.getMessage(TEMP_BLOCK_ID,
         SESSION_ID1, SESSION_ID2));
 
@@ -715,7 +715,7 @@ public final class TieredBlockStoreTest {
    */
   @Test
   public void removeTempBlock() throws Exception {
-    mThrown.expect(InvalidWorkerStateException.class);
+    mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);

@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.util.FileSystemOptions;
 
@@ -49,7 +49,7 @@ public class CheckAccessContext
    */
   public static CheckAccessContext mergeFrom(CheckAccessPOptions.Builder optionsBuilder) {
     CheckAccessPOptions masterOptions =
-        FileSystemOptions.checkAccessDefaults(ServerConfiguration.global());
+        FileSystemOptions.checkAccessDefaults(Configuration.global());
     CheckAccessPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -60,7 +60,7 @@ public class CheckAccessContext
    */
   public static CheckAccessContext defaults() {
     return create(FileSystemOptions
-        .checkAccessDefaults(ServerConfiguration.global()).toBuilder());
+        .checkAccessDefaults(Configuration.global()).toBuilder());
   }
 
   @Override

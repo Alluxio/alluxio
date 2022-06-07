@@ -61,7 +61,7 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       GetConfigurationPResponse clusterConf = mClusterConf;
       GetConfigurationPResponse pathConf = mPathConf;
       GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
@@ -93,7 +93,7 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfigHash(GetConfigHashPOptions request,
       StreamObserver<GetConfigHashPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
+    RpcUtils.call(LOG, () ->
         mMetaMaster.getConfigHash().toProto(), "getConfigHash", "request=%s", responseObserver,
         request);
   }
@@ -104,8 +104,7 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     Map<String, String> properties = request.getPropertiesMap();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () ->
-    {
+    RpcUtils.call(LOG, () -> {
       Map<PropertyKey, String> props = new HashMap<>();
       properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
       mMetaMaster.setPathConfiguration(path, props);
@@ -119,15 +118,14 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     List<String> keys = request.getKeysList();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
-        if (keys.isEmpty()) {
-          mMetaMaster.removePathConfiguration(path);
-        } else {
-          mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
-        }
-        return RemovePathConfigurationPResponse.getDefaultInstance();
-      }, "removePathConfiguration", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> {
+      if (keys.isEmpty()) {
+        mMetaMaster.removePathConfiguration(path);
+      } else {
+        mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
+      }
+      return RemovePathConfigurationPResponse.getDefaultInstance();
+    }, "removePathConfiguration", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -18,7 +18,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -68,7 +68,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
     mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
     mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
@@ -195,7 +195,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
         .setCommonOptions(SYNC_NEVER).build();
     // Pin the dir
     mFileSystem.setAttribute(new AlluxioURI("/mnt/tmp/"), attributeOption);
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.NEVER.toString());
     URIStatus dirStat = mFileSystem.getStatus(new AlluxioURI("/mnt/tmp/"), getStatusOption);
     URIStatus fileStat = mFileSystem.getStatus(new AlluxioURI(PathUtils.concatPath("/mnt" ,

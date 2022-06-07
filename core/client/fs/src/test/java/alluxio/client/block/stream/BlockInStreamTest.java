@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -51,6 +50,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.Closeable;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Tests the {@link BlockInStream} class's static methods.
@@ -61,7 +61,7 @@ public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
   private InStreamOptions mOptions;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   @Before
@@ -70,11 +70,9 @@ public class BlockInStreamTest {
     ClientCallStreamObserver requestObserver = Mockito.mock(ClientCallStreamObserver.class);
     when(requestObserver.isReady()).thenReturn(true);
     when(workerClient.openLocalBlock(any(StreamObserver.class)))
-        .thenAnswer(new Answer() {
-          public Object answer(InvocationOnMock invocation) {
-            mResponseObserver = invocation.getArgument(0, StreamObserver.class);
-            return requestObserver;
-          }
+        .thenAnswer((Answer) invocation -> {
+          mResponseObserver = invocation.getArgument(0, StreamObserver.class);
+          return requestObserver;
         });
     doAnswer(invocation -> {
       mResponseObserver.onNext(OpenLocalBlockResponse.newBuilder().setPath("/tmp").build());
@@ -96,7 +94,7 @@ public class BlockInStreamTest {
     int chunkSize = 512;
     TestDataReader.Factory factory = new TestDataReader.Factory(
         chunkSize, BufferUtils.getIncreasingByteArray(2 * chunkSize));
-    BlockInStream stream = new BlockInStream(factory, mConf, new WorkerNetAddress(),
+    BlockInStream stream = new BlockInStream(factory, new WorkerNetAddress(),
         BlockInStream.BlockInStreamSource.PROCESS_LOCAL, -1, 1024);
 
     byte[] res = new byte[chunkSize];
@@ -152,7 +150,7 @@ public class BlockInStreamTest {
 
   @Test
   public void createShortCircuitDisabled() throws Exception {
-    try (Closeable c =
+    try (Closeable ignored =
         new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false, mConf)
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
@@ -189,7 +187,7 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     when(mMockContext.getNodeLocalWorker()).thenReturn(dataSource);
     when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
-    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    Optional<BlockWorker> blockWorker = Optional.of(Mockito.mock(BlockWorker.class));
     when(mMockContext.getProcessLocalWorker()).thenReturn(blockWorker);
     BlockInStream.BlockInStreamSource dataSourceType =
         BlockInStream.BlockInStreamSource.PROCESS_LOCAL;

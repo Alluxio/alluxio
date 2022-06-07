@@ -37,7 +37,7 @@ public final class ClockCuckooShadowCacheManagerTest {
   private static final CacheScope SCOPE1 = CacheScope.create("schema1.table1");
   private static final CacheScope SCOPE2 = CacheScope.create("schema1.table2");
   private ClockCuckooShadowCacheManager mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Before
   public void before() {

@@ -16,7 +16,7 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,7 +42,7 @@ public class RemoveCommandIntegrationTest extends AbstractShellIntegrationTest {
 
   @Test
   public void remove() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int ret = shell.run("pathConf", "list");
       Assert.assertEquals(0, ret);
       String output = mOutput.toString();

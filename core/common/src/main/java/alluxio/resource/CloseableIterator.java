@@ -135,4 +135,15 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
       }
     };
   }
+
+  /**
+   * Consumes the iterator, closes it, and returns its size.
+   * @param iter the iter to get the size of
+   * @return the size of the iter
+   */
+  public static int size(CloseableIterator<?> iter) {
+    int size = Iterators.size(iter);
+    iter.close();
+    return size;
+  }
 }

@@ -15,8 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -37,6 +38,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
@@ -63,8 +68,8 @@ public final class S3RestUtils {
   public static <T> Response call(String resource, S3RestUtils.RestCallable<T> callable) {
     try {
       // TODO(cc): reconsider how to enable authentication
-      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
-              && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+      if (SecurityUtils.isSecurityEnabled(Configuration.global())
+              && AuthenticatedClientUser.get(Configuration.global()) == null) {
         AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
@@ -160,7 +165,7 @@ public final class S3RestUtils {
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
-        ServerConfiguration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+        Configuration.getString(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
     return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 
@@ -288,7 +293,39 @@ public final class S3RestUtils {
    * @return s3 WritePType
    */
   public static WritePType getS3WriteType() {
-    return ServerConfiguration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+    return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+  }
+
+  /**
+   * Checks if authentication is enabled.
+   *
+   * @param conf Alluxio configuration
+   * @return true if authentication is enabled, false otherwise
+   */
+  public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
+  }
+
+  /**
+   * Convert MultivaluedMap to a single value map.
+   *
+   * @param queryParameters MultivaluedMap
+   * @param lowerCase whether to use lower case
+   * @return a single value map
+   */
+  public static Map<String, String> fromMultiValueToSingleValueMap(
+      MultivaluedMap<String, String> queryParameters, boolean lowerCase) {
+    Map<String, String> result = lowerCase
+        ? new TreeMap<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+              return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
+    for (String key : queryParameters.keySet()) {
+      result.put(key, queryParameters.getFirst(key));
+    }
+    return result;
   }
 
   /**

@@ -27,7 +27,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
@@ -51,6 +51,7 @@ import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -62,7 +63,7 @@ import java.util.stream.Collectors;
  */
 public final class JobUtils {
   // a read buffer that should be ignored
-  private static byte[] sIgnoredReadBuf = new byte[8 * Constants.MB];
+  private static final byte[] READ_BUF = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
       new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
         @Override
@@ -120,7 +121,7 @@ public final class JobUtils {
   public static void loadBlock(URIStatus status, FileSystemContext context, long blockId,
       WorkerNetAddress address, boolean directCache)
       throws AlluxioException, IOException {
-    AlluxioConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     // Explicitly specified a worker to load
     WorkerNetAddress localNetAddress = address;
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
@@ -140,7 +141,7 @@ public final class JobUtils {
     Set<String> pinnedLocation = status.getPinnedMediumTypes();
     if (pinnedLocation.size() > 1) {
       throw new AlluxioException(
-          ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(status.getPath()));
+          MessageFormat.format("File {0} pinned to multiple medium types", status.getPath()));
     }
 
     // when the data to load is persisted, simply use local worker to load
@@ -235,7 +236,7 @@ public final class JobUtils {
         LocalFirstPolicy.class, conf));
     BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
     try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
-      while (inputStream.read(sIgnoredReadBuf) != -1) {}
+      while (inputStream.read(READ_BUF) != -1) {}
     }
   }
 

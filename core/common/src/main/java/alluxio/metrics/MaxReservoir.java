@@ -30,7 +30,7 @@ public class MaxReservoir implements Reservoir {
    * @param delegate the delegate reservoir to wrap
    */
   public MaxReservoir(Reservoir delegate) {
-    mMaxUpdate = new LongAccumulator(Long::max, Long.MIN_VALUE);
+    mMaxUpdate = new LongAccumulator(Long::max, 0);
     mDelegate = delegate;
   }
 

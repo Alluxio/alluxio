@@ -24,7 +24,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateFilePOptions;
@@ -93,11 +93,11 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
         new MultiMasterLocalAlluxioCluster(MASTERS);
     mMultiMasterLocalAlluxioCluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
-    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
+    Configuration.set(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }
@@ -170,7 +170,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(FileSystemContext.create(ServerConfiguration.global()), 1,
+      waitForWorkerRegistration(FileSystemContext.create(Configuration.global()), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -184,7 +184,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(FileSystemContext.create(ServerConfiguration.global()), 1,
+      waitForWorkerRegistration(FileSystemContext.create(Configuration.global()), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
 
       if (kills % 2 != 0) {
@@ -260,7 +260,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
     Collections.shuffle(addresses);
     PollingMasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,
-        ServerConfiguration.global(), ServerUserState.global());
+        Configuration.global(), ServerUserState.global());
     assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
         inquireClient.getPrimaryRpcAddress());
   }
@@ -270,7 +270,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
+      FileSystemContext context = FileSystemContext.create(Configuration.global());
       BlockStoreClient store = BlockStoreClient.create(context);
       waitForWorkerRegistration(context, 1, 1 * Constants.MINUTE_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.

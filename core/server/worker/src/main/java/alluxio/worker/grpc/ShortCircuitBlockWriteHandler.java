@@ -12,12 +12,10 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockWorker;
@@ -31,6 +29,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -48,22 +47,17 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StreamObserver<CreateLocalBlockResponse> mResponseObserver;
   private CreateLocalBlockRequest mRequest = null;
-
   private long mSessionId = INVALID_SESSION_ID;
-
-  private AuthenticatedUserInfo mUserInfo;
 
   /**
    * Creates an instance of {@link ShortCircuitBlockWriteHandler}.
    *
    * @param blockWorker the block worker
-   * @param userInfo the authenticated user info
    */
   ShortCircuitBlockWriteHandler(BlockWorker blockWorker,
-      StreamObserver<CreateLocalBlockResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<CreateLocalBlockResponse> responseObserver) {
     mBlockWorker = blockWorker;
     mResponseObserver = responseObserver;
-    mUserInfo = userInfo;
   }
 
   /**
@@ -88,14 +82,12 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
                 request.getTier(),
                 new CreateBlockOptions(null, request.getMediumType(), request.getSpaceToReserve()));
-            CreateLocalBlockResponse response =
-                CreateLocalBlockResponse.newBuilder().setPath(path).build();
-            return response;
+            return CreateLocalBlockResponse.newBuilder().setPath(path).build();
           } else {
             LOG.warn("Create block {} without closing the previous session {}.",
                 request.getBlockId(), mSessionId);
             throw new InvalidWorkerStateException(
-                ExceptionMessage.SESSION_NOT_CLOSED.getMessage(mSessionId));
+                MessageFormat.format("session {0,number,#} is not closed.", mSessionId));
           }
         }
       }
