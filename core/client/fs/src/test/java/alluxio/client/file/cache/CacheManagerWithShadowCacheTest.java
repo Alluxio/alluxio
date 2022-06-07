@@ -15,9 +15,9 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
@@ -43,7 +43,7 @@ public final class CacheManagerWithShadowCacheTest {
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
   private final byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private CacheManagerWithShadowCache mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
 
   private final ShadowCacheType mShadowCacheType;
   private final int mAgeBits;

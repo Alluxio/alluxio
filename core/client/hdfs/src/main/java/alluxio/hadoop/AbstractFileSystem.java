@@ -504,7 +504,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         hadoopConfProperties, uriConfProperties);
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
-            : alluxio.conf.Configuration.global().copyProperties();
+            : alluxio.conf.Configuration.copyProperties();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Merge relevant connection details in the URI with the highest priority

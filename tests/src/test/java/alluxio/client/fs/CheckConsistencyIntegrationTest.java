@@ -63,7 +63,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     mFileSystemMaster =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class);
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
     CreateDirectoryPOptions dirOptions =
         CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     CreateFilePOptions fileOptions =

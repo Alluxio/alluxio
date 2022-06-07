@@ -220,7 +220,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     // Update current backup status with given backup id.
     mBackupTracker.update(new BackupStatus(requestMsg.getBackupId(), BackupState.Initiating));
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
-        (int) Configuration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+        (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
     // Start sending backup progress to leader.
     startHeartbeatThread();

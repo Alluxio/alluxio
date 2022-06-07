@@ -14,6 +14,7 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -28,7 +29,7 @@ public final class ConfigurationRuleTest {
 
   @Test
   public void changeConfiguration() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     Statement statement = new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -41,7 +42,7 @@ public final class ConfigurationRuleTest {
 
   @Test
   public void changeConfigurationForDefaultNullValue() throws Throwable {
-    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
 
     Statement statement = new Statement() {
       @Override

@@ -100,7 +100,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   private static final int MASTER_WORKER_TIMEOUT = 1_000_000;
   private static final long BLOCK_SIZE =
-      Configuration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+      Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Command EMPTY_CMD =
       Command.newBuilder().setCommandType(CommandType.Nothing).build();
