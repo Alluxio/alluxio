@@ -35,7 +35,7 @@ with Alluxio Master RPC processes.
 with Alluxio Worker RPC processes.
 + 30000 for the IP address of your browser:  Allow you to access the Alluxio worker web UI.
 
-To set up Docker after provisioning the instance, which will be referred as the Docker Host, run
+To set up Docker after provisioning the instance, which will be referred to as the Docker Host, run
 
 ```console
 $ sudo yum install -y docker
@@ -348,7 +348,7 @@ $ docker run -d \
   alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} master
 ```
 
-Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
+Set the master rpc addresses for all the workers so that they can query the master nodes to find out the leader master.
 
 ```console
 $ docker run -d \
@@ -573,6 +573,10 @@ Usually the logs will give a good indication of what is wrong. If they are not e
 your issue, you can get help on the
 [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users)
 or [github issues](https://github.com/Alluxio/alluxio/issues).
+
+Logging can also have a performance impact if sufficiently verbose.
+You can [disable or redirect logging]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
+to mitigate this problem.
 
 ## FAQ
 

@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
@@ -23,7 +24,6 @@ import alluxio.grpc.GrpcServerBuilder;
 import alluxio.security.User;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -58,7 +58,7 @@ public class GrpcSecurityTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = new InstancedConfiguration(Configuration.global().copyProperties());
   }
 
   @Test

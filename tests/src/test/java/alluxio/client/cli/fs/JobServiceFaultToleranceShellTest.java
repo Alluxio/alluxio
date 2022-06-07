@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -65,17 +65,17 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
       mLocalAlluxioCluster.stop();
     }
     System.setOut(System.out);
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
   public void distributedCp() throws Exception {
-    FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
+    FileSystem fs = FileSystem.Factory.create(Configuration.global());
     try (OutputStream out = fs.createFile(new AlluxioURI("/test"))) {
       out.write("Hello".getBytes());
     }
 
-    try (FileSystemShell shell = new FileSystemShell(ServerConfiguration.global())) {
+    try (FileSystemShell shell = new FileSystemShell(Configuration.global())) {
       int exitCode = shell.run("distributedCp", "/test", "/test2");
       assertEquals("Command failed, output: " + mOutput.toString(), 0, exitCode);
     }

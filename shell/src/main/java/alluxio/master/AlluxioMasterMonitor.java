@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
@@ -45,14 +45,10 @@ public final class AlluxioMasterMonitor {
       LOG.warn("ignoring arguments");
     }
 
-    AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration alluxioConf = Configuration.global();
 
     MasterHealthCheckClient.Builder builder = new MasterHealthCheckClient.Builder(alluxioConf);
-    if (ConfigurationUtils.isHaMode(alluxioConf)) {
-      builder.withProcessCheck(true);
-    } else {
-      builder.withProcessCheck(false);
-    }
+    builder.withProcessCheck(ConfigurationUtils.isHaMode(alluxioConf));
     HealthCheckClient client = builder.build();
     if (!client.isServing()) {
       System.exit(1);

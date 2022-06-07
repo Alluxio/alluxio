@@ -13,7 +13,7 @@ package alluxio.master;
 
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
@@ -118,7 +118,7 @@ public class BackupManager {
     // Processing/draining one-by-one using {@link ConcurrentLinkedQueue} proved to be
     // inefficient compared to draining with dedicated method.
     LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
-        ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
+        Configuration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
 
     // Whether buffering is still active.
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
@@ -218,7 +218,7 @@ public class BackupManager {
 
       // Entry queue will be used as a buffer and synchronization between readers and appliers.
       LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
-          ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
+          Configuration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
 
       // Whether still reading from backup.
       AtomicBoolean readingActive = new AtomicBoolean(true);

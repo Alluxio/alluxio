@@ -42,7 +42,7 @@ public final class UpdateCheck {
   /**
    * @param clusterID the cluster ID
    * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
-   * @param connectTimeout the connect timeout for the HTTP request in ms
+   * @param connectTimeout the connection timeout for the HTTP request in ms
    * @param socketTimeout the socket timeout for the HTTP request in ms
    * @return the latest Alluxio version string
    */
@@ -83,7 +83,7 @@ public final class UpdateCheck {
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
-  public static String getUserAgentString(String clusterID) throws IOException {
+  public static String getUserAgentString(String clusterID) {
     Joiner joiner = Joiner.on("; ").skipNulls();
     List<String> featureList = getUserAgentFeatureList();
     String sysInfo = getUserAgentEnvironmentString(clusterID);
@@ -98,7 +98,7 @@ public final class UpdateCheck {
    * @return a string representation of the user's environment in the format "docker; kubernetes"
    */
   @VisibleForTesting
-  public static String getUserAgentEnvironmentString(String clusterID) throws IOException {
+  public static String getUserAgentEnvironmentString(String clusterID) {
     Joiner joiner = Joiner.on("; ").skipNulls();
     boolean isGCE = EnvironmentUtils.isGoogleComputeEngine();
     String sysInfo = joiner.join(
@@ -117,7 +117,7 @@ public final class UpdateCheck {
   }
 
   /**
-   * Get the features information.
+   * Get the feature's information.
    *
    * @return a list of strings representing enabled features
    */

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -85,7 +86,7 @@ public interface CacheManager extends AutoCloseable {
       if (CACHE_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
           if (CACHE_MANAGER.get() == null) {
-            CACHE_MANAGER.set(create(conf));
+            CACHE_MANAGER.set(create(conf, MetaStore.create(conf)));
           }
         } catch (IOException e) {
           Metrics.CREATE_ERRORS.inc();
@@ -97,17 +98,19 @@ public interface CacheManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
+     * @param metaStore
      * @return an instance of {@link CacheManager}
      */
-    static CacheManager create(AlluxioConfiguration conf) throws IOException {
+    public static CacheManager create(AlluxioConfiguration conf,
+                                      MetaStore metaStore) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf, metaStore), conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(conf));
+        return new NoExceptionCacheManager(LocalCacheManager.create(conf, metaStore));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);
@@ -180,8 +183,7 @@ public interface CacheManager extends AutoCloseable {
   }
 
   /**
-   * Reads a part of a page if the queried page is found in the cache, stores the result in
-   * buffer.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
@@ -196,8 +198,7 @@ public interface CacheManager extends AutoCloseable {
   }
 
   /**
-   * Reads a part of a page if the queried page is found in the cache, stores the result in
-   * buffer.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
@@ -209,6 +210,16 @@ public interface CacheManager extends AutoCloseable {
    */
   int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
       CacheContext cacheContext);
+
+  /**
+   * Get page ids by the given file id.
+   * @param fileId file identifier
+   * @param fileLength file length (this will not be needed after we have per-file metadata)
+   * @return a list of page ids which belongs to the file
+   */
+  default List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Deletes a page from the cache.

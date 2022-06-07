@@ -17,8 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.meta.BlockMeta;
@@ -72,8 +71,8 @@ public final class BlockMetadataManagerTest {
   @Before
   public void before() throws Exception {
     String baseDir = mFolder.newFolder().getAbsolutePath();
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, false);
+    Configuration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, false);
     TieredBlockStoreTestUtils.setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
 
@@ -188,7 +187,7 @@ public final class BlockMetadataManagerTest {
     assertTrue(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get temp block
-    assertEquals(tempBlockMeta, mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertEquals(tempBlockMeta, mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID).get());
     // Abort temp block
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
     assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
@@ -202,7 +201,7 @@ public final class BlockMetadataManagerTest {
     assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     assertTrue(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get block
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
     assertEquals(TEST_TEMP_BLOCK_ID, blockMeta.getBlockId());
     // Remove block
     mMetaManager.removeBlockMeta(blockMeta);
@@ -211,14 +210,12 @@ public final class BlockMetadataManagerTest {
   }
 
   /**
-   * Tests that an exception is thrown in the {@link BlockMetadataManager#getBlockMeta(long)} method
-   * when trying to retrieve metadata of a block which does not exist.
+   * Tests that the {@link BlockMetadataManager#getBlockMeta(long)} method returns
+   * Optional.empty() when trying to retrieve metadata of a block which does not exist.
    */
   @Test
-  public void getBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
-    mMetaManager.getBlockMeta(TEST_BLOCK_ID);
+  public void getBlockMetaNotExisting() {
+    assertFalse(mMetaManager.getBlockMeta(TEST_BLOCK_ID).isPresent());
   }
 
   /**
@@ -226,11 +223,8 @@ public final class BlockMetadataManagerTest {
    * method when trying to retrieve metadata of a temporary block which does not exist.
    */
   @Test
-  public void getTempBlockMetaNotExisting() throws Exception {
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown
-        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
-    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
+  public void getTempBlockMetaNotExisting() {
+    assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID).isPresent());
   }
 
   /**
@@ -249,15 +243,12 @@ public final class BlockMetadataManagerTest {
 
     // commit the first temp block meta
     mMetaManager.commitTempBlockMeta(tempBlockMeta1);
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
 
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // test to make sure that the dst tempBlockMeta has been removed from the dir
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown
-        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID2));
-    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
+    assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2).isPresent());
   }
 
   /**
@@ -279,15 +270,12 @@ public final class BlockMetadataManagerTest {
 
     // commit the first temp block meta
     mMetaManager.commitTempBlockMeta(tempBlockMeta1);
-    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID).get();
 
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // make sure that the dst tempBlockMeta has been removed from the dir2
-    mThrown.expect(BlockDoesNotExistException.class);
-    mThrown
-        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID2));
-    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
+    assertFalse(mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2).isPresent());
   }
 
   /**
@@ -320,7 +308,7 @@ public final class BlockMetadataManagerTest {
    * Tests the {@link BlockMetadataManager#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
-  public void resizeTempBlockMeta() throws Exception {
+  public void resizeTempBlockMeta() {
     StorageDir dir = mMetaManager.getTier(Constants.MEDIUM_MEM).getDir(0);
     TempBlockMeta tempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);

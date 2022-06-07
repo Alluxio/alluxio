@@ -22,8 +22,8 @@ with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).
 
-Note that, when building Alluxio from source code, by default Alluxio server binaries is built to
-work with Apache Hadoop HDFS of version `3.3.0`. To work with Hadoop distributions of other
+Note that, when building Alluxio from source code, by default Alluxio server binaries are built to
+work with Apache Hadoop HDFS of version `3.3.1`. To work with Hadoop distributions of other
 versions, one needs to specify the correct Hadoop profile and run the following in your Alluxio
 directory:
 
@@ -37,11 +37,10 @@ For example,
 
 ```console
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-$ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
+$ mvn install -Pufs-hadoop-2 -Dhadoop.version=2.7.1 -DskipTests
 # Build Alluxio for the Apache Hadoop version Hadoop 3.1.0
-$ mvn install -Phadoop-3 -Dhadoop.version=3.1.0 -DskipTests
+$ mvn install -Pufs-hadoop-3 -Dhadoop.version=3.1.0 -DskipTests
 ```
-
 Please visit the
 [Building Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#hadoop-distribution-support)
 page for more information about support for other distributions.
@@ -49,6 +48,15 @@ page for more information about support for other distributions.
 If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_VERSION_STRING}}-jar-with-dependencies.jar` created in
 the `${ALLUXIO_HOME}/assembly/server/target` directory.
+
+To enable active sync be sure to build using the `hdfsActiveSync` property.
+For example,
+```console
+# Build Alluxio for the Apache Hadoop version Hadoop 3.1.0 with active sync enabled
+$ mvn install -PhdfsActiveSync -Pufs-hadoop-3 -Dhadoop.version=3.1.0 -DskipTests
+```
+Please visit [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }})
+for more information on using active sync.
 
 ## Basic Setup
 

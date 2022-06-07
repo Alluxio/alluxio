@@ -261,20 +261,11 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Checks if the given port in the address is valid.
-   *
-   * @param address the {@link InetSocketAddress} with the port to check
-   */
-  public static void assertValidPort(final InetSocketAddress address) {
-    assertValidPort(address.getPort());
-  }
-
-  /**
    * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
    * service.
    *
    * @param service the service name used to connect
-   * @param conf the configuration to use for looking up the connect address
+   * @param conf the configuration containing the address to connect to
    * @return the service address that a client (typically outside the service machine) uses to
    *         communicate with service.
    */
@@ -525,7 +516,7 @@ public final class NetworkAddressUtils {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 
         // Make getNetworkInterfaces have the same order of network interfaces as listed on
-        // unix-like systems. This optimization can help avoid to get some special addresses, such
+        // unix-like systems. This optimization can help avoid getting some special addresses, such
         // as loopback address"127.0.0.1", virtual bridge address "192.168.122.1" as far as
         // possible.
         if (!WINDOWS) {
@@ -679,18 +670,6 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extracts rpcPort InetSocketAddress from Alluxio representation of network address.
-   *
-   * @param netAddress the input network address representation
-   * @return InetSocketAddress
-   */
-  public static InetSocketAddress getRpcPortSocketAddress(WorkerNetAddress netAddress) {
-    String host = netAddress.getHost();
-    int port = netAddress.getRpcPort();
-    return new InetSocketAddress(host, port);
-  }
-
-  /**
    * Extracts dataPort socket address from Alluxio representation of network address.
    *
    * @param netAddress the input network address representation
@@ -721,7 +700,7 @@ public final class NetworkAddressUtils {
   /**
    * Test if the input address is serving an Alluxio service. This method make use of the
    * gRPC protocol for performing service communication.
-   * This methods throws UnauthenticatedException if the user is not authenticated,
+   * This method throws UnauthenticatedException if the user is not authenticated,
    * StatusRuntimeException If the host not reachable or does not serve the given service.
    *
    * @param address the network address to ping

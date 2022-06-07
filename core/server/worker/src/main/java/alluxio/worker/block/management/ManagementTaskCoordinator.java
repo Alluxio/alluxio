@@ -12,11 +12,11 @@
 package alluxio.worker.block.management;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.LocalBlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.management.tier.TierManagementTaskProvider;
 
@@ -37,27 +37,28 @@ import java.util.function.Supplier;
 public class ManagementTaskCoordinator implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ManagementTaskCoordinator.class);
   /** Duration to sleep when a) load detected on worker. b) no work to do. */
-  private final long mLoadDetectionCoolDownMs;
+  private static final long LOAD_DETECTION_COOL_DOWN_TIME =
+      Configuration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
   /** The back-off strategy. */
-  private BackoffStrategy mBackoffStrategy;
+  private static final BackoffStrategy BACKOFF_STRATEGY = Configuration
+      .getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_STRATEGY, BackoffStrategy.class);
 
   /** Runner thread for launching management tasks. */
   private final Thread mRunnerThread;
-  /** Executor that will running the management tasks. */
-  private final ExecutorService mTaskExecutor;
+  /** Executor that will run the management tasks. */
+  private final ExecutorService mTaskExecutor = Executors.newFixedThreadPool(
+      Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
+        ThreadFactoryUtils.build("block-management-task-%d", true));
 
-  private final BlockStore mBlockStore;
+  private final LocalBlockStore mBlockStore;
   private final BlockMetadataManager mMetadataManager;
   private final StoreLoadTracker mLoadTracker;
 
-  /** This coordinator requires to calculate eviction view per each task. */
+  /** This coordinator requires calculating eviction view per each task. */
   private final Supplier<BlockMetadataEvictorView> mEvictionViewSupplier;
 
   /** List of management task providers. */
   private List<ManagementTaskProvider> mTaskProviders;
-
-  /** Whether the coordinator is shut down. */
-  private volatile boolean mShutdown = false;
 
   /**
    * Creates management coordinator.
@@ -67,25 +68,13 @@ public class ManagementTaskCoordinator implements Closeable {
    * @param loadTracker load tracker
    * @param evictionViewSupplier eviction view supplier
    */
-  public ManagementTaskCoordinator(BlockStore blockStore, BlockMetadataManager metadataManager,
+  public ManagementTaskCoordinator(LocalBlockStore blockStore, BlockMetadataManager metadataManager,
       StoreLoadTracker loadTracker, Supplier<BlockMetadataEvictorView> evictionViewSupplier) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mLoadTracker = loadTracker;
     mEvictionViewSupplier = evictionViewSupplier;
-
-    // Read configs.
-    mLoadDetectionCoolDownMs =
-        ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
-    mBackoffStrategy = ServerConfiguration.getEnum(PropertyKey.WORKER_MANAGEMENT_BACKOFF_STRATEGY,
-        BackoffStrategy.class);
-
-    mTaskExecutor = Executors.newFixedThreadPool(
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
-        ThreadFactoryUtils.build("block-management-task-%d", true));
-
     initializeTaskProviders();
-
     // Initialize runner thread.
     mRunnerThread = new Thread(this::runManagement, "block-management-runner");
     mRunnerThread.setDaemon(true);
@@ -105,7 +94,6 @@ public class ManagementTaskCoordinator implements Closeable {
       // Shutdown task executor.
       mTaskExecutor.shutdownNow();
       // Interrupt and wait for runner thread.
-      mShutdown = true;
       mRunnerThread.interrupt();
       mRunnerThread.join();
     } catch (Exception e) {
@@ -120,7 +108,7 @@ public class ManagementTaskCoordinator implements Closeable {
    */
   private void initializeTaskProviders() {
     mTaskProviders = new ArrayList<>(1);
-    if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+    if (Configuration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
       LOG.warn("Tier management tasks will be disabled under eviction emulation mode.");
     } else {
       // TODO(ggezer): Improve on views per task type.
@@ -133,7 +121,7 @@ public class ManagementTaskCoordinator implements Closeable {
    * @return the next management task to run, {@code null} if none pending
    */
   private BlockManagementTask getNextTask() {
-    /**
+    /*
      * Order of providers in the registered list imposes an implicit priority of tasks.
      * As long as a provider gives a task, providers next to it won't be consulted.
      */
@@ -161,18 +149,17 @@ public class ManagementTaskCoordinator implements Closeable {
       BlockManagementTask currentTask;
       try {
         // Back off from worker if configured so.
-        if (mBackoffStrategy == BackoffStrategy.ANY
+        if (BACKOFF_STRATEGY == BackoffStrategy.ANY
             && mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
-          LOG.debug("Load detected. Sleeping {}ms.", mLoadDetectionCoolDownMs);
-          Thread.sleep(mLoadDetectionCoolDownMs);
+          LOG.debug("Load detected. Sleeping {}ms.", LOAD_DETECTION_COOL_DOWN_TIME);
+          Thread.sleep(LOAD_DETECTION_COOL_DOWN_TIME);
           continue;
         }
 
         final BlockManagementTask nextTask = getNextTask();
         if (nextTask == null) {
-          LOG.debug("No management task pending. Sleeping {}ms.",
-              mLoadDetectionCoolDownMs);
-          Thread.sleep(mLoadDetectionCoolDownMs);
+          LOG.debug("No management task pending. Sleeping {}ms.", LOAD_DETECTION_COOL_DOWN_TIME);
+          Thread.sleep(LOAD_DETECTION_COOL_DOWN_TIME);
           continue;
         }
 
@@ -186,8 +173,8 @@ public class ManagementTaskCoordinator implements Closeable {
 
           if (result.noProgress()) {
             LOG.debug("Task made no progress due to failures/back-offs. Sleeping {}ms",
-                mLoadDetectionCoolDownMs);
-            Thread.sleep(mLoadDetectionCoolDownMs);
+                LOAD_DETECTION_COOL_DOWN_TIME);
+            Thread.sleep(LOAD_DETECTION_COOL_DOWN_TIME);
           }
         } catch (Exception e) {
           LOG.error("Management task failed: {}. Error: ", currentTask.getClass().getSimpleName(),

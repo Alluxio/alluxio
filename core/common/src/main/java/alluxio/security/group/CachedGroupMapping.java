@@ -96,12 +96,7 @@ public class CachedGroupMapping implements GroupMappingService {
     }
   }
 
-  /**
-   * Gets a list of groups for the given user.
-   *
-   * @param user user name
-   * @return the list of groups that the user belongs to
-   */
+  @Override
   public List<String> getGroups(String user) throws IOException {
     if (!mCacheEnabled) {
       return mService.getGroups(user);

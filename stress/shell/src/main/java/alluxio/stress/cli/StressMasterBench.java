@@ -30,7 +30,6 @@ import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -180,14 +179,14 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
-      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 
       mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedNativeFs.length; i++) {
         mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
-            .create(new InstancedConfiguration(alluxioProperties));
+            .create(alluxioProperties);
       }
     }
   }
@@ -475,7 +474,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       }
       CommonUtils.sleepMs(waitMs);
 
-      long localCounter = 0;
+      long localCounter;
       while (true) {
         if (Thread.currentThread().isInterrupted()) {
           break;
@@ -524,6 +523,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
       Path path;
@@ -592,7 +592,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          Path dst = new Path(path.toString() + "-renamed");
+          Path dst = new Path(path + "-renamed");
           if (!mFs.rename(path, dst)) {
             throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
           }
@@ -621,6 +621,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
       mFs = fs;
     }
 
+    @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException, AlluxioException {
       Path path;
@@ -677,7 +678,7 @@ public class StressMasterBench extends AbstractStressBench<MasterBenchTaskResult
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          Path dst = new Path(path.toString() + "-renamed");
+          Path dst = new Path(path + "-renamed");
           mFs.rename(new AlluxioURI(path.toString()), new AlluxioURI(dst.toString()));
           break;
         case DELETE_FILE:

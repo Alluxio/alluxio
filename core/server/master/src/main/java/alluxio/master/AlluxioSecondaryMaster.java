@@ -15,7 +15,7 @@ import alluxio.Process;
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.underfs.MasterUfsManager;
@@ -26,8 +26,6 @@ import alluxio.util.WaitForOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -38,13 +36,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioSecondaryMaster implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMaster.class);
-  private final MasterRegistry mRegistry;
-  private final JournalSystem mJournalSystem;
-  private final CountDownLatch mLatch;
-  private final SafeModeManager mSafeModeManager;
-  private final BackupManager mBackupManager;
-  private final long mStartTimeMs;
-  private final int mPort;
+  private final MasterRegistry mRegistry = new MasterRegistry();
+  private final JournalSystem mJournalSystem = new JournalSystem.Builder()
+      .setLocation(JournalUtils.getJournalLocation()).build(ProcessType.MASTER);
+  private final CountDownLatch mLatch = new CountDownLatch(1);
 
   private volatile boolean mRunning = false;
 
@@ -52,35 +47,22 @@ public final class AlluxioSecondaryMaster implements Process {
    * Creates a {@link AlluxioSecondaryMaster}.
    */
   AlluxioSecondaryMaster() {
-    try {
-      URI journalLocation = JournalUtils.getJournalLocation();
-      mJournalSystem = new JournalSystem.Builder()
-          .setLocation(journalLocation).build(ProcessType.MASTER);
-      mRegistry = new MasterRegistry();
-      mSafeModeManager = new DefaultSafeModeManager();
-      mBackupManager = new BackupManager(mRegistry);
-      mStartTimeMs = System.currentTimeMillis();
-      mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
-      String baseDir = ServerConfiguration.getString(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
-      // Create masters.
-      MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
-          .setJournalSystem(mJournalSystem)
-          .setSafeModeManager(mSafeModeManager)
-          .setBackupManager(mBackupManager)
-          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
-          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
-          .setStartTimeMs(mStartTimeMs)
-          .setPort(mPort)
-          .setUfsManager(new MasterUfsManager())
-          .build());
-      // Check that journals of each service have been formatted.
-      if (!mJournalSystem.isFormatted()) {
-        throw new RuntimeException(
-            String.format("Journal %s has not been formatted!", journalLocation));
-      }
-      mLatch = new CountDownLatch(1);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    String baseDir = Configuration.getString(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
+    // Create masters.
+    MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
+        .setJournalSystem(mJournalSystem)
+        .setSafeModeManager(new DefaultSafeModeManager())
+        .setBackupManager(new BackupManager(mRegistry))
+        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
+        .setStartTimeMs(System.currentTimeMillis())
+        .setPort(Configuration.getInt(PropertyKey.MASTER_RPC_PORT))
+        .setUfsManager(new MasterUfsManager())
+        .build());
+    // Check that journals of each service have been formatted.
+    if (!mJournalSystem.isFormatted()) {
+      throw new RuntimeException(
+          String.format("Journal %s has not been formatted!", JournalUtils.getJournalLocation()));
     }
   }
 

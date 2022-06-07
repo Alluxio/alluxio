@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
+ * The fault-tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
  */
 @NotThreadSafe
 final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
@@ -45,19 +45,18 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
 
   private final long mServingThreadTimeoutMs =
-      ServerConfiguration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
+      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
-  private PrimarySelector mLeaderSelector;
-  private Thread mServingThread;
+  private final PrimarySelector mLeaderSelector;
+  private Thread mServingThread = null;
 
   /** An indicator for whether the process is running (after start() and before stop()). */
-  private volatile boolean mRunning;
+  private volatile boolean mRunning = false;
 
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
    */
-  protected FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem,
-      PrimarySelector leaderSelector) {
+  FaultTolerantAlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super(journalSystem);
     try {
       stopServing();
@@ -65,8 +64,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException(e);
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
-    mServingThread = null;
-    mRunning = false;
     LOG.info("New process created.");
   }
 
@@ -81,7 +78,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
       LOG.info("Waiting for journals to catch up.");
       mJournalSystem.waitForCatchup();
     }
@@ -99,7 +96,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         LOG.info("FT is not running. Breaking out");
         break;
       }
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
         LOG.info("Waiting for journals to catch up.");
         mJournalSystem.waitForCatchup();
       }
@@ -111,7 +108,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.STANDBY);
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
           stop();
         } else {
           if (!mRunning) {
@@ -149,7 +146,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
         LOG.info("Terminating an unstable attempt to become a leader.");
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+        if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
           stop();
         } else {
           losePrimacy();
@@ -170,7 +167,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
-        if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+        if (root instanceof InterruptedException || Thread.interrupted()) {
           return;
         }
         ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
@@ -225,7 +222,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   /**
    * @return whether the master is running
    */
-  protected boolean isRunning() {
+  boolean isRunning() {
     return mRunning;
   }
 
@@ -246,13 +243,13 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   @Override
   protected void startCommonServices() {
     boolean standbyMetricsSinkEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED);
     boolean standbyWebEnabled =
-        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
+        Configuration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED);
     // Masters will always start from standby state, and later be elected to primary.
     // If standby masters are enabled to start metric sink service,
     // the service will have been started before the master is promoted to primary.
-    // Thus when the master is primary, no need to start metric sink service again.
+    // Thus, when the master is primary, no need to start metric sink service again.
     //
     // Vice versa, if the standby masters do not start the metric sink service,
     // the master should start the metric sink when it is primacy.
@@ -263,7 +260,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         || (mLeaderSelector.getState() == State.PRIMARY && !standbyMetricsSinkEnabled)) {
       LOG.info("Start metric sinks.");
       MetricsSystem.startSinks(
-          ServerConfiguration.getString(PropertyKey.METRICS_CONF_FILE));
+          Configuration.getString(PropertyKey.METRICS_CONF_FILE));
     }
 
     // Same as the metrics sink service
@@ -274,13 +271,13 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
   }
 
-  protected void stopCommonServicesIfNecessary() throws Exception {
-    if (!ServerConfiguration.getBoolean(
+  void stopCommonServicesIfNecessary() throws Exception {
+    if (!Configuration.getBoolean(
         PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED)) {
       LOG.info("Stop metric sinks.");
       MetricsSystem.stopSinks();
     }
-    if (!ServerConfiguration.getBoolean(
+    if (!Configuration.getBoolean(
         PropertyKey.STANDBY_MASTER_WEB_ENABLED)) {
       LOG.info("Stop web server.");
       stopServingWebServer();

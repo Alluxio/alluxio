@@ -181,6 +181,7 @@ public final class FileSystemContextReinitializer implements Closeable {
    *
    * If already closed, this is a noop.
    */
+  @Override
   public void close() {
     if (mFuture != null) {
       mFuture.cancel(true);

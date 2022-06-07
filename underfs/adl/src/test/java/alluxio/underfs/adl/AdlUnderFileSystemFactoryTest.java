@@ -30,7 +30,7 @@ public class AdlUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("adl://localhost/test/path", conf);
     Assert.assertNotNull(

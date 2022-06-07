@@ -525,7 +525,7 @@ In order to configure the Alluxio Master pod for use, you will need to format th
 
 #### Format Journal
 
-The master Pods in the StatefulSet use a `initContainer` to format the journal on startup.
+The master Pods in the StatefulSet use an `initContainer` to format the journal on startup.
 This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
@@ -878,7 +878,7 @@ The command above allocates a port on the local node `<local-port>` and forwards
 on `<local-port>` to port 19999 of pod `alluxio-master-$i`.
 The pod `alluxio-master-$i` does NOT have to be on the node you are running this command.
 
-> Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+> Note: `i=0` for the first master Pod. When running multiple masters, forward port for each
 master. Only the primary master serves the Web UI.
 
 For example, you are on a node with hostname `master-node-1` and you would like to serve

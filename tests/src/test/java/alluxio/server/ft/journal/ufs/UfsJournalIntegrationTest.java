@@ -19,7 +19,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -143,7 +143,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     journal.start();
     journal.gainPrimacy();
 
-    UfsStatus[] paths = UnderFileSystem.Factory.create(journalFolder, ServerConfiguration.global())
+    UfsStatus[] paths = UnderFileSystem.Factory.create(journalFolder, Configuration.global())
         .listStatus(journal.getLogDir().toString());
     int expectedSize = paths == null ? 0 : paths.length;
 
@@ -151,7 +151,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     journal.flush();
     journal.flush();
     journal.close();
-    paths = UnderFileSystem.Factory.create(journalFolder, ServerConfiguration.global())
+    paths = UnderFileSystem.Factory.create(journalFolder, Configuration.global())
         .listStatus(journal.getLogDir().toString());
     int actualSize = paths == null ? 0 : paths.length;
     // No new files are created.
@@ -163,8 +163,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void loadMetadata() throws Exception {
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    String ufsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
     ufs.create(ufsRoot + "/xyz").close();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
     mLocalAlluxioCluster.stopFS();
@@ -208,11 +208,11 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         new UfsJournal(new URI(journalFolder), new NoopMaster(), 0, Collections::emptySet);
     URI completedLocation = journal.getLogDir();
     Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation.toString(),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))
+        UnderFileSystemConfiguration.defaults(Configuration.global()))
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
     Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation.toString(),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))
+        UnderFileSystemConfiguration.defaults(Configuration.global()))
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }
@@ -574,7 +574,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/file");
 
     String user = "alluxio";
-    ServerConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setBlockSizeBytes(64).build();
     mFileSystem.createFile(filePath, op).close();
 
@@ -610,7 +610,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
         new NoopMaster(), 0, Collections::emptySet);
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
-      UnderFileSystem.Factory.create(journalFolder, ServerConfiguration.global())
+      UnderFileSystem.Factory.create(journalFolder, Configuration.global())
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());
     }
   }

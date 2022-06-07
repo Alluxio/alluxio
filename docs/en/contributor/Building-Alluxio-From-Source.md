@@ -23,8 +23,8 @@ Alternatively, we have published a docker image [alluxio/alluxio-maven](https://
 
 Checkout the Alluxio master branch from Github:
 
-```console
-$ git clone git://github.com/alluxio/alluxio.git
+```shell
+$ git clone https://github.com/Alluxio/alluxio.git
 $ cd alluxio
 $ export ALLUXIO_HOME=$(pwd)
 ```
@@ -32,7 +32,7 @@ $ export ALLUXIO_HOME=$(pwd)
 By default, cloning the repository will check out the master branch. If you are looking to build a
 particular version of the code you may check out the version using a git tag.
 
-```console
+```shell
 $ git tag
 $ git checkout <TAG_NAME>
 ```
@@ -44,7 +44,7 @@ You can skip this section and build Alluxio source code if JDK and Maven are alr
 
 Start a container named `alluxio-build` based on this image and get into this container to proceed:
 
-```console
+```shell
 $ docker run -itd \
   --network=host \
   -v ${ALLUXIO_HOME}:/alluxio  \
@@ -61,7 +61,7 @@ Note that,
 
 When done using the container, destroy it by running
 
-```console
+```shell
 $ docker rm -f alluxio-build
 ```
 
@@ -69,13 +69,13 @@ $ docker rm -f alluxio-build
 
 Build the source code using Maven:
 
-```console
+```shell
 $ mvn clean install -DskipTests
 ```
 
 To speed up the compilation, you can run the following instruction to skip different checks:
 
-```console
+```shell
 $ mvn -T 2C clean install \
     -DskipTests \
     -Dmaven.javadoc.skip=true \
@@ -92,8 +92,8 @@ all the dependencies. Subsequent builds, however, will be much faster.
 
 Once Alluxio is built, you can validate and start it with:
 
-```console
-$ # Alluxio uses ./underFSStorage for under file system storage by default
+```shell
+# Alluxio uses ./underFSStorage for under file system storage by default
 $ mkdir ./underFSStorage
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
@@ -104,7 +104,7 @@ check the log in the `alluxio/logs` directory. The `worker.log` and `master.log`
 typically be the most useful. It may take a few seconds for the web server to start. You can also
 run a simple program to test that data can be read and written to Alluxio's UFS:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -112,7 +112,7 @@ You should be able to see the result `Passed the test!`
 
 You can stop the local Alluxio system by using:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -129,7 +129,7 @@ Since Alluxio 1.7, Alluxio client jar built and located at
 By default, Alluxio is built with the HDFS under storage of Hadoop 3.3.
 Run the following command by specifying `<UFS_HADOOP_PROFILE>` and the corresponding `ufs.hadoop.version` to build ufs with different versions.
 
-```console
+```shell
 $ mvn install -pl underfs/hdfs/ \
    -P<UFS_HADOOP_PROFILE> -Dufs.hadoop.version=<HADOOP_VERSION> -DskipTests
 ```
@@ -141,12 +141,16 @@ Hadoop versions 1.x, 2.x and 3.x.
 Hadoop versions >= 3.0.0 are best for compatibility with newer releases of Alluxio.
 
 For example,
-```console
+```shell
 $ mvn clean install -pl underfs/hdfs/ \
   -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true \
   -Dcheckstyle.skip=true -Dfindbugs.skip=true \
-  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
+  -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
+
+To enable active sync be sure to build using the `hdfsActiveSync` property.
+Please visit [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }})
+for more information on using active sync.
 
 If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
 
@@ -156,7 +160,7 @@ Checkout the flags for different HDFS distributions.
   {% collapsible Apache %}
 All main builds are from Apache so all Apache releases can be used directly
 
-```properties
+```shell
 -Pufs-hadoop-1 -Dufs.hadoop.version=1.0.4
 -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.0
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0
@@ -167,15 +171,16 @@ All main builds are from Apache so all Apache releases can be used directly
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.10.0
 -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0
--Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0
+-Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1
 ```
 
   {% endcollapsible %}
   {% collapsible Cloudera %}
 To build against Cloudera's releases, just use a version like `$apacheRelease-cdh$cdhRelease`
 
-```properties
+```shell
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0-cdh5.1.0
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.0.0-cdh4.7.0
 ```
@@ -183,7 +188,7 @@ To build against Cloudera's releases, just use a version like `$apacheRelease-cd
   {% collapsible Hortonworks %}
 To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonworksRelease`
 
-```properties
+```shell
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.1.0.2.0.5.0-67
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0.2.1.0.0-92
 -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.0.2.1.3.0-563
@@ -199,7 +204,7 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
 variable to increase the memory heap size for maven:
 
-```console
+```shell
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 ```
 

@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.reviewer.MockReviewer;
 
 import com.google.common.collect.Sets;
@@ -27,13 +27,13 @@ import org.junit.Test;
 public final class MaxFreeAllocatorTest extends AllocatorTestBase {
   @Before
   public void initialize() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getMetadataEvictorView());
   }
 
   @After
   public void reset() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**

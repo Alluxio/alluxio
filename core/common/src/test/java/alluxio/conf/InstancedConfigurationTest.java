@@ -31,7 +31,6 @@ import alluxio.TestLoggerRule;
 import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.test.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Joiner;
@@ -66,7 +65,7 @@ import java.util.stream.IntStream;
  */
 public class InstancedConfigurationTest {
 
-  private  InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private  InstancedConfiguration mConfiguration = Configuration.copyGlobal();
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -82,13 +81,13 @@ public class InstancedConfigurationTest {
   }
 
   public void resetConf() {
-    ConfigurationUtils.reloadProperties();
-    mConfiguration = ConfigurationTestUtils.defaults();
+    Configuration.reloadProperties();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
   }
 
   @AfterClass
   public static void after() {
-    ConfigurationUtils.reloadProperties();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -736,7 +735,7 @@ public class InstancedConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      mConfiguration = ConfigurationTestUtils.defaults();
+      mConfiguration = ConfigurationTestUtils.copyDefaults();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           mConfiguration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -1070,7 +1069,7 @@ public class InstancedConfigurationTest {
           format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = ConfigurationTestUtils.copyDefaults();
     try {
       mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), true);
       mConfiguration.validate();
