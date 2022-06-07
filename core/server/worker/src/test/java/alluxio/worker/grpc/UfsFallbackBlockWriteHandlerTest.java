@@ -18,7 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -76,7 +76,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
               .getAbsolutePath());
           put(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1);
         }
-      }, ServerConfiguration.global());
+      }, Configuration.modifiableGlobal());
 
   @Before
   public void before() throws Exception {
@@ -102,7 +102,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     // create a partial block in block store first
     mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID, AllocateOptions
         .forCreate(CHUNK_SIZE, BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM)));
-    BlockWriter writer = mBlockStore.getBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
+    BlockWriter writer = mBlockStore.createBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
     DataBuffer buffer = newDataBuffer(PARTIAL_WRITTEN);
     mPartialChecksum = getChecksum(buffer);
     writer.append((ByteBuf) buffer.getNettyOutput());
@@ -120,7 +120,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mBlockStore.abortBlock(TEST_SESSION_ID, TEST_BLOCK_ID);
     mWriteHandler.write(newFallbackInitRequest(PARTIAL_WRITTEN));
     waitForResponses();
-    checkErrorCode(mResponseObserver, Status.Code.NOT_FOUND);
+    checkErrorCode(mResponseObserver, Status.Code.INTERNAL);
   }
 
   @Test

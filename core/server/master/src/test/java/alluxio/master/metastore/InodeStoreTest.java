@@ -20,7 +20,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
@@ -34,9 +34,9 @@ import alluxio.master.metastore.InodeStore.WriteBatch;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 
-import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,7 +67,7 @@ public class InodeStoreTest {
   @Rule
   public ConfigurationRule mConf =
       new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
-          CACHE_SIZE, ServerConfiguration.global());
+          CACHE_SIZE, Configuration.modifiableGlobal());
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 
@@ -157,19 +157,22 @@ public class InodeStoreTest {
       writeInode(file);
       writeEdge(mRoot, file);
     }
-    assertEquals(9, Iterables.size(mStore.getChildren(mRoot)));
+    assertEquals(9, CloseableIterator.size(mStore.getChildren(mRoot)));
 
-    for (Inode child : mStore.getChildren(mRoot)) {
-      MutableInode<?> childMut = mStore.getMutable(child.getId()).get();
-      removeParentEdge(childMut);
-      removeInode(childMut);
+    try (CloseableIterator<? extends Inode> it = mStore.getChildren(mRoot)) {
+      while (it.hasNext()) {
+        Inode child = it.next();
+        MutableInode<?> childMut = mStore.getMutable(child.getId()).get();
+        removeParentEdge(childMut);
+        removeInode(childMut);
+      }
     }
     for (int i = 1; i < 10; i++) {
       MutableInodeFile file = inodeFile(i, 0, "file" + i);
       writeInode(file);
       writeEdge(mRoot, file);
     }
-    assertEquals(9, Iterables.size(mStore.getChildren(mRoot)));
+    assertEquals(9, CloseableIterator.size(mStore.getChildren(mRoot)));
   }
 
   @Test
@@ -194,7 +197,7 @@ public class InodeStoreTest {
     for (MutableInodeDirectory dir : dirs) {
       removeParentEdge(dir);
     }
-    assertEquals(1, Iterables.size(mStore.getChildren(mRoot)));
+    assertEquals(1, CloseableIterator.size(mStore.getChildren(mRoot)));
   }
 
   @Test
@@ -240,7 +243,7 @@ public class InodeStoreTest {
     assertTrue(renamed.isPresent());
     assertTrue(mStore.getChild(renamed.get().asDirectory(), "dir" + (middleDir + 1)).isPresent());
     assertEquals(0,
-        Iterables.size(mStore.getChildren(mStore.get(middleDir - 1).get().asDirectory())));
+        CloseableIterator.size(mStore.getChildren(mStore.get(middleDir - 1).get().asDirectory())));
   }
 
   private void writeInode(MutableInode<?> inode) {

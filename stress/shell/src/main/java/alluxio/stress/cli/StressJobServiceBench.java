@@ -16,11 +16,11 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.fs.command.DistributedLoadCommand;
+import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -34,7 +34,6 @@ import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -68,7 +67,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   private static final Logger LOG = LoggerFactory.getLogger(StressJobServiceBench.class);
   public static final int MAX_RESPONSE_TIME_BUCKET_INDEX = 0;
   @ParametersDelegate
-  private JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
+  private final JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
   private FileSystemContext mFsContext;
   private JobMasterClient mJobMasterClient;
 
@@ -86,8 +85,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public void prepare() throws Exception {
-    mFsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    mFsContext = FileSystemContext.create();
     final ClientContext clientContext = mFsContext.getClientContext();
     mJobMasterClient =
         JobMasterClient.Factory.create(JobMasterClientContext.newBuilder(clientContext).build());
@@ -305,12 +303,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private long runDistributedLoad(String dirPath) throws AlluxioException, IOException {
+    private long runDistributedLoad(String dirPath) {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
       long stopTime;
       try {
-        long jobControlId = cmd.runDistLoad(new AlluxioURI(dirPath),
+        long jobControlId = DistributedLoadUtils.runDistLoad(cmd, new AlluxioURI(dirPath),
                 numReplication, mParameters.mBatchSize,
                 new HashSet<>(), new HashSet<>(),
                 new HashSet<>(), new HashSet<>(), false);

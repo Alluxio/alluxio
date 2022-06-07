@@ -37,24 +37,16 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
-  public void gainPrimacy() {
-    return;
-  }
+  public void gainPrimacy() {}
 
   @Override
-  public void losePrimacy() {
-    return;
-  }
+  public void losePrimacy() {}
 
   @Override
-  public void suspend(Runnable interruptCallback) {
-    return;
-  }
+  public void suspend(Runnable interruptCallback) {}
 
   @Override
-  public void resume() {
-    return;
-  }
+  public void resume() {}
 
   @Override
   public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {

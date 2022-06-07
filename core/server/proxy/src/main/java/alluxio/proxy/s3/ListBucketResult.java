@@ -170,8 +170,8 @@ public class ListBucketResult {
       return;
     }
     // contains both ends of "/" character
-    final String mBucketPrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
-    buildListBucketResult(mBucketPrefix, children);
+    final String bucketPrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
+    buildListBucketResult(bucketPrefix, children);
   }
 
   /**

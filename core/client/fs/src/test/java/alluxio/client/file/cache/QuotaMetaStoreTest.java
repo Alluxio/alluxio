@@ -16,6 +16,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.client.quota.CacheScope;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,8 +34,11 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
 
   @Before
   public void before() {
+    MetricsSystem.clearAllMetrics();
     mMetaStore = new QuotaMetaStore(mConf);
     mQuotaMetaStore = (QuotaMetaStore) mMetaStore;
+    mCachedPageGauge =
+        MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
   }
 
   @Test

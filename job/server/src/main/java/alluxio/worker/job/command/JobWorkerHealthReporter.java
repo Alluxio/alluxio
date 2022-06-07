@@ -11,8 +11,6 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.util.CommonUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
@@ -30,12 +28,10 @@ public class JobWorkerHealthReporter {
 
   private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 1.0;
 
-  private HardwareAbstractionLayer mHardware;
+  private final HardwareAbstractionLayer mHardware;
 
   private List<Double> mCpuLoadAverage;
   private int mLogicalProcessorCount;
-
-  private long mLastComputed;
 
   /**
    * Default constructor.
@@ -70,7 +66,6 @@ public class JobWorkerHealthReporter {
    * Computes all of the metrics needed for JobWorkerHealthReporter.
    */
   public void compute() {
-    mLastComputed = CommonUtils.getCurrentMs();
     mCpuLoadAverage = DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
         .collect(Collectors.toList());
     mLogicalProcessorCount = mHardware.getProcessor().getLogicalProcessorCount();

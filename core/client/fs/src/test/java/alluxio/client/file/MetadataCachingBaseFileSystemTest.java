@@ -59,7 +59,7 @@ public class MetadataCachingBaseFileSystemTest {
   private static final URIStatus FILE_STATUS =
       new URIStatus(new FileInfo().setPath(FILE.getPath()).setCompleted(true));
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
   private RpcCountingFileSystemMasterClient mFileSystemMasterClient;
@@ -90,7 +90,7 @@ public class MetadataCachingBaseFileSystemTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
   }
 
   @Test

@@ -13,7 +13,7 @@ package alluxio;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockStoreLocation;
 
 import org.junit.Assert;
@@ -31,13 +31,13 @@ public final class DefaultStorageTierAssocTest
 
   private void checkStorageTierAssoc(StorageTierAssoc assoc, PropertyKey levelsProperty,
       PropertyKey.Template template) {
-    int size = ServerConfiguration.getInt(levelsProperty);
+    int size = Configuration.getInt(levelsProperty);
     Assert.assertEquals(size, assoc.size());
 
     List<String> expectedOrderedAliases = new ArrayList<>();
 
     for (int i = 0; i < size; i++) {
-      String alias = ServerConfiguration.getString(template.format(i));
+      String alias = Configuration.getString(template.format(i));
       Assert.assertEquals(i, assoc.getOrdinal(alias));
       Assert.assertEquals(alias, assoc.getAlias(i));
       expectedOrderedAliases.add(alias);

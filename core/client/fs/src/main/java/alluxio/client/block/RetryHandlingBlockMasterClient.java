@@ -112,48 +112,31 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
         RPC_LOG, "GetWorkerLostStorage", "");
   }
 
-  /**
-   * Returns the {@link BlockInfo} for a block id.
-   *
-   * @param blockId the block id to get the BlockInfo for
-   * @return the {@link BlockInfo}
-   */
+  @Override
   public BlockInfo getBlockInfo(final long blockId) throws IOException {
-    return retryRPC(() -> {
-      return GrpcUtils.fromProto(
-          mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
-              .getBlockInfo());
-    }, RPC_LOG, "GetBlockInfo", "blockId=%d", blockId);
+    return retryRPC(() -> GrpcUtils.fromProto(
+        mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
+            .getBlockInfo()), RPC_LOG, "GetBlockInfo", "blockId=%d", blockId);
   }
 
   @Override
   public BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
       throws IOException {
-    return retryRPC(() -> {
-      return BlockMasterInfo
-          .fromProto(mClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
-              .addAllFilters(
-                  fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
-              .build()).getBlockMasterInfo());
-    }, RPC_LOG, "GetBlockMasterInfo", "fields=%s", fields);
+    return retryRPC(() -> BlockMasterInfo
+        .fromProto(mClient.getBlockMasterInfo(GetBlockMasterInfoPOptions.newBuilder()
+            .addAllFilters(
+                fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
+            .build()).getBlockMasterInfo()), RPC_LOG, "GetBlockMasterInfo", "fields=%s", fields);
   }
 
-  /**
-   * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.
-   *
-   * @return total capacity in bytes
-   */
+  @Override
   public long getCapacityBytes() throws IOException {
     return retryRPC(() -> mClient
         .getCapacityBytes(GetCapacityBytesPOptions.getDefaultInstance()).getBytes(),
         RPC_LOG, "GetCapacityBytes", "");
   }
 
-  /**
-   * Gets the total amount of used space in bytes, on all the tiers of all the workers.
-   *
-   * @return amount of used space in bytes
-   */
+  @Override
   public long getUsedBytes() throws IOException {
     return retryRPC(
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes(),

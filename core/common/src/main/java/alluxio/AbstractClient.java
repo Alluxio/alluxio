@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.ServiceNotFoundException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
@@ -283,13 +282,11 @@ public abstract class AbstractClient implements Client {
         lastConnectFailure);
   }
 
-  /**
-   * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
-   * if the client has not connected with the remote for a while, for example.
-   */
+  @Override
   public synchronized void disconnect() {
     if (mConnected) {
-      Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
+      Preconditions.checkNotNull(mChannel,
+          "The client channel should never be null when the client is connected");
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
       mChannel.shutdown();
@@ -298,9 +295,7 @@ public abstract class AbstractClient implements Client {
     }
   }
 
-  /**
-   * @return true if this client is connected to the remote
-   */
+  @Override
   public synchronized boolean isConnected() {
     return mConnected;
   }
@@ -419,8 +414,8 @@ public abstract class AbstractClient implements Client {
       onRetry.get();
       disconnect();
     }
-    throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
-        + " attempts: ", ex);
+    throw new UnavailableException(String.format("Failed after %d attempts: %s",
+        retryPolicy.getAttemptCount(), ex), ex);
   }
 
   // TODO(calvin): General tag logic should be in getMetricName

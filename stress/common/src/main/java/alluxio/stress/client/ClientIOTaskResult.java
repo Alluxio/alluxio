@@ -56,9 +56,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
     mTimeToFirstByte = new HashMap<>();
   }
 
-  /**
-   * @return the base parameters
-   */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -205,9 +203,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
     }
   }
 
-  /**
-   * @return the list of errors in the result
-   */
+  @Override
   public List<String> getErrors() {
     List<String> errors = new ArrayList<>();
     for (Map.Entry<Integer, ThreadCountResult> entry : mThreadCountResults.entrySet()) {
@@ -269,7 +265,7 @@ public final class ClientIOTaskResult implements TaskResult, Summary {
             Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
                 opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-            // Split up common description into 100 character chunks, for the sub title
+            // Split up common description into 100 character chunks, for the subtitle
             List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
                 opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 

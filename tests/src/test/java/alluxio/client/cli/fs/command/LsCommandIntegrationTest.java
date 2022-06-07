@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
@@ -46,8 +46,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     FileSystem fs = sFileSystem;
     if (user != null) {
       fs = sLocalAlluxioCluster.getClient(FileSystemContext
-          .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
-              ServerConfiguration.global()));
+          .create(new TestUserState(user, Configuration.global()).getSubject(),
+              Configuration.global()));
     }
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.MUST_CACHE, 10);
     FileSystemTestUtils

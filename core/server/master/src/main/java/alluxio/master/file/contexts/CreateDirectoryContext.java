@@ -11,7 +11,7 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsStatus;
@@ -61,7 +61,7 @@ public class CreateDirectoryContext
    */
   public static CreateDirectoryContext mergeFrom(CreateDirectoryPOptions.Builder optionsBuilder) {
     CreateDirectoryPOptions masterOptions =
-        FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global(), false);
+        FileSystemOptions.createDirectoryDefaults(Configuration.global(), false);
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -72,7 +72,7 @@ public class CreateDirectoryContext
    */
   public static CreateDirectoryContext defaults() {
     return create(FileSystemOptions
-        .createDirectoryDefaults(ServerConfiguration.global(), false).toBuilder());
+        .createDirectoryDefaults(Configuration.global(), false).toBuilder());
   }
 
   /**

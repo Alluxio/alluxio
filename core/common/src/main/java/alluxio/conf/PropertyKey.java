@@ -49,6 +49,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.management.BackoffStrategy;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -643,6 +644,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setIsHidden(true)
           .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey METRICS_EXECUTOR_TASK_WARN_SIZE =
+      intBuilder(Name.METRICS_EXECUTOR_TASK_WARN_SIZE)
+          .setDefaultValue(1000)
+          .setDescription(String.format("When instrumenting an executor with"
+                  + " InstrumentedExecutorService, if the number of"
+                  + " active tasks (queued or running) is greater than this value, a warning log"
+                  + " will be printed at the interval given by %s",
+              Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY))
+          .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
+      durationBuilder(Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY)
+          .setDefaultValue("5sec")
+          .setDescription(String.format("When instrumenting an executor with"
+                  + "InstrumentedExecutorService, if the number of"
+                  + " active tasks (queued or running) is greater than %s value, a warning log"
+                  + " will be printed at the given interval",
+              Name.METRICS_EXECUTOR_TASK_WARN_SIZE))
+          .setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
   public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
       durationBuilder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
@@ -3015,6 +3038,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR)
+          .setDescription("If true the metadata sync thread pool executors will be"
+              + " instrumented with additional metrics.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_METADATA_SYNC_REPORT_FAILURE =
       booleanBuilder(Name.MASTER_METADATA_SYNC_REPORT_FAILURE)
           .setDescription("Report failure if any metadata sync fails")
@@ -3677,6 +3708,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " If this value is lower than read chunk size, read performance may be impacted"
               + " as worker waits more often for buffer to free up. Higher value will increase"
               + " the memory consumed by each read request.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_READER_BUFFER_POOLED =
+      booleanBuilder(Name.WORKER_NETWORK_READER_BUFFER_POOLED)
+          .setDefaultValue(true)
+          .setDescription("Whether it is using pooled direct buffer or unpooled wrapped buffer"
+              + " when creating a buffer for remote read")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4545,6 +4584,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Default block size for Alluxio files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_STORE_TYPE =
+      enumBuilder(Name.USER_BLOCK_STORE_TYPE, BlockStoreType.class)
+          .setDefaultValue(BlockStoreType.FILE)
+          .setDescription("The implementation of LocalBlockStore that can be instantiated.")
+          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey USER_BLOCK_READ_RETRY_SLEEP_MIN =
       durationBuilder(Name.USER_BLOCK_READ_RETRY_SLEEP_MIN)
@@ -5894,6 +5939,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey S3_REST_AUTHENTICATION_ENABLED =
+      booleanBuilder(Name.S3_REST_AUTHENTICATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable check s3 rest request header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey S3_REST_AUTHENTICATOR_CLASSNAME =
+       classBuilder(Name.S3_REST_AUTHENTICATOR_CLASSNAME)
+           .setDescription("The class's name is instantiated as an S3 authenticator.")
+           .setDefaultValue("alluxio.proxy.s3.auth.PassAllAuthenticator")
+           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+           .setScope(Scope.ALL)
+           .build();
   //
   // Network TLS support
   //
@@ -6355,6 +6414,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
         "alluxio.metrics.context.shutdown.timeout";
+    public static final String METRICS_EXECUTOR_TASK_WARN_SIZE =
+        "alluxio.metrics.executor.task.warn.size";
+    public static final String METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
+        "alluxio.metrics.executor.task.warn.frequency";
     public static final String NETWORK_CONNECTION_AUTH_TIMEOUT =
         "alluxio.network.connection.auth.timeout";
     public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
@@ -6716,6 +6779,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_INSTRUMENT_EXECUTOR =
+        "alluxio.master.metadata.sync.instrument.executor";
     public static final String MASTER_METADATA_SYNC_REPORT_FAILURE =
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -7001,6 +7066,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.worker.threads";
     public static final String WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
         "alluxio.worker.network.reader.buffer.size";
+    public static final String WORKER_NETWORK_READER_BUFFER_POOLED =
+        "alluxio.worker.network.reader.buffer.pooled";
     public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
@@ -7140,6 +7207,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
+    public static final String USER_BLOCK_STORE_TYPE = "alluxio.user.block.store.type";
     public static final String USER_BLOCK_READ_RETRY_SLEEP_MIN =
         "alluxio.user.block.read.retry.sleep.base";
     public static final String USER_BLOCK_READ_RETRY_SLEEP_MAX =
@@ -7177,7 +7245,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
         "alluxio.user.client.cache.shadow.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_TYPE =
-            "alluxio.user.client.cache.shadow.type";
+        "alluxio.user.client.cache.shadow.type";
     public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
         "alluxio.user.client.cache.shadow.window";
     public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
@@ -7185,11 +7253,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
         "alluxio.user.client.cache.shadow.bloomfilter.num";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.clock.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.size.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.size.bits";
     public static final String USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
-            "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
+        "alluxio.user.client.cache.shadow.cuckoo.scope.bits";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
@@ -7448,6 +7516,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
     public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
+    public static final String S3_REST_AUTHENTICATION_ENABLED =
+        "alluxio.s3.rest.authentication.enabled";
+    public static final String S3_REST_AUTHENTICATOR_CLASSNAME =
+        "alluxio.s3.rest.authenticator.classname";
 
     //
     // Network TLS support

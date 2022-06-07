@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.DefaultFileSystemMaster.Metrics;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.metrics.MetricKey;
@@ -59,7 +59,7 @@ public class FileSystemMasterMetricsTest {
   public void testMetricsUfsCapacity() throws Exception {
     UfsManager.UfsClient client = Mockito.mock(UfsManager.UfsClient.class);
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsDataFolder = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsDataFolder = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL)).thenReturn(1000L);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(200L);
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(800L);

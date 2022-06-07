@@ -76,7 +76,7 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
   }
 
   protected Pair<String, String> getHdfsConfPaths() {
-    // If ServerConfiguration does not contain the key, then a {@link RuntimeException} will be
+    // If Configuration does not contain the key, then a {@link RuntimeException} will be
     // thrown before calling the {@link String#split} method.
     String confVal = mConf.getString(PropertyKey.UNDERFS_HDFS_CONFIGURATION);
     String[] clientHadoopConfFilePaths = confVal.split(SEPARATOR);

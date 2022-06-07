@@ -21,8 +21,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.List;
@@ -40,7 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class RpcContext implements Closeable, Supplier<JournalContext> {
-  private static final Logger LOG = LoggerFactory.getLogger(RpcContext.class);
   public static final RpcContext NOOP = new RpcContext(NoopBlockDeletionContext.INSTANCE,
       NoopJournalContext.INSTANCE, new InternalOperationContext());
 
@@ -48,7 +45,6 @@ public final class RpcContext implements Closeable, Supplier<JournalContext> {
   private final BlockDeletionContext mBlockDeletionContext;
   private final JournalContext mJournalContext;
   private final OperationContext mOperationContext;
-  private String mOpdId = null;
 
   // Used during close to keep track of thrown exceptions.
   private Throwable mThrown = null;

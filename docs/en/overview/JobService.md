@@ -57,7 +57,7 @@ to a specified number of other workers.
 ### Data Transformation
 
 The job service also supports data transformation. More details can be found at 
-[Data Transformations]({{ '/en/core-services/Transformation.html' | relativize_url }})
+[Data Transformations]({{ '/en/core-services/Transformation.html' | relativize_url }}).
 
 ## Inspection Commands
 

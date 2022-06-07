@@ -12,7 +12,6 @@
 package alluxio.metrics;
 
 import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.MetricType;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -23,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,7 +99,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     if (key != null) {
       return key;
     }
-    throw new IllegalArgumentException(ExceptionMessage.INVALID_METRIC_KEY.getMessage(name));
+    throw new IllegalArgumentException(MessageFormat.format("Invalid metric key {0}", name));
   }
 
   /**
@@ -235,6 +235,18 @@ public final class MetricKey implements Comparable<MetricKey> {
       return key;
     }
   }
+
+  private static final String EXECUTOR_STRING = "%1$s.submitted is a meter of the tasks submitted"
+      + " to the executor. %1$s.completed is a meter of the tasks completed by the executor."
+      + " %1$s.activeTaskQueue is exponentially-decaying random reservoir of the number of"
+      + " active tasks (running or submitted) at the executor calculated each time a new"
+      + " task is added to the executor. The max value is the maximum number of active"
+      + " tasks at any time during execution. %1$s.running is the number of tasks actively"
+      + " being run by the executor. %1$s.idle is the time spent idling by the submitted"
+      + " tasks (i.e. waiting the the queue before being executed)."
+      + " %1$s.duration is the time spent running the submitted tasks."
+      + " If the executor is a thread pool executor then %1$s.queueSize is"
+      + " the size of the task queue.";
 
   // Master metrics
   // Absent cache stats
@@ -744,11 +756,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR =
+      new Builder("Master.MetadataSyncPrefetchExecutor")
+          .setDescription(String.format("Metrics concerning the master metadata sync prefetch"
+              + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncPrefetchExecutor"))
+          .setMetricType(MetricType.EXECUTOR_SERVICE)
+          .build();
   public static final MetricKey MASTER_METADATA_SYNC_PREFETCH_EXECUTOR_QUEUE_SIZE =
       new Builder("Master.MetadataSyncPrefetchExecutorQueueSize")
           .setDescription("The number of queuing prefetch tasks in the metadata sync thread pool"
               + " controlled by " + PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR =
+      new Builder("Master.MetadataSyncExecutor")
+          .setDescription(String.format("Metrics concerning the master metadata sync "
+              + "executor threads. " + EXECUTOR_STRING, "Master.MetadataSyncExecutor"))
+          .setMetricType(MetricType.EXECUTOR_SERVICE)
           .build();
   public static final MetricKey MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE =
       new Builder("Master.MetadataSyncExecutorQueueSize")
@@ -2242,18 +2266,6 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
-  public static final MetricKey FUSE_BYTES_TO_READ =
-      new Builder("Fuse.BytesToRead")
-          .setDescription("Total number of bytes requested by Fuse.read() operations.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey FUSE_BYTES_READ =
-      new Builder("Fuse.BytesRead")
-          .setDescription("Total number of bytes read through Fuse.read() operations.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey FUSE_TOTAL_CALLS =
       new Builder("Fuse.TotalCalls")
           .setDescription("Throughput of JNI FUSE operation calls. "
@@ -2261,15 +2273,9 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey FUSE_WRITING_FILE_COUNT =
-      new Builder("Fuse.WritingFileCount")
-          .setDescription("Total number of files being written concurrently.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey FUSE_READING_FILE_COUNT =
-      new Builder("Fuse.ReadingFileCount")
-          .setDescription("Total number of files being read concurrently.")
+  public static final MetricKey FUSE_READ_WRITE_FILE_COUNT =
+      new Builder("Fuse.ReadWriteFileCount")
+          .setDescription("Total number of files being opened for reading or writing concurrently.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();

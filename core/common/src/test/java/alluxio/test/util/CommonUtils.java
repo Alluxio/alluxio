@@ -11,11 +11,11 @@
 
 package alluxio.test.util;
 
+import static org.mockito.Mockito.mock;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -44,43 +44,6 @@ public final class CommonUtils {
       .put(long.class, Lists.newArrayList((long) 40, (long) 41))
       .put(float.class, Lists.newArrayList((float) 50, (float) 51))
       .put(double.class, Lists.newArrayList((double) 60, (double) 61)).build();
-
-  /**
-   * Traverses a chain of potentially private fields using {@link Whitebox}.
-   *
-   * For example, if you have the classes
-   *
-   *<pre>{@code
-   *public class Foo {
-   *  private Bar myBar = new Bar();
-   *}
-   *
-   *public class Bar {
-   *  private String secret = "puppy";
-   *}
-   *}</pre>
-   *
-   * then you can access {@code "puppy"} with
-   * {@code CommonTestUtils.getInternalState(new Foo(), "myBar", "secret")}.
-   *
-   * @param instance the object to start the traversal from
-   * @param fieldNames the field names to traverse
-   * @return the final value at the end of the traversal
-   */
-  public static <T> T getInternalState(Object instance, String... fieldNames) {
-    Object current = instance;
-    for (String fieldName : fieldNames) {
-      Object next = Whitebox.getInternalState(current, fieldName);
-      if (next == null) {
-        throw new RuntimeException(
-            "Couldn't find field " + fieldName + " in " + current.getClass());
-      }
-      current = next;
-    }
-    @SuppressWarnings("unchecked")
-    T finalObject = (T) current;
-    return finalObject;
-  }
 
   /**
    * Uses reflection to test the equals and hashCode methods for the given simple java object.
@@ -183,7 +146,7 @@ public final class CommonUtils {
     List<Object> classValues = Lists.newArrayList();
     classValues.add(null);
     try {
-      classValues.add(PowerMockito.mock(type));
+      classValues.add(mock(type));
     } catch (Exception e) {
       try {
         Constructor<?> constructor = type.getDeclaredConstructor();
