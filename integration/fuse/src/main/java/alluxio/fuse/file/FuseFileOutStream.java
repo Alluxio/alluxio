@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.PreconditionMessage;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
@@ -97,13 +98,14 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void write(ByteBuffer buf, long size, long offset) {
-    if (size > Integer.MAX_VALUE) {
-      throw new UnsupportedOperationException(
-          String.format("Cannot write more than %s", Integer.MAX_VALUE));
-    }
+    Preconditions.checkArgument(size >= 0 && offset >= 0 && size <= buf.capacity(),
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), buf.capacity(), offset, size);
     if (!mOutStream.isPresent()) {
       throw new UnsupportedOperationException(
           "Cannot overwrite/extending existing file without O_TRUNC flag or truncate(0) operation");
+    }
+    if (size == 0) {
+      return;
     }
     int sz = (int) size;
     long bytesWritten = mOutStream.get().getBytesWritten();
