@@ -35,6 +35,7 @@ public final class JournalEntryAssociation {
         || entry.hasInodeDirectoryIdGenerator()
         || entry.hasInodeFile()
         || entry.hasInodeLastModificationTime()
+        || entry.hasLoadDirectory()
         || entry.hasNewBlock()
         || entry.hasPersistDirectory()
         || entry.hasRemoveSyncPoint()

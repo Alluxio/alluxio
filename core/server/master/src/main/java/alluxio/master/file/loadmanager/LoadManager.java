@@ -25,6 +25,7 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,13 +202,17 @@ public final class LoadManager implements Journaled {
   static class Load {
     private final long mLoadId;
     private final String mPath;
-    private List<LoadResponse> mLoadResponse;
+    private final List<LoadResponse> mLoadResponse = Lists.newArrayList();
     private final LoadOptions mOptions;
 
     public Load(long loadId, String path, LoadOptions options) {
       mLoadId = loadId;
       mPath = path;
       mOptions = options;
+    }
+
+    public long getLoadId() {
+      return mLoadId;
     }
 
     /*

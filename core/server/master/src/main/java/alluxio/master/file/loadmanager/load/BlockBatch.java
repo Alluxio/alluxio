@@ -37,4 +37,12 @@ public class BlockBatch {
   public long getBatchId() {
     return mBatchId;
   }
+
+  /**
+   * Get block id list.
+   * @return list of block ids
+   */
+  public List<Long> getBlockIds() {
+    return mBlockIds;
+  }
 }
