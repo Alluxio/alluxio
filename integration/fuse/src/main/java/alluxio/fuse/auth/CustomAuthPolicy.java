@@ -13,16 +13,8 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-<<<<<<< HEAD
-import alluxio.fuse.AlluxioFuseFileSystemOpts;
-||||||| 4957129c16
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
+import alluxio.fuse.AlluxioFuseFileSystemOpts;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 

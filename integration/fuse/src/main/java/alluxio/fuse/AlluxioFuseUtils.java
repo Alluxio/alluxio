@@ -14,12 +14,8 @@ package alluxio.fuse;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-<<<<<<< HEAD
 import alluxio.client.file.FileSystemContext;
-||||||| 4957129c16
-=======
 import alluxio.client.file.URIStatus;
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -39,12 +35,8 @@ import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-<<<<<<< HEAD
 import alluxio.retry.RetryUtils;
-||||||| 4957129c16
-=======
 import alluxio.security.authorization.Mode;
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;

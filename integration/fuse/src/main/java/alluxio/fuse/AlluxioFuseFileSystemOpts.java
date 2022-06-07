@@ -70,7 +70,7 @@ public final class AlluxioFuseFileSystemOpts {
     );
   }
 
-  /**
+  /**SystemUserGroupAuthPolicy.java
    * Constructs an {@link AlluxioFuseFileSystemOpts} with
    * Alluxio cluster configuration and command line input.
    * Command line input has higher precedence if a property is set both in config and command.

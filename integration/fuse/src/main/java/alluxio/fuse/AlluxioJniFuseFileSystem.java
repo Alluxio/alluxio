@@ -91,14 +91,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final LoadingCache<String, Long> mGidCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final FuseShell mFuseShell;
-<<<<<<< HEAD
   private final AlluxioFuseFileSystemOpts mFuseFsOpts;
-  private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
-||||||| 4957129c16
-  private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
-=======
   private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
       ID_INDEX =
       new IndexDefinition<FuseFileEntry<FuseFileStream>, Long>(true) {
         @Override
@@ -174,21 +168,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
             return AlluxioFuseUtils.getGidFromGroupName(groupName);
           }
         });
-<<<<<<< HEAD
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, fuseFsOpts, this);
-    if (fuseFsOpts.isDebug()) {
-||||||| 4957129c16
-    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
-    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
-    if (opts.isDebug()) {
-=======
-    mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
-    mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
-    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
-    if (opts.isDebug()) {
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
+    if (fuseFsOpts.isDebug()) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
       } catch (IOException e) {
@@ -690,47 +672,21 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
-<<<<<<< HEAD
-    if (mFuseFsOpts.getFuseUmountTimeout() > 0
-        && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
+    if (mFuseFsOpts.getFuseUmountTimeout() > 0 && (!mFileEntries.isEmpty())) {
       LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish",
           mFuseFsOpts.getMountPoint());
-||||||| 4957129c16
-    if (mMaxUmountWaitTime > 0 && (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty())) {
-      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
-=======
-    if (mMaxUmountWaitTime > 0 && (!mFileEntries.isEmpty())) {
-      LOG.info("Unmounting {}. Waiting for all in progress file read/write to finish", mMountPoint);
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
       try {
         CommonUtils.waitFor("all in progress file read/write to finish",
-<<<<<<< HEAD
-            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
-            WaitForOptions.defaults().setTimeoutMs(mFuseFsOpts.getFuseUmountTimeout()));
-||||||| 4957129c16
-            () -> mCreateFileEntries.isEmpty() && mOpenFileEntries.isEmpty(),
-            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
-=======
             mFileEntries::isEmpty,
-            WaitForOptions.defaults().setTimeoutMs(mMaxUmountWaitTime));
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
+            WaitForOptions.defaults().setTimeoutMs(mFuseFsOpts.getFuseUmountTimeout()));
       } catch (InterruptedException e) {
         LOG.error("Unmount {} interrupted", mFuseFsOpts.getMountPoint());
         Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Timeout when waiting all in progress file read/write to finish "
-<<<<<<< HEAD
             + "when unmounting {}. {} fileInStream remain unclosed. "
             + "{} fileOutStream remain unclosed.",
-            mFuseFsOpts.getMountPoint(), mOpenFileEntries.size(), mCreateFileEntries.size());
-||||||| 4957129c16
-            + "when unmounting {}. {} fileInStream remain unclosed. "
-            + "{} fileOutStream remain unclosed.",
-            mMountPoint, mOpenFileEntries.size(), mCreateFileEntries.size());
-=======
-            + "when unmounting {}. {} file stream remain unclosed.",
-            mMountPoint, mFileEntries.size());
->>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
+            mFuseFsOpts.getMountPoint(), mFileEntries.size());
         if (!force) {
           throw new FuseException("Timed out for umount due to device is busy.");
         }
