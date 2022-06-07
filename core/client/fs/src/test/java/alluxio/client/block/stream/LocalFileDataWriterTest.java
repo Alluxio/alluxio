@@ -51,7 +51,7 @@ public class LocalFileDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientContext mClientContext;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
   private FileSystemContext mContext;
   private GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> mStream;
 

@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
-  private MetaMaster mMetaMaster;
+  private final MetaMaster mMetaMaster;
 
   /**
    * Creates a new instance of {@link UpdateChecker}.

@@ -68,7 +68,7 @@ public final class BaseFileSystemTest {
   private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
       "Exception should have been propagated";
 
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConf = ConfigurationTestUtils.copyDefaults();
 
   @Rule
   private TestLoggerRule mTestLogger = new TestLoggerRule();
@@ -109,7 +109,7 @@ public final class BaseFileSystemTest {
 
   @After
   public void after() {
-    mConf = ConfigurationTestUtils.defaults();
+    mConf = ConfigurationTestUtils.copyDefaults();
   }
 
   /**

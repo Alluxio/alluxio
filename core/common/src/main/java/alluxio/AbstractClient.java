@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.ServiceNotFoundException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
@@ -64,7 +63,7 @@ public abstract class AbstractClient implements Client {
 
   @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC",
       justification = "the error seems a bug in findbugs")
-  /** Used to query service version for the remote service type. */
+  /* Used to query service version for the remote service type. */
   protected ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub mVersionService;
 
   /** Is true if this client is currently connected. */
@@ -243,7 +242,7 @@ public abstract class AbstractClient implements Client {
         lastConnectFailure = e;
         if (e instanceof UnauthenticatedException) {
           // If there has been a failure in opening GrpcChannel, it's possible because
-          // the authentication credential has expired. Relogin.
+          // the authentication credential has expired. Re-login.
           mContext.getUserState().relogin();
         }
         if (e instanceof NotFoundException) {
@@ -283,13 +282,11 @@ public abstract class AbstractClient implements Client {
         lastConnectFailure);
   }
 
-  /**
-   * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
-   * if the client has not connected with the remote for a while, for example.
-   */
+  @Override
   public synchronized void disconnect() {
     if (mConnected) {
-      Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
+      Preconditions.checkNotNull(mChannel,
+          "The client channel should never be null when the client is connected");
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
       mChannel.shutdown();
@@ -298,9 +295,7 @@ public abstract class AbstractClient implements Client {
     }
   }
 
-  /**
-   * @return true if this client is connected to the remote
-   */
+  @Override
   public synchronized boolean isConnected() {
     return mConnected;
   }
@@ -350,11 +345,11 @@ public abstract class AbstractClient implements Client {
    * @param <V> type of return value of the RPC call
    * @param rpc the RPC call to be executed
    * @param logger the logger to use for this call
-   * @param rpcName the human readable name of the RPC call
+   * @param rpcName the human-readable name of the RPC call
    * @param description the format string of the description, used for logging
    * @param args the arguments for the description
    * @return the return value of the RPC call
-   * @throws AlluxioStatusException
+   * @throws AlluxioStatusException status exception
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc, Logger logger, String rpcName,
       String description, Object... args) throws AlluxioStatusException {
@@ -388,7 +383,7 @@ public abstract class AbstractClient implements Client {
           rpcName, debugDesc, duration, e.toString());
       if (duration >= mRpcThreshold) {
         logger.warn("{}({}) exits with exception [{}] in {} ms (>={}ms)",
-            rpcName, String.format(description, args), e.toString(), duration, mRpcThreshold);
+            rpcName, String.format(description, args), e, duration, mRpcThreshold);
       }
       throw e;
     }
@@ -419,8 +414,8 @@ public abstract class AbstractClient implements Client {
       onRetry.get();
       disconnect();
     }
-    throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
-        + " attempts: " + ex.toString(), ex);
+    throw new UnavailableException(String.format("Failed after %d attempts: %s",
+        retryPolicy.getAttemptCount(), ex), ex);
   }
 
   // TODO(calvin): General tag logic should be in getMetricName

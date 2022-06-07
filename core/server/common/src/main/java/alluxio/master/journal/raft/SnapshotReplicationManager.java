@@ -13,7 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.ClientContext;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
  *
  * - Ratis calls leader state machine to take a snapshot
  * - leader gets snapshot metadata from follower
- * - leader pick one of the the follower and send a request for copying the snapshot
+ * - leader pick one of the follower and send a request for copying the snapshot
  * - follower receives the request and calls the leader raft journal service to upload the snapshot
  * - after the upload completes, leader remembers the temporary snapshot location and index
  * - Ratis calls the leader state machine again to take a snapshot
@@ -229,9 +229,7 @@ public class SnapshotReplicationManager {
             .setSnapshotIndex(snapshot.getIndex())
             .setOffset(0))
         .build());
-    snapshotUploader.getCompletionFuture().whenComplete((info, t) -> {
-      client.close();
-    });
+    snapshotUploader.getCompletionFuture().whenComplete((info, t) -> client.close());
   }
 
   /**
@@ -424,7 +422,7 @@ public class SnapshotReplicationManager {
   }
 
   /**
-   * Finds a follower with latest snapshot and sends a request to download it.
+   * Finds a follower with the latest snapshot and sends a request to download it.
    */
   private void requestSnapshotFromFollowers() {
     if (mDownloadState.get() == DownloadState.IDLE) {
@@ -499,7 +497,7 @@ public class SnapshotReplicationManager {
 
   private boolean requestData() {
     Preconditions.checkState(mDownloadState.get() == DownloadState.REQUEST_DATA);
-    // request snapshots from the most recent to least recent
+    // request snapshots from the most recent to the least recent
     while (!mSnapshotCandidates.isEmpty()) {
       Pair<SnapshotMetadata, RaftPeerId> candidate = mSnapshotCandidates.poll();
       SnapshotMetadata metadata = candidate.getFirst();
@@ -527,7 +525,7 @@ public class SnapshotReplicationManager {
   synchronized RaftJournalServiceClient createJournalServiceClient()
       throws AlluxioStatusException {
     RaftJournalServiceClient client = new RaftJournalServiceClient(MasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
     client.connect();
     return client;
   }

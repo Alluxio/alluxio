@@ -13,8 +13,7 @@ package alluxio.worker.block.management.tier;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockDoesNotExistException;
+import alluxio.conf.Configuration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.LocalBlockStore;
@@ -38,6 +37,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -97,13 +97,13 @@ public class PromoteTask extends AbstractBlockManagementTask {
     // Acquire promotion range from the configuration.
     // This will limit promotions in single task run.
     final int promoteRange =
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE);
+        Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_RANGE);
 
     // Tier for where promotions are going to.
     StorageTier tierUp = mMetadataManager.getTier(tierUpLocation.tierAlias());
     // Get quota for promotions.
     int promotionQuota =
-        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT);
+        Configuration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_QUOTA_PERCENT);
     Preconditions.checkArgument(promotionQuota >= 0 && promotionQuota <= 100,
         "Invalid promotion quota percent");
     double quotaRatio = (double) promotionQuota / 100;
@@ -123,19 +123,14 @@ public class PromoteTask extends AbstractBlockManagementTask {
 
       long blockId = iterator.next();
       // Read block info and store it.
-      try {
-        BlockMeta blockMeta = mEvictorView.getBlockMeta(blockId);
-        if (blockMeta == null) {
-          LOG.debug("Block:{} exist but not available for promotion.", blockId);
-          continue;
-        }
-        bytesToAllocate += blockMeta.getBlockSize();
-        transferInfos.add(
-            BlockTransferInfo.createMove(blockMeta.getBlockLocation(), blockId, tierUpLocation));
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed to find location of a block:{}. Error: {}", blockId, e);
+      Optional<BlockMeta> blockMeta = mEvictorView.getBlockMeta(blockId);
+      if (!blockMeta.isPresent()) {
+        LOG.debug("Block:{} exist but not available for promotion.", blockId);
         continue;
       }
+      bytesToAllocate += blockMeta.get().getBlockSize();
+      transferInfos.add(BlockTransferInfo.createMove(blockMeta.get().getBlockLocation(),
+          blockId, tierUpLocation));
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Generated {} promotions from {} to {}.\n" + "Promotions transfers:\n ->{}",

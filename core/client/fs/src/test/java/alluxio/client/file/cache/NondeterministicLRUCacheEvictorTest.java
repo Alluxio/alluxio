@@ -34,7 +34,7 @@ public final class NondeterministicLRUCacheEvictorTest {
    */
   @Before
   public void before() {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = ConfigurationTestUtils.copyDefaults();
     mEvictor = new NondeterministicLRUCacheEvictor(conf);
     mEvictor.setNumOfCandidate(2);
   }

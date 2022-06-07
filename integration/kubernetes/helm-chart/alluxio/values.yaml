@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.8.0-SNAPSHOT
+imageTag: 2.9.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -99,6 +99,11 @@ master:
     web: 19999
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
+  extraServicePorts: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -276,6 +281,10 @@ worker:
   # hostPID requires escalated privileges
   hostPID: false
   hostNetwork: false
+  shareProcessNamespace: false
+  extraContainers: []
+  extraVolumeMounts: []
+  extraVolumes: []
   # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
   # and ClusterFirst if hostNetwork: false
   # You can specify dnsPolicy here to override this inference
@@ -649,9 +658,6 @@ csi:
   # Run alluxio fuse process inside csi nodeserver container if mountInPod = false
   # Run alluxio fuse process inside a separate pod if mountInPod = true
   mountInPod: false
-  # If mountInPod, use a timeout for waiting until the fuse process is ready
-  periodSeconds: 15
-  failureThreshold: 10
   nodePlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet

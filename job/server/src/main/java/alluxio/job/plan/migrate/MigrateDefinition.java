@@ -20,8 +20,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
@@ -103,7 +103,7 @@ public final class MigrateDefinition
     }
     List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getCachedWorkers();
     if (status.isFolder()) {
-      throw new RuntimeException(ExceptionMessage.MIGRATE_DIRECTORY.getMessage());
+      throw new RuntimeException("Cannot migrate directory");
     } else {
       WorkerInfo bestJobWorker =
           getBestJobWorker(status, alluxioWorkerInfoList, jobWorkerInfoList, hostnameToWorker);
@@ -140,13 +140,13 @@ public final class MigrateDefinition
   public SerializableVoid runTask(MigrateConfig config, MigrateCommand command,
       RunTaskContext context) throws Exception {
     WriteType writeType = config.getWriteType() == null
-        ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+        ? Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : config.getWriteType();
     migrate(command, writeType.toProto(), context.getFileSystem(), config.isOverwrite());
     return null;
   }
 
-  /**
+  /*
    * @param command the migrate command to execute
    * @param writeType the write type to use for the moved file
    * @param fileSystem the Alluxio file system

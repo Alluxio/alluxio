@@ -193,7 +193,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    throw new IOException("This method is not supported.");
   }
 
   @Override

@@ -30,7 +30,7 @@ public class WasbUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("wasb://localhost/test/path", conf);
     Assert.assertNotNull(

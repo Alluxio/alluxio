@@ -86,9 +86,7 @@ public final class FuseIOTaskResult implements TaskResult {
     mErrors.addAll(result.mErrors);
   }
 
-  /**
-   * @return the base parameters
-   */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -180,9 +178,7 @@ public final class FuseIOTaskResult implements TaskResult {
     mEndMs = endMs;
   }
 
-  /**
-   * @return the list of errors
-   */
+  @Override
   public List<String> getErrors() {
     return Collections.unmodifiableList(mErrors);
   }

@@ -13,14 +13,12 @@ package alluxio.stress.cli.suite;
 
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.Parameters;
 import alluxio.stress.TaskResult;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.common.AbstractMaxThroughputSummary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.JCommander;
@@ -102,10 +100,9 @@ public abstract class AbstractMaxThroughput<Q extends TaskResult, T extends
    */
   private T computeMaxThroughput(List<String> baseArgs) throws Exception {
 
-    int numWorkers = 0;
+    int numWorkers;
     try (JobMasterClient client = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-            ConfigurationUtils.defaults()))).build())) {
+        JobMasterClientContext.newBuilder(ClientContext.create()).build())) {
       numWorkers = client.getAllWorkerHealth().size();
     }
     if (numWorkers <= 0) {
