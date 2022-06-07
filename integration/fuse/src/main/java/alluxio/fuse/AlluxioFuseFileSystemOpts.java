@@ -28,8 +28,8 @@ public final class AlluxioFuseFileSystemOpts {
   private final String mAlluxioPath;
   private final String mFsName;
   private final Class mFuseAuthPolicyClass;
-  private final String mFuseAuthPolicyCustomGroup;
-  private final String mFuseAuthPolicyCustomUser;
+  private final Optional<String> mFuseAuthPolicyCustomGroup;
+  private final Optional<String> mFuseAuthPolicyCustomUser;
   private final int mFuseMaxPathCached;
   private final int mFuseUmountTimeout;
   private final boolean mIsDebug;
@@ -52,12 +52,18 @@ public final class AlluxioFuseFileSystemOpts {
     List<String> libfuseOptions = conf.isSet(PropertyKey.FUSE_MOUNT_OPTIONS)
         ? conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
         : ImmutableList.of();
+    Optional<String> authPolicyCustomGroup = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+        ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP))
+        : Optional.empty();
+    Optional<String> authPolicyCustomUser = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER)
+        ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER))
+        : Optional.empty();
     return new AlluxioFuseFileSystemOpts(
         conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH),
         conf.getString(PropertyKey.FUSE_FS_NAME),
         conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS),
-        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP),
-        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER),
+        authPolicyCustomGroup,
+        authPolicyCustomUser,
         conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX),
         (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT),
         conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED),
@@ -87,6 +93,12 @@ public final class AlluxioFuseFileSystemOpts {
         "AlluxioFuseCliOpts should not be null for creating AlluxioFuseFileSystemOpts.");
     String alluxioPath = fuseCliOpts.getMountAlluxioPath().orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
+    Optional<String> authPolicyCustomGroup = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+        ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP))
+        : Optional.empty();
+    Optional<String> authPolicyCustomUser = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER)
+        ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER))
+        : Optional.empty();
     Optional<List<String>> libfuseOptionsFromCli = fuseCliOpts.getFuseOptions();
     List<String> libfuseOptions;
     if (libfuseOptionsFromCli.isPresent()) {
@@ -105,8 +117,8 @@ public final class AlluxioFuseFileSystemOpts {
     return new AlluxioFuseFileSystemOpts(alluxioPath,
         conf.getString(PropertyKey.FUSE_FS_NAME),
         conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS),
-        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP),
-        conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER),
+        authPolicyCustomGroup,
+        authPolicyCustomUser,
         conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX),
         (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT),
         conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED),
@@ -119,8 +131,8 @@ public final class AlluxioFuseFileSystemOpts {
   }
 
   private AlluxioFuseFileSystemOpts(String alluxioPath, String fsName, Class fuseAuthPolicyClass,
-        String fuseAuthPolicyCustomGroup, String fuseAuthPolicyCustomUser, int fuseMaxPathCached,
-        int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions,
+        Optional<String> fuseAuthPolicyCustomGroup, Optional<String> fuseAuthPolicyCustomUser,
+        int fuseMaxPathCached, int fuseUmountTimeout, boolean isDebug, List<String> libfuseOptions,
         boolean metaDataCacheEnabled, String mountPoint, boolean specialCommandEnabled,
         long statCacheTimeout, boolean userGroupTranslationEnabled) {
     mAlluxioPath = Preconditions.checkNotNull(alluxioPath,
@@ -170,14 +182,14 @@ public final class AlluxioFuseFileSystemOpts {
   /**
    * @return the fuse group for the authorization policy
    */
-  public String getFuseAuthPolicyCustomGroup() {
+  public Optional<String> getFuseAuthPolicyCustomGroup() {
     return mFuseAuthPolicyCustomGroup;
   }
 
   /**
    * @return the fuse user for the authorization policy
    */
-  public String getFuseAuthPolicyCustomUser() {
+  public Optional<String> getFuseAuthPolicyCustomUser() {
     return mFuseAuthPolicyCustomUser;
   }
 

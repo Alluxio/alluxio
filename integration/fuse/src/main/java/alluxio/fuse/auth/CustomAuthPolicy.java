@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A Fuse authentication policy supports user-defined user and group.
@@ -31,8 +32,8 @@ public class CustomAuthPolicy implements AuthPolicy {
   private static final Logger LOG =
       LoggerFactory.getLogger(CustomAuthPolicy.class);
   private final FileSystem mFileSystem;
-  private final String mUname;
-  private final String mGname;
+  private final Optional<String> mUname;
+  private final Optional<String> mGname;
 
   /**
    * @param fileSystem     the Alluxio file system
@@ -48,12 +49,12 @@ public class CustomAuthPolicy implements AuthPolicy {
 
   @Override
   public void setUserGroupIfNeeded(AlluxioURI uri) {
-    if (StringUtils.isEmpty(mUname) || StringUtils.isEmpty(mGname)) {
+    if (!mUname.isPresent() || !mGname.isPresent()) {
       return;
     }
     SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-        .setGroup(mGname)
-        .setOwner(mUname)
+        .setGroup(mGname.get())
+        .setOwner(mUname.get())
         .build();
     try {
       mFileSystem.setAttribute(uri, attributeOptions);
