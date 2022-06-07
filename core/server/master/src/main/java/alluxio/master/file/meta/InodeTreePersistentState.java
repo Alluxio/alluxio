@@ -84,6 +84,7 @@ public class InodeTreePersistentState implements Journaled {
 
   private final InodeStore mInodeStore;
   private final InodeLockManager mInodeLockManager;
+  private volatile InodeDirectory mRootCache = null;
 
   private final boolean mRetryCacheEnabled;
   /**
@@ -171,7 +172,29 @@ public class InodeTreePersistentState implements Journaled {
    * @return the root of the inode tree
    */
   public InodeDirectory getRoot() {
+    if (mRootCache == null) {
+      synchronized (this) {
+        if (mRootCache == null) {
+          mRootCache = getRootFromStore();
+        }
+      }
+    }
+
+    return mRootCache;
+  }
+
+  /**
+   * @return the root of the inode tree, and not from cache
+   */
+  public InodeDirectory getRootFromStore() {
     return mInodeStore.get(0).map(Inode::asDirectory).orElse(null);
+  }
+
+  /**
+   * clear root cache.
+   */
+  public synchronized void clearRootCache() {
+    mRootCache = null;
   }
 
   /**
@@ -640,6 +663,7 @@ public class InodeTreePersistentState implements Journaled {
       mToBePersistedIds.clear();
 
       updateToBePersistedIds(inode);
+      clearRootCache();
       return;
     }
     // inode should be added to the inode store before getting added to its parent list, because it
