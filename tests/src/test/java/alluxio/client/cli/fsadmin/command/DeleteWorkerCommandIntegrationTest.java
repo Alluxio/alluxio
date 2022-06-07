@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.cli.fsadmin.command.DeleteWorkerCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
@@ -94,7 +94,7 @@ public class DeleteWorkerCommandIntegrationTest  extends AbstractFsAdminShellTes
   @Test
   public void forceDeleteNotLostWorker() throws Exception {
     // Prevent worker timeouts
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, Constants.HOUR_MS);
+    Configuration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, Constants.HOUR_MS);
     // If there is a force flag, a non-lost worker will be deleted
     BlockMaster blockMaster = mLocalAlluxioCluster.getLocalAlluxioMaster()
         .getMasterProcess().getMaster(BlockMaster.class);

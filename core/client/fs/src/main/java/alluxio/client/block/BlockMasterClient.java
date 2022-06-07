@@ -102,5 +102,5 @@ public interface BlockMasterClient extends Client {
    * Delete the given worker from the master.
    * @param workerId the block id to get the BlockInfo for
    */
-  void deleteWorker(final Long workerId) throws IOException;
+  void deleteWorker(final long workerId) throws IOException;
 }

@@ -16,8 +16,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -177,7 +177,7 @@ public class BlockMasterTest {
   public void autoDeleteTimeoutWorker() throws Exception {
 
     // In default configuration the lost worker will never be deleted. So set a short timeout
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_DELETE_TIMEOUT_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_WORKER_DELETE_TIMEOUT_MS, 1000);
     // Register a worker.
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     mBlockMaster.workerRegister(worker1,

@@ -3023,7 +3023,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias("alluxio.master.worker.delete.timeout.ms")
           .setDefaultValue(Long.MAX_VALUE)
           .setDescription("If the lost worker has no heartbeat for more than this time, "
-              + "it will be completely deleted from the master. In default,"
+              + "it will be completely deleted from the master. By default,"
               + " the lost worker will never be deleted.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

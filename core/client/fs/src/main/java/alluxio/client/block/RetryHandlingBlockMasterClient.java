@@ -146,10 +146,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
 
   /**
    * Delete the given worker from the master.
-   * @param workerId the worker ids
+   * @param workerId the worker ID
    */
   @Override
-  public void deleteWorker(final Long workerId) throws IOException {
+  public void deleteWorker(final long workerId) throws IOException {
     retryRPC(
         () -> mClient.deleteWorker(DeleteWorkerPRequest.newBuilder().setWorkerId(workerId).build()),
         RPC_LOG, "getUsedBytes", "");
