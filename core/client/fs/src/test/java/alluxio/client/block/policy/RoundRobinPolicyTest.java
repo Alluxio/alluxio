@@ -16,11 +16,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.test.util.CommonUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -48,7 +48,7 @@ public final class RoundRobinPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy(Configuration.global());
 
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
@@ -70,7 +70,7 @@ public final class RoundRobinPolicyTest {
    */
   @Test
   public void getWorkerNoneEligible() {
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy(Configuration.global());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(new ArrayList<>())
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     assertFalse(policy.getWorker(options).isPresent());
@@ -86,7 +86,7 @@ public final class RoundRobinPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
 
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.copyDefaults());
+    RoundRobinPolicy policy = new RoundRobinPolicy(Configuration.global());
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(Constants.MB));
     assertTrue(policy.getWorker(options).isPresent());
@@ -96,7 +96,7 @@ public final class RoundRobinPolicyTest {
 
   @Test
   public void equalsTest() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.copyDefaults();
+    AlluxioConfiguration conf = Configuration.global();
     CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
         new Object[]{conf});
   }

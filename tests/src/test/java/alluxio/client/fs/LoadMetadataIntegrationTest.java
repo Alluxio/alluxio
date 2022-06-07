@@ -101,7 +101,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Before
   public void before() throws Exception {
     mLocalUfsPath = mTempFolder.getRoot().getAbsolutePath();
-    mFileSystem = FileSystem.Factory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
     new File(mLocalUfsPath + "/dir1/dirA/").mkdirs();
