@@ -112,6 +112,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
         + "   \"%z\": size of file in bytes;"
         + "   \"%u\": owner;"
         + "   \"%g\": group name of owner;"
+        + "   \"%i\": file id of the file;"
         + "   \"%y\" or \"%Y\": modification time,"
         + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
         + " %Y it shows milliseconds since January 1, 1970 UTC;"
@@ -123,7 +124,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
-  private static final String FORMAT_REGEX = "%([bguyzNY])";
+  private static final String FORMAT_REGEX = "%([biguyzNY])";
   private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
 
   private String formatOutput(CommandLine cl, URIStatus status) {
@@ -155,6 +156,9 @@ public final class StatCommand extends AbstractFileSystemCommand {
         break;
       case 'g':
         resp = status.getGroup();
+        break;
+      case 'i':
+        resp = String.valueOf(status.getFileId());
         break;
       case 'u':
         resp = status.getOwner();

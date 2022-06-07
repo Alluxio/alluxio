@@ -530,7 +530,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           builder.addClusterProperty(key.getName(), value, source);
         }
       }
-      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // NOTE(cc): assumes that Configuration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
       builder.setClusterConfHash(Configuration.hash());
     }

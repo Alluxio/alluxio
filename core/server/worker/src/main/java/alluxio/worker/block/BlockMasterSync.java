@@ -23,7 +23,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -128,7 +127,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     List<ConfigProperty> configList =
-        ConfigurationUtils.getConfiguration(Configuration.global(), Scope.WORKER);
+        Configuration.getConfiguration(Scope.WORKER);
 
     if (ACQUIRE_LEASE) {
       LOG.info("Acquiring a RegisterLease from the master before registering");

@@ -42,6 +42,7 @@ import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -75,6 +76,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -450,9 +452,12 @@ public class FileOutStreamTest {
   }
 
   @Test
-  public void createWithNoWorker() throws Exception {
+  public void createWithNoWorker()  {
+    // The default 2 minutes is too long.
+    sConf.set(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION, "10sec");
+    mClientContext = ClientContext.create(sConf);
     OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
-        .setLocationPolicy((getWorkerOptions) -> null)
+        .setLocationPolicy((getWorkerOptions) -> Optional.empty())
         .setWriteType(WriteType.CACHE_THROUGH);
     Exception e = assertThrows(UnavailableException.class,
         () -> mTestStream = createTestStream(FILE_NAME, options));

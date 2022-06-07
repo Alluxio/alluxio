@@ -13,7 +13,9 @@ package alluxio.job.command;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 
+import alluxio.AlluxioMockUtil;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.JobCommand;
@@ -35,12 +37,7 @@ import com.google.protobuf.ByteString;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.Serializable;
 import java.util.concurrent.ExecutorService;
@@ -49,12 +46,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests {@link CommandHandlingExecutor}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskExecutorManager.class, WorkerNetAddress.class, FileSystemContext.class})
 public final class CommandHandlingExecutorTest {
   private CommandHandlingExecutor mCommandHandlingExecutor;
   private JobMasterClient mJobMasterClient;
-  private long mWorkerId;
   private TaskExecutorManager mTaskExecutorManager;
   private UfsManager mUfsManager;
   private FileSystemContext mFileSystemContext;
@@ -63,13 +57,12 @@ public final class CommandHandlingExecutorTest {
   @Before
   public void before() {
 
-    mWorkerId = 0;
-    mJobMasterClient = Mockito.mock(JobMasterClient.class);
-    mTaskExecutorManager = PowerMockito.mock(TaskExecutorManager.class);
-    WorkerNetAddress workerNetAddress = PowerMockito.mock(WorkerNetAddress.class);
-    mUfsManager = Mockito.mock(UfsManager.class);
-    mFileSystemContext = Mockito.mock(FileSystemContext.class);
-    mFileSystem = Mockito.mock(FileSystem.class);
+    mJobMasterClient = mock(JobMasterClient.class);
+    mTaskExecutorManager = mock(TaskExecutorManager.class);
+    WorkerNetAddress workerNetAddress = mock(WorkerNetAddress.class);
+    mUfsManager = mock(UfsManager.class);
+    mFileSystemContext = mock(FileSystemContext.class);
+    mFileSystem = mock(FileSystem.class);
     JobServerContext ctx = new JobServerContext(mFileSystem, mFileSystemContext, mUfsManager);
     mCommandHandlingExecutor =
         new CommandHandlingExecutor(ctx, mTaskExecutorManager, mJobMasterClient, workerNetAddress);
@@ -94,8 +87,8 @@ public final class CommandHandlingExecutorTest {
         .thenReturn(Lists.newArrayList(command.build()));
 
     mCommandHandlingExecutor.heartbeat();
-    ExecutorService executorService =
-        Whitebox.getInternalState(mCommandHandlingExecutor, "mCommandHandlingService");
+    ExecutorService executorService = AlluxioMockUtil.getInternalState(
+        mCommandHandlingExecutor, "mCommandHandlingService");
     executorService.shutdown();
     Assert.assertTrue(executorService.awaitTermination(5000, TimeUnit.MILLISECONDS));
 

@@ -13,13 +13,24 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+<<<<<<< HEAD
 import alluxio.fuse.AlluxioFuseFileSystemOpts;
+||||||| 4957129c16
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+=======
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+>>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * A Fuse authentication policy supports user-defined user and group.
@@ -44,7 +55,7 @@ public class CustomAuthPolicy implements AuthPolicy {
   }
 
   @Override
-  public void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
+  public void setUserGroupIfNeeded(AlluxioURI uri) {
     if (StringUtils.isEmpty(mUname) || StringUtils.isEmpty(mGname)) {
       return;
     }
@@ -52,7 +63,11 @@ public class CustomAuthPolicy implements AuthPolicy {
         .setGroup(mGname)
         .setOwner(mUname)
         .build();
-    mFileSystem.setAttribute(uri, attributeOptions);
+    try {
+      mFileSystem.setAttribute(uri, attributeOptions);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
     LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
   }
 }

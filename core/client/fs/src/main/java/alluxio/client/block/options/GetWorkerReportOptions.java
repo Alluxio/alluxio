@@ -159,7 +159,7 @@ public final class GetWorkerReportOptions implements Serializable {
   /**
    * Enum representing the range of workers that we want to show capacity information for.
    */
-  public static enum WorkerRange {
+  public enum WorkerRange {
     ALL, // All workers
     LIVE, // Live workers
     LOST, // Lost workers
@@ -184,7 +184,7 @@ public final class GetWorkerReportOptions implements Serializable {
   /**
    * Enum representing the fields of the worker information.
    */
-  public static enum WorkerInfoField {
+  public enum WorkerInfoField {
     ADDRESS,
     BLOCK_COUNT,
     WORKER_CAPACITY_BYTES,

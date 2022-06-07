@@ -56,7 +56,7 @@ public final class PathProperties implements DelegatingJournaled {
   @GuardedBy("mLock")
   private final State mState = new State();
   @GuardedBy("mLock")
-  private Hash mHash = new Hash(() -> mState.getProperties().entrySet().stream()
+  private final Hash mHash = new Hash(() -> mState.getProperties().entrySet().stream()
       .flatMap(pathProperties -> pathProperties.getValue().entrySet().stream()
           .map(property -> String.format("%s:%s:%s", pathProperties.getKey(), property.getKey(),
               property.getValue()).getBytes())));
@@ -112,7 +112,7 @@ public final class PathProperties implements DelegatingJournaled {
     try (LockResource r = new LockResource(mLock.writeLock())) {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
-        keys.forEach(key -> properties.remove(key));
+        keys.forEach(properties::remove);
         if (properties.isEmpty()) {
           mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
         } else {

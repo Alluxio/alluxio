@@ -48,11 +48,12 @@ public final class MostAvailableFirstPolicyTest {
     GetWorkerOptions options = GetWorkerOptions.defaults()
         .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker3",
-        policy.getWorker(options).getHost());
+        policy.getWorker(options).orElseThrow(
+            () -> new IllegalStateException("Expected worker3")).getHost());
   }
 
   @Test
-  public void equalsTest() throws Exception {
+  public void equalsTest() {
     CommonUtils.testEquals(MostAvailableFirstPolicy.class,
         new Class[]{AlluxioConfiguration.class},
         new Object[]{ConfigurationTestUtils.copyDefaults()});

@@ -47,76 +47,42 @@ public class SegmentedLock {
   }
 
   /**
-   * Non-exclusively acquires the lock of the bucket, blocking if necessary until available.
-   *
-   * @param b the bucket to be locked
-   */
-  public void readLock(int b) {
-    int i = getSegmentIndex(b);
-    mLocks[i].readLock();
-  }
-
-  /**
    * Non-exclusively acquires the locks of two buckets, blocking if necessary until available.
    *
-   * @param b1 the first bucket to be locked
-   * @param b2 the second bucket to be locked
+   * @param bucket1 the first bucket to be locked
+   * @param bucket2 the second bucket to be locked
    */
-  public void readLock(int b1, int b2) {
-    int i1 = getSegmentIndex(b1);
-    int i2 = getSegmentIndex(b2);
-    if (i1 > i2) {
-      int tmp = i1;
-      i1 = i2;
-      i2 = tmp;
+  public void readLock(int bucket1, int bucket2) {
+    int segmentIndex1 = getSegmentIndex(bucket1);
+    int segmentIndex2 = getSegmentIndex(bucket2);
+    mLocks[Math.min(segmentIndex1, segmentIndex2)].readLock();
+    if (segmentIndex2 != segmentIndex1) {
+      mLocks[Math.max(segmentIndex1, segmentIndex2)].readLock();
     }
-    mLocks[i1].readLock();
-    if (i2 != i1) {
-      mLocks[i2].readLock();
-    }
-  }
-
-  /**
-   * Releases the read lock of the bucket if it is held.
-   *
-   * @param b the bucket to be unlocked
-   */
-  public void unlockRead(int b) {
-    int i = getSegmentIndex(b);
-    mLocks[i].tryUnlockRead();
   }
 
   /**
    * Releases the read locks of two buckets if they are held.
    *
-   * @param b1 the first bucket to be unlocked
-   * @param b2 the second bucket to be unlocked
+   * @param bucket1 the first bucket to be unlocked
+   * @param bucket2 the second bucket to be unlocked
    */
-  public void unlockRead(int b1, int b2) {
-    int i1 = getSegmentIndex(b1);
-    int i2 = getSegmentIndex(b2);
-    // Unlock order will no cause deadlock here as discussed in
-    // https://stackoverflow.com/questions/1951275/would-you-explain-lock-ordering, but it's better
-    // to unlock in reverse order to lock order.
-    if (i1 > i2) {
-      int tmp = i1;
-      i1 = i2;
-      i2 = tmp;
-    }
-    mLocks[i2].tryUnlockRead();
-    if (i1 != i2) {
-      mLocks[i1].tryUnlockRead();
+  public void unlockRead(int bucket1, int bucket2) {
+    int segmentIndex1 = getSegmentIndex(bucket1);
+    int segmentIndex2 = getSegmentIndex(bucket2);
+    mLocks[Math.max(segmentIndex1, segmentIndex2)].tryUnlockRead();
+    if (segmentIndex2 != segmentIndex1) {
+      mLocks[Math.min(segmentIndex1, segmentIndex2)].tryUnlockRead();
     }
   }
 
   /**
    * Exclusively acquires the lock of the bucket, blocking if necessary until available.
    *
-   * @param b the bucket to be locked
+   * @param bucket the bucket to be locked
    */
-  public void writeLock(int b) {
-    int i = getSegmentIndex(b);
-    mLocks[i].writeLock();
+  public void writeLock(int bucket) {
+    mLocks[getSegmentIndex(bucket)].writeLock();
   }
 
   /**
@@ -126,137 +92,100 @@ public class SegmentedLock {
    * @param b2 the second bucket to be locked
    */
   public void writeLock(int b1, int b2) {
-    int i1 = getSegmentIndex(b1);
-    int i2 = getSegmentIndex(b2);
-    if (i1 > i2) {
-      int tmp = i1;
-      i1 = i2;
-      i2 = tmp;
-    }
-    mLocks[i1].writeLock();
-    if (i2 != i1) {
-      mLocks[i2].writeLock();
+    int segmentIndex1 = getSegmentIndex(b1);
+    int segmentIndex2 = getSegmentIndex(b2);
+    mLocks[Math.min(segmentIndex1, segmentIndex2)].writeLock();
+    if (segmentIndex2 != segmentIndex1) {
+      mLocks[Math.max(segmentIndex1, segmentIndex2)].writeLock();
     }
   }
 
   /**
    * Exclusively acquires the locks of three buckets, blocking if necessary until available.
    *
-   * @param b1 the first bucket to be locked
-   * @param b2 the second bucket to be locked
-   * @param b3 the third bucket to be locked
+   * @param bucket1 the first bucket to be locked
+   * @param bucket2 the second bucket to be locked
+   * @param bucket3 the third bucket to be locked
    */
-  public void writeLock(int b1, int b2, int b3) {
-    int i1 = getSegmentIndex(b1);
-    int i2 = getSegmentIndex(b2);
-    int i3 = getSegmentIndex(b3);
-    int tmp;
-    if (i1 > i2) {
-      tmp = i1;
-      i1 = i2;
-      i2 = tmp;
+  public void writeLock(int bucket1, int bucket2, int bucket3) {
+    int segmentIndex1 = getSegmentIndex(bucket1);
+    int segmentIndex2 = getSegmentIndex(bucket2);
+    int segmentIndex3 = getSegmentIndex(bucket3);
+    int maxIndex = Math.max(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
+    int minIndex = Math.min(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
+    int midIndex = segmentIndex1 + segmentIndex2 + segmentIndex3 - maxIndex - minIndex;
+    mLocks[minIndex].writeLock();
+    if (midIndex != minIndex) {
+      mLocks[midIndex].writeLock();
     }
-    if (i2 > i3) {
-      tmp = i2;
-      i2 = i3;
-      i3 = tmp;
-    }
-    if (i1 > i2) {
-      tmp = i1;
-      i1 = i2;
-      i2 = tmp;
-    }
-    mLocks[i1].writeLock();
-    if (i2 != i1) {
-      mLocks[i2].writeLock();
-    }
-    if (i3 != i2) {
-      mLocks[i3].writeLock();
+    if (maxIndex != midIndex) {
+      mLocks[maxIndex].writeLock();
     }
   }
 
   /**
    * Releases the write lock of bucket if it is held.
    *
-   * @param b the bucket to be unlocked
+   * @param bucket the bucket to be unlocked
    */
-  public void unlockWrite(int b) {
-    int i = getSegmentIndex(b);
-    mLocks[i].tryUnlockWrite();
+  public void unlockWrite(int bucket) {
+    mLocks[getSegmentIndex(bucket)].tryUnlockWrite();
   }
 
   /**
    * Releases the write locks of two buckets if they are held.
    *
-   * @param b1 the first bucket to be unlocked
-   * @param b2 the second bucket to be unlocked
+   * @param bucket1 the first bucket to be unlocked
+   * @param bucket2 the second bucket to be unlocked
    */
-  public void unlockWrite(int b1, int b2) {
-    int i1 = getSegmentIndex(b1);
-    int i2 = getSegmentIndex(b2);
-    if (i1 > i2) {
-      int tmp = i1;
-      i1 = i2;
-      i2 = tmp;
-    }
-    mLocks[i2].tryUnlockWrite();
-    if (i1 != i2) {
-      mLocks[i1].tryUnlockWrite();
+  public void unlockWrite(int bucket1, int bucket2) {
+    int segmentIndex1 = getSegmentIndex(bucket1);
+    int segmentIndex2 = getSegmentIndex(bucket2);
+    mLocks[Math.max(segmentIndex1, segmentIndex2)].tryUnlockWrite();
+    if (segmentIndex2 != segmentIndex1) {
+      mLocks[Math.min(segmentIndex1, segmentIndex2)].tryUnlockWrite();
     }
   }
 
   /**
    * Releases the write locks of three buckets if they are held.
    *
-   * @param b1 the first bucket to be unlocked
-   * @param b2 the second bucket to be unlocked
-   * @param b3 the third bucket to be unlocked
+   * @param bucket1 the first bucket to be unlocked
+   * @param bucket2 the second bucket to be unlocked
+   * @param bucket3 the third bucket to be unlocked
    */
-  public void unlockWrite(int b1, int b2, int b3) {
-    int i1 = getSegmentIndex(b1);
-    int i2 = getSegmentIndex(b2);
-    int i3 = getSegmentIndex(b3);
-    int tmp;
-    if (i1 > i2) {
-      tmp = i1;
-      i1 = i2;
-      i2 = tmp;
+  public void unlockWrite(int bucket1, int bucket2, int bucket3) {
+    int segmentIndex1 = getSegmentIndex(bucket1);
+    int segmentIndex2 = getSegmentIndex(bucket2);
+    int segmentIndex3 = getSegmentIndex(bucket3);
+    int maxIndex = Math.max(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
+    int minIndex = Math.min(segmentIndex1, Math.max(segmentIndex2, segmentIndex3));
+    int midIndex = segmentIndex1 + segmentIndex2 + segmentIndex3 - maxIndex - minIndex;
+    mLocks[maxIndex].tryUnlockWrite();
+    if (midIndex != maxIndex) {
+      mLocks[midIndex].tryUnlockWrite();
     }
-    if (i2 > i3) {
-      tmp = i2;
-      i2 = i3;
-      i3 = tmp;
-    }
-    if (i1 > i2) {
-      tmp = i1;
-      i1 = i2;
-      i2 = tmp;
-    }
-    mLocks[i3].tryUnlockWrite();
-    if (i2 != i3) {
-      mLocks[i2].tryUnlockWrite();
-    }
-    if (i1 != i2) {
-      mLocks[i1].tryUnlockWrite();
+    if (minIndex != midIndex) {
+      mLocks[minIndex].tryUnlockWrite();
     }
   }
 
   /**
-   * Exclusively acquires the lock of ith segment, blocking if necessary until available.
+   * Exclusively acquires the lock of the ith segment, blocking if necessary until available.
    *
-   * @param i the segment to be locked
+   * @param index of the segment to be locked
    */
-  public void writeLockSegment(int i) {
-    mLocks[i].writeLock();
+  public void writeLockSegment(int index) {
+    mLocks[index].writeLock();
   }
 
   /**
-   * Releases the write lock of ith segment if it is held.
+   * Releases the write lock of the ith segment if it is held.
    *
-   * @param i the segment to be unlocked
+   * @param index of the segment to be unlocked
    */
-  public void unlockWriteSegment(int i) {
-    mLocks[i].tryUnlockWrite();
+  public void unlockWriteSegment(int index) {
+    mLocks[index].tryUnlockWrite();
   }
 
   /**
@@ -274,18 +203,18 @@ public class SegmentedLock {
   }
 
   /**
-   * @param i the segment
+   * @param index index of the segment
    * @return the start index of ith segment
    */
-  public int getSegmentStartPos(int i) {
-    return i << mMaskBits;
+  public int getSegmentStartPos(int index) {
+    return index << mMaskBits;
   }
 
   /**
-   * @param b the bucket
-   * @return the segment index which bucket b belongs to
+   * @param bucket the bucket
+   * @return the segment index which the bucket belongs to
    */
-  public int getSegmentIndex(int b) {
-    return b >> mMaskBits;
+  public int getSegmentIndex(int bucket) {
+    return bucket >> mMaskBits;
   }
 }

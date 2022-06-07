@@ -15,6 +15,7 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -50,13 +51,13 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param option the options
    * @return the child ids iterable
    */
-  Iterable<Long> getChildIds(Long inodeId, ReadOption option);
+  CloseableIterator<Long> getChildIds(Long inodeId, ReadOption option);
 
   /**
    * @param inodeId an inode id to list child ids for
    * @return the result of {@link #getChildIds(Long, ReadOption)} with default option
    */
-  default Iterable<Long> getChildIds(Long inodeId) {
+  default CloseableIterator<Long> getChildIds(Long inodeId) {
     return getChildIds(inodeId, ReadOption.defaults());
   }
 
@@ -67,16 +68,8 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param option the options
    * @return the child ids iterable
    */
-  default Iterable<Long> getChildIds(InodeDirectoryView inode, ReadOption option) {
+  default CloseableIterator<Long> getChildIds(InodeDirectoryView inode, ReadOption option) {
     return getChildIds(inode.getId(), option);
-  }
-
-  /**
-   * @param inode the inode to list child ids for
-   * @return the result of {@link #getChildIds(InodeDirectoryView, ReadOption)} with default option
-   */
-  default Iterable<Long> getChildIds(InodeDirectoryView inode) {
-    return getChildIds(inode, ReadOption.defaults());
   }
 
   /**
@@ -90,48 +83,44 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param option the options
    * @return an iterable over the children of the inode with the given id
    */
-  default Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
-    return () -> {
-      Iterator<Long> it = getChildIds(inodeId, option).iterator();
-      return new Iterator<Inode>() {
-        private Inode mNext = null;
+  default CloseableIterator<? extends Inode> getChildren(Long inodeId, ReadOption option) {
+    CloseableIterator<Long> it = getChildIds(inodeId, option);
+    Iterator<Inode> iter =  new Iterator<Inode>() {
+      private Inode mNext = null;
+      @Override
+      public boolean hasNext() {
+        advance();
+        return mNext != null;
+      }
 
-        @Override
-        public boolean hasNext() {
-          advance();
-          return mNext != null;
+      @Override
+      public Inode next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException(
+              "No more children in iterator for inode id " + inodeId);
         }
+        Inode next = mNext;
+        mNext = null;
+        return next;
+      }
 
-        @Override
-        public Inode next() {
-          if (!hasNext()) {
-            throw new NoSuchElementException(
-                "No more children in iterator for inode id " + inodeId);
-          }
-          Inode next = mNext;
-          mNext = null;
-          return next;
+      void advance() {
+        while (mNext == null && it.hasNext()) {
+          Long nextId = it.next();
+          // Make sure the inode metadata still exists
+          Optional<Inode> nextInode = get(nextId, option);
+          nextInode.ifPresent(inode -> mNext = inode);
         }
-
-        void advance() {
-          while (mNext == null && it.hasNext()) {
-            Long nextId = it.next();
-            // Make sure the inode metadata still exists
-            Optional<Inode> nextInode = get(nextId, option);
-            if (nextInode.isPresent()) {
-              mNext = nextInode.get();
-            }
-          }
-        }
-      };
+      }
     };
+    return CloseableIterator.create(iter, (any) -> it.closeResource());
   }
 
   /**
    * @param inodeId an inode id
    * @return the result of {@link #getChildren(Long, ReadOption)} with default option
    */
-  default Iterable<? extends Inode> getChildren(Long inodeId) {
+  default CloseableIterator<? extends Inode> getChildren(Long inodeId) {
     return getChildren(inodeId, ReadOption.defaults());
   }
 
@@ -140,7 +129,8 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param option the options
    * @return an iterable over the children of the inode with the given id
    */
-  default Iterable<? extends Inode> getChildren(InodeDirectoryView inode, ReadOption option) {
+  default CloseableIterator<? extends Inode> getChildren(
+      InodeDirectoryView inode, ReadOption option) {
     return getChildren(inode.getId(), option);
   }
 
@@ -148,7 +138,7 @@ public interface ReadOnlyInodeStore extends Closeable {
    * @param inode an inode directory
    * @return the result of {@link #getChildren(InodeDirectoryView, ReadOption)} with default option
    */
-  default Iterable<? extends Inode> getChildren(InodeDirectoryView inode) {
+  default CloseableIterator<? extends Inode> getChildren(InodeDirectoryView inode) {
     return getChildren(inode.getId(), ReadOption.defaults());
   }
 

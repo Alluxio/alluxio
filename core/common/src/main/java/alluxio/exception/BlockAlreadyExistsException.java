@@ -21,12 +21,11 @@ public class BlockAlreadyExistsException extends AlluxioException {
   private static final long serialVersionUID = -127826899023625880L;
 
   /**
-   * Constructs a new exception with the specified exception message and multiple parameters.
+   * Constructs a new exception with the specified exception message.
    *
    * @param message the exception message
-   * @param params the parameters
    */
-  public BlockAlreadyExistsException(ExceptionMessage message, Object... params) {
-    super(message.getMessage(params));
+  public BlockAlreadyExistsException(String message) {
+    super(message);
   }
 }

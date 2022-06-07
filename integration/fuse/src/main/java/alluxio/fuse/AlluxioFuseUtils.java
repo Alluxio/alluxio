@@ -12,8 +12,14 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+<<<<<<< HEAD
 import alluxio.client.file.FileSystemContext;
+||||||| 4957129c16
+=======
+import alluxio.client.file.URIStatus;
+>>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -26,11 +32,19 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.fuse.auth.AuthPolicy;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.VersionPreference;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+<<<<<<< HEAD
 import alluxio.retry.RetryUtils;
+||||||| 4957129c16
+=======
+import alluxio.security.authorization.Mode;
+>>>>>>> bf6b068b370222569fb5fc87f66884fe682072a7
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
@@ -40,9 +54,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,7 +82,64 @@ public final class AlluxioFuseUtils {
   public static final long ID_NOT_SET_VALUE = -1;
   public static final long ID_NOT_SET_VALUE_UNSIGNED = 4294967295L;
 
+  public static final long MODE_NOT_SET_VALUE = -1;
+
   private AlluxioFuseUtils() {}
+
+  /**
+   * Creates a file in alluxio namespace.
+   *
+   * @param fileSystem the file system
+   * @param authPolicy the authentication policy
+   * @param uri the alluxio uri
+   * @param mode the create mode
+   * @return a file out stream
+   */
+  public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
+      AlluxioURI uri, long mode) {
+    CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
+    if (mode != MODE_NOT_SET_VALUE) {
+      optionsBuilder.setMode(new Mode((short) mode).toProto());
+    }
+    try {
+      FileOutStream out = fileSystem.createFile(uri,
+          optionsBuilder.build());
+      authPolicy.setUserGroupIfNeeded(uri);
+      return out;
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Deletes a file in alluxio namespace.
+   *
+   * @param fileSystem the file system
+   * @param uri the alluxio uri
+   */
+  public static void deleteFile(FileSystem fileSystem, AlluxioURI uri) {
+    try {
+      fileSystem.delete(uri);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Sets attribute for a file.
+   *
+   * @param fileSystem the file system
+   * @param uri the alluxio uri
+   * @param options the set attribute options
+   */
+  public static void setAttribute(FileSystem fileSystem,
+      AlluxioURI uri, SetAttributePOptions options) {
+    try {
+      fileSystem.setAttribute(uri, options);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Gets the libjnifuse version preference set by user.
@@ -299,6 +372,23 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EOPNOTSUPP();
     } catch (AlluxioException ex) {
       return -ErrorCodes.EBADMSG();
+    }
+  }
+
+  /**
+   * Gets the path status.
+   *
+   * @param fileSystem the file system
+   * @param uri the Alluxio uri to get status of
+   * @return the file status
+   */
+  public static Optional<URIStatus> getPathStatus(FileSystem fileSystem, AlluxioURI uri) {
+    try {
+      return Optional.of(fileSystem.getStatus(uri));
+    } catch (InvalidPathException | FileNotFoundException | FileDoesNotExistException e) {
+      return Optional.empty();
+    } catch (IOException | AlluxioException ex) {
+      throw new RuntimeException(String.format("Failed to get path status of %s", uri), ex);
     }
   }
 

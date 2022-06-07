@@ -12,7 +12,7 @@
 package alluxio.master.job.tracker;
 
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
@@ -34,10 +34,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +43,6 @@ import java.util.Set;
 /**
  * Tests {@link CmdJobTrackerTest}.
  */
-@RunWith(PowerMockRunner.class)
 public final class CmdJobTrackerTest {
   private static final int REPEATED_ATTEMPT_COUNT = 5;
   private static final int ONE_ATTEMPT = 1;
@@ -73,9 +68,9 @@ public final class CmdJobTrackerTest {
     mFs = mock(FileSystem.class);
     FileSystemContext fsCtx = mock(FileSystemContext.class);
 
-    mMigrateCliRunner = PowerMockito.mock(MigrateCliRunner.class);
-    mDistLoadRunner = PowerMockito.mock(DistLoadCliRunner.class);
-    mPersistRunner = PowerMockito.mock(PersistRunner.class);
+    mMigrateCliRunner = mock(MigrateCliRunner.class);
+    mDistLoadRunner = mock(DistLoadCliRunner.class);
+    mPersistRunner = mock(PersistRunner.class);
 
     mCmdJobTracker = new CmdJobTracker(fsCtx,
             mDistLoadRunner, mMigrateCliRunner, mPersistRunner);
@@ -331,7 +326,7 @@ public final class CmdJobTrackerTest {
     boolean directCache = loadCliConfig.getDirectCache();
     int batch = loadCliConfig.getBatchSize();
 
-    Mockito.when(mDistLoadRunner.runDistLoad(batch, filePath, replication, workerSet,
+    when(mDistLoadRunner.runDistLoad(batch, filePath, replication, workerSet,
             excludedWorkerSet, localityIds, excludedLocalityIds, directCache, loadId))
             .thenReturn(cmdInfo);
   }
@@ -343,7 +338,7 @@ public final class CmdJobTrackerTest {
     boolean overwt = migrateCliConfig.getOverWrite();
     int batch = migrateCliConfig.getBatchSize();
 
-    Mockito.when(mMigrateCliRunner.runDistCp(src, dst, overwt, batch, migrateId))
+    when(mMigrateCliRunner.runDistCp(src, dst, overwt, batch, migrateId))
             .thenReturn(cmdInfo);
   }
 

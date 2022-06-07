@@ -17,8 +17,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
@@ -53,10 +53,10 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.master.job.tracker.CmdJobTracker;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.NoopJournaled;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -331,8 +331,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
       if (planCoordinator == null) {
         if (!mWorkflowTracker.cancel(jobId)) {
-          throw new JobDoesNotExistException(
-              ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+          throw new JobDoesNotExistException(jobId);
         }
         return;
       }
@@ -509,7 +508,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       WorkflowInfo status = mWorkflowTracker.getStatus(jobId, verbose);
 
       if (status == null) {
-        throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+        throw new JobDoesNotExistException(jobId);
       }
       return status;
     }

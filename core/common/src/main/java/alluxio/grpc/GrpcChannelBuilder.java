@@ -38,7 +38,7 @@ public final class GrpcChannelBuilder {
   // Configuration constants.
   private final AuthType mAuthType;
 
-  private AlluxioConfiguration mConfiguration;
+  private final AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
     mConfiguration = conf;

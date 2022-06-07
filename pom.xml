@@ -138,7 +138,7 @@
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
     <jetty.version>9.4.43.v20210629</jetty.version>
-    <junit.version>4.13</junit.version>
+    <junit.version>4.13.1</junit.version>
     <log4j.version>2.17.1</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
@@ -152,7 +152,7 @@
     <protobuf.version>3.19.2</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.30</slf4j.version>
-    <jackson.version>2.11.1</jackson.version>
+    <jackson.version>2.13.3</jackson.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -786,7 +786,7 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.18</version>
+        <version>1.4.19</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

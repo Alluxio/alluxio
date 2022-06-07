@@ -173,7 +173,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // It is possible the job master process is not answering rpcs,
       // log but do not throw the exception
       // which will kill the replication checker thread.
-      LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
+      LOG.debug("Failed to contact job master to get updated list of replication jobs", e);
     }
 
     Set<Long> inodes;
@@ -374,7 +374,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               jobId = handler.setReplica(uri, blockId, numReplicas);
               break;
             default:
-              throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));
+              throw new RuntimeException(String.format("Unexpected replication mode %s.", mode));
           }
           processedFileIds.add(inodeId);
           mActiveJobToInodeID.put(jobId, inodeId);
