@@ -48,6 +48,29 @@ public final class ConfigurationRule extends AbstractResourceRule {
     }, conf);
   }
 
+  /**
+   * Set a specific PropertyKey of the global configuration,
+   * change is only visible in the scope of the calling method.
+   *
+   * @param key the key of the configuration property to set
+   * @param value the value to set it to, can be null to unset
+   */
+  public void set(final PropertyKey key, final Object value) {
+    if (!mStashedProperties.containsKey(key)) {
+      if (mConfiguration.isSet(key)) {
+        mStashedProperties.put(key, mConfiguration.get(key));
+      } else {
+        mStashedProperties.put(key, null);
+      }
+    }
+
+    if (value != null) {
+      mConfiguration.set(key, value);
+    } else {
+      mConfiguration.unset(key);
+    }
+  }
+
   @Override
   public void before() {
     for (Map.Entry<PropertyKey, Object> entry : mKeyValuePairs.entrySet()) {
