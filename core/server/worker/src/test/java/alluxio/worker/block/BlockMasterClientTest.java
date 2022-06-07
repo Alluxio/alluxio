@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.mock;
 
@@ -38,8 +39,6 @@ import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
-import alluxio.grpc.GrpcChannel;
-import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -80,23 +79,26 @@ import java.util.stream.Collectors;
 
 public class BlockMasterClientTest {
 
+  // alert: you CANNOT just set TEST_SOCKET_ADDRESS to
+  // configuration, because it will get turned to string "localhost/127.0.0.1:9999"
+  // This string cannot be parsed accurately by the current parsing algorithm
   private static final InetSocketAddress TEST_SOCKET_ADDRESS =
-      new InetSocketAddress("0.0.0.0", 9999);
+      new InetSocketAddress("localhost", 9999);
+  private static final String TEST_SOCKET_ADDRESS_STRING = "localhost:9999";
 
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
-      .of(PropertyKey.MASTER_HOSTNAME, "localhost",
-          PropertyKey.MASTER_RPC_PORT, 9999,
-          PropertyKey.MASTER_RPC_ADDRESSES, ImmutableList.of(TEST_SOCKET_ADDRESS),
+      .of(
+          PropertyKey.MASTER_RPC_ADDRESSES, ImmutableList.of(TEST_SOCKET_ADDRESS_STRING),
           PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s",
           PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "100ms",
           PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms",
-          PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL),
+          PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL,
+          PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED, false),
       Configuration.modifiableGlobal());
 
-  // mock rpc server and channel managed by test suite
+  // mock rpc server managed by test suite
   private GrpcServer mServer;
-  private GrpcChannel mChannel;
 
   private final AlluxioConfiguration mConf = Configuration.global();
 
@@ -181,10 +183,8 @@ public class BlockMasterClientTest {
           }
         });
 
-    // create test client and redirect to our mock channel
-    BlockMasterClient client = new MockStubBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mChannel
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
     );
 
     client.commitBlock(workerId, usedBytesOnTier, tierAlias, mediumType, blockId, length);
@@ -212,10 +212,8 @@ public class BlockMasterClientTest {
           }
         });
 
-    // create test client and redirect to our mock channel
-    BlockMasterClient client = new MockStubBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mChannel
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
     );
 
     client.commitBlockInUfs(blockId, length);
@@ -248,9 +246,9 @@ public class BlockMasterClientTest {
           }
         });
 
-    BlockMasterClient client = new MockStubBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mChannel);
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
+    );
 
     assertEquals(workerId, client.getId(testExistsAddress));
     assertEquals(-1L, client.getId(testNonExistsAddress));
@@ -262,7 +260,10 @@ public class BlockMasterClientTest {
     final Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 1024 * 1024L);
     final Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", 1024L);
     final List<Long> removedBlocks = ImmutableList.of();
-    final Map<BlockStoreLocation, List<Long>> addedBlocks = ImmutableMap.of();
+    final Map<BlockStoreLocation, List<Long>> addedBlocks = ImmutableMap.of(
+        new BlockStoreLocation("MEM", 0, "MEM"),
+        ImmutableList.of(11L, 12L, 13L)
+    );
     final Map<String, List<String>> lostStorage = ImmutableMap.of(
         "MEM",
         ImmutableList.of("/tmp/lost")
@@ -274,6 +275,32 @@ public class BlockMasterClientTest {
           @Override
           public void blockHeartbeat(BlockHeartbeatPRequest request,
                                      StreamObserver<BlockHeartbeatPResponse> responseObserver) {
+
+            // verify request data
+            assertEquals(workerId, request.getWorkerId());
+            assertEquals(usedBytesOnTiers, request.getUsedBytesOnTiersMap());
+            assertEquals(removedBlocks, request.getRemovedBlockIdsList());
+
+            // verify added blocks
+            for (LocationBlockIdListEntry entry: request.getAddedBlocksList()) {
+              BlockStoreLocationProto locationProto = entry.getKey();
+              BlockStoreLocation location = new BlockStoreLocation(
+                  locationProto.getTierAlias(),
+                  0,
+                  locationProto.getMediumType()
+              );
+              List<Long> blocks = addedBlocks.get(location);
+              assertTrue(
+                  blocks != null && blocks.containsAll(entry.getValue().getBlockIdList())
+              );
+            }
+
+            // verify lost storage
+            assertEquals(lostStorage.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> StorageList.newBuilder().addAllStorage(e.getValue()).build())),
+                request.getLostStorageMap());
+
             responseObserver.onNext(
                 BlockHeartbeatPResponse.newBuilder().setCommand(Command.newBuilder()
                 .setCommandType(
@@ -283,9 +310,8 @@ public class BlockMasterClientTest {
           }
         });
 
-    BlockMasterClient client = new MockStubBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mChannel
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
     );
 
     assertEquals(CommandType.Nothing, client.heartbeat(
@@ -332,9 +358,8 @@ public class BlockMasterClientTest {
           }
         });
 
-    BlockMasterClient client = new MockStubBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mChannel
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
     );
 
     client.acquireRegisterLeaseWithBackoff(
@@ -376,8 +401,8 @@ public class BlockMasterClientTest {
               BlockStoreLocation location = new BlockStoreLocation(
                   locationProto.getTierAlias(), 0, locationProto.getMediumType());
               List<Long> blockIdList = currentBlocksOnLocation.get(location);
-              assert blockIdList != null
-                  && blockIdList.containsAll(entry.getValue().getBlockIdList());
+              assertTrue(blockIdList != null
+                  && blockIdList.containsAll(entry.getValue().getBlockIdList()));
             }
 
             assertEquals(lostStorage.entrySet().stream()
@@ -412,9 +437,8 @@ public class BlockMasterClientTest {
           }
         });
 
-    BlockMasterClient client = new MockStubBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build(),
-        mChannel
+    BlockMasterClient client = new BlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
     );
 
     if (stream) {
@@ -448,11 +472,6 @@ public class BlockMasterClientTest {
       mServer.shutdown();
     }
 
-    if (mChannel != null && !mChannel.isShutdown()) {
-      mChannel.shutdown();
-    }
-
-    mChannel = null;
     mServer = null;
   }
 
@@ -471,42 +490,12 @@ public class BlockMasterClientTest {
 
     // set up mock server with custom handler
     mServer = GrpcServerBuilder.forAddress(
-        GrpcServerAddress.create("localhost", TEST_SOCKET_ADDRESS),
+        GrpcServerAddress.create(TEST_SOCKET_ADDRESS),
         mConf,
         ServerUserState.global()
     )
         .addService(ServiceType.BLOCK_MASTER_WORKER_SERVICE, new GrpcService(mockService))
         .build()
         .start();
-
-    assert mServer.isServing();
-
-    mChannel = GrpcChannelBuilder.newBuilder(
-        GrpcServerAddress.create("localhost", TEST_SOCKET_ADDRESS),
-        mConf).disableAuthentication().build();
-  }
-
-  // a sub-class of BlockMasterClient that re-direct grpc requests
-  // to a mock channel provided by test functions
-  private static class MockStubBlockMasterClient extends BlockMasterClient {
-    public MockStubBlockMasterClient(
-        MasterClientContext conf,
-        GrpcChannel mockChannel) {
-      super(conf);
-      mChannel = mockChannel;
-    }
-
-    @Override
-    public void connect() {
-      // channel passed by test suite is always connected
-      mConnected = true;
-      afterConnect();
-    }
-
-    @Override
-    public void disconnect() {
-      // empty implementation
-      // connection is cleaned up by test suite
-    }
   }
 }
