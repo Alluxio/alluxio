@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.StampedLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,6 +61,7 @@ public final class RocksStore implements Closeable {
   private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
+  private final StampedLock stampedLock = new StampedLock();
 
   /**
    * @param name a name to distinguish what store this is
@@ -94,20 +96,30 @@ public final class RocksStore implements Closeable {
    * @return the underlying rocksdb instance. The instance changes when clear() is called, so if the
    *         caller caches the returned db, they must reset it after calling clear()
    */
-  public synchronized RocksDB getDb() {
-    return mDb;
+  public RocksDB getDb() {
+    long stamp = stampedLock.readLock();
+    try {
+      return mDb;
+    } finally {
+      stampedLock.unlockRead(stamp);
+    }
   }
 
   /**
    * Clears and re-initializes the database.
    */
-  public synchronized void clear() {
+  public void clear() {
+    long stamp = stampedLock.writeLock();
     try {
-      resetDb();
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
+      try {
+        resetDb();
+      } catch (RocksDBException e) {
+        throw new RuntimeException(e);
+      }
+      LOG.info("Cleared store at {}", mDbPath);
+    } finally {
+      stampedLock.unlockWrite(stamp);
     }
-    LOG.info("Cleared store at {}", mDbPath);
   }
 
   private void resetDb() throws RocksDBException {
@@ -181,24 +193,29 @@ public final class RocksStore implements Closeable {
    *
    * @param output the stream to write to
    */
-  public synchronized void writeToCheckpoint(OutputStream output)
+  public void writeToCheckpoint(OutputStream output)
       throws IOException, InterruptedException {
-    LOG.info("Creating rocksdb checkpoint at {}", mDbCheckpointPath);
-    long startNano = System.nanoTime();
-
-    CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
+    long stamp = stampedLock.writeLock();
     try {
-      // createCheckpoint requires that the directory not already exist.
+      LOG.info("Creating rocksdb checkpoint at {}", mDbCheckpointPath);
+      long startNano = System.nanoTime();
+
+      CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
+      try {
+        // createCheckpoint requires that the directory not already exist.
+        FileUtils.deletePathRecursively(mDbCheckpointPath);
+        mCheckpoint.createCheckpoint(mDbCheckpointPath);
+      } catch (RocksDBException e) {
+        throw new IOException(e);
+      }
+      LOG.info("Checkpoint complete, creating tarball");
+      TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
+      LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
+      // Checkpoint is no longer needed, delete to save space.
       FileUtils.deletePathRecursively(mDbCheckpointPath);
-      mCheckpoint.createCheckpoint(mDbCheckpointPath);
-    } catch (RocksDBException e) {
-      throw new IOException(e);
+    } finally {
+      stampedLock.unlockWrite(stamp);
     }
-    LOG.info("Checkpoint complete, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
-    LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
-    // Checkpoint is no longer needed, delete to save space.
-    FileUtils.deletePathRecursively(mDbCheckpointPath);
   }
 
   /**
@@ -206,27 +223,37 @@ public final class RocksStore implements Closeable {
    *
    * @param input the checkpoint stream to restore from
    */
-  public synchronized void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    LOG.info("Restoring rocksdb from checkpoint");
-    long startNano = System.nanoTime();
-    Preconditions.checkState(input.getType() == CheckpointType.ROCKS,
-        "Unexpected checkpoint type in RocksStore: " + input.getType());
-    stopDb();
-    FileUtils.deletePathRecursively(mDbPath);
-    TarUtils.readTarGz(Paths.get(mDbPath), input);
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    long stamp = stampedLock.writeLock();
     try {
-      createDb();
-    } catch (RocksDBException e) {
-      throw new IOException(e);
+      LOG.info("Restoring rocksdb from checkpoint");
+      long startNano = System.nanoTime();
+      Preconditions.checkState(input.getType() == CheckpointType.ROCKS,
+          "Unexpected checkpoint type in RocksStore: " + input.getType());
+      stopDb();
+      FileUtils.deletePathRecursively(mDbPath);
+      TarUtils.readTarGz(Paths.get(mDbPath), input);
+      try {
+        createDb();
+      } catch (RocksDBException e) {
+        throw new IOException(e);
+      }
+      LOG.info("Restored rocksdb checkpoint in {}ms",
+          (System.nanoTime() - startNano) / Constants.MS_NANO);
+    } finally {
+      stampedLock.unlockWrite(stamp);
     }
-    LOG.info("Restored rocksdb checkpoint in {}ms",
-        (System.nanoTime() - startNano) / Constants.MS_NANO);
   }
 
   @Override
-  public synchronized void close() {
-    stopDb();
-    mDbOpts.close();
-    LOG.info("Closed store at {}", mDbPath);
+  public void close() {
+    long stamp = stampedLock.writeLock();
+    try {
+      stopDb();
+      mDbOpts.close();
+      LOG.info("Closed store at {}", mDbPath);
+    } finally {
+      stampedLock.unlockWrite(stamp);
+    }
   }
 }
