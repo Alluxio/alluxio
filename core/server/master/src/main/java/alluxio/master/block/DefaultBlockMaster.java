@@ -262,7 +262,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
-  private long mJournaledNextContainerId = 0;
+  private volatile long mJournaledNextContainerId = 0;
 
   /**
    * A loading cache for worker info list, refresh periodically.
@@ -762,13 +762,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Override
   public long getNewContainerId() throws UnavailableException {
+    long containerId = mBlockContainerIdGenerator.getNewContainerId();
+    if (containerId < mJournaledNextContainerId) {
+      // This container id is within the reserved container ids, so it is safe to return the id
+      // without having to write anything to the journal.
+      return containerId;
+    }
+
     synchronized (mBlockContainerIdGenerator) {
-      long containerId = mBlockContainerIdGenerator.getNewContainerId();
-      if (containerId < mJournaledNextContainerId) {
-        // This container id is within the reserved container ids, so it is safe to return the id
-        // without having to write anything to the journal.
-        return containerId;
-      }
       // This container id is not safe with respect to the last journaled container id.
       // Therefore, journal the new state of the container id. This implies that when a master
       // crashes, the container ids within the reservation which have not been used yet will
@@ -778,11 +779,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       // Set the next id to journal with a reservation of container ids, to avoid having to write
       // to the journal for ids within the reservation.
-      mJournaledNextContainerId = containerId + CONTAINER_ID_RESERVATION_SIZE;
-      try (JournalContext journalContext = createJournalContext()) {
-        // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
-        // prevent subsequent calls to return ids that have not been journaled and flushed.
-        journalContext.append(getContainerIdJournalEntry());
+      if (containerId >= mJournaledNextContainerId) {
+        mJournaledNextContainerId = containerId + CONTAINER_ID_RESERVATION_SIZE;
+        try (JournalContext journalContext = createJournalContext()) {
+          // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
+          // prevent subsequent calls to return ids that have not been journaled and flushed.
+          journalContext.append(getContainerIdJournalEntry());
+        }
       }
       return containerId;
     }
