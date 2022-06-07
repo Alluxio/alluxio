@@ -72,11 +72,11 @@ public final class AlluxioFuseFileSystemOpts {
 
   /**
    * Constructs an {@link AlluxioFuseFileSystemOpts} with
-   * Alluxio cluster configuration and command line.
+   * Alluxio cluster configuration and command line input.
    * Command line input has higher precedence if a property is set both in config and command.
    *
-   * @param conf     Alluxio cluster configuration
-   * @param fuseCliOpts     Alluxio fuse command line input
+   * @param conf Alluxio cluster configuration
+   * @param fuseCliOpts Alluxio fuse command line input
    * @return AlluxioFuseFileSystemOpts
    */
   public static AlluxioFuseFileSystemOpts create(
@@ -85,8 +85,7 @@ public final class AlluxioFuseFileSystemOpts {
         "AlluxioConfiguration should not be null for creating AlluxioFuseFileSystemOpts.");
     Preconditions.checkNotNull(fuseCliOpts,
         "AlluxioFuseCliOpts should not be null for creating AlluxioFuseFileSystemOpts.");
-    Optional<String> alluxioPathFromCli = fuseCliOpts.getMountAlluxioPath();
-    String alluxioPath = alluxioPathFromCli.orElseGet(
+    String alluxioPath = fuseCliOpts.getMountAlluxioPath().orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH));
     Optional<List<String>> libfuseOptionsFromCli = fuseCliOpts.getFuseOptions();
     List<String> libfuseOptions;

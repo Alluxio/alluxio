@@ -11,6 +11,7 @@
 
 package alluxio.fuse;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -34,9 +35,12 @@ public final class AlluxioFuseCliOpts {
 
   private AlluxioFuseCliOpts(Optional<String> mountPoint, Optional<String> alluxioPath,
       Optional<List<String>> libfuseOptions) {
-    mMountPoint = mountPoint;
-    mAlluxioPath = alluxioPath;
-    mLibfuseOptions = libfuseOptions;
+    mMountPoint = Preconditions.checkNotNull(mountPoint,
+        "MountPoint for AlluxioFuseCliOpts should not be null.");
+    mAlluxioPath = Preconditions.checkNotNull(alluxioPath,
+        "AlluxioPath for AlluxioFuseCliOpts should not be null.");
+    mLibfuseOptions = Preconditions.checkNotNull(libfuseOptions,
+        "LibfuseOptions for AlluxioFuseCliOpts should not be null.");
   }
 
   /**
