@@ -14,8 +14,10 @@ package alluxio.worker.block;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.LoadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
@@ -185,6 +187,13 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param request the cache request
    */
   void cache(CacheRequest request) throws AlluxioException, IOException;
+
+  /**
+   * load blocks into alluxio.
+   * @param request load request
+   * @return failed load status
+   */
+  List<BlockStatus> load(LoadRequest request);
 
   /**
    * Sets the pinlist for the underlying block store.

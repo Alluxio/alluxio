@@ -12,7 +12,7 @@
 package alluxio.master.journal.raft;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -42,9 +42,9 @@ public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
   // How long to wait for a response from the cluster before giving up and trying again.
   private static final long MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
-      ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
+      Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
   private static final long MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
-      ServerConfiguration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+      Configuration.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
   // journal entry size max is the hard limit set by underlying ratis
   // we use a smaller value to guarantee we don't pass the hard limit
   private static final long FLUSH_BATCH_SIZE = MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX / 3;

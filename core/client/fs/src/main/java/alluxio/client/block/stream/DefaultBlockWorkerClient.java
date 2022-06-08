@@ -28,6 +28,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -43,7 +45,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -168,8 +169,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<WriteRequest> marshaller =
           ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
-              .getRequestMarshaller();
-      Preconditions.checkNotNull(marshaller, "marshaller");
+              .getRequestMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
@@ -186,8 +186,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
-              .getResponseMarshaller();
-      Preconditions.checkNotNull(marshaller);
+              .getResponseMarshaller().orElseThrow(NullPointerException::new);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()
@@ -240,5 +239,21 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       }
       LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
     }
+  }
+
+  @Override
+  public void load(LoadRequest request) {
+    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).load(request,
+        new StreamObserver<LoadResponse>() {
+          @Override
+          public void onNext(LoadResponse value) {}
+
+          @Override
+          public void onError(Throwable t) {
+          }
+
+          @Override
+          public void onCompleted() {}
+        });
   }
 }

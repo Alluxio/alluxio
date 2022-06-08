@@ -11,8 +11,8 @@
 
 package alluxio.metrics;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.CachedGauge;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeoutException;
 public class InstrumentedExecutorService implements ExecutorService {
   private final Logger mSamplingLog =
       new SamplingLogger(LoggerFactory.getLogger(InstrumentedExecutorService.class),
-          ConfigurationUtils.defaults().getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
+          Configuration.getMs(PropertyKey.METRICS_EXECUTOR_TASK_WARN_FREQUENCY));
 
   private com.codahale.metrics
       .InstrumentedExecutorService mDelegate;
@@ -102,7 +102,7 @@ public class InstrumentedExecutorService implements ExecutorService {
   private void addedTasks(int count) {
     long activeCount = mSubmitted.getCount() - mCompleted.getCount() + count;
     mHist.update(activeCount);
-    if (activeCount >= ConfigurationUtils.defaults()
+    if (activeCount >= Configuration.global()
         .getInt(PropertyKey.METRICS_EXECUTOR_TASK_WARN_SIZE)) {
       mSamplingLog.warn("Number of active tasks (queued and running) for executor {} is {}",
           mName, activeCount);

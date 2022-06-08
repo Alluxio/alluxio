@@ -30,7 +30,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -87,8 +86,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
    */
   @VisibleForTesting
   public static final int MAX_NAME_LENGTH = 255;
-
-  private static AlluxioConfiguration sConf = ConfigurationUtils.defaults();
 
   /**
    * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
@@ -786,7 +783,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
-    ClientContext ctx = ClientContext.create(sConf);
+    ClientContext ctx = ClientContext.create();
 
     try (BlockMasterClient blockClient =
              BlockMasterClient.Factory.create(MasterClientContext.newBuilder(ctx).build())) {
@@ -931,7 +928,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
       LOG.error("Failed to remove {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return 0;
   }
 

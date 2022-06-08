@@ -50,7 +50,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
   private static final Logger LOG = LoggerFactory.getLogger(StreamRegisterWorkerBench.class);
 
   @ParametersDelegate
-  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
+  private final BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
   private List<String> mTierAliases;
   private Map<String, Long> mCapacityMap;
   private Map<String, Long> mUsedMap;
@@ -122,7 +122,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
     for (LocationBlockIdListEntry e : entries) {
       sb.append(String.format("%s,", e.getKey()));
     }
-    LOG.info("Generated locations: {}", sb.toString());
+    LOG.info("Generated locations: {}", sb);
   }
 
   /**

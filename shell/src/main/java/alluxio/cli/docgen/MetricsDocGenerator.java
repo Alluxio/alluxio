@@ -12,10 +12,10 @@
 package alluxio.cli.docgen;
 
 import alluxio.annotation.PublicApi;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -56,7 +56,7 @@ public final class MetricsDocGenerator {
     List<MetricKey> defaultKeys = new ArrayList<>(MetricKey.allMetricKeys());
     Collections.sort(defaultKeys);
 
-    String homeDir = ConfigurationUtils.defaults().getString(PropertyKey.HOME);
+    String homeDir = Configuration.getString(PropertyKey.HOME);
 
     // Map from metric key prefix to metric category
     Map<String, String> metricTypeMap = new HashMap<>();

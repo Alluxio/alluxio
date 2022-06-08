@@ -14,7 +14,7 @@ package alluxio.web;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
@@ -62,7 +62,7 @@ public final class WorkerWebServer extends WebServer {
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block")
         .register(JacksonProtobufObjectMapperProvider.class);
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
 
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
@@ -84,9 +84,9 @@ public final class WorkerWebServer extends WebServer {
     // STATIC assets
     try {
       // If the Web UI is disabled, disable the resources and servlet together.
-      if (ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
         String resourceDirPathString =
-                ServerConfiguration.getString(PropertyKey.WEB_RESOURCES) + "/worker/build/";
+                Configuration.getString(PropertyKey.WEB_RESOURCES) + "/worker/build/";
         File resourceDir = new File(resourceDirPathString);
         mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
         mServletContextHandler.setWelcomeFiles(new String[]{"index.html"});

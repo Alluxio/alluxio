@@ -15,13 +15,13 @@ import static java.util.Objects.requireNonNull;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
-import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -77,7 +77,7 @@ public class ClientContext {
    * an empty subject.
    */
   public static ClientContext create() {
-    return new ClientContext(new Subject(), ConfigurationUtils.defaults());
+    return new ClientContext(new Subject(), Configuration.global());
   }
 
   /**
@@ -120,14 +120,14 @@ public class ClientContext {
     if (!loadClusterConf && !loadPathConf) {
       return;
     }
-    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+    GetConfigurationPResponse response = Configuration.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
+      mClusterConf = Configuration.getClusterConf(response, conf, Scope.CLIENT);
       mClusterConfHash = response.getClusterConfigHash();
     }
     if (loadPathConf) {
-      mPathConf = ConfigurationUtils.getPathConf(response, conf);
+      mPathConf = Configuration.getPathConf(response, conf);
       mPathConfHash = response.getPathConfigHash();
       mIsPathConfLoaded = true;
     }

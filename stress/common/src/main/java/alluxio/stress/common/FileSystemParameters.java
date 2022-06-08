@@ -49,8 +49,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to FileSystemClientType instance.
-   *
-   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersClientTypeConverter
       implements IStringConverter<FileSystemClientType> {
@@ -62,8 +60,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to FileSystemClientType instance.
-   *
-   * @return FileSystemClientType of this bench
    */
   public static class FileSystemParametersReadTypeConverter implements IStringConverter<ReadType> {
     @Override
@@ -74,8 +70,6 @@ public class FileSystemParameters extends Parameters {
 
   /**
    * Converts from String to a valid FileSystemWriteType String.
-   *
-   * @return FileSystemWriteType of this bench
    */
   public static class FileSystemParametersWriteTypeConverter implements IStringConverter<String> {
     @Override

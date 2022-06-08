@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockStoreLocation;
@@ -93,7 +92,7 @@ public final class DefaultStorageDirTest {
    *
    * @param testDir test directory file identifier
    * @return {@link StorageDir}
-   * @throws Exception
+   * @throws Exception exception
    */
   private StorageDir newStorageDir(File testDir) throws Exception {
     return DefaultStorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0,
@@ -106,7 +105,7 @@ public final class DefaultStorageDirTest {
    * @param dir test directory file identifier
    * @param name block file name
    * @param lenBytes bytes length of the block file
-   * @throws IOException
+   * @throws IOException exception
    */
   private void newBlockFile(File dir, String name, int lenBytes) throws IOException {
     File block = new File(dir, name);
@@ -459,7 +458,7 @@ public final class DefaultStorageDirTest {
    * Tests the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
-  public void resizeTempBlockMeta() throws Exception {
+  public void resizeTempBlockMeta() {
     mDir.addTempBlockMeta(mTempBlockMeta);
     assertEquals(TEST_DIR_CAPACITY - TEST_REVERSED_BYTES - TEST_TEMP_BLOCK_SIZE,
         mDir.getAvailableBytes());
@@ -469,14 +468,14 @@ public final class DefaultStorageDirTest {
   }
 
   /**
-   * Tests that an {@link InvalidWorkerStateException} is thrown when trying to shrink a block via
+   * Tests that an exception is thrown when trying to shrink a block via
    * the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
    */
   @Test
-  public void resizeTempBlockMetaInvalidStateException() throws Exception {
+  public void resizeTempBlockMetaInvalidStateException() {
     mDir.addTempBlockMeta(mTempBlockMeta);
     final long newSize = TEST_TEMP_BLOCK_SIZE - 10;
-    assertThrows("Shrinking block, not supported!", InvalidWorkerStateException.class,
+    assertThrows("Shrinking block, not supported!", IllegalStateException.class,
         () -> mDir.resizeTempBlockMeta(mTempBlockMeta, newSize));
     assertEquals(TEST_TEMP_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
   }
@@ -486,7 +485,7 @@ public final class DefaultStorageDirTest {
    * {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
    */
   @Test
-  public void resizeTempBlockMetaNoAvailableBytes() throws Exception {
+  public void resizeTempBlockMetaNoAvailableBytes() {
     mDir.addTempBlockMeta(mTempBlockMeta);
     // resize the temp block size to the dir capacity, which is the limit
     mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY);

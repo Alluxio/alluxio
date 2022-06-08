@@ -11,6 +11,9 @@
 
 package alluxio.grpc;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 /**
  * A provider of {@link DataMessageMarshaller} for a gRPC call.
  *
@@ -25,8 +28,8 @@ public class DataMessageMarshallerProvider<ReqT, ResT>  {
    * @param requestMarshaller the marshaller for the request, or null if not provided
    * @param responseMarshaller the marshaller for the response, or null if not provided
    */
-  public DataMessageMarshallerProvider(DataMessageMarshaller<ReqT> requestMarshaller,
-      DataMessageMarshaller<ResT> responseMarshaller) {
+  public DataMessageMarshallerProvider(@Nullable DataMessageMarshaller<ReqT> requestMarshaller,
+      @Nullable DataMessageMarshaller<ResT> responseMarshaller) {
     mRequestMarshaller = requestMarshaller;
     mResponseMarshaller = responseMarshaller;
   }
@@ -34,14 +37,14 @@ public class DataMessageMarshallerProvider<ReqT, ResT>  {
   /**
    * @return the request marshaller
    */
-  public DataMessageMarshaller<ReqT> getRequestMarshaller() {
-    return mRequestMarshaller;
+  public Optional<DataMessageMarshaller<ReqT>> getRequestMarshaller() {
+    return Optional.ofNullable(mRequestMarshaller);
   }
 
   /**
    * @return the response marshaller
    */
-  public DataMessageMarshaller<ResT> getResponseMarshaller() {
-    return mResponseMarshaller;
+  public Optional<DataMessageMarshaller<ResT>> getResponseMarshaller() {
+    return Optional.ofNullable(mResponseMarshaller);
   }
 }

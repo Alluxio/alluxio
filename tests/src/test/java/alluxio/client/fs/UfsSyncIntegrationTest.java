@@ -26,7 +26,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -101,7 +101,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
-      ServerConfiguration.global());
+      Configuration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -113,12 +113,12 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Before
   public void before() throws Exception {
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
 
     new File(ufsPath(EXISTING_DIR)).mkdirs();
@@ -576,7 +576,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     mFileSystem.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
         BlockMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            .newBuilder(ClientContext.create(Configuration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
@@ -618,7 +618,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createNestedFileSync() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
     mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
         CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
@@ -958,7 +958,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       }
       // Check fingerprint.
       UnderFileSystem ufs = UnderFileSystem.Factory.create(uriStatus.getUfsPath(),
-          ServerConfiguration.global());
+          Configuration.global());
       String ufsFingerprint = ufs.getParsedFingerprint(uriStatus.getUfsPath()).serialize();
       String alluxioFingerprint = uriStatus.getUfsFingerprint();
       if (!ufsFingerprint.equals(alluxioFingerprint)) {

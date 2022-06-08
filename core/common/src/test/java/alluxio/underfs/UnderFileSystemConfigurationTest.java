@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -34,7 +34,7 @@ public final class UnderFileSystemConfigurationTest {
 
   @Before
   public void before() {
-    mConfiguration = ConfigurationTestUtils.copyDefaults();
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test
@@ -46,11 +46,11 @@ public final class UnderFileSystemConfigurationTest {
       boolean readOnly = random.nextBoolean();
       boolean shared = random.nextBoolean();
       UnderFileSystemConfiguration conf = UnderFileSystemConfiguration
-          .defaults(ConfigurationTestUtils.copyDefaults()).setReadOnly(readOnly).setShared(shared);
+          .defaults(Configuration.global()).setReadOnly(readOnly).setShared(shared);
       assertEquals(readOnly, conf.isReadOnly());
       assertEquals(shared, conf.isShared());
       assertEquals("bar", mConfiguration.get(PropertyKey.S3A_ACCESS_KEY));
-      conf = UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.copyDefaults())
+      conf = UnderFileSystemConfiguration.defaults(Configuration.global())
           .setReadOnly(readOnly).setShared(shared)
           .createMountSpecificConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
       assertEquals(readOnly, conf.isReadOnly());

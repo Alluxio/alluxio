@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistRuntimeException;
@@ -30,9 +30,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.LoadRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -46,7 +48,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -94,7 +95,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
   /** Used to close resources during stop. */
   private final Closer mResourceCloser = Closer.create();
@@ -110,8 +111,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   /** Block store delta reporter for master heartbeat. */
   private final BlockHeartbeatReporter mHeartbeatReporter;
-  /** Metrics reporter that listens on block events and increases metrics counters. */
-  private final BlockMetricsReporter mMetricsReporter;
   /** Session metadata, used to keep track of session heartbeats. */
   private final Sessions mSessions;
   /** Block Store manager. */
@@ -128,7 +127,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   private final AtomicReference<Long> mWorkerId;
 
-  private final FileSystemContext mFsContext;
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
 
@@ -142,7 +140,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   DefaultBlockWorker(UfsManager ufsManager) {
     this(new BlockMasterClientPool(),
         new FileSystemMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
+            .newBuilder(ClientContext.create(Configuration.global())).build()),
         new Sessions(), LocalBlockStore.create(ufsManager), ufsManager);
   }
 
@@ -163,19 +161,20 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mMetricsReporter = new BlockMetricsReporter();
+    /* Metrics reporter that listens on block events and increases metrics counters. */
+    BlockMetricsReporter metricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
     mLocalBlockStore = mResourceCloser.register(blockStore);
     mWorkerId = new AtomicReference<>(-1L);
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
-    mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    mFsContext = mResourceCloser.register(
-        FileSystemContext.create(ClientContext.create(ServerConfiguration.global()), this));
+    mLocalBlockStore.registerBlockStoreEventListener(metricsReporter);
+    FileSystemContext fsContext = mResourceCloser.register(
+        FileSystemContext.create(ClientContext.create(Configuration.global()), this));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
     mCacheManager = new CacheRequestManager(
-        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
-    mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
-    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST));
+        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
+    mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
+    mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 
     Metrics.registerGauges(this);
   }
@@ -224,7 +223,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
+          RetryUtils.defaultWorkerMasterClientRetry(Configuration
               .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
       throw new RuntimeException("Failed to create a worker id from block master: "
@@ -241,16 +240,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global(), ServerUserState.global()));
+            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            Configuration.global(), ServerUserState.global()));
 
     // Setup PinListSyncer
     PinListSync pinListSync = mResourceCloser.register(
         new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
-            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-            ServerConfiguration.global(), ServerUserState.global()));
+            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            Configuration.global(), ServerUserState.global()));
 
     // Setup session cleaner
     SessionCleaner sessionCleaner = mResourceCloser
@@ -258,16 +257,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     getExecutorService().submit(sessionCleaner);
 
     // Setup storage checker
-    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
       StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
-              (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
-                  ServerConfiguration.global(), ServerUserState.global()));
+              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+                  Configuration.global(), ServerUserState.global()));
     }
 
     // Mounts the embedded Fuse application
-    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
       mFuseManager.start();
     }
   }
@@ -395,9 +394,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-      return new DelegatingBlockReader(reader, () -> {
-        closeUfsBlock(sessionId, blockId);
-      });
+      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
     } catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId);
@@ -439,6 +436,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public void cache(CacheRequest request) throws AlluxioException, IOException {
     mCacheManager.submitRequest(request);
+  }
+
+  @Override
+  public List<BlockStatus> load(LoadRequest request) {
+    return null;
   }
 
   @Override
@@ -511,26 +513,26 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public Configuration getConfiguration(GetConfigurationPOptions options) {
+  public alluxio.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
     // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
     // consistent snapshot of the system's state at a certain time, the path configuration might
     // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
     // the properties.
-    Configuration.Builder builder = Configuration.newBuilder();
+    alluxio.wire.Configuration.Builder builder = alluxio.wire.Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {
-      for (PropertyKey key : ServerConfiguration.keySet()) {
+      for (PropertyKey key : Configuration.keySet()) {
         if (key.isBuiltIn()) {
-          Source source = ServerConfiguration.getSource(key);
-          Object value = ServerConfiguration.getOrDefault(key, null,
+          Source source = Configuration.getSource(key);
+          Object value = Configuration.getOrDefault(key, null,
                   ConfigurationValueOptions.defaults().useDisplayValue(true)
                           .useRawValue(options.getRawValue()));
           builder.addClusterProperty(key.getName(), value, source);
         }
       }
-      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // NOTE(cc): assumes that Configuration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
-      builder.setClusterConfHash(ServerConfiguration.hash());
+      builder.setClusterConfHash(Configuration.hash());
     }
 
     return builder.build();

@@ -18,6 +18,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioProperties;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -33,7 +34,6 @@ import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.CompactionParameters;
 import alluxio.stress.client.CompactionTaskResult;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
@@ -231,7 +231,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
   }
 
   private static AlluxioProperties getCustomProperties(List<String> propertyList) {
-    AlluxioProperties properties = ConfigurationUtils.copyDefaults();
+    AlluxioProperties properties = Configuration.copyProperties();
     for (String property : propertyList) {
       String[] parts = property.split("=", 2);
       Preconditions.checkArgument(parts.length == 2,

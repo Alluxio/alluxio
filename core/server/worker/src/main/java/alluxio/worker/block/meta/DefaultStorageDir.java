@@ -15,9 +15,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.BlockStoreLocation;
@@ -121,8 +120,8 @@ public final class DefaultStorageDir implements StorageDir {
   private void initializeMeta() throws IOException, WorkerOutOfSpaceException {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
-        ServerConfiguration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-    String tmpDir = Paths.get(ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
+    String tmpDir = Paths.get(Configuration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER))
         .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);
@@ -296,14 +295,12 @@ public final class DefaultStorageDir implements StorageDir {
   }
 
   @Override
-  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidWorkerStateException {
+  public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize) {
     long oldSize = tempBlockMeta.getBlockSize();
+    checkState(oldSize < newSize, "Shrinking block, not supported!");
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
       tempBlockMeta.setBlockSize(newSize);
-    } else if (newSize < oldSize) {
-      throw new InvalidWorkerStateException("Shrinking block, not supported!");
     }
   }
 

@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
@@ -154,7 +155,7 @@ public final class ConfigurationUtilsTest {
   }
 
   private AlluxioConfiguration createConf(Map<PropertyKey, Object> properties) {
-    AlluxioProperties props = ConfigurationUtils.copyDefaults();
+    AlluxioProperties props = Configuration.copyProperties();
     for (PropertyKey key : properties.keySet()) {
       props.set(key, properties.get(key));
     }

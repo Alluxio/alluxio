@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.BlockInfoException;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
@@ -133,7 +133,7 @@ public final class MutableInodeFileTest extends AbstractInodeTest {
     assertEquals(TEST_OWNER, inode1.getOwner());
     assertEquals(TEST_GROUP, inode1.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
-        ServerConfiguration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK))
+        Configuration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK))
             .toShort(),
         inode1.getMode());
   }

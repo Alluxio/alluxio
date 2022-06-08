@@ -17,7 +17,6 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -184,7 +183,7 @@ public final class HadoopUtils {
     // Take hadoop configuration to merge to Alluxio configuration
     Map<String, Object> hadoopConfProperties =
         HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
-    AlluxioProperties alluxioProps = ConfigurationUtils.copyDefaults();
+    AlluxioProperties alluxioProps = alluxio.conf.Configuration.copyProperties();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.

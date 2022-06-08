@@ -13,7 +13,7 @@ package alluxio.worker;
 
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public final class SessionCleaner implements Runnable, Closeable {
     for (SessionCleanable sc : sessionCleanable) {
       mSessionCleanables.add(sc);
     }
-    mCheckIntervalMs = (int) ServerConfiguration
+    mCheckIntervalMs = (int) Configuration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;

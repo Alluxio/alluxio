@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
@@ -41,7 +40,9 @@ import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -75,6 +76,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -86,7 +88,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
 
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.copyDefaults();
+  private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
@@ -450,9 +452,12 @@ public class FileOutStreamTest {
   }
 
   @Test
-  public void createWithNoWorker() throws Exception {
+  public void createWithNoWorker()  {
+    // The default 2 minutes is too long.
+    sConf.set(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION, "10sec");
+    mClientContext = ClientContext.create(sConf);
     OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
-        .setLocationPolicy((getWorkerOptions) -> null)
+        .setLocationPolicy((getWorkerOptions) -> Optional.empty())
         .setWriteType(WriteType.CACHE_THROUGH);
     Exception e = assertThrows(UnavailableException.class,
         () -> mTestStream = createTestStream(FILE_NAME, options));

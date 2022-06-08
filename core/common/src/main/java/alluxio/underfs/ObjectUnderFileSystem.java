@@ -37,6 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -909,7 +910,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    throw new IOException(ExceptionMessage.INVALID_PREFIX.getMessage(parent, child));
+    throw new IOException(
+        MessageFormat.format("Parent path \"{0}\" is not a prefix of child {1}.", parent, child));
   }
 
   /**

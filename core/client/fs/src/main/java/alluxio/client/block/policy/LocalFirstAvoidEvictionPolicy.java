@@ -23,6 +23,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -70,7 +71,7 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> allWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
     // Prefer workers with enough availability.
     List<BlockWorkerInfo> workers = allWorkers.stream()

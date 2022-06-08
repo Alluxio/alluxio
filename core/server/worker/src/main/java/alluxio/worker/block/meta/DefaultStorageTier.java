@@ -13,9 +13,8 @@ package alluxio.worker.block.meta;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -64,30 +63,31 @@ public final class DefaultStorageTier implements StorageTier {
 
   private void initStorageTier(boolean isMultiTier)
       throws WorkerOutOfSpaceException {
-    String tmpDir = ServerConfiguration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
+    String tmpDir = Configuration.getString(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
-    List<String> dirPaths = ServerConfiguration.getList(tierDirPathConf).stream()
-        .map(path -> CommonUtils.getWorkerDataDirectory(path, ServerConfiguration.global()))
+    List<String> dirPaths = Configuration.getList(tierDirPathConf).stream()
+        .map(path -> CommonUtils.getWorkerDataDirectory(path, Configuration.global()))
         .collect(ImmutableList.toImmutableList());
 
     PropertyKey tierDirCapacityConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(mTierOrdinal);
-    List<String> dirQuotas = ServerConfiguration.getList(tierDirCapacityConf);
-    Preconditions.checkState(dirQuotas.size() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
+    List<String> dirQuotas = Configuration.getList(tierDirCapacityConf);
+    Preconditions.checkState(dirQuotas.size() > 0,
+        "Tier capacity configuration should not be blank");
 
     PropertyKey tierDirMediumConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
-    List<String> dirMedium = ServerConfiguration.getList(tierDirMediumConf);
+    List<String> dirMedium = Configuration.getList(tierDirMediumConf);
     Preconditions.checkState(dirMedium.size() > 0,
         "Tier medium type configuration should not be blank");
 
     // Set reserved bytes on directories if tier aligning is enabled.
     long reservedBytes = 0;
     if (isMultiTier
-        && ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)) {
+        && Configuration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED)) {
       reservedBytes =
-          ServerConfiguration.getBytes(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES);
+          Configuration.getBytes(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES);
     }
 
     for (int i = 0; i < dirPaths.size(); i++) {
