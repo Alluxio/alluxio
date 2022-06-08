@@ -66,6 +66,7 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
@@ -104,6 +105,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,10 +132,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * allows the master to return container ids within the reservation, without having to write to
    * the journal.
    */
-  private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
+  private final long mContainerIdReservationSize = Configuration.getInt(
+      PropertyKey.MASTER_CONTAINER_ID_RESERVATION_SIZE);
 
   /** The only valid key for {@link #mWorkerInfoCache}. */
   private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
+
+  private ScheduledExecutorService mContainerIdDetectionExecutor = Executors
+      .newSingleThreadScheduledExecutor(
+        ThreadFactoryUtils.build("default-block-master-container-id-detection-%d", true));
 
   // Worker metadata management.
   private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
@@ -473,6 +481,27 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           (int) Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
           Configuration.global(), mMasterContext.getUserState()));
+
+      mContainerIdDetectionExecutor.scheduleWithFixedDelay(() -> {
+        try {
+          if (mBlockContainerIdGenerator.getCurrentContainerId() >=
+              (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+            synchronized (mBlockContainerIdGenerator) {
+              long currentContainerId = mBlockContainerIdGenerator.getCurrentContainerId();
+
+              if (currentContainerId >= (mJournaledNextContainerId - mContainerIdReservationSize / 2)) {
+                mJournaledNextContainerId = currentContainerId + mContainerIdReservationSize;
+                try (JournalContext journalContext = createJournalContext()) {
+                  journalContext.append(getContainerIdJournalEntry());
+                }
+              }
+            }
+          }
+        } catch (UnavailableException e) {
+          LOG.error("Container Id Detection Executor failed", e);
+          throw new RuntimeException(e);
+        }
+      }, 1, 1, TimeUnit.SECONDS);
     }
 
     // This periodically scans all open register streams and closes hanging ones
@@ -493,6 +522,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void close() throws IOException {
     super.close();
     mBlockStore.close();
+
+    mContainerIdDetectionExecutor.shutdown();
+    try {
+      mContainerIdDetectionExecutor.awaitTermination(5000, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.warn("Container id detection executor did not shut down in a timely manner: {}",
+          e.toString());
+    }
   }
 
   @Override
@@ -775,12 +812,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // crashes, the container ids within the reservation which have not been used yet will
       // never be used. This is a tradeoff between fully utilizing the container id space, vs.
       // improving master scalability.
-      // TODO(gpang): investigate if dynamic reservation sizes could be effective
 
       // Set the next id to journal with a reservation of container ids, to avoid having to write
       // to the journal for ids within the reservation.
+      containerId = mBlockContainerIdGenerator.getCurrentContainerId();
       if (containerId >= mJournaledNextContainerId) {
-        mJournaledNextContainerId = containerId + CONTAINER_ID_RESERVATION_SIZE;
+        mJournaledNextContainerId = containerId + mContainerIdReservationSize;
         try (JournalContext journalContext = createJournalContext()) {
           // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
           // prevent subsequent calls to return ids that have not been journaled and flushed.
