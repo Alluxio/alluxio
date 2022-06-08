@@ -85,13 +85,14 @@ public final class AlluxioFuseFileSystemOpts {
       }
     }
     libfuseOptions = optimizeAndFormatFuseOptions(libfuseOptions);
-    Optional<String> mountPointFromCli = fuseCliOpts.getMountPoint();
-    String mountPoint = mountPointFromCli.orElseGet(
+    String mountPoint = fuseCliOpts.getMountPoint().orElseGet(
         () -> conf.getString(PropertyKey.FUSE_MOUNT_POINT));
     Optional<String> authPolicyCustomGroup = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+        && !conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP).isEmpty()
         ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP))
         : Optional.empty();
     Optional<String> authPolicyCustomUser = conf.isSet(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER)
+        && !conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER).isEmpty()
         ? Optional.of(conf.getString(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER))
         : Optional.empty();
     return new AlluxioFuseFileSystemOpts(alluxioPath,
