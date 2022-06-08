@@ -625,7 +625,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
-    int numOfPages = (int) (fileLength / mPageSize);
+    int numOfPages = (int) ((fileLength - 1) / mPageSize) + 1; //ceiling round the result
     List<PageId> pageIds = new ArrayList<>(numOfPages);
     try (LockResource r = new LockResource(mMetaLock.readLock())) {
       for (long pageIndex = 0; pageIndex < numOfPages; pageIndex++) {
