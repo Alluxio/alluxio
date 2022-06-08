@@ -253,6 +253,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
+  private final boolean mLostWorkerFileDetectionEnabled;
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -290,6 +291,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     mBlockStore = blockStore;
     mMetricsMaster = metricsMaster;
+    mLostWorkerFileDetectionEnabled =
+        Configuration.getBoolean(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_ENABLED);
     Metrics.registerGauges(this);
 
     mWorkerInfoCache = CacheBuilder.newBuilder()
@@ -698,7 +701,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           if (delete) {
             // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
             // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
-            mLostBlocks.remove(blockId);
+            if (mLostWorkerFileDetectionEnabled) {
+              mLostBlocks.remove(blockId);
+            }
             mBlockStore.removeBlock(blockId);
             JournalEntry entry = JournalEntry.newBuilder()
                 .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
@@ -839,7 +844,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
               .setMediumType(mediumType)
               .build());
           // This worker has this block, so it is no longer lost.
-          mLostBlocks.remove(blockId);
+          if (mLostWorkerFileDetectionEnabled) {
+            mLostBlocks.remove(blockId);
+          }
 
           // Update the worker information for this new block.
           // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
@@ -1277,8 +1284,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (block.isPresent()) {
           LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
           mBlockStore.removeLocation(removedBlockId, workerInfo.getId());
-          if (mBlockStore.getLocations(removedBlockId).size() == 0) {
-            mLostBlocks.add(removedBlockId);
+          if (mLostWorkerFileDetectionEnabled) {
+            if (mBlockStore.getLocations(removedBlockId).size() == 0) {
+              mLostBlocks.add(removedBlockId);
+            }
           }
         }
         // Remove the block even if its metadata has been deleted already.
@@ -1315,7 +1324,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 "BlockLocation has a different workerId %s from the request sender's workerId %s",
                 location.getWorkerId(), workerInfo.getId());
             mBlockStore.addLocation(blockId, location);
-            mLostBlocks.remove(blockId);
+            if (mLostWorkerFileDetectionEnabled) {
+              mLostBlocks.remove(blockId);
+            }
           } else {
             invalidBlockCount++;
             // The block is not recognized and should therefore be purged from the worker

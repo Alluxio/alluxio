@@ -676,11 +676,13 @@ public class DefaultFileSystemMaster extends CoreMaster
               new InodeTtlChecker(this, mInodeTree),
               Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
               Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mInodeTree),
-              Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
-              Configuration.global(), mMasterContext.getUserState()));
+      if (Configuration.getBoolean(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_ENABLED)) {
+        getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
+                new LostFileDetector(this, mBlockMaster, mInodeTree),
+                Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
+                Configuration.global(), mMasterContext.getUserState()));
+      }
       mReplicationCheckHeartbeatThread = new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,

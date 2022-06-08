@@ -14,6 +14,8 @@ package alluxio.master.file;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.master.block.BlockId;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -23,10 +25,12 @@ import alluxio.master.journal.JournalContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.util.IdUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,34 +41,44 @@ final class LostFileDetector implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(LostFileDetector.class);
   private final FileSystemMaster mFileSystemMaster;
   private final InodeTree mInodeTree;
+  private final BlockMaster mBlockMaster;
 
   /**
    * Constructs a new {@link LostFileDetector}.
    */
-  public LostFileDetector(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
+  public LostFileDetector(FileSystemMaster fileSystemMaster, BlockMaster blockMaster,
+      InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
+    mBlockMaster = blockMaster;
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_LOST_FILE_COUNT.getName(),
         () -> mFileSystemMaster.getLostFiles().size());
   }
 
   @Override
   public void heartbeat() throws InterruptedException {
-    for (long fileId : mFileSystemMaster.getLostFiles()) {
+    Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
+    while (iter.hasNext()) {
+      long blockId = iter.next();
+      // the file id is the container id of the block id
+      long containerId = BlockId.getContainerId(blockId);
+      long fileId = IdUtils.createFileId(containerId);
       // Throw if interrupted.
       if (Thread.interrupted()) {
         throw new InterruptedException("LostFileDetector interrupted.");
       }
       // update the state
       try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
-          LockedInodePath inodePath =
-              mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
+           LockedInodePath inodePath =
+               mInodeTree.lockFullInodePath(fileId, LockPattern.WRITE_INODE)) {
         Inode inode = inodePath.getInode();
         if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
           mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
               .setId(inode.getId())
               .setPersistenceState(PersistenceState.LOST.name())
               .build());
+        } else {
+          iter.remove();
         }
       } catch (FileDoesNotExistException e) {
         LOG.debug("Exception trying to get inode from inode tree", e);
