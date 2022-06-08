@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @NotThreadSafe
 public class MemoryPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(MemoryPageStore.class);
-  private final long mCapacity;
 
   private ConcurrentHashMap<PageId, byte[]> mPageStoreMap = null;
 
@@ -42,7 +41,6 @@ public class MemoryPageStore implements PageStore {
    * @param options options for the buffer store
    */
   public MemoryPageStore(MemoryPageStoreOptions options) {
-    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mPageStoreMap = new ConcurrentHashMap<>();
   }
 
@@ -104,5 +102,12 @@ public class MemoryPageStore implements PageStore {
   public void close() {
     mPageStoreMap.clear();
     mPageStoreMap = null;
+  }
+
+  /**
+   *
+   */
+  public void reset() {
+    mPageStoreMap.clear();
   }
 }

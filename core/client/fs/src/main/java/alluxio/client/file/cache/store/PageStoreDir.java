@@ -65,6 +65,11 @@ public interface PageStoreDir {
             CacheEvictor.create(conf)
         );
       case MEM:
+        return new MemoryPageStoreDir(
+            pageStoreOptions,
+            (MemoryPageStore)PageStore.openOrCreatePageStore(pageStoreOptions),
+            CacheEvictor.create(conf)
+        );
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             pageStoreOptions.getType().name()));

@@ -28,6 +28,7 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
 
   /**
    * Constructor of MemPageStoreDir.
+   *
    * @param pageStoreOptions page store options
    * @param pageStore the PageStore instance
    * @param cacheEvictor the evictor
@@ -35,7 +36,9 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
   public MemoryPageStoreDir(PageStoreOptions pageStoreOptions,
                             MemoryPageStore pageStore,
                             CacheEvictor cacheEvictor) {
-    super(pageStoreOptions.getRootDir(), pageStoreOptions.getCacheSize(), cacheEvictor);
+    super(pageStoreOptions.getRootDir(),
+        (long) (pageStoreOptions.getCacheSize() / (1 + pageStoreOptions.getOverheadRatio())),
+        cacheEvictor);
     mPageStore = requireNonNull(pageStore);
   }
 
@@ -46,6 +49,7 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
 
   @Override
   public void reset() {
+    mPageStore.reset();
   }
 
   @Override
